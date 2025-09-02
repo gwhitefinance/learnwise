@@ -39,6 +39,6 @@ export const studyPlannerFlow = ai.defineFlow(
   },
   async (promptText) => {
     const { output } = await prompt({prompt: promptText});
-    return output ?? '';
+    return output ?? "I'm sorry, I couldn't generate a study plan for that. Could you be more specific about the subject and exam?";
   }
 );
