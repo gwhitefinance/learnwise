@@ -2,44 +2,49 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
-import { CheckCircle, Flag, FlaskConical, Calendar as CalendarIcon, Users, Trophy } from "lucide-react";
+import { CheckCircle, Flag, FlaskConical, Calendar as CalendarIcon, Users, Trophy, Plus, Pen, Trash2 } from "lucide-react";
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
 
-const milestones = [
+const initialMilestones = [
   {
     icon: CalendarIcon,
-    date: "August 15, 2024",
+    date: new Date("2024-08-15"),
     title: "Course Enrollment",
     completed: true,
   },
   {
     icon: FlaskConical,
-    date: "September 5, 2024",
+    date: new Date("2024-09-05"),
     title: "Midterm Exam",
     completed: false,
   },
   {
     icon: CheckCircle,
-    date: "September 15, 2024",
+    date: new Date("2024-09-15"),
     title: "Project Submission",
     completed: false,
   },
   {
     icon: Trophy,
-    date: "September 25, 2024",
+    date: new Date("2024-09-25"),
     title: "Final Exam",
     completed: false,
   },
   {
     icon: CheckCircle,
-    date: "October 1, 2024",
+    date: new Date("2024-10-01"),
     title: "Course Completion",
     completed: false,
   },
 ];
 
-const goals = [
+const initialGoals = [
     {
         icon: Flag,
         title: "Finish Course",
@@ -55,10 +60,42 @@ const goals = [
         title: "Engagement",
         description: "Participate in all discussion forums"
     }
-]
+];
 
 export default function RoadmapsPage() {
-    const [date, setDate] = useState<Date | undefined>(new Date('2024-08-15'));
+    const [milestones, setMilestones] = useState(initialMilestones);
+    const [goals, setGoals] = useState(initialGoals);
+    const [goalTitle, setGoalTitle] = useState('');
+    const [goalDescription, setGoalDescription] = useState('');
+    const [isAddGoalOpen, setAddGoalOpen] = useState(false);
+    const { toast } = useToast();
+
+    const milestoneDates = milestones.map(m => m.date);
+
+    const handleAddGoal = () => {
+        if (!goalTitle || !goalDescription) {
+            toast({
+                variant: 'destructive',
+                title: 'Missing Information',
+                description: 'Please provide a title and description for your goal.',
+            });
+            return;
+        }
+        
+        const newGoal = {
+            icon: Flag,
+            title: goalTitle,
+            description: goalDescription,
+        };
+        setGoals([...goals, newGoal]);
+        setGoalTitle('');
+        setGoalDescription('');
+        setAddGoalOpen(false);
+        toast({
+            title: 'Goal Added!',
+            description: 'Your new goal has been added to your roadmap.',
+        });
+    };
 
   return (
     <div className="space-y-6">
@@ -73,17 +110,60 @@ export default function RoadmapsPage() {
         <div className="lg:col-span-2 space-y-8">
            <Card>
             <CardContent className="p-2">
-                 <Calendar
-                    mode="single"
-                    selected={date}
-                    onSelect={setDate}
+                <Calendar
+                    mode="multiple"
+                    selected={milestoneDates}
+                    classNames={{
+                        day_selected: "bg-primary/20 text-primary-foreground rounded-full",
+                    }}
+                    components={{
+                        DayContent: ({ date, ...props }) => {
+                            const isMilestone = milestoneDates.some(
+                                (milestoneDate) => new Date(date).toDateString() === new Date(milestoneDate).toDateString()
+                            );
+                            return (
+                                <div className="relative">
+                                    <span>{props.children}</span>
+                                    {isMilestone && <div className="absolute bottom-1 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-primary" />}
+                                </div>
+                            );
+                        },
+                    }}
                     className="w-full"
                   />
             </CardContent>
            </Card>
 
             <div>
-                <h2 className="text-2xl font-semibold mb-4">Goals</h2>
+                <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-2xl font-semibold">Goals</h2>
+                    <Dialog open={isAddGoalOpen} onOpenChange={setAddGoalOpen}>
+                        <DialogTrigger asChild>
+                            <Button><Plus className="mr-2 h-4 w-4"/> Add Goal</Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Add a New Goal</DialogTitle>
+                            </DialogHeader>
+                            <div className="grid gap-4 py-4">
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="goal-title" className="text-right">Title</Label>
+                                    <Input id="goal-title" value={goalTitle} onChange={(e) => setGoalTitle(e.target.value)} className="col-span-3" placeholder="e.g., Master React"/>
+                                </div>
+                                 <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="goal-description" className="text-right">Description</Label>
+                                    <Input id="goal-description" value={goalDescription} onChange={(e) => setGoalDescription(e.target.value)} className="col-span-3" placeholder="Describe your goal"/>
+                                </div>
+                            </div>
+                            <DialogFooter>
+                                <DialogClose asChild>
+                                    <Button variant="ghost">Cancel</Button>
+                                </DialogClose>
+                                <Button onClick={handleAddGoal}>Add Goal</Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+                </div>
                 <div className="grid gap-4 md:grid-cols-2">
                     {goals.map((goal, index) => (
                          <Card key={index}>
@@ -112,7 +192,7 @@ export default function RoadmapsPage() {
                   <milestone.icon className="h-4 w-4" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">{milestone.date}</p>
+                  <p className="text-sm text-muted-foreground">{milestone.date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
                   <h3 className="font-semibold text-lg">{milestone.title}</h3>
                 </div>
               </div>
