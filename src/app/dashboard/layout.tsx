@@ -15,6 +15,7 @@ import {
   Upload,
   Brush,
   BrainCircuit,
+  Lightbulb,
 } from 'lucide-react';
 
 import Link from 'next/link';
@@ -38,6 +39,7 @@ const navItems = [
     { href: '/dashboard/courses', icon: Book, label: 'Courses' },
     { href: '/dashboard/roadmaps', icon: GitMerge, label: 'Roadmaps' },
     { href: '/dashboard/notes', icon: FileText, label: 'Notes' },
+    { href: '/dashboard/practice-quiz', icon: Lightbulb, label: 'Practice Quiz' },
     { href: '/dashboard/learner-type', icon: TestTube, label: 'Learner Type' },
     { href: '/dashboard/ai-chat', icon: Bot, label: 'AI Chat' },
     { href: '/dashboard/analysis', icon: BrainCircuit, label: 'AI Analysis' },
