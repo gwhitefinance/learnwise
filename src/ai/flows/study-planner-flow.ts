@@ -8,14 +8,24 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
-const StudyPlannerInputSchema = z.string();
+const StudyPlannerInputSchema = z.object({
+    promptText: z.string(),
+    learnerType: z.string().optional(),
+});
 
 const prompt = ai.definePrompt({
     name: 'studyPlannerPrompt',
+    input: { schema: StudyPlannerInputSchema },
     prompt: `You are a helpful AI assistant. Respond to the user's request.
+    {{#if learnerType}}
+    The user is a {{learnerType}} learner. Tailor your response to their learning style.
+    - For Visual learners, use descriptions that help them visualize, suggest diagrams, charts, and videos.
+    - For Auditory learners, suggest listening to lectures, discussions, and using mnemonic devices.
+    - For Kinesthetic learners, recommend hands-on activities, real-world examples, and interactive exercises.
+    {{/if}}
     
     User request:
-    {{prompt}}
+    {{promptText}}
     `,
 });
 
@@ -25,14 +35,9 @@ export const studyPlannerFlow = ai.defineFlow(
     inputSchema: StudyPlannerInputSchema,
     outputSchema: z.string(),
   },
-  async (promptText) => {
-    const response = await ai.generate({
-        prompt: `You are a helpful AI assistant. Respond to the user's request.
-    
-        User request:
-        ${promptText}
-        `,
-    });
+  async (input) => {
+    const response = await prompt(input);
+
     return response.text ?? "I'm sorry, I am unable to answer that question. Please try rephrasing it.";
   }
 );

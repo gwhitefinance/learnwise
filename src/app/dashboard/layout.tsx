@@ -6,6 +6,7 @@ import {
   Home,
   Package2,
   Presentation,
+  TestTube,
   Upload,
 } from 'lucide-react';
 
@@ -85,6 +86,18 @@ export default function DashboardLayout({
               </TooltipTrigger>
               <TooltipContent side="right">Whiteboard</TooltipContent>
             </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link
+                  href="/dashboard/learner-type"
+                  className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8"
+                >
+                  <TestTube className="h-5 w-5" />
+                  <span className="sr-only">Learner Type Test</span>
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent side="right">Learner Type Test</TooltipContent>
+            </Tooltip>
           </nav>
         </aside>
         <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
@@ -132,6 +145,13 @@ export default function DashboardLayout({
                   >
                     <Presentation className="h-5 w-5" />
                     Whiteboard
+                  </Link>
+                   <Link
+                    href="/dashboard/learner-type"
+                    className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
+                  >
+                    <TestTube className="h-5 w-5" />
+                    Learner Type Test
                   </Link>
                 </nav>
               </SheetContent>

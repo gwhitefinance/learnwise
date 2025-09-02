@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,15 @@ export default function AiChatPage() {
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [learnerType, setLearnerType] = useState<string | null>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    const storedLearnerType = localStorage.getItem('learnerType');
+    if (storedLearnerType) {
+      setLearnerType(storedLearnerType);
+    }
+  }, []);
 
   const handleSendMessage = async () => {
     if (!input.trim()) return;
@@ -31,7 +39,10 @@ export default function AiChatPage() {
     setIsLoading(true);
 
     try {
-      const response = await studyPlannerFlow(input);
+      const response = await studyPlannerFlow({
+        promptText: input,
+        learnerType: learnerType || undefined,
+      });
       const aiMessage: Message = { role: 'ai', content: response };
       setMessages(prev => [...prev, aiMessage]);
     } catch (error) {
@@ -50,7 +61,15 @@ export default function AiChatPage() {
 
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)]">
-      <h1 className="text-3xl font-bold mb-4">AI Study Planner</h1>
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-3xl font-bold">AI Study Planner</h1>
+        {learnerType && (
+            <div className="text-sm text-muted-foreground">
+                <span className="font-semibold">Your Learner Type:</span>
+                <span className="ml-2 inline-flex items-center rounded-md bg-secondary px-2.5 py-0.5 text-xs font-medium text-secondary-foreground">{learnerType}</span>
+            </div>
+        )}
+      </div>
       <Card className="flex-1 flex flex-col">
         <CardContent className="flex-1 p-6 overflow-y-auto">
             <div className="flex flex-col gap-4">
