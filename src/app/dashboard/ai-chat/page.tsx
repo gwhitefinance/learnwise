@@ -75,7 +75,14 @@ export default function AiChatPage() {
 
     try {
       const savedEvents = localStorage.getItem('calendarEvents');
-      const calendarEvents: Event[] = savedEvents ? JSON.parse(savedEvents) : [];
+      let calendarEvents: Event[] = [];
+      if (savedEvents) {
+        const parsedEvents = JSON.parse(savedEvents);
+        if (Array.isArray(parsedEvents)) {
+          calendarEvents = parsedEvents;
+        }
+      }
+      
       // Convert date objects to ISO strings for serialization
       const serializableEvents = calendarEvents.map(e => ({...e, date: new Date(e.date).toISOString()}));
 
