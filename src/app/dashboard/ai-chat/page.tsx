@@ -22,6 +22,15 @@ type Course = {
     description?: string;
 };
 
+type Event = {
+  id: string;
+  date: string;
+  title: string;
+  time: string;
+  type: 'Test' | 'Homework' | 'Quiz' | 'Event';
+  description: string;
+};
+
 export default function AiChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -65,10 +74,17 @@ export default function AiChatPage() {
     setIsLoading(true);
 
     try {
+      const savedEvents = localStorage.getItem('calendarEvents');
+      const calendarEvents: Event[] = savedEvents ? JSON.parse(savedEvents) : [];
+      // Convert date objects to ISO strings for serialization
+      const serializableEvents = calendarEvents.map(e => ({...e, date: new Date(e.date).toISOString()}));
+
+
       const response = await studyPlannerFlow({
         history: newMessages,
         learnerType: learnerType || undefined,
         courseContext: courseContext || undefined,
+        calendarEvents: serializableEvents,
       });
       const aiMessage: Message = { role: 'ai', content: response };
       setMessages(prev => [...prev, aiMessage]);
