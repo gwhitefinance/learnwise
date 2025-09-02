@@ -14,6 +14,7 @@ import {
   TestTube,
   Upload,
   Brush,
+  BrainCircuit,
 } from 'lucide-react';
 
 import Link from 'next/link';
@@ -39,6 +40,7 @@ const navItems = [
     { href: '/dashboard/notes', icon: FileText, label: 'Notes' },
     { href: '/dashboard/learner-type', icon: TestTube, label: 'Learner Type' },
     { href: '/dashboard/ai-chat', icon: Bot, label: 'AI Chat' },
+    { href: '/dashboard/analysis', icon: BrainCircuit, label: 'AI Analysis' },
     { href: '/dashboard/upload', icon: Upload, label: 'Upload' },
     { href: '/dashboard/whiteboard', icon: Brush, label: 'Whiteboard' },
 ];
