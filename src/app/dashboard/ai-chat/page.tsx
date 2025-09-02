@@ -34,13 +34,14 @@ export default function AiChatPage() {
     if (!input.trim()) return;
 
     const userMessage: Message = { role: 'user', content: input };
-    setMessages(prev => [...prev, userMessage]);
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
     setInput('');
     setIsLoading(true);
 
     try {
       const response = await studyPlannerFlow({
-        promptText: input,
+        history: newMessages,
         learnerType: learnerType || undefined,
       });
       const aiMessage: Message = { role: 'ai', content: response };

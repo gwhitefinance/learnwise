@@ -8,8 +8,13 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
+const MessageSchema = z.object({
+  role: z.enum(['user', 'ai']),
+  content: z.string(),
+});
+
 const StudyPlannerInputSchema = z.object({
-    promptText: z.string(),
+    history: z.array(MessageSchema),
     learnerType: z.string().optional(),
 });
 
@@ -24,8 +29,17 @@ const prompt = ai.definePrompt({
     - For Kinesthetic learners, recommend hands-on activities, real-world examples, and interactive exercises.
     {{/if}}
     
-    User request:
-    {{promptText}}
+    CONVERSATION HISTORY:
+    {{#each history}}
+      {{#if (eq role 'user')}}
+        User: {{content}}
+      {{else}}
+        AI: {{content}}
+      {{/if}}
+    {{/each}}
+    
+    LATEST USER REQUEST:
+    {{history.[history.length - 1].content}}
     `,
 });
 
