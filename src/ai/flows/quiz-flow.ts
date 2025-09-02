@@ -46,7 +46,7 @@ const prompt = ai.definePrompt({
 });
 
 
-export const generateQuiz = ai.defineFlow(
+const generateQuizFlow = ai.defineFlow(
   {
     name: 'generateQuizFlow',
     inputSchema: GenerateQuizInputSchema,
@@ -60,3 +60,7 @@ export const generateQuiz = ai.defineFlow(
     return output;
   }
 );
+
+export async function generateQuiz(input: GenerateQuizInput): Promise<GenerateQuizOutput> {
+    return generateQuizFlow(input);
+}
