@@ -4,14 +4,15 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ChevronLeft, ChevronRight, Plus, Clock } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isToday, getDate } from 'date-fns';
 import { DatePicker } from '@/components/ui/date-picker';
 import { cn } from '@/lib/utils';
+import { Textarea } from '@/components/ui/textarea';
 
 type EventType = 'Test' | 'Homework' | 'Quiz' | 'Event';
 
@@ -22,6 +23,7 @@ type Event = {
   time: string;
   color: string;
   type: EventType;
+  description: string;
 };
 
 const colors = [
@@ -39,11 +41,14 @@ export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [events, setEvents] = useState<Event[]>(initialEvents);
   const [isAddEventOpen, setAddEventOpen] = useState(false);
+  const [viewingEvent, setViewingEvent] = useState<Event | null>(null);
+
   const [newEventTitle, setNewEventTitle] = useState('');
   const [newEventDate, setNewEventDate] = useState<Date | undefined>(undefined);
   const [newEventTime, setNewEventTime] = useState('12:00');
   const [newEventColor, setNewEventColor] = useState(colors[3].value);
   const [newEventTye, setNewEventType] = useState<EventType>('Event');
+  const [newEventDescription, setNewEventDescription] = useState('');
 
 
   const startDay = startOfWeek(startOfMonth(currentDate));
@@ -59,6 +64,7 @@ export default function CalendarPage() {
       time: newEventTime,
       color: newEventColor,
       type: newEventTye,
+      description: newEventDescription,
     };
     setEvents([...events, newEvent].sort((a, b) => a.time.localeCompare(b.time)));
     setNewEventTitle('');
@@ -66,6 +72,7 @@ export default function CalendarPage() {
     setNewEventTime('12:00');
     setNewEventColor(colors[3].value);
     setNewEventType('Event');
+    setNewEventDescription('');
     setAddEventOpen(false);
   };
   
@@ -89,7 +96,11 @@ export default function CalendarPage() {
         </span>
         <div className="flex-1 overflow-y-auto mt-1 space-y-1 no-scrollbar">
           {dayEvents.map(event => (
-            <div key={event.id} className={cn('text-xs p-1.5 rounded-md truncate border', event.color)}>
+            <div 
+                key={event.id}
+                className={cn('text-xs p-1.5 rounded-md truncate border cursor-pointer', event.color)}
+                onClick={(e) => { e.stopPropagation(); setViewingEvent(event); }}
+            >
               <span className="font-semibold">{`[${event.type}]`} {event.time}</span> - {event.title}
             </div>
           ))}
@@ -141,6 +152,10 @@ export default function CalendarPage() {
                         </SelectContent>
                     </Select>
                  </div>
+                 <div className="grid gap-2">
+                    <Label htmlFor="description">Description</Label>
+                    <Textarea id="description" value={newEventDescription} onChange={(e) => setNewEventDescription(e.target.value)} placeholder="Add more details..."/>
+                </div>
                 <div className="grid grid-cols-2 gap-4">
                     <div className="grid gap-2">
                         <Label htmlFor="date">Date</Label>
@@ -188,6 +203,37 @@ export default function CalendarPage() {
         </CardContent>
       </Card>
       
+      {/* View Event Dialog */}
+      <Dialog open={!!viewingEvent} onOpenChange={(isOpen) => !isOpen && setViewingEvent(null)}>
+        <DialogContent>
+          {viewingEvent && (
+            <>
+              <DialogHeader>
+                <DialogTitle>{viewingEvent.title}</DialogTitle>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="flex items-center gap-2">
+                    <span className="font-semibold">Type:</span>
+                    <span className="text-sm">{viewingEvent.type}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                    <span className="font-semibold">Date:</span>
+                    <span className="text-sm">{format(viewingEvent.date, 'PPP')} at {viewingEvent.time}</span>
+                </div>
+                 <div>
+                    <h4 className="font-semibold mb-2">Description</h4>
+                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">{viewingEvent.description || 'No description provided.'}</p>
+                 </div>
+              </div>
+              <DialogFooter>
+                <DialogClose asChild>
+                    <Button>Close</Button>
+                </DialogClose>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
