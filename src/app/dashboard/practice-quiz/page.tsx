@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -34,6 +34,29 @@ export default function PracticeQuizPage() {
     const [answers, setAnswers] = useState<Answer[]>([]);
     
     const { toast } = useToast();
+
+    useEffect(() => {
+        const savedState = sessionStorage.getItem('quizState');
+        const savedQuiz = sessionStorage.getItem('quizData');
+        const savedAnswers = sessionStorage.getItem('quizAnswers');
+        const savedIndex = sessionStorage.getItem('quizCurrentIndex');
+
+        if (savedState && savedQuiz && savedAnswers && savedIndex) {
+            setQuizState(JSON.parse(savedState));
+            setQuiz(JSON.parse(savedQuiz));
+            setAnswers(JSON.parse(savedAnswers));
+            setCurrentQuestionIndex(parseInt(savedIndex, 10));
+        }
+    }, []);
+
+    useEffect(() => {
+        if (quizState !== 'configuring') {
+            sessionStorage.setItem('quizState', JSON.stringify(quizState));
+            sessionStorage.setItem('quizData', JSON.stringify(quiz));
+            sessionStorage.setItem('quizAnswers', JSON.stringify(answers));
+            sessionStorage.setItem('quizCurrentIndex', currentQuestionIndex.toString());
+        }
+    }, [quizState, quiz, answers, currentQuestionIndex]);
 
     const handleGenerateQuiz = async () => {
         if (!topics.trim()) {
@@ -102,6 +125,10 @@ export default function PracticeQuizPage() {
         setCurrentQuestionIndex(0);
         setAnswers([]);
         setTopics('');
+        sessionStorage.removeItem('quizState');
+        sessionStorage.removeItem('quizData');
+        sessionStorage.removeItem('quizAnswers');
+        sessionStorage.removeItem('quizCurrentIndex');
     }
 
     const score = answers.filter(a => a.isCorrect).length;
