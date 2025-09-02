@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview A simple AI flow for creating study plans.
@@ -32,11 +31,7 @@ const prompt = ai.definePrompt({
     
     Here is the conversation history:
     {{#each history}}
-        {{#if (eq role 'user')}}
-        User: {{content}}
-        {{else}}
-        AI: {{content}}
-        {{/if}}
+      {{role}}: {{content}}
     {{/each}}
     
     Based on the conversation, provide a helpful and conversational response to the latest user message.
