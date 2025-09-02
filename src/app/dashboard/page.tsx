@@ -86,7 +86,7 @@ export default function Dashboard() {
               <Card className="h-full hover:shadow-lg transition-shadow">
                 <CardHeader className="p-0">
                   <Image
-                    src={course.imageUrl}
+                    src={course.imageUrl || 'https://picsum.photos/600/400'}
                     alt="Course thumbnail"
                     width={600}
                     height={400}
