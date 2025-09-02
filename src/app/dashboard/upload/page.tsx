@@ -2,74 +2,123 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { Upload } from "lucide-react";
+import { Button } from '@/components/ui/button';
+import { UploadCloud } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 export default function UploadPage() {
-  const [className, setClassName] = useState('');
   const [files, setFiles] = useState<FileList | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   const { toast } = useToast();
 
+  const handleFileChange = (selectedFiles: FileList | null) => {
+    if (selectedFiles) {
+      setFiles(selectedFiles);
+    }
+  };
+
   const handleUpload = () => {
-    if (!className || !files || files.length === 0) {
+    if (!files || files.length === 0) {
       toast({
         variant: 'destructive',
-        title: 'Uh oh! Something went wrong.',
-        description: 'Please provide a class name and select at least one file.',
+        title: 'No files selected',
+        description: 'Please select at least one file to upload.',
       });
       return;
     }
     // TODO: Implement actual file upload logic
-    console.log('Uploading for class:', className);
-    console.log('Files:', files);
+    console.log('Uploading files:', files);
     toast({
       title: 'Upload Successful!',
-      description: `${files.length} file(s) for "${className}" have been queued for processing.`,
+      description: `${files.length} file(s) have been queued for processing.`,
     });
-    setClassName('');
-    const fileInput = document.getElementById('documents') as HTMLInputElement;
-    if(fileInput) fileInput.value = '';
     setFiles(null);
+  };
+  
+  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+  
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+  
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+     if (!isDragging) setIsDragging(true);
+  };
+  
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    
+    const droppedFiles = e.dataTransfer.files;
+    if (droppedFiles && droppedFiles.length > 0) {
+      setFiles(droppedFiles);
+    }
   };
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold mb-4">Upload Materials</h1>
-      <Card>
-        <CardHeader>
-          <CardTitle>Upload Class Information and Documents</CardTitle>
-          <CardDescription>
-            Add your syllabus, notes, and other materials to get started.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-2">
-            <Label htmlFor="class-name">Class Name</Label>
-            <Input 
-              id="class-name" 
-              placeholder="e.g., Introduction to Psychology" 
-              value={className}
-              onChange={(e) => setClassName(e.target.value)}
-            />
+    <div className="space-y-4">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Analyze your study materials</h1>
+        <p className="text-muted-foreground">
+          Upload your documents, notes, or other study materials for AI analysis. Our AI will identify your learning style and provide personalized study recommendations.
+        </p>
+      </div>
+
+      <div 
+        className={cn(
+            "relative flex flex-col items-center justify-center w-full p-12 border-2 border-dashed rounded-lg cursor-pointer transition-colors",
+            isDragging ? "border-primary bg-primary/10" : "border-border hover:border-primary/50"
+        )}
+        onDragEnter={handleDragEnter}
+        onDragLeave={handleDragLeave}
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+        onClick={() => document.getElementById('file-upload-input')?.click()}
+      >
+        <input 
+          id="file-upload-input"
+          type="file" 
+          multiple 
+          className="hidden"
+          onChange={(e) => handleFileChange(e.target.files)}
+        />
+        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+          <UploadCloud className="w-10 h-10 mb-4 text-muted-foreground" />
+          <p className="mb-2 text-lg font-semibold">
+            Drag and drop your files here
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Or click to browse your files
+          </p>
+        </div>
+        <Button onClick={(e) => {
+            e.stopPropagation(); // prevent triggering the div's onClick
+            handleUpload();
+        }}>
+          Upload Files
+        </Button>
+      </div>
+      
+      {files && files.length > 0 && (
+          <div className="mt-4">
+              <h3 className="text-lg font-semibold">Selected files:</h3>
+              <ul className="list-disc list-inside mt-2 text-sm text-muted-foreground">
+                  {Array.from(files).map((file, index) => (
+                      <li key={index}>{file.name}</li>
+                  ))}
+              </ul>
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="documents">Documents</Label>
-            <Input 
-              id="documents" 
-              type="file" 
-              multiple 
-              onChange={(e) => setFiles(e.target.files)}
-            />
-          </div>
-           <Button className="w-full" onClick={handleUpload}>
-            <Upload className="mr-2 h-4 w-4" /> Upload
-          </Button>
-        </CardContent>
-      </Card>
+      )}
     </div>
   );
 }
