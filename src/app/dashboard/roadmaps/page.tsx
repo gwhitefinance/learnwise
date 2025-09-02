@@ -1,15 +1,16 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
-import { CheckCircle, Flag, FlaskConical, Calendar as CalendarIcon, Users, Trophy, Plus, Pen, Trash2 } from "lucide-react";
+import { CheckCircle, Flag, FlaskConical, Calendar as CalendarIcon, Users, Trophy, Plus, Pen, Trash2, GitMerge } from "lucide-react";
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { studyPlannerFlow } from '@/ai/flows/study-planner-flow';
 
 const initialMilestones = [
   {
@@ -68,8 +69,9 @@ export default function RoadmapsPage() {
     const [goalTitle, setGoalTitle] = useState('');
     const [goalDescription, setGoalDescription] = useState('');
     const [isAddGoalOpen, setAddGoalOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
-
+    
     const milestoneDates = milestones.map(m => m.date);
 
     const handleAddGoal = () => {
@@ -97,13 +99,43 @@ export default function RoadmapsPage() {
         });
     };
 
+    const handleGenerateRoadmap = async () => {
+        setIsLoading(true);
+        toast({ title: 'Generating Roadmap...', description: 'The AI is creating your personalized study plan.' });
+        try {
+            // This is a simplified example. In a real app, you'd get the current course context.
+            const response = await studyPlannerFlow({
+                history: [{ role: 'user', content: 'Generate a detailed study roadmap with milestones and goals for the course "Introduction to AI".' }],
+            });
+            
+            // In a real implementation, you would parse the AI response to create structured
+            // goals and milestones. For this example, we'll just show the raw response.
+            toast({
+                title: 'AI-Generated Roadmap Suggestion',
+                description: response,
+                duration: 9000,
+            });
+
+        } catch (error) {
+            console.error(error);
+            toast({ variant: 'destructive', title: 'Error', description: 'Failed to generate roadmap.' });
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">My Study Roadmap</h1>
-        <p className="text-muted-foreground">
-          Visualize your learning journey with key milestones and goals.
-        </p>
+      <div className="flex justify-between items-center">
+        <div>
+            <h1 className="text-3xl font-bold tracking-tight">My Study Roadmap</h1>
+            <p className="text-muted-foreground">
+            Visualize your learning journey with key milestones and goals.
+            </p>
+        </div>
+        <Button onClick={handleGenerateRoadmap} disabled={isLoading}>
+            <GitMerge className="mr-2 h-4 w-4"/> {isLoading ? 'Generating...' : 'Generate with AI'}
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

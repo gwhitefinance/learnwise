@@ -2,6 +2,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -15,21 +16,44 @@ interface Message {
   content: string;
 }
 
+type Course = {
+    id: string;
+    name: string;
+    description?: string;
+};
+
 export default function AiChatPage() {
-  const [messages, setMessages] = useState<Message[]>([
-    { role: 'ai', content: 'Hi there! How can I assist you today with your studies?' }
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [learnerType, setLearnerType] = useState<string | null>(null);
+  const [courseContext, setCourseContext] = useState<string | null>(null);
   const { toast } = useToast();
+  const searchParams = useSearchParams();
+  const courseId = searchParams.get('courseId');
 
   useEffect(() => {
     const storedLearnerType = localStorage.getItem('learnerType');
     if (storedLearnerType) {
       setLearnerType(storedLearnerType);
     }
-  }, []);
+    
+    let initialMessage = 'Hi there! How can I assist you today with your studies?';
+
+    if (courseId) {
+        const savedCourses = localStorage.getItem('courses');
+        if (savedCourses) {
+            const allCourses: Course[] = JSON.parse(savedCourses);
+            const currentCourse = allCourses.find(c => c.id === courseId);
+            if(currentCourse) {
+                const context = `Course: ${currentCourse.name}. Description: ${currentCourse.description || 'No description available.'}`;
+                setCourseContext(context);
+                initialMessage = `Hello! I see you're working on ${currentCourse.name}. How can I help you with this course?`;
+            }
+        }
+    }
+     setMessages([{ role: 'ai', content: initialMessage }]);
+  }, [courseId]);
 
   const handleSendMessage = async () => {
     if (!input.trim()) return;
@@ -44,6 +68,7 @@ export default function AiChatPage() {
       const response = await studyPlannerFlow({
         history: newMessages,
         learnerType: learnerType || undefined,
+        courseContext: courseContext || undefined,
       });
       const aiMessage: Message = { role: 'ai', content: response };
       setMessages(prev => [...prev, aiMessage]);

@@ -17,6 +17,7 @@ const MessageSchema = z.object({
 const StudyPlannerInputSchema = z.object({
     history: z.array(MessageSchema),
     learnerType: z.string().optional(),
+    courseContext: z.string().optional().describe('The name and description of the course the user is asking about.'),
 });
 
 const prompt = ai.definePrompt({
@@ -27,6 +28,10 @@ const prompt = ai.definePrompt({
 
     If the user asks about their courses, use the getCoursesTool to retrieve the information and provide it to them. You can provide the links to the courses if they ask for it.
     
+    {{#if courseContext}}
+    The user is currently focused on the following course: {{courseContext}}. Tailor your suggestions and study plans to this specific course.
+    {{/if}}
+
     {{#if learnerType}}
     The user is a {{learnerType}} learner. Remember to tailor your response to their learning style:
     - For Visual learners, use descriptions that help them visualize things. Suggest diagrams, charts, and videos.

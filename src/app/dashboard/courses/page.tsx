@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { FilePenLine, Plus, Trash2, Link as LinkIcon } from "lucide-react";
+import { FilePenLine, Plus, Trash2, Link as LinkIcon, Eye } from "lucide-react";
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 
@@ -160,15 +160,20 @@ export default function CoursesPage() {
                     <div className="flex items-center gap-2">
                         {course.name}
                         {course.url && (
-                            <Link href={course.url} target="_blank" rel="noopener noreferrer">
+                            <a href={course.url} target="_blank" rel="noopener noreferrer">
                                 <LinkIcon className="h-4 w-4 text-muted-foreground hover:text-primary"/>
-                            </Link>
+                            </a>
                         )}
                     </div>
                     </TableCell>
                   <TableCell>{course.instructor}</TableCell>
                   <TableCell>{course.credits}</TableCell>
                   <TableCell className="text-right">
+                    <Link href={`/dashboard/courses/${course.id}`}>
+                        <Button variant="ghost" size="icon">
+                            <Eye className="h-4 w-4" />
+                        </Button>
+                    </Link>
                     <Button variant="ghost" size="icon">
                       <FilePenLine className="h-4 w-4" />
                     </Button>

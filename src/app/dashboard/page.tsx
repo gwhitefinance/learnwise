@@ -82,7 +82,7 @@ export default function Dashboard() {
         <h2 className="text-2xl font-semibold tracking-tight mb-4">Your Courses</h2>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {courses.map(course => (
-            <Link key={course.id} href={course.url || '#'} target="_blank" rel="noopener noreferrer" className="block">
+            <Link key={course.id} href={`/dashboard/courses/${course.id}`} className="block">
               <Card className="h-full hover:shadow-lg transition-shadow">
                 <CardHeader className="p-0">
                   <Image
