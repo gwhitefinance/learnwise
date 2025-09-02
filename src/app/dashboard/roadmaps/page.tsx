@@ -14,31 +14,31 @@ import { useToast } from '@/hooks/use-toast';
 const initialMilestones = [
   {
     icon: CalendarIcon,
-    date: new Date("2024-08-15"),
+    date: new Date("2024-08-15T00:00:00.000Z"),
     title: "Course Enrollment",
     completed: true,
   },
   {
     icon: FlaskConical,
-    date: new Date("2024-09-05"),
+    date: new Date("2024-09-05T00:00:00.000Z"),
     title: "Midterm Exam",
     completed: false,
   },
   {
     icon: CheckCircle,
-    date: new Date("2024-09-15"),
+    date: new Date("2024-09-15T00:00:00.000Z"),
     title: "Project Submission",
     completed: false,
   },
   {
     icon: Trophy,
-    date: new Date("2024-09-25"),
+    date: new Date("2024-09-25T00:00:00.000Z"),
     title: "Final Exam",
     completed: false,
   },
   {
     icon: CheckCircle,
-    date: new Date("2024-10-01"),
+    date: new Date("2024-10-01T00:00:00.000Z"),
     title: "Course Completion",
     completed: false,
   },
@@ -192,7 +192,7 @@ export default function RoadmapsPage() {
                   <milestone.icon className="h-4 w-4" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">{milestone.date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+                  <p className="text-sm text-muted-foreground">{milestone.date.toLocaleDateString('en-US', { timeZone: 'UTC', month: 'long', day: 'numeric', year: 'numeric' })}</p>
                   <h3 className="font-semibold text-lg">{milestone.title}</h3>
                 </div>
               </div>
