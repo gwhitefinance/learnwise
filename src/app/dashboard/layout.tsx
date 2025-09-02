@@ -11,6 +11,9 @@ import {
   Sun,
   Moon,
   User,
+  TestTube,
+  Upload,
+  Brush,
 } from 'lucide-react';
 
 import Link from 'next/link';
@@ -24,17 +27,20 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useTheme } from 'next-themes';
 
 const navItems = [
-  { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { href: '/dashboard/courses', icon: Book, label: 'Courses' },
-  { href: '/dashboard/ai-chat', icon: Bot, label: 'AI Chat' },
-  { href: '/dashboard/roadmaps', icon: GitMerge, label: 'Roadmaps' },
-  { href: '/dashboard/notes', icon: FileText, label: 'Notes' },
+    { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+    { href: '/dashboard/courses', icon: Book, label: 'Courses' },
+    { href: '/dashboard/roadmaps', icon: GitMerge, label: 'Roadmaps' },
+    { href: '/dashboard/notes', icon: FileText, label: 'Notes' },
+    { href: '/dashboard/learner-type', icon: TestTube, label: 'Learner Type' },
+    { href: '/dashboard/ai-chat', icon: Bot, label: 'AI Chat' },
+    { href: '/dashboard/upload', icon: Upload, label: 'Upload' },
+    { href: '/dashboard/whiteboard', icon: Brush, label: 'Whiteboard' },
 ];
 
 export default function DashboardLayout({
@@ -58,7 +64,7 @@ export default function DashboardLayout({
     return (
       <Link href={href}>
         <Button
-          variant={isActive ? 'default' : 'ghost'}
+          variant={isActive ? 'secondary' : 'ghost'}
           className="w-full justify-start"
         >
           <Icon className="mr-2 h-4 w-4" />
@@ -70,15 +76,15 @@ export default function DashboardLayout({
 
   const SidebarContent = () => (
     <div className="flex h-full flex-col">
-      <div className="flex h-16 items-center px-4">
-        <h1 className="text-xl font-bold">Study App</h1>
+      <div className="flex h-16 items-center border-b px-4">
+        <h1 className="text-xl font-bold">LearnWise</h1>
       </div>
-      <nav className="flex-1 space-y-2 px-4">
+      <nav className="flex-1 space-y-1 p-2">
         {navItems.map((item) => (
           <NavLink key={item.href} {...item} />
         ))}
       </nav>
-      <div className="mt-auto p-4">
+      <div className="mt-auto border-t p-2">
         <Link href="#">
           <Button variant="ghost" className="w-full justify-start">
             <Settings className="mr-2 h-4 w-4" />
@@ -108,6 +114,9 @@ export default function DashboardLayout({
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="flex flex-col p-0">
+               <SheetHeader className="p-4 border-b">
+                <SheetTitle>Menu</SheetTitle>
+              </SheetHeader>
               <SidebarContent />
             </SheetContent>
           </Sheet>
