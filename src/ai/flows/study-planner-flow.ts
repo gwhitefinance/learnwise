@@ -13,7 +13,7 @@ const StudyPlannerOutputSchema = z.string();
 
 const prompt = ai.definePrompt({
     name: 'studyPlannerPrompt',
-    input: { schema: StudyPlannerInputSchema },
+    input: { schema: z.object({prompt: StudyPlannerInputSchema}) },
     output: { schema: StudyPlannerOutputSchema },
     prompt: `You are an expert academic advisor. A student has asked for help.
     
@@ -38,7 +38,7 @@ export const studyPlannerFlow = ai.defineFlow(
     outputSchema: StudyPlannerOutputSchema,
   },
   async (promptText) => {
-    const { output } = await prompt(promptText);
+    const { output } = await prompt({prompt: promptText});
     return output!;
   }
 );
