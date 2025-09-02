@@ -4,32 +4,10 @@
  * @fileOverview A flow for generating practice quizzes.
  * 
  * - generateQuiz - A function that generates a quiz based on user input.
- * - GenerateQuizInput - The input type for the generateQuiz function.
- * - GenerateQuizOutput - The return type for the generateQuiz function.
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'zod';
-
-export const GenerateQuizInputSchema = z.object({
-  topics: z.string().describe('The topics or keywords for the quiz.'),
-  questionType: z.enum(['Multiple Choice', 'True/False', 'Short Answer']),
-  difficulty: z.enum(['Easy', 'Medium', 'Hard']),
-  numQuestions: z.number().min(1).max(20),
-});
-export type GenerateQuizInput = z.infer<typeof GenerateQuizInputSchema>;
-
-const QuizQuestionSchema = z.object({
-    question: z.string(),
-    options: z.array(z.string()).optional(),
-    answer: z.string(),
-});
-
-export const GenerateQuizOutputSchema = z.object({
-  questions: z.array(QuizQuestionSchema),
-});
-export type GenerateQuizOutput = z.infer<typeof GenerateQuizOutputSchema>;
-
+import { GenerateQuizInput, GenerateQuizInputSchema, GenerateQuizOutput, GenerateQuizOutputSchema } from '@/ai/schemas/quiz-schema';
 
 const prompt = ai.definePrompt({
     name: 'quizGenerationPrompt',

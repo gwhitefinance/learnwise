@@ -9,7 +9,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { generateQuiz, GenerateQuizInput } from '@/ai/flows/quiz-flow';
+import { generateQuiz } from '@/ai/flows/quiz-flow';
+import type { GenerateQuizInput } from '@/ai/schemas/quiz-schema';
 
 const suggestedTopics = ["Mathematics", "Science", "History", "Literature", "Computer Science"];
 
