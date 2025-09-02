@@ -7,19 +7,32 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, RotateCcw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { generateQuiz } from '@/ai/flows/quiz-flow';
-import type { GenerateQuizInput } from '@/ai/schemas/quiz-schema';
+import type { GenerateQuizInput, GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
+import { Progress } from '@/components/ui/progress';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { cn } from '@/lib/utils';
 
 const suggestedTopics = ["Mathematics", "Science", "History", "Literature", "Computer Science"];
+
+type QuizState = 'configuring' | 'in-progress' | 'results';
+type Answer = { question: string; answer: string; correctAnswer: string; isCorrect: boolean };
 
 export default function PracticeQuizPage() {
     const [topics, setTopics] = useState('');
     const [questionType, setQuestionType] = useState('Multiple Choice');
     const [difficulty, setDifficulty] = useState('Medium');
     const [numQuestions, setNumQuestions] = useState('10');
+    
     const [isLoading, setIsLoading] = useState(false);
+    const [quizState, setQuizState] = useState<QuizState>('configuring');
+    const [quiz, setQuiz] = useState<GenerateQuizOutput | null>(null);
+    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+    const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+    const [answers, setAnswers] = useState<Answer[]>([]);
+    
     const { toast } = useToast();
 
     const handleGenerateQuiz = async () => {
@@ -40,9 +53,9 @@ export default function PracticeQuizPage() {
                 difficulty: difficulty as 'Easy' | 'Medium' | 'Hard',
                 numQuestions: parseInt(numQuestions),
             };
-            const quiz = await generateQuiz(input);
-            // TODO: Display the generated quiz
-            console.log(quiz);
+            const generatedQuiz = await generateQuiz(input);
+            setQuiz(generatedQuiz);
+            setQuizState('in-progress');
              toast({
                 title: 'Quiz Generated!',
                 description: 'Your quiz is ready.',
@@ -57,6 +70,104 @@ export default function PracticeQuizPage() {
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const handleNextQuestion = () => {
+        if (!quiz || selectedAnswer === null) return;
+        
+        const currentQuestion = quiz.questions[currentQuestionIndex];
+        const isCorrect = selectedAnswer.toLowerCase() === currentQuestion.answer.toLowerCase();
+
+        const newAnswer: Answer = {
+            question: currentQuestion.question,
+            answer: selectedAnswer,
+            correctAnswer: currentQuestion.answer,
+            isCorrect: isCorrect
+        };
+        const newAnswers = [...answers, newAnswer];
+        setAnswers(newAnswers);
+
+        setSelectedAnswer(null);
+
+        if (currentQuestionIndex < quiz.questions.length - 1) {
+            setCurrentQuestionIndex(prev => prev + 1);
+        } else {
+            setQuizState('results');
+        }
+    };
+    
+    const handleStartNewQuiz = () => {
+        setQuizState('configuring');
+        setQuiz(null);
+        setCurrentQuestionIndex(0);
+        setAnswers([]);
+        setTopics('');
+    }
+
+    const score = answers.filter(a => a.isCorrect).length;
+    const totalQuestions = quiz?.questions.length ?? 0;
+
+    if (quizState === 'in-progress' && quiz) {
+        const currentQuestion = quiz.questions[currentQuestionIndex];
+        const progress = ((currentQuestionIndex + 1) / quiz.questions.length) * 100;
+
+        return (
+             <div className="flex flex-col items-center">
+                <div className="text-center mb-10 w-full max-w-3xl">
+                    <p className="text-muted-foreground mb-2">Question {currentQuestionIndex + 1} of {quiz.questions.length}</p>
+                    <Progress value={progress} className="mb-4 h-2"/>
+                    <h1 className="text-3xl font-bold mt-8">{currentQuestion.question}</h1>
+                </div>
+
+                <Card className="w-full max-w-3xl">
+                    <CardContent className="p-8">
+                         <RadioGroup value={selectedAnswer ?? ''} onValueChange={setSelectedAnswer}>
+                            <div className="space-y-4">
+                            {currentQuestion.options?.map((option, index) => (
+                                <Label key={index} htmlFor={`option-${index}`} className={cn(
+                                    "flex items-center gap-4 p-4 rounded-lg border transition-all cursor-pointer",
+                                    selectedAnswer === option ? "border-primary bg-primary/10" : "border-border hover:bg-muted"
+                                )}>
+                                    <RadioGroupItem value={option} id={`option-${index}`} />
+                                    <span>{option}</span>
+                                </Label>
+                            ))}
+                            </div>
+                        </RadioGroup>
+                         <div className="mt-8 flex justify-end">
+                            <Button onClick={handleNextQuestion} disabled={!selectedAnswer}>
+                               {currentQuestionIndex < quiz.questions.length - 1 ? 'Next' : 'Finish Quiz'}
+                               <ArrowRight className="ml-2 h-4 w-4" />
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+        )
+    }
+
+    if (quizState === 'results') {
+        return (
+            <div className="flex flex-col items-center">
+                <div className="text-center mb-10">
+                    <h1 className="text-4xl font-bold">Quiz Results</h1>
+                    <p className="text-muted-foreground mt-2">Here's how you did!</p>
+                </div>
+                 <Card className="w-full max-w-3xl">
+                    <CardContent className="p-8 text-center">
+                        <h2 className="text-2xl font-semibold">Your Score</h2>
+                        <p className="text-6xl font-bold text-primary my-4">{score} / {totalQuestions}</p>
+                        <p className="text-muted-foreground">You answered {((score / totalQuestions) * 100).toFixed(0)}% of the questions correctly.</p>
+
+                        <div className="mt-8">
+                            <Button onClick={handleStartNewQuiz}>
+                                <RotateCcw className="mr-2 h-4 w-4" /> Take a New Quiz
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+        )
     }
     
     return (
