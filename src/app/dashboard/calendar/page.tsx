@@ -51,7 +51,16 @@ export default function CalendarPage() {
   useEffect(() => {
     const savedEvents = localStorage.getItem('calendarEvents');
     if (savedEvents) {
-      setEvents(JSON.parse(savedEvents).map((e: any) => ({...e, date: new Date(e.date)})));
+      try {
+        const parsedEvents = JSON.parse(savedEvents);
+        if (Array.isArray(parsedEvents)) {
+            setEvents(parsedEvents.map((e: any) => ({...e, date: new Date(e.date)})));
+        }
+      } catch (error) {
+        console.error("Failed to parse calendar events from localStorage", error);
+        // Clear broken data
+        localStorage.removeItem('calendarEvents');
+      }
     }
   }, []);
 
