@@ -13,21 +13,24 @@ import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, en
 import { DatePicker } from '@/components/ui/date-picker';
 import { cn } from '@/lib/utils';
 
+type EventType = 'Test' | 'Homework' | 'Quiz' | 'Event';
+
 type Event = {
   id: string;
   date: Date;
   title: string;
   time: string;
   color: string;
+  type: EventType;
 };
 
 const colors = [
-    { value: 'bg-red-200 dark:bg-red-900/40 border-red-400', name: 'Red' },
-    { value: 'bg-yellow-200 dark:bg-yellow-900/40 border-yellow-400', name: 'Yellow' },
-    { value: 'bg-green-200 dark:bg-green-900/40 border-green-400', name: 'Green' },
-    { value: 'bg-blue-200 dark:bg-blue-900/40 border-blue-400', name: 'Blue' },
-    { value: 'bg-purple-200 dark:bg-purple-900/40 border-purple-400', name: 'Purple' },
-    { value: 'bg-indigo-200 dark:bg-indigo-900/40 border-indigo-400', name: 'Indigo' },
+    { value: 'bg-red-200 dark:bg-red-900/40 border-red-400 text-red-800 dark:text-red-200', name: 'Red' },
+    { value: 'bg-yellow-200 dark:bg-yellow-900/40 border-yellow-400 text-yellow-800 dark:text-yellow-200', name: 'Yellow' },
+    { value: 'bg-green-200 dark:bg-green-900/40 border-green-400 text-green-800 dark:text-green-200', name: 'Green' },
+    { value: 'bg-blue-200 dark:bg-blue-900/40 border-blue-400 text-blue-800 dark:text-blue-200', name: 'Blue' },
+    { value: 'bg-purple-200 dark:bg-purple-900/40 border-purple-400 text-purple-800 dark:text-purple-200', name: 'Purple' },
+    { value: 'bg-indigo-200 dark:bg-indigo-900/40 border-indigo-400 text-indigo-800 dark:text-indigo-200', name: 'Indigo' },
 ];
 
 const initialEvents: Event[] = [];
@@ -40,6 +43,8 @@ export default function CalendarPage() {
   const [newEventDate, setNewEventDate] = useState<Date | undefined>(undefined);
   const [newEventTime, setNewEventTime] = useState('12:00');
   const [newEventColor, setNewEventColor] = useState(colors[3].value);
+  const [newEventTye, setNewEventType] = useState<EventType>('Event');
+
 
   const startDay = startOfWeek(startOfMonth(currentDate));
   const endDay = endOfWeek(endOfMonth(currentDate));
@@ -53,12 +58,14 @@ export default function CalendarPage() {
       title: newEventTitle,
       time: newEventTime,
       color: newEventColor,
+      type: newEventTye,
     };
     setEvents([...events, newEvent].sort((a, b) => a.time.localeCompare(b.time)));
     setNewEventTitle('');
     setNewEventDate(undefined);
     setNewEventTime('12:00');
     setNewEventColor(colors[3].value);
+    setNewEventType('Event');
     setAddEventOpen(false);
   };
   
@@ -83,7 +90,7 @@ export default function CalendarPage() {
         <div className="flex-1 overflow-y-auto mt-1 space-y-1 no-scrollbar">
           {dayEvents.map(event => (
             <div key={event.id} className={cn('text-xs p-1.5 rounded-md truncate border', event.color)}>
-              <span className="font-semibold">{event.time}</span> - {event.title}
+              <span className="font-semibold">{`[${event.type}]`} {event.time}</span> - {event.title}
             </div>
           ))}
         </div>
@@ -120,6 +127,20 @@ export default function CalendarPage() {
                   <Label htmlFor="title">Title</Label>
                   <Input id="title" value={newEventTitle} onChange={(e) => setNewEventTitle(e.target.value)} placeholder="e.g., Math Homework" />
                 </div>
+                 <div className="grid gap-2">
+                    <Label htmlFor="type">Type</Label>
+                    <Select value={newEventTye} onValueChange={(v) => setNewEventType(v as EventType)}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Select type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="Event">Event</SelectItem>
+                            <SelectItem value="Test">Test</SelectItem>
+                            <SelectItem value="Homework">Homework</SelectItem>
+                            <SelectItem value="Quiz">Quiz</SelectItem>
+                        </SelectContent>
+                    </Select>
+                 </div>
                 <div className="grid grid-cols-2 gap-4">
                     <div className="grid gap-2">
                         <Label htmlFor="date">Date</Label>
@@ -131,14 +152,13 @@ export default function CalendarPage() {
                     </div>
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="type">Color</Label>
+                  <Label>Color</Label>
                   <div className="flex gap-2">
                     {colors.map(color => (
                         <button 
                             key={color.name}
                             onClick={() => setNewEventColor(color.value)}
-                            className={cn('w-8 h-8 rounded-full border-2 transition-all', newEventColor === color.value ? 'border-primary scale-110' : 'border-transparent')}
-                            style={{ backgroundColor: color.value.split(' ')[0] }}
+                            className={cn('w-8 h-8 rounded-full border-2 transition-all', newEventColor === color.value ? 'border-primary scale-110' : 'border-transparent', color.value.split(' ')[0])}
                         >
                            <span className="sr-only">{color.name}</span>
                         </button>
