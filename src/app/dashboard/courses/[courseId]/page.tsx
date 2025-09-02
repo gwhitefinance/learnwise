@@ -23,12 +23,13 @@ type Course = {
 export default function CourseDetailPage({ params }: { params: { courseId: string } }) {
   const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
+  const { courseId } = params;
 
   useEffect(() => {
     const savedCourses = localStorage.getItem('courses');
     if (savedCourses) {
       const allCourses: Course[] = JSON.parse(savedCourses);
-      const currentCourse = allCourses.find(c => c.id === params.courseId);
+      const currentCourse = allCourses.find(c => c.id === courseId);
       if (currentCourse) {
         // Add a mock description if it doesn't exist
         if (!currentCourse.description) {
@@ -38,7 +39,7 @@ export default function CourseDetailPage({ params }: { params: { courseId: strin
       }
     }
     setLoading(false);
-  }, [params.courseId]);
+  }, [courseId]);
 
   if (loading) {
     return <div>Loading...</div>; // Or a proper skeleton loader
