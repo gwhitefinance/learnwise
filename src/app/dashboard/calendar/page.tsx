@@ -111,10 +111,9 @@ export default function CalendarPage() {
 
   return (
     <div className="h-full flex flex-col">
-      <header className="flex items-center justify-between mb-6">
+      <header className="grid grid-cols-3 items-center mb-6">
         <h1 className="text-3xl font-bold">Calendar</h1>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-center gap-2">
             <Button variant="outline" size="icon" onClick={() => setCurrentDate(subMonths(currentDate, 1))}>
               <ChevronLeft className="h-4 w-4" />
             </Button>
@@ -122,7 +121,8 @@ export default function CalendarPage() {
             <Button variant="outline" size="icon" onClick={() => setCurrentDate(addMonths(currentDate, 1))}>
               <ChevronRight className="h-4 w-4" />
             </Button>
-          </div>
+        </div>
+        <div className="flex justify-end">
            <Dialog open={isAddEventOpen} onOpenChange={setAddEventOpen}>
             <DialogTrigger asChild>
                 <Button>
