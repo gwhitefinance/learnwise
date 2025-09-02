@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview A simple AI flow for creating study plans.
@@ -5,6 +6,7 @@
  * - studyPlannerFlow - A function that takes a user prompt and returns a study plan.
  */
 import { ai } from '@/ai/genkit';
+import { getCoursesTool } from '@/ai/tools/course-tool';
 import { z } from 'zod';
 
 const MessageSchema = z.object({
@@ -20,7 +22,10 @@ const StudyPlannerInputSchema = z.object({
 const prompt = ai.definePrompt({
     name: 'studyPlannerPrompt',
     input: { schema: StudyPlannerInputSchema },
+    tools: [getCoursesTool],
     prompt: `You are a friendly and conversational AI study partner. Your goal is to help users learn and plan their studies. Keep your responses concise but detailed, and avoid using markdown formatting like bolding with asterisks. Be encouraging and supportive.
+
+    If the user asks about their courses, use the getCoursesTool to retrieve the information and provide it to them. You can provide the links to the courses if they ask for it.
     
     {{#if learnerType}}
     The user is a {{learnerType}} learner. Remember to tailor your response to their learning style:
