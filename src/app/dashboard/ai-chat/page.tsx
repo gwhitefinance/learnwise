@@ -78,7 +78,8 @@ export default function AiChatPage() {
               {messages.map((message, index) => (
                 <div key={index} className={`flex items-start gap-4 ${message.role === 'user' ? 'justify-end' : ''}`}>
                   {message.role === 'ai' && (
-                     <Avatar className="h-8 w-8 bg-primary text-primary-foreground">
+                     <Avatar className="h-8 w-8">
+                        <AvatarImage src="https://picsum.photos/150/150" data-ai-hint="robot assistant" />
                         <AvatarFallback><Bot className="h-4 w-4" /></AvatarFallback>
                     </Avatar>
                   )}
@@ -102,7 +103,8 @@ export default function AiChatPage() {
               ))}
                {isLoading && (
                   <div className="flex items-start gap-4">
-                       <Avatar className="h-8 w-8 bg-primary text-primary-foreground">
+                       <Avatar className="h-8 w-8">
+                          <AvatarImage src="https://picsum.photos/150/150" data-ai-hint="robot assistant" />
                           <AvatarFallback><Bot className="h-4 w-4" /></AvatarFallback>
                       </Avatar>
                       <div className="max-w-md">
