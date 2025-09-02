@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
@@ -35,11 +35,9 @@ const colors = [
     { value: 'bg-indigo-200 dark:bg-indigo-900/40 border-indigo-400 text-indigo-800 dark:text-indigo-200', name: 'Indigo' },
 ];
 
-const initialEvents: Event[] = [];
-
 export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [events, setEvents] = useState<Event[]>(initialEvents);
+  const [events, setEvents] = useState<Event[]>([]);
   const [isAddEventOpen, setAddEventOpen] = useState(false);
   const [viewingEvent, setViewingEvent] = useState<Event | null>(null);
 
@@ -49,6 +47,18 @@ export default function CalendarPage() {
   const [newEventColor, setNewEventColor] = useState(colors[3].value);
   const [newEventTye, setNewEventType] = useState<EventType>('Event');
   const [newEventDescription, setNewEventDescription] = useState('');
+
+  useEffect(() => {
+    const savedEvents = localStorage.getItem('calendarEvents');
+    if (savedEvents) {
+      setEvents(JSON.parse(savedEvents).map((e: any) => ({...e, date: new Date(e.date)})));
+    }
+  }, []);
+
+  const saveEvents = (updatedEvents: Event[]) => {
+    setEvents(updatedEvents);
+    localStorage.setItem('calendarEvents', JSON.stringify(updatedEvents));
+  }
 
 
   const startDay = startOfWeek(startOfMonth(currentDate));
@@ -66,7 +76,8 @@ export default function CalendarPage() {
       type: newEventTye,
       description: newEventDescription,
     };
-    setEvents([...events, newEvent].sort((a, b) => a.time.localeCompare(b.time)));
+    const updatedEvents = [...events, newEvent].sort((a, b) => a.time.localeCompare(b.time));
+    saveEvents(updatedEvents);
     setNewEventTitle('');
     setNewEventDate(undefined);
     setNewEventTime('12:00');
