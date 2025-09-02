@@ -9,7 +9,7 @@ import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
 const StudyPlannerInputSchema = z.string();
-const StudyPlannerOutputSchema = z.string();
+const StudyPlannerOutputSchema = z.string().nullable();
 
 const prompt = ai.definePrompt({
     name: 'studyPlannerPrompt',
@@ -35,10 +35,10 @@ export const studyPlannerFlow = ai.defineFlow(
   {
     name: 'studyPlannerFlow',
     inputSchema: StudyPlannerInputSchema,
-    outputSchema: StudyPlannerOutputSchema,
+    outputSchema: z.string(),
   },
   async (promptText) => {
     const { output } = await prompt({prompt: promptText});
-    return output!;
+    return output ?? '';
   }
 );
