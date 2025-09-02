@@ -5,9 +5,10 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Send, User } from "lucide-react";
+import { Send, User, Bot } from "lucide-react";
 import { studyPlannerFlow } from '@/ai/flows/study-planner-flow';
 import { useToast } from '@/hooks/use-toast';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface Message {
   role: 'user' | 'ai';
@@ -16,7 +17,7 @@ interface Message {
 
 export default function AiChatPage() {
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'ai', content: 'Hello! How can I help you plan for your tests today?' }
+    { role: 'ai', content: 'Hi there! How can I assist you today with your studies?' }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -62,57 +63,73 @@ export default function AiChatPage() {
 
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)]">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-3xl font-bold">AI Study Planner</h1>
+      <div className="text-center mb-4">
+        <h1 className="text-3xl font-bold">AI Chat</h1>
+        <p className="text-muted-foreground">Ask me anything about your courses, study roadmaps, or notes. I'm here to help you learn smarter, not harder.</p>
         {learnerType && (
-            <div className="text-sm text-muted-foreground">
+            <div className="text-sm text-muted-foreground mt-2">
                 <span className="font-semibold">Your Learner Type:</span>
                 <span className="ml-2 inline-flex items-center rounded-md bg-secondary px-2.5 py-0.5 text-xs font-medium text-secondary-foreground">{learnerType}</span>
             </div>
         )}
       </div>
-      <Card className="flex-1 flex flex-col">
-        <CardContent className="flex-1 p-6 overflow-y-auto">
-            <div className="flex flex-col gap-4">
-                {messages.map((message, index) => (
-                  <div key={index} className={`flex items-start gap-4 ${message.role === 'user' ? 'justify-end' : ''}`}>
-                    {message.role === 'ai' && (
-                      <div className="rounded-full bg-primary text-primary-foreground h-8 w-8 flex items-center justify-center font-bold">AI</div>
-                    )}
+      <div className="flex-1 overflow-y-auto p-4">
+          <div className="flex flex-col gap-4">
+              {messages.map((message, index) => (
+                <div key={index} className={`flex items-start gap-4 ${message.role === 'user' ? 'justify-end' : ''}`}>
+                  {message.role === 'ai' && (
+                     <Avatar className="h-8 w-8 bg-primary text-primary-foreground">
+                        <AvatarFallback><Bot className="h-4 w-4" /></AvatarFallback>
+                    </Avatar>
+                  )}
+                   <div className="max-w-md">
+                     <div className={`text-xs font-semibold mb-1 ${message.role === 'user' ? 'text-right' : 'text-left'}`}>
+                       {message.role === 'ai' ? 'AI Assistant' : 'You'}
+                     </div>
                      <div className={`rounded-lg p-3 ${message.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
                         <p>{message.content}</p>
                     </div>
-                     {message.role === 'user' && (
-                      <div className="rounded-full bg-muted text-muted-foreground h-8 w-8 flex items-center justify-center font-bold"><User className="h-4 w-4" /></div>
-                    )}
-                  </div>
-                ))}
-                 {isLoading && (
-                    <div className="flex items-start gap-4">
-                        <div className="rounded-full bg-primary text-primary-foreground h-8 w-8 flex items-center justify-center font-bold">AI</div>
+                   </div>
+                   {message.role === 'user' && (
+                     <Avatar className="h-8 w-8">
+                       <AvatarImage src="https://i.pravatar.cc/150?u=a042581f4e29026704d" />
+                       <AvatarFallback>
+                         <User />
+                       </AvatarFallback>
+                     </Avatar>
+                  )}
+                </div>
+              ))}
+               {isLoading && (
+                  <div className="flex items-start gap-4">
+                       <Avatar className="h-8 w-8 bg-primary text-primary-foreground">
+                          <AvatarFallback><Bot className="h-4 w-4" /></AvatarFallback>
+                      </Avatar>
+                      <div className="max-w-md">
+                        <div className="text-xs font-semibold mb-1">AI Assistant</div>
                         <div className="bg-muted rounded-lg p-3">
                             <p className="animate-pulse">Thinking...</p>
                         </div>
-                    </div>
-                )}
-            </div>
-        </CardContent>
-        <div className="p-4 border-t">
-          <div className="relative">
-            <Input
-              placeholder="Ask about a topic, get a study plan, etc."
-              className="pr-12"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && !isLoading && handleSendMessage()}
-              disabled={isLoading}
-            />
-            <Button size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8" onClick={handleSendMessage} disabled={isLoading}>
-              <Send className="h-4 w-4" />
-            </Button>
+                      </div>
+                  </div>
+              )}
           </div>
+      </div>
+      <div className="p-4 border-t bg-background">
+        <div className="relative">
+          <Input
+            placeholder="Type your message here..."
+            className="pr-24 rounded-full"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && !isLoading && handleSendMessage()}
+            disabled={isLoading}
+          />
+          <Button className="absolute right-1 top-1/2 -translate-y-1/2 rounded-full" onClick={handleSendMessage} disabled={isLoading}>
+            Send <Send className="ml-2 h-4 w-4" />
+          </Button>
         </div>
-      </Card>
+      </div>
     </div>
   );
 }
