@@ -1,23 +1,143 @@
 
 'use client';
-
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { FileText, Plus } from 'lucide-react';
+import Image from 'next/image';
 
 export default function Dashboard() {
   return (
-    <div>
-      <h1 className="text-3xl font-bold mb-4">Dashboard</h1>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle>Welcome!</CardTitle>
-            <CardDescription>This is your central hub for studying.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p>Use the navigation on the left to get started.</p>
-          </CardContent>
-        </Card>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        <p className="text-muted-foreground">
+          Welcome back, Sophia! Here's an overview of your learning journey.
+        </p>
       </div>
+
+      <div>
+        <h2 className="text-2xl font-semibold tracking-tight mb-2">Quick Access</h2>
+        <Button>
+          <Plus className="mr-2 h-4 w-4" /> Add New Course
+        </Button>
+      </div>
+
+      <div>
+        <h2 className="text-2xl font-semibold tracking-tight mb-4">Your Courses</h2>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <Card>
+            <CardHeader className="p-0">
+              <Image
+                src="https://picsum.photos/600/400"
+                alt="Course thumbnail"
+                width={600}
+                height={400}
+                className="rounded-t-lg object-cover"
+                data-ai-hint="online course"
+              />
+            </CardHeader>
+            <CardContent className="p-4">
+              <h3 className="text-lg font-semibold">
+                Introduction to Python Programming
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Learn the basics of Python programming with hands-on projects.
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="p-0">
+              <Image
+                src="https://picsum.photos/600/401"
+                alt="Course thumbnail"
+                width={600}
+                height={401}
+                className="rounded-t-lg object-cover"
+                data-ai-hint="data science"
+              />
+            </CardHeader>
+            <CardContent className="p-4">
+              <h3 className="text-lg font-semibold">
+                Data Science Fundamentals
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Explore data analysis, visualization, and machine learning techniques.
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="p-0">
+               <Image
+                src="https://picsum.photos/600/402"
+                alt="Course thumbnail"
+                width={600}
+                height={402}
+                className="rounded-t-lg object-cover"
+                data-ai-hint="design principles"
+              />
+            </CardHeader>
+            <CardContent className="p-4">
+              <h3 className="text-lg font-semibold">
+                UI/UX Design Principles
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Master the principles of user interface and user experience design.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+      
+      <div className="grid gap-6 md:grid-cols-2">
+         <div>
+          <h2 className="text-2xl font-semibold tracking-tight mb-4">Roadmap Progress</h2>
+          <Card>
+            <CardContent className="p-6">
+                <div className="space-y-4">
+                    <div>
+                        <div className="flex justify-between mb-1">
+                            <span className="text-sm font-medium">Data Science Roadmap</span>
+                            <span className="text-sm text-muted-foreground">60%</span>
+                        </div>
+                        <Progress value={60} />
+                    </div>
+                </div>
+            </CardContent>
+          </Card>
+        </div>
+        <div>
+           <h2 className="text-2xl font-semibold tracking-tight mb-4">Recent Notes</h2>
+           <div className="space-y-2">
+            <Card>
+                <CardContent className="p-4 flex items-center">
+                    <FileText className="h-5 w-5 mr-3 text-muted-foreground"/>
+                    <span className="font-medium">Key Concepts in Machine Learning</span>
+                </CardContent>
+            </Card>
+             <Card>
+                <CardContent className="p-4 flex items-center">
+                    <FileText className="h-5 w-5 mr-3 text-muted-foreground"/>
+                    <span className="font-medium">Design Thinking Process</span>
+                </CardContent>
+            </Card>
+             <Card>
+                <CardContent className="p-4 flex items-center">
+                    <FileText className="h-5 w-5 mr-3 text-muted-foreground"/>
+                    <span className="font-medium">Python Best Practices</span>
+                </CardContent>
+            </Card>
+           </div>
+        </div>
+      </div>
+
     </div>
   );
 }

@@ -3,163 +3,170 @@
 import {
   Book,
   Bot,
-  Home,
-  Package2,
-  Presentation,
-  TestTube,
-  Upload,
+  LayoutDashboard,
+  FileText,
+  GitMerge,
+  Menu,
+  Settings,
+  Sun,
+  Moon,
+  User,
 } from 'lucide-react';
 
 import Link from 'next/link';
-
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { cn } from '@/lib/utils';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useTheme } from 'next-themes';
+
+const navItems = [
+  { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+  { href: '/dashboard/courses', icon: Book, label: 'Courses' },
+  { href: '/dashboard/ai-chat', icon: Bot, label: 'AI Chat' },
+  { href: '/dashboard/roadmaps', icon: GitMerge, label: 'Roadmaps' },
+  { href: '/dashboard/notes', icon: FileText, label: 'Notes' },
+];
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <TooltipProvider>
-      <div className="flex min-h-screen w-full flex-col bg-muted/40">
-        <aside className="fixed inset-y-0 left-0 z-10 hidden w-14 flex-col border-r bg-background sm:flex">
-          <nav className="flex flex-col items-center gap-4 px-2 sm:py-5">
-            <Link
-              href="/dashboard"
-              className="group flex h-9 w-9 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground md:h-8 md:w-8 md:text-base"
-            >
-              <Book className="h-4 w-4 transition-all group-hover:scale-110" />
-              <span className="sr-only">Study App</span>
-            </Link>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Link
-                  href="/dashboard"
-                  className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8"
-                >
-                  <Home className="h-5 w-5" />
-                  <span className="sr-only">Dashboard</span>
-                </Link>
-              </TooltipTrigger>
-              <TooltipContent side="right">Dashboard</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Link
-                  href="/dashboard/upload"
-                  className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8"
-                >
-                  <Upload className="h-5 w-5" />
-                  <span className="sr-only">Upload</span>
-                </Link>
-              </TooltipTrigger>
-              <TooltipContent side="right">Upload Documents</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Link
-                  href="/dashboard/ai-chat"
-                  className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8"
-                >
-                  <Bot className="h-5 w-5" />
-                  <span className="sr-only">AI Chat</span>
-                </Link>
-              </TooltipTrigger>
-              <TooltipContent side="right">AI Chat</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Link
-                  href="/dashboard/whiteboard"
-                  className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8"
-                >
-                  <Presentation className="h-5 w-5" />
-                  <span className="sr-only">Whiteboard</span>
-                </Link>
-              </TooltipTrigger>
-              <TooltipContent side="right">Whiteboard</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Link
-                  href="/dashboard/learner-type"
-                  className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8"
-                >
-                  <TestTube className="h-5 w-5" />
-                  <span className="sr-only">Learner Type Test</span>
-                </Link>
-              </TooltipTrigger>
-              <TooltipContent side="right">Learner Type Test</TooltipContent>
-            </Tooltip>
-          </nav>
-        </aside>
-        <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
-          <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button size="icon" variant="outline" className="sm:hidden">
-                  <Book className="h-5 w-5" />
-                  <span className="sr-only">Toggle Menu</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="sm:max-w-xs">
-                <nav className="grid gap-6 text-lg font-medium">
-                  <Link
-                    href="/dashboard"
-                    className="group flex h-10 w-10 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground md:text-base"
-                  >
-                    <Package2 className="h-5 w-5 transition-all group-hover:scale-110" />
-                    <span className="sr-only">Study App</span>
-                  </Link>
-                  <Link
-                    href="/dashboard"
-                    className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
-                  >
-                    <Home className="h-5 w-5" />
-                    Dashboard
-                  </Link>
-                  <Link
-                    href="/dashboard/upload"
-                    className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
-                  >
-                    <Upload className="h-5 w-5" />
-                    Upload
-                  </Link>
-                  <Link
-                    href="/dashboard/ai-chat"
-                    className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
-                  >
-                    <Bot className="h-5 w-5" />
-                    AI Chat
-                  </Link>
-                  <Link
-                    href="/dashboard/whiteboard"
-                    className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
-                  >
-                    <Presentation className="h-5 w-5" />
-                    Whiteboard
-                  </Link>
-                   <Link
-                    href="/dashboard/learner-type"
-                    className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
-                  >
-                    <TestTube className="h-5 w-5" />
-                    Learner Type Test
-                  </Link>
-                </nav>
-              </SheetContent>
-            </Sheet>
-          </header>
-          <main className="flex-1 p-4 sm:px-6 sm:py-0">{children}</main>
-        </div>
+  const pathname = usePathname();
+  const { setTheme } = useTheme();
+
+  const NavLink = ({
+    href,
+    icon: Icon,
+    label,
+  }: {
+    href: string;
+    icon: React.ElementType;
+    label: string;
+  }) => {
+    const isActive = pathname === href;
+    return (
+      <Link href={href}>
+        <Button
+          variant={isActive ? 'default' : 'ghost'}
+          className="w-full justify-start"
+        >
+          <Icon className="mr-2 h-4 w-4" />
+          {label}
+        </Button>
+      </Link>
+    );
+  };
+
+  const SidebarContent = () => (
+    <div className="flex h-full flex-col">
+      <div className="flex h-16 items-center px-4">
+        <h1 className="text-xl font-bold">Study App</h1>
       </div>
-    </TooltipProvider>
+      <nav className="flex-1 space-y-2 px-4">
+        {navItems.map((item) => (
+          <NavLink key={item.href} {...item} />
+        ))}
+      </nav>
+      <div className="mt-auto p-4">
+        <Link href="#">
+          <Button variant="ghost" className="w-full justify-start">
+            <Settings className="mr-2 h-4 w-4" />
+            Settings
+          </Button>
+        </Link>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="grid min-h-screen w-full lg:grid-cols-[280px_1fr]">
+      <div className="hidden border-r bg-card lg:block">
+        <SidebarContent />
+      </div>
+      <div className="flex flex-col">
+        <header className="flex h-16 items-center gap-4 border-b bg-card px-6">
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                className="shrink-0 lg:hidden"
+              >
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Toggle navigation menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="flex flex-col p-0">
+              <SidebarContent />
+            </SheetContent>
+          </Sheet>
+          <div className="w-full flex-1">
+            {/* Can add a search bar here if needed */}
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="rounded-full">
+                <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                <span className="sr-only">Toggle theme</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setTheme('light')}>
+                Light
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setTheme('dark')}>
+                Dark
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setTheme('system')}>
+                System
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                <Avatar>
+                  <AvatarImage src="https://i.pravatar.cc/150?u=a042581f4e29026704d" />
+                  <AvatarFallback>
+                    <User />
+                  </AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56" align="end" forceMount>
+              <DropdownMenuLabel className="font-normal">
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm font-medium leading-none">Sophia</p>
+                  <p className="text-xs leading-none text-muted-foreground">
+                    sophia@example.com
+                  </p>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>Profile</DropdownMenuItem>
+              <DropdownMenuItem>Billing</DropdownMenuItem>
+              <DropdownMenuItem>Settings</DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>Log out</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </header>
+        <main className="flex-1 p-6">
+          {children}
+        </main>
+      </div>
+    </div>
   );
 }
