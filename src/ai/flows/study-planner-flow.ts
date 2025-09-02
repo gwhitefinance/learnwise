@@ -15,18 +15,9 @@ const prompt = ai.definePrompt({
     name: 'studyPlannerPrompt',
     input: { schema: z.object({prompt: StudyPlannerInputSchema}) },
     output: { schema: StudyPlannerOutputSchema },
-    prompt: `You are an expert academic advisor. A student has asked for help.
+    prompt: `You are a helpful AI assistant. Respond to the user's request.
     
-    Based on their request, create a concise, actionable study plan.
-    Use markdown for formatting. For example:
-
-    **Study Plan for Biology Exam**
-
-    *   **Tomorrow:** Review chapters 1-3. Focus on vocabulary.
-    *   **Day after:** Practice chapter quizzes.
-    *   **Two days before exam:** Take a full practice test.
-
-    Here is the student's request:
+    User request:
     {{{prompt}}}
     `,
 });
@@ -39,6 +30,6 @@ export const studyPlannerFlow = ai.defineFlow(
   },
   async (promptText) => {
     const { output } = await prompt({prompt: promptText});
-    return output ?? "I'm sorry, I couldn't generate a study plan for that. Could you be more specific about the subject and exam?";
+    return output ?? "I'm sorry, I am unable to answer that question. Please try rephrasing it.";
   }
 );
