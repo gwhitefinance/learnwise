@@ -53,8 +53,8 @@ export default function AiChatPage() {
         title: 'Error',
         description: 'Failed to get a response from the AI. Please try again.',
       });
-       const userMessageIndex = messages.length;
-       setMessages(prev => prev.slice(0, userMessageIndex + 1));
+       // Revert to the state before sending the message on error
+       setMessages(messages);
     } finally {
       setIsLoading(false);
     }
