@@ -16,6 +16,7 @@ import {
   Brush,
   BrainCircuit,
   Lightbulb,
+  Calendar,
 } from 'lucide-react';
 
 import Link from 'next/link';
@@ -38,6 +39,7 @@ const navItems = [
     { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { href: '/dashboard/courses', icon: Book, label: 'Courses' },
     { href: '/dashboard/roadmaps', icon: GitMerge, label: 'Roadmaps' },
+    { href: '/dashboard/calendar', icon: Calendar, label: 'Calendar' },
     { href: '/dashboard/notes', icon: FileText, label: 'Notes' },
     { href: '/dashboard/practice-quiz', icon: Lightbulb, label: 'Practice Quiz' },
     { href: '/dashboard/learner-type', icon: TestTube, label: 'Learner Type' },

@@ -2,236 +2,217 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar } from "@/components/ui/calendar";
-import { CheckCircle, Flag, FlaskConical, Calendar as CalendarIcon, Users, Trophy, Plus, Pen, Trash2, GitMerge } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { GitMerge, CheckCircle, Flag, FlaskConical, Calendar as CalendarIcon, Users, Trophy } from "lucide-react";
+import * as LucideIcons from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { studyPlannerFlow } from '@/ai/flows/study-planner-flow';
+import { generateRoadmap } from '@/ai/flows/roadmap-flow';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from '@/components/ui/skeleton';
 
-const initialMilestones = [
-  {
-    icon: CalendarIcon,
-    date: new Date("2024-08-15T00:00:00.000Z"),
-    title: "Course Enrollment",
-    completed: true,
-  },
-  {
-    icon: FlaskConical,
-    date: new Date("2024-09-05T00:00:00.000Z"),
-    title: "Midterm Exam",
-    completed: false,
-  },
-  {
-    icon: CheckCircle,
-    date: new Date("2024-09-15T00:00:00.000Z"),
-    title: "Project Submission",
-    completed: false,
-  },
-  {
-    icon: Trophy,
-    date: new Date("2024-09-25T00:00:00.000Z"),
-    title: "Final Exam",
-    completed: false,
-  },
-  {
-    icon: CheckCircle,
-    date: new Date("2024-10-01T00:00:00.000Z"),
-    title: "Course Completion",
-    completed: false,
-  },
-];
+type Course = {
+    id: string;
+    name: string;
+    description: string;
+};
 
-const initialGoals = [
+type Goal = {
+    icon: keyof typeof LucideIcons;
+    title: string;
+    description: string;
+};
+
+type Milestone = {
+    icon: keyof typeof LucideIcons;
+    date: string; // YYYY-MM-DD
+    title: string;
+    description: string;
+    completed: boolean;
+};
+
+type Roadmap = {
+    goals: Goal[];
+    milestones: Milestone[];
+};
+
+const initialCourses: Course[] = [
     {
-        icon: Flag,
-        title: "Finish Course",
-        description: "Complete all course modules"
+        id: '1',
+        name: "Introduction to Programming",
+        description: "Learn the fundamentals of programming using Python."
     },
     {
-        icon: Trophy,
-        title: "Target Grade",
-        description: "Achieve a grade of 85% or higher"
+        id: '2',
+        name: "Calculus I",
+        description: "An introduction to differential and integral calculus."
     },
     {
-        icon: Users,
-        title: "Engagement",
-        description: "Participate in all discussion forums"
-    }
+        id: '3',
+        name: "Linear Algebra",
+        description: "Explore vectors, matrices, and linear transformations."
+    },
 ];
+
+const getIcon = (iconName: keyof typeof LucideIcons | undefined, defaultIcon: keyof typeof LucideIcons) => {
+    const Icon = iconName ? LucideIcons[iconName] as React.ElementType : LucideIcons[defaultIcon] as React.ElementType;
+    if (!Icon) return LucideIcons[defaultIcon] as React.ElementType;
+    return Icon;
+};
+
 
 export default function RoadmapsPage() {
-    const [milestones, setMilestones] = useState(initialMilestones);
-    const [goals, setGoals] = useState(initialGoals);
-    const [goalTitle, setGoalTitle] = useState('');
-    const [goalDescription, setGoalDescription] = useState('');
-    const [isAddGoalOpen, setAddGoalOpen] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
+    const [courses, setCourses] = useState<Course[]>([]);
+    const [roadmaps, setRoadmaps] = useState<Record<string, Roadmap>>({});
+    const [isLoading, setIsLoading] = useState<Record<string, boolean>>({});
     const { toast } = useToast();
-    
-    const milestoneDates = milestones.map(m => m.date);
 
-    const handleAddGoal = () => {
-        if (!goalTitle || !goalDescription) {
-            toast({
-                variant: 'destructive',
-                title: 'Missing Information',
-                description: 'Please provide a title and description for your goal.',
-            });
-            return;
+    useEffect(() => {
+        const savedCourses = localStorage.getItem('courses');
+        if (savedCourses) {
+            setCourses(JSON.parse(savedCourses));
+        } else {
+            setCourses(initialCourses);
         }
         
-        const newGoal = {
-            icon: Flag,
-            title: goalTitle,
-            description: goalDescription,
-        };
-        setGoals([...goals, newGoal]);
-        setGoalTitle('');
-        setGoalDescription('');
-        setAddGoalOpen(false);
-        toast({
-            title: 'Goal Added!',
-            description: 'Your new goal has been added to your roadmap.',
-        });
-    };
+        const savedRoadmaps = localStorage.getItem('roadmaps');
+        if (savedRoadmaps) {
+            setRoadmaps(JSON.parse(savedRoadmaps));
+        }
+    }, []);
 
-    const handleGenerateRoadmap = async () => {
-        setIsLoading(true);
-        toast({ title: 'Generating Roadmap...', description: 'The AI is creating your personalized study plan.' });
+    const handleGenerateRoadmap = async (course: Course) => {
+        setIsLoading(prev => ({ ...prev, [course.id]: true }));
+        toast({ title: 'Generating Roadmap...', description: `The AI is creating a personalized study plan for ${course.name}.` });
         try {
-            // This is a simplified example. In a real app, you'd get the current course context.
-            const response = await studyPlannerFlow({
-                history: [{ role: 'user', content: 'Generate a detailed study roadmap with milestones and goals for the course "Introduction to AI".' }],
-            });
-            
-            // In a real implementation, you would parse the AI response to create structured
-            // goals and milestones. For this example, we'll just show the raw response.
-            toast({
-                title: 'AI-Generated Roadmap Suggestion',
-                description: response,
-                duration: 9000,
+            const response = await generateRoadmap({
+                courseName: course.name,
+                courseDescription: course.description
             });
 
+            const newRoadmap: Roadmap = {
+                goals: response.goals.map(g => ({ ...g, icon: g.icon as keyof typeof LucideIcons || 'Flag' })),
+                milestones: response.milestones.map(m => ({ ...m, description: m.title, icon: m.icon as keyof typeof LucideIcons || 'CalendarIcon', completed: new Date(m.date) < new Date() }))
+            };
+            
+            const updatedRoadmaps = { ...roadmaps, [course.id]: newRoadmap };
+            setRoadmaps(updatedRoadmaps);
+            localStorage.setItem('roadmaps', JSON.stringify(updatedRoadmaps));
+            
+            toast({
+                title: 'Roadmap Generated!',
+                description: `Your new roadmap for ${course.name} is ready.`,
+            });
         } catch (error) {
             console.error(error);
             toast({ variant: 'destructive', title: 'Error', description: 'Failed to generate roadmap.' });
         } finally {
-            setIsLoading(false);
+            setIsLoading(prev => ({ ...prev, [course.id]: false }));
         }
     };
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-            <h1 className="text-3xl font-bold tracking-tight">My Study Roadmap</h1>
+       <div>
+            <h1 className="text-3xl font-bold tracking-tight">My Study Roadmaps</h1>
             <p className="text-muted-foreground">
-            Visualize your learning journey with key milestones and goals.
+            Visualize your learning journey with key milestones and goals for each course.
             </p>
         </div>
-        <Button onClick={handleGenerateRoadmap} disabled={isLoading}>
-            <GitMerge className="mr-2 h-4 w-4"/> {isLoading ? 'Generating...' : 'Generate with AI'}
-        </Button>
-      </div>
+        
+        {courses.length > 0 ? (
+        <Tabs defaultValue={courses[0].id} className="w-full">
+            <TabsList>
+                {courses.map(course => (
+                    <TabsTrigger key={course.id} value={course.id}>{course.name}</TabsTrigger>
+                ))}
+            </TabsList>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-8">
-           <Card>
-            <CardContent className="p-2">
-                <Calendar
-                    mode="multiple"
-                    selected={milestoneDates}
-                    classNames={{
-                        day_selected: "bg-primary/20 text-primary-foreground rounded-full",
-                    }}
-                    components={{
-                        DayContent: ({ date, ...props }) => {
-                            const isMilestone = milestoneDates.some(
-                                (milestoneDate) => new Date(date).toDateString() === new Date(milestoneDate).toDateString()
-                            );
-                            return (
-                                <div className="relative">
-                                    <span>{props.children}</span>
-                                    {isMilestone && <div className="absolute bottom-1 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-primary" />}
-                                </div>
-                            );
-                        },
-                    }}
-                    className="w-full"
-                  />
-            </CardContent>
-           </Card>
+            {courses.map(course => {
+                const roadmap = roadmaps[course.id];
+                const courseIsLoading = isLoading[course.id];
 
-            <div>
-                <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-2xl font-semibold">Goals</h2>
-                    <Dialog open={isAddGoalOpen} onOpenChange={setAddGoalOpen}>
-                        <DialogTrigger asChild>
-                            <Button><Plus className="mr-2 h-4 w-4"/> Add Goal</Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                            <DialogHeader>
-                                <DialogTitle>Add a New Goal</DialogTitle>
-                            </DialogHeader>
-                            <div className="grid gap-4 py-4">
-                                <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label htmlFor="goal-title" className="text-right">Title</Label>
-                                    <Input id="goal-title" value={goalTitle} onChange={(e) => setGoalTitle(e.target.value)} className="col-span-3" placeholder="e.g., Master React"/>
-                                </div>
-                                 <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label htmlFor="goal-description" className="text-right">Description</Label>
-                                    <Input id="goal-description" value={goalDescription} onChange={(e) => setGoalDescription(e.target.value)} className="col-span-3" placeholder="Describe your goal"/>
+                return (
+                 <TabsContent key={course.id} value={course.id}>
+                    <div className="flex justify-end mb-4">
+                        <Button onClick={() => handleGenerateRoadmap(course)} disabled={courseIsLoading}>
+                            <GitMerge className="mr-2 h-4 w-4"/> {courseIsLoading ? 'Generating...' : 'Generate with AI'}
+                        </Button>
+                    </div>
+
+                    {!roadmap && !courseIsLoading ? (
+                        <Card className="text-center p-12">
+                            <h2 className="text-xl font-semibold">No Roadmap Yet</h2>
+                            <p className="text-muted-foreground mt-2">Click the "Generate with AI" button to create a study plan for this course.</p>
+                        </Card>
+                    ) : (
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            <div className="lg:col-span-2 space-y-8">
+                                <h2 className="text-2xl font-semibold">Goals</h2>
+                                 <div className="grid gap-4 md:grid-cols-2">
+                                     {courseIsLoading && !roadmap ? (
+                                        <>
+                                            <Skeleton className="h-24"/>
+                                            <Skeleton className="h-24"/>
+                                        </>
+                                     ) : roadmap?.goals.map((goal, index) => {
+                                         const GoalIcon = getIcon(goal.icon, 'Flag');
+                                         return (
+                                            <Card key={index}>
+                                                <CardContent className="p-6 flex items-start gap-4">
+                                                    <div className="bg-muted p-3 rounded-lg">
+                                                        <GoalIcon className="h-6 w-6 text-muted-foreground"/>
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="font-semibold text-lg">{goal.title}</h3>
+                                                        <p className="text-muted-foreground text-sm">{goal.description}</p>
+                                                    </div>
+                                                </CardContent>
+                                            </Card>
+                                        )
+                                     })}
                                 </div>
                             </div>
-                            <DialogFooter>
-                                <DialogClose asChild>
-                                    <Button variant="ghost">Cancel</Button>
-                                </DialogClose>
-                                <Button onClick={handleAddGoal}>Add Goal</Button>
-                            </DialogFooter>
-                        </DialogContent>
-                    </Dialog>
-                </div>
-                <div className="grid gap-4 md:grid-cols-2">
-                    {goals.map((goal, index) => (
-                         <Card key={index}>
-                            <CardContent className="p-6 flex items-start gap-4">
-                                <div className="bg-muted p-3 rounded-lg">
-                                    <goal.icon className="h-6 w-6 text-muted-foreground"/>
-                                </div>
-                                <div>
-                                    <h3 className="font-semibold text-lg">{goal.title}</h3>
-                                    <p className="text-muted-foreground text-sm">{goal.description}</p>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
-            </div>
-        </div>
+                             <div className="space-y-8">
+                              <h2 className="text-2xl font-semibold">Milestones</h2>
+                              <div className="relative">
+                                <div className="absolute left-3.5 top-0 h-full w-0.5 bg-border"></div>
+                                 {courseIsLoading && !roadmap ? (
+                                    <div className="space-y-8">
+                                        <div className="flex items-start gap-6"><Skeleton className="h-8 w-8 rounded-full"/><div className="space-y-2"><Skeleton className="h-4 w-48"/><Skeleton className="h-4 w-32"/></div></div>
+                                        <div className="flex items-start gap-6"><Skeleton className="h-8 w-8 rounded-full"/><div className="space-y-2"><Skeleton className="h-4 w-48"/><Skeleton className="h-4 w-32"/></div></div>
+                                        <div className="flex items-start gap-6"><Skeleton className="h-8 w-8 rounded-full"/><div className="space-y-2"><Skeleton className="h-4 w-48"/><Skeleton className="h-4 w-32"/></div></div>
+                                    </div>
+                                 ) : roadmap?.milestones.map((milestone, index) => {
+                                     const MilestoneIcon = getIcon(milestone.icon, 'CalendarIcon');
+                                     const isCompleted = new Date(milestone.date) < new Date();
+                                     return (
+                                        <div key={index} className="relative flex items-start gap-6 mb-8">
+                                            <div className={`h-8 w-8 rounded-full flex items-center justify-center z-10 ${isCompleted ? 'bg-primary text-primary-foreground' : 'bg-muted border-2 border-primary'}`}>
+                                            <MilestoneIcon className="h-4 w-4" />
+                                            </div>
+                                            <div>
+                                            <p className="text-sm text-muted-foreground">{new Date(milestone.date).toLocaleDateString('en-US', { timeZone: 'UTC', month: 'long', day: 'numeric', year: 'numeric' })}</p>
+                                            <h3 className="font-semibold text-lg">{milestone.title}</h3>
+                                            </div>
+                                        </div>
+                                    )
+                                })}
+                              </div>
+                            </div>
+                        </div>
+                    )}
 
-        <div className="space-y-8">
-          <h2 className="text-2xl font-semibold">Milestones</h2>
-          <div className="relative">
-            <div className="absolute left-3.5 top-0 h-full w-0.5 bg-border"></div>
-            {milestones.map((milestone, index) => (
-              <div key={index} className="relative flex items-start gap-6 mb-8">
-                <div className={`h-8 w-8 rounded-full flex items-center justify-center z-10 ${milestone.completed ? 'bg-primary text-primary-foreground' : 'bg-muted border-2 border-primary'}`}>
-                  <milestone.icon className="h-4 w-4" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">{milestone.date.toLocaleDateString('en-US', { timeZone: 'UTC', month: 'long', day: 'numeric', year: 'numeric' })}</p>
-                  <h3 className="font-semibold text-lg">{milestone.title}</h3>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+                 </TabsContent>
+                )
+            })}
+        </Tabs>
+        ) : (
+            <Card className="text-center p-12">
+                <h2 className="text-xl font-semibold">No Courses Found</h2>
+                <p className="text-muted-foreground mt-2">Add a course from the "Courses" page to start creating roadmaps.</p>
+            </Card>
+        )}
     </div>
   );
 }
