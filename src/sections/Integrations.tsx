@@ -33,7 +33,7 @@ const integrations = [
     },
     {
         name: "GitHub",
-        icon: "https://logos-world.net/wp-content/uploads/2020/11/GitHub-Symbol.png",
+        icon: "https://img.favpng.com/10/5/25/github-computer-icons-icon-design-branching-png-favpng-f0sgwNt1NvbqnZwFpRQDtaR5Q.jpg",
         description: "Track coding projects alongside your coursework.",
     },
 ];

@@ -52,6 +52,12 @@ const nextConfig: NextConfig = {
         hostname: 'logos-world.net',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'img.favpng.com',
+        port: '',
+        pathname: '/**',
       }
     ],
   },
