@@ -11,9 +11,9 @@ const logos = [
     { name: "MIT", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/MIT_logo.svg/200px-MIT_logo.svg.png" },
     { name: "University of Oxford", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/ff/Oxford-University-Circlet.svg/200px-Oxford-University-Circlet.svg.png" },
     { name: "University of Cambridge", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Cambridge_University_crest.svg/200px-Cambridge_University_crest.svg.png" },
-    { name: "Caltech", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Caltech_logo.svg/200px-Caltech_logo.svg.png" },
+    { name: "Caltech", image: "https://upload.wikimedia.org/wikipedia/en/thumb/5/5e/Caltech_logo.svg/200px-Caltech_logo.svg.png" },
     { name: "ETH Zurich", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/ETH_Zurich_logo_2015.svg/200px-ETH_Zurich_logo_2015.svg.png" },
-    { name: "UCL", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/01/University_College_London_logo.svg/200px-University_College_London_logo.svg.png" },
+    { name: "UCL", image: "https://upload.wikimedia.org/wikipedia/en/thumb/2/22/University_College_London_logo.svg/200px-University_College_London_logo.svg.png" },
 ];
 
 export default function LogoTicker() {
