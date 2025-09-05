@@ -98,56 +98,22 @@
 }
 
 @layer base {
-  html {
-    @apply h-full;
+  * {
+    @apply border-border;
   }
-
   body {
-    @apply h-full;
-  }
-
-  *,
-  :after,
-  :before {
-    border-color: hsl(var(--border));
-  }
-
-  body {
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
+    @apply bg-background text-foreground;
   }
 }
 
-.tw-duration-300 {
-  transition-duration: 0.3s;
-}
-
-.tw-ease-in-out {
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.tw-transition-all {
-  transition-property: all;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
-}
-
-.tw-transition-colors {
-  transition-property: background-color, border-color, color, fill, stroke,
-    opacity, box-shadow, transform, filter, -webkit-backdrop-filter,
-    backdrop-filter;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
-}
-
-/* Custom styles for landing page */
-.landing-hero-bg {
-    background-color: #020617;
-    background-image:
-        linear-gradient(rgba(2, 6, 23, 0) 50%, rgba(2, 6, 23, 1)),
-        radial-gradient(ellipse at 50% 0, rgba(14, 116, 253, 0.2), transparent 70%);
-}
-
-.landing-dark-bg {
-     background-color: #0f172a;
+.gradient-background {
+  background: linear-gradient(
+    270deg,
+    hsl(210, 100%, 50%) 0%,
+    hsl(228, 96%, 61%) 25%,
+    hsl(264, 91%, 63%) 50%,
+    hsl(285, 87%, 56%) 75%,
+    hsl(333, 91%, 63%) 100%
+  );
+  filter: blur(125px);
 }

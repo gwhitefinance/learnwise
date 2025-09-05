@@ -3,52 +3,35 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ArrowRight, BrainCircuit, Check, Menu, X, Star } from 'lucide-react';
+import { Button, buttonVariants } from '@/components/ui/button';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { ArrowRight, BrainCircuit, Check, Menu, X, Star, Zap, BarChart, Clock, Code, Bot } from 'lucide-react';
 import Image from 'next/image';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-
+import { cn } from '@/lib/utils';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 const features = [
   {
-    title: 'AI-Powered Roadmaps',
-    description:
-      'Get a clear, step-by-step study plan for any course. Our AI analyzes the subject matter and creates a customized roadmap with goals and milestones to keep you on track, ensuring you cover all essential topics efficiently.',
-    items: [
-      'Personalized learning paths',
-      'Milestone tracking and progress visualization',
-      'Adaptive recommendations based on your pace',
-    ],
-    image: 'https://picsum.photos/600/500?v=1',
-    image_alt: 'AI-Powered Roadmaps illustration',
-    image_hint: 'learning plan'
+    icon: <Bot />,
+    title: "AI-Powered Roadmaps",
+    description: "Get a clear, step-by-step study plan for any course. Our AI creates a customized roadmap to keep you on track.",
   },
   {
-    title: 'Interactive Practice Quizzes',
-    description:
-      "Test your knowledge with customized quizzes on any topic, at any difficulty level. Solidify your understanding and identify areas that need more attention with instant feedback and detailed explanations.",
-    items: [
-      'Multiple question types (MCQ, T/F, Short Answer)',
-      'Adjustable difficulty levels (Easy, Medium, Hard)',
-      'Instant scoring and answer explanations',
-    ],
-    image: 'https://picsum.photos/600/500?v=2',
-    image_alt: 'Practice Quizzes illustration',
-    image_hint: 'quiz exam'
+    icon: <Code />,
+    title: "Interactive Practice Quizzes",
+    description: "Test your knowledge with customized quizzes. Solidify your understanding and identify areas that need more attention.",
   },
   {
-    title: '24/7 AI Study Assistant',
-    description:
-      "Have a question? Our AI chat is available anytime to provide instant explanations, summaries, and answers. It's like having a personal tutor ready to help whenever you're stuck.",
-    items: [
-      'Context-aware answers based on your course material',
-      'Summarization of long texts and articles',
-      'Multi-language support for diverse learners',
-    ],
-    image: 'https://picsum.photos/600/500?v=3',
-    image_alt: 'AI Study Assistant illustration',
-    image_hint: 'chatbot assistant'
+    icon: <BarChart />,
+    title: "24/7 AI Study Assistant",
+    description: "Our AI chat is available anytime to provide instant explanations, summaries, and answers.",
+  },
+  {
+    icon: <Clock />,
+    title: "Progress Tracking",
+    description: "Visualize your progress and stay motivated with our analytics dashboard.",
   },
 ];
 
@@ -64,14 +47,14 @@ const testimonials = [
     name: 'David C.',
     role: 'Software Development Bootcamp',
     quote:
-      "As someone learning to code, I have a million questions a day. The AI assistant is incredible for getting quick, accurate answers without having to sift through forums. It's accelerated my learning curve significantly.",
+      "The AI assistant is incredible for getting quick, accurate answers without having to sift through forums. It's accelerated my learning curve significantly.",
     avatar: 'https://i.pravatar.cc/150?u=david',
   },
   {
     name: 'Maria P.',
     role: 'Lifelong Learner',
     quote:
-      "I love taking online courses, and LearnWise makes the experience so much more structured. I can finally keep track of my progress across different subjects and feel confident that I'm actually retaining the information.",
+      "I love taking online courses, and LearnWise makes the experience so much more structured. I can finally keep track of my progress and feel confident that I'm actually retaining the information.",
     avatar: 'https://i.pravatar.cc/150?u=maria',
   },
 ];
@@ -90,10 +73,6 @@ const faqs = [
         answer: "Our AI analyzes the course name and description you provide. It breaks down the subject into key concepts and logical modules, then arranges them into a structured timeline with achievable goals and milestones. It's designed to give you a clear path from start to finish."
     },
     {
-        question: "Can I use LearnWise for any subject?",
-        answer: "Yes! Our AI is trained on a vast range of topics and can generate study plans and quizzes for almost any subject, from academic disciplines like math and history to practical skills like programming and design."
-    },
-    {
         question: "Is my data secure?",
         answer: "We take data privacy and security very seriously. All your data is encrypted and stored securely. We do not share your personal information or study materials with third parties. Please refer to our Privacy Policy for more details."
     }
@@ -109,21 +88,25 @@ const trustedByLogos = [
 
 export default function LandingPage() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [isYearly, setIsYearly] = useState(false);
 
   return (
-    <div className="bg-slate-900 text-foreground isolate">
+    <div className="bg-background text-foreground dark:bg-neutral-950">
+      <div className="absolute top-0 -z-10 h-full w-full bg-white dark:bg-neutral-950">
+        <div className="absolute bottom-auto left-auto right-0 top-0 h-[500px] w-[500px] -translate-x-[30%] translate-y-[20%] rounded-full bg-[rgba(109,40,217,0.2)] opacity-50 blur-[80px]"></div>
+      </div>
        <header className="absolute inset-x-0 top-0 z-50">
         <nav className="container mx-auto flex items-center justify-between p-6 lg:px-8" aria-label="Global">
           <div className="flex lg:flex-1">
             <Link href="/" className="-m-1.5 p-1.5 flex items-center gap-2 font-bold text-xl">
               <BrainCircuit className="h-8 w-auto text-primary" />
-              <span className="text-white">LearnWise</span>
+              <span className="text-foreground dark:text-white">LearnWise</span>
             </Link>
           </div>
           <div className="flex lg:hidden">
             <button
               type="button"
-              className="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-gray-400"
+              className="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-muted-foreground"
               onClick={() => setMobileMenuOpen(true)}
             >
               <span className="sr-only">Open main menu</span>
@@ -131,31 +114,31 @@ export default function LandingPage() {
             </button>
           </div>
           <div className="hidden lg:flex lg:gap-x-12">
-            <Link href="#features" className="text-sm font-semibold leading-6 text-white">Features</Link>
-            <Link href="#pricing" className="text-sm font-semibold leading-6 text-white">Pricing</Link>
-            <Link href="#testimonials" className="text-sm font-semibold leading-6 text-white">Testimonials</Link>
+            <Link href="#features" className="text-sm font-semibold leading-6 text-foreground dark:text-gray-300 hover:text-primary">Features</Link>
+            <Link href="#pricing" className="text-sm font-semibold leading-6 text-foreground dark:text-gray-300 hover:text-primary">Pricing</Link>
+            <Link href="#testimonials" className="text-sm font-semibold leading-6 text-foreground dark:text-gray-300 hover:text-primary">Testimonials</Link>
           </div>
           <div className="hidden lg:flex lg:flex-1 lg:justify-end gap-x-6 items-center">
-            <Link href="/dashboard" className="text-sm font-semibold leading-6 text-white">
+            <Link href="/dashboard" className="text-sm font-semibold leading-6 text-foreground dark:text-gray-300 hover:text-primary">
               Log in
             </Link>
              <Link href="/dashboard">
-                <Button>Get started free <ArrowRight className="ml-2 h-4 w-4" /></Button>
+                <Button>Get for free</Button>
             </Link>
           </div>
         </nav>
         {mobileMenuOpen && (
         <div className="lg:hidden" role="dialog" aria-modal="true">
           <div className="fixed inset-0 z-50" />
-          <div className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-gray-900 px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-white/10">
+          <div className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-background dark:bg-gray-900 px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-white/10">
             <div className="flex items-center justify-between">
                 <Link href="/" className="-m-1.5 p-1.5 flex items-center gap-2 font-bold text-xl">
                     <BrainCircuit className="h-8 w-auto text-primary" />
-                    <span className="text-white">LearnWise</span>
+                    <span className="text-foreground dark:text-white">LearnWise</span>
                 </Link>
               <button
                 type="button"
-                className="-m-2.5 rounded-md p-2.5 text-gray-400"
+                className="-m-2.5 rounded-md p-2.5 text-muted-foreground"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <span className="sr-only">Close menu</span>
@@ -165,14 +148,14 @@ export default function LandingPage() {
             <div className="mt-6 flow-root">
               <div className="-my-6 divide-y divide-gray-500/25">
                 <div className="space-y-2 py-6">
-                   <Link href="#features" className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-white hover:bg-gray-800" onClick={() => setMobileMenuOpen(false)}>Features</Link>
-                   <Link href="#pricing" className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-white hover:bg-gray-800" onClick={() => setMobileMenuOpen(false)}>Pricing</Link>
-                   <Link href="#testimonials" className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-white hover:bg-gray-800" onClick={() => setMobileMenuOpen(false)}>Testimonials</Link>
+                   <Link href="#features" className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-foreground dark:text-white hover:bg-muted dark:hover:bg-gray-800" onClick={() => setMobileMenuOpen(false)}>Features</Link>
+                   <Link href="#pricing" className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-foreground dark:text-white hover:bg-muted dark:hover:bg-gray-800" onClick={() => setMobileMenuOpen(false)}>Pricing</Link>
+                   <Link href="#testimonials" className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-foreground dark:text-white hover:bg-muted dark:hover:bg-gray-800" onClick={() => setMobileMenuOpen(false)}>Testimonials</Link>
                 </div>
                 <div className="py-6">
                     <Link
                         href="/dashboard"
-                        className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-white hover:bg-gray-800"
+                        className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-foreground dark:text-white hover:bg-muted dark:hover:bg-gray-800"
                         onClick={() => setMobileMenuOpen(false)}
                     >
                         Log in
@@ -182,7 +165,7 @@ export default function LandingPage() {
                         className="mt-4 block"
                         onClick={() => setMobileMenuOpen(false)}
                     >
-                        <Button className="w-full">Get started free</Button>
+                        <Button className="w-full">Get for free</Button>
                     </Link>
                 </div>
               </div>
@@ -192,52 +175,54 @@ export default function LandingPage() {
         )}
       </header>
 
-      <main className="relative">
+      <main className="relative isolate overflow-hidden">
         {/* Hero */}
-        <div className="relative isolate overflow-hidden pt-14 landing-hero-bg">
-            <div
-                className="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80"
-                aria-hidden="true"
-            >
-                <div
-                className="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#8085ff] to-[#4338ca] opacity-20 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]"
-                style={{
-                    clipPath:
-                    'polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)',
-                }}
-                />
-            </div>
-            <div className="mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:px-8 lg:py-40">
-                <div className="mx-auto max-w-2xl text-center">
-                    <h1 className="text-4xl font-bold tracking-tight text-white sm:text-6xl">
-                    Master Any Subject in Record Time
-                    </h1>
-                    <p className="mt-6 text-lg leading-8 text-gray-300">
-                    The #1 AI-powered learning platform for students, professionals, and lifelong learners. Stop cramming, start understanding.
-                    </p>
-                    <div className="mt-10 flex items-center justify-center gap-x-6">
-                        <Link href="/dashboard">
-                            <Button size="lg">Get started free</Button>
-                        </Link>
+        <section className="container mx-auto px-6 lg:px-8 pt-32 pb-24 sm:pt-40 sm:pb-32 text-center">
+            <div className="mx-auto max-w-4xl">
+                 <div className="mb-8 flex justify-center">
+                    <div className="relative rounded-full px-4 py-1 text-sm leading-6 text-muted-foreground ring-1 ring-border">
+                        The #1 AI-Powered Learning Platform. <Link href="#pricing" className="font-semibold text-primary ml-1">Get started for free <span aria-hidden="true">&rarr;</span></Link>
                     </div>
                 </div>
+                <h1 className="text-4xl font-bold tracking-tight text-foreground dark:text-white sm:text-6xl">
+                    Master Any Subject with Your AI Study Partner
+                </h1>
+                <p className="mt-6 text-lg leading-8 text-muted-foreground">
+                    LearnWise creates personalized study plans, generates practice quizzes, and provides instant answers to your questions. Study smarter, not harder.
+                </p>
+                <div className="mt-10 flex items-center justify-center gap-x-6">
+                    <Link href="/dashboard">
+                        <Button size="lg">Get for free <ArrowRight className="ml-2 h-4 w-4" /></Button>
+                    </Link>
+                </div>
             </div>
-        </div>
-
+             <div className="relative mt-16 flow-root sm:mt-24">
+                <div className="-m-2 rounded-xl bg-gray-900/5 p-2 ring-1 ring-inset ring-gray-900/10 lg:-m-4 lg:rounded-2xl lg:p-4">
+                <Image
+                    src="https://picsum.photos/1200/600"
+                    alt="App screenshot"
+                    width={2432}
+                    height={1442}
+                    className="rounded-md shadow-2xl ring-1 ring-gray-900/10"
+                    data-ai-hint="app dashboard"
+                />
+                </div>
+            </div>
+        </section>
 
         {/* Logo cloud */}
-        <div className="bg-slate-900 py-12 sm:py-16">
+        <div className="py-12 sm:py-16">
             <div className="mx-auto max-w-7xl px-6 lg:px-8">
-                <div className="mx-auto max-w-2xl lg:max-w-none">
-                    <h2 className="text-center text-lg font-semibold leading-8 text-white">
+                 <div className="mx-auto max-w-2xl lg:max-w-none text-center">
+                    <h2 className="text-lg font-semibold leading-8 text-muted-foreground">
                     Trusted by students from top universities
                     </h2>
                     <div className="mx-auto mt-10 grid grid-cols-2 items-center gap-x-8 gap-y-10 sm:grid-cols-3 lg:grid-cols-5">
                     {trustedByLogos.map((logo) => (
                         <Image
                         key={logo.alt}
-                        className="col-span-1 max-h-12 w-full object-contain"
-                        src={logo.src}
+                        className="col-span-1 max-h-12 w-full object-contain dark:invert"
+                        src={logo.src.replace("-white", "-gray-400")}
                         alt={logo.alt}
                         width={158}
                         height={48}
@@ -249,264 +234,262 @@ export default function LandingPage() {
         </div>
         
         {/* Features */}
-        <div id="features" className="bg-slate-900 text-white py-24 sm:py-32">
-          <div className="mx-auto max-w-7xl px-6 lg:px-8">
-            <div className="text-center mb-16">
-                 <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Everything you need to succeed</h2>
-                  <p className="mt-4 text-lg leading-8 text-gray-400">
-                    LearnWise provides a comprehensive suite of tools to supercharge your study sessions.
-                </p>
+        <section id="features" className="container mx-auto px-6 lg:px-8 py-24 sm:py-32">
+             <div className="mx-auto max-w-2xl text-center">
+                <h2 className="text-base font-semibold leading-7 text-primary">Features</h2>
+                <p className="mt-2 text-3xl font-bold tracking-tight text-foreground dark:text-white sm:text-4xl">Everything you need to succeed</p>
+                <p className="mt-6 text-lg leading-8 text-muted-foreground">LearnWise provides a comprehensive suite of tools to supercharge your study sessions.</p>
             </div>
-            <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+            <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-4xl">
+                <dl className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-10 lg:max-w-none lg:grid-cols-2 lg:gap-y-16">
                 {features.map((feature) => (
-                  <Card key={feature.title} className="bg-slate-800/50 border-slate-700 text-white">
-                    <CardHeader>
-                      <div className="h-64 w-full rounded-lg mb-4 overflow-hidden">
-                        <Image src={feature.image} alt={feature.image_alt} width={600} height={500} data-ai-hint={feature.image_hint} className="object-cover h-full w-full"/>
-                      </div>
-                      <CardTitle>{feature.title}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                       <p className="text-muted-foreground mb-4">{feature.description}</p>
-                       <ul className="space-y-2">
-                        {feature.items.map((item) => (
-                          <li key={item} className="flex items-center gap-2">
-                            <Check className="h-5 w-5 text-primary flex-shrink-0" />
-                            <span className="text-sm text-gray-300">{item}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </CardContent>
-                  </Card>
+                    <div key={feature.title} className="relative pl-16">
+                    <dt className="text-base font-semibold leading-7 text-foreground dark:text-white">
+                        <div className="absolute left-0 top-0 flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
+                        <div className="text-primary-foreground">{feature.icon}</div>
+                        </div>
+                        {feature.title}
+                    </dt>
+                    <dd className="mt-2 text-base leading-7 text-muted-foreground">{feature.description}</dd>
+                    </div>
                 ))}
+                </dl>
             </div>
-          </div>
-        </div>
+        </section>
+
+        {/* Feature Highlight */}
+        <section className="container mx-auto px-6 lg:px-8 py-24 sm:py-32">
+            <div className="mx-auto max-w-7xl">
+                <div className="grid grid-cols-1 gap-16 items-center lg:grid-cols-2">
+                    <div>
+                        <h2 className="text-3xl font-bold tracking-tight text-foreground dark:text-white sm:text-4xl">Personalize Your Learning Journey</h2>
+                        <p className="mt-6 text-lg leading-8 text-muted-foreground">
+                            Take control of your education. LearnWise adapts to your unique learning style, helping you grasp concepts faster and retain information longer.
+                        </p>
+                        <ul className="mt-8 space-y-4 text-muted-foreground">
+                            <li className="flex items-center gap-3">
+                                <Check className="h-5 w-5 text-primary" />
+                                <span>Tailored content for visual, auditory, and kinesthetic learners.</span>
+                            </li>
+                             <li className="flex items-center gap-3">
+                                <Check className="h-5 w-5 text-primary" />
+                                <span>Adjustable difficulty for quizzes and practice problems.</span>
+                            </li>
+                             <li className="flex items-center gap-3">
+                                <Check className="h-5 w-5 text-primary" />
+                                <span>Focus on your specific courses and subjects.</span>
+                            </li>
+                        </ul>
+                    </div>
+                     <Image
+                        src="https://picsum.photos/600/500"
+                        alt="Personalization illustration"
+                        width={600}
+                        height={500}
+                        className="rounded-xl shadow-xl ring-1 ring-border"
+                        data-ai-hint="learning path"
+                     />
+                </div>
+            </div>
+        </section>
+
 
         {/* Pricing */}
-        <div id="pricing" className="landing-dark-bg py-24 sm:py-32">
-            <div className="mx-auto max-w-7xl px-6 lg:px-8">
-                <div className="mx-auto max-w-4xl text-center">
+        <section id="pricing" className="container mx-auto px-6 lg:px-8 py-24 sm:py-32">
+            <div className="mx-auto max-w-4xl text-center">
                 <h2 className="text-base font-semibold leading-7 text-primary">Pricing</h2>
-                <p className="mt-2 text-4xl font-bold tracking-tight text-white sm:text-5xl">
-                    Pricing plans for every student
+                <p className="mt-2 text-4xl font-bold tracking-tight text-foreground dark:text-white sm:text-5xl">
+                    Plans that grow with you
                 </p>
-                </div>
-                <p className="mx-auto mt-6 max-w-2xl text-center text-lg leading-8 text-gray-300">
+            </div>
+            <p className="mx-auto mt-6 max-w-2xl text-center text-lg leading-8 text-muted-foreground">
                 Choose the plan that best fits your learning needs. All plans start with a 7-day free trial.
-                </p>
-                <div className="isolate mx-auto mt-16 grid max-w-md grid-cols-1 gap-y-8 sm:mt-20 lg:mx-0 lg:max-w-none lg:grid-cols-3">
-                <div className="flex flex-col justify-between rounded-3xl bg-slate-800 p-8 ring-1 ring-slate-700 xl:p-10">
-                    <div>
-                        <div className="flex items-center justify-between gap-x-4">
-                            <h3 className="text-lg font-semibold leading-8 text-white">Hobby</h3>
-                            {/* <p className="rounded-full bg-indigo-500/10 px-2.5 py-1 text-xs font-semibold leading-5 text-indigo-400">Most popular</p> */}
+            </p>
+            <div className="mt-16 flex justify-center">
+                <div className="flex items-center gap-4">
+                    <Label htmlFor="pricing-toggle" className="text-muted-foreground">Monthly</Label>
+                    <Switch id="pricing-toggle" checked={isYearly} onCheckedChange={setIsYearly}/>
+                    <Label htmlFor="pricing-toggle">
+                        Yearly <span className="text-primary font-semibold ml-2">(-20%)</span>
+                    </Label>
+                </div>
+            </div>
+
+            <div className="isolate mx-auto mt-10 grid max-w-md grid-cols-1 gap-8 lg:mx-0 lg:max-w-none lg:grid-cols-3">
+                <Card className="flex flex-col">
+                    <CardHeader>
+                        <CardTitle className="text-xl">Hobby</CardTitle>
+                        <CardDescription>A great start for casual learners and to explore our core features.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex-1">
+                        <div className="flex items-baseline gap-x-1">
+                            <span className="text-4xl font-bold tracking-tight">${isYearly ? "8" : "10"}</span>
+                            <span className="text-sm font-semibold leading-6 text-muted-foreground">/month</span>
                         </div>
-                        <p className="mt-4 text-sm leading-6 text-gray-400">A great start for casual learners and to explore our core features.</p>
-                        <p className="mt-6 flex items-baseline gap-x-1">
-                            <span className="text-4xl font-bold tracking-tight text-white">$10</span>
-                            <span className="text-sm font-semibold leading-6 text-gray-400">/month</span>
-                        </p>
-                        <ul role="list" className="mt-8 space-y-3 text-sm leading-6 text-gray-400">
+                         <ul role="list" className="mt-8 space-y-3 text-sm leading-6 text-muted-foreground">
                             <li className="flex gap-x-3"><Check className="h-6 w-5 flex-none text-primary" aria-hidden="true" />5 Courses</li>
                             <li className="flex gap-x-3"><Check className="h-6 w-5 flex-none text-primary" aria-hidden="true" />20 Quiz Generations / mo</li>
                             <li className="flex gap-x-3"><Check className="h-6 w-5 flex-none text-primary" aria-hidden="true" />Standard AI Chat</li>
                         </ul>
-                    </div>
-                    <Button variant="outline" className="mt-8 text-white border-white hover:bg-slate-700">Get started</Button>
-                </div>
-
-                <div className="flex flex-col justify-between rounded-3xl bg-slate-800 p-8 ring-2 ring-primary xl:p-10">
-                    <div>
-                        <div className="flex items-center justify-between gap-x-4">
-                            <h3 className="text-lg font-semibold leading-8 text-white">Pro</h3>
-                             <p className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold leading-5 text-primary">Most popular</p>
+                    </CardContent>
+                    <CardFooter>
+                         <Button asChild variant="outline" className="w-full">
+                            <Link href="/dashboard">Choose plan</Link>
+                         </Button>
+                    </CardFooter>
+                </Card>
+                 <Card className="flex flex-col border-2 border-primary">
+                    <CardHeader>
+                        <div className="flex justify-between">
+                            <CardTitle className="text-xl">Pro</CardTitle>
+                            <div className="text-xs font-semibold py-1 px-3 bg-primary text-primary-foreground rounded-full">Most Popular</div>
                         </div>
-                        <p className="mt-4 text-sm leading-6 text-gray-400">For dedicated students who want to unlock their full potential.</p>
-                        <p className="mt-6 flex items-baseline gap-x-1">
-                            <span className="text-4xl font-bold tracking-tight text-white">$20</span>
-                            <span className="text-sm font-semibold leading-6 text-gray-400">/month</span>
-                        </p>
-                        <ul role="list" className="mt-8 space-y-3 text-sm leading-6 text-gray-400">
+                        <CardDescription>For dedicated students who want to unlock their full potential.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex-1">
+                        <div className="flex items-baseline gap-x-1">
+                            <span className="text-4xl font-bold tracking-tight">${isYearly ? "16" : "20"}</span>
+                            <span className="text-sm font-semibold leading-6 text-muted-foreground">/month</span>
+                        </div>
+                         <ul role="list" className="mt-8 space-y-3 text-sm leading-6 text-muted-foreground">
                             <li className="flex gap-x-3"><Check className="h-6 w-5 flex-none text-primary" aria-hidden="true" />Unlimited Courses</li>
                             <li className="flex gap-x-3"><Check className="h-6 w-5 flex-none text-primary" aria-hidden="true" />Unlimited Quiz Generations</li>
                             <li className="flex gap-x-3"><Check className="h-6 w-5 flex-none text-primary" aria-hidden="true" />Advanced AI Chat with course context</li>
                             <li className="flex gap-x-3"><Check className="h-6 w-5 flex-none text-primary" aria-hidden="true" />Priority Support</li>
                         </ul>
-                    </div>
-                    <Button className="mt-8">Get started</Button>
-                </div>
-
-                <div className="flex flex-col justify-between rounded-3xl bg-slate-800 p-8 ring-1 ring-slate-700 xl:p-10">
-                    <div>
-                        <div className="flex items-center justify-between gap-x-4">
-                            <h3 className="text-lg font-semibold leading-8 text-white">Team</h3>
+                    </CardContent>
+                    <CardFooter>
+                         <Button asChild className="w-full">
+                            <Link href="/dashboard">Choose plan</Link>
+                         </Button>
+                    </CardFooter>
+                </Card>
+                 <Card className="flex flex-col">
+                    <CardHeader>
+                        <CardTitle className="text-xl">Team</CardTitle>
+                        <CardDescription>Perfect for study groups, classrooms, and tutoring centers.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex-1">
+                        <div className="flex items-baseline gap-x-1">
+                             <span className="text-4xl font-bold tracking-tight">${isYearly ? "60" : "75"}</span>
+                            <span className="text-sm font-semibold leading-6 text-muted-foreground">/month</span>
                         </div>
-                        <p className="mt-4 text-sm leading-6 text-gray-400">Perfect for study groups, classrooms, and tutoring centers.</p>
-                        <p className="mt-6 flex items-baseline gap-x-1">
-                            <span className="text-4xl font-bold tracking-tight text-white">$75</span>
-                            <span className="text-sm font-semibold leading-6 text-gray-400">/month</span>
-                        </p>
-                        <ul role="list" className="mt-8 space-y-3 text-sm leading-6 text-gray-400">
+                         <ul role="list" className="mt-8 space-y-3 text-sm leading-6 text-muted-foreground">
                             <li className="flex gap-x-3"><Check className="h-6 w-5 flex-none text-primary" aria-hidden="true" />Up to 10 users</li>
                             <li className="flex gap-x-3"><Check className="h-6 w-5 flex-none text-primary" aria-hidden="true" />All Pro features</li>
-                            <li className="flex gap-x-3"><Check className="h-6 w-5 flex-none text-primary" aria-hidden="true" />Collaborative tools</li>
-                            <li className="flex gap-x-3"><Check className="h-6 w-5 flex-none text-primary" aria-hidden="true" />Admin dashboard</li>
+                            <li className="flex gap-x-3"><Check className="h-6 w-5 flex-none text-primary" aria-hidden="true" />Collaborative tools & dashboard</li>
                         </ul>
-                    </div>
-                     <Button variant="outline" className="mt-8 text-white border-white hover:bg-slate-700">Get started</Button>
-                </div>
-                </div>
+                    </CardContent>
+                     <CardFooter>
+                         <Button asChild variant="outline" className="w-full">
+                            <Link href="/dashboard">Choose plan</Link>
+                         </Button>
+                    </CardFooter>
+                </Card>
             </div>
-        </div>
+        </section>
 
         {/* Testimonials */}
-        <div id="testimonials" className="bg-slate-900 py-24 sm:py-32">
-            <div className="mx-auto max-w-7xl px-6 lg:px-8">
-                 <div className="mx-auto max-w-2xl text-center">
-                    <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">What Our Users Are Saying</h2>
-                    <p className="mt-6 text-lg leading-8 text-gray-400">
-                    We've helped thousands of students achieve their academic goals.
-                    </p>
-                </div>
-                <div className="mx-auto mt-16 grid max-w-2xl grid-cols-1 lg:max-w-none lg:grid-cols-3 gap-8">
-                {testimonials.map((testimonial) => (
-                    <Card key={testimonial.name} className="flex flex-col bg-slate-800/50 border-slate-700 text-white">
-                        <CardContent className="flex-auto p-6">
-                            <div className="flex text-yellow-400 mb-2">
-                                {[...Array(5)].map((_, i) => <Star key={i} className="h-5 w-5 fill-current" />)}
-                            </div>
-                            <p className="text-base leading-7 text-gray-300">"{testimonial.quote}"</p>
-                        </CardContent>
-                        <CardHeader className="flex flex-row items-center gap-x-4 p-6 pt-0 mt-auto">
-                            <Image
-                            className="h-12 w-12 flex-none rounded-full bg-gray-50"
-                            src={testimonial.avatar}
-                            alt=""
-                            width={48}
-                            height={48}
-                            />
-                            <div>
-                            <CardTitle className="text-base font-semibold text-white">{testimonial.name}</CardTitle>
-                            <CardDescription className="text-gray-400">{testimonial.role}</CardDescription>
-                            </div>
-                        </CardHeader>
-                    </Card>
-                ))}
+        <section id="testimonials" className="container mx-auto px-6 lg:px-8 py-24 sm:py-32">
+             <div className="mx-auto max-w-2xl text-center">
+                <h2 className="text-3xl font-bold tracking-tight text-foreground dark:text-white sm:text-4xl">What Our Users Are Saying</h2>
+                <p className="mt-6 text-lg leading-8 text-muted-foreground">
+                We've helped thousands of students achieve their academic goals.
+                </p>
+            </div>
+            <div className="mx-auto mt-16 flow-root sm:mt-24">
+                <div className="grid gap-8 grid-cols-1 lg:grid-cols-3">
+                    {testimonials.map((testimonial, i) => (
+                        <Card key={i}>
+                            <CardContent className="p-6">
+                                 <div className="flex space-x-1 mb-4">
+                                    {[...Array(5)].map((_, i) => <Star key={i} className="h-5 w-5 text-yellow-400 fill-current" />)}
+                                </div>
+                                <p className="text-muted-foreground">"{testimonial.quote}"</p>
+                            </CardContent>
+                            <CardHeader className="flex-row gap-4 items-center pt-0">
+                                <Image
+                                    className="w-12 h-12 rounded-full"
+                                    src={testimonial.avatar}
+                                    alt={testimonial.name}
+                                    width={48}
+                                    height={48}
+                                />
+                                 <div>
+                                    <p className="font-semibold text-foreground dark:text-white">{testimonial.name}</p>
+                                    <p className="text-sm text-muted-foreground">{testimonial.role}</p>
+                                </div>
+                            </CardHeader>
+                        </Card>
+                    ))}
                 </div>
             </div>
-        </div>
+        </section>
         
         {/* FAQs */}
-        <div className="landing-dark-bg py-24 sm:py-32">
-            <div className="mx-auto max-w-7xl px-6 lg:px-8">
-                <div className="mx-auto max-w-4xl text-center">
-                    <h2 className="text-4xl font-bold tracking-tight text-white sm:text-5xl">Frequently Asked Questions</h2>
-                    <p className="mt-6 text-lg leading-8 text-gray-300">
-                    Have questions? We have answers. If you can't find what you're looking for, feel free to contact us.
-                    </p>
-                </div>
-                <div className="mt-16 max-w-4xl mx-auto">
-                    <Accordion type="single" collapsible className="w-full">
-                        {faqs.map((faq, index) => (
-                            <AccordionItem key={index} value={`item-${index}`} className="border-b border-gray-700 py-4">
-                                <AccordionTrigger className="text-white text-left hover:no-underline">{faq.question}</AccordionTrigger>
-                                <AccordionContent className="text-gray-300 pt-2">
-                                    {faq.answer}
-                                </AccordionContent>
-                            </AccordionItem>
-                        ))}
-                    </Accordion>
-                </div>
+        <section className="container mx-auto px-6 lg:px-8 py-24 sm:py-32">
+             <div className="mx-auto max-w-4xl text-center">
+                <h2 className="text-3xl font-bold tracking-tight text-foreground dark:text-white sm:text-4xl">Frequently Asked Questions</h2>
             </div>
-        </div>
+            <div className="mx-auto mt-16 max-w-4xl">
+                <Accordion type="single" collapsible className="w-full">
+                    {faqs.map((faq, index) => (
+                        <AccordionItem key={index} value={`item-${index}`} className="border-b">
+                            <AccordionTrigger className="text-left hover:no-underline">{faq.question}</AccordionTrigger>
+                            <AccordionContent className="text-muted-foreground pt-2">
+                                {faq.answer}
+                            </AccordionContent>
+                        </AccordionItem>
+                    ))}
+                </Accordion>
+            </div>
+        </section>
 
         {/* CTA */}
-        <div className="bg-slate-900">
-            <div className="mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:px-8">
-                <div className="relative isolate overflow-hidden bg-slate-800/80 px-6 py-24 text-center shadow-2xl rounded-3xl sm:px-16">
-                    <h2 className="mx-auto max-w-2xl text-3xl font-bold tracking-tight text-white sm:text-4xl">
+        <section className="container mx-auto px-6 lg:px-8 py-24 sm:py-32">
+            <div className="relative isolate overflow-hidden bg-primary/10 dark:bg-primary/20 px-6 pt-16 shadow-2xl rounded-2xl sm:px-16 md:pt-24 lg:flex lg:gap-x-20 lg:px-24 lg:pt-0">
+                 <div className="absolute -top-4 -z-10 h-full w-full bg-background/50 dark:bg-neutral-950/50">
+                    <div className="gradient-background"></div>
+                </div>
+                <div className="mx-auto max-w-md text-center lg:mx-0 lg:flex-auto lg:py-32 lg:text-left">
+                    <h2 className="text-3xl font-bold tracking-tight text-foreground dark:text-white sm:text-4xl">
                         Ready to supercharge your learning?
                     </h2>
-                    <p className="mx-auto mt-6 max-w-xl text-lg leading-8 text-gray-300">
+                     <p className="mt-6 text-lg leading-8 text-muted-foreground">
                         Join LearnWise today and start your journey towards academic excellence. Your free trial is just a click away.
                     </p>
-                    <div className="mt-10 flex items-center justify-center gap-x-6">
-                         <Link href="/dashboard">
-                            <Button size="lg">Get started free</Button>
+                    <div className="mt-10 flex items-center justify-center gap-x-6 lg:justify-start">
+                        <Link href="/dashboard">
+                            <Button size="lg">Get for free</Button>
                         </Link>
                     </div>
-                    <div className="absolute inset-x-0 -top-16 -z-10 flex transform-gpu justify-center overflow-hidden blur-3xl" aria-hidden="true">
-                        <div
-                        className="aspect-[1318/752] w-[82.375rem] flex-none bg-gradient-to-r from-[#8085ff] to-[#4338ca] opacity-25"
-                        style={{
-                            clipPath:
-                            'polygon(73.6% 51.7%, 91.7% 11.8%, 100% 46.4%, 97.4% 82.2%, 92.5% 84.9%, 75.7% 64%, 55.3% 47.5%, 46.5% 49.4%, 45% 62.9%, 50.3% 87.2%, 21.3% 64.1%, 0.1% 100%, 5.4% 51.1%, 21.4% 63.9%, 58.9% 0.2%, 73.6% 51.7%)',
-                        }}
-                        />
-                    </div>
+                </div>
+                 <div className="relative mt-16 h-80 lg:mt-8">
+                    <Image
+                        className="absolute left-0 top-0 w-[57rem] max-w-none rounded-md bg-white/5 ring-1 ring-white/10"
+                        src="https://picsum.photos/1200/601"
+                        alt="App screenshot"
+                        width={1824}
+                        height={1080}
+                        data-ai-hint="app dashboard"
+                    />
                 </div>
             </div>
-        </div>
-
+        </section>
       </main>
 
-      <footer className="bg-slate-900 border-t border-slate-800" aria-labelledby="footer-heading">
-        <h2 id="footer-heading" className="sr-only">
-          Footer
-        </h2>
-        <div className="mx-auto max-w-7xl px-6 pb-8 pt-16 sm:pt-24 lg:px-8 lg:pt-32">
-            <div className="xl:grid xl:grid-cols-3 xl:gap-8">
-                <div className="space-y-8">
-                     <Link href="/" className="flex items-center gap-2 font-bold text-xl">
-                        <BrainCircuit className="h-8 w-auto text-primary" />
-                        <span className="text-white">LearnWise</span>
-                    </Link>
-                    <p className="text-sm leading-6 text-gray-300">
-                    The AI-powered learning platform to help you study smarter, not harder.
-                    </p>
-                </div>
-                 <div className="mt-16 grid grid-cols-2 gap-8 xl:col-span-2 xl:mt-0">
-                    <div className="md:grid md:grid-cols-2 md:gap-8">
-                        <div>
-                            <h3 className="text-sm font-semibold leading-6 text-white">Solutions</h3>
-                            <ul role="list" className="mt-6 space-y-4">
-                                <li><a href="#" className="text-sm leading-6 text-gray-300 hover:text-white">Roadmaps</a></li>
-                                <li><a href="#" className="text-sm leading-6 text-gray-300 hover:text-white">Quizzes</a></li>
-                                <li><a href="#" className="text-sm leading-6 text-gray-300 hover:text-white">AI Chat</a></li>
-                                <li><a href="#" className="text-sm leading-6 text-gray-300 hover:text-white">Analytics</a></li>
-                            </ul>
-                        </div>
-                        <div className="mt-10 md:mt-0">
-                            <h3 className="text-sm font-semibold leading-6 text-white">Support</h3>
-                             <ul role="list" className="mt-6 space-y-4">
-                                <li><a href="#" className="text-sm leading-6 text-gray-300 hover:text-white">Pricing</a></li>
-                                <li><a href="#" className="text-sm leading-6 text-gray-300 hover:text-white">Documentation</a></li>
-                                <li><a href="#" className="text-sm leading-6 text-gray-300 hover:text-white">Contact Us</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                     <div className="md:grid md:grid-cols-2 md:gap-8">
-                        <div>
-                             <h3 className="text-sm font-semibold leading-6 text-white">Company</h3>
-                             <ul role="list" className="mt-6 space-y-4">
-                                <li><a href="#" className="text-sm leading-6 text-gray-300 hover:text-white">About</a></li>
-                                <li><a href="#" className="text-sm leading-6 text-gray-300 hover:text-white">Blog</a></li>
-                                <li><a href="#" className="text-sm leading-6 text-gray-300 hover:text-white">Careers</a></li>
-                            </ul>
-                        </div>
-                         <div className="mt-10 md:mt-0">
-                            <h3 className="text-sm font-semibold leading-6 text-white">Legal</h3>
-                             <ul role="list" className="mt-6 space-y-4">
-                                <li><a href="#" className="text-sm leading-6 text-gray-300 hover:text-white">Privacy</a></li>
-                                <li><a href="#" className="text-sm leading-6 text-gray-300 hover:text-white">Terms</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
+      <footer className="border-t">
+        <div className="mx-auto max-w-7xl px-6 py-12 md:flex md:items-center md:justify-between lg:px-8">
+            <div className="flex justify-center space-x-6 md:order-2">
+                <p className="text-center text-xs leading-5 text-muted-foreground">
+                    &copy; {new Date().getFullYear()} LearnWise. All rights reserved.
+                </p>
             </div>
-            <div className="mt-16 border-t border-white/10 pt-8 sm:mt-20 lg:mt-24">
-                 <p className="text-xs leading-5 text-gray-400">&copy; {new Date().getFullYear()} LearnWise. All rights reserved.</p>
+             <div className="mt-8 md:order-1 md:mt-0">
+                <Link href="/" className="-m-1.5 p-1.5 flex items-center justify-center gap-2 font-bold text-xl">
+                    <BrainCircuit className="h-8 w-auto text-primary" />
+                    <span className="text-foreground dark:text-white">LearnWise</span>
+                </Link>
             </div>
         </div>
       </footer>
