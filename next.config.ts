@@ -58,6 +58,12 @@ const nextConfig: NextConfig = {
         hostname: 'img.favpng.com',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cdn.iconscout.com',
+        port: '',
+        pathname: '/**',
       }
     ],
   },

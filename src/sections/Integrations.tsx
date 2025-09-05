@@ -33,7 +33,7 @@ const integrations = [
     },
     {
         name: "GitHub",
-        icon: "https://img.favpng.com/10/5/25/github-computer-icons-icon-design-branching-png-favpng-f0sgwNt1NvbqnZwFpRQDtaR5Q.jpg",
+        icon: "https://cdn.iconscout.com/icon/free/png-256/free-github-icon-svg-png-download-1597554.png?f=webp",
         description: "Track coding projects alongside your coursework.",
     },
 ];
