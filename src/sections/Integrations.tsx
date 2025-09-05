@@ -13,7 +13,7 @@ const integrations = [
     },
     {
         name: "Notion",
-        icon: "https://tailwindui.com/img/logos/notion-logo-gray-400.svg",
+        icon: "https://upload.wikimedia.org/wikipedia/commons/4/45/Notion_app_logo.png",
         description: "Connect your notes and knowledge bases.",
     },
     {
