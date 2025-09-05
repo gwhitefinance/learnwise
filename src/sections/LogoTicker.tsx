@@ -10,7 +10,7 @@ const logos = [
     { name: "Stanford University", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Stanford_University_logo_2013.svg/200px-Stanford_University_logo_2013.svg.png" },
     { name: "MIT", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/MIT_logo.svg/200px-MIT_logo.svg.png" },
     { name: "University of Oxford", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/ff/Oxford-University-Circlet.svg/200px-Oxford-University-Circlet.svg.png" },
-    { name: "University of Cambridge", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/University_of_Cambridge_logo.svg/200px-University_of_Cambridge_logo.svg.png" },
+    { name: "University of Cambridge", image: "https://w7.pngwing.com/pngs/712/717/png-transparent-trinity-hall-cambridge-pembroke-college-cambridge-cambridge-university-logo-school-text-logo-symmetry.png" },
     { name: "Caltech", image: "https://upload.wikimedia.org/wikipedia/en/thumb/5/5e/Caltech_logo.svg/200px-Caltech_logo.svg.png" },
     { name: "ETH Zurich", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/ETH_Zurich_logo_2015.svg/200px-ETH_Zurich_logo_2015.svg.png" },
     { name: "UCL", image: "https://upload.wikimedia.org/wikipedia/en/thumb/2/22/University_College_London_logo.svg/200px-University_College_London_logo.svg.png" },
