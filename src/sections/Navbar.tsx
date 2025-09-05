@@ -2,7 +2,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Menu, X } from "lucide-react";
+import { BrainCircuit, Menu, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -26,13 +26,8 @@ export default function Navbar() {
                         <figure className="grid grid-cols-2 lg:grid-cols-3  py-2 lg:px-2 px-4  items-center ">
                             <div>
                                 <Link href="/" className="flex items-center gap-2">
-                                   <Image
-                                        src="https://tailwindui.com/img/logos/mark.svg?color=lime&shade=400"
-                                        alt="layer logo"
-                                        className="h-9 w-auto md:h-auto"
-                                        width={40}
-                                        height={36}
-                                    />
+                                   <BrainCircuit className="h-8 w-8 text-lime-400" />
+                                   <span className="font-bold text-xl text-white">LearnWise</span>
                                 </Link>
                             </div>
                             <div className="hidden lg:flex justify-center items-center ">
