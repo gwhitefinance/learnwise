@@ -1,29 +1,52 @@
-'use client';
-import { Button } from '@/components/ui/button';
-import { ArrowRight } from 'lucide-react';
-import Link from 'next/link';
+"use client";
 
-const CallToAction = () => {
-  return (
-    <section className="py-20 md:py-32">
-      <div className="container text-center">
-        <div className="max-w-2xl mx-auto">
-          <h2 className="text-3xl md:text-5xl font-bold tracking-tighter mb-6">
-            Ready to revolutionize your learning?
-          </h2>
-          <p className="text-lg md:text-xl text-muted-foreground mb-8">
-            Join thousands of students who are learning smarter, not harder, with
-            LearnWise.
-          </p>
-          <Link href="/dashboard">
-            <Button size="lg">
-              Start Learning Now <ArrowRight className="ml-2" />
-            </Button>
-          </Link>
-        </div>
-      </div>
-    </section>
-  );
-};
+import { AnimationPlaybackControls, motion, useAnimate } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import { twMerge } from "tailwind-merge";
 
-export default CallToAction;
+export default function CallToAction() {
+    const animation = useRef<AnimationPlaybackControls>();
+    const [scope, animate] = useAnimate();
+
+    const [slowDownAnimation, setSlowDownAnimation] = useState(false);
+
+    useEffect(() => {
+        animation.current = animate(
+            scope.current,
+            { x: "-50%" },
+            { duration: 30, ease: "linear", repeat: Infinity }
+        );
+    }, []);
+
+    useEffect(() => {
+        if (animation.current) {
+            if (slowDownAnimation) {
+                animation.current.speed = 0.5;
+            } else {
+                animation.current.speed = 1;
+            }
+        }
+    }, [slowDownAnimation]);
+
+    return (
+        <section className="py-24">
+            <div className="overflow-x-clip p-4 flex">
+                <motion.div
+                    ref={scope}
+                    className="flex flex-none gap-16 pr-16 text-7xl md:text-8xl font-medium"
+                    onMouseEnter={() => setSlowDownAnimation(true)}
+                    onMouseLeave={() => setSlowDownAnimation(false)}
+                >
+                    {Array.from({ length: 10 }).map((_, index) => (
+                        <div key={index} className="flex items-center gap-16">
+                            <span className="text-lime-400 text-7xl ">
+                                &#10038;
+                            </span>
+                            <span className={twMerge(slowDownAnimation && "text-lime-400")}>Try it for free</span>
+                        </div>
+                    ))}
+                </motion.div>
+            </div>
+        </section>
+    );
+}
