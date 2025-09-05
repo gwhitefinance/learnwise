@@ -1,20 +1,67 @@
-'use client';
+"use client";
 
-const Introduction = () => {
-  return (
-    <section className="py-20 md:py-32">
-      <div className="container text-center">
-        <h2 className="text-3xl md:text-5xl font-bold tracking-tighter mb-6">
-          A Better Way to Learn
-        </h2>
-        <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
-          Stop struggling with one-size-fits-all learning. LearnWise adapts to
-          your unique style, transforming your study sessions into efficient,
-          effective, and engaging experiences.
-        </p>
-      </div>
-    </section>
-  );
-};
+import Tag from "@/sections/Tag";
+import {
+    useMotionValue,
+    useMotionValueEvent,
+    useScroll,
+    useTransform,
+} from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import { twMerge } from "tailwind-merge";
 
-export default Introduction;
+const text = `You're racing to create exceptional work, but traditional design tools slow you down with unnecessary complexity and steep learning curves.`;
+const words = text.split(" ");
+
+export default function Introduction() {
+    const scrollTarget = useRef<HTMLDivElement>(null);
+
+    const { scrollYProgress } = useScroll({
+        target: scrollTarget,
+        offset: ["start end", "end end"],
+    });
+
+    const [currentWord, setCurrentWord] = useState(0);
+
+    const wordIndex = useTransform(scrollYProgress, [0, 1], [0, words.length]);
+
+    useEffect(() => {
+        wordIndex.on("change", (latest) => {
+            setCurrentWord(latest);
+        });
+    }, [wordIndex]);
+
+    useMotionValueEvent(scrollYProgress, "change", (latest) =>
+        console.log(latest)
+    );
+
+    return (
+        <section className="py-28 lg:py-40  ">
+            <div className="container">
+                <div className="sticky top-28 md:top-32">
+                    <div className="flex justify-center">
+                        <Tag>Introduction Layers</Tag>
+                    </div>
+                    <div className="text-4xl md:text-6xl lg:text-7xl text-center font-medium mt-10 ">
+                        <span>Your crative process deserves better.&nbsp;</span>
+                        <span className="text-white/15 ">
+                            {words.map((word, wordIndex) => (
+                                <span
+                                    key={wordIndex}
+                                    className={twMerge(
+                                        "transition duration-500 text-white/15",
+                                        wordIndex < currentWord && "text-white"
+                                    )}
+                                >{`${word} `}</span>
+                            ))}
+                        </span>
+                        <span className="text-lime-400 block">
+                            That&apos;s why we built Layers.
+                        </span>
+                    </div>
+                </div>
+                <div ref={scrollTarget} className="h-[150vh]"></div>
+            </div>
+        </section>
+    );
+}
