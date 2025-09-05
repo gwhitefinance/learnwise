@@ -5,7 +5,7 @@ import FeatureCard from "@/sections/FeatureCard";
 import Tag from "@/sections/Tag";
 import Image from "next/image";
 import Avatar from "@/sections/Avatar";
-import { BrainCircuit, Lightbulb, GitMerge } from "lucide-react";
+import { BrainCircuit, Lightbulb, GitMerge, FileText, CheckSquare, MessageSquare } from "lucide-react";
 import { motion } from "framer-motion";
 
 const features = [
@@ -57,15 +57,17 @@ export default function Features() {
                             initial="hidden"
                             whileInView="visible"
                             viewport={{ once: true, amount: 0.2 }}
+                            className="h-full"
                         >
                             <FeatureCard
                                 title="Personalized Study Roadmaps"
                                 description="AI generates a step-by-step plan to guide you through your courses."
+                                className="h-full"
                             >
                                 <div className="aspect-video flex items-center justify-center">
                                     <motion.div
-                                        whileHover={{ scale: 1.1, rotate: -5 }}
-                                        transition={{ type: "spring", stiffness: 300 }}
+                                        whileHover={{ rotateY: 180 }}
+                                        transition={{ duration: 0.5 }}
                                     >
                                         <GitMerge className="w-24 h-24 text-purple-400" />
                                     </motion.div>
@@ -78,17 +80,19 @@ export default function Features() {
                             initial="hidden"
                             whileInView="visible"
                             viewport={{ once: true, amount: 0.2 }}
+                            className="h-full"
                         >
                             <FeatureCard
                                 title="Intelligent Quizzes"
                                 description="Test your knowledge with practice quizzes tailored to your study material."
+                                className="h-full"
                             >
                                 <div className="aspect-video flex items-center justify-center">
                                      <motion.div
-                                        whileHover={{ scale: 1.1, y: -10 }}
-                                        transition={{ type: "spring", stiffness: 300 }}
+                                        whileHover={{ scale: 1.2, color: '#fde047' }}
+                                        transition={{ type: "spring", stiffness: 400, damping: 10 }}
                                     >
-                                        <Lightbulb className="w-24 h-24 text-amber-400" />
+                                        <CheckSquare className="w-24 h-24 text-amber-400" />
                                     </motion.div>
                                 </div>
                             </FeatureCard>
@@ -99,17 +103,25 @@ export default function Features() {
                             initial="hidden"
                             whileInView="visible"
                             viewport={{ once: true, amount: 0.2 }}
+                            className="h-full"
                         >
                             <FeatureCard
                                 title="AI-Powered Chat Assistant"
                                 description="Get instant answers, explanations, and study help 24/7."
+                                className="h-full"
                             >
                                 <div className="aspect-video flex justify-center items-center gap-4">
                                      <motion.div
-                                        whileHover={{ scale: 1.1, filter: "brightness(1.2)" }}
-                                        transition={{ type: "spring", stiffness: 300 }}
+                                        animate={{
+                                            y: ["0%", "5%", "0%"],
+                                        }}
+                                        transition={{
+                                            duration: 2,
+                                            ease: "easeInOut",
+                                            repeat: Infinity,
+                                        }}
                                     >
-                                        <BrainCircuit className="w-24 h-24 text-lime-400" />
+                                        <MessageSquare className="w-24 h-24 text-lime-400" />
                                     </motion.div>
                                 </div>
                             </FeatureCard>
