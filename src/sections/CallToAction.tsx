@@ -43,7 +43,7 @@ export default function CallToAction() {
                             <span className="text-lime-400 text-7xl ">
                                 &#10038;
                             </span>
-                            <span className={twMerge(slowDownAnimation && "text-lime-400")}>Start learning smarter</span>
+                            <span className={twMerge(slowDownAnimation && "text-lime-400")}>Start for free</span>
                         </div>
                     ))}
                 </motion.div>
