@@ -23,7 +23,7 @@ const integrations = [
     },
     {
         name: "Zoom",
-        icon: "https://static.vecteezy.com/system/resources/previews/012/871/376/non_2x/zoom-logo-in-blue-colors-meetings-app-logotype-illustration-free-png.png",
+        icon: "https://t4.ftcdn.net/jpg/03/75/33/61/360_F_375336103_KQSAG9rQuOgdSx01GNIPK9abZaIeGoGR.jpg",
         description: "Launch study sessions directly from your calendar.",
     },
     {
