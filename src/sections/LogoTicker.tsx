@@ -1,13 +1,28 @@
-'use client';
+"use client";
 
-import Image from 'next/image';
+import Image from "next/image";
 
 const logos = [
-  { src: 'https://tailwindui.com/img/logos/158x48/transistor-logo-white.svg', alt: 'Transistor' },
-  { src: 'https://tailwindui.com/img/logos/158x48/reform-logo-white.svg', alt: 'Reform' },
-  { src: 'https://tailwindui.com/img/logos/158x48/tuple-logo-white.svg', alt: 'Tuple' },
-  { src: 'https://tailwindui.com/img/logos/158x48/savvycal-logo-white.svg', alt: 'SavvyCal' },
-  { src: 'https://tailwindui.com/img/logos/158x48/statamic-logo-white.svg', alt: 'Statamic' },
+  {
+    src: "https://tailwindui.com/img/logos/158x48/transistor-logo-white.svg",
+    alt: "Transistor",
+  },
+  {
+    src: "https://tailwindui.com/img/logos/158x48/reform-logo-white.svg",
+    alt: "Reform",
+  },
+  {
+    src: "https://tailwindui.com/img/logos/158x48/tuple-logo-white.svg",
+    alt: "Tuple",
+  },
+  {
+    src: "https://tailwindui.com/img/logos/158x48/savvycal-logo-white.svg",
+    alt: "SavvyCal",
+  },
+  {
+    src: "https://tailwindui.com/img/logos/158x48/statamic-logo-white.svg",
+    alt: "Statamic",
+  },
 ];
 
 const LogoTicker = () => {
