@@ -1,3 +1,4 @@
+
 "use client";
 
 import { AnimationPlaybackControls, motion, useAnimate } from "framer-motion";
@@ -42,7 +43,7 @@ export default function CallToAction() {
                             <span className="text-lime-400 text-7xl ">
                                 &#10038;
                             </span>
-                            <span className={twMerge(slowDownAnimation && "text-lime-400")}>Try it for free</span>
+                            <span className={twMerge(slowDownAnimation && "text-lime-400")}>Start learning smarter</span>
                         </div>
                     ))}
                 </motion.div>

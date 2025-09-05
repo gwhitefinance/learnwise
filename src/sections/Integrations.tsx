@@ -7,34 +7,34 @@ import Image from "next/image";
 
 const integrations = [
     {
-        name: "Figma",
-        icon: "https://tailwindui.com/img/logos/figma-logo-gray-400.svg",
-        description: "Figma is a collaborative interface design tool.",
+        name: "Google Calendar",
+        icon: "https://upload.wikimedia.org/wikipedia/commons/a/a5/Google_Calendar_icon_%282020%29.svg",
+        description: "Sync deadlines and study sessions automatically.",
     },
     {
         name: "Notion",
         icon: "https://tailwindui.com/img/logos/notion-logo-gray-400.svg",
-        description: "Notion is an all-in-one workspace for notes and docs.",
+        description: "Connect your notes and knowledge bases.",
     },
     {
         name: "Slack",
         icon: "https://tailwindui.com/img/logos/slack-logo-gray-400.svg",
-        description: "Slack is a powerful team communication platform.",
+        description: "Get study reminders and form study groups.",
     },
     {
-        name: "Relume",
-        icon: "https://tailwindui.com/img/logos/savvycal-logo-gray-400.svg",
-        description: "Relume is a no-code website builder and design system.",
+        name: "Zoom",
+        icon: "https://upload.wikimedia.org/wikipedia/commons/9/9b/Zoom_logo.svg",
+        description: "Launch study sessions directly from your calendar.",
     },
     {
-        name: "Framer",
-        icon: "https://tailwindui.com/img/logos/framer-logo-gray-400.svg",
-        description: "Framer is a professional website prototyping tool.",
+        name: "Google Drive",
+        icon: "https://upload.wikimedia.org/wikipedia/commons/1/12/Google_Drive_icon_%282020%29.svg",
+        description: "Import documents and notes for analysis.",
     },
     {
         name: "GitHub",
         icon: "https://tailwindui.com/img/logos/github-logo-gray-400.svg",
-        description: "GitHub is the leading platform for code collaboration.",
+        description: "Track coding projects alongside your coursework.",
     },
 ];
 
@@ -48,14 +48,12 @@ export default function Integrations() {
                     <div>
                         <Tag>Integration</Tag>
                         <h2 className="text-6xl font-medium mt-6">
-                            Plays well with{" "}
-                            <span className="text-lime-400 ">others</span>
+                            Connects with your{" "}
+                            <span className="text-lime-400 ">workflow</span>
                         </h2>
 
                         <p className="text-white/50 mt-4 text-lg ">
-                            Layers seamessly connects with your favourite tools
-                            and platforms. It's easy to plug into any workflow
-                            and collaborate platforms.
+                            LearnWise seamlessly connects with the tools you already use, making it easy to stay organized and focused without changing your habits.
                         </p>
                     </div>
                     <div>

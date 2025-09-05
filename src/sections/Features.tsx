@@ -5,18 +5,16 @@ import FeatureCard from "@/sections/FeatureCard";
 import Tag from "@/sections/Tag";
 import Image from "next/image";
 import Avatar from "@/sections/Avatar";
-import { Ellipsis } from "lucide-react";
-import Key from "@/sections/Key";
+import { BrainCircuit, Lightbulb, GitMerge } from "lucide-react";
 import { motion } from "framer-motion";
 
 const features = [
-    "Asset Library",
-    "Code Preview",
-    "Flow Mode",
-    "Smart Sync",
-    "Auto Layout",
-    "Fast Search",
-    "Smart Guides",
+    "AI-Powered Chat",
+    "Personalized Roadmaps",
+    "Smart Note-Taking",
+    "Custom Quizzes",
+    "Calendar Sync",
+    "Learner Analysis",
 ];
 
 const parentVariants = {
@@ -46,15 +44,14 @@ export default function Features() {
                     <Tag>Features</Tag>
                 </div>
                 <h2 className="text-6xl font-medium text-center mt-6 max-w-2xl m-auto">
-                    Where power meets{" "}
-                    <span className="text-lime-400">simplicity</span>
+                    A smarter way to <span className="text-lime-400">learn</span>
                 </h2>
                 <motion.div
                     variants={parentVariants}
                     initial="hidden"
                     animate="visible"
                 >
-                    <div className="mt-12 grid grid-cols-1 md:grid-cols-4 lg:grid-cols-3 gap-8">
+                    <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         <motion.div
                             variants={cardVariants}
                             initial="hidden"
@@ -62,43 +59,11 @@ export default function Features() {
                             viewport={{ once: true, amount: 0.2 }}
                         >
                             <FeatureCard
-                                title="Real-time collaboration"
-                                description="Work together seamlessly with conflict-free team editing"
-                                className="md:col-span-2 lg:col-span-1"
+                                title="Personalized Study Roadmaps"
+                                description="AI generates a step-by-step plan to guide you through your courses."
                             >
                                 <div className="aspect-video flex items-center justify-center">
-                                    <Avatar className="z-40">
-                                        <Image
-                                            src="https://i.pravatar.cc/150?u=a042581f4e29026704a"
-                                            alt="Avatar 1"
-                                            className="rounded-full"
-                                            width={80}
-                                            height={80}
-                                        />
-                                    </Avatar>
-                                    <Avatar className="-ml-6 border-indigo-500 z-30">
-                                        <Image
-                                            src="https://i.pravatar.cc/150?u=a042581f4e29026704b"
-                                            alt="Avatar 2"
-                                            className="rounded-full"
-                                            width={80}
-                                            height={80}
-                                        />
-                                    </Avatar>
-                                    <Avatar className="-ml-6 border-amber-500 z-20">
-                                        <Image
-                                            src="https://i.pravatar.cc/150?u=a042581f4e29026704c"
-                                            alt="Avatar 3"
-                                            className="rounded-full"
-                                            width={80}
-                                            height={80}
-                                        />
-                                    </Avatar>
-                                    <Avatar className="-ml-6 border-transparent z-10">
-                                        <div className="rounded-full flex justify-center items-center size-full bg-neutral-700">
-                                            <Ellipsis size={30} />
-                                        </div>
-                                    </Avatar>
+                                    <GitMerge className="w-24 h-24 text-purple-400" />
                                 </div>
                             </FeatureCard>
                         </motion.div>
@@ -110,19 +75,12 @@ export default function Features() {
                             viewport={{ once: true, amount: 0.2 }}
                         >
                             <FeatureCard
-                                title="Interactive prototyping"
-                                description="Engage your clients with prototypes that react
-                                to user actions"
-                                className="md:col-span-2 lg:col-span-1 group transition duration-500"
+                                title="Intelligent Quizzes"
+                                description="Test your knowledge with practice quizzes tailored to your study material."
+                                className="group transition duration-500"
                             >
                                 <div className="aspect-video flex items-center justify-center">
-                                    <p className="group-hover:text-white/40 transition duration-500 text-4xl font-extrabold text-white/20 text-center">
-                                        We've achived{" "}
-                                        <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                                            incrideible
-                                        </span>{" "}
-                                        growth this year
-                                    </p>
+                                   <Lightbulb className="w-24 h-24 text-amber-400" />
                                 </div>
                             </FeatureCard>
                         </motion.div>
@@ -134,20 +92,12 @@ export default function Features() {
                             viewport={{ once: true, amount: 0.2 }}
                         >
                             <FeatureCard
-                                title="Keyboard quick actions"
-                                description="Powerfull commands to make design quickly"
-                                className="group md:col-span-2 md:col-start-2 lg:col-span-1 lg:col-start-auto"
+                                title="AI-Powered Chat Assistant"
+                                description="Get instant answers, explanations, and study help 24/7."
+                                className="group md:col-span-2 lg:col-span-1"
                             >
                                 <div className="aspect-video flex justify-center items-center gap-4">
-                                    <Key className="w-28 outline outline-2 outline-transparent group-hover:outline-lime-400 transition-all duration-500 outline-offset-2 group-hover:translate-y-1">
-                                        shift
-                                    </Key>
-                                    <Key className="outline outline-2 outline-transparent group-hover:outline-lime-400 transition-all duration-500 outline-offset-2 group-hover:translate-y-1 delay-150">
-                                        alt
-                                    </Key>
-                                    <Key className="outline outline-2 outline-transparent group-hover:outline-lime-400 transition-all duration-500 outline-offset-2 group-hover:translate-y-1-200">
-                                        C
-                                    </Key>
+                                     <BrainCircuit className="w-24 h-24 text-lime-400" />
                                 </div>
                             </FeatureCard>
                         </motion.div>

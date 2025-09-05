@@ -1,3 +1,4 @@
+
 "use client";
 
 import Tag from "@/sections/Tag";
@@ -8,29 +9,33 @@ import { twMerge } from "tailwind-merge";
 
 const faqs = [
     {
-        question: "How is Layers different from other design tools?",
-        answer: "Unlike traditional design tools, Layers prioritizes speed and simplicity without sacrificing power. Our intelligent interface adapts to your workflow, reducing clicks and keeping you in your creative flow.",
+        question: "How does LearnWise personalize my study plans?",
+        answer: "LearnWise analyzes your courses, notes, and even your learning style (through a quick test) to generate custom roadmaps and quizzes that focus on what you need to learn most.",
     },
     {
-        question: "Is there a learning curve?",
-        answer: "Layers is designed to feel intuitive from day one. Most designers are productive within hours, not weeks. We also provide interactive tutorials and comprehensive documentation to help you get started.",
+        question: "Can I use LearnWise for any subject?",
+        answer: "Absolutely! LearnWise is designed to be subject-agnostic. Whether you're studying history, calculus, or computer science, our AI can help you create a plan and test your knowledge.",
     },
     {
-        question: "How do you handle version control?",
-        answer: "Every change in Layers is automatically saved and versioned. You can review history, restore previous versions, and create named versions for important milestones.",
+        question: "Is my data secure?",
+        answer: "Yes, your privacy and data security are our top priorities. All your study materials and personal information are encrypted and stored securely.",
     },
     {
-        question: "Can I work offline?",
-        answer: "Yes! Layers includes a robust offline mode. Changes sync automatically when you're back online, so you can keep working anywhere.",
+        question: "Can I use my own notes and documents?",
+        answer: "Yes! You can upload your own documents, notes, and other study materials. Our AI will analyze them to provide even more personalized support and generate relevant quizzes.",
     },
     {
-        question: "How does Layers handle collaboration?",
-        answer: "Layers is built for collaboration. You can invite team members to your projects, share feedback, and work together in real-time.",
+        question: "How does the AI chat work?",
+        answer: "Our AI chat assistant is available 24/7 to answer your questions, explain complex concepts, and help you with your coursework. It's like having a personal tutor on demand.",
     },
 ];
 
 export default function Faqs() {
-    const [selectedIndex, setSelectedIndex] = useState(0);
+    const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+
+    const handleClick = (index: number) => {
+        setSelectedIndex(selectedIndex === index ? null : index);
+    };
 
     return (
         <section className="py-24 ">
@@ -47,8 +52,8 @@ export default function Faqs() {
                     {faqs.map((faq, faqIndex) => (
                         <div
                             key={faq.question}
-                            onClick={() => setSelectedIndex(faqIndex)}
-                            className="bg-neutral-900 rounded-2xl border border-white/10 p-6 "
+                            onClick={() => handleClick(faqIndex)}
+                            className="bg-neutral-900 rounded-2xl border border-white/10 p-6 cursor-pointer"
                         >
                             <div className="flex justify-between items-start">
                                 <h3 className="font-medium m-0">
@@ -70,14 +75,17 @@ export default function Faqs() {
                                         initial={{
                                             height: 0,
                                             marginTop: 0,
+                                            opacity: 0,
                                         }}
                                         animate={{
                                             height: "auto",
                                             marginTop: 24,
+                                            opacity: 1,
                                         }}
                                         exit={{
                                             height: 0,
                                             marginTop: 0,
+                                            opacity: 0,
                                         }}
                                         className="overflow-hidden"
                                     >

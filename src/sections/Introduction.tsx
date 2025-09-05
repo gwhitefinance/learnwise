@@ -1,3 +1,4 @@
+
 "use client";
 
 import Tag from "@/sections/Tag";
@@ -10,7 +11,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { twMerge } from "tailwind-merge";
 
-const text = `You're racing to create exceptional work, but traditional design tools slow you down with unnecessary complexity and steep learning curves.`;
+const text = `You're juggling courses, notes, and deadlines, but generic study methods slow you down. It's hard to stay organized and even harder to know what to focus on.`;
 const words = text.split(" ");
 
 export default function Introduction() {
@@ -40,10 +41,10 @@ export default function Introduction() {
             <div className="container">
                 <div className="sticky top-28 md:top-32">
                     <div className="flex justify-center">
-                        <Tag>Introduction Layers</Tag>
+                        <Tag>Introducing LearnWise</Tag>
                     </div>
                     <div className="text-4xl md:text-6xl lg:text-7xl text-center font-medium mt-10 ">
-                        <span>Your crative process deserves better.&nbsp;</span>
+                        <span>Your study process deserves better.&nbsp;</span>
                         <span className="text-white/15 ">
                             {words.map((word, wordIndex) => (
                                 <span
@@ -56,7 +57,7 @@ export default function Introduction() {
                             ))}
                         </span>
                         <span className="text-lime-400 block">
-                            That&apos;s why we built Layers.
+                            That&apos;s why we built LearnWise.
                         </span>
                     </div>
                 </div>
