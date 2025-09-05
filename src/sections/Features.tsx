@@ -51,7 +51,7 @@ export default function Features() {
                     initial="hidden"
                     animate="visible"
                 >
-                    <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8">
                         <motion.div
                             variants={cardVariants}
                             initial="hidden"
@@ -63,7 +63,12 @@ export default function Features() {
                                 description="AI generates a step-by-step plan to guide you through your courses."
                             >
                                 <div className="aspect-video flex items-center justify-center">
-                                    <GitMerge className="w-24 h-24 text-purple-400" />
+                                    <motion.div
+                                        whileHover={{ scale: 1.1, rotate: -5 }}
+                                        transition={{ type: "spring", stiffness: 300 }}
+                                    >
+                                        <GitMerge className="w-24 h-24 text-purple-400" />
+                                    </motion.div>
                                 </div>
                             </FeatureCard>
                         </motion.div>
@@ -77,10 +82,14 @@ export default function Features() {
                             <FeatureCard
                                 title="Intelligent Quizzes"
                                 description="Test your knowledge with practice quizzes tailored to your study material."
-                                className="group transition duration-500"
                             >
                                 <div className="aspect-video flex items-center justify-center">
-                                   <Lightbulb className="w-24 h-24 text-amber-400" />
+                                     <motion.div
+                                        whileHover={{ scale: 1.1, y: -10 }}
+                                        transition={{ type: "spring", stiffness: 300 }}
+                                    >
+                                        <Lightbulb className="w-24 h-24 text-amber-400" />
+                                    </motion.div>
                                 </div>
                             </FeatureCard>
                         </motion.div>
@@ -94,10 +103,14 @@ export default function Features() {
                             <FeatureCard
                                 title="AI-Powered Chat Assistant"
                                 description="Get instant answers, explanations, and study help 24/7."
-                                className="group md:col-span-2 lg:col-span-1"
                             >
                                 <div className="aspect-video flex justify-center items-center gap-4">
-                                     <BrainCircuit className="w-24 h-24 text-lime-400" />
+                                     <motion.div
+                                        whileHover={{ scale: 1.1, filter: "brightness(1.2)" }}
+                                        transition={{ type: "spring", stiffness: 300 }}
+                                    >
+                                        <BrainCircuit className="w-24 h-24 text-lime-400" />
+                                    </motion.div>
                                 </div>
                             </FeatureCard>
                         </motion.div>
