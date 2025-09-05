@@ -76,6 +76,12 @@ const nextConfig: NextConfig = {
         hostname: 't4.ftcdn.net',
         port: '',
         pathname: '/**',
+      },
+       {
+        protocol: 'https',
+        hostname: 'cdn.freebiesupply.com',
+        port: '',
+        pathname: '/**',
       }
     ],
   },

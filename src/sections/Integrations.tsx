@@ -18,7 +18,7 @@ const integrations = [
     },
     {
         name: "Slack",
-        icon: "https://tailwindui.com/img/logos/slack-logo-gray-400.svg",
+        icon: "https://cdn.freebiesupply.com/logos/large/2x/slack-logo-icon.png",
         description: "Get study reminders and form study groups.",
     },
     {
