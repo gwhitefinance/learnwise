@@ -1,19 +1,18 @@
 
 "use client";
 
-import Image from "next/image";
 import { motion } from "framer-motion";
 import React from "react";
 
-const logos = [
-    { name: "Harvard University", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Harvard_University_logo.svg/200px-Harvard_University_logo.svg.png" },
-    { name: "Stanford University", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Stanford_University_logo_2013.svg/200px-Stanford_University_logo_2013.svg.png" },
-    { name: "MIT", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/MIT_logo.svg/200px-MIT_logo.svg.png" },
-    { name: "University of Oxford", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/ff/Oxford-University-Circlet.svg/200px-Oxford-University-Circlet.svg.png" },
-    { name: "University of Cambridge", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/University_of_Cambridge_coat_of_arms.svg/200px-University_of_Cambridge_coat_of_arms.svg.png" },
-    { name: "Caltech", image: "https://upload.wikimedia.org/wikipedia/en/thumb/5/5e/Caltech_logo.svg/200px-Caltech_logo.svg.png" },
-    { name: "ETH Zurich", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/ETH_Zurich_logo_2015.svg/200px-ETH_Zurich_logo_2015.svg.png" },
-    { name: "UCL", image: "https://upload.wikimedia.org/wikipedia/en/thumb/2/22/University_College_London_logo.svg/200px-University_College_London_logo.svg.png" },
+const universityNames = [
+    "Harvard University",
+    "Stanford University",
+    "MIT",
+    "University of Oxford",
+    "University of Cambridge",
+    "Caltech",
+    "ETH Zurich",
+    "UCL",
 ];
 
 export default function LogoTicker() {
@@ -29,23 +28,21 @@ export default function LogoTicker() {
                             x: "-50%",
                         }}
                         transition={{
-                            duration: 30,
+                            duration: 40,
                             ease: "linear",
                             repeat: Infinity,
                         }}
-                        className="flex gap-24 pr-24 items-center"
+                        className="flex gap-16 pr-16 items-center flex-none"
                     >
                         {Array.from({ length: 2 }).map((_, i) => (
                             <React.Fragment key={i}>
-                                {logos.map((each) => (
-                                    <Image
-                                        src={each.image}
-                                        alt={each.name}
-                                        key={each.name}
-                                        width={120}
-                                        height={40}
-                                        className="object-contain"
-                                    />
+                                {universityNames.map((name) => (
+                                    <div
+                                        key={name}
+                                        className="text-2xl font-medium text-white/80 whitespace-nowrap"
+                                    >
+                                        {name}
+                                    </div>
                                 ))}
                             </React.Fragment>
                         ))}
