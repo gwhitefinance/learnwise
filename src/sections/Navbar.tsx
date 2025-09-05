@@ -1,41 +1,131 @@
-'use client';
-import { Button } from '@/components/ui/button';
-import { BrainCircuit, Menu } from 'lucide-react';
-import Link from 'next/link';
+"use client";
 
-const Navbar = () => {
-  return (
-    <div className="bg-background/95 backdrop-blur-sm sticky top-0 z-50 border-b border-border">
-      <div className="container flex items-center justify-between h-14">
-        <Link href="/" className="flex items-center gap-2">
-          <BrainCircuit className="h-6 w-6 text-primary" />
-          <span className="font-bold text-lg">LearnWise</span>
-        </Link>
-        <nav className="hidden md:flex gap-4">
-          <Link href="#features">
-            <Button variant="ghost">Features</Button>
-          </Link>
-          <Link href="#integrations">
-            <Button variant="ghost">Integrations</Button>
-          </Link>
-          <Link href="#faqs">
-            <Button variant="ghost">FAQs</Button>
-          </Link>
-        </nav>
-        <div className="flex items-center gap-2">
-          <Link href="/dashboard">
-            <Button variant="outline">Sign in</Button>
-          </Link>
-          <Link href="/dashboard">
-            <Button>Get Started</Button>
-          </Link>
-          <Button variant="ghost" size="icon" className="md:hidden">
-            <Menu />
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-};
+import { AnimatePresence, motion } from "framer-motion";
+import { BrainCircuit, Menu, X } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
+import Button from "@/sections/Button";
 
-export default Navbar;
+const navLinks = [
+    { label: "Home", href: "/" },
+    { label: "Features", href: "#features" },
+    { label: "Integrations", href: "#integrations" },
+    { label: "FAQs", href: "#faqs" },
+];
+
+export default function Navbar() {
+    const [isOpen, setIsOpen] = useState(false);
+
+    return (
+        <>
+            <section className="py-4 lg:py-8 fixed w-full top-0 z-50 ">
+                <div className="container max-w-5xl">
+                    <div className="border border-white/15 rounded-[27px] lg:rounded-full bg-neutral-950/70 backdrop-blur">
+                        <figure className="grid grid-cols-2 lg:grid-cols-3  py-2 lg:px-2 px-4  items-center ">
+                            <div>
+                                <Link href="/" className="flex items-center gap-2">
+                                  <BrainCircuit className="h-9 w-auto md:h-auto text-white" />
+                                   <span className="font-bold text-xl text-white">Layers</span>
+                                </Link>
+                            </div>
+                            <div className="hidden lg:flex justify-center items-center ">
+                                <nav className="flex gap-6 font-medium ">
+                                    {navLinks.map((each) => (
+                                        <a href={each.href} key={each.href}>
+                                            {each.label}
+                                        </a>
+                                    ))}
+                                </nav>
+                            </div>
+                            <div className="flex justify-end gap-4">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsOpen(!isOpen)}
+                                    className="lg:hidden"
+                                >
+                                    {!isOpen ? (
+                                        <motion.div
+                                            initial={{ opacity: 1 }}
+                                            animate={{
+                                                opacity: isOpen ? 0 : 1,
+                                            }}
+                                            transition={{ duration: 0.3 }}
+                                        >
+                                            <Menu
+                                                className="text-white"
+                                                size={30}
+                                            />
+                                        </motion.div>
+                                    ) : (
+                                        <motion.div
+                                            initial={{ opacity: 0 }}
+                                            animate={{
+                                                opacity: isOpen ? 1 : 0,
+                                            }}
+                                            transition={{ duration: 0.3 }}
+                                        >
+                                            <X
+                                                className="text-white"
+                                                size={30}
+                                            />
+                                        </motion.div>
+                                    )}
+                                </button>
+                                <Link href="/dashboard" className="hidden lg:inline-flex items-center">
+                                    <Button
+                                        variant="secondary"
+                                    >
+                                        Login
+                                    </Button>
+                                </Link>
+                                 <Link href="/dashboard" className="hidden lg:inline-flex items-center">
+                                    <Button
+                                        variant="primary"
+                                    >
+                                        Signup
+                                    </Button>
+                                </Link>
+                            </div>
+                        </figure>
+
+                        <AnimatePresence>
+                            {isOpen && (
+                                <motion.figure
+                                    initial={{ height: 0 }}
+                                    animate={{ height: "auto" }}
+                                    exit={{ height: 0 }}
+                                    className="overflow-hidden lg:hidden"
+                                >
+                                    <div className="flex flex-col items-center gap-4 py-4">
+                                        {navLinks.map((link) => (
+                                            <a key={link.href} href={link.href}>
+                                                {link.label}
+                                            </a>
+                                        ))}
+                                        <Link href="/dashboard" className="w-3/4">
+                                            <Button
+                                                className="w-full"
+                                                variant="secondary"
+                                            >
+                                                Log In
+                                            </Button>
+                                        </Link>
+                                         <Link href="/dashboard" className="w-3/4">
+                                            <Button
+                                                className="w-full"
+                                                variant="primary"
+                                            >
+                                                Sign Up
+                                            </Button>
+                                        </Link>
+                                    </div>
+                                </motion.figure>
+                            )}
+                        </AnimatePresence>
+                    </div>
+                </div>
+            </section>
+            <div className="pb-[86px] md:pb-[98px]"></div>
+        </>
+    );
+}

@@ -1,3 +1,5 @@
+"use client";
+
 import React, { ButtonHTMLAttributes, HTMLAttributes } from "react";
 import { cva } from "class-variance-authority";
 
