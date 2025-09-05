@@ -68,7 +68,7 @@ export default function Hero() {
                 >
                     <Image
                         draggable={false}
-                        src="https://picsum.photos/400/400?random=1"
+                        src="https://picsum.photos/seed/design1/400/400"
                         alt="design example 1"
                         data-ai-hint="abstract design"
                         width={400}
@@ -91,7 +91,7 @@ export default function Hero() {
                 >
                     <Image
                         draggable={false}
-                        src="https://picsum.photos/400/400?random=2"
+                        src="https://picsum.photos/seed/design2/400/400"
                         alt="design example 2"
                         data-ai-hint="modern design"
                         width={400}
