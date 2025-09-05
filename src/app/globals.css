@@ -139,3 +139,15 @@
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
 }
+
+/* Custom styles for landing page */
+.landing-hero-bg {
+    background-color: #020617;
+    background-image:
+        linear-gradient(rgba(2, 6, 23, 0) 50%, rgba(2, 6, 23, 1)),
+        radial-gradient(ellipse at 50% 0, rgba(14, 116, 253, 0.2), transparent 70%);
+}
+
+.landing-dark-bg {
+     background-color: #0f172a;
+}

@@ -111,7 +111,7 @@ export default function LandingPage() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="bg-background text-foreground isolate">
+    <div className="bg-slate-900 text-foreground isolate">
        <header className="absolute inset-x-0 top-0 z-50">
         <nav className="container mx-auto flex items-center justify-between p-6 lg:px-8" aria-label="Global">
           <div className="flex lg:flex-1">
@@ -194,38 +194,39 @@ export default function LandingPage() {
 
       <main className="relative">
         {/* Hero */}
-        <div className="relative isolate overflow-hidden pt-14">
-            <div className="absolute inset-0 -z-10 bg-gray-900">
-                <div className="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80" aria-hidden="true">
-                    <div
-                        className="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#8085ff] to-[#4338ca] opacity-20 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]"
-                        style={{
-                        clipPath:
-                            'polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)',
-                        }}
-                    />
+        <div className="relative isolate overflow-hidden pt-14 landing-hero-bg">
+            <div
+                className="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80"
+                aria-hidden="true"
+            >
+                <div
+                className="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#8085ff] to-[#4338ca] opacity-20 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]"
+                style={{
+                    clipPath:
+                    'polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)',
+                }}
+                />
+            </div>
+            <div className="mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:px-8 lg:py-40">
+                <div className="mx-auto max-w-2xl text-center">
+                    <h1 className="text-4xl font-bold tracking-tight text-white sm:text-6xl">
+                    Master Any Subject in Record Time
+                    </h1>
+                    <p className="mt-6 text-lg leading-8 text-gray-300">
+                    The #1 AI-powered learning platform for students, professionals, and lifelong learners. Stop cramming, start understanding.
+                    </p>
+                    <div className="mt-10 flex items-center justify-center gap-x-6">
+                        <Link href="/dashboard">
+                            <Button size="lg">Get started free</Button>
+                        </Link>
+                    </div>
                 </div>
             </div>
-
-          <div className="mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:px-8 lg:py-40">
-            <div className="mx-auto max-w-2xl text-center">
-                <h1 className="text-4xl font-bold tracking-tight text-white sm:text-6xl">
-                 Master Any Subject in Record Time
-                </h1>
-                <p className="mt-6 text-lg leading-8 text-gray-300">
-                The #1 AI-powered learning platform for students, professionals, and lifelong learners. Stop cramming, start understanding.
-                </p>
-                <div className="mt-10 flex items-center justify-center gap-x-6">
-                    <Link href="/dashboard">
-                        <Button size="lg">Get started free</Button>
-                    </Link>
-                </div>
-            </div>
-          </div>
         </div>
 
+
         {/* Logo cloud */}
-        <div className="bg-gray-900 py-12 sm:py-16">
+        <div className="bg-slate-900 py-12 sm:py-16">
             <div className="mx-auto max-w-7xl px-6 lg:px-8">
                 <div className="mx-auto max-w-2xl lg:max-w-none">
                     <h2 className="text-center text-lg font-semibold leading-8 text-white">
@@ -248,54 +249,42 @@ export default function LandingPage() {
         </div>
         
         {/* Features */}
-        <div id="features" className="bg-background py-24 sm:py-32">
+        <div id="features" className="bg-slate-900 text-white py-24 sm:py-32">
           <div className="mx-auto max-w-7xl px-6 lg:px-8">
-            {features.map((feature, index) => (
-              <div
-                key={feature.title}
-                className={`flex flex-col-reverse lg:grid lg:grid-cols-2 lg:items-center lg:gap-x-16 ${
-                  index !== 0 ? 'mt-24 sm:mt-32' : ''
-                }`}
-              >
-                <div
-                  className={`mt-12 lg:mt-0 lg:pr-4 ${
-                    index % 2 === 0 ? 'lg:col-start-1' : 'lg:col-start-2'
-                  }`}
-                >
-                  <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">{feature.title}</h2>
-                  <p className="mt-6 text-lg leading-8 text-muted-foreground">{feature.description}</p>
-                  <dl className="mt-10 max-w-xl space-y-4 text-base leading-7 text-muted-foreground lg:max-w-none">
-                    {feature.items.map((item) => (
-                      <div key={item} className="relative pl-9">
-                        <dt className="inline font-semibold text-foreground">
-                          <Check className="absolute left-1 top-1 h-5 w-5 text-primary" aria-hidden="true" />
-                        </dt>
-                        <dd className="inline">{item}</dd>
+            <div className="text-center mb-16">
+                 <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Everything you need to succeed</h2>
+                  <p className="mt-4 text-lg leading-8 text-gray-400">
+                    LearnWise provides a comprehensive suite of tools to supercharge your study sessions.
+                </p>
+            </div>
+            <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+                {features.map((feature) => (
+                  <Card key={feature.title} className="bg-slate-800/50 border-slate-700 text-white">
+                    <CardHeader>
+                      <div className="h-64 w-full rounded-lg mb-4 overflow-hidden">
+                        <Image src={feature.image} alt={feature.image_alt} width={600} height={500} data-ai-hint={feature.image_hint} className="object-cover h-full w-full"/>
                       </div>
-                    ))}
-                  </dl>
-                </div>
-                <div
-                  className={`flex items-start ${
-                    index % 2 === 0 ? 'lg:col-start-2' : 'lg:col-start-1 lg:row-start-1'
-                  }`}
-                >
-                  <Image
-                    src={feature.image}
-                    alt={feature.image_alt}
-                    className="rounded-xl shadow-xl ring-1 ring-gray-400/10"
-                    width={600}
-                    height={500}
-                    data-ai-hint={feature.image_hint}
-                  />
-                </div>
-              </div>
-            ))}
+                      <CardTitle>{feature.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                       <p className="text-muted-foreground mb-4">{feature.description}</p>
+                       <ul className="space-y-2">
+                        {feature.items.map((item) => (
+                          <li key={item} className="flex items-center gap-2">
+                            <Check className="h-5 w-5 text-primary flex-shrink-0" />
+                            <span className="text-sm text-gray-300">{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
+                ))}
+            </div>
           </div>
         </div>
 
         {/* Pricing */}
-        <div id="pricing" className="bg-gray-900 py-24 sm:py-32">
+        <div id="pricing" className="landing-dark-bg py-24 sm:py-32">
             <div className="mx-auto max-w-7xl px-6 lg:px-8">
                 <div className="mx-auto max-w-4xl text-center">
                 <h2 className="text-base font-semibold leading-7 text-primary">Pricing</h2>
@@ -307,38 +296,38 @@ export default function LandingPage() {
                 Choose the plan that best fits your learning needs. All plans start with a 7-day free trial.
                 </p>
                 <div className="isolate mx-auto mt-16 grid max-w-md grid-cols-1 gap-y-8 sm:mt-20 lg:mx-0 lg:max-w-none lg:grid-cols-3">
-                <div className="flex flex-col justify-between rounded-3xl bg-background p-8 ring-1 ring-gray-200/10 xl:p-10">
+                <div className="flex flex-col justify-between rounded-3xl bg-slate-800 p-8 ring-1 ring-slate-700 xl:p-10">
                     <div>
                         <div className="flex items-center justify-between gap-x-4">
-                            <h3 className="text-lg font-semibold leading-8 text-foreground">Hobby</h3>
+                            <h3 className="text-lg font-semibold leading-8 text-white">Hobby</h3>
                             {/* <p className="rounded-full bg-indigo-500/10 px-2.5 py-1 text-xs font-semibold leading-5 text-indigo-400">Most popular</p> */}
                         </div>
-                        <p className="mt-4 text-sm leading-6 text-muted-foreground">A great start for casual learners and to explore our core features.</p>
+                        <p className="mt-4 text-sm leading-6 text-gray-400">A great start for casual learners and to explore our core features.</p>
                         <p className="mt-6 flex items-baseline gap-x-1">
-                            <span className="text-4xl font-bold tracking-tight text-foreground">$10</span>
-                            <span className="text-sm font-semibold leading-6 text-muted-foreground">/month</span>
+                            <span className="text-4xl font-bold tracking-tight text-white">$10</span>
+                            <span className="text-sm font-semibold leading-6 text-gray-400">/month</span>
                         </p>
-                        <ul role="list" className="mt-8 space-y-3 text-sm leading-6 text-muted-foreground">
+                        <ul role="list" className="mt-8 space-y-3 text-sm leading-6 text-gray-400">
                             <li className="flex gap-x-3"><Check className="h-6 w-5 flex-none text-primary" aria-hidden="true" />5 Courses</li>
                             <li className="flex gap-x-3"><Check className="h-6 w-5 flex-none text-primary" aria-hidden="true" />20 Quiz Generations / mo</li>
                             <li className="flex gap-x-3"><Check className="h-6 w-5 flex-none text-primary" aria-hidden="true" />Standard AI Chat</li>
                         </ul>
                     </div>
-                    <Button variant="outline" className="mt-8">Get started</Button>
+                    <Button variant="outline" className="mt-8 text-white border-white hover:bg-slate-700">Get started</Button>
                 </div>
 
-                <div className="flex flex-col justify-between rounded-3xl bg-background p-8 ring-2 ring-primary xl:p-10">
+                <div className="flex flex-col justify-between rounded-3xl bg-slate-800 p-8 ring-2 ring-primary xl:p-10">
                     <div>
                         <div className="flex items-center justify-between gap-x-4">
-                            <h3 className="text-lg font-semibold leading-8 text-foreground">Pro</h3>
+                            <h3 className="text-lg font-semibold leading-8 text-white">Pro</h3>
                              <p className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold leading-5 text-primary">Most popular</p>
                         </div>
-                        <p className="mt-4 text-sm leading-6 text-muted-foreground">For dedicated students who want to unlock their full potential.</p>
+                        <p className="mt-4 text-sm leading-6 text-gray-400">For dedicated students who want to unlock their full potential.</p>
                         <p className="mt-6 flex items-baseline gap-x-1">
-                            <span className="text-4xl font-bold tracking-tight text-foreground">$20</span>
-                            <span className="text-sm font-semibold leading-6 text-muted-foreground">/month</span>
+                            <span className="text-4xl font-bold tracking-tight text-white">$20</span>
+                            <span className="text-sm font-semibold leading-6 text-gray-400">/month</span>
                         </p>
-                        <ul role="list" className="mt-8 space-y-3 text-sm leading-6 text-muted-foreground">
+                        <ul role="list" className="mt-8 space-y-3 text-sm leading-6 text-gray-400">
                             <li className="flex gap-x-3"><Check className="h-6 w-5 flex-none text-primary" aria-hidden="true" />Unlimited Courses</li>
                             <li className="flex gap-x-3"><Check className="h-6 w-5 flex-none text-primary" aria-hidden="true" />Unlimited Quiz Generations</li>
                             <li className="flex gap-x-3"><Check className="h-6 w-5 flex-none text-primary" aria-hidden="true" />Advanced AI Chat with course context</li>
@@ -348,46 +337,46 @@ export default function LandingPage() {
                     <Button className="mt-8">Get started</Button>
                 </div>
 
-                <div className="flex flex-col justify-between rounded-3xl bg-background p-8 ring-1 ring-gray-200/10 xl:p-10">
+                <div className="flex flex-col justify-between rounded-3xl bg-slate-800 p-8 ring-1 ring-slate-700 xl:p-10">
                     <div>
                         <div className="flex items-center justify-between gap-x-4">
-                            <h3 className="text-lg font-semibold leading-8 text-foreground">Team</h3>
+                            <h3 className="text-lg font-semibold leading-8 text-white">Team</h3>
                         </div>
-                        <p className="mt-4 text-sm leading-6 text-muted-foreground">Perfect for study groups, classrooms, and tutoring centers.</p>
+                        <p className="mt-4 text-sm leading-6 text-gray-400">Perfect for study groups, classrooms, and tutoring centers.</p>
                         <p className="mt-6 flex items-baseline gap-x-1">
-                            <span className="text-4xl font-bold tracking-tight text-foreground">$75</span>
-                            <span className="text-sm font-semibold leading-6 text-muted-foreground">/month</span>
+                            <span className="text-4xl font-bold tracking-tight text-white">$75</span>
+                            <span className="text-sm font-semibold leading-6 text-gray-400">/month</span>
                         </p>
-                        <ul role="list" className="mt-8 space-y-3 text-sm leading-6 text-muted-foreground">
+                        <ul role="list" className="mt-8 space-y-3 text-sm leading-6 text-gray-400">
                             <li className="flex gap-x-3"><Check className="h-6 w-5 flex-none text-primary" aria-hidden="true" />Up to 10 users</li>
                             <li className="flex gap-x-3"><Check className="h-6 w-5 flex-none text-primary" aria-hidden="true" />All Pro features</li>
                             <li className="flex gap-x-3"><Check className="h-6 w-5 flex-none text-primary" aria-hidden="true" />Collaborative tools</li>
                             <li className="flex gap-x-3"><Check className="h-6 w-5 flex-none text-primary" aria-hidden="true" />Admin dashboard</li>
                         </ul>
                     </div>
-                     <Button variant="outline" className="mt-8">Get started</Button>
+                     <Button variant="outline" className="mt-8 text-white border-white hover:bg-slate-700">Get started</Button>
                 </div>
                 </div>
             </div>
         </div>
 
         {/* Testimonials */}
-        <div id="testimonials" className="bg-background py-24 sm:py-32">
+        <div id="testimonials" className="bg-slate-900 py-24 sm:py-32">
             <div className="mx-auto max-w-7xl px-6 lg:px-8">
                  <div className="mx-auto max-w-2xl text-center">
-                    <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">What Our Users Are Saying</h2>
-                    <p className="mt-6 text-lg leading-8 text-muted-foreground">
+                    <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">What Our Users Are Saying</h2>
+                    <p className="mt-6 text-lg leading-8 text-gray-400">
                     We've helped thousands of students achieve their academic goals.
                     </p>
                 </div>
                 <div className="mx-auto mt-16 grid max-w-2xl grid-cols-1 lg:max-w-none lg:grid-cols-3 gap-8">
                 {testimonials.map((testimonial) => (
-                    <Card key={testimonial.name} className="flex flex-col">
+                    <Card key={testimonial.name} className="flex flex-col bg-slate-800/50 border-slate-700 text-white">
                         <CardContent className="flex-auto p-6">
                             <div className="flex text-yellow-400 mb-2">
                                 {[...Array(5)].map((_, i) => <Star key={i} className="h-5 w-5 fill-current" />)}
                             </div>
-                            <p className="text-base leading-7 text-muted-foreground">"{testimonial.quote}"</p>
+                            <p className="text-base leading-7 text-gray-300">"{testimonial.quote}"</p>
                         </CardContent>
                         <CardHeader className="flex flex-row items-center gap-x-4 p-6 pt-0 mt-auto">
                             <Image
@@ -398,8 +387,8 @@ export default function LandingPage() {
                             height={48}
                             />
                             <div>
-                            <CardTitle className="text-base font-semibold">{testimonial.name}</CardTitle>
-                            <CardDescription>{testimonial.role}</CardDescription>
+                            <CardTitle className="text-base font-semibold text-white">{testimonial.name}</CardTitle>
+                            <CardDescription className="text-gray-400">{testimonial.role}</CardDescription>
                             </div>
                         </CardHeader>
                     </Card>
@@ -409,7 +398,7 @@ export default function LandingPage() {
         </div>
         
         {/* FAQs */}
-        <div className="bg-gray-900 py-24 sm:py-32">
+        <div className="landing-dark-bg py-24 sm:py-32">
             <div className="mx-auto max-w-7xl px-6 lg:px-8">
                 <div className="mx-auto max-w-4xl text-center">
                     <h2 className="text-4xl font-bold tracking-tight text-white sm:text-5xl">Frequently Asked Questions</h2>
@@ -433,9 +422,9 @@ export default function LandingPage() {
         </div>
 
         {/* CTA */}
-        <div className="bg-background">
+        <div className="bg-slate-900">
             <div className="mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:px-8">
-                <div className="relative isolate overflow-hidden bg-gray-900 px-6 py-24 text-center shadow-2xl rounded-3xl sm:px-16">
+                <div className="relative isolate overflow-hidden bg-slate-800/80 px-6 py-24 text-center shadow-2xl rounded-3xl sm:px-16">
                     <h2 className="mx-auto max-w-2xl text-3xl font-bold tracking-tight text-white sm:text-4xl">
                         Ready to supercharge your learning?
                     </h2>
@@ -462,7 +451,7 @@ export default function LandingPage() {
 
       </main>
 
-      <footer className="bg-gray-900" aria-labelledby="footer-heading">
+      <footer className="bg-slate-900 border-t border-slate-800" aria-labelledby="footer-heading">
         <h2 id="footer-heading" className="sr-only">
           Footer
         </h2>
@@ -524,5 +513,3 @@ export default function LandingPage() {
     </div>
   );
 }
-
-    
