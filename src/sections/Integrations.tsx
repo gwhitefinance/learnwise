@@ -33,7 +33,7 @@ const integrations = [
     },
     {
         name: "GitHub",
-        icon: "https://tailwindui.com/img/logos/github-logo-gray-400.svg",
+        icon: "https://logos-world.net/wp-content/uploads/2020/11/GitHub-Symbol.png",
         description: "Track coding projects alongside your coursework.",
     },
 ];
