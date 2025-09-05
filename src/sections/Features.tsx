@@ -68,29 +68,29 @@ export default function Features() {
                                 <div className="aspect-video flex items-center justify-center">
                                     <Avatar className="z-40">
                                         <Image
-                                            src="https://picsum.photos/64/64"
+                                            src="/assets/images/avatar-1.png"
                                             alt="Avatar 1"
-                                            width={64}
-                                            height={64}
                                             className="rounded-full"
+                                            width={80}
+                                            height={80}
                                         />
                                     </Avatar>
                                     <Avatar className="-ml-6 border-indigo-500 z-30">
                                         <Image
-                                            src="https://picsum.photos/64/65"
+                                            src="/assets/images/avatar-2.png"
                                             alt="Avatar 2"
-                                            width={64}
-                                            height={64}
                                             className="rounded-full"
+                                            width={80}
+                                            height={80}
                                         />
                                     </Avatar>
                                     <Avatar className="-ml-6 border-amber-500 z-20">
                                         <Image
-                                            src="https://picsum.photos/64/66"
+                                            src="/assets/images/avatar-3.png"
                                             alt="Avatar 3"
-                                            width={64}
-                                            height={64}
                                             className="rounded-full"
+                                            width={80}
+                                            height={80}
                                         />
                                     </Avatar>
                                     <Avatar className="-ml-6 border-transparent z-10">
@@ -116,7 +116,7 @@ export default function Features() {
                             >
                                 <div className="aspect-video flex items-center justify-center">
                                     <p className="group-hover:text-white/40 transition duration-500 text-4xl font-extrabold text-white/20 text-center">
-                                        We've achived{" "}
+                                        We\'ve achived{" "}
                                         <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
                                             incrideible
                                         </span>{" "}

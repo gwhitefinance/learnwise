@@ -66,11 +66,11 @@ export default function Hero() {
                 >
                     <Image
                         draggable={false}
-                        src="https://picsum.photos/400/500"
+                        src="/assets/images/design-example-1.png"
                         alt="design example 1"
-                        width={400}
-                        height={500}
                         data-ai-hint="abstract design"
+                        width={400}
+                        height={400}
                     />
                 </motion.div>
                 <motion.div
@@ -89,11 +89,11 @@ export default function Hero() {
                 >
                     <Image
                         draggable={false}
-                        src="https://picsum.photos/400/501"
+                        src="/assets/images/design-example-2.png"
                         alt="design example 2"
-                        width={400}
-                        height={501}
                         data-ai-hint="modern design"
+                        width={400}
+                        height={400}
                     />
                 </motion.div>
                 <motion.div

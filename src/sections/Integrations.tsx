@@ -2,36 +2,37 @@
 
 import Tag from "@/sections/Tag";
 import IntegrationColumn from "@/sections/IntegrationColumn";
+import { type IntegrationsType } from "@/sections/Integrations";
 
 const integrations = [
     {
         name: "Figma",
-        icon: "https://picsum.photos/200/200?random=1",
+        icon: "/assets/images/figma-logo.svg",
         description: "Figma is a collaborative interface design tool.",
     },
     {
         name: "Notion",
-        icon: "https://picsum.photos/200/200?random=2",
+        icon: "/assets/images/notion-logo.svg",
         description: "Notion is an all-in-one workspace for notes and docs.",
     },
     {
         name: "Slack",
-        icon: "https://picsum.photos/200/200?random=3",
+        icon: "/assets/images/slack-logo.svg",
         description: "Slack is a powerful team communication platform.",
     },
     {
         name: "Relume",
-        icon: "https://picsum.photos/200/200?random=4",
+        icon: "/assets/images/relume-logo.svg",
         description: "Relume is a no-code website builder and design system.",
     },
     {
         name: "Framer",
-        icon: "https://picsum.photos/200/200?random=5",
+        icon: "/assets/images/framer-logo.svg",
         description: "Framer is a professional website prototyping tool.",
     },
     {
         name: "GitHub",
-        icon: "https://picsum.photos/200/200?random=6",
+        icon: "/assets/images/github-logo.svg",
         description: "GitHub is the leading platform for code collaboration.",
     },
 ];
