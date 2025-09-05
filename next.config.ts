@@ -27,6 +27,12 @@ const nextConfig: NextConfig = {
         hostname: 'tailwindui.com',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'nextjs-saas-landing-page-five.vercel.app',
+        port: '',
+        pathname: '/**',
       }
     ],
   },

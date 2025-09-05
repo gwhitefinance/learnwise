@@ -68,7 +68,7 @@ export default function Hero() {
                 >
                     <Image
                         draggable={false}
-                        src="https://picsum.photos/seed/design1/400/400"
+                        src="https://nextjs-saas-landing-page-five.vercel.app/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fdesign-example-1.cc8b90ac.png&w=640&q=75"
                         alt="design example 1"
                         data-ai-hint="abstract design"
                         width={400}
