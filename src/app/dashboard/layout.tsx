@@ -83,7 +83,10 @@ export default function DashboardLayout({
   const SidebarContent = () => (
     <div className="flex h-full flex-col">
       <div className="flex h-16 items-center border-b px-4">
-        <h1 className="text-xl font-bold">LearnWise</h1>
+        <Link href="/" className="flex items-center gap-2 font-bold text-xl">
+            <BrainCircuit className="h-6 w-6 text-primary" />
+            <span>LearnWise</span>
+        </Link>
       </div>
       <nav className="flex-1 space-y-1 p-2">
         {navItems.map((item) => (
