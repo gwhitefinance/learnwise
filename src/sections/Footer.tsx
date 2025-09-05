@@ -17,14 +17,14 @@ export default function Footer() {
                     <div>
                         <Link href="/" className="flex items-center gap-2">
                           <BrainCircuit className="h-8 w-8 text-white" />
-                          <span className="font-bold text-xl text-white">Layers</span>
+                          <span className="font-bold text-xl text-white">LearnWise</span>
                         </Link>
                     </div>
                     <div>
                         <nav className="flex gap-6">
                             {footerLinks.map((link) => (
                                 <a
-                                    key={link.href}
+                                    key={link.label}
                                     href={link.href}
                                     className="text-white/50 text-sm "
                                 >
