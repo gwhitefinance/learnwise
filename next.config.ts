@@ -33,6 +33,12 @@ const nextConfig: NextConfig = {
         hostname: 'nextjs-saas-landing-page-five.vercel.app',
         port: '',
         pathname: '/**',
+      },
+      {
+          protocol: 'https',
+          hostname: 'upload.wikimedia.org',
+          port: '',
+          pathname: '/**',
       }
     ],
   },
