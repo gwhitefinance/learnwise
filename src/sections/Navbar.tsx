@@ -30,7 +30,7 @@ export default function Navbar() {
                                         src="https://tailwindui.com/img/logos/mark.svg?color=lime&shade=400"
                                         alt="layer logo"
                                         className="h-9 w-auto md:h-auto"
-                                        width={100}
+                                        width={40}
                                         height={36}
                                     />
                                 </Link>
