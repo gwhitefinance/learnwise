@@ -69,7 +69,7 @@ export default function Features() {
                                 <div className="aspect-video flex items-center justify-center">
                                     <Avatar className="z-40">
                                         <Image
-                                            src="/assets/images/avatar-1.png"
+                                            src="/assets/images/images/avatar-1.png"
                                             alt="Avatar 1"
                                             className="rounded-full"
                                             width={80}
@@ -78,7 +78,7 @@ export default function Features() {
                                     </Avatar>
                                     <Avatar className="-ml-6 border-indigo-500 z-30">
                                         <Image
-                                            src="/assets/images/avatar-2.png"
+                                            src="/assets/images/images/avatar-2.png"
                                             alt="Avatar 2"
                                             className="rounded-full"
                                             width={80}
@@ -87,7 +87,7 @@ export default function Features() {
                                     </Avatar>
                                     <Avatar className="-ml-6 border-amber-500 z-20">
                                         <Image
-                                            src="/assets/images/avatar-3.png"
+                                            src="/assets/images/images/avatar-3.png"
                                             alt="Avatar 3"
                                             className="rounded-full"
                                             width={80}

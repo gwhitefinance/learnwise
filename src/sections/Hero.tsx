@@ -67,7 +67,7 @@ export default function Hero() {
                 >
                     <Image
                         draggable={false}
-                        src="/assets/images/design-example-1.png"
+                        src="/assets/images/images/design-example-1.png"
                         alt="design example 1"
                         data-ai-hint="abstract design"
                         width={400}
@@ -90,7 +90,7 @@ export default function Hero() {
                 >
                     <Image
                         draggable={false}
-                        src="/assets/images/design-example-2.png"
+                        src="/assets/images/images/design-example-2.png"
                         alt="design example 2"
                         data-ai-hint="modern design"
                         width={400}

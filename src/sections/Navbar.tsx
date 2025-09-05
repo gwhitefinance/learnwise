@@ -27,7 +27,7 @@ export default function Navbar() {
                             <div>
                                 <Link href="/" className="flex items-center gap-2">
                                    <Image
-                                        src="/assets/images/logo.svg"
+                                        src="/assets/images/images/logo.svg"
                                         alt="layer logo"
                                         className="h-9 w-auto md:h-auto"
                                         width={100}

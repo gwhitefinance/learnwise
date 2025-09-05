@@ -6,14 +6,14 @@ import { motion } from "framer-motion";
 import React from "react";
 
 const logos = [
-    { name: "Quantum", image: "/assets/images/quantum.svg" },
-    { name: "Acme Corp", image: "/assets/images/acme-corp.svg" },
-    { name: "Echo Valley", image: "/assets/images/echo-valley.svg" },
-    { name: "Pulse", image: "/assets/images/pulse.svg" },
-    { name: "Outside", image: "/assets/images/outside.svg" },
-    { name: "Apex", image: "/assets/images/apex.svg" },
-    { name: "Celestial", image: "/assets/images/celestial.svg" },
-    { name: "Twice", image: "/assets/images/twice.svg" },
+    { name: "Quantum", image: "/assets/images/images/quantum.svg" },
+    { name: "Acme Corp", image: "/assets/images/images/acme-corp.svg" },
+    { name: "Echo Valley", image: "/assets/images/images/echo-valley.svg" },
+    { name: "Pulse", image: "/assets/images/images/pulse.svg" },
+    { name: "Outside", image: "/assets/images/images/outside.svg" },
+    { name: "Apex", image: "/assets/images/images/apex.svg" },
+    { name: "Celestial", image: "/assets/images/images/celestial.svg" },
+    { name: "Twice", image: "/assets/images/images/twice.svg" },
 ];
 
 export default function LogoTicker() {
