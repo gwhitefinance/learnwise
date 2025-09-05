@@ -1,10 +1,73 @@
-// Placeholder for Integrations component
-type Integration = {
-    name: string;
-    description: string;
-    icon: string;
-}
-export type IntegrationsType = Integration[];
+"use client";
 
-const Integrations = () => null;
-export default Integrations;
+import Tag from "@/sections/Tag";
+import IntegrationColumn from "@/sections/IntegrationColumn";
+
+const integrations = [
+    {
+        name: "Figma",
+        icon: "https://picsum.photos/200/200?random=1",
+        description: "Figma is a collaborative interface design tool.",
+    },
+    {
+        name: "Notion",
+        icon: "https://picsum.photos/200/200?random=2",
+        description: "Notion is an all-in-one workspace for notes and docs.",
+    },
+    {
+        name: "Slack",
+        icon: "https://picsum.photos/200/200?random=3",
+        description: "Slack is a powerful team communication platform.",
+    },
+    {
+        name: "Relume",
+        icon: "https://picsum.photos/200/200?random=4",
+        description: "Relume is a no-code website builder and design system.",
+    },
+    {
+        name: "Framer",
+        icon: "https://picsum.photos/200/200?random=5",
+        description: "Framer is a professional website prototyping tool.",
+    },
+    {
+        name: "GitHub",
+        icon: "https://picsum.photos/200/200?random=6",
+        description: "GitHub is the leading platform for code collaboration.",
+    },
+];
+
+export type IntegrationsType = typeof integrations;
+
+export default function Integrations() {
+    return (
+        <section className="py-24 overflow-hidden ">
+            <div className="container">
+                <div className="grid lg:grid-cols-2 items-center lg:gap-16">
+                    <div>
+                        <Tag>Integration</Tag>
+                        <h2 className="text-6xl font-medium mt-6">
+                            Plays well with{" "}
+                            <span className="text-lime-400 ">others</span>
+                        </h2>
+
+                        <p className="text-white/50 mt-4 text-lg ">
+                            Layers seamessly connects with your favourite tools
+                            and platforms. It's easy to plug into any workflow
+                            and collaborate platforms.
+                        </p>
+                    </div>
+                    <div>
+                        <div className="grid md:grid-cols-2 gap-4 lg:h-[800px] h-[400px] lg:mt-0 mt-8 overflow-hidden [mask-image:linear-gradient(to_bottom,transparent,black_10%,black_90%,transparent)]">
+                            <IntegrationColumn integrations={integrations} />
+                            <IntegrationColumn
+                                integrations={integrations.slice().reverse()}
+                                className="hidden md:flex"
+                                reverse
+                            />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    );
+}

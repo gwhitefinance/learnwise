@@ -39,6 +39,8 @@ const IntegrationColumn = (props: {
                                     className="size-24"
                                     src={integration.icon}
                                     alt={`${integration.name}-icon`}
+                                    width={96}
+                                    height={96}
                                 />
                             </div>
                             <h3 className="text-3xl text-center mt-6 ">
