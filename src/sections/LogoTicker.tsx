@@ -6,14 +6,14 @@ import { motion } from "framer-motion";
 import React from "react";
 
 const logos = [
-    { name: "Quantum", image: "/assets/images/images/quantum.svg" },
-    { name: "Acme Corp", image: "/assets/images/images/acme-corp.svg" },
-    { name: "Echo Valley", image: "/assets/images/images/echo-valley.svg" },
-    { name: "Pulse", image: "/assets/images/images/pulse.svg" },
-    { name: "Outside", image: "/assets/images/images/outside.svg" },
-    { name: "Apex", image: "/assets/images/images/apex.svg" },
-    { name: "Celestial", image: "/assets/images/images/celestial.svg" },
-    { name: "Twice", image: "/assets/images/images/twice.svg" },
+    { name: "Quantum", image: "https://tailwindui.com/img/logos/reform-logo-gray-400.svg" },
+    { name: "Acme Corp", image: "https://tailwindui.com/img/logos/tuple-logo-gray-400.svg" },
+    { name: "Echo Valley", image: "https://tailwindui.com/img/logos/savvycal-logo-gray-400.svg" },
+    { name: "Pulse", image: "https://tailwindui.com/img/logos/pulse-logo-gray-400.svg" },
+    { name: "Outside", image: "https://tailwindui.com/img/logos/statickit-logo-gray-400.svg" },
+    { name: "Apex", image: "https://tailwindui.com/img/logos/transistor-logo-gray-400.svg" },
+    { name: "Celestial", image: "https://tailwindui.com/img/logos/laravel-logo-gray-400.svg" },
+    { name: "Twice", image: "https://tailwindui.com/img/logos/mirage-logo-gray-400.svg" },
 ];
 
 export default function LogoTicker() {

@@ -7,6 +7,7 @@ import Pointer from "@/sections/Pointer";
 import { motion, useAnimate } from "framer-motion";
 import { useEffect } from "react";
 
+
 export default function Hero() {
     const [leftDesignScope, leftDesignAnimate] = useAnimate();
     const [leftPointerScope, leftPointerAnimate] = useAnimate();
@@ -67,7 +68,7 @@ export default function Hero() {
                 >
                     <Image
                         draggable={false}
-                        src="/assets/images/images/design-example-1.png"
+                        src="https://picsum.photos/400/400?random=1"
                         alt="design example 1"
                         data-ai-hint="abstract design"
                         width={400}
@@ -90,7 +91,7 @@ export default function Hero() {
                 >
                     <Image
                         draggable={false}
-                        src="/assets/images/images/design-example-2.png"
+                        src="https://picsum.photos/400/400?random=2"
                         alt="design example 2"
                         data-ai-hint="modern design"
                         width={400}

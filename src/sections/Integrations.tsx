@@ -3,38 +3,37 @@
 
 import Tag from "@/sections/Tag";
 import IntegrationColumn from "@/sections/IntegrationColumn";
-import { type IntegrationsType } from "@/sections/Integrations";
 import Image from "next/image";
 
 const integrations = [
     {
         name: "Figma",
-        icon: "/assets/images/images/figma-logo.svg",
+        icon: "https://tailwindui.com/img/logos/figma-logo-gray-400.svg",
         description: "Figma is a collaborative interface design tool.",
     },
     {
         name: "Notion",
-        icon: "/assets/images/images/notion-logo.svg",
+        icon: "https://tailwindui.com/img/logos/notion-logo-gray-400.svg",
         description: "Notion is an all-in-one workspace for notes and docs.",
     },
     {
         name: "Slack",
-        icon: "/assets/images/images/slack-logo.svg",
+        icon: "https://tailwindui.com/img/logos/slack-logo-gray-400.svg",
         description: "Slack is a powerful team communication platform.",
     },
     {
         name: "Relume",
-        icon: "/assets/images/images/relume-logo.svg",
+        icon: "https://tailwindui.com/img/logos/savvycal-logo-gray-400.svg",
         description: "Relume is a no-code website builder and design system.",
     },
     {
         name: "Framer",
-        icon: "/assets/images/images/framer-logo.svg",
+        icon: "https://tailwindui.com/img/logos/framer-logo-gray-400.svg",
         description: "Framer is a professional website prototyping tool.",
     },
     {
         name: "GitHub",
-        icon: "/assets/images/images/github-logo.svg",
+        icon: "https://tailwindui.com/img/logos/github-logo-gray-400.svg",
         description: "GitHub is the leading platform for code collaboration.",
     },
 ];

@@ -69,7 +69,7 @@ export default function Features() {
                                 <div className="aspect-video flex items-center justify-center">
                                     <Avatar className="z-40">
                                         <Image
-                                            src="/assets/images/images/avatar-1.png"
+                                            src="https://i.pravatar.cc/150?u=a042581f4e29026704a"
                                             alt="Avatar 1"
                                             className="rounded-full"
                                             width={80}
@@ -78,7 +78,7 @@ export default function Features() {
                                     </Avatar>
                                     <Avatar className="-ml-6 border-indigo-500 z-30">
                                         <Image
-                                            src="/assets/images/images/avatar-2.png"
+                                            src="https://i.pravatar.cc/150?u=a042581f4e29026704b"
                                             alt="Avatar 2"
                                             className="rounded-full"
                                             width={80}
@@ -87,7 +87,7 @@ export default function Features() {
                                     </Avatar>
                                     <Avatar className="-ml-6 border-amber-500 z-20">
                                         <Image
-                                            src="/assets/images/images/avatar-3.png"
+                                            src="https://i.pravatar.cc/150?u=a042581f4e29026704c"
                                             alt="Avatar 3"
                                             className="rounded-full"
                                             width={80}
@@ -145,7 +145,7 @@ export default function Features() {
                                     <Key className="outline outline-2 outline-transparent group-hover:outline-lime-400 transition-all duration-500 outline-offset-2 group-hover:translate-y-1 delay-150">
                                         alt
                                     </Key>
-                                    <Key className="outline outline-2 outline-transparent group-hover:outline-lime-400 transition-all duration-500 outline-offset-2 group-hover:translate-y-1 delay-300">
+                                    <Key className="outline outline-2 outline-transparent group-hover:outline-lime-400 transition-all duration-500 outline-offset-2 group-hover:translate-y-1-200">
                                         C
                                     </Key>
                                 </div>
