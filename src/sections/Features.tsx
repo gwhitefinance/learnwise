@@ -59,7 +59,7 @@ export default function Features() {
                         >
                             <FeatureCard
                                 title="Personalized Study Roadmaps"
-                                description="Don't just study—strategize. Our AI analyzes your course syllabus and learning goals to build a custom, step-by-step roadmap. It breaks down complex subjects into manageable milestones, keeping you on track and motivated."
+                                description="Don't just study—strategize. Our AI analyzes your course syllabus and learning goals to build a custom, step-by-step roadmap."
                                 className="h-full"
                             >
                                 <div className="aspect-video flex items-center justify-center">
@@ -82,7 +82,7 @@ export default function Features() {
                         >
                             <FeatureCard
                                 title="Intelligent Quizzes"
-                                description="Move beyond generic questions. LearnWise generates practice quizzes based on your actual course materials, notes, and areas where you need the most practice. Reinforce your knowledge and ace your exams."
+                                description="Move beyond generic questions. LearnWise generates practice quizzes based on your actual course materials and where you need practice."
                                 className="h-full"
                             >
                                 <div className="aspect-video flex items-center justify-center">
@@ -105,7 +105,7 @@ export default function Features() {
                         >
                             <FeatureCard
                                 title="AI-Powered Chat Assistant"
-                                description="Stuck on a problem at 2 AM? Get instant, context-aware help from your AI study partner. Ask questions, get detailed explanations, and explore topics in a conversational way, anytime you need it."
+                                description="Stuck on a problem at 2 AM? Get instant, context-aware help from your AI study partner. Ask questions and get detailed explanations."
                                 className="h-full"
                             >
                                 <div className="aspect-video flex justify-center items-center gap-4">
