@@ -1,58 +1,96 @@
-'use client';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
+"use client";
+
+import Tag from "@/sections/Tag";
+import { AnimatePresence, motion } from "framer-motion";
+import { Plus } from "lucide-react";
+import { useState } from "react";
+import { twMerge } from "tailwind-merge";
 
 const faqs = [
-  {
-    question: 'What is LearnWise?',
-    answer:
-      'LearnWise is an AI-powered learning platform that helps you study more effectively. It creates personalized study plans, generates quizzes, and answers your questions to help you master any subject.',
-  },
-  {
-    question: 'How does the AI personalization work?',
-    answer:
-      'Our AI analyzes your learning style, course materials, and upcoming tests to create a study plan tailored to you. It suggests the best resources and activities to help you learn and retain information.',
-  },
-  {
-    question: 'What kind of documents can I upload?',
-    answer:
-      'You can upload PDFs, Word documents, and other text-based files. Our AI will analyze the content and extract key concepts to help you study.',
-  },
-  {
-    question: 'Is there a free trial?',
-    answer:
-      'Yes, we offer a free plan with limited features so you can try out LearnWise. You can upgrade to a paid plan at any time to unlock more features and unlimited access.',
-  },
+    {
+        question: "How is Layers different from other design tools?",
+        answer: "Unlike traditional design tools, Layers prioritizes speed and simplicity without sacrificing power. Our intelligent interface adapts to your workflow, reducing clicks and keeping you in your creative flow.",
+    },
+    {
+        question: "Is there a learning curve?",
+        answer: "Layers is designed to feel intuitive from day one. Most designers are productive within hours, not weeks. We also provide interactive tutorials and comprehensive documentation to help you get started.",
+    },
+    {
+        question: "How do you handle version control?",
+        answer: "Every change in Layers is automatically saved and versioned. You can review history, restore previous versions, and create named versions for important milestones.",
+    },
+    {
+        question: "Can I work offline?",
+        answer: "Yes! Layers includes a robust offline mode. Changes sync automatically when you're back online, so you can keep working anywhere.",
+    },
+    {
+        question: "How does Layers handle collaboration?",
+        answer: "Layers is built for collaboration. You can invite team members to your projects, share feedback, and work together in real-time.",
+    },
 ];
 
-const Faqs = () => {
-  return (
-    <section id="faqs" className="py-20 md:py-32">
-      <div className="container max-w-4xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-5xl font-bold tracking-tighter">
-            Frequently Asked Questions
-          </h2>
-        </div>
-        <Accordion type="single" collapsible className="w-full">
-          {faqs.map((faq, index) => (
-            <AccordionItem key={index} value={`item-${index}`}>
-              <AccordionTrigger className="text-lg font-medium text-left">
-                {faq.question}
-              </AccordionTrigger>
-              <AccordionContent className="text-muted-foreground text-base">
-                {faq.answer}
-              </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
-      </div>
-    </section>
-  );
-};
+export default function Faqs() {
+    const [selectedIndex, setSelectedIndex] = useState(0);
 
-export default Faqs;
+    return (
+        <section className="py-24 ">
+            <div className="container">
+                <div className="flex justify-center">
+                    <Tag>Faqs</Tag>
+                </div>
+                <h2 className="text-6xl font-medium mt-6 text-center max-w-xl mx-auto">
+                    Questions? We've got{" "}
+                    <span className="text-lime-400">answers</span>
+                </h2>
+
+                <div className="mt-12 flex flex-col gap-6 max-w-xl mx-auto">
+                    {faqs.map((faq, faqIndex) => (
+                        <div
+                            key={faq.question}
+                            onClick={() => setSelectedIndex(faqIndex)}
+                            className="bg-neutral-900 rounded-2xl border border-white/10 p-6 "
+                        >
+                            <div className="flex justify-between items-start">
+                                <h3 className="font-medium m-0">
+                                    {faq.question}
+                                </h3>
+                                <Plus
+                                    size={30}
+                                    className={twMerge(
+                                        "feather feather-plus text-lime-400 flex-shrink-0 transition duration-300",
+                                        selectedIndex === faqIndex &&
+                                            "rotate-45"
+                                    )}
+                                />
+                            </div>
+
+                            <AnimatePresence>
+                                {selectedIndex === faqIndex && (
+                                    <motion.div
+                                        initial={{
+                                            height: 0,
+                                            marginTop: 0,
+                                        }}
+                                        animate={{
+                                            height: "auto",
+                                            marginTop: 24,
+                                        }}
+                                        exit={{
+                                            height: 0,
+                                            marginTop: 0,
+                                        }}
+                                        className="overflow-hidden"
+                                    >
+                                        <p className="text-white/50">
+                                            {faq.answer}
+                                        </p>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </section>
+    );
+}
