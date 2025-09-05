@@ -207,29 +207,19 @@ export default function LandingPage() {
                 </div>
             </div>
 
-          <div className="mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:flex lg:items-center lg:gap-x-10 lg:px-8 lg:py-40">
-            <div className="mx-auto max-w-2xl lg:mx-0 lg:flex-auto">
+          <div className="mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:px-8 lg:py-40">
+            <div className="mx-auto max-w-2xl text-center">
                 <h1 className="text-4xl font-bold tracking-tight text-white sm:text-6xl">
                  Master Any Subject in Record Time
                 </h1>
                 <p className="mt-6 text-lg leading-8 text-gray-300">
                 The #1 AI-powered learning platform for students, professionals, and lifelong learners. Stop cramming, start understanding.
                 </p>
-                <div className="mt-10 flex items-center gap-x-6">
+                <div className="mt-10 flex items-center justify-center gap-x-6">
                     <Link href="/dashboard">
                         <Button size="lg">Get started free</Button>
                     </Link>
                 </div>
-            </div>
-            <div className="mt-16 sm:mt-24 lg:mt-0 lg:flex-shrink-0 lg:flex-grow">
-                 <Image
-                    src="https://picsum.photos/800/600"
-                    alt="App screenshot"
-                    width={800}
-                    height={600}
-                    className="rounded-lg shadow-xl"
-                    data-ai-hint="app screenshot"
-                  />
             </div>
           </div>
         </div>
@@ -534,3 +524,5 @@ export default function LandingPage() {
     </div>
   );
 }
+
+    
