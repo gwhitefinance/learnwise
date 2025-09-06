@@ -26,14 +26,14 @@ export default function Navbar() {
                         <figure className="grid grid-cols-2 lg:grid-cols-3  py-2 lg:px-2 px-4  items-center ">
                             <div>
                                 <Link href="/" className="flex items-center gap-2">
-                                   <BrainCircuit className="h-8 w-8 text-lime-400" />
-                                   <span className="font-bold text-xl text-white">LearnWise</span>
+                                   <BrainCircuit className="h-8 w-8 text-primary" />
+                                   <span className="font-bold text-xl text-foreground">LearnWise</span>
                                 </Link>
                             </div>
                             <div className="hidden lg:flex justify-center items-center ">
                                 <nav className="flex gap-6 font-medium ">
                                     {navLinks.map((each) => (
-                                        <a href={each.href} key={each.href}>
+                                        <a href={each.href} key={each.href} className="text-foreground">
                                             {each.label}
                                         </a>
                                     ))}
@@ -54,7 +54,7 @@ export default function Navbar() {
                                             transition={{ duration: 0.3 }}
                                         >
                                             <Menu
-                                                className="text-white"
+                                                className="text-foreground"
                                                 size={30}
                                             />
                                         </motion.div>
@@ -67,7 +67,7 @@ export default function Navbar() {
                                             transition={{ duration: 0.3 }}
                                         >
                                             <X
-                                                className="text-white"
+                                                className="text-foreground"
                                                 size={30}
                                             />
                                         </motion.div>
@@ -80,7 +80,7 @@ export default function Navbar() {
                                         Login
                                     </Button>
                                 </Link>
-                                 <Link href="/dashboard" className="hidden lg:inline-flex items-center">
+                                 <Link href="/signup" className="hidden lg:inline-flex items-center">
                                     <Button
                                         variant="primary"
                                     >
@@ -100,7 +100,7 @@ export default function Navbar() {
                                 >
                                     <div className="flex flex-col items-center gap-4 py-4">
                                         {navLinks.map((link) => (
-                                            <a key={link.href} href={link.href}>
+                                            <a key={link.href} href={link.href} className="text-foreground">
                                                 {link.label}
                                             </a>
                                         ))}
@@ -112,7 +112,7 @@ export default function Navbar() {
                                                 Log In
                                             </Button>
                                         </Link>
-                                         <Link href="/dashboard" className="w-3/4">
+                                         <Link href="/signup" className="w-3/4">
                                             <Button
                                                 className="w-full"
                                                 variant="primary"
