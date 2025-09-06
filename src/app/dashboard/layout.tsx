@@ -25,7 +25,7 @@ import {
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import React, { useState, useEffect } from 'react';
@@ -126,6 +126,10 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
                     </Button>
                     </SheetTrigger>
                     <SheetContent side="left" className="flex flex-col p-0 bg-background border-r border-slate-800">
+                      <SheetHeader className="sr-only">
+                        <SheetTitle>Navigation Menu</SheetTitle>
+                        <SheetDescription>Main navigation links for the dashboard.</SheetDescription>
+                      </SheetHeader>
                       <SidebarContent />
                     </SheetContent>
                 </Sheet>
