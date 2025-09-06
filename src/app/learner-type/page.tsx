@@ -95,7 +95,9 @@ export default function LearnerTypeQuizPage() {
         questions.forEach((q, i) => {
             const answer = finalAnswers[i];
             const style = q.styles[answer as keyof typeof q.styles] as keyof typeof counts;
-            counts[style]++;
+            if(style) {
+                counts[style]++;
+            }
         });
 
         const dominantStyle = Object.keys(counts).reduce((a, b) =>
@@ -141,7 +143,7 @@ export default function LearnerTypeQuizPage() {
 
                 <div className="mt-12 flex justify-end">
                     <Button size="lg" onClick={handleNext}>
-                        {currentQuestionIndex < questions.length - 1 ? 'Next' : 'Finish'}
+                        {currentQuestionIndex < questions.length - 1 ? 'Next' : 'Finish & Go to Dashboard'}
                        <ArrowRight className="ml-2 h-5 w-5" />
                     </Button>
                 </div>

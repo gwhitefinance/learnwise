@@ -4,152 +4,121 @@ import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
 } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { FileText, Plus } from 'lucide-react';
+import { Lightbulb, Upload, GitMerge, PencilRuler, Video } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
 
-// NOTE: In a real app, this data would be fetched from a database
-// and managed with a state management solution.
-const getCourses = () => {
-  if (typeof window !== 'undefined') {
-    const savedCourses = localStorage.getItem('courses');
-    if (savedCourses) {
-      return JSON.parse(savedCourses);
-    }
+const visualTools = [
+  {
+    icon: GitMerge,
+    title: 'Mind Map Generator',
+    description: 'Visually organize information and see the bigger picture.',
+  },
+  {
+    icon: PencilRuler,
+    title: 'Interactive Flashcards',
+    description: 'Reinforce key concepts with dynamic, visual flashcards.',
+  },
+  {
+    icon: Video,
+    title: 'Video Annotation',
+    description: 'Add notes, highlights, and drawings directly to your videos.',
   }
-  return [
+]
+
+const recentCourses = [
     {
         id: '1',
-        name: "Introduction to Python Programming",
-        instructor: "Dr. Emily Carter",
-        credits: 3,
-        url: 'https://www.coursera.org/specializations/python',
-        imageUrl: 'https://picsum.photos/600/400'
+        title: "Intro to Graphic Design",
+        uploaded: "Uploaded 2 days ago",
+        imageUrl: 'https://picsum.photos/300/300?random=1',
+        hint: 'abstract art'
     },
     {
         id: '2',
-        name: "Data Science Fundamentals",
-        instructor: "Prof. David Lee",
-        credits: 4,
-        url: 'https://www.coursera.org/professional-certificates/ibm-data-science',
-        imageUrl: 'https://picsum.photos/600/401'
+        title: "Data Visualization Fundamentals",
+        uploaded: "Uploaded 1 week ago",
+        imageUrl: 'https://picsum.photos/300/300?random=2',
+        hint: 'notebook diagram'
     },
     {
         id: '3',
-        name: "UI/UX Design Principles",
-        instructor: "Dr. Sarah Jones",
-        credits: 3,
-        url: 'https://www.coursera.org/specializations/ui-ux-design',
-        imageUrl: 'https://picsum.photos/600/402'
+        title: "The Art of Storyboarding",
+        uploaded: "Uploaded 3 weeks ago",
+        imageUrl: 'https://picsum.photos/300/300?random=3',
+        hint: 'sticky notes'
     },
-  ];
-};
-
+];
 
 export default function Dashboard() {
-  const [courses, setCourses] = useState([]);
-
-  useEffect(() => {
-    setCourses(getCourses());
-  }, []);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">
-          Welcome back, Sophia! Here's an overview of your learning journey.
-        </p>
-      </div>
+    <div className="space-y-10">
+      <h1 className="text-4xl font-bold tracking-tight">Dashboard</h1>
 
-      <div>
-        <h2 className="text-2xl font-semibold tracking-tight mb-2">Quick Access</h2>
-        <Link href="/dashboard/courses">
+      <Card className="bg-secondary">
+        <CardContent className="p-8 flex flex-col items-center text-center">
+            <Lightbulb className="h-16 w-16 text-primary mb-4" />
+            <h2 className="text-3xl font-bold mb-2">Unlock Your Visual Potential</h2>
+            <p className="text-muted-foreground max-w-2xl mb-6">
+                Upload your courses and let LearnWise transform them into engaging visual experiences. Get started by uploading your first course file.
+            </p>
             <Button>
-            <Plus className="mr-2 h-4 w-4" /> Add New Course
+                <Upload className="mr-2 h-4 w-4"/>
+                Upload Course
             </Button>
-        </Link>
-      </div>
+        </CardContent>
+      </Card>
 
       <div>
-        <h2 className="text-2xl font-semibold tracking-tight mb-4">Your Courses</h2>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {courses.map(course => (
-            <Link key={course.id} href={`/dashboard/courses/${course.id}`} className="block">
-              <Card className="h-full hover:shadow-lg transition-shadow">
-                <CardHeader className="p-0">
-                  <Image
-                    src={course.imageUrl || 'https://picsum.photos/600/400'}
-                    alt="Course thumbnail"
-                    width={600}
-                    height={400}
-                    className="rounded-t-lg object-cover"
-                    data-ai-hint="online course"
-                  />
-                </CardHeader>
-                <CardContent className="p-4">
-                  <h3 className="text-lg font-semibold">
-                    {course.name}
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    {course.instructor}
-                  </p>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
+        <h2 className="text-2xl font-bold tracking-tight mb-4">Quick Access Visual Tools</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {visualTools.map((tool, index) => {
+                const Icon = tool.icon;
+                return (
+                    <Card key={index} className="group p-6 hover:bg-secondary transition-colors cursor-pointer">
+                        <div className="flex items-center gap-4 mb-2">
+                             <Icon className="h-10 w-10 text-primary" />
+                             <h3 className="text-xl font-bold">{tool.title}</h3>
+                        </div>
+                        <p className="text-muted-foreground text-sm">{tool.description}</p>
+                    </Card>
+                )
+            })}
         </div>
       </div>
       
-      <div className="grid gap-6 md:grid-cols-2">
-         <div>
-          <h2 className="text-2xl font-semibold tracking-tight mb-4">Roadmap Progress</h2>
-          <Card>
-            <CardContent className="p-6">
-                <div className="space-y-4">
-                    <div>
-                        <div className="flex justify-between mb-1">
-                            <span className="text-sm font-medium">Data Science Roadmap</span>
-                            <span className="text-sm text-muted-foreground">60%</span>
-                        </div>
-                        <Progress value={60} />
-                    </div>
-                </div>
-            </CardContent>
-          </Card>
-        </div>
-        <div>
-           <h2 className="text-2xl font-semibold tracking-tight mb-4">Recent Notes</h2>
-           <div className="space-y-2">
-            <Card>
-                <CardContent className="p-4 flex items-center">
-                    <FileText className="h-5 w-5 mr-3 text-muted-foreground"/>
-                    <span className="font-medium">Key Concepts in Machine Learning</span>
-                </CardContent>
-            </Card>
-             <Card>
-                <CardContent className="p-4 flex items-center">
-                    <FileText className="h-5 w-5 mr-3 text-muted-foreground"/>
-                    <span className="font-medium">Design Thinking Process</span>
-                </CardContent>
-            </Card>
-             <Card>
-                <CardContent className="p-4 flex items-center">
-                    <FileText className="h-5 w-5 mr-3 text-muted-foreground"/>
-                    <span className="font-medium">Python Best Practices</span>
-                </CardContent>
-            </Card>
-           </div>
+      <div>
+        <h2 className="text-2xl font-bold tracking-tight mb-4">Recently Added Courses</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {recentCourses.map(course => (
+            <Link key={course.id} href={`/dashboard/courses/${course.id}`} className="group flex flex-col gap-3">
+              <div className="relative overflow-hidden rounded-lg">
+                 <Image
+                    src={course.imageUrl}
+                    alt={course.title}
+                    width={300}
+                    height={300}
+                    className="w-full aspect-square object-cover rounded-lg group-hover:scale-105 transition-transform duration-300"
+                    data-ai-hint={course.hint}
+                  />
+                  <div className="absolute inset-0 bg-black bg-opacity-40 flex items-end p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <Video className="text-white h-10 w-10"/>
+                  </div>
+              </div>
+              <div>
+                  <p className="text-lg font-medium">{course.title}</p>
+                  <p className="text-sm text-muted-foreground">{course.uploaded}</p>
+              </div>
+            </Link>
+          ))}
+           <Link href="/dashboard/courses" className="group flex flex-col gap-3 justify-center items-center bg-secondary rounded-2xl border-2 border-dashed border-border hover:border-primary transition-colors cursor-pointer">
+              <Upload className="h-12 w-12 text-muted-foreground group-hover:text-primary transition-colors" />
+              <p className="text-muted-foreground group-hover:text-white transition-colors font-medium">Add New Course</p>
+            </Link>
         </div>
       </div>
-
     </div>
   );
 }
