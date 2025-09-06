@@ -1,11 +1,8 @@
 
 'use client';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-} from '@/components/ui/card';
-import { Lightbulb, Upload, GitMerge, PencilRuler, Video } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { GitMerge, Lightbulb, PencilRuler, Video, Upload, PlusCircle } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -55,9 +52,7 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-10">
-      <h1 className="text-4xl font-bold tracking-tight">Dashboard</h1>
-
-      <Card className="bg-secondary">
+      <Card className="bg-slate-800/50">
         <CardContent className="p-8 flex flex-col items-center text-center">
             <Lightbulb className="h-16 w-16 text-primary mb-4" />
             <h2 className="text-3xl font-bold mb-2">Unlock Your Visual Potential</h2>
@@ -77,12 +72,12 @@ export default function Dashboard() {
             {visualTools.map((tool, index) => {
                 const Icon = tool.icon;
                 return (
-                    <Card key={index} className="group p-6 hover:bg-secondary transition-colors cursor-pointer">
-                        <div className="flex items-center gap-4 mb-2">
+                    <Card key={index} className="group p-6 bg-slate-800/50 hover:bg-slate-800 transition-colors cursor-pointer">
+                        <div className="flex items-center gap-4">
                              <Icon className="h-10 w-10 text-primary" />
                              <h3 className="text-xl font-bold">{tool.title}</h3>
                         </div>
-                        <p className="text-muted-foreground text-sm">{tool.description}</p>
+                        <p className="text-muted-foreground text-sm mt-2">{tool.description}</p>
                     </Card>
                 )
             })}
@@ -113,9 +108,9 @@ export default function Dashboard() {
               </div>
             </Link>
           ))}
-           <Link href="/dashboard/courses" className="group flex flex-col gap-3 justify-center items-center bg-secondary rounded-2xl border-2 border-dashed border-border hover:border-primary transition-colors cursor-pointer">
-              <Upload className="h-12 w-12 text-muted-foreground group-hover:text-primary transition-colors" />
-              <p className="text-muted-foreground group-hover:text-white transition-colors font-medium">Add New Course</p>
+           <Link href="/dashboard/courses" className="group flex flex-col gap-3 justify-center items-center bg-slate-800/50 rounded-2xl border-2 border-dashed border-slate-700 hover:border-primary transition-colors cursor-pointer">
+              <PlusCircle className="h-12 w-12 text-slate-600 group-hover:text-primary transition-colors" />
+              <p className="text-slate-500 group-hover:text-white transition-colors font-medium">Add New Course</p>
             </Link>
         </div>
       </div>

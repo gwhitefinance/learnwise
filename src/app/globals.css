@@ -19,7 +19,7 @@
     --secondary: 215 39% 21%;     /* #233648 */
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 220 15% 25%;         /* Slightly lighter than secondary */
+    --muted: 220 15% 25%;         
     --muted-foreground: 213 19% 63%;   /* #92adc9 */
     
     --accent: 220 15% 25%;
@@ -28,7 +28,7 @@
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 217 19% 27%;         /* #364459 - for borders like in the sidebar */
+    --border: 217 19% 27%;        
     --input: 217 19% 27%;
     --ring: 211 84% 48%;
 
@@ -51,7 +51,7 @@
     --secondary: 215 39% 21%;     /* #233648 */
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 220, 14%, 25%;         /* Slightly lighter than secondary */
+    --muted: 220 14% 25%;
     --muted-foreground: 213 19% 63%;   /* #92adc9 */
     
     --accent: 220 15% 25%;
@@ -60,14 +60,14 @@
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 217 19% 27%;         /* #364459 - for borders like in the sidebar */
+    --border: 217 19% 27%;
     --input: 217 19% 27%;
     --ring: 211 84% 48%;
 
     --radius: 0.75rem;
   }
 
-  /* Keep the light theme for the dashboard as requested */
+  /* This light theme is not currently used but is kept for potential future use */
   .light {
     --background: 220 29% 96%; /* #f0f4f8 - Light Gray */
     --foreground: 224 71.4% 4.1%;
@@ -93,23 +93,7 @@
 }
 
 @layer base {
-  * {
-    border-color: hsl(var(--border));
-  }
   body {
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
+    /* These properties are now handled by the ThemeProvider and Tailwind's default setup */
   }
-}
-
-.gradient-background {
-  background: linear-gradient(
-    270deg,
-    hsl(210, 100%, 50%) 0%,
-    hsl(228, 96%, 61%) 25%,
-    hsl(264, 91%, 63%) 50%,
-    hsl(285, 87%, 56%) 75%,
-    hsl(333, 91%, 63%) 100%
-  );
-  filter: blur(125px);
 }
