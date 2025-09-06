@@ -39,7 +39,6 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useTheme } from 'next-themes';
-import { ThemeProvider } from '@/components/theme-provider';
 import React, { useState, useEffect } from 'react';
 import { Toaster } from '@/components/ui/toaster';
 
@@ -198,7 +197,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
                     </DropdownMenu>
                 </div>
             </header>
-            <main className="flex-1 p-6">
+            <main className="flex-1 p-6 bg-background">
                 {children}
             </main>
              <Toaster />
@@ -214,13 +213,6 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ThemeProvider
-        attribute="class"
-        defaultTheme="light"
-        enableSystem
-        disableTransitionOnChange
-    >
-        <DashboardLayoutContent>{children}</DashboardLayoutContent>
-    </ThemeProvider>
+    <DashboardLayoutContent>{children}</DashboardLayoutContent>
   );
 }
