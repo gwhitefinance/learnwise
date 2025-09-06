@@ -1,5 +1,6 @@
 
 'use client';
+
 import {
   Book,
   Bot,
@@ -18,7 +19,11 @@ import {
   Lightbulb,
   Calendar,
 } from 'lucide-react';
-
+import {
+  Bell,
+  Search,
+  Pencil,
+} from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -34,6 +39,9 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useTheme } from 'next-themes';
+import { ThemeProvider } from '@/components/theme-provider';
+import React, { useState, useEffect } from 'react';
+import { Toaster } from '@/components/ui/toaster';
 
 const navItems = [
     { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -49,13 +57,15 @@ const navItems = [
     { href: '/dashboard/whiteboard', icon: Brush, label: 'Whiteboard' },
 ];
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+
+function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { setTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const NavLink = ({
     href,
@@ -82,7 +92,7 @@ export default function DashboardLayout({
 
   const SidebarContent = () => (
     <div className="flex h-full flex-col">
-      <div className="flex h-16 items-center border-b px-4">
+       <div className="flex h-16 items-center border-b px-4">
         <Link href="/" className="flex items-center gap-2 font-bold text-xl">
             <BrainCircuit className="h-6 w-6 text-primary" />
             <span>LearnWise</span>
@@ -105,86 +115,112 @@ export default function DashboardLayout({
   );
 
   return (
-    <div className="grid min-h-screen w-full lg:grid-cols-[280px_1fr]">
-      <div className="hidden border-r bg-card lg:block">
-        <SidebarContent />
-      </div>
-      <div className="flex flex-col">
-        <header className="flex h-16 items-center gap-4 border-b bg-card px-6">
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button
-                variant="outline"
-                size="icon"
-                className="shrink-0 lg:hidden"
-              >
-                <Menu className="h-5 w-5" />
-                <span className="sr-only">Toggle navigation menu</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="flex flex-col p-0">
-               <SheetHeader className="p-4 border-b">
-                <SheetTitle>Menu</SheetTitle>
-              </SheetHeader>
-              <SidebarContent />
-            </SheetContent>
-          </Sheet>
-          <div className="w-full flex-1">
-            {/* Can add a search bar here if needed */}
-          </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-full">
-                <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-                <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-                <span className="sr-only">Toggle theme</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setTheme('light')}>
-                Light
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setTheme('dark')}>
-                Dark
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setTheme('system')}>
-                System
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                <Avatar>
-                  <AvatarImage src="https://i.pravatar.cc/150?u=a042581f4e29026704d" />
-                  <AvatarFallback>
-                    <User />
-                  </AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end" forceMount>
-              <DropdownMenuLabel className="font-normal">
-                <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">Sophia</p>
-                  <p className="text-xs leading-none text-muted-foreground">
-                    sophia@example.com
-                  </p>
+      <div className="grid min-h-screen w-full lg:grid-cols-[280px_1fr]">
+        <div className="hidden border-r bg-card lg:block">
+            <SidebarContent />
+        </div>
+        <div className="flex flex-col">
+            <header className="flex h-16 items-center gap-4 border-b bg-card px-6">
+                 <Sheet>
+                    <SheetTrigger asChild>
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        className="shrink-0 lg:hidden"
+                    >
+                        <Menu className="h-5 w-5" />
+                        <span className="sr-only">Toggle navigation menu</span>
+                    </Button>
+                    </SheetTrigger>
+                    <SheetContent side="left" className="flex flex-col p-0">
+                      <SheetHeader className="p-4 border-b">
+                        <SheetTitle>Menu</SheetTitle>
+                      </SheetHeader>
+                      <SidebarContent />
+                    </SheetContent>
+                </Sheet>
+                <div className="flex-1">
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <input
+                            className="flex h-10 w-full rounded-md border border-input bg-background pl-10 pr-4 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 max-w-sm"
+                            placeholder="Search courses..."
+                            type="search"
+                        />
+                    </div>
                 </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>Profile</DropdownMenuItem>
-              <DropdownMenuItem>Billing</DropdownMenuItem>
-              <DropdownMenuItem>Settings</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>Log out</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </header>
-        <main className="flex-1 p-6">
-          {children}
-        </main>
-      </div>
+                 <div className="flex items-center gap-4">
+                   {isMounted && (
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="rounded-full"
+                        onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+                    >
+                        {theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+                        <span className="sr-only">Toggle theme</span>
+                    </Button>
+                    )}
+                    <div className="relative">
+                       <Button variant="ghost" size="icon" className="rounded-full">
+                         <Bell className="h-5 w-5" />
+                         <span className="sr-only">Notifications</span>
+                       </Button>
+                        <span className="absolute top-1 right-1 block h-2 w-2 rounded-full bg-red-500"></span>
+                    </div>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                                <Avatar>
+                                    <AvatarImage src="https://i.pravatar.cc/150?u=a042581f4e29026704d" />
+                                    <AvatarFallback>
+                                        <User />
+                                    </AvatarFallback>
+                                </Avatar>
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-56" align="end" forceMount>
+                            <DropdownMenuLabel className="font-normal">
+                                <div className="flex flex-col space-y-1">
+                                    <p className="text-sm font-medium leading-none">Sophia</p>
+                                    <p className="text-xs leading-none text-muted-foreground">
+                                        sophia@example.com
+                                    </p>
+                                </div>
+                            </DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem>Profile</DropdownMenuItem>
+                            <DropdownMenuItem>Billing</DropdownMenuItem>
+                            <DropdownMenuItem>Settings</DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem>Log out</DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+            </header>
+            <main className="flex-1 p-6">
+                {children}
+            </main>
+             <Toaster />
+        </div>
     </div>
+  );
+}
+
+
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <ThemeProvider
+        attribute="class"
+        defaultTheme="light"
+        enableSystem
+        disableTransitionOnChange
+    >
+        <DashboardLayoutContent>{children}</DashboardLayoutContent>
+    </ThemeProvider>
   );
 }
