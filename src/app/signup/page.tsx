@@ -29,7 +29,7 @@ export default function SignupPage() {
     });
     
     // Redirect to the learner type quiz
-    router.push('/dashboard/learner-type');
+    router.push('/learner-type');
   };
 
   return (

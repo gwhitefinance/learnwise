@@ -116,10 +116,10 @@ export default function LearnerTypeQuizPage() {
     const currentQuestion = questions[currentQuestionIndex];
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-white">
+        <div className="flex items-center justify-center min-h-screen bg-background text-foreground">
             <div className="w-full max-w-2xl px-8">
                  <div className="mb-8">
-                    <p className="text-sm text-gray-500 mb-2">Question {currentQuestionIndex + 1} of {questions.length}</p>
+                    <p className="text-sm text-muted-foreground mb-2">Question {currentQuestionIndex + 1} of {questions.length}</p>
                     <Progress value={progress} />
                  </div>
 
@@ -130,7 +130,7 @@ export default function LearnerTypeQuizPage() {
                         {Object.entries(currentQuestion.options).map(([key, option]) => (
                              <Label key={key} htmlFor={key} className={cn(
                                 "flex items-center gap-4 p-4 rounded-lg border transition-all cursor-pointer text-lg",
-                                selectedAnswer === key ? "border-primary bg-primary/10 ring-2 ring-primary" : "border-gray-200 hover:bg-gray-50"
+                                selectedAnswer === key ? "border-primary bg-primary/10 ring-2 ring-primary" : "border-border hover:bg-muted"
                             )}>
                                 <RadioGroupItem value={key} id={key} />
                                 <span>{option}</span>
