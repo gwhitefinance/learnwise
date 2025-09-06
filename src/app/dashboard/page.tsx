@@ -1,7 +1,6 @@
 
 'use client';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { GitMerge, Lightbulb, PencilRuler, Video, Upload, PlusCircle } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';

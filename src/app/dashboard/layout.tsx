@@ -51,6 +51,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setIsMounted(true);
+    // Force dark theme for the dashboard as per the design
     setTheme('dark'); 
     const storedLearnerType = localStorage.getItem('learnerType');
     if (storedLearnerType) {
@@ -133,20 +134,24 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
                     </Button>
                     </SheetTrigger>
                     <SheetContent side="left" className="flex flex-col p-0 bg-background border-r border-slate-800">
-                      <SheetHeader className="p-4 sr-only">
-                        <SheetTitle>Menu</SheetTitle>
-                        <SheetDescription>Main navigation links for the dashboard.</SheetDescription>
+                      <SheetHeader className="p-4">
+                        <SheetTitle className="sr-only">Menu</SheetTitle>
+                        <SheetDescription className="sr-only">Main navigation links for the dashboard.</SheetDescription>
                       </SheetHeader>
                       <SidebarContent />
                     </SheetContent>
                 </Sheet>
                  <div className="flex items-center gap-4">
+                   <h1 className="text-4xl font-bold text-primary-foreground flex-1 lg:hidden">Dashboard</h1>
                    <Button>
-                        <Upload className="mr-2 h-4 w-4" /> Upload Course
+                        <Upload className="mr-2 h-4 w-4"/> Upload Course
                    </Button>
                 </div>
             </header>
             <main className="flex-1 p-8 bg-background">
+                <div className="hidden lg:flex justify-between items-center mb-8">
+                  <h1 className="text-4xl font-bold text-primary-foreground">Dashboard</h1>
+                </div>
                 {children}
             </main>
              <Toaster />
