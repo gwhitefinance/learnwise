@@ -49,7 +49,7 @@
   }
 
   /* Light theme override from user image */
-  :root {
+  .light {
     --primary: 217 91% 60%; /* blue-500 */
     --primary-foreground: 0 0% 100%; /* white */
     --background: 0 0% 100%; /* white */
@@ -59,6 +59,12 @@
     --ring: 217 91% 60%;
     --muted: 243 5.9% 94.1%; /* gray-100 */
     --muted-foreground: 240 3.8% 46.1%; /* gray-500 */
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
   }
 
 }

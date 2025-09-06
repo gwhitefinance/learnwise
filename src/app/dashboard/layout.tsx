@@ -64,7 +64,14 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setIsMounted(true);
-  }, []);
+    // Force light theme for the dashboard
+    setTheme('light');
+
+    // Optional: Revert to dark theme when leaving the dashboard
+    return () => {
+      setTheme('dark');
+    };
+  }, [setTheme]);
 
   const NavLink = ({
     href,
@@ -155,6 +162,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
                         size="icon"
                         className="rounded-full"
                         onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+                        disabled // Disabled as we are forcing light mode
                     >
                         {theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
                         <span className="sr-only">Toggle theme</span>
