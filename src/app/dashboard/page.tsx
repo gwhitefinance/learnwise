@@ -1,23 +1,23 @@
 
 'use client';
-import { Button } from '@/components/ui/button';
-import { GitMerge, Lightbulb, PencilRuler, Video, Upload, PlusCircle } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Upload, Lightbulb, GitMerge, PencilRuler, Video, PlusCircle } from 'lucide-react';
 
 const visualTools = [
   {
-    icon: GitMerge,
+    icon: <GitMerge className="h-10 w-10 text-primary" />,
     title: 'Mind Map Generator',
     description: 'Visually organize information and see the bigger picture.',
   },
   {
-    icon: PencilRuler,
+    icon: <PencilRuler className="h-10 w-10 text-primary" />,
     title: 'Interactive Flashcards',
     description: 'Reinforce key concepts with dynamic, visual flashcards.',
   },
   {
-    icon: Video,
+    icon: <Video className="h-10 w-10 text-primary" />,
     title: 'Video Annotation',
     description: 'Add notes, highlights, and drawings directly to your videos.',
   }
@@ -47,14 +47,15 @@ const recentCourses = [
     },
 ];
 
+
 export default function Dashboard() {
 
   return (
     <div className="space-y-10">
       <div className="bg-slate-800/50 p-8 rounded-2xl flex flex-col items-center text-center">
           <Lightbulb className="h-16 w-16 text-primary mb-4" />
-          <h2 className="text-3xl font-bold mb-2">Unlock Your Visual Potential</h2>
-          <p className="text-muted-foreground max-w-2xl mb-6">
+          <h2 className="text-3xl font-bold mb-2 text-text-primary">Unlock Your Visual Potential</h2>
+          <p className="text-text-secondary max-w-2xl mb-6">
               Upload your courses and let LearnWise transform them into engaging visual experiences. Get started by uploading your first course file.
           </p>
           <Button>
@@ -64,25 +65,22 @@ export default function Dashboard() {
       </div>
 
       <div>
-        <h2 className="text-2xl font-bold tracking-tight mb-4">Quick Access Visual Tools</h2>
+        <h2 className="text-2xl font-bold tracking-tight mb-4 text-text-primary">Quick Access Visual Tools</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {visualTools.map((tool, index) => {
-                const Icon = tool.icon;
-                return (
+            {visualTools.map((tool, index) => (
                     <div key={index} className="group flex flex-col gap-4 bg-slate-800/50 p-6 rounded-2xl hover:bg-slate-800 transition-colors cursor-pointer">
                         <div className="flex items-center gap-4">
-                             <Icon className="h-10 w-10 text-primary" />
-                             <h3 className="text-xl font-bold">{tool.title}</h3>
+                             {tool.icon}
+                             <h3 className="text-xl font-bold text-text-primary">{tool.title}</h3>
                         </div>
-                        <p className="text-muted-foreground text-sm mt-2">{tool.description}</p>
+                        <p className="text-text-secondary text-sm mt-2">{tool.description}</p>
                     </div>
-                )
-            })}
+            ))}
         </div>
       </div>
       
       <div>
-        <h2 className="text-2xl font-bold tracking-tight mb-4">Recently Added Courses</h2>
+        <h2 className="text-2xl font-bold tracking-tight mb-4 text-text-primary">Recently Added Courses</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {recentCourses.map(course => (
             <Link key={course.id} href={`/dashboard/courses/${course.id}`} className="group flex flex-col gap-3">
@@ -100,8 +98,8 @@ export default function Dashboard() {
                   </div>
               </div>
               <div>
-                  <p className="text-lg font-medium">{course.title}</p>
-                  <p className="text-sm text-muted-foreground">{course.uploaded}</p>
+                  <p className="text-lg font-medium text-text-primary">{course.title}</p>
+                  <p className="text-sm text-text-secondary">{course.uploaded}</p>
               </div>
             </Link>
           ))}

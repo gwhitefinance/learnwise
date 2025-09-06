@@ -4,8 +4,14 @@
 
 @layer base {
   :root {
-    --background: 220 20% 9%;      /* #111a22 */
-    --foreground: 0 0% 100%;       /* #ffffff */
+    --background-color: 220 20% 9%; /* #111a22 */
+    --text-primary: 0 0% 100%;       /* #ffffff */
+    --text-secondary: 213 19% 63%;   /* #92adc9 */
+    --primary-color: 211 84% 48%;        /* #137fec */
+    --secondary-color: 215 39% 21%;     /* #233648 */
+
+    --background: 220 20% 9%;
+    --foreground: 0 0% 100%;
 
     --card: 220 20% 9%;
     --card-foreground: 0 0% 100%;
@@ -13,22 +19,22 @@
     --popover: 220 20% 9%;
     --popover-foreground: 0 0% 100%;
 
-    --primary: 211 84% 48%;        /* #137fec */
+    --primary: 211 84% 48%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 215 39% 21%;     /* #233648 */
+    --secondary: 215 39% 21%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 220 15% 25%;         
-    --muted-foreground: 213 19% 63%;   /* #92adc9 */
-    
+    --muted: 220 14% 25%;
+    --muted-foreground: 213 19% 63%;
+
     --accent: 220 15% 25%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 217 19% 27%;        
+    --border: 217 19% 27%;
     --input: 217 19% 27%;
     --ring: 211 84% 48%;
 
@@ -36,8 +42,8 @@
   }
  
   .dark {
-    --background: 220 20% 9%;      /* #111a22 */
-    --foreground: 0 0% 100%;       /* #ffffff */
+    --background: 220 20% 9%;
+    --foreground: 0 0% 100%;
 
     --card: 220 20% 9%;
     --card-foreground: 0 0% 100%;
@@ -45,14 +51,14 @@
     --popover: 220 20% 9%;
     --popover-foreground: 0 0% 100%;
 
-    --primary: 211 84% 48%;        /* #137fec */
+    --primary: 211 84% 48%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 215 39% 21%;     /* #233648 */
+    --secondary: 215 39% 21%;
     --secondary-foreground: 0 0% 100%;
 
     --muted: 220 14% 25%;
-    --muted-foreground: 213 19% 63%;   /* #92adc9 */
+    --muted-foreground: 213 19% 63%;
     
     --accent: 220 15% 25%;
     --accent-foreground: 0 0% 100%;
@@ -65,5 +71,11 @@
     --ring: 211 84% 48%;
 
     --radius: 0.75rem;
+  }
+}
+
+@layer base {
+  body {
+    font-family: "Space Grotesk", "Noto Sans", sans-serif;
   }
 }
