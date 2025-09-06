@@ -8,7 +8,6 @@ const inter = Inter({
     variable: "--font-inter",
     subsets: ["latin"],
     display: "swap",
-    axes: ["opsz"],
 });
 
 export const metadata: Metadata = {
@@ -29,7 +28,7 @@ export default function RootLayout({
                 <ThemeProvider
                     attribute="class"
                     defaultTheme="dark"
-                    enableSystem
+                    enableSystem={false}
                     disableTransitionOnChange
                 >
                     {children}

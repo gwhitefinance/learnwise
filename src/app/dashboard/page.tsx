@@ -52,19 +52,17 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-10">
-      <Card className="bg-slate-800/50">
-        <CardContent className="p-8 flex flex-col items-center text-center">
-            <Lightbulb className="h-16 w-16 text-primary mb-4" />
-            <h2 className="text-3xl font-bold mb-2">Unlock Your Visual Potential</h2>
-            <p className="text-muted-foreground max-w-2xl mb-6">
-                Upload your courses and let LearnWise transform them into engaging visual experiences. Get started by uploading your first course file.
-            </p>
-            <Button>
-                <Upload className="mr-2 h-4 w-4"/>
-                Upload Course
-            </Button>
-        </CardContent>
-      </Card>
+      <div className="bg-slate-800/50 p-8 rounded-2xl flex flex-col items-center text-center">
+          <Lightbulb className="h-16 w-16 text-primary mb-4" />
+          <h2 className="text-3xl font-bold mb-2">Unlock Your Visual Potential</h2>
+          <p className="text-muted-foreground max-w-2xl mb-6">
+              Upload your courses and let LearnWise transform them into engaging visual experiences. Get started by uploading your first course file.
+          </p>
+          <Button>
+              <Upload className="mr-2 h-4 w-4"/>
+              Upload Course
+          </Button>
+      </div>
 
       <div>
         <h2 className="text-2xl font-bold tracking-tight mb-4">Quick Access Visual Tools</h2>
@@ -72,13 +70,13 @@ export default function Dashboard() {
             {visualTools.map((tool, index) => {
                 const Icon = tool.icon;
                 return (
-                    <Card key={index} className="group p-6 bg-slate-800/50 hover:bg-slate-800 transition-colors cursor-pointer">
+                    <div key={index} className="group flex flex-col gap-4 bg-slate-800/50 p-6 rounded-2xl hover:bg-slate-800 transition-colors cursor-pointer">
                         <div className="flex items-center gap-4">
                              <Icon className="h-10 w-10 text-primary" />
                              <h3 className="text-xl font-bold">{tool.title}</h3>
                         </div>
                         <p className="text-muted-foreground text-sm mt-2">{tool.description}</p>
-                    </Card>
+                    </div>
                 )
             })}
         </div>

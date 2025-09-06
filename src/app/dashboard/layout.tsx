@@ -30,6 +30,8 @@ import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import React, { useState, useEffect } from 'react';
 import { Toaster } from '@/components/ui/toaster';
+import { useTheme } from 'next-themes';
+
 
 const navItems = [
     { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -43,16 +45,18 @@ const navItems = [
 
 function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { setTheme } = useTheme();
   const [isMounted, setIsMounted] = useState(false);
   const [learnerType, setLearnerType] = useState<string | null>(null);
 
   useEffect(() => {
     setIsMounted(true);
+    setTheme('dark'); 
     const storedLearnerType = localStorage.getItem('learnerType');
     if (storedLearnerType) {
         setLearnerType(storedLearnerType);
     }
-  }, []);
+  }, [setTheme]);
 
   const NavLink = ({
     href,
@@ -96,7 +100,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
           <NavLink key={item.href} {...item} />
         ))}
       </nav>
-      <div className="mt-auto border-t border-slate-800 p-4">
+      <div className="mt-auto border-t p-4 border-slate-800">
         <Link href="#">
           <Button variant="ghost" className="w-full justify-start text-base font-medium py-3">
             <Settings className="mr-3 h-5 w-5" />
@@ -107,13 +111,17 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
     </div>
   );
 
+  if (!isMounted) {
+      return null;
+  }
+
   return (
       <div className="grid min-h-screen w-full lg:grid-cols-[280px_1fr]">
-        <div className="hidden border-r border-slate-800 bg-background lg:block">
+        <aside className="hidden border-r border-slate-800 bg-background lg:flex lg:flex-col lg:gap-y-6 lg:p-6">
             <SidebarContent />
-        </div>
+        </aside>
         <div className="flex flex-col">
-            <header className="flex h-20 items-center justify-end gap-4 bg-background px-8">
+            <header className="flex h-20 items-center justify-between gap-4 bg-background px-8 lg:justify-end">
                  <Sheet>
                     <SheetTrigger asChild>
                     <Button
@@ -126,9 +134,9 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
                     </Button>
                     </SheetTrigger>
                     <SheetContent side="left" className="flex flex-col p-0 bg-background border-r border-slate-800">
-                      <SheetHeader className="sr-only">
-                        <SheetTitle>Navigation Menu</SheetTitle>
-                        <SheetDescription>Main navigation links for the dashboard.</SheetDescription>
+                      <SheetHeader className="p-4">
+                        <SheetTitle className="sr-only">Menu</SheetTitle>
+                        <SheetDescription className="sr-only">Main navigation links for the dashboard.</SheetDescription>
                       </SheetHeader>
                       <SidebarContent />
                     </SheetContent>
