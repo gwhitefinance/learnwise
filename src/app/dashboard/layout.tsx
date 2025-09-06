@@ -69,14 +69,13 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   }) => {
     const isActive = pathname === href;
     return (
-      <Link href={href}>
-        <Button
-          variant={isActive ? 'secondary' : 'ghost'}
-          className="w-full justify-start text-base font-medium py-3"
-        >
-          <Icon className="mr-3 h-5 w-5" />
-          {label}
-        </Button>
+      <Link href={href} className={cn(
+          "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors",
+          isActive ? "bg-secondary text-primary-foreground" : "text-muted-foreground hover:bg-slate-800 hover:text-primary-foreground"
+      )}>
+        
+          <Icon className="h-5 w-5" />
+          <p className="text-base font-medium">{label}</p>
       </Link>
     );
   };
@@ -102,7 +101,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
       </nav>
       <div className="mt-auto border-t p-4 border-slate-800">
         <Link href="#">
-          <Button variant="ghost" className="w-full justify-start text-base font-medium py-3">
+          <Button variant="ghost" className="w-full justify-start text-base font-medium py-3 text-muted-foreground hover:text-primary-foreground">
             <Settings className="mr-3 h-5 w-5" />
             Settings
           </Button>
@@ -117,7 +116,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
 
   return (
       <div className="grid min-h-screen w-full lg:grid-cols-[280px_1fr]">
-        <aside className="hidden border-r border-slate-800 bg-background lg:flex lg:flex-col lg:gap-y-6 lg:p-6">
+        <aside className="hidden border-r border-slate-800 bg-background lg:flex lg:flex-col">
             <SidebarContent />
         </aside>
         <div className="flex flex-col">
@@ -134,9 +133,9 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
                     </Button>
                     </SheetTrigger>
                     <SheetContent side="left" className="flex flex-col p-0 bg-background border-r border-slate-800">
-                      <SheetHeader className="p-4">
-                        <SheetTitle className="sr-only">Menu</SheetTitle>
-                        <SheetDescription className="sr-only">Main navigation links for the dashboard.</SheetDescription>
+                      <SheetHeader className="p-4 sr-only">
+                        <SheetTitle>Menu</SheetTitle>
+                        <SheetDescription>Main navigation links for the dashboard.</SheetDescription>
                       </SheetHeader>
                       <SidebarContent />
                     </SheetContent>
