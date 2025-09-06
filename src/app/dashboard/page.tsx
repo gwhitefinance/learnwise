@@ -3,7 +3,10 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Upload, Lightbulb, GitMerge, PencilRuler, Video, PlusCircle } from 'lucide-react';
+import { Lightbulb, GitMerge, PencilRuler, Video, PlusCircle } from 'lucide-react';
+
+const UploadIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16h6v-6h4l-7-7l-7 7h4zM5 18h14v2H5z"/></svg>;
+
 
 const visualTools = [
   {
@@ -52,6 +55,14 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-10">
+      <header className="flex justify-between items-center mb-8">
+        <h1 className="text-4xl font-bold text-text-primary">Dashboard</h1>
+         <Button>
+              <UploadIcon />
+              <span className="ml-2">Upload Course</span>
+         </Button>
+      </header>
+
       <div className="bg-slate-800/50 p-8 rounded-2xl flex flex-col items-center text-center">
           <Lightbulb className="h-16 w-16 text-primary mb-4" />
           <h2 className="text-3xl font-bold mb-2 text-text-primary">Unlock Your Visual Potential</h2>
@@ -59,8 +70,8 @@ export default function Dashboard() {
               Upload your courses and let LearnWise transform them into engaging visual experiences. Get started by uploading your first course file.
           </p>
           <Button>
-              <Upload className="mr-2 h-4 w-4"/>
-              Upload Course
+              <UploadIcon />
+              <span className="ml-2">Upload Course</span>
           </Button>
       </div>
 
