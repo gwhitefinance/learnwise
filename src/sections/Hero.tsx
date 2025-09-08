@@ -3,14 +3,12 @@
 
 import { ArrowRight, CheckCircle } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { Spotlight } from "@/components/ui/spotlight";
 import { Button } from "@/components/ui/button";
 import SplineScene from "@/components/ui/spline-scene";
 
 export default function Hero() {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black">
-      <Spotlight className="from-blue-500 via-blue-300 to-blue-100" size={400} />
       <div className="container mx-auto px-4">
         <Card className="w-full h-[500px] bg-black/[0.96] relative overflow-hidden border-none">
           <div className="flex h-full">
