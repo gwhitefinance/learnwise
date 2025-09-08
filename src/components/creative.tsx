@@ -500,8 +500,8 @@ export function DesignaliCreative() {
             <div className="space-y-1">
               {sidebarItems.map((item) => (
                 <div key={item.title} className="mb-1">
-                 <Link href={item.href || '#'} passHref>
-                  <a
+                 <Link
+                    href={item.href || '#'}
                     className={cn(
                       "flex w-full items-center justify-between rounded-2xl px-3 py-2 text-sm font-medium",
                       item.isActive ? "bg-primary/10 text-primary" : "hover:bg-muted",
@@ -511,7 +511,6 @@ export function DesignaliCreative() {
                       {item.icon}
                       <span>{item.title}</span>
                     </div>
-                  </a>
                   </Link>
                 </div>
               ))}
@@ -572,8 +571,8 @@ export function DesignaliCreative() {
             <div className="space-y-1">
               {sidebarItems.map((item) => (
                 <div key={item.title} className="mb-1">
-                 <Link href={item.href || '#'} passHref>
-                  <a
+                  <Link
+                    href={item.href || '#'}
                     className={cn(
                       "flex w-full items-center justify-between rounded-2xl px-3 py-2 text-sm font-medium",
                       item.isActive ? "bg-primary/10 text-primary" : "hover:bg-muted",
@@ -583,7 +582,6 @@ export function DesignaliCreative() {
                       {item.icon}
                       <span>{item.title}</span>
                     </div>
-                  </a>
                   </Link>
                 </div>
               ))}
@@ -1353,7 +1351,7 @@ export function DesignaliCreative() {
                     >
                       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                         <div className="space-y-2">
-                          <h2 className="text-3xl font-bold">Learn &amp; Grow</h2>
+                          <h2 className="text-3xl font-bold">Learn & Grow</h2>
                           <p className="max-w-[600px] text-white/80">
                             Expand your creative skills with tutorials, courses, and resources.
                           </p>
@@ -1377,7 +1375,7 @@ export function DesignaliCreative() {
                     </Button>
                     <Button variant="outline" className="rounded-2xl">
                       <Lightbulb className="mr-2 h-4 w-4" />
-                      Tips &amp; Tricks
+                      Tips & Tricks
                     </Button>
                     <Button variant="outline" className="rounded-2xl">
                       <TrendingUp className="mr-2 h-4 w-4" />
@@ -1559,7 +1557,7 @@ export function DesignaliCreative() {
                             <Badge className="rounded-xl bg-red-500">Advanced</Badge>
                             <Award className="h-5 w-5 text-amber-500" />
                           </div>
-                          <CardTitle className="mt-2">Motion Graphics &amp; Animation</CardTitle>
+                          <CardTitle className="mt-2">Motion Graphics & Animation</CardTitle>
                           <CardDescription>Create professional motion graphics and animations</CardDescription>
                         </CardHeader>
                         <CardContent>
