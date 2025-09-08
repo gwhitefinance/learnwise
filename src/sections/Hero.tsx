@@ -1,138 +1,64 @@
 
-"use client";
+'use client';
 
-import Button from "@/sections/Button";
-import Image from "next/image";
-import Pointer from "@/sections/Pointer";
-import { motion, useAnimate } from "framer-motion";
-import { useEffect } from "react";
-
+import { ArrowRight, CheckCircle } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Spotlight } from "@/components/ui/spotlight";
+import { Button } from "@/components/ui/button";
+import SplineScene from "@/components/ui/spline-scene";
 
 export default function Hero() {
-    const [leftDesignScope, leftDesignAnimate] = useAnimate();
-    const [leftPointerScope, leftPointerAnimate] = useAnimate();
+  return (
+    <section className="relative min-h-[calc(100vh-98px)] flex items-center justify-center overflow-hidden bg-black">
+      <div className="container mx-auto px-4">
+        <Card className="w-full h-auto md:h-[500px] bg-black/[0.96] relative overflow-hidden border-none flex flex-col md:flex-row">
+          <Spotlight className="-top-40 left-0 md:left-60 md:-top-20" fill="white" />
 
-    const [rightDesignScope, rightDesignAnimate] = useAnimate();
-    const [rightPointerScope, rightPointerAnimate] = useAnimate();
+          {/* Left content */}
+          <div className="flex-1 p-8 relative z-10 flex flex-col justify-center text-center md:text-left">
+            <h1 className="text-4xl md:text-5xl font-bold text-white bg-gradient-to-b from-neutral-50 to-neutral-400 bg-clip-text">
+              Results and Costs Reduced by AI
+            </h1>
+            <p className="mt-4 text-neutral-300 max-w-lg mx-auto md:mx-0">
+              We help businesses automate workflows, build intelligent chatbots, and integrate AI agents that work
+              24/7 to boost productivity and drive growth.
+            </p>
 
-    useEffect(() => {
-        leftDesignAnimate([
-            [leftDesignScope.current, { opacity: 1 }, { duration: 0.5 }],
-            [leftDesignScope.current, { y: 0, x: 0 }, { duration: 0.5 }],
-        ]);
-
-        leftPointerAnimate([
-            [leftPointerScope.current, { opacity: 1 }, { duration: 0.5 }],
-            [leftPointerScope.current, { y: 0, x: -100 }, { duration: 0.5 }],
-            [
-                leftPointerScope.current,
-                { y: [0, 16, 0], x: 0 },
-                { duration: 0.5, ease: "easeInOut" },
-            ],
-        ]);
-
-        rightDesignAnimate([
-            [
-                rightDesignScope.current,
-                { opacity: 1 },
-                { duration: 0.5, delay: 1.5 },
-            ],
-            [rightDesignScope.current, { y: 0, x: 0 }, { duration: 0.5 }],
-        ]);
-
-        rightPointerAnimate([
-            [
-                rightPointerScope.current,
-                { opacity: 1 },
-                { duration: 0.5, delay: 1.5 },
-            ],
-            [rightPointerScope.current, { y: 0, x: 175 }, { duration: 0.5 }],
-            [
-                rightPointerScope.current,
-                { y: [0, 20, 0], x: 0 },
-                { duration: 0.5, ease: "easeInOut" },
-            ],
-        ]);
-    }, []);
-
-    return (
-        <section
-            className="py-24 overflow-x-clip"
-        >
-            <div className="container relative ">
-                <motion.div
-                    ref={leftDesignScope}
-                    initial={{ opacity: 0, y: 100, x: -100 }}
-                    className="absolute -left-32 top-16 hidden lg:block"
-                    drag
-                >
-                    <Image
-                        draggable={false}
-                        src="https://nextjs-saas-landing-page-five.vercel.app/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fdesign-example-1.cc8b90ac.png&w=640&q=75"
-                        alt="design example 1"
-                        data-ai-hint="abstract design"
-                        width={350}
-                        height={350}
-                    />
-                </motion.div>
-                <motion.div
-                    ref={leftPointerScope}
-                    initial={{ opacity: 0, y: 100, x: -200 }}
-                    className="absolute top-96 left-56 hidden lg:block"
-                >
-                    <Pointer name="Andrea" />
-                </motion.div>
-
-                <motion.div
-                    initial={{ opacity: 0, y: 100, x: 100 }}
-                    ref={rightDesignScope}
-                    className="absolute -right-64 -top-16 hidden lg:block"
-                    drag
-                >
-                    <Image
-                        draggable={false}
-                        src="https://nextjs-saas-landing-page-five.vercel.app/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fdesign-example-2.d0f5f16d.png&w=1080&q=75"
-                        alt="design example 2"
-                        data-ai-hint="modern design"
-                        width={400}
-                        height={400}
-                    />
-                </motion.div>
-                <motion.div
-                    ref={rightPointerScope}
-                    initial={{ opacity: 0, x: 275, y: 100 }}
-                    className="absolute -top-4 right-80 hidden lg:block"
-                >
-                    <Pointer color="red" name="Brew" />
-                </motion.div>
-
-                <div className="flex justify-center">
-                    <div className="inline-flex py-1 px-3 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full text-neutral-950 font-semibold">
-                        ✨ Your AI-Powered Study Partner
-                    </div>
-                </div>
-                <h1 className="text-6xl md:text-7xl lg:text-8xl font-medium text-center mt-6 ">
-                    Unlock Your Learning Potential
-                </h1>
-                <p className="text-center text-xl text-white/50 mt-8 max-w-2xl mx-auto">
-                    Stop struggling and start succeeding. LearnWise adapts to your unique learning style, creating personalized roadmaps and quizzes to help you master any subject.
-                </p>
-                <form className="mx-auto flex border border-white/50 rounded-full p-2 mt-8 max-w-lg">
-                    <input
-                        type="email"
-                        placeholder="Enter your email"
-                        className="bg-transparent px-4 flex-1 w-full"
-                    />
-                    <Button
-                        size="sm"
-                        className="whitespace-nowrap"
-                        type="submit"
-                        variant="primary"
-                    >
-                        Get Started
-                    </Button>
-                </form>
+            <div className="flex flex-col sm:flex-row gap-4 mt-8 justify-center md:justify-start">
+              <Button size="lg" className="bg-white text-black hover:bg-gray-100">
+                Book Free Consultation
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-neutral-600 text-neutral-300 hover:bg-neutral-800 bg-transparent"
+              >
+                View Case Studies
+              </Button>
             </div>
-        </section>
-    );
+
+            <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-4 sm:gap-8 text-sm text-neutral-400 mt-6">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-400" />
+                <span>No Setup Fees</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-400" />
+                <span>30-Day ROI Guarantee</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Right content */}
+          <div className="flex-1 relative h-64 md:h-full w-full">
+            <SplineScene
+              scene="https://prod.spline.design/UbM7F-HZcyTbZ4y3/scene.splinecode"
+              className="w-full h-full"
+            />
+          </div>
+        </Card>
+      </div>
+    </section>
+  );
 }
