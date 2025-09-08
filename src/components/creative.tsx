@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useEffect, useState } from "react"
@@ -46,6 +47,14 @@ import {
   Type,
   CuboidIcon,
   X,
+  GraduationCap,
+  Calendar,
+  GitMerge,
+  BrainCircuit,
+  UploadCloud,
+  ClipboardPenLine,
+  BarChart3,
+  PenSquare,
 } from "lucide-react"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -58,6 +67,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
+import Link from "next/link"
 
 // Sample data for apps
 const apps = [
@@ -364,68 +374,53 @@ const sidebarItems = [
   {
     title: "Home",
     icon: <Home />,
+    href: "/dashboard",
     isActive: true,
   },
   {
-    title: "Apps",
-    icon: <Grid />,
-    badge: "2",
-    items: [
-      { title: "All Apps", url: "#" },
-      { title: "Recent", url: "#" },
-      { title: "Updates", url: "#", badge: "2" },
-      { title: "Installed", url: "#" },
-    ],
+    title: "Courses",
+    icon: <GraduationCap />,
+    href: "/dashboard/courses",
   },
   {
-    title: "Files",
-    icon: <FileText />,
-    items: [
-      { title: "Recent", url: "#" },
-      { title: "Shared with me", url: "#", badge: "3" },
-      { title: "Favorites", url: "#" },
-      { title: "Trash", url: "#" },
-    ],
+    title: "Calendar",
+    icon: <Calendar />,
+    href: "/dashboard/calendar",
   },
   {
-    title: "Projects",
-    icon: <Layers />,
-    badge: "4",
-    items: [
-      { title: "Active Projects", url: "#", badge: "4" },
-      { title: "Archived", url: "#" },
-      { title: "Templates", url: "#" },
-    ],
+    title: "Roadmaps",
+    icon: <GitMerge />,
+    href: "/dashboard/roadmaps",
   },
   {
-    title: "Learn",
-    icon: <BookOpen />,
-    items: [
-      { title: "Tutorials", url: "#" },
-      { title: "Courses", url: "#" },
-      { title: "Webinars", url: "#" },
-      { title: "Resources", url: "#" },
-    ],
+    title: "Notes",
+    icon: <ClipboardPenLine />,
+    href: "/dashboard/notes",
   },
   {
-    title: "Community",
-    icon: <Users />,
-    items: [
-      { title: "Explore", url: "#" },
-      { title: "Following", url: "#" },
-      { title: "Challenges", url: "#" },
-      { title: "Events", url: "#" },
-    ],
+    title: "Practice Quiz",
+    icon: <Lightbulb />,
+    href: "/dashboard/practice-quiz",
   },
   {
-    title: "Resources",
-    icon: <Bookmark />,
-    items: [
-      { title: "Stock Photos", url: "#" },
-      { title: "Fonts", url: "#" },
-      { title: "Icons", url: "#" },
-      { title: "Templates", url: "#" },
-    ],
+    title: "AI Chat",
+    icon: <BrainCircuit />,
+    href: "/dashboard/ai-chat",
+  },
+  {
+    title: "Analysis",
+    icon: <BarChart3 />,
+    href: "/dashboard/analysis",
+  },
+  {
+    title: "Whiteboard",
+    icon: <PenSquare />,
+    href: "/dashboard/whiteboard",
+  },
+  {
+    title: "Upload",
+    icon: <UploadCloud />,
+    href: "/dashboard/upload",
   },
 ]
 
@@ -505,50 +500,19 @@ export function DesignaliCreative() {
             <div className="space-y-1">
               {sidebarItems.map((item) => (
                 <div key={item.title} className="mb-1">
+                 <Link href={item.href || '#'}>
                   <button
                     className={cn(
                       "flex w-full items-center justify-between rounded-2xl px-3 py-2 text-sm font-medium",
                       item.isActive ? "bg-primary/10 text-primary" : "hover:bg-muted",
                     )}
-                    onClick={() => item.items && toggleExpanded(item.title)}
                   >
                     <div className="flex items-center gap-3">
                       {item.icon}
                       <span>{item.title}</span>
                     </div>
-                    {item.badge && (
-                      <Badge variant="outline" className="ml-auto rounded-full px-2 py-0.5 text-xs">
-                        {item.badge}
-                      </Badge>
-                    )}
-                    {item.items && (
-                      <ChevronDown
-                        className={cn(
-                          "ml-2 h-4 w-4 transition-transform",
-                          expandedItems[item.title] ? "rotate-180" : "",
-                        )}
-                      />
-                    )}
                   </button>
-
-                  {item.items && expandedItems[item.title] && (
-                    <div className="mt-1 ml-6 space-y-1 border-l pl-3">
-                      {item.items.map((subItem) => (
-                        <a
-                          key={subItem.title}
-                          href={subItem.url}
-                          className="flex items-center justify-between rounded-2xl px-3 py-2 text-sm hover:bg-muted"
-                        >
-                          {subItem.title}
-                          {subItem.badge && (
-                            <Badge variant="outline" className="ml-auto rounded-full px-2 py-0.5 text-xs">
-                              {subItem.badge}
-                            </Badge>
-                          )}
-                        </a>
-                      ))}
-                    </div>
-                  )}
+                  </Link>
                 </div>
               ))}
             </div>
@@ -591,8 +555,8 @@ export function DesignaliCreative() {
                 <Wand2 className="size-5" />
               </div>
               <div>
-                <h2 className="font-semibold">Designali</h2>
-                <p className="text-xs text-muted-foreground">Creative Suite</p>
+                <h2 className="font-semibold">LearnWise</h2>
+                <p className="text-xs text-muted-foreground">Study Suite</p>
               </div>
             </div>
           </div>
@@ -608,50 +572,19 @@ export function DesignaliCreative() {
             <div className="space-y-1">
               {sidebarItems.map((item) => (
                 <div key={item.title} className="mb-1">
+                 <Link href={item.href || '#'}>
                   <button
                     className={cn(
                       "flex w-full items-center justify-between rounded-2xl px-3 py-2 text-sm font-medium",
                       item.isActive ? "bg-primary/10 text-primary" : "hover:bg-muted",
                     )}
-                    onClick={() => item.items && toggleExpanded(item.title)}
                   >
                     <div className="flex items-center gap-3">
                       {item.icon}
                       <span>{item.title}</span>
                     </div>
-                    {item.badge && (
-                      <Badge variant="outline" className="ml-auto rounded-full px-2 py-0.5 text-xs">
-                        {item.badge}
-                      </Badge>
-                    )}
-                    {item.items && (
-                      <ChevronDown
-                        className={cn(
-                          "ml-2 h-4 w-4 transition-transform",
-                          expandedItems[item.title] ? "rotate-180" : "",
-                        )}
-                      />
-                    )}
                   </button>
-
-                  {item.items && expandedItems[item.title] && (
-                    <div className="mt-1 ml-6 space-y-1 border-l pl-3">
-                      {item.items.map((subItem) => (
-                        <a
-                          key={subItem.title}
-                          href={subItem.url}
-                          className="flex items-center justify-between rounded-2xl px-3 py-2 text-sm hover:bg-muted"
-                        >
-                          {subItem.title}
-                          {subItem.badge && (
-                            <Badge variant="outline" className="ml-auto rounded-full px-2 py-0.5 text-xs">
-                              {subItem.badge}
-                            </Badge>
-                          )}
-                        </a>
-                      ))}
-                    </div>
-                  )}
+                  </Link>
                 </div>
               ))}
             </div>
@@ -690,7 +623,7 @@ export function DesignaliCreative() {
             <PanelLeft className="h-5 w-5" />
           </Button>
           <div className="flex flex-1 items-center justify-between">
-            <h1 className="text-xl font-semibold">Designali Creative</h1>
+            <h1 className="text-xl font-semibold">LearnWise</h1>
             <div className="flex items-center gap-3">
               <TooltipProvider>
                 <Tooltip>
@@ -789,14 +722,14 @@ export function DesignaliCreative() {
                       <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
                         <div className="space-y-4">
                           <Badge className="bg-white/20 text-white hover:bg-white/30 rounded-xl">Premium</Badge>
-                          <h2 className="text-3xl font-bold">Welcome to DesignAli Creative Suite</h2>
+                          <h2 className="text-3xl font-bold">Welcome to LearnWise Study Suite</h2>
                           <p className="max-w-[600px] text-white/80">
-                            Unleash your creativity with our comprehensive suite of professional design tools and
+                            Unleash your potential with our comprehensive suite of AI-powered study tools and
                             resources.
                           </p>
                           <div className="flex flex-wrap gap-3">
                             <Button className="rounded-2xl bg-white text-indigo-700 hover:bg-white/90">
-                              Explore Plans
+                              Upgrade to Pro
                             </Button>
                             <Button
                               variant="outline"
