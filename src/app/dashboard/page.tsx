@@ -104,11 +104,11 @@ export default function DashboardPage() {
               <div className="hidden md:flex gap-2">
                 <Button variant="outline" className="rounded-2xl">
                   <Download className="mr-2 h-4 w-4" />
-                  Install App
+                  Upload Course Information
                 </Button>
                 <Button className="rounded-2xl">
                   <Plus className="mr-2 h-4 w-4" />
-                  New Project
+                  New Course
                 </Button>
               </div>
             </div>
