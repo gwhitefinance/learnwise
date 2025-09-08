@@ -330,7 +330,7 @@ const communityPosts = [
     author: "Alex Morgan",
     likes: 342,
     comments: 28,
-    image: "https://picsum.photos/400/300",
+    image: "https://picsum.photos/400/300?grayscale",
     time: "2 days ago",
   },
   {
@@ -338,7 +338,7 @@ const communityPosts = [
     author: "Priya Sharma",
     likes: 518,
     comments: 47,
-    image: "https://picsum.photos/400/300",
+    image: "https://picsum.photos/400/300?grayscale",
     time: "1 week ago",
   },
   {
@@ -346,7 +346,7 @@ const communityPosts = [
     author: "Thomas Wright",
     likes: 276,
     comments: 32,
-    image: "https://picsum.photos/400/300",
+    image: "https://picsum.photos/400/300?grayscale",
     time: "3 days ago",
   },
   {
@@ -354,7 +354,7 @@ const communityPosts = [
     author: "Olivia Chen",
     likes: 189,
     comments: 15,
-    image: "https://picsum.photos/400/300",
+    image: "https://picsum.photos/400/300?grayscale",
     time: "5 days ago",
   },
 ]
