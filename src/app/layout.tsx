@@ -1,39 +1,31 @@
 
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { GeistSans } from "geist/font/sans";
+import { GeistMono } from "geist/font/mono";
+import { Analytics } from "@vercel/analytics/next";
+import { Suspense } from "react";
 import "./globals.css";
-import { ThemeProvider } from "@/components/theme-provider";
-
-const inter = Inter({
-    variable: "--font-inter",
-    subsets: ["latin"],
-    display: "swap",
-});
 
 export const metadata: Metadata = {
-    title: "LearnWise",
-    description: "Your AI-Powered Study Partner",
+  title: "LearnWise",
+  description: "Your AI-Powered Study Partner",
 };
 
 export default function RootLayout({
-    children,
+  children,
 }: Readonly<{
-    children: React.ReactNode;
+  children: React.ReactNode;
 }>) {
-    return (
-        <html lang="en" suppressHydrationWarning>
-            <body
-                className={`${inter.variable} font-sans antialiased`}
-            >
-                <ThemeProvider
-                    attribute="class"
-                    defaultTheme="light"
-                    enableSystem={false}
-                    disableTransitionOnChange
-                >
-                    {children}
-                </ThemeProvider>
-            </body>
-        </html>
-    );
+  return (
+    <html lang="en" className="light">
+      <head>
+        <style>{`
+        `}</style>
+      </head>
+      <body className={`${GeistSans.variable} ${GeistMono.variable} font-sans`}>
+        <Suspense fallback={null}>{children}</Suspense>
+        <Analytics />
+      </body>
+    </html>
+  );
 }
