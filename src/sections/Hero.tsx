@@ -12,11 +12,10 @@ export default function Hero() {
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black">
       <div className="container mx-auto px-4">
         <Card className="w-full h-[500px] bg-black/[0.96] relative overflow-hidden border-none">
-          <Spotlight className="from-blue-500 via-blue-300 to-blue-100" size={400} />
-
           <div className="flex h-full">
             {/* Left content */}
-            <div className="flex-1 p-8 relative z-10 flex flex-col justify-center">
+            <div className="flex-1 p-8 relative z-10 flex flex-col justify-center overflow-hidden">
+               <Spotlight className="from-blue-500 via-blue-300 to-blue-100" size={400} />
               <h1 className="text-4xl md:text-5xl font-bold text-white">
                 Results and Costs Reduced by AI
               </h1>
