@@ -3,6 +3,7 @@
 
 import type React from "react"
 import { useState, useEffect, useRef } from "react"
+import Link from "next/link";
 
 const AnimatedNavLink = ({ href, children }: { href: string; children: React.ReactNode }) => {
   return (
@@ -53,13 +54,13 @@ export default function Navbar() {
   )
 
   const navLinksData = [
-    { label: "Services", href: "#services" },
-    { label: "Case Studies", href: "#testimonials" },
+    { label: "Features", href: "#features" },
+    { label: "Integrations", href: "#integrations" },
   ]
 
   const loginButtonElement = (
     <button className="px-4 py-2 sm:px-3 text-xs sm:text-sm border border-[#333] bg-[rgba(31,31,31,0.62)] text-gray-300 rounded-full hover:border-white/50 hover:text-white transition-colors duration-200 w-full sm:w-auto">
-      Call Us
+      Contact Us
     </button>
   )
 
@@ -73,9 +74,11 @@ export default function Navbar() {
                      transition-all duration-300 ease-out
                      group-hover:opacity-60 group-hover:blur-xl group-hover:-m-3"
       ></div>
-      <button className="relative z-10 px-4 py-2 sm:px-3 text-xs sm:text-sm font-semibold text-white bg-gradient-to-br from-blue-400 to-blue-600 rounded-full hover:from-blue-500 hover:to-blue-700 transition-all duration-200 w-full sm:w-auto">
-        Get Quote
-      </button>
+       <Link href="/signup">
+        <button className="relative z-10 px-4 py-2 sm:px-3 text-xs sm:text-sm font-semibold text-white bg-gradient-to-br from-blue-400 to-blue-600 rounded-full hover:from-blue-500 hover:to-blue-700 transition-all duration-200 w-full sm:w-auto">
+            Sign Up
+        </button>
+      </Link>
     </div>
   )
 

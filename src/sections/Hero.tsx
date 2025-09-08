@@ -5,6 +5,7 @@ import { ArrowRight, CheckCircle } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import SplineScene from "@/components/ui/spline-scene";
+import Link from "next/link";
 
 export default function Hero() {
   return (
@@ -13,7 +14,7 @@ export default function Hero() {
         <Card className="w-full h-[500px] bg-black/[0.96] relative overflow-hidden border-none">
           <div className="flex h-full">
             {/* Left content */}
-            <div className="flex-1 p-8 relative z-10 flex flex-col justify-center">
+            <div className="relative flex-1 p-8 z-10 flex flex-col justify-center overflow-hidden">
               <h1 className="text-4xl md:text-5xl font-bold text-white">
                 Results and Costs Reduced by AI
               </h1>
@@ -23,17 +24,21 @@ export default function Hero() {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 mt-8">
-                <Button size="lg" className="bg-white text-black hover:bg-gray-100">
-                  Book Free Consultation
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="border-neutral-600 text-neutral-300 hover:bg-neutral-800 bg-transparent"
-                >
-                  View Case Studies
-                </Button>
+                <Link href="/signup">
+                  <Button size="lg" className="bg-white text-black hover:bg-gray-100">
+                    Sign Up
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+                <a href="#integrations">
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="border-neutral-600 text-neutral-300 hover:bg-neutral-800 bg-transparent"
+                  >
+                    View Integrations
+                  </Button>
+                </a>
               </div>
 
               <div className="flex items-center gap-8 text-sm text-neutral-400 mt-6">

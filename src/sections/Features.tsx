@@ -36,7 +36,7 @@ const cardVariants = {
 
 export default function Features() {
     return (
-        <section className="py-24 ">
+        <section id="features" className="py-24 ">
             <div className="container">
                 <div className="flex justify-center">
                     <Tag>Features</Tag>
@@ -82,7 +82,7 @@ export default function Features() {
                         >
                             <FeatureCard
                                 title="Intelligent Quizzes"
-                                description="Move beyond generic questions. LearnWise generates practice quizzes based on your actual course materials and where you need practice."
+                                description="Move beyond generic questions. LearnWise generates practice quizzes based on your actual course materials and where you need a little more practice."
                                 className="h-full"
                             >
                                 <div className="aspect-video flex items-center justify-center">
