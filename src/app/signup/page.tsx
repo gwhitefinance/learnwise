@@ -1,11 +1,21 @@
 
 "use client"
 
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Github } from "lucide-react"
 
 export default function SignUpPage() {
+  const router = useRouter()
+
+  const handleSignUp = (e: React.FormEvent) => {
+    e.preventDefault()
+    // In a real app, you'd handle form validation and user creation here.
+    // For this prototype, we'll just redirect.
+    router.push('/learner-type')
+  }
+
   return (
     <div className="flex min-h-screen bg-black">
       {/* Left Section */}
@@ -13,7 +23,7 @@ export default function SignUpPage() {
         <div className="h-full w-full overflow-hidden rounded-[40px] bg-gradient-to-b from-purple-400 via-purple-600 to-black">
           <div className="flex h-full flex-col items-center justify-center px-8 text-center text-white">
             <div className="mb-8">
-              <h1 className="text-2xl font-semibold">Flowers&Saints</h1>
+              <h1 className="text-2xl font-semibold">LearnWise</h1>
             </div>
             <h2 className="mb-6 text-4xl font-bold">Get Started with Us</h2>
             <p className="mb-12 text-lg">Complete these easy steps to register your account.</p>
@@ -30,7 +40,7 @@ export default function SignUpPage() {
                   <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white">
                     2
                   </span>
-                  <span className="text-lg">Set up your workspace</span>
+                  <span className="text-lg">Discover your learning style</span>
                 </div>
               </div>
               <div className="rounded-lg bg-white/5 p-4 backdrop-blur-sm">
@@ -38,7 +48,7 @@ export default function SignUpPage() {
                   <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white">
                     3
                   </span>
-                  <span className="text-lg">Set up your profile</span>
+                  <span className="text-lg">Access your dashboard</span>
                 </div>
               </div>
             </div>
@@ -90,20 +100,22 @@ export default function SignUpPage() {
               </div>
             </div>
 
-            <form className="space-y-6">
+            <form className="space-y-6" onSubmit={handleSignUp}>
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <Input
                     className="h-12 border-gray-800 bg-gray-900 text-white placeholder:text-gray-400"
-                    placeholder="Dollar"
+                    placeholder="First Name"
                     type="text"
+                    required
                   />
                 </div>
                 <div className="space-y-2">
                   <Input
                     className="h-12 border-gray-800 bg-gray-900 text-white placeholder:text-gray-400"
-                    placeholder="Gill"
+                    placeholder="Last Name"
                     type="text"
+                    required
                   />
                 </div>
               </div>
@@ -111,8 +123,9 @@ export default function SignUpPage() {
               <div className="space-y-2">
                 <Input
                   className="h-12 border-gray-800 bg-gray-900 text-white placeholder:text-gray-400"
-                  placeholder="EXAMPLE@FLOWERSANDSAINTS.COM.AU"
+                  placeholder="example@email.com"
                   type="email"
+                  required
                 />
               </div>
 
@@ -121,15 +134,17 @@ export default function SignUpPage() {
                   className="h-12 border-gray-800 bg-gray-900 text-white placeholder:text-gray-400"
                   placeholder="YourbestPasword"
                   type="password"
+                  required
+                  minLength={8}
                 />
                 <p className="text-sm text-gray-400">Must be at least 8 characters.</p>
               </div>
 
-              <Button className="h-12 w-full bg-white text-black hover:bg-gray-100">Sign Up</Button>
+              <Button type="submit" className="h-12 w-full bg-white text-black hover:bg-gray-100">Sign Up</Button>
 
               <p className="text-center text-sm text-gray-400">
                 Already have an account?{" "}
-                <a href="/login" className="text-white hover:underline">
+                <a href="#" className="text-white hover:underline">
                   Log in
                 </a>
               </p>
