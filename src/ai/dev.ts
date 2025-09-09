@@ -5,3 +5,5 @@ import './flows/quiz-flow';
 import './flows/quiz-explanation-flow';
 import './flows/roadmap-flow';
 import './tools/course-tool';
+import './tools/web-scraper-tool';
+

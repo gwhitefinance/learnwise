@@ -15,6 +15,7 @@ type Course = {
     id: string;
     name: string;
     description: string;
+    url?: string;
 };
 
 type Goal = {
@@ -40,7 +41,8 @@ const initialCourses: Course[] = [
     {
         id: '1',
         name: "Introduction to Programming",
-        description: "Learn the fundamentals of programming using Python."
+        description: "Learn the fundamentals of programming using Python.",
+        url: "https://www.coursera.org/specializations/python"
     },
     {
         id: '2',
@@ -87,7 +89,8 @@ export default function RoadmapsPage() {
         try {
             const response = await generateRoadmap({
                 courseName: course.name,
-                courseDescription: course.description
+                courseDescription: course.description,
+                courseUrl: course.url,
             });
 
             const newRoadmap: Roadmap = {
