@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -53,7 +54,7 @@ import { format } from 'date-fns';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { collection, query, where, getDocs, addDoc } from 'firebase/firestore';
-import Joyride, { Step } from 'react-joyride';
+import Joyride, { Step, CallBackProps } from 'react-joyride';
 
 
   type Course = {
@@ -170,10 +171,11 @@ export default function DashboardPage() {
         {
             target: '#main-tabs',
             content: 'Use these tabs to navigate between your main workspace, apps, files, and more.',
+            placement: 'bottom'
         },
         {
             target: '#apps-tab-trigger',
-            content: 'Switch to the "Apps" tab to access powerful AI study tools.',
+            content: 'Switch to the "Apps" tab to access powerful AI study tools like AI Chat and Practice Quizzes.',
             placement: 'bottom',
         },
         {
@@ -182,7 +184,7 @@ export default function DashboardPage() {
         },
         {
             target: '#active-courses',
-            content: 'Your active courses will appear here. Add a course to get started.',
+            content: 'Your active courses will appear here. Add a course to get started using the "New Course" button.',
         },
         {
             target: "#upload-materials-button",
@@ -190,7 +192,7 @@ export default function DashboardPage() {
         },
         {
             target: 'button[aria-label="Toggle Sidebar"]',
-            content: "You can toggle the sidebar to access all your tools and workspaces like Courses, Calendar, and Notes."
+            content: "You can toggle this sidebar to access all your tools. Here you can manage your Courses, view your Calendar, or take Notes."
         },
         {
             target: '#home-tab-trigger',
@@ -242,6 +244,13 @@ export default function DashboardPage() {
         localStorage.setItem('lastVisit', today);
 
     }, [user]);
+
+    const handleTourCallback = (data: CallBackProps) => {
+        const { status } = data;
+        if ((status as any) === 'finished' || (status as any) === 'skipped') {
+            setRunTour(false);
+        }
+    };
 
     const handleProjectInputChange = (field: string, value: string | Date | undefined) => {
         setNewProject(prev => ({ ...prev, [field]: value }));
@@ -395,12 +404,13 @@ export default function DashboardPage() {
             steps={tourSteps}
             showProgress
             showSkipButton
+            callback={handleTourCallback}
             styles={{
                 options: {
-                    arrowColor: 'hsl(var(--background))',
-                    backgroundColor: 'hsl(var(--background))',
+                    arrowColor: 'hsl(var(--card))',
+                    backgroundColor: 'hsl(var(--card))',
                     primaryColor: 'hsl(var(--primary))',
-                    textColor: 'hsl(var(--foreground))',
+                    textColor: 'hsl(var(--card-foreground))',
                     zIndex: 1000,
                 },
                  buttonClose: {
@@ -408,26 +418,41 @@ export default function DashboardPage() {
                 },
                 buttonNext: {
                     backgroundColor: 'hsl(var(--primary))',
-                    borderRadius: '8px',
+                    borderRadius: 'var(--radius)',
                     color: 'hsl(var(--primary-foreground))',
+                    padding: '0.75rem 1.5rem',
                 },
                 buttonBack: {
                      color: 'hsl(var(--foreground))',
+                     padding: '0.75rem 1.5rem',
+                },
+                buttonSkip: {
+                    color: 'hsl(var(--muted-foreground))',
                 },
                 tooltip: {
                     borderRadius: 'var(--radius)',
-                    padding: '1rem',
+                    padding: '1.5rem',
+                    boxShadow: '0 10px 25px -5px rgb(0 0 0 / 0.2), 0 8px 10px -6px rgb(0 0 0 / 0.2)',
                 },
-                 spotlight: {
+                spotlight: {
                     borderRadius: 'var(--radius)',
-                }
-            }}
-            callback={({ status, action }) => {
-                if (status === 'finished' || status === 'skipped' || action === 'close') {
-                    setRunTour(false);
+                },
+                beacon: {
+                    width: 48,
+                    height: 48,
+                    border: '2px solid hsl(var(--primary))',
+                    backgroundColor: 'hsl(var(--primary) / 0.2)',
+                    animation: 'joyride-beacon-pulse 2s infinite',
                 }
             }}
         />
+         <style jsx global>{`
+            @keyframes joyride-beacon-pulse {
+                0% { box-shadow: 0 0 0 0 hsl(var(--primary) / 0.4); }
+                70% { box-shadow: 0 0 0 20px hsl(var(--primary) / 0); }
+                100% { box-shadow: 0 0 0 0 hsl(var(--primary) / 0); }
+            }
+        `}</style>
 
         <Tabs defaultValue="home" id="main-tabs">
             <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -850,5 +875,3 @@ export default function DashboardPage() {
     </div>
   )
 }
-
-    
