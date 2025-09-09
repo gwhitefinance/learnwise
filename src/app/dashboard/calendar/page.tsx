@@ -34,6 +34,7 @@ type Event = {
   location: string;
   attendees: string[];
   organizer: string;
+  type: 'Test' | 'Homework' | 'Quiz' | 'Event' | 'Project';
 };
 
 const classicalPlaylist = [
@@ -43,6 +44,14 @@ const classicalPlaylist = [
     "https://cdn.pixabay.com/audio/2022/11/17/audio_88f002b12e.mp3", // Inspiring Cinematic
     "https://cdn.pixabay.com/audio/2024/02/08/audio_17316a1c89.mp3", // The Last Piano
 ];
+
+const eventTypes = {
+    'Test': 'bg-red-500',
+    'Homework': 'bg-blue-500',
+    'Quiz': 'bg-yellow-500',
+    'Project': 'bg-purple-500',
+    'Event': 'bg-green-500',
+};
 
 
 export default function CalendarPage() {
@@ -149,14 +158,6 @@ export default function CalendarPage() {
   const miniCalendarDays = Array.from({ length: daysInMonth + firstDayOffset }, (_, i) =>
     i < firstDayOffset ? null : i - firstDayOffset + 1,
   )
-
-  // Sample my calendars
-  const myCalendars = [
-    { name: "My Calendar", color: "bg-blue-500" },
-    { name: "Work", color: "bg-green-500" },
-    { name: "Personal", color: "bg-purple-500" },
-    { name: "Family", color: "bg-orange-500" },
-  ]
 
   const togglePlay = () => {
     if (audioRef.current) {
@@ -277,14 +278,14 @@ export default function CalendarPage() {
               </div>
             </div>
 
-            {/* My Calendars */}
+            {/* Event Type Legend */}
             <div>
-              <h3 className={`${textClass} font-medium mb-3`}>My calendars</h3>
+              <h3 className={`${textClass} font-medium mb-3`}>Event Types</h3>
               <div className="space-y-2">
-                {myCalendars.map((cal, i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <div className={`w-3 h-3 rounded-sm ${cal.color}`}></div>
-                    <span className={`${textClass} text-sm`}>{cal.name}</span>
+                {Object.entries(eventTypes).map(([type, colorClass]) => (
+                  <div key={type} className="flex items-center gap-3">
+                    <div className={`w-3 h-3 rounded-sm ${colorClass}`}></div>
+                    <span className={`${textClass} text-sm`}>{type}</span>
                   </div>
                 ))}
               </div>
@@ -521,3 +522,5 @@ export default function CalendarPage() {
     </div>
   )
 }
+
+    
