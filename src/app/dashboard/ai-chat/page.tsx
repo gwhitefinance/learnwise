@@ -146,14 +146,17 @@ export default function AiChatPage() {
         }
     }
 
-    const newSessionData = {
+    const newSessionData: any = {
         title: title,
         messages: [{ role: 'ai', content: initialMessage }],
         timestamp: new Date(),
-        courseContext,
         titleGenerated: !!courseIdParam,
         userId: user.uid,
     };
+
+    if (courseContext) {
+      newSessionData.courseContext = courseContext;
+    }
     
     try {
         const docRef = await addDoc(collection(db, "chatSessions"), newSessionData);
@@ -390,5 +393,7 @@ export default function AiChatPage() {
     </div>
   );
 }
+
+    
 
     
