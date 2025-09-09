@@ -15,7 +15,12 @@ import {
   Calendar,
   BarChart3,
   BrainCircuit,
-  PenSquare
+  PenSquare,
+  Home,
+  LayoutGrid,
+  Folder,
+  Briefcase,
+  BookOpen
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -54,6 +59,13 @@ import {
       subject: string;
       modified: string;
   };
+
+  type Project = {
+    name: string;
+    course: string;
+    dueDate: string;
+    status: 'Not Started' | 'In Progress' | 'Completed';
+  }
 
   const initialCourses = [
     {
@@ -104,11 +116,42 @@ import {
       subject: "Intro to Programming",
       modified: "3 days ago",
     },
-  ]
+    {
+      name: "Linear Algebra Problem Set 2.pdf",
+      subject: "Linear Algebra",
+      modified: "4 days ago",
+    },
+    {
+      name: "English Essay Draft.docx",
+      subject: "English Literature",
+      modified: "1 week ago",
+    },
+  ];
+  
+  const initialProjects: Project[] = [
+      { name: 'Research Paper', course: 'World History', dueDate: '2024-12-01', status: 'In Progress' },
+      { name: 'Final Project', course: 'Intro to Programming', dueDate: '2024-12-10', status: 'Not Started' },
+      { name: 'Midterm Exam', course: 'Calculus I', dueDate: '2024-11-15', status: 'Completed' },
+  ];
+
+  const apps = [
+    { title: "AI Chat", href: "/dashboard/ai-chat", description: "Get instant answers and explanations.", icon: <BrainCircuit/> },
+    { title: "Practice Quiz", href: "/dashboard/practice-quiz", description: "Test your knowledge with AI quizzes.", icon: <Lightbulb/> },
+    { title: "Study Roadmaps", href: "/dashboard/roadmaps", description: "Plan your learning journey.", icon: <GitMerge/> },
+    { title: "Whiteboard", href: "/dashboard/whiteboard", description: "Brainstorm and visualize ideas.", icon: <PenSquare/> }
+  ];
+
+  const learningResources = [
+    { title: "The Feynman Technique", description: "A method for learning anything by explaining it in simple terms.", link: "#" },
+    { title: "Spaced Repetition", description: "An evidence-based learning technique that is usually performed with flashcards.", link: "#" },
+    { title: "Active Recall", description: "A process of actively stimulating memory during the learning process.", link: "#" },
+  ];
+
 
 export default function DashboardPage() {
     const [courses, setCourses] = useState<Course[]>([]);
     const [recentFiles, setRecentFiles] = useState<RecentFile[]>([]);
+    const [projects, setProjects] = useState<Project[]>(initialProjects);
     const [isAddCourseOpen, setAddCourseOpen] = useState(false);
     const [newCourse, setNewCourse] = useState({ name: '', instructor: '', credits: '', url: ''});
     const { toast } = useToast();
@@ -242,11 +285,11 @@ export default function DashboardPage() {
         <Tabs defaultValue="home">
             <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <TabsList className="grid w-full max-w-[600px] grid-cols-5 rounded-2xl p-1">
-                <TabsTrigger value="home" className="rounded-xl data-[state=active]:rounded-xl">Home</TabsTrigger>
-                <TabsTrigger value="plan" className="rounded-xl data-[state=active]:rounded-xl">Plan</TabsTrigger>
-                <TabsTrigger value="learn" className="rounded-xl data-[state=active]:rounded-xl">Learn</TabsTrigger>
-                <TabsTrigger value="review" className="rounded-xl data-[state=active]:rounded-xl">Review</TabsTrigger>
-                <TabsTrigger value="ai-chat" className="rounded-xl data-[state=active]:rounded-xl">AI Chat</TabsTrigger>
+                <TabsTrigger value="home" className="rounded-xl data-[state=active]:rounded-xl"><Home className="w-4 h-4 mr-2"/>Home</TabsTrigger>
+                <TabsTrigger value="apps" className="rounded-xl data-[state=active]:rounded-xl"><LayoutGrid className="w-4 h-4 mr-2"/>Apps</TabsTrigger>
+                <TabsTrigger value="files" className="rounded-xl data-[state=active]:rounded-xl"><Folder className="w-4 h-4 mr-2"/>Files</TabsTrigger>
+                <TabsTrigger value="projects" className="rounded-xl data-[state=active]:rounded-xl"><Briefcase className="w-4 h-4 mr-2"/>Projects</TabsTrigger>
+                <TabsTrigger value="learn" className="rounded-xl data-[state=active]:rounded-xl"><BookOpen className="w-4 h-4 mr-2"/>Learn</TabsTrigger>
               </TabsList>
               <div className="hidden md:flex gap-2">
                 <Dialog open={isUploadOpen} onOpenChange={setUploadOpen}>
@@ -463,94 +506,96 @@ export default function DashboardPage() {
                 </div>
             </TabsContent>
             
-            <TabsContent value="plan">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                     <Link href="/dashboard/roadmaps">
-                        <Card className="hover:bg-muted transition-colors h-full">
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2"><GitMerge/> Study Roadmaps</CardTitle>
-                                <CardDescription>Plan your learning journey with AI-generated, customizable roadmaps for each of your courses.</CardDescription>
-                            </CardHeader>
-                        </Card>
-                    </Link>
-                     <Link href="/dashboard/calendar">
-                        <Card className="hover:bg-muted transition-colors h-full">
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2"><Calendar/> Calendar</CardTitle>
-                                <CardDescription>Integrate your study schedule with your personal calendar to manage deadlines and study sessions effectively.</CardDescription>
-                            </CardHeader>
-                        </Card>
-                    </Link>
+            <TabsContent value="apps">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {apps.map((app) => (
+                        <Link key={app.title} href={app.href}>
+                            <Card className="hover:bg-muted transition-colors h-full">
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2">{app.icon} {app.title}</CardTitle>
+                                    <CardDescription>{app.description}</CardDescription>
+                                </CardHeader>
+                            </Card>
+                        </Link>
+                    ))}
                 </div>
             </TabsContent>
 
-            <TabsContent value="learn">
-                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                     <Link href="/dashboard/courses">
-                        <Card className="hover:bg-muted transition-colors h-full">
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2"><GraduationCap/> My Courses</CardTitle>
-                                <CardDescription>Access all your courses, view details, and launch course-specific study tools.</CardDescription>
-                            </CardHeader>
-                        </Card>
-                    </Link>
-                     <Link href="/dashboard/notes">
-                        <Card className="hover:bg-muted transition-colors h-full">
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2"><ClipboardPenLine/> Notes</CardTitle>
-                                <CardDescription>Create, organize, and review your study notes, to-do lists, and important reminders.</CardDescription>
-                            </CardHeader>
-                        </Card>
-                    </Link>
-                     <Link href="/dashboard/upload">
-                        <Card className="hover:bg-muted transition-colors h-full">
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2"><UploadCloud/> Upload Materials</CardTitle>
-                                <CardDescription>Upload your documents, lecture slides, and other materials for AI analysis and integration.</CardDescription>
-                            </CardHeader>
-                        </Card>
-                    </Link>
-                </div>
+            <TabsContent value="files">
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>All Files</CardTitle>
+                        <CardDescription>Manage all your uploaded study materials.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Name</TableHead>
+                                    <TableHead>Subject</TableHead>
+                                    <TableHead>Last Modified</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                            {recentFiles.map((file, index) => (
+                                <TableRow key={index}>
+                                    <TableCell className="font-medium">{file.name}</TableCell>
+                                    <TableCell>{file.subject}</TableCell>
+                                    <TableCell>{file.modified}</TableCell>
+                                </TableRow>
+                            ))}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                </Card>
             </TabsContent>
 
-             <TabsContent value="review">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                     <Link href="/dashboard/practice-quiz">
-                        <Card className="hover:bg-muted transition-colors h-full">
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2"><Lightbulb/> Practice Quiz</CardTitle>
-                                <CardDescription>Test your knowledge with AI-generated quizzes on any topic, tailored to your learning style.</CardDescription>
-                            </CardHeader>
-                        </Card>
-                    </Link>
-                     <Link href="/dashboard/analysis">
-                        <Card className="hover:bg-muted transition-colors h-full">
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2"><BarChart3/> AI Analysis</CardTitle>
-                                <CardDescription>Get insights into your study habits, material complexity, and personalized recommendations.</CardDescription>
-                            </CardHeader>
-                        </Card>
-                    </Link>
-                     <Link href="/dashboard/whiteboard">
-                        <Card className="hover:bg-muted transition-colors h-full">
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2"><PenSquare/> Whiteboard</CardTitle>
-                                <CardDescription>A digital whiteboard for brainstorming, drawing diagrams, and solving problems.</CardDescription>
-                            </CardHeader>
-                        </Card>
-                    </Link>
-                </div>
+             <TabsContent value="projects">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Projects & Assignments</CardTitle>
+                        <CardDescription>Keep track of your larger tasks and their deadlines.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Project Name</TableHead>
+                                    <TableHead>Course</TableHead>
+                                    <TableHead>Due Date</TableHead>
+                                    <TableHead>Status</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                            {projects.map((project, index) => (
+                                <TableRow key={index}>
+                                    <TableCell className="font-medium">{project.name}</TableCell>
+                                    <TableCell>{project.course}</TableCell>
+                                    <TableCell>{project.dueDate}</TableCell>
+                                    <TableCell>
+                                        <Badge variant={project.status === 'Completed' ? 'secondary' : project.status === 'In Progress' ? 'default' : 'outline'}>{project.status}</Badge>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                </Card>
             </TabsContent>
 
-             <TabsContent value="ai-chat">
-                 <Link href="/dashboard/ai-chat">
-                    <Card className="hover:bg-muted transition-colors">
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2"><BrainCircuit/> AI Chat Assistant</CardTitle>
-                            <CardDescription>Get instant, personalized help with your coursework. Ask questions, get explanations, and receive guidance from your 24/7 AI study partner.</CardDescription>
-                        </CardHeader>
-                    </Card>
-                 </Link>
+             <TabsContent value="learn">
+                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {learningResources.map((resource) => (
+                        <a key={resource.title} href={resource.link} target="_blank" rel="noopener noreferrer">
+                            <Card className="hover:bg-muted transition-colors h-full">
+                                <CardHeader>
+                                    <CardTitle>{resource.title}</CardTitle>
+                                    <CardDescription>{resource.description}</CardDescription>
+                                </CardHeader>
+                            </Card>
+                        </a>
+                    ))}
+                </div>
             </TabsContent>
 
         </Tabs>
