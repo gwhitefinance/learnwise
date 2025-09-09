@@ -20,7 +20,8 @@ import {
   LayoutGrid,
   Folder,
   Briefcase,
-  BookOpen
+  BookOpen,
+  ArrowRight
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -66,6 +67,36 @@ import {
     dueDate: string;
     status: 'Not Started' | 'In Progress' | 'Completed';
   }
+  
+  const AppCard = ({ title, description, icon, href, isFeatured }: { title: string; description: string; icon: React.ReactNode; href: string, isFeatured?: boolean }) => (
+    <Link href={href} className="block h-full">
+        <motion.div
+            whileHover={{ y: -5, scale: 1.02 }}
+            transition={{ type: 'spring', stiffness: 300 }}
+            className={cn(
+                "relative group h-full rounded-2xl border border-border/20 bg-background/50 p-6 overflow-hidden",
+                isFeatured ? "lg:col-span-2 lg:row-span-2" : "",
+            )}
+        >
+            <div className="absolute -inset-px bg-gradient-to-r from-primary/20 via-blue-500/20 to-purple-600/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="relative h-full flex flex-col justify-between">
+                <div>
+                    <div className="bg-primary/10 text-primary p-3 rounded-xl inline-block mb-4">
+                        {icon}
+                    </div>
+                    <h3 className="text-xl font-bold">{title}</h3>
+                    <p className="text-muted-foreground mt-2">{description}</p>
+                </div>
+                 {isFeatured && (
+                    <Button variant="outline" className="mt-6 self-start">
+                        Start Chatting <ArrowRight className="ml-2 h-4 w-4"/>
+                    </Button>
+                )}
+            </div>
+        </motion.div>
+    </Link>
+);
+
 
   const initialCourses = [
     {
@@ -135,10 +166,10 @@ import {
   ];
 
   const apps = [
-    { title: "AI Chat", href: "/dashboard/ai-chat", description: "Get instant answers and explanations.", icon: <BrainCircuit/> },
-    { title: "Practice Quiz", href: "/dashboard/practice-quiz", description: "Test your knowledge with AI quizzes.", icon: <Lightbulb/> },
-    { title: "Study Roadmaps", href: "/dashboard/roadmaps", description: "Plan your learning journey.", icon: <GitMerge/> },
-    { title: "Whiteboard", href: "/dashboard/whiteboard", description: "Brainstorm and visualize ideas.", icon: <PenSquare/> }
+    { title: "AI Chat", href: "/dashboard/ai-chat", description: "Get instant answers and explanations from your AI study partner.", icon: <BrainCircuit className="w-8 h-8"/>, isFeatured: true },
+    { title: "Practice Quiz", href: "/dashboard/practice-quiz", description: "Test your knowledge with AI quizzes.", icon: <Lightbulb className="w-8 h-8"/> },
+    { title: "Study Roadmaps", href: "/dashboard/roadmaps", description: "Plan your learning journey.", icon: <GitMerge className="w-8 h-8"/> },
+    { title: "Whiteboard", href: "/dashboard/whiteboard", description: "Brainstorm and visualize ideas.", icon: <PenSquare className="w-8 h-8"/> }
   ];
 
   const learningResources = [
@@ -506,18 +537,16 @@ export default function DashboardPage() {
                 </div>
             </TabsContent>
             
-            <TabsContent value="apps">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {apps.map((app) => (
-                        <Link key={app.title} href={app.href}>
-                            <Card className="hover:bg-muted transition-colors h-full">
-                                <CardHeader>
-                                    <CardTitle className="flex items-center gap-2">{app.icon} {app.title}</CardTitle>
-                                    <CardDescription>{app.description}</CardDescription>
-                                </CardHeader>
-                            </Card>
-                        </Link>
+             <TabsContent value="apps">
+                <div className="grid lg:grid-cols-3 gap-6">
+                    {apps.filter(app => app.isFeatured).map(app => (
+                        <AppCard key={app.title} {...app} />
                     ))}
+                    <div className="lg:col-span-1 lg:row-span-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-6">
+                        {apps.filter(app => !app.isFeatured).map(app => (
+                             <AppCard key={app.title} {...app} />
+                        ))}
+                    </div>
                 </div>
             </TabsContent>
 
@@ -602,5 +631,3 @@ export default function DashboardPage() {
     </div>
   )
 }
-
-    
