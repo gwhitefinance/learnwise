@@ -20,7 +20,7 @@ import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
-import { collection, query, where, getDocs, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, query, where, addDoc, doc, updateDoc, deleteDoc, onSnapshot } from 'firebase/firestore';
 
 
 type Course = {
@@ -67,7 +67,7 @@ export default function RoadmapsPage() {
     const [roadmaps, setRoadmaps] = useState<Record<string, Roadmap>>({});
     const [isLoading, setIsLoading] = useState<Record<string, boolean>>({});
     const { toast } = useToast();
-    const [user] = useAuthState(auth);
+    const [user, authLoading] = useAuthState(auth);
     
     const [isItemDialogOpen, setIsItemDialogOpen] = useState(false);
     const [editingItem, setEditingItem] = useState<Goal | Milestone | null>(null);
@@ -79,33 +79,37 @@ export default function RoadmapsPage() {
 
 
     useEffect(() => {
-        const fetchCoursesAndRoadmaps = async () => {
-             if (!user) return;
-            const coursesQuery = query(collection(db, "courses"), where("userId", "==", user.uid));
-            const coursesSnapshot = await getDocs(coursesQuery);
-            const userCourses = coursesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
+        if (authLoading || !user) return;
+
+        // Listener for Courses
+        const coursesQuery = query(collection(db, "courses"), where("userId", "==", user.uid));
+        const unsubscribeCourses = onSnapshot(coursesQuery, (snapshot) => {
+            const userCourses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
             setCourses(userCourses);
-            
-            if(userCourses.length > 0) {
-                const firstCourseId = userCourses[0].id;
-                setActiveCourseId(firstCourseId);
-
-                const roadmapsQuery = query(collection(db, "roadmaps"), where("userId", "==", user.uid));
-                const roadmapsSnapshot = await getDocs(roadmapsQuery);
-                const userRoadmaps: Record<string, Roadmap> = {};
-                roadmapsSnapshot.forEach(doc => {
-                    const roadmapData = { id: doc.id, ...doc.data() } as Roadmap;
-                    userRoadmaps[roadmapData.courseId] = roadmapData;
-                });
-                setRoadmaps(userRoadmaps);
+            if (userCourses.length > 0 && !activeCourseId) {
+                setActiveCourseId(userCourses[0].id);
+            } else if (userCourses.length === 0) {
+                setActiveCourseId(null);
             }
-        };
+        });
 
-        if (user) {
-            fetchCoursesAndRoadmaps();
+        // Listener for Roadmaps
+        const roadmapsQuery = query(collection(db, "roadmaps"), where("userId", "==", user.uid));
+        const unsubscribeRoadmaps = onSnapshot(roadmapsQuery, (snapshot) => {
+            const userRoadmaps: Record<string, Roadmap> = {};
+            snapshot.forEach(doc => {
+                const roadmapData = { id: doc.id, ...doc.data() } as Roadmap;
+                userRoadmaps[roadmapData.courseId] = roadmapData;
+            });
+            setRoadmaps(userRoadmaps);
+        });
+        
+        return () => {
+            unsubscribeCourses();
+            unsubscribeRoadmaps();
         }
         
-    }, [user]);
+    }, [user, authLoading, activeCourseId]);
 
     const handleGenerateRoadmap = async (course: Course) => {
         if (!user) return;
@@ -127,20 +131,16 @@ export default function RoadmapsPage() {
             
             // Check if a roadmap for this course already exists
             const existingRoadmapId = roadmaps[course.id]?.id;
-            let docId;
+            
             if (existingRoadmapId) {
                 // Update existing roadmap
                 const roadmapRef = doc(db, 'roadmaps', existingRoadmapId);
                 await updateDoc(roadmapRef, roadmapData);
-                docId = existingRoadmapId;
             } else {
                  // Add new roadmap
-                const docRef = await addDoc(collection(db, 'roadmaps'), roadmapData);
-                docId = docRef.id;
+                await addDoc(collection(db, 'roadmaps'), roadmapData);
             }
            
-            setRoadmaps(prev => ({...prev, [course.id]: { id: docId, ...roadmapData }}));
-            
             toast({
                 title: 'Roadmap Generated!',
                 description: `Your new roadmap for ${course.name} is ready.`,
@@ -202,8 +202,7 @@ export default function RoadmapsPage() {
         
         try {
             const roadmapRef = doc(db, 'roadmaps', updatedRoadmap.id);
-            await updateDoc(roadmapRef, updatedRoadmap);
-            setRoadmaps(prev => ({ ...prev, [activeCourseId]: updatedRoadmap }));
+            await updateDoc(roadmapRef, { goals: updatedRoadmap.goals, milestones: updatedRoadmap.milestones });
             toast({ title: `${editingType} saved!` });
         } catch (error) {
             console.error("Error saving item: ", error);
@@ -225,8 +224,7 @@ export default function RoadmapsPage() {
         
         try {
             const roadmapRef = doc(db, 'roadmaps', updatedRoadmap.id);
-            await updateDoc(roadmapRef, updatedRoadmap);
-            setRoadmaps(prev => ({ ...prev, [activeCourseId]: updatedRoadmap }));
+            await updateDoc(roadmapRef, { goals: updatedRoadmap.goals, milestones: updatedRoadmap.milestones });
             toast({ title: `${type} deleted.` });
         } catch(error) {
             console.error("Error deleting item: ", error);
@@ -253,8 +251,7 @@ export default function RoadmapsPage() {
 
         try {
             const roadmapRef = doc(db, 'roadmaps', updatedRoadmap.id);
-            await updateDoc(roadmapRef, updatedRoadmap);
-            setRoadmaps(prev => ({ ...prev, [activeCourseId]: updatedRoadmap }));
+            await updateDoc(roadmapRef, { milestones: updatedRoadmap.milestones });
             if (milestoneCompleted) {
                 toast({
                     title: '🎉 Milestone Complete!',
@@ -461,5 +458,3 @@ export default function RoadmapsPage() {
     </>
   );
 }
-
-    

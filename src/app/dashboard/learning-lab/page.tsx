@@ -22,7 +22,7 @@ import type { GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
 import { cn } from '@/lib/utils';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
 
 
 type Course = {
@@ -49,7 +49,7 @@ export default function LearningLabPage() {
   const [completedModules, setCompletedModules] = useState<number[]>([]);
   const [isCourseComplete, setIsCourseComplete] = useState(false);
   const { toast } = useToast();
-  const [user] = useAuthState(auth);
+  const [user, authLoading] = useAuthState(auth);
 
   const [currentModuleIndex, setCurrentModuleIndex] = useState(0);
   const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
@@ -68,20 +68,19 @@ export default function LearningLabPage() {
 
 
   useEffect(() => {
-    const fetchCourses = async () => {
-        if (!user) return;
-        const q = query(collection(db, "courses"), where("userId", "==", user.uid));
-        const querySnapshot = await getDocs(q);
+    if (authLoading || !user) return;
+
+    const q = query(collection(db, "courses"), where("userId", "==", user.uid));
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const userCourses = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
         setCourses(userCourses);
-    };
+    });
 
-    if (user) {
-        fetchCourses();
-    }
     const storedLearnerType = localStorage.getItem('learnerType');
     setLearnerType(storedLearnerType ?? 'Unknown');
-  }, [user]);
+
+    return () => unsubscribe();
+  }, [user, authLoading]);
 
   const handleGenerateCourse = async () => {
     if (!selectedCourseId) {
@@ -491,5 +490,3 @@ export default function LearningLabPage() {
     </>
   );
 }
-
-    
