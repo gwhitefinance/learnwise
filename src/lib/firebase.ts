@@ -2,13 +2,15 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 
+// This is the simplest, most direct way to configure Firebase.
+// If this fails, the issue is not in the code but in the Firebase project settings.
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  apiKey: "AIzaSyC8nFez_Ye_qT0kVxEYK7uhGB6oQRbRfU0",
+  authDomain: "learnwise-r6us0.firebaseapp.com",
+  projectId: "learnwise-r6us0",
+  storageBucket: "learnwise-r6us0.appspot.com",
+  messagingSenderId: "224206262515",
+  appId: "1:224206262515:web:d5960f2bc62f97be5ba786",
 };
 
 // Initialize Firebase
