@@ -335,7 +335,7 @@ export default function CalendarPage() {
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-white">
       {/* Audio Element */}
-      <audio ref={audioRef} src="https://cdn.pixabay.com/audio/2022/08/23/audio_82187b0e92.mp3" loop />
+      <audio ref={audioRef} src="https://cdn.pixabay.com/audio/2023/10/11/audio_a2f2670758.mp3" loop />
 
       {/* Background Image */}
       {backgroundImage ? (
