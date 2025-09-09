@@ -6,9 +6,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Github } from "lucide-react"
-import { createUserWithEmailAndPassword } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast"
-import { auth } from "@/lib/firebase"
 
 export default function SignUpPage() {
   const router = useRouter()
@@ -37,33 +35,11 @@ export default function SignUpPage() {
       return
     }
 
-    try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      // In a real app, you would also save the first/last name to a database like Firestore
-      // associated with the user's UID.
-      toast({
-          title: "Account Created!",
-          description: "Welcome to LearnWise. Let's discover your learning style.",
-      });
-      router.push('/learner-type');
-    } catch (error: any) {
-        let errorMessage = "An unknown error occurred.";
-        if (error.code === 'auth/email-already-in-use') {
-            errorMessage = 'This email address is already in use by another account.';
-        } else if (error.code === 'auth/invalid-email') {
-            errorMessage = 'Please enter a valid email address.';
-        } else if (error.code === 'auth/weak-password') {
-            errorMessage = 'The password is too weak.';
-        } else if (error.code === 'auth/internal-error') {
-            errorMessage = 'An internal server error occurred. Please try again later.'
-        }
-        toast({
-            variant: "destructive",
-            title: "Sign Up Failed",
-            description: errorMessage,
-        });
-        console.error(error);
-    }
+    toast({
+        title: "Account Created!",
+        description: "Welcome to LearnWise. Let's discover your learning style.",
+    });
+    router.push('/learner-type');
   }
 
   return (
