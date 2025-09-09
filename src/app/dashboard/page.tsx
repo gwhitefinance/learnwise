@@ -145,7 +145,6 @@ import { collection, query, where, getDocs, addDoc } from 'firebase/firestore';
 
 export default function DashboardPage() {
     const [courses, setCourses] = useState<Course[]>([]);
-    const [recentFiles, setRecentFiles] = useState<RecentFile[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
     const [isAddCourseOpen, setAddCourseOpen] = useState(false);
     const [newCourse, setNewCourse] = useState({ name: '', instructor: '', credits: '', url: ''});
@@ -170,11 +169,6 @@ export default function DashboardPage() {
         
         if (user) {
             fetchCourses();
-        }
-
-        const savedFiles = localStorage.getItem('recentFiles');
-        if (savedFiles) {
-            setRecentFiles(JSON.parse(savedFiles));
         }
         
         const savedProjects = localStorage.getItem('projects');
@@ -303,8 +297,8 @@ export default function DashboardPage() {
             modified: "Just now",
         }));
 
+        const recentFiles = JSON.parse(localStorage.getItem('recentFiles') || '[]');
         const updatedFiles = [...newFiles, ...recentFiles];
-        setRecentFiles(updatedFiles);
         localStorage.setItem('recentFiles', JSON.stringify(updatedFiles));
 
         console.log('Uploading files:', files);
@@ -503,38 +497,6 @@ export default function DashboardPage() {
 
                 <div className="grid grid-cols-1 gap-8 md:grid-cols-2 mt-8">
                     <section className="space-y-4">
-                        <div className="flex items-center justify-between">
-                        <h2 className="text-2xl font-semibold">Recent Files</h2>
-                        <Link href="/dashboard/upload">
-                            <Button variant="ghost" className="rounded-2xl">
-                                View All
-                            </Button>
-                        </Link>
-                        </div>
-                        <Card>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Name</TableHead>
-                                    <TableHead>Subject</TableHead>
-                                    <TableHead>Last Modified</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                            {recentFiles.slice(0, 3).map((file, index) => (
-                                <TableRow key={index}>
-                                     <TableCell className="font-medium">{file.name}</TableCell>
-                                    <TableCell>{file.subject}</TableCell>
-                                    <TableCell>{file.modified}</TableCell>
-                                </TableRow>
-                            ))}
-                             {recentFiles.length === 0 && <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground p-8">No recent files</TableCell></TableRow>}
-                            </TableBody>
-                        </Table>
-                        </Card>
-                    </section>
-
-                    <section className="space-y-4">
                         <Card className="bg-orange-500/10 border-orange-500/20 text-orange-900 dark:text-orange-200">
                            <CardContent className="p-6 flex items-center gap-6">
                                 <div className="p-4 bg-white/50 rounded-full">
@@ -551,6 +513,9 @@ export default function DashboardPage() {
                                 </Button>
                            </CardContent>
                         </Card>
+                    </section>
+
+                    <section className="space-y-4">
                         <div className="flex items-center justify-between">
                         <h2 className="text-2xl font-semibold">Active Courses</h2>
                         <Link href="/dashboard/courses">
@@ -630,25 +595,7 @@ export default function DashboardPage() {
                         <CardDescription>Manage all your uploaded study materials.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Name</TableHead>
-                                    <TableHead>Subject</TableHead>
-                                    <TableHead>Last Modified</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                            {recentFiles.map((file, index) => (
-                                <TableRow key={index}>
-                                    <TableCell className="font-medium">{file.name}</TableCell>
-                                    <TableCell>{file.subject}</TableCell>
-                                    <TableCell>{file.modified}</TableCell>
-                                </TableRow>
-                            ))}
-                             {recentFiles.length === 0 && <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground p-8">Upload a file to get started.</TableCell></TableRow>}
-                            </TableBody>
-                        </Table>
+                       <div className="text-center text-muted-foreground p-8">Upload a file to get started.</div>
                     </CardContent>
                 </Card>
             </TabsContent>

@@ -7,6 +7,12 @@ import { UploadCloud } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
+type RecentFile = {
+      name: string;
+      subject: string;
+      modified: string;
+  };
+
 export default function UploadPage() {
   const [files, setFiles] = useState<FileList | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -27,7 +33,17 @@ export default function UploadPage() {
       });
       return;
     }
-    // TODO: Implement actual file upload logic
+    
+    const newFiles: RecentFile[] = Array.from(files).map(file => ({
+        name: file.name,
+        subject: "General", // Or try to infer from context
+        modified: "Just now",
+    }));
+
+    const recentFiles = JSON.parse(localStorage.getItem('recentFiles') || '[]');
+    const updatedFiles = [...newFiles, ...recentFiles];
+    localStorage.setItem('recentFiles', JSON.stringify(updatedFiles));
+
     console.log('Uploading files:', files);
     toast({
       title: 'Upload Successful!',
@@ -61,7 +77,7 @@ export default function UploadPage() {
     
     const droppedFiles = e.dataTransfer.files;
     if (droppedFiles && droppedFiles.length > 0) {
-      setFiles(droppedFiles);
+      handleFileChange(droppedFiles);
     }
   };
 
