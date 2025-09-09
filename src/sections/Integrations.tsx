@@ -22,9 +22,9 @@ const integrations = [
         description: "Get study reminders and form study groups.",
     },
     {
-        name: "Zoom",
-        icon: "https://t4.ftcdn.net/jpg/03/75/33/61/360_F_375336103_KQSAG9rQuOgdSx01GNIPK9abZaIeGoGR.jpg",
-        description: "Launch study sessions directly from your calendar.",
+        name: "Spotify",
+        icon: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Spotify_icon.svg/1982px-Spotify_icon.svg.png",
+        description: "Play your favorite focus playlists while you study.",
     },
     {
         name: "Google Drive",
