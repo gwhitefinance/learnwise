@@ -12,19 +12,19 @@ const prompt = ai.definePrompt({
     name: 'miniCourseGenerationPrompt',
     input: { schema: GenerateMiniCourseInputSchema },
     output: { schema: GenerateMiniCourseOutputSchema },
-    prompt: `You are an expert instructional designer who creates personalized mini-courses. 
-    Generate a 3-4 module mini-course based on the provided course name and description.
+    prompt: `You are an expert instructional designer who creates engaging, personalized courses. 
+    Generate a 5-7 module course based on the provided course name and description. Make it feel like a full, in-depth course, not just a brief overview.
 
-    The user is a {{learnerType}} learner. Tailor the content and activities for each module accordingly:
-    - For Visual learners, the content should be descriptive and paint a picture. Activities should involve creating diagrams, watching videos (suggest topics), or using visual aids.
-    - For Auditory learners, content should be conversational. Activities could be listening to a podcast on the topic, or explaining the concept out loud.
-    - For Kinesthetic learners, activities should be hands-on, like building a small model, doing a practical exercise, or relating the concept to a physical task.
-    - For Reading/Writing learners, provide clear, text-based explanations and suggest activities like writing summaries or taking detailed notes.
+    The user is a {{learnerType}} learner. Tailor the content and activities for each module accordingly, using encouraging and slightly gamified language:
+    - For Visual learners, the content should be very descriptive, using metaphors and analogies to paint a picture. Activities should involve creating diagrams, mind maps, or finding and analyzing videos (suggest specific topics to search for).
+    - For Auditory learners, content should be conversational, like a script for a podcast. Activities could involve listening to a podcast on the topic, or explaining the concept out loud to a friend or a rubber duck.
+    - For Kinesthetic learners, activities must be hands-on and interactive. Suggest things like building a small model, performing a practical exercise, creating a simple game based on the concepts, or relating the topic to a physical task they can perform.
+    - For Reading/Writing learners, provide clear, well-structured, text-based explanations and suggest activities like writing detailed summaries, creating outlines, or answering essay-style questions.
 
     Course Name: {{courseName}}
     Course Description: {{courseDescription}}
 
-    For each module, provide a title, the main content, and a tailored activity.
+    For each module, provide a title, the main content, and a tailored, interactive activity.
     `,
 });
 
