@@ -55,6 +55,7 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { collection, query, where, onSnapshot, addDoc } from 'firebase/firestore';
 import Joyride, { Step, CallBackProps } from 'react-joyride';
+import { Skeleton } from '@/components/ui/skeleton';
 
 
   type Course = {
@@ -148,6 +149,7 @@ import Joyride, { Step, CallBackProps } from 'react-joyride';
 
 export default function DashboardPage() {
     const [courses, setCourses] = useState<Course[]>([]);
+    const [isDataLoading, setIsDataLoading] = useState(true);
     const [projects, setProjects] = useState<Project[]>([]);
     const [recentFiles, setRecentFiles] = useState<RecentFile[]>([]);
     const [isAddCourseOpen, setAddCourseOpen] = useState(false);
@@ -205,10 +207,12 @@ export default function DashboardPage() {
      useEffect(() => {
         if (!user) return;
         
+        setIsDataLoading(true);
         const q = query(collection(db, "courses"), where("userId", "==", user.uid));
         const unsubscribe = onSnapshot(q, (querySnapshot) => {
             const userCourses = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
             setCourses(userCourses);
+            setIsDataLoading(false);
         });
 
         // Mock streak calculation
@@ -290,6 +294,8 @@ export default function DashboardPage() {
         if (!user) return;
 
         setIsSavingCourse(true);
+        setAddCourseOpen(false); // Close dialog immediately
+
         const courseToAdd = {
             name: newCourse.name,
             instructor: newCourse.instructor,
@@ -315,7 +321,6 @@ export default function DashboardPage() {
             });
         } finally {
             setNewCourse({ name: '', instructor: '', credits: '', url: '' });
-            setAddCourseOpen(false);
             setIsSavingCourse(false);
         }
     };
@@ -668,33 +673,38 @@ export default function DashboardPage() {
                         </Link>
                         </div>
                          <div className="space-y-4">
-                            {courses.slice(0, 2).map((course) => (
-                                <Card key={course.id}>
-                                     <CardContent className="p-4">
-                                        <div className="flex items-center justify-between mb-2">
-                                            <h3 className="font-medium">{course.name}</h3>
-                                            <Badge variant="outline" className="rounded-xl">
-                                            In Progress
-                                            </Badge>
-                                        </div>
-                                        <p className="text-sm text-muted-foreground mb-3">{course.description}</p>
-                                        <div className="space-y-2">
-                                            <div className="flex items-center justify-between text-sm">
-                                            <span>Progress</span>
-                                            <span>{course.progress}%</span>
+                            {isDataLoading ? (
+                                Array.from({length: 2}).map((_, i) => <Skeleton key={i} className="h-36 w-full" />)
+                            ) : courses.length > 0 ? (
+                                courses.slice(0, 2).map((course) => (
+                                    <Card key={course.id}>
+                                        <CardContent className="p-4">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <h3 className="font-medium">{course.name}</h3>
+                                                <Badge variant="outline" className="rounded-xl">
+                                                In Progress
+                                                </Badge>
                                             </div>
-                                            <Progress value={course.progress} className="h-2 rounded-xl" />
-                                        </div>
-                                        <div className="flex items-center justify-between mt-3 text-sm text-muted-foreground">
-                                            <div className="flex items-center">
-                                            <FileText className="mr-1 h-4 w-4" />
-                                            {course.files} files
+                                            <p className="text-sm text-muted-foreground mb-3">{course.description}</p>
+                                            <div className="space-y-2">
+                                                <div className="flex items-center justify-between text-sm">
+                                                <span>Progress</span>
+                                                <span>{course.progress}%</span>
+                                                </div>
+                                                <Progress value={course.progress} className="h-2 rounded-xl" />
                                             </div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            ))}
-                             {courses.length === 0 && <Card><CardContent className="p-8 text-center text-muted-foreground">You haven't added any courses yet.</CardContent></Card>}
+                                            <div className="flex items-center justify-between mt-3 text-sm text-muted-foreground">
+                                                <div className="flex items-center">
+                                                <FileText className="mr-1 h-4 w-4" />
+                                                {course.files} files
+                                                </div>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                ))
+                            ) : (
+                                <Card><CardContent className="p-8 text-center text-muted-foreground">You haven't added any courses yet.</CardContent></Card>
+                            )}
                         </div>
                     </section>
                 </div>

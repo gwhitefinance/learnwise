@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -71,6 +72,7 @@ export default function CoursesPage() {
         if (!user) return;
 
         setIsSaving(true);
+        setAddCourseOpen(false); // Close dialog immediately
 
         const courseToAdd = {
             name: newCourse.name,
@@ -95,7 +97,6 @@ export default function CoursesPage() {
             });
         } finally {
             setNewCourse({ name: '', instructor: '', credits: '', url: '' });
-            setAddCourseOpen(false);
             setIsSaving(false);
         }
     };
