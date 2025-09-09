@@ -3,53 +3,80 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { UploadCloud } from 'lucide-react';
+import { UploadCloud, Wand2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
+import { generateSummary } from '@/ai/flows/note-summary-flow';
+import { Skeleton } from '@/components/ui/skeleton';
 
-type RecentFile = {
-      name: string;
-      subject: string;
-      modified: string;
-  };
 
 export default function UploadPage() {
-  const [files, setFiles] = useState<FileList | null>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const [fileContent, setFileContent] = useState<string>('');
+  const [summary, setSummary] = useState<string>('');
+  const [isSummarizing, setIsSummarizing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const { toast } = useToast();
 
   const handleFileChange = (selectedFiles: FileList | null) => {
-    if (selectedFiles) {
-      setFiles(selectedFiles);
+    if (selectedFiles && selectedFiles.length > 0) {
+      const selectedFile = selectedFiles[0];
+      // Limit to text-based files for now
+      if (!selectedFile.type.startsWith('text/')) {
+          toast({
+              variant: 'destructive',
+              title: 'Unsupported File Type',
+              description: 'Please upload a text-based file (e.g., .txt, .md).',
+          });
+          return;
+      }
+      setFile(selectedFile);
+      setSummary('');
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setFileContent(e.target?.result as string);
+      };
+      reader.readAsText(selectedFile);
+
+      toast({
+        title: 'File Selected',
+        description: `${selectedFile.name} is ready to be summarized.`,
+      });
     }
   };
 
-  const handleUpload = () => {
-    if (!files || files.length === 0) {
+  const handleGenerateSummary = async () => {
+    if (!fileContent) {
       toast({
         variant: 'destructive',
-        title: 'No files selected',
-        description: 'Please select at least one file to upload.',
+        title: 'No content to summarize',
+        description: 'Please select a file first.',
       });
       return;
     }
     
-    const newFiles: RecentFile[] = Array.from(files).map(file => ({
-        name: file.name,
-        subject: "General", // Or try to infer from context
-        modified: "Just now",
-    }));
-
-    const recentFiles = JSON.parse(localStorage.getItem('recentFiles') || '[]');
-    const updatedFiles = [...newFiles, ...recentFiles];
-    localStorage.setItem('recentFiles', JSON.stringify(updatedFiles));
-
-    console.log('Uploading files:', files);
-    toast({
-      title: 'Upload Successful!',
-      description: `${files.length} file(s) have been queued for processing.`,
-    });
-    setFiles(null);
+    setIsSummarizing(true);
+    setSummary('');
+    try {
+        const result = await generateSummary({ noteContent: fileContent });
+        setSummary(result.summary);
+         toast({
+            title: 'Summary Generated!',
+            description: `The AI has summarized ${file?.name}.`,
+        });
+    } catch (error) {
+        console.error("Failed to generate summary:", error);
+        toast({
+            variant: 'destructive',
+            title: 'Summarization Failed',
+            description: 'Could not generate a summary for this document.',
+        });
+    } finally {
+        setIsSummarizing(false);
+    }
   };
   
   const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
@@ -82,11 +109,11 @@ export default function UploadPage() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Analyze your study materials</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Analyze Your Documents</h1>
         <p className="text-muted-foreground">
-          Upload your documents, notes, or other study materials for AI analysis. Our AI will identify your learning style and provide personalized study recommendations.
+          Upload a text document to get an instant AI-powered summary.
         </p>
       </div>
 
@@ -104,37 +131,63 @@ export default function UploadPage() {
         <input 
           id="file-upload-input"
           type="file" 
-          multiple 
           className="hidden"
           onChange={(e) => handleFileChange(e.target.files)}
+          accept="text/*,.md"
         />
         <div className="flex flex-col items-center justify-center pt-5 pb-6">
           <UploadCloud className="w-10 h-10 mb-4 text-muted-foreground" />
           <p className="mb-2 text-lg font-semibold">
-            Drag and drop your files here
+            {file ? file.name : "Drag and drop a file here"}
           </p>
           <p className="text-sm text-muted-foreground">
-            Or click to browse your files
+            Or click to browse your files (text files only)
           </p>
         </div>
-        <Button onClick={(e) => {
-            e.stopPropagation(); // prevent triggering the div's onClick
-            handleUpload();
-        }}>
-          Upload Files
-        </Button>
       </div>
       
-      {files && files.length > 0 && (
-          <div className="mt-4">
-              <h3 className="text-lg font-semibold">Selected files:</h3>
-              <ul className="list-disc list-inside mt-2 text-sm text-muted-foreground">
-                  {Array.from(files).map((file, index) => (
-                      <li key={index}>{file.name}</li>
-                  ))}
-              </ul>
-          </div>
+      {fileContent && (
+        <div className="grid md:grid-cols-2 gap-6">
+            <Card>
+                <CardHeader>
+                    <CardTitle>File Content</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <Textarea readOnly value={fileContent} className="h-64 bg-muted" />
+                </CardContent>
+            </Card>
+             <Card>
+                <CardHeader>
+                    <CardTitle>AI Summary</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    {isSummarizing ? (
+                        <div className="space-y-2">
+                           <Skeleton className="h-4 w-full" />
+                           <Skeleton className="h-4 w-full" />
+                           <Skeleton className="h-4 w-3/4" />
+                        </div>
+                    ) : summary ? (
+                        <p className="text-muted-foreground">{summary}</p>
+                    ) : (
+                        <div className="text-center text-muted-foreground py-10">
+                            <p>Click the button to generate a summary.</p>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+        </div>
       )}
+
+      {fileContent && (
+        <div className="flex justify-end">
+            <Button onClick={handleGenerateSummary} disabled={isSummarizing}>
+                <Wand2 className="mr-2 h-4 w-4"/>
+                {isSummarizing ? 'Generating...' : 'Generate Summary'}
+            </Button>
+        </div>
+      )}
+
     </div>
   );
 }
