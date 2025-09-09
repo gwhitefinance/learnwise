@@ -465,6 +465,16 @@ export default function CalendarPage() {
                         </Select>
                     </div>
                   </div>
+                  <div className="grid grid-cols-2 gap-4">
+                        <div className="grid gap-2">
+                            <Label htmlFor="event-start-time">Start Time</Label>
+                            <Input id="event-start-time" type="time" value={newEventStartTime} onChange={(e) => setNewEventStartTime(e.target.value)} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="event-end-time">End Time</Label>
+                            <Input id="event-end-time" type="time" value={newEventEndTime} onChange={(e) => setNewEventEndTime(e.target.value)} />
+                        </div>
+                    </div>
                   <div className="grid gap-2">
                     <Label htmlFor="event-reminder">Reminder</Label>
                      <Select onValueChange={(value) => setNewEventReminder(Number(value))} defaultValue={String(newEventReminder)}>
@@ -780,3 +790,5 @@ export default function CalendarPage() {
     </div>
   )
 }
+
+    
