@@ -24,6 +24,7 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { collection, addDoc, query, where, getDocs, deleteDoc, doc, updateDoc, Timestamp, onSnapshot, orderBy } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
+import { Skeleton } from '@/components/ui/skeleton';
 
 type Note = {
   id: string;
@@ -124,6 +125,7 @@ export default function NotesPage() {
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [currentFlashcardIndex, setCurrentFlashcardIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
+  const [isNotesLoading, setIsNotesLoading] = useState(true);
   
   const [user, authLoading] = useAuthState(auth);
   const router = useRouter();
@@ -143,6 +145,7 @@ export default function NotesPage() {
         return;
     }
 
+    setIsNotesLoading(true);
     const q = query(collection(db, "notes"), where("userId", "==", user.uid), orderBy("date", "desc"));
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const userNotes = querySnapshot.docs.map(doc => {
@@ -154,11 +157,16 @@ export default function NotesPage() {
             } as Note;
         });
         setNotes(userNotes);
+        setIsNotesLoading(false);
     });
     
     return () => unsubscribe();
   }, [user, authLoading, router]);
 
+  const resetNewNoteForm = () => {
+    setNewNoteTitle('');
+    setNewNoteContent('');
+  };
 
   const handleAddNote = async () => {
     if (!newNoteTitle || !user) {
@@ -171,7 +179,9 @@ export default function NotesPage() {
     }
     
     setIsSaving(true);
+    const tempId = crypto.randomUUID();
     const noteData = {
+      id: tempId,
       title: newNoteTitle,
       content: newNoteContent,
       date: new Date(),
@@ -181,24 +191,35 @@ export default function NotesPage() {
       userId: user.uid,
     };
 
+    // Optimistic UI update
+    setNotes(prev => [noteData, ...prev]);
+    setNoteDialogOpen(false);
+    resetNewNoteForm();
+    setIsSaving(false);
+
+
     try {
-        await addDoc(collection(db, "notes"), noteData);
-        setNewNoteTitle('');
-        setNewNoteContent('');
-        setNoteDialogOpen(false);
+        const docData = { ...noteData };
+        delete (docData as any).id; // Don't save temp ID
+
+        const docRef = await addDoc(collection(db, "notes"), docData);
+
+        // Update note with real ID
+        setNotes(prev => prev.map(n => n.id === tempId ? { ...n, id: docRef.id } : n));
+
         toast({
             title: 'Note Created!',
             description: 'Your new note has been saved.',
         });
     } catch(error) {
         console.error("Error adding note: ", error);
+        // Revert optimistic update
+        setNotes(prev => prev.filter(n => n.id !== tempId));
         toast({
             variant: 'destructive',
             title: 'Error',
             description: 'Could not save note. Please try again.',
         });
-    } finally {
-        setIsSaving(false);
     }
   };
   
@@ -303,14 +324,9 @@ export default function NotesPage() {
     }
   };
 
-  const filteredNotes = notes.filter(note => {
-      if (activeTab === 'important') return note.isImportant && !note.isCompleted;
-      if (activeTab === 'todo') return !note.isCompleted;
-      if (activeTab === 'completed') return note.isCompleted;
-      return !note.isCompleted;
-  });
-
   const allNotesTab = notes.filter(note => !note.isCompleted);
+  const importantNotesTab = notes.filter(note => note.isImportant && !note.isCompleted);
+  const todoNotesTab = notes.filter(note => !note.isCompleted);
   const completedNotesTab = notes.filter(note => note.isCompleted);
 
 
@@ -357,38 +373,71 @@ export default function NotesPage() {
           <TabsTrigger value="completed">Archived</TabsTrigger>
         </TabsList>
         <TabsContent value="all" className="mt-4">
-           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {allNotesTab.map(note => (
-                <NoteCard key={note.id} note={note} onDelete={handleDeleteNote} onToggleImportant={handleToggleImportant} onToggleComplete={handleToggleComplete} onSummarize={handleSummarize} onGenerateQuiz={handleGenerateQuiz} onGenerateFlashcards={handleGenerateFlashcards}/>
-              ))}
-              {allNotesTab.length === 0 && <p className="text-center text-muted-foreground col-span-full py-12">No active notes. Create one to get started!</p>}
-           </div>
+            {isNotesLoading ? (
+                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    <Skeleton className="h-48 w-full" />
+                    <Skeleton className="h-48 w-full" />
+                    <Skeleton className="h-48 w-full" />
+                </div>
+            ) : (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {allNotesTab.map(note => (
+                        <NoteCard key={note.id} note={note} onDelete={handleDeleteNote} onToggleImportant={handleToggleImportant} onToggleComplete={handleToggleComplete} onSummarize={handleSummarize} onGenerateQuiz={handleGenerateQuiz} onGenerateFlashcards={handleGenerateFlashcards}/>
+                    ))}
+                    {allNotesTab.length === 0 && <p className="text-center text-muted-foreground col-span-full py-12">No active notes. Create one to get started!</p>}
+                </div>
+            )}
         </TabsContent>
         <TabsContent value="important" className="mt-4">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {filteredNotes.map(note => (
-                <NoteCard key={note.id} note={note} onDelete={handleDeleteNote} onToggleImportant={handleToggleImportant} onToggleComplete={handleToggleComplete} onSummarize={handleSummarize} onGenerateQuiz={handleGenerateQuiz} onGenerateFlashcards={handleGenerateFlashcards}/>
-              ))}
-               {filteredNotes.length === 0 && <p className="text-center text-muted-foreground col-span-full py-12">No important notes yet.</p>}
-           </div>
+             {isNotesLoading ? (
+                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    <Skeleton className="h-48 w-full" />
+                    <Skeleton className="h-48 w-full" />
+                </div>
+            ) : (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {importantNotesTab.map(note => (
+                    <NoteCard key={note.id} note={note} onDelete={handleDeleteNote} onToggleImportant={handleToggleImportant} onToggleComplete={handleToggleComplete} onSummarize={handleSummarize} onGenerateQuiz={handleGenerateQuiz} onGenerateFlashcards={handleGenerateFlashcards}/>
+                ))}
+                {importantNotesTab.length === 0 && <p className="text-center text-muted-foreground col-span-full py-12">No important notes yet.</p>}
+                </div>
+            )}
         </TabsContent>
         <TabsContent value="todo" className="mt-4">
             <Card>
                 <CardContent className="p-0">
-                    {filteredNotes.map(note => (
-                        <TodoListItem key={note.id} note={note} onDelete={handleDeleteNote} onToggleComplete={handleToggleComplete}/>
-                    ))}
-                    {filteredNotes.length === 0 && <p className="p-4 text-center text-muted-foreground">No tasks to do!</p>}
+                    {isNotesLoading ? (
+                        <div className="p-4 space-y-4">
+                            <Skeleton className="h-8 w-full" />
+                            <Skeleton className="h-8 w-full" />
+                            <Skeleton className="h-8 w-full" />
+                        </div>
+                    ) : (
+                        <>
+                        {todoNotesTab.map(note => (
+                            <TodoListItem key={note.id} note={note} onDelete={handleDeleteNote} onToggleComplete={handleToggleComplete}/>
+                        ))}
+                        {todoNotesTab.length === 0 && <p className="p-4 text-center text-muted-foreground">No tasks to do!</p>}
+                        </>
+                    )}
                 </CardContent>
             </Card>
         </TabsContent>
         <TabsContent value="completed" className="mt-4">
-           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {completedNotesTab.map(note => (
-                <NoteCard key={note.id} note={note} onDelete={handleDeleteNote} onToggleImportant={handleToggleImportant} onToggleComplete={handleToggleComplete} onSummarize={handleSummarize} onGenerateQuiz={handleGenerateQuiz} onGenerateFlashcards={handleGenerateFlashcards}/>
-              ))}
-              {completedNotesTab.length === 0 && <p className="text-center text-muted-foreground col-span-full py-12">No archived notes.</p>}
-           </div>
+            {isNotesLoading ? (
+                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    <Skeleton className="h-48 w-full" />
+                    <Skeleton className="h-48 w-full" />
+                    <Skeleton className="h-48 w-full" />
+                </div>
+            ) : (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {completedNotesTab.map(note => (
+                    <NoteCard key={note.id} note={note} onDelete={handleDeleteNote} onToggleImportant={handleToggleImportant} onToggleComplete={handleToggleComplete} onSummarize={handleSummarize} onGenerateQuiz={handleGenerateQuiz} onGenerateFlashcards={handleGenerateFlashcards}/>
+                ))}
+                {completedNotesTab.length === 0 && <p className="text-center text-muted-foreground col-span-full py-12">No archived notes.</p>}
+                </div>
+            )}
         </TabsContent>
       </Tabs>
     </div>
@@ -404,7 +453,9 @@ export default function NotesPage() {
             <div className="py-4">
                 {isSummaryLoading ? (
                      <div className="space-y-2">
-                        <p className="animate-pulse">Generating your summary...</p>
+                        <Skeleton className="h-4 w-3/4" />
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-5/6" />
                     </div>
                 ) : (
                     <p className="text-muted-foreground">{summaryContent}</p>
@@ -519,5 +570,3 @@ export default function NotesPage() {
     </>
   );
 }
-
-    

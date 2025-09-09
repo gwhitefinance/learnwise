@@ -276,6 +276,19 @@ export default function CalendarPage() {
     }
   }
 
+    const resetNewEventForm = () => {
+        setNewEventTitle('');
+        setNewEventDesc('');
+        setNewEventDate(new Date());
+        setNewEventStartTime('10:00');
+        setNewEventEndTime('11:00');
+        setNewEventLocation('Remote');
+        setNewEventOrganizer('Self');
+        setNewEventAttendees('');
+        setNewEventType('Event');
+        setNewEventReminder(10);
+    }
+
     const handleAddEvent = async () => {
         if (!newEventTitle || !newEventDate || !user) {
             toast({
@@ -287,13 +300,17 @@ export default function CalendarPage() {
         }
 
         setIsSavingEvent(true);
+        
+        // Optimistic UI update
+        const tempId = crypto.randomUUID();
         const eventData = {
+            id: tempId,
             title: newEventTitle,
             description: newEventDesc,
             date: newEventDate.toISOString(),
             startTime: newEventStartTime,
             endTime: newEventEndTime,
-            day: newEventDate.getDay(), // 0 for Sunday, 1 for Monday, etc.
+            day: newEventDate.getDay(),
             type: newEventType,
             color: eventTypes[newEventType],
             location: newEventLocation,
@@ -303,39 +320,36 @@ export default function CalendarPage() {
             userId: user.uid,
         };
 
+        // Immediately update state and close dialog
+        setEvents(prev => [...prev, eventData]);
+        scheduleReminder(eventData);
+        setCreateDialogOpen(false);
+        resetNewEventForm();
+        setIsSavingEvent(false);
+
         try {
-            const docRef = await addDoc(collection(db, "calendarEvents"), eventData);
-            const newEvent: Event = { id: docRef.id, ...eventData };
-            setEvents(prev => [...prev, newEvent]);
-            scheduleReminder(newEvent);
+            const docData = { ...eventData };
+            delete (docData as any).id; // Don't save temp ID
+
+            const docRef = await addDoc(collection(db, "calendarEvents"), docData);
+
+            // Update the event with the real ID from Firestore
+            setEvents(prev => prev.map(e => e.id === tempId ? { ...e, id: docRef.id } : e));
 
             toast({
                 title: "Event Created!",
-                description: `${newEvent.title} has been added to your calendar.`,
+                description: `${eventData.title} has been added to your calendar.`,
             });
-            
-            // Reset form and close dialog
-            setCreateDialogOpen(false);
-            setNewEventTitle('');
-            setNewEventDesc('');
-            setNewEventDate(new Date());
-            setNewEventStartTime('10:00');
-            setNewEventEndTime('11:00');
-            setNewEventLocation('Remote');
-            setNewEventOrganizer('Self');
-            setNewEventAttendees('');
-            setNewEventType('Event');
-            setNewEventReminder(10);
 
         } catch (error) {
             console.error("Error adding event: ", error);
+            // Revert optimistic update
+            setEvents(prev => prev.filter(e => e.id !== tempId));
             toast({
                 variant: "destructive",
                 title: "Error",
                 description: "Could not add event. Please try again.",
             });
-        } finally {
-            setIsSavingEvent(false);
         }
     };
   
@@ -854,5 +868,3 @@ export default function CalendarPage() {
     </div>
   )
 }
-
-    

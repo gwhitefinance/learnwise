@@ -15,6 +15,8 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { collection, addDoc, query, where, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
+import { Skeleton } from '@/components/ui/skeleton';
+
 
 type Course = {
     id: string;
@@ -31,11 +33,12 @@ export default function CoursesPage() {
     const [isSaving, setIsSaving] = useState(false);
     const [newCourse, setNewCourse] = useState({ name: '', instructor: '', credits: '', url: ''});
     const { toast } = useToast();
-    const [user, loading] = useAuthState(auth);
+    const [user, authLoading] = useAuthState(auth);
     const router = useRouter();
+    const [isDataLoading, setIsDataLoading] = useState(true);
     
     useEffect(() => {
-        if (loading) return;
+        if (authLoading) return;
         if (!user) {
             router.push('/signup');
             return;
@@ -43,14 +46,16 @@ export default function CoursesPage() {
 
         const fetchCourses = async () => {
             if (!user) return;
+            setIsDataLoading(true);
             const q = query(collection(db, "courses"), where("userId", "==", user.uid));
             const querySnapshot = await getDocs(q);
             const userCourses = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
             setCourses(userCourses);
+            setIsDataLoading(false);
         };
 
         fetchCourses();
-    }, [user, loading, router]);
+    }, [user, authLoading, router]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -69,34 +74,49 @@ export default function CoursesPage() {
         if (!user) return;
 
         setIsSaving(true);
+
+        // Optimistic UI update
+        const tempId = crypto.randomUUID();
         const courseToAdd = {
+            id: tempId,
             name: newCourse.name,
             instructor: newCourse.instructor,
             credits: parseInt(newCourse.credits, 10),
             url: newCourse.url,
             userId: user.uid,
         };
+
+        // Immediately update state and close dialog
+        setCourses(prev => [...prev, courseToAdd]);
+        setNewCourse({ name: '', instructor: '', credits: '', url: '' });
+        setAddCourseOpen(false);
+        setIsSaving(false);
         
         try {
-            const docRef = await addDoc(collection(db, "courses"), courseToAdd);
-            setCourses(prev => [...prev, { id: docRef.id, ...courseToAdd }]);
-            setNewCourse({ name: '', instructor: '', credits: '', url: '' });
-            setAddCourseOpen(false);
+            const docData = { ...courseToAdd };
+            delete (docData as any).id; // Don't save the temp ID to Firestore
+
+            const docRef = await addDoc(collection(db, "courses"), docData);
+            
+            // Update the course with the real ID from Firestore
+            setCourses(prev => prev.map(c => c.id === tempId ? { ...c, id: docRef.id } : c));
+            
             toast({
                 title: 'Course Added!',
                 description: `${courseToAdd.name} has been added to your list.`
             });
         } catch(error) {
             console.error("Error adding document: ", error);
+            // Revert optimistic update on error
+            setCourses(prev => prev.filter(c => c.id !== tempId));
             toast({
                 variant: 'destructive',
                 title: 'Error',
                 description: 'Could not add course. Please try again.',
             });
-        } finally {
-            setIsSaving(false);
         }
     };
+
 
     const handleDeleteCourse = async (id: string) => {
         try {
@@ -116,8 +136,8 @@ export default function CoursesPage() {
         }
     };
 
-    if (loading) {
-        return <div>Loading...</div>;
+    if (authLoading) {
+        return <div>Loading user...</div>;
     }
 
 
@@ -174,7 +194,16 @@ export default function CoursesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {courses.map((course) => (
+              {isDataLoading ? (
+                Array.from({length: 3}).map((_, i) => (
+                    <TableRow key={i}>
+                        <TableCell><Skeleton className="h-5 w-3/4" /></TableCell>
+                        <TableCell><Skeleton className="h-5 w-1/2" /></TableCell>
+                        <TableCell><Skeleton className="h-5 w-1/4" /></TableCell>
+                        <TableCell className="text-right space-x-2"><Skeleton className="h-8 w-8 inline-block" /><Skeleton className="h-8 w-8 inline-block" /></TableCell>
+                    </TableRow>
+                ))
+              ) : courses.map((course) => (
                 <TableRow key={course.id}>
                   <TableCell>
                     <div className="flex items-center gap-2">
@@ -196,7 +225,7 @@ export default function CoursesPage() {
                             <Eye className="h-4 w-4" />
                         </Button>
                     </Link>
-                    <Button variant="ghost" size="icon">
+                    <Button variant="ghost" size="icon" disabled>
                       <FilePenLine className="h-4 w-4" />
                     </Button>
                     <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => handleDeleteCourse(course.id)}>
@@ -207,10 +236,13 @@ export default function CoursesPage() {
               ))}
             </TableBody>
           </Table>
+            {!isDataLoading && courses.length === 0 && (
+                <div className="text-center p-8 text-muted-foreground">
+                    You haven't added any courses yet. Click "Add Course" to get started.
+                </div>
+            )}
         </CardContent>
       </Card>
     </div>
   );
 }
-
-    
