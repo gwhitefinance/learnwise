@@ -77,11 +77,11 @@ import {
             whileHover={{ y: -5, scale: 1.02 }}
             transition={{ type: 'spring', stiffness: 300 }}
             className={cn(
-                "relative group h-full rounded-2xl border border-border/20 bg-background/50 p-6 overflow-hidden flex flex-col justify-between",
+                "relative group h-full rounded-2xl border border-border/20 bg-background/50 p-6 overflow-hidden flex flex-col",
                 isFeatured ? "lg:col-span-2 lg:row-span-2" : "",
             )}
         >
-            <div>
+            <div className="flex-grow">
                 <div className="bg-primary/10 text-primary p-3 rounded-xl inline-block mb-4">
                     {icon}
                 </div>
@@ -575,14 +575,14 @@ export default function DashboardPage() {
              <TabsContent value="apps">
                 <div className="grid lg:grid-cols-2 gap-6">
                     <div className="space-y-6">
-                        {apps.filter(app => app.title === "AI Chat" || app.title === "Practice Quiz").map(app => (
-                             <AppCard key={app.title} {...app} isFeatured={app.title === 'AI Chat'} />
-                        ))}
+                         <AppCard title="AI Chat" href="/dashboard/ai-chat" description="Get instant answers and explanations from your AI study partner." icon={<BrainCircuit className="w-8 h-8"/>} isFeatured actionButton={<Button variant="outline" className="w-full">Start Chatting <ArrowRight className="ml-2 h-4 w-4"/></Button>} />
+                         <AppCard title="Practice Quiz" href="/dashboard/practice-quiz" description="Test your knowledge with AI quizzes." icon={<Lightbulb className="w-8 h-8"/>} actionButton={<Button variant="outline" className="w-full">Generate Quiz <ArrowRight className="ml-2 h-4 w-4"/></Button>}/>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {apps.filter(app => app.title !== "AI Chat" && app.title !== "Practice Quiz").map(app => (
-                             <AppCard key={app.title} {...app} />
-                        ))}
+                       <AppCard title="Study Roadmaps" href="/dashboard/roadmaps" description="Plan your learning journey." icon={<GitMerge className="w-8 h-8"/>} />
+                       <AppCard title="Whiteboard" href="/dashboard/whiteboard" description="Brainstorm and visualize ideas." icon={<PenSquare className="w-8 h-8"/>} />
+                       <AppCard title="Notes" href="/dashboard/notes" description="Create, organize, and review your notes." icon={<Notebook className="w-8 h-8"/>} />
+                       <AppCard title="Calendar" href="/dashboard/calendar" description="Manage your deadlines and study schedule." icon={<Calendar className="w-8 h-8"/>} />
                     </div>
                 </div>
             </TabsContent>
