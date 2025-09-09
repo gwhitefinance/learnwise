@@ -50,6 +50,10 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DatePicker } from '@/components/ui/date-picker';
 import { format } from 'date-fns';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { auth, db } from '@/lib/firebase';
+import { collection, query, where, getDocs, addDoc } from 'firebase/firestore';
+
 
   type Course = {
     id: string;
@@ -60,6 +64,7 @@ import { format } from 'date-fns';
     description: string;
     progress: number;
     files: number;
+    userId?: string;
   };
   
   type RecentFile = {
@@ -98,74 +103,6 @@ import { format } from 'date-fns';
         )}
     </motion.div>
 );
-
-
-  const initialCourses = [
-    {
-      id: "1",
-      name: "Calculus I",
-      description: "Master differential and integral calculus.",
-      instructor: "Prof. David Lee",
-      credits: 4,
-      progress: 75,
-      files: 12,
-      url: ''
-    },
-    {
-      id: "2",
-      name: "Intro to Programming",
-      description: "Learn Python fundamentals and best practices.",
-      instructor: "Dr. Emily Carter",
-      credits: 3,
-      progress: 60,
-      files: 28,
-      url: 'https://www.coursera.org/specializations/python'
-    },
-    {
-      id: "3",
-      name: "Linear Algebra",
-      description: "Understand vectors, matrices, and transformations.",
-      instructor: "Dr. Sarah Jones",
-      credits: 3,
-      progress: 90,
-      files: 18,
-      url: ''
-    },
-  ];
-
-  const initialRecentFiles: RecentFile[] = [
-    {
-      name: "Calculus Midterm Study Guide.pdf",
-      subject: "Calculus I",
-      modified: "2 hours ago",
-    },
-    {
-      name: "History Chapter 5 Notes.docx",
-      subject: "World History",
-      modified: "Yesterday",
-    },
-    {
-      name: "Programming Assignment 3.py",
-      subject: "Intro to Programming",
-      modified: "3 days ago",
-    },
-    {
-      name: "Linear Algebra Problem Set 2.pdf",
-      subject: "Linear Algebra",
-      modified: "4 days ago",
-    },
-    {
-      name: "English Essay Draft.docx",
-      subject: "English Literature",
-      modified: "1 week ago",
-    },
-  ];
-  
-  const initialProjects: Project[] = [
-      { id: '1', name: 'Research Paper', course: 'World History', dueDate: '2024-12-01', status: 'In Progress' },
-      { id: '2', name: 'Final Project', course: 'Intro to Programming', dueDate: '2024-12-10', status: 'Not Started' },
-      { id: '3', name: 'Midterm Exam', course: 'Calculus I', dueDate: '2024-11-15', status: 'Completed' },
-  ];
 
   const learningResources = [
     { title: "The Feynman Technique", description: "A method for learning anything by explaining it in simple terms.", link: "#" },
@@ -219,30 +156,30 @@ export default function DashboardPage() {
     const [isAddProjectOpen, setAddProjectOpen] = useState(false);
     const [newProject, setNewProject] = useState({ name: '', course: '', dueDate: new Date() as Date | undefined });
     const [streak, setStreak] = useState(0);
+    const [user] = useAuthState(auth);
+
 
      useEffect(() => {
-        const savedCourses = localStorage.getItem('courses');
-        if (savedCourses) {
-            setCourses(JSON.parse(savedCourses));
-        } else {
-            setCourses(initialCourses);
-            localStorage.setItem('courses', JSON.stringify(initialCourses));
+        const fetchCourses = async () => {
+            if (!user) return;
+            const q = query(collection(db, "courses"), where("userId", "==", user.uid));
+            const querySnapshot = await getDocs(q);
+            const userCourses = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
+            setCourses(userCourses);
+        };
+        
+        if (user) {
+            fetchCourses();
         }
 
         const savedFiles = localStorage.getItem('recentFiles');
         if (savedFiles) {
             setRecentFiles(JSON.parse(savedFiles));
-        } else {
-            setRecentFiles(initialRecentFiles);
-            localStorage.setItem('recentFiles', JSON.stringify(initialRecentFiles));
         }
         
         const savedProjects = localStorage.getItem('projects');
         if (savedProjects) {
             setProjects(JSON.parse(savedProjects));
-        } else {
-            setProjects(initialProjects);
-            localStorage.setItem('projects', JSON.stringify(initialProjects));
         }
 
         // Mock streak calculation
@@ -264,7 +201,7 @@ export default function DashboardPage() {
         }
         localStorage.setItem('lastVisit', today);
 
-    }, []);
+    }, [user]);
 
     const handleProjectInputChange = (field: string, value: string | Date | undefined) => {
         setNewProject(prev => ({ ...prev, [field]: value }));
@@ -304,7 +241,7 @@ export default function DashboardPage() {
         setNewCourse(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleAddCourse = () => {
+    const handleAddCourse = async () => {
         if (!newCourse.name || !newCourse.instructor || !newCourse.credits) {
             toast({
                 variant: 'destructive',
@@ -313,27 +250,35 @@ export default function DashboardPage() {
             });
             return;
         }
+        if (!user) return;
 
-        const courseToAdd: Course = {
-            id: crypto.randomUUID(),
+        const courseToAdd = {
             name: newCourse.name,
             instructor: newCourse.instructor,
             credits: parseInt(newCourse.credits, 10),
             url: newCourse.url,
+            userId: user.uid,
             description: `A comprehensive course on ${newCourse.name} taught by ${newCourse.instructor}.`,
             progress: 0,
             files: 0,
         };
-
-        const updatedCourses = [courseToAdd, ...courses];
-        setCourses(updatedCourses);
-        localStorage.setItem('courses', JSON.stringify(updatedCourses));
-        setNewCourse({ name: '', instructor: '', credits: '', url: '' });
-        setAddCourseOpen(false);
-        toast({
-            title: 'Course Added!',
-            description: `${courseToAdd.name} has been added to your list.`
-        });
+        
+        try {
+            const docRef = await addDoc(collection(db, "courses"), courseToAdd);
+            setCourses(prev => [...prev, { id: docRef.id, ...courseToAdd }]);
+            setNewCourse({ name: '', instructor: '', credits: '', url: '' });
+            setAddCourseOpen(false);
+            toast({
+                title: 'Course Added!',
+                description: `${courseToAdd.name} has been added to your list.`
+            });
+        } catch(error) {
+             toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: 'Could not add course. Please try again.',
+            });
+        }
     };
     
     const handleFileChange = (selectedFiles: FileList | null) => {
@@ -583,6 +528,7 @@ export default function DashboardPage() {
                                     <TableCell>{file.modified}</TableCell>
                                 </TableRow>
                             ))}
+                             {recentFiles.length === 0 && <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground p-8">No recent files</TableCell></TableRow>}
                             </TableBody>
                         </Table>
                         </Card>
@@ -640,6 +586,7 @@ export default function DashboardPage() {
                                     </CardContent>
                                 </Card>
                             ))}
+                             {courses.length === 0 && <Card><CardContent className="p-8 text-center text-muted-foreground">You haven't added any courses yet.</CardContent></Card>}
                         </div>
                     </section>
                 </div>
@@ -699,6 +646,7 @@ export default function DashboardPage() {
                                     <TableCell>{file.modified}</TableCell>
                                 </TableRow>
                             ))}
+                             {recentFiles.length === 0 && <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground p-8">Upload a file to get started.</TableCell></TableRow>}
                             </TableBody>
                         </Table>
                     </CardContent>
@@ -776,6 +724,7 @@ export default function DashboardPage() {
                                     </CardFooter>
                                 </Card>
                             ))}
+                             {projects.length === 0 && <p className="col-span-full text-center text-muted-foreground p-8">No projects added yet.</p>}
                         </div>
                     </CardContent>
                 </Card>

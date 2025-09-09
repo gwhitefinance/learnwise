@@ -36,16 +36,6 @@ type Flashcard = {
     back: string;
 };
 
-const initialNotes: Note[] = [
-  { id: '1', title: 'Project Ideation', content: 'Brainstorm ideas for the new marketing campaign. Focus on user engagement and brand visibility.', date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), color: 'bg-red-100 dark:bg-red-900/20', isImportant: true, isCompleted: false },
-  { id: '2', title: 'Weekly Sync', content: 'Prepare agenda for the weekly sync meeting. Include topics: Q3 roadmap, budget allocation, and team performance.', date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), color: 'bg-yellow-100 dark:bg-yellow-900/20', isImportant: false, isCompleted: false },
-  { id: '3', title: 'UI/UX Feedback', content: 'Review the latest mockups from the design team and provide constructive feedback. Check for consistency.', date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), color: 'bg-blue-100 dark:bg-blue-900/20', isImportant: false, isCompleted: false },
-  { id: '4', title: 'Code Refactor', content: 'Plan for refactoring the legacy codebase. Identify modules with high technical debt and prioritize them.', date: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000), color: 'bg-purple-100 dark:bg-purple-900/20', isImportant: true, isCompleted: true },
-  { id: '5', title: 'Client Call Notes', content: 'Summarize key discussion points from the call with Client X. Action items: send follow-up email, schedule demo.', date: new Date(Date.now() - 21 * 24 * 60 * 60 * 1000), color: 'bg-indigo-100 dark:bg-indigo-900/20', isImportant: false, isCompleted: false },
-  { id: '6', title: 'Personal Goals Q3', content: 'Outline personal development goals for the third quarter. Focus on learning a new programming language.', date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), color: 'bg-green-100 dark:bg-green-900/20', isImportant: false, isCompleted: false },
-];
-
-
 const NoteCard = ({ note, onDelete, onToggleImportant, onToggleComplete, onSummarize, onGenerateQuiz, onGenerateFlashcards }: { note: Note, onDelete: (id: string) => void, onToggleImportant: (id: string) => void, onToggleComplete: (id: string) => void, onSummarize: (content: string) => void, onGenerateQuiz: (noteContent: string) => void, onGenerateFlashcards: (noteContent: string) => void }) => {
   return (
     <Card className={`overflow-hidden ${note.color}`}>
@@ -84,7 +74,7 @@ const NoteCard = ({ note, onDelete, onToggleImportant, onToggleComplete, onSumma
         <CardDescription className="text-sm pt-2">{note.content}</CardDescription>
       </CardHeader>
       <CardContent className="p-4 pt-0">
-         <p className="text-xs text-muted-foreground">{formatDistanceToNow(note.date, { addSuffix: true })}</p>
+         <p className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(note.date), { addSuffix: true })}</p>
       </CardContent>
     </Card>
   );
@@ -107,7 +97,7 @@ const TodoListItem = ({ note, onDelete, onToggleComplete }: { note: Note, onDele
 }
 
 export default function NotesPage() {
-  const [notes, setNotes] = useState<Note[]>(initialNotes);
+  const [notes, setNotes] = useState<Note[]>([]);
   const [isNoteDialogOpen, setNoteDialogOpen] = useState(false);
   const [newNoteTitle, setNewNoteTitle] = useState('');
   const [newNoteContent, setNewNoteContent] = useState('');
@@ -133,7 +123,17 @@ export default function NotesPage() {
   useEffect(() => {
     const storedLearnerType = localStorage.getItem('learnerType');
     setLearnerType(storedLearnerType ?? 'Unknown');
+
+    const savedNotes = localStorage.getItem('notes');
+    if (savedNotes) {
+        setNotes(JSON.parse(savedNotes));
+    }
   }, []);
+
+  const saveNotes = (updatedNotes: Note[]) => {
+      setNotes(updatedNotes);
+      localStorage.setItem('notes', JSON.stringify(updatedNotes));
+  }
 
   const handleAddNote = () => {
     if (!newNoteTitle) {
@@ -153,7 +153,7 @@ export default function NotesPage() {
       isImportant: false,
       isCompleted: false,
     };
-    setNotes([newNote, ...notes]);
+    saveNotes([newNote, ...notes]);
     setNewNoteTitle('');
     setNewNoteContent('');
     setNoteDialogOpen(false);
@@ -164,18 +164,18 @@ export default function NotesPage() {
   };
   
   const handleDeleteNote = (id: string) => {
-    setNotes(notes.filter(n => n.id !== id));
+    saveNotes(notes.filter(n => n.id !== id));
      toast({
       title: 'Note Deleted',
     });
   };
   
   const handleToggleImportant = (id: string) => {
-    setNotes(notes.map(n => n.id === id ? {...n, isImportant: !n.isImportant} : n));
+    saveNotes(notes.map(n => n.id === id ? {...n, isImportant: !n.isImportant} : n));
   };
 
   const handleToggleComplete = (id: string) => {
-    setNotes(notes.map(n => n.id === id ? {...n, isCompleted: !n.isCompleted} : n));
+    saveNotes(notes.map(n => n.id === id ? {...n, isCompleted: !n.isCompleted} : n));
   };
 
   const handleSummarize = async (noteContent: string) => {
@@ -299,6 +299,7 @@ export default function NotesPage() {
               {filteredNotes.map(note => (
                 <NoteCard key={note.id} note={note} onDelete={handleDeleteNote} onToggleImportant={handleToggleImportant} onToggleComplete={handleToggleComplete} onSummarize={handleSummarize} onGenerateQuiz={handleGenerateQuiz} onGenerateFlashcards={handleGenerateFlashcards}/>
               ))}
+              {filteredNotes.length === 0 && <p className="text-center text-muted-foreground col-span-full py-12">No notes here. Create one to get started!</p>}
            </div>
         </TabsContent>
         <TabsContent value="important" className="mt-4">
@@ -306,6 +307,7 @@ export default function NotesPage() {
               {filteredNotes.map(note => (
                 <NoteCard key={note.id} note={note} onDelete={handleDeleteNote} onToggleImportant={handleToggleImportant} onToggleComplete={handleToggleComplete} onSummarize={handleSummarize} onGenerateQuiz={handleGenerateQuiz} onGenerateFlashcards={handleGenerateFlashcards}/>
               ))}
+               {filteredNotes.length === 0 && <p className="text-center text-muted-foreground col-span-full py-12">No important notes yet.</p>}
            </div>
         </TabsContent>
         <TabsContent value="todo" className="mt-4">
@@ -323,6 +325,7 @@ export default function NotesPage() {
               {filteredNotes.map(note => (
                 <NoteCard key={note.id} note={note} onDelete={handleDeleteNote} onToggleImportant={handleToggleImportant} onToggleComplete={handleToggleComplete} onSummarize={handleSummarize} onGenerateQuiz={handleGenerateQuiz} onGenerateFlashcards={handleGenerateFlashcards}/>
               ))}
+              {filteredNotes.length === 0 && <p className="text-center text-muted-foreground col-span-full py-12">No completed notes.</p>}
            </div>
         </TabsContent>
       </Tabs>

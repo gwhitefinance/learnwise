@@ -18,6 +18,9 @@ import { DatePicker } from '@/components/ui/date-picker';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { auth, db } from '@/lib/firebase';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 
 
 type Course = {
@@ -25,6 +28,7 @@ type Course = {
     name: string;
     description: string;
     url?: string;
+    userId?: string;
 };
 
 type Goal = {
@@ -48,25 +52,6 @@ type Roadmap = {
     milestones: Milestone[];
 };
 
-const initialCourses: Course[] = [
-    {
-        id: '1',
-        name: "Introduction to Programming",
-        description: "Learn the fundamentals of programming using Python.",
-        url: "https://www.coursera.org/specializations/python"
-    },
-    {
-        id: '2',
-        name: "Calculus I",
-        description: "An introduction to differential and integral calculus."
-    },
-    {
-        id: '3',
-        name: "Linear Algebra",
-        description: "Explore vectors, matrices, and linear transformations."
-    },
-];
-
 const getIcon = (iconName: keyof typeof LucideIcons | undefined, defaultIcon: keyof typeof LucideIcons) => {
     const Icon = iconName ? LucideIcons[iconName] as React.ElementType : LucideIcons[defaultIcon] as React.ElementType;
     if (!Icon) return LucideIcons[defaultIcon] as React.ElementType;
@@ -79,6 +64,7 @@ export default function RoadmapsPage() {
     const [roadmaps, setRoadmaps] = useState<Record<string, Roadmap>>({});
     const [isLoading, setIsLoading] = useState<Record<string, boolean>>({});
     const { toast } = useToast();
+    const [user] = useAuthState(auth);
     
     // State for the edit/add dialog
     const [isItemDialogOpen, setIsItemDialogOpen] = useState(false);
@@ -91,25 +77,26 @@ export default function RoadmapsPage() {
 
 
     useEffect(() => {
-        const savedCourses = localStorage.getItem('courses');
-        if (savedCourses) {
-            const parsedCourses = JSON.parse(savedCourses);
-            setCourses(parsedCourses);
-            if(parsedCourses.length > 0) {
-                setActiveCourseId(parsedCourses[0].id);
+        const fetchCourses = async () => {
+             if (!user) return;
+            const q = query(collection(db, "courses"), where("userId", "==", user.uid));
+            const querySnapshot = await getDocs(q);
+            const userCourses = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
+            setCourses(userCourses);
+            if(userCourses.length > 0) {
+                setActiveCourseId(userCourses[0].id);
             }
-        } else {
-            setCourses(initialCourses);
-             if(initialCourses.length > 0) {
-                setActiveCourseId(initialCourses[0].id);
-            }
+        };
+
+        if (user) {
+            fetchCourses();
         }
         
         const savedRoadmaps = localStorage.getItem('roadmaps');
         if (savedRoadmaps) {
             setRoadmaps(JSON.parse(savedRoadmaps));
         }
-    }, []);
+    }, [user]);
 
     const handleGenerateRoadmap = async (course: Course) => {
         setIsLoading(prev => ({ ...prev, [course.id]: true }));
@@ -401,6 +388,9 @@ export default function RoadmapsPage() {
             <Card className="text-center p-12">
                 <h2 className="text-xl font-semibold">No Courses Found</h2>
                 <p className="text-muted-foreground mt-2">Add a course from the "Courses" page to start creating roadmaps.</p>
+                <Link href="/dashboard/courses">
+                    <Button className="mt-6">Go to Courses</Button>
+                </Link>
             </Card>
         )}
     </div>
@@ -435,5 +425,3 @@ export default function RoadmapsPage() {
     </>
   );
 }
-
-    
