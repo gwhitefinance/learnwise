@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -28,10 +29,13 @@ type AnswerState = 'unanswered' | 'answered';
 type AnswerFeedback = { question: string; answer: string; correctAnswer: string; isCorrect: boolean; explanation?: string; };
 
 export default function PracticeQuizPage() {
-    const [topics, setTopics] = useState('');
+    const searchParams = useSearchParams();
+    const initialTopic = searchParams.get('topic');
+
+    const [topics, setTopics] = useState(initialTopic || '');
     const [questionType, setQuestionType] = useState('Multiple Choice');
     const [difficulty, setDifficulty] = useState('Medium');
-    const [numQuestions, setNumQuestions] = useState('10');
+    const [numQuestions, setNumQuestions] = useState('5');
     
     const [isLoading, setIsLoading] = useState(false);
     const [isExplanationLoading, setIsExplanationLoading] = useState(false);
@@ -52,6 +56,13 @@ export default function PracticeQuizPage() {
     const [isDrawing, setIsDrawing] = useState(false);
     const [color, setColor] = useState('#000000');
     const [brushSize, setBrushSize] = useState(5);
+
+     useEffect(() => {
+        const urlTopic = searchParams.get('topic');
+        if (urlTopic) {
+            setTopics(urlTopic);
+        }
+    }, [searchParams]);
 
     useEffect(() => {
         const storedLearnerType = localStorage.getItem('learnerType');

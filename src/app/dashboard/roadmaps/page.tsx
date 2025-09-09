@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
-import { GitMerge, Plus, Trash2, Edit } from "lucide-react";
+import { GitMerge, Plus, Trash2, Edit, Check, Lightbulb } from "lucide-react";
 import * as LucideIcons from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { generateRoadmap } from '@/ai/flows/roadmap-flow';
@@ -16,6 +16,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { DatePicker } from '@/components/ui/date-picker';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { cn } from '@/lib/utils';
+import Link from 'next/link';
 
 
 type Course = {
@@ -213,6 +215,36 @@ export default function RoadmapsPage() {
         toast({ title: `${type} deleted.` });
     };
 
+    const handleToggleMilestone = (milestoneId: string) => {
+        if (!activeCourseId) return;
+
+        let updatedRoadmap = { ...roadmaps[activeCourseId] };
+        let milestoneCompleted = false;
+
+        updatedRoadmap.milestones = updatedRoadmap.milestones.map(m => {
+            if (m.id === milestoneId) {
+                const updatedMilestone = { ...m, completed: !m.completed };
+                if (updatedMilestone.completed) {
+                    milestoneCompleted = true;
+                }
+                return updatedMilestone;
+            }
+            return m;
+        });
+
+        const updatedRoadmaps = { ...roadmaps, [activeCourseId]: updatedRoadmap };
+        setRoadmaps(updatedRoadmaps);
+        localStorage.setItem('roadmaps', JSON.stringify(updatedRoadmaps));
+
+        if (milestoneCompleted) {
+            toast({
+                title: '🎉 Milestone Complete!',
+                description: "Great job! Keep up the momentum.",
+            });
+        }
+    };
+
+
   return (
     <>
     <div className="space-y-6">
@@ -315,31 +347,43 @@ export default function RoadmapsPage() {
                                     </div>
                                  ) : roadmap?.milestones.map((milestone, index) => {
                                      const MilestoneIcon = getIcon(milestone.icon, 'Calendar');
-                                     const isCompleted = new Date(milestone.date) < new Date();
                                      return (
-                                        <div key={index} className="relative flex items-start gap-6 mb-8 group">
-                                            <div className={`h-8 w-8 rounded-full flex items-center justify-center z-10 ${isCompleted ? 'bg-primary text-primary-foreground' : 'bg-muted border-2 border-primary'}`}>
-                                            <MilestoneIcon className="h-4 w-4" />
+                                        <div key={index} className="relative flex items-start gap-4 mb-8 group">
+                                            <div className="flex flex-col items-center">
+                                                <button onClick={() => handleToggleMilestone(milestone.id)} className={cn(
+                                                    "h-8 w-8 rounded-full flex items-center justify-center z-10 border-2 transition-colors",
+                                                    milestone.completed ? 'bg-primary text-primary-foreground border-primary' : 'bg-muted border-primary hover:bg-primary/20'
+                                                )}>
+                                                    {milestone.completed ? <Check className="h-4 w-4" /> : <MilestoneIcon className="h-4 w-4" />}
+                                                </button>
                                             </div>
-                                            <div className="flex-1">
+                                            <div className="flex-1 pt-1">
                                                 <p className="text-sm text-muted-foreground">{new Date(milestone.date).toLocaleDateString('en-US', { timeZone: 'UTC', month: 'long', day: 'numeric', year: 'numeric' })}</p>
-                                                <h3 className="font-semibold text-lg">{milestone.title}</h3>
-                                                <p className="text-muted-foreground text-sm">{milestone.description}</p>
-                                            </div>
-                                             <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openItemDialog('milestone', milestone)}><Edit className="h-4 w-4"/></Button>
-                                                <AlertDialog>
-                                                    <AlertDialogTrigger asChild>
-                                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive"><Trash2 className="h-4 w-4"/></Button>
-                                                    </AlertDialogTrigger>
-                                                    <AlertDialogContent>
-                                                        <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>This will permanently delete this milestone.</AlertDialogDescription></AlertDialogHeader>
-                                                        <AlertDialogFooter>
-                                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                            <AlertDialogAction onClick={() => handleDeleteItem('milestone', milestone.id)}>Delete</AlertDialogAction>
-                                                        </AlertDialogFooter>
-                                                    </AlertDialogContent>
-                                                </AlertDialog>
+                                                <h3 className={cn("font-semibold text-lg", milestone.completed && "line-through text-muted-foreground")}>{milestone.title}</h3>
+                                                <p className={cn("text-muted-foreground text-sm", milestone.completed && "line-through")}>{milestone.description}</p>
+                                                
+                                                <div className="mt-2 flex gap-2 items-center">
+                                                    <Link href={`/dashboard/practice-quiz?topic=${encodeURIComponent(milestone.title)}`}>
+                                                        <Button variant="outline" size="sm" className="text-xs h-7">
+                                                            <Lightbulb className="mr-2 h-3 w-3"/> Checkpoint Quiz
+                                                        </Button>
+                                                    </Link>
+                                                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openItemDialog('milestone', milestone)}><Edit className="h-4 w-4"/></Button>
+                                                        <AlertDialog>
+                                                            <AlertDialogTrigger asChild>
+                                                                <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive"><Trash2 className="h-4 w-4"/></Button>
+                                                            </AlertDialogTrigger>
+                                                            <AlertDialogContent>
+                                                                <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>This will permanently delete this milestone.</AlertDialogDescription></AlertDialogHeader>
+                                                                <AlertDialogFooter>
+                                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                    <AlertDialogAction onClick={() => handleDeleteItem('milestone', milestone.id)}>Delete</AlertDialogAction>
+                                                                </AlertDialogFooter>
+                                                            </AlertDialogContent>
+                                                        </AlertDialog>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     )
@@ -391,3 +435,5 @@ export default function RoadmapsPage() {
     </>
   );
 }
+
+    
