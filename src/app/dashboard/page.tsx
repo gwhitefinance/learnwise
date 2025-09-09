@@ -22,7 +22,8 @@ import {
   Briefcase,
   BookOpen,
   ArrowRight,
-  Link as LinkIcon
+  Link as LinkIcon,
+  Notebook
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -70,31 +71,28 @@ import {
     status: 'Not Started' | 'In Progress' | 'Completed';
   }
   
-  const AppCard = ({ title, description, icon, href, isFeatured }: { title: string; description: string; icon: React.ReactNode; href: string, isFeatured?: boolean }) => (
+  const AppCard = ({ title, description, icon, href, isFeatured, actionButton }: { title: string; description: string; icon: React.ReactNode; href: string, isFeatured?: boolean, actionButton?: React.ReactNode }) => (
     <Link href={href} className="block h-full">
         <motion.div
             whileHover={{ y: -5, scale: 1.02 }}
             transition={{ type: 'spring', stiffness: 300 }}
             className={cn(
-                "relative group h-full rounded-2xl border border-border/20 bg-background/50 p-6 overflow-hidden",
+                "relative group h-full rounded-2xl border border-border/20 bg-background/50 p-6 overflow-hidden flex flex-col justify-between",
                 isFeatured ? "lg:col-span-2 lg:row-span-2" : "",
             )}
         >
-            <div className="absolute -inset-px bg-gradient-to-r from-primary/20 via-blue-500/20 to-purple-600/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            <div className="relative h-full flex flex-col justify-between">
-                <div>
-                    <div className="bg-primary/10 text-primary p-3 rounded-xl inline-block mb-4">
-                        {icon}
-                    </div>
-                    <h3 className="text-xl font-bold">{title}</h3>
-                    <p className="text-muted-foreground mt-2">{description}</p>
+            <div>
+                <div className="bg-primary/10 text-primary p-3 rounded-xl inline-block mb-4">
+                    {icon}
                 </div>
-                 {isFeatured && (
-                    <Button variant="outline" className="mt-6 self-start">
-                        Start Chatting <ArrowRight className="ml-2 h-4 w-4"/>
-                    </Button>
-                )}
+                <h3 className="text-xl font-bold">{title}</h3>
+                <p className="text-muted-foreground mt-2">{description}</p>
             </div>
+            {actionButton && (
+                <div className='mt-6' onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+                    {actionButton}
+                </div>
+            )}
         </motion.div>
     </Link>
 );
@@ -168,10 +166,12 @@ import {
   ];
 
   const apps = [
-    { title: "AI Chat", href: "/dashboard/ai-chat", description: "Get instant answers and explanations from your AI study partner.", icon: <BrainCircuit className="w-8 h-8"/>, isFeatured: true },
-    { title: "Practice Quiz", href: "/dashboard/practice-quiz", description: "Test your knowledge with AI quizzes.", icon: <Lightbulb className="w-8 h-8"/> },
+    { title: "AI Chat", href: "/dashboard/ai-chat", description: "Get instant answers and explanations from your AI study partner.", icon: <BrainCircuit className="w-8 h-8"/>, isFeatured: true, actionButton: <Button variant="outline" className="w-full">Start Chatting <ArrowRight className="ml-2 h-4 w-4"/></Button> },
+    { title: "Practice Quiz", href: "/dashboard/practice-quiz", description: "Test your knowledge with AI quizzes.", icon: <Lightbulb className="w-8 h-8"/>, actionButton: <Button variant="outline" className="w-full">Generate Quiz <ArrowRight className="ml-2 h-4 w-4"/></Button>},
     { title: "Study Roadmaps", href: "/dashboard/roadmaps", description: "Plan your learning journey.", icon: <GitMerge className="w-8 h-8"/> },
-    { title: "Whiteboard", href: "/dashboard/whiteboard", description: "Brainstorm and visualize ideas.", icon: <PenSquare className="w-8 h-8"/> }
+    { title: "Whiteboard", href: "/dashboard/whiteboard", description: "Brainstorm and visualize ideas.", icon: <PenSquare className="w-8 h-8"/> },
+    { title: "Notes", href: "/dashboard/notes", description: "Create, organize, and review your notes.", icon: <Notebook className="w-8 h-8"/> },
+    { title: "Calendar", href: "/dashboard/calendar", description: "Manage your deadlines and study schedule.", icon: <Calendar className="w-8 h-8"/> },
   ];
 
   const learningResources = [
@@ -573,12 +573,14 @@ export default function DashboardPage() {
             </TabsContent>
             
              <TabsContent value="apps">
-                <div className="grid lg:grid-cols-3 gap-6">
-                    {apps.filter(app => app.isFeatured).map(app => (
-                        <AppCard key={app.title} {...app} />
-                    ))}
-                    <div className="lg:col-span-1 lg:row-span-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-6">
-                        {apps.filter(app => !app.isFeatured).map(app => (
+                <div className="grid lg:grid-cols-2 gap-6">
+                    <div className="space-y-6">
+                        {apps.filter(app => app.title === "AI Chat" || app.title === "Practice Quiz").map(app => (
+                             <AppCard key={app.title} {...app} isFeatured={app.title === 'AI Chat'} />
+                        ))}
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {apps.filter(app => app.title !== "AI Chat" && app.title !== "Practice Quiz").map(app => (
                              <AppCard key={app.title} {...app} />
                         ))}
                     </div>
