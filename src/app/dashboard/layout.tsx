@@ -272,26 +272,34 @@ export default function DashboardLayout({
     // Request notification permission
     async function requestPermission() {
       console.log('Requesting permission...');
-      const permission = await Notification.requestPermission();
-      if (permission === 'granted') {
-        console.log('Notification permission granted.');
-        
-        // Get the token
-        const currentToken = await getToken(messaging, { vapidKey: 'YOUR_VAPID_KEY_HERE' });
-        
-        if (currentToken) {
-          console.log('FCM Token:', currentToken);
-          // Send the token to your server and update the UI if necessary
+      try {
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+          console.log('Notification permission granted.');
+          
+          const messagingInstance = await messaging();
+          if (messagingInstance) {
+            const currentToken = await getToken(messagingInstance, { vapidKey: 'YOUR_VAPID_KEY_HERE' });
+          
+            if (currentToken) {
+              console.log('FCM Token:', currentToken);
+              // Send the token to your server and update the UI if necessary
+            } else {
+              // Show permission request UI
+              console.log('No registration token available. Request permission to generate one.');
+            }
+          }
         } else {
-          // Show permission request UI
-          console.log('No registration token available. Request permission to generate one.');
+          console.log('Unable to get permission to notify.');
         }
-      } else {
-        console.log('Unable to get permission to notify.');
+      } catch (error) {
+        console.error('An error occurred while requesting permission. ', error);
       }
     }
     
-    requestPermission();
+    if (typeof window !== 'undefined') {
+        requestPermission();
+    }
 
   }, [user, loading, router]);
 

@@ -2,7 +2,7 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
-import { getMessaging } from "firebase/messaging";
+import { getMessaging, isSupported } from "firebase/messaging";
 
 const firebaseConfig = {
   apiKey: "AIzaSyC8nFez_Ye_qT0kVxEYK7uhGB6oQRbRfU0",
@@ -17,6 +17,12 @@ const firebaseConfig = {
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
 const db = getFirestore(app);
-const messaging = getMessaging(app);
+
+// Conditionally initialize messaging only on the client side
+const messaging = async () => {
+    const isSupportedBrowser = await isSupported();
+    return isSupportedBrowser ? getMessaging(app) : null;
+};
+
 
 export { app, auth, db, messaging };
