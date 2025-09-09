@@ -390,16 +390,18 @@ export default function DashboardLayout({
                 </Tooltip>
               </TooltipProvider>
 
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" className="rounded-2xl">
-                      <MessageSquare className="h-5 w-5" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Messages</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <Link href="/dashboard/ai-chat">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="icon" className="rounded-2xl">
+                        <MessageSquare className="h-5 w-5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>AI Chat</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </Link>
 
               <TooltipProvider>
                 <Tooltip>
@@ -434,5 +436,3 @@ export default function DashboardLayout({
     </>
   );
 }
-
-    
