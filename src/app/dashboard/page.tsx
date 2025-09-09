@@ -752,82 +752,131 @@ export default function DashboardPage() {
                 </Card>
             </TabsContent>
 
-             <TabsContent value="projects">
-                <Card>
-                    <CardHeader>
-                        <div className="flex justify-between items-center">
-                            <div>
-                                <CardTitle>Projects & Assignments</CardTitle>
-                                <CardDescription>Keep track of your larger tasks and their deadlines.</CardDescription>
+            <TabsContent value="projects">
+                {projects.length > 0 ? (
+                    <Card>
+                        <CardHeader>
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <CardTitle>Projects & Assignments</CardTitle>
+                                    <CardDescription>Keep track of your larger tasks and their deadlines.</CardDescription>
+                                </div>
+                                <Dialog open={isAddProjectOpen} onOpenChange={setAddProjectOpen}>
+                                    <DialogTrigger asChild>
+                                        <Button>
+                                        <Plus className="mr-2 h-4 w-4" /> Add Project
+                                        </Button>
+                                    </DialogTrigger>
+                                    <DialogContent>
+                                        <DialogHeader>
+                                            <DialogTitle>Add a New Project</DialogTitle>
+                                        </DialogHeader>
+                                        <div className="grid gap-4 py-4">
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="project-name">Project Name</Label>
+                                                <Input id="project-name" value={newProject.name} onChange={(e) => handleProjectInputChange('name', e.target.value)} placeholder="e.g., Research Paper"/>
+                                            </div>
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="project-course">Course</Label>
+                                                <Select value={newProject.course} onValueChange={(value) => handleProjectInputChange('course', value)}>
+                                                    <SelectTrigger id="project-course">
+                                                        <SelectValue placeholder="Select a course" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {courses.map(course => (
+                                                            <SelectItem key={course.id} value={course.name}>{course.name}</SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="project-due-date">Due Date</Label>
+                                                <DatePicker date={newProject.dueDate} setDate={(date) => handleProjectInputChange('dueDate', date)} />
+                                            </div>
+                                        </div>
+                                        <DialogFooter>
+                                            <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
+                                            <Button onClick={handleAddProject}>Add Project</Button>
+                                        </DialogFooter>
+                                    </DialogContent>
+                                </Dialog>
                             </div>
-                            <Dialog open={isAddProjectOpen} onOpenChange={setAddProjectOpen}>
-                                <DialogTrigger asChild>
-                                    <Button>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {projects.map((project) => (
+                                    <Card key={project.id} className="flex flex-col">
+                                        <CardHeader>
+                                            <CardTitle>{project.name}</CardTitle>
+                                            <CardDescription>{project.course}</CardDescription>
+                                        </CardHeader>
+                                        <CardContent className="flex-grow">
+                                            <p className="text-sm text-muted-foreground">Due: {format(new Date(project.dueDate), "PPP")}</p>
+                                        </CardContent>
+                                        <CardFooter>
+                                            <Badge 
+                                                variant={project.status === 'Completed' ? 'secondary' : project.status === 'In Progress' ? 'default' : 'outline'}
+                                                className={cn(
+                                                    project.status === 'Completed' && 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300',
+                                                    project.status === 'In Progress' && 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300'
+                                                )}
+                                            >{project.status}</Badge>
+                                        </CardFooter>
+                                    </Card>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+                ) : (
+                    <div className="text-center py-20 rounded-lg border border-dashed">
+                        <Briefcase className="mx-auto h-12 w-12 text-muted-foreground" />
+                        <h3 className="mt-4 text-lg font-semibold">No Projects Yet</h3>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                            Click the button to add your first project or assignment.
+                        </p>
+                        <Dialog open={isAddProjectOpen} onOpenChange={setAddProjectOpen}>
+                            <DialogTrigger asChild>
+                                <Button className="mt-4">
                                     <Plus className="mr-2 h-4 w-4" /> Add Project
-                                    </Button>
-                                </DialogTrigger>
-                                <DialogContent>
-                                    <DialogHeader>
-                                        <DialogTitle>Add a New Project</DialogTitle>
-                                    </DialogHeader>
-                                    <div className="grid gap-4 py-4">
-                                        <div className="grid gap-2">
-                                            <Label htmlFor="project-name">Project Name</Label>
-                                            <Input id="project-name" value={newProject.name} onChange={(e) => handleProjectInputChange('name', e.target.value)} placeholder="e.g., Research Paper"/>
-                                        </div>
-                                        <div className="grid gap-2">
-                                            <Label htmlFor="project-course">Course</Label>
-                                            <Select value={newProject.course} onValueChange={(value) => handleProjectInputChange('course', value)}>
-                                                <SelectTrigger id="project-course">
-                                                    <SelectValue placeholder="Select a course" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {courses.map(course => (
-                                                        <SelectItem key={course.id} value={course.name}>{course.name}</SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        <div className="grid gap-2">
-                                            <Label htmlFor="project-due-date">Due Date</Label>
-                                            <DatePicker date={newProject.dueDate} setDate={(date) => handleProjectInputChange('dueDate', date)} />
-                                        </div>
+                                </Button>
+                            </DialogTrigger>
+                             <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>Add a New Project</DialogTitle>
+                                </DialogHeader>
+                                <div className="grid gap-4 py-4">
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="project-name">Project Name</Label>
+                                        <Input id="project-name" value={newProject.name} onChange={(e) => handleProjectInputChange('name', e.target.value)} placeholder="e.g., Research Paper"/>
                                     </div>
-                                    <DialogFooter>
-                                        <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
-                                        <Button onClick={handleAddProject}>Add Project</Button>
-                                    </DialogFooter>
-                                </DialogContent>
-                            </Dialog>
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {projects.map((project) => (
-                                <Card key={project.id} className="flex flex-col">
-                                    <CardHeader>
-                                        <CardTitle>{project.name}</CardTitle>
-                                        <CardDescription>{project.course}</CardDescription>
-                                    </CardHeader>
-                                    <CardContent className="flex-grow">
-                                        <p className="text-sm text-muted-foreground">Due: {format(new Date(project.dueDate), "PPP")}</p>
-                                    </CardContent>
-                                    <CardFooter>
-                                         <Badge 
-                                            variant={project.status === 'Completed' ? 'secondary' : project.status === 'In Progress' ? 'default' : 'outline'}
-                                            className={cn(
-                                                project.status === 'Completed' && 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300',
-                                                project.status === 'In Progress' && 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300'
-                                            )}
-                                        >{project.status}</Badge>
-                                    </CardFooter>
-                                </Card>
-                            ))}
-                             {projects.length === 0 && <p className="col-span-full text-center text-muted-foreground p-8">No projects added yet.</p>}
-                        </div>
-                    </CardContent>
-                </Card>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="project-course">Course</Label>
+                                        <Select value={newProject.course} onValueChange={(value) => handleProjectInputChange('course', value)}>
+                                            <SelectTrigger id="project-course">
+                                                <SelectValue placeholder="Select a course" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {courses.map(course => (
+                                                    <SelectItem key={course.id} value={course.name}>{course.name}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="project-due-date">Due Date</Label>
+                                        <DatePicker date={newProject.dueDate} setDate={(date) => handleProjectInputChange('dueDate', date)} />
+                                    </div>
+                                </div>
+                                <DialogFooter>
+                                    <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
+                                    <Button onClick={handleAddProject}>Add Project</Button>
+                                </DialogFooter>
+                            </DialogContent>
+                        </Dialog>
+                    </div>
+                )}
             </TabsContent>
+
 
              <TabsContent value="learn">
                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
