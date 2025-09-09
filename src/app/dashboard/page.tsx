@@ -23,7 +23,8 @@ import {
   BookOpen,
   ArrowRight,
   Link as LinkIcon,
-  Notebook
+  Notebook,
+  Flame
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -82,7 +83,7 @@ import { format } from 'date-fns';
         className="relative group rounded-2xl border border-border/20 bg-background/50 p-6 overflow-hidden flex flex-col"
     >
         <Link href={href} className="flex flex-col flex-grow">
-            <div className="flex-grow">
+            <div>
                 <div className="bg-primary/10 text-primary p-3 rounded-xl inline-block mb-4">
                     {icon}
                 </div>
@@ -217,6 +218,7 @@ export default function DashboardPage() {
     const [isUploadOpen, setUploadOpen] = useState(false);
     const [isAddProjectOpen, setAddProjectOpen] = useState(false);
     const [newProject, setNewProject] = useState({ name: '', course: '', dueDate: new Date() as Date | undefined });
+    const [streak, setStreak] = useState(0);
 
      useEffect(() => {
         const savedCourses = localStorage.getItem('courses');
@@ -242,6 +244,26 @@ export default function DashboardPage() {
             setProjects(initialProjects);
             localStorage.setItem('projects', JSON.stringify(initialProjects));
         }
+
+        // Mock streak calculation
+        const lastVisit = localStorage.getItem('lastVisit');
+        const today = new Date().toDateString();
+        if (lastVisit === today) {
+            setStreak(Number(localStorage.getItem('streakCount')) || 1);
+        } else {
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            if (lastVisit === yesterday.toDateString()) {
+                const newStreak = (Number(localStorage.getItem('streakCount')) || 0) + 1;
+                setStreak(newStreak);
+                localStorage.setItem('streakCount', String(newStreak));
+            } else {
+                setStreak(1);
+                localStorage.setItem('streakCount', '1');
+            }
+        }
+        localStorage.setItem('lastVisit', today);
+
     }, []);
 
     const handleProjectInputChange = (field: string, value: string | Date | undefined) => {
@@ -567,6 +589,22 @@ export default function DashboardPage() {
                     </section>
 
                     <section className="space-y-4">
+                        <Card className="bg-orange-500/10 border-orange-500/20 text-orange-900 dark:text-orange-200">
+                           <CardContent className="p-6 flex items-center gap-6">
+                                <div className="p-4 bg-white/50 rounded-full">
+                                    <Flame className="w-8 h-8 text-orange-500" />
+                                </div>
+                                <div className="flex-1">
+                                    <h3 className="text-2xl font-bold">{streak} Day Streak!</h3>
+                                    <p className="text-sm opacity-80">
+                                        {streak > 1 ? "Keep the fire going! You're building a great habit." : "Every journey starts with a single step. Keep it up!"}
+                                    </p>
+                                </div>
+                                <Button variant="outline" className="rounded-full border-orange-500/50 bg-transparent hover:bg-white/20">
+                                    View Rewards
+                                </Button>
+                           </CardContent>
+                        </Card>
                         <div className="flex items-center justify-between">
                         <h2 className="text-2xl font-semibold">Active Courses</h2>
                         <Link href="/dashboard/courses">
@@ -576,7 +614,7 @@ export default function DashboardPage() {
                         </Link>
                         </div>
                          <div className="space-y-4">
-                            {courses.slice(0, 3).map((course) => (
+                            {courses.slice(0, 2).map((course) => (
                                 <Card key={course.id}>
                                      <CardContent className="p-4">
                                         <div className="flex items-center justify-between mb-2">
@@ -608,16 +646,32 @@ export default function DashboardPage() {
             </TabsContent>
             
             <TabsContent value="apps">
-                 <div className="grid lg:grid-cols-2 gap-6 items-start">
+                <div className="grid lg:grid-cols-2 gap-6 items-start">
                     <div className="grid grid-cols-1 gap-6">
-                        <AppCard title="AI Chat" href="/dashboard/ai-chat" description="Get instant answers and explanations from your AI study partner." icon={<BrainCircuit className="w-8 h-8"/>} actionButton={<Button variant="outline" className="w-full">Start Chatting <ArrowRight className="ml-2 h-4 w-4"/></Button>} />
-                        <AppCard title="Practice Quiz" href="/dashboard/practice-quiz" description="Test your knowledge with AI quizzes." icon={<Lightbulb className="w-8 h-8"/>} actionButton={<Button variant="outline" className="w-full">Generate Quiz <ArrowRight className="ml-2 h-4 w-4"/></Button>}/>
+                       <motion.div whileHover={{ y: -5, scale: 1.02 }} transition={{ type: 'spring', stiffness: 300 }}>
+                            <AppCard 
+                                title="AI Chat" 
+                                href="/dashboard/ai-chat" 
+                                description="Get instant answers and explanations from your AI study partner." 
+                                icon={<BrainCircuit className="w-8 h-8"/>} 
+                                actionButton={<Button variant="outline" className="w-full">Start Chatting <ArrowRight className="ml-2 h-4 w-4"/></Button>} 
+                            />
+                        </motion.div>
+                       <motion.div whileHover={{ y: -5, scale: 1.02 }} transition={{ type: 'spring', stiffness: 300 }}>
+                            <AppCard 
+                                title="Practice Quiz" 
+                                href="/dashboard/practice-quiz" 
+                                description="Test your knowledge with AI quizzes." 
+                                icon={<Lightbulb className="w-8 h-8"/>}
+                                actionButton={<Button variant="outline" className="w-full">Generate Quiz <ArrowRight className="ml-2 h-4 w-4"/></Button>}
+                            />
+                        </motion.div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <AppCard title="Study Roadmaps" href="/dashboard/roadmaps" description="Plan your learning journey." icon={<GitMerge className="w-8 h-8"/>} />
-                        <AppCard title="Whiteboard" href="/dashboard/whiteboard" description="Brainstorm and visualize ideas." icon={<PenSquare className="w-8 h-8"/>} />
-                        <AppCard title="Notes" href="/dashboard/notes" description="Create, organize, and review your notes." icon={<Notebook className="w-8 h-8"/>} />
-                        <AppCard title="Calendar" href="/dashboard/calendar" description="Manage your deadlines and study schedule." icon={<Calendar className="w-8 h-8"/>} />
+                       <motion.div whileHover={{ y: -5, scale: 1.02 }} transition={{ type: 'spring', stiffness: 300 }}><AppCard title="Study Roadmaps" href="/dashboard/roadmaps" description="Plan your learning journey." icon={<GitMerge className="w-8 h-8"/>} /></motion.div>
+                       <motion.div whileHover={{ y: -5, scale: 1.02 }} transition={{ type: 'spring', stiffness: 300 }}><AppCard title="Whiteboard" href="/dashboard/whiteboard" description="Brainstorm and visualize ideas." icon={<PenSquare className="w-8 h-8"/>} /></motion.div>
+                       <motion.div whileHover={{ y: -5, scale: 1.02 }} transition={{ type: 'spring', stiffness: 300 }}><AppCard title="Notes" href="/dashboard/notes" description="Create, organize, and review your notes." icon={<Notebook className="w-8 h-8"/>} /></motion.div>
+                       <motion.div whileHover={{ y: -5, scale: 1.02 }} transition={{ type: 'spring', stiffness: 300 }}><AppCard title="Calendar" href="/dashboard/calendar" description="Manage your deadlines and study schedule." icon={<Calendar className="w-8 h-8"/>} /></motion.div>
                     </div>
                 </div>
             </TabsContent>
