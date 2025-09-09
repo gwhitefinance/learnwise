@@ -41,6 +41,7 @@ export default function PracticeQuizPage() {
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
     const [feedback, setFeedback] = useState<AnswerFeedback | null>(null);
+    const [explanation, setExplanation] = useState<string | null>(null);
     const [answers, setAnswers] = useState<AnswerFeedback[]>([]);
     const [learnerType, setLearnerType] = useState<string | null>(null);
     
@@ -108,9 +109,12 @@ export default function PracticeQuizPage() {
         };
         
         setAnswerState('answered');
+        setFeedback(answerFeedback);
+        setAnswers(prev => [...prev, answerFeedback]);
         
         if (!isCorrect) {
             setIsExplanationLoading(true);
+            setExplanation(null); // Clear previous explanation
             try {
                 const explanationResult = await generateExplanation({
                     question: currentQuestion.question,
@@ -118,22 +122,20 @@ export default function PracticeQuizPage() {
                     correctAnswer: currentQuestion.answer,
                     learnerType: (learnerType as 'Visual' | 'Auditory' | 'Kinesthetic' | 'Reading/Writing' | 'Unknown') ?? 'Unknown',
                 });
-                answerFeedback.explanation = explanationResult.explanation;
+                setExplanation(explanationResult.explanation);
             } catch (error) {
                 console.error(error);
-                answerFeedback.explanation = "Sorry, I couldn't generate an explanation for this question.";
+                setExplanation("Sorry, I couldn't generate an explanation for this question.");
             } finally {
                 setIsExplanationLoading(false);
             }
         }
-
-        setFeedback(answerFeedback);
-        setAnswers(prev => [...prev, answerFeedback]);
     }
 
     const handleNextQuestion = () => {
         if (!quiz) return;
         setFeedback(null);
+        setExplanation(null);
         setSelectedAnswer(null);
         setAnswerState('unanswered');
         
@@ -310,48 +312,45 @@ export default function PracticeQuizPage() {
                                     </div>
                                 </SheetContent>
                             </Sheet>
-                            <Button onClick={handleSubmitAnswer} disabled={!selectedAnswer || answerState === 'answered'}>
-                                Submit
-                            </Button>
+                            {answerState === 'unanswered' ? (
+                                <Button onClick={handleSubmitAnswer} disabled={!selectedAnswer}>
+                                    Submit
+                                </Button>
+                            ) : (
+                                <Button onClick={handleNextQuestion}>
+                                    {currentQuestionIndex < quiz.questions.length - 1 ? 'Next Question' : 'Finish Quiz'}
+                                    <ArrowRight className="ml-2 h-4 w-4" />
+                                </Button>
+                            )}
                         </div>
                     </CardContent>
                 </Card>
-                <Dialog open={!!feedback} onOpenChange={() => !isExplanationLoading && setFeedback(null)}>
+                
+                <Dialog open={answerState === 'answered' && !feedback?.isCorrect} onOpenChange={(open) => !open && handleNextQuestion()}>
                     <DialogContent>
                         <DialogHeader>
-                             {feedback?.isCorrect ? (
-                                <div className="flex items-center gap-2 text-green-600">
-                                    <CheckCircle className="h-8 w-8"/>
-                                    <DialogTitle className="text-2xl">Correct!</DialogTitle>
-                                </div>
-                            ) : (
-                                 <div className="flex items-center gap-2 text-red-600">
-                                    <XCircle className="h-8 w-8"/>
-                                    <DialogTitle className="text-2xl">Not Quite...</DialogTitle>
-                                </div>
-                            )}
+                             <div className="flex items-center gap-2 text-red-600">
+                                <XCircle className="h-8 w-8"/>
+                                <DialogTitle className="text-2xl">Not Quite...</DialogTitle>
+                            </div>
                         </DialogHeader>
-                        <div>
-                             {!feedback?.isCorrect && (
-                                <div className="mt-4 space-y-4">
-                                    <div>
-                                        <h4 className="font-semibold">Your Answer:</h4>
-                                        <p className="text-muted-foreground">{feedback?.answer}</p>
-                                    </div>
-                                     <div>
-                                        <h4 className="font-semibold">Correct Answer:</h4>
-                                        <p className="text-muted-foreground">{feedback?.correctAnswer}</p>
-                                    </div>
-                                    <div className="p-4 bg-amber-500/10 rounded-lg border border-amber-500/20">
-                                        <h4 className="font-semibold flex items-center gap-2 text-amber-700"><Lightbulb/> Explanation</h4>
-                                        {isExplanationLoading ? (
-                                            <p className="animate-pulse text-muted-foreground mt-2">Generating personalized feedback...</p>
-                                        ) : (
-                                            <p className="text-muted-foreground mt-2">{feedback?.explanation}</p>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
+                        <div className="mt-4 space-y-4">
+                            <div>
+                                <h4 className="font-semibold">Your Answer:</h4>
+                                <p className="text-muted-foreground">{feedback?.answer}</p>
+                            </div>
+                             <div>
+                                <h4 className="font-semibold">Correct Answer:</h4>
+                                <p className="text-muted-foreground">{feedback?.correctAnswer}</p>
+                            </div>
+                            <div className="p-4 bg-amber-500/10 rounded-lg border border-amber-500/20">
+                                <h4 className="font-semibold flex items-center gap-2 text-amber-700"><Lightbulb/> Explanation</h4>
+                                {isExplanationLoading ? (
+                                    <p className="animate-pulse text-muted-foreground mt-2">Generating personalized feedback...</p>
+                                ) : (
+                                    <p className="text-muted-foreground mt-2">{explanation}</p>
+                                )}
+                            </div>
                         </div>
                         <DialogFooter>
                              <Button onClick={handleNextQuestion} disabled={isExplanationLoading}>
@@ -479,3 +478,5 @@ export default function PracticeQuizPage() {
         </div>
     )
 }
+
+    
