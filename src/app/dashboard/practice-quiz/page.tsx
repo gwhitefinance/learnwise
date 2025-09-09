@@ -1,24 +1,31 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent } from "@/components/ui/card";
+import { useState, useEffect, useRef } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowRight, RotateCcw } from 'lucide-react';
+import { ArrowRight, RotateCcw, Lightbulb, CheckCircle, XCircle, PenSquare, Palette, Brush, Eraser } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { generateQuiz } from '@/ai/flows/quiz-flow';
 import type { GenerateQuizInput, GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
 import { Progress } from '@/components/ui/progress';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { cn } from '@/lib/utils';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { generateExplanation } from '@/ai/flows/quiz-explanation-flow';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Slider } from '@/components/ui/slider';
+
 
 const suggestedTopics = ["Mathematics", "Science", "History", "Literature", "Computer Science"];
 
 type QuizState = 'configuring' | 'in-progress' | 'results';
-type Answer = { question: string; answer: string; correctAnswer: string; isCorrect: boolean };
+type AnswerState = 'unanswered' | 'answered';
+type AnswerFeedback = { question: string; answer: string; correctAnswer: string; isCorrect: boolean; explanation?: string; };
 
 export default function PracticeQuizPage() {
     const [topics, setTopics] = useState('');
@@ -27,36 +34,28 @@ export default function PracticeQuizPage() {
     const [numQuestions, setNumQuestions] = useState('10');
     
     const [isLoading, setIsLoading] = useState(false);
+    const [isExplanationLoading, setIsExplanationLoading] = useState(false);
     const [quizState, setQuizState] = useState<QuizState>('configuring');
+    const [answerState, setAnswerState] = useState<AnswerState>('unanswered');
     const [quiz, setQuiz] = useState<GenerateQuizOutput | null>(null);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
-    const [answers, setAnswers] = useState<Answer[]>([]);
+    const [feedback, setFeedback] = useState<AnswerFeedback | null>(null);
+    const [answers, setAnswers] = useState<AnswerFeedback[]>([]);
+    const [learnerType, setLearnerType] = useState<string | null>(null);
     
     const { toast } = useToast();
+    
+    // Whiteboard state
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const [isDrawing, setIsDrawing] = useState(false);
+    const [color, setColor] = useState('#000000');
+    const [brushSize, setBrushSize] = useState(5);
 
     useEffect(() => {
-        const savedState = sessionStorage.getItem('quizState');
-        const savedQuiz = sessionStorage.getItem('quizData');
-        const savedAnswers = sessionStorage.getItem('quizAnswers');
-        const savedIndex = sessionStorage.getItem('quizCurrentIndex');
-
-        if (savedState && savedQuiz && savedAnswers && savedIndex) {
-            setQuizState(JSON.parse(savedState));
-            setQuiz(JSON.parse(savedQuiz));
-            setAnswers(JSON.parse(savedAnswers));
-            setCurrentQuestionIndex(parseInt(savedIndex, 10));
-        }
+        const storedLearnerType = localStorage.getItem('learnerType');
+        setLearnerType(storedLearnerType ?? 'Unknown');
     }, []);
-
-    useEffect(() => {
-        if (quizState !== 'configuring') {
-            sessionStorage.setItem('quizState', JSON.stringify(quizState));
-            sessionStorage.setItem('quizData', JSON.stringify(quiz));
-            sessionStorage.setItem('quizAnswers', JSON.stringify(answers));
-            sessionStorage.setItem('quizCurrentIndex', currentQuestionIndex.toString());
-        }
-    }, [quizState, quiz, answers, currentQuestionIndex]);
 
     const handleGenerateQuiz = async () => {
         if (!topics.trim()) {
@@ -94,24 +93,50 @@ export default function PracticeQuizPage() {
             setIsLoading(false);
         }
     };
-
-    const handleNextQuestion = () => {
+    
+    const handleSubmitAnswer = async () => {
         if (!quiz || selectedAnswer === null) return;
         
         const currentQuestion = quiz.questions[currentQuestionIndex];
         const isCorrect = selectedAnswer.toLowerCase() === currentQuestion.answer.toLowerCase();
 
-        const newAnswer: Answer = {
+        const answerFeedback: AnswerFeedback = {
             question: currentQuestion.question,
             answer: selectedAnswer,
             correctAnswer: currentQuestion.answer,
-            isCorrect: isCorrect
+            isCorrect: isCorrect,
         };
-        const newAnswers = [...answers, newAnswer];
-        setAnswers(newAnswers);
+        
+        setAnswerState('answered');
+        
+        if (!isCorrect) {
+            setIsExplanationLoading(true);
+            try {
+                const explanationResult = await generateExplanation({
+                    question: currentQuestion.question,
+                    userAnswer: selectedAnswer,
+                    correctAnswer: currentQuestion.answer,
+                    learnerType: (learnerType as 'Visual' | 'Auditory' | 'Kinesthetic' | 'Reading/Writing' | 'Unknown') ?? 'Unknown',
+                });
+                answerFeedback.explanation = explanationResult.explanation;
+            } catch (error) {
+                console.error(error);
+                answerFeedback.explanation = "Sorry, I couldn't generate an explanation for this question.";
+            } finally {
+                setIsExplanationLoading(false);
+            }
+        }
 
+        setFeedback(answerFeedback);
+        setAnswers(prev => [...prev, answerFeedback]);
+    }
+
+    const handleNextQuestion = () => {
+        if (!quiz) return;
+        setFeedback(null);
         setSelectedAnswer(null);
-
+        setAnswerState('unanswered');
+        
         if (currentQuestionIndex < quiz.questions.length - 1) {
             setCurrentQuestionIndex(prev => prev + 1);
         } else {
@@ -125,11 +150,72 @@ export default function PracticeQuizPage() {
         setCurrentQuestionIndex(0);
         setAnswers([]);
         setTopics('');
-        sessionStorage.removeItem('quizState');
-        sessionStorage.removeItem('quizData');
-        sessionStorage.removeItem('quizAnswers');
-        sessionStorage.removeItem('quizCurrentIndex');
+        setFeedback(null);
+        setAnswerState('unanswered');
     }
+
+    // Whiteboard functions
+    const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const context = canvas.getContext('2d');
+        if (!context) return;
+        
+        context.strokeStyle = color;
+        context.lineWidth = brushSize;
+        context.lineCap = 'round';
+        context.lineJoin = 'round';
+        context.beginPath();
+        context.moveTo(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
+        setIsDrawing(true);
+    };
+
+    const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
+        if (!isDrawing) return;
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const context = canvas.getContext('2d');
+        if (!context) return;
+
+        context.lineTo(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
+        context.stroke();
+    };
+
+    const stopDrawing = () => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const context = canvas.getContext('2d');
+        if (context) {
+        context.closePath();
+        }
+        setIsDrawing(false);
+    };
+    
+    const clearCanvas = () => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const context = canvas.getContext('2d');
+        if (!context) return;
+        context.clearRect(0, 0, canvas.width, canvas.height);
+    };
+    
+    const onSheetOpenChange = (open: boolean) => {
+        if (open) {
+             setTimeout(() => {
+                const canvas = canvasRef.current;
+                if (canvas) {
+                    const parent = canvas.parentElement;
+                    if (parent) {
+                        canvas.width = parent.clientWidth;
+                        canvas.height = parent.clientHeight;
+                    }
+                }
+            }, 0);
+        }
+    };
+
+    const whiteboardColors = ['#000000', '#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6'];
+
 
     const score = answers.filter(a => a.isCorrect).length;
     const totalQuestions = quiz?.questions.length ?? 0;
@@ -148,12 +234,14 @@ export default function PracticeQuizPage() {
 
                 <Card className="w-full max-w-3xl">
                     <CardContent className="p-8">
-                         <RadioGroup value={selectedAnswer ?? ''} onValueChange={setSelectedAnswer}>
+                         <RadioGroup value={selectedAnswer ?? ''} onValueChange={setSelectedAnswer} disabled={answerState === 'answered'}>
                             <div className="space-y-4">
                             {currentQuestion.options?.map((option, index) => (
                                 <Label key={index} htmlFor={`option-${index}`} className={cn(
                                     "flex items-center gap-4 p-4 rounded-lg border transition-all cursor-pointer",
-                                    selectedAnswer === option ? "border-primary bg-primary/10" : "border-border hover:bg-muted"
+                                    answerState === 'unanswered' && (selectedAnswer === option ? "border-primary bg-primary/10" : "border-border hover:bg-muted"),
+                                    answerState === 'answered' && option === currentQuestion.answer && "border-green-500 bg-green-500/10",
+                                    answerState === 'answered' && selectedAnswer === option && option !== currentQuestion.answer && "border-red-500 bg-red-500/10",
                                 )}>
                                     <RadioGroupItem value={option} id={`option-${index}`} />
                                     <span>{option}</span>
@@ -161,14 +249,118 @@ export default function PracticeQuizPage() {
                             ))}
                             </div>
                         </RadioGroup>
-                         <div className="mt-8 flex justify-end">
-                            <Button onClick={handleNextQuestion} disabled={!selectedAnswer}>
-                               {currentQuestionIndex < quiz.questions.length - 1 ? 'Next' : 'Finish Quiz'}
-                               <ArrowRight className="ml-2 h-4 w-4" />
+                         <div className="mt-8 flex justify-between items-center">
+                             <Sheet onOpenChange={onSheetOpenChange}>
+                                <SheetTrigger asChild>
+                                    <Button variant="outline"><PenSquare className="mr-2 h-4 w-4"/> Whiteboard</Button>
+                                </SheetTrigger>
+                                <SheetContent side="bottom" className="h-[80vh]">
+                                    <SheetHeader className="mb-4">
+                                        <SheetTitle className="flex justify-between items-center">
+                                            <span>Digital Whiteboard</span>
+                                            <div className="flex items-center gap-2">
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                <Button variant="outline" size="icon"><Palette /></Button>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-auto p-2">
+                                                <div className="flex gap-1">
+                                                    {whiteboardColors.map(c => (
+                                                    <button 
+                                                        key={c}
+                                                        onClick={() => setColor(c)}
+                                                        className={`w-8 h-8 rounded-full border-2 ${color === c ? 'border-primary' : 'border-transparent'}`}
+                                                        style={{ backgroundColor: c }}
+                                                    />
+                                                    ))}
+                                                </div>
+                                                </PopoverContent>
+                                            </Popover>
+
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                <Button variant="outline" size="icon"><Brush /></Button>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-40 p-2">
+                                                <Slider
+                                                    defaultValue={[brushSize]}
+                                                    max={30}
+                                                    min={1}
+                                                    step={1}
+                                                    onValueChange={(value) => setBrushSize(value[0])}
+                                                    />
+                                                </PopoverContent>
+                                            </Popover>
+
+                                            <Button variant="destructive" size="icon" onClick={clearCanvas}>
+                                                <Eraser />
+                                            </Button>
+                                            </div>
+                                        </SheetTitle>
+                                    </SheetHeader>
+                                    <div className="bg-muted rounded-lg border border-dashed h-[calc(100%-80px)]">
+                                        <canvas
+                                            ref={canvasRef}
+                                            className="w-full h-full"
+                                            onMouseDown={startDrawing}
+                                            onMouseMove={draw}
+                                            onMouseUp={stopDrawing}
+                                            onMouseLeave={stopDrawing}
+                                        />
+                                    </div>
+                                </SheetContent>
+                            </Sheet>
+                            <Button onClick={handleSubmitAnswer} disabled={!selectedAnswer || answerState === 'answered'}>
+                                Submit
                             </Button>
                         </div>
                     </CardContent>
                 </Card>
+                <Dialog open={!!feedback} onOpenChange={() => !isExplanationLoading && setFeedback(null)}>
+                    <DialogContent>
+                        <DialogHeader>
+                             {feedback?.isCorrect ? (
+                                <div className="flex items-center gap-2 text-green-600">
+                                    <CheckCircle className="h-8 w-8"/>
+                                    <DialogTitle className="text-2xl">Correct!</DialogTitle>
+                                </div>
+                            ) : (
+                                 <div className="flex items-center gap-2 text-red-600">
+                                    <XCircle className="h-8 w-8"/>
+                                    <DialogTitle className="text-2xl">Not Quite...</DialogTitle>
+                                </div>
+                            )}
+                        </DialogHeader>
+                        <div>
+                             {!feedback?.isCorrect && (
+                                <div className="mt-4 space-y-4">
+                                    <div>
+                                        <h4 className="font-semibold">Your Answer:</h4>
+                                        <p className="text-muted-foreground">{feedback?.answer}</p>
+                                    </div>
+                                     <div>
+                                        <h4 className="font-semibold">Correct Answer:</h4>
+                                        <p className="text-muted-foreground">{feedback?.correctAnswer}</p>
+                                    </div>
+                                    <div className="p-4 bg-amber-500/10 rounded-lg border border-amber-500/20">
+                                        <h4 className="font-semibold flex items-center gap-2 text-amber-700"><Lightbulb/> Explanation</h4>
+                                        {isExplanationLoading ? (
+                                            <p className="animate-pulse text-muted-foreground mt-2">Generating personalized feedback...</p>
+                                        ) : (
+                                            <p className="text-muted-foreground mt-2">{feedback?.explanation}</p>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                        <DialogFooter>
+                             <Button onClick={handleNextQuestion} disabled={isExplanationLoading}>
+                               {currentQuestionIndex < quiz.questions.length - 1 ? 'Next Question' : 'Finish Quiz'}
+                               <ArrowRight className="ml-2 h-4 w-4" />
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
             </div>
         )
     }
