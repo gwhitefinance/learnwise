@@ -214,11 +214,6 @@ export default function DashboardPage() {
             fetchCourses();
         }
 
-        const savedFiles = localStorage.getItem('recentFiles');
-        if (savedFiles) {
-            setRecentFiles(JSON.parse(savedFiles));
-        }
-
         // Mock streak calculation
         const lastVisit = localStorage.getItem('lastVisit');
         const today = new Date().toDateString();
