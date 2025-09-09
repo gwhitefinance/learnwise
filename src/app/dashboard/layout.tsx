@@ -56,6 +56,7 @@ import {
   BarChart3,
   PenSquare,
   ChevronRight,
+  FlaskConical,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -118,6 +119,11 @@ const sidebarItems = [
             title: "Practice Quiz",
             icon: <Lightbulb />,
             href: "/dashboard/practice-quiz",
+        },
+        {
+            title: "Learning Lab",
+            icon: <FlaskConical />,
+            href: "/dashboard/learning-lab",
         },
         {
             title: "Whiteboard",
