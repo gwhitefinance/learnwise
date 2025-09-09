@@ -9,11 +9,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, MoreVertical, Trash2, Star, Archive } from 'lucide-react';
+import { Plus, MoreVertical, Trash2, Star, Archive, Sparkles, Wand2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
+import { generateSummary } from '@/ai/flows/note-summary-flow';
 
 type Note = {
   id: string;
@@ -35,7 +36,7 @@ const initialNotes: Note[] = [
 ];
 
 
-const NoteCard = ({ note, onDelete, onToggleImportant, onToggleComplete }: { note: Note, onDelete: (id: string) => void, onToggleImportant: (id: string) => void, onToggleComplete: (id: string) => void }) => {
+const NoteCard = ({ note, onDelete, onToggleImportant, onToggleComplete, onSummarize }: { note: Note, onDelete: (id: string) => void, onToggleImportant: (id: string) => void, onToggleComplete: (id: string) => void, onSummarize: (content: string) => void }) => {
   return (
     <Card className={`overflow-hidden ${note.color}`}>
       <CardHeader className="p-4">
@@ -48,6 +49,10 @@ const NoteCard = ({ note, onDelete, onToggleImportant, onToggleComplete }: { not
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
+                 <DropdownMenuItem onClick={() => onSummarize(note.content)}>
+                    <Wand2 className="mr-2 h-4 w-4 text-purple-500"/> Summarize with AI
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => onToggleImportant(note.id)}>
                     <Star className="mr-2 h-4 w-4"/> {note.isImportant ? 'Unmark' : 'Mark'} as Important
                 </DropdownMenuItem>
@@ -91,6 +96,9 @@ export default function NotesPage() {
   const [newNoteTitle, setNewNoteTitle] = useState('');
   const [newNoteContent, setNewNoteContent] = useState('');
   const [activeTab, setActiveTab] = useState('all');
+  const [isSummaryDialogOpen, setSummaryDialogOpen] = useState(false);
+  const [summaryContent, setSummaryContent] = useState('');
+  const [isSummaryLoading, setSummaryLoading] = useState(false);
 
   const { toast } = useToast();
   
@@ -139,6 +147,26 @@ export default function NotesPage() {
   const handleToggleComplete = (id: string) => {
     setNotes(notes.map(n => n.id === id ? {...n, isCompleted: !n.isCompleted} : n));
   };
+
+  const handleSummarize = async (noteContent: string) => {
+    setSummaryDialogOpen(true);
+    setSummaryLoading(true);
+    setSummaryContent('');
+    try {
+        const result = await generateSummary({ noteContent });
+        setSummaryContent(result.summary);
+    } catch (error) {
+        console.error("Failed to generate summary:", error);
+        setSummaryContent('Sorry, there was an error generating the summary.');
+        toast({
+            variant: 'destructive',
+            title: 'Summarization Failed',
+            description: 'Could not generate a summary for this note.',
+        });
+    } finally {
+        setSummaryLoading(false);
+    }
+  };
   
   const filteredNotes = notes.filter(note => {
       if (activeTab === 'important') return note.isImportant && !note.isCompleted;
@@ -149,6 +177,7 @@ export default function NotesPage() {
 
 
   return (
+    <>
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Notes</h1>
@@ -190,14 +219,14 @@ export default function NotesPage() {
         <TabsContent value="all" className="mt-4">
            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {filteredNotes.map(note => (
-                <NoteCard key={note.id} note={note} onDelete={handleDeleteNote} onToggleImportant={handleToggleImportant} onToggleComplete={handleToggleComplete}/>
+                <NoteCard key={note.id} note={note} onDelete={handleDeleteNote} onToggleImportant={handleToggleImportant} onToggleComplete={handleToggleComplete} onSummarize={handleSummarize}/>
               ))}
            </div>
         </TabsContent>
         <TabsContent value="important" className="mt-4">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {filteredNotes.map(note => (
-                <NoteCard key={note.id} note={note} onDelete={handleDeleteNote} onToggleImportant={handleToggleImportant} onToggleComplete={handleToggleComplete}/>
+                <NoteCard key={note.id} note={note} onDelete={handleDeleteNote} onToggleImportant={handleToggleImportant} onToggleComplete={handleToggleComplete} onSummarize={handleSummarize}/>
               ))}
            </div>
         </TabsContent>
@@ -214,12 +243,35 @@ export default function NotesPage() {
         <TabsContent value="completed" className="mt-4">
            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {filteredNotes.map(note => (
-                <NoteCard key={note.id} note={note} onDelete={handleDeleteNote} onToggleImportant={handleToggleImportant} onToggleComplete={handleToggleComplete}/>
+                <NoteCard key={note.id} note={note} onDelete={handleDeleteNote} onToggleImportant={handleToggleImportant} onToggleComplete={handleToggleComplete} onSummarize={handleSummarize}/>
               ))}
            </div>
         </TabsContent>
       </Tabs>
     </div>
+
+    <Dialog open={isSummaryDialogOpen} onOpenChange={setSummaryDialogOpen}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                    <Sparkles className="text-purple-500" />
+                    AI-Generated Summary
+                </DialogTitle>
+            </DialogHeader>
+            <div className="py-4">
+                {isSummaryLoading ? (
+                     <div className="space-y-2">
+                        <p className="animate-pulse">Generating your summary...</p>
+                    </div>
+                ) : (
+                    <p className="text-muted-foreground">{summaryContent}</p>
+                )}
+            </div>
+            <DialogFooter>
+                <DialogClose asChild><Button>Close</Button></DialogClose>
+            </DialogFooter>
+        </DialogContent>
+    </Dialog>
+    </>
   );
 }
-

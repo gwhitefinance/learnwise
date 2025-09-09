@@ -4,6 +4,6 @@ import './flows/study-planner-flow';
 import './flows/quiz-flow';
 import './flows/quiz-explanation-flow';
 import './flows/roadmap-flow';
+import './flows/note-summary-flow';
 import './tools/course-tool';
 import './tools/web-scraper-tool';
-
