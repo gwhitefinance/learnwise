@@ -4,7 +4,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from "framer-motion"
 import {
-  Users,
   FileText,
   Download,
   Plus,
@@ -21,6 +20,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
 import {
     Table,
     TableBody,
@@ -30,70 +30,74 @@ import {
     TableRow,
   } from "@/components/ui/table"
 
-  const recentFiles = [
-    {
-      name: "Calculus Midterm Study Guide.pdf",
-      subject: "Calculus I",
-      modified: "2 hours ago",
-      shared: true,
-      size: "2.1 MB",
-      collaborators: 3,
-    },
-    {
-      name: "History Chapter 5 Notes.docx",
-      subject: "World History",
-      modified: "Yesterday",
-      shared: true,
-      size: "82 KB",
-      collaborators: 2,
-    },
-    {
-      name: "Programming Assignment 3.py",
-      subject: "Intro to Programming",
-      modified: "3 days ago",
-      shared: false,
-      size: "12 KB",
-      collaborators: 0,
-    },
-  ]
-  
-  const projects = [
-    {
-      name: "Calculus I",
-      description: "Master differential and integral calculus.",
-      progress: 75,
-      dueDate: "June 15, 2025",
-      members: 1,
-      files: 12,
-    },
-    {
-      name: "Intro to Programming",
-      description: "Learn Python fundamentals and best practices.",
-      progress: 60,
-      dueDate: "July 30, 2025",
-      members: 1,
-      files: 28,
-    },
-    {
-      name: "Linear Algebra",
-      description: "Understand vectors, matrices, and transformations.",
-      progress: 90,
-      dueDate: "May 25, 2025",
-      members: 1,
-      files: 18,
-    },
-  ]
-
   type Course = {
     id: string;
     name: string;
     instructor: string;
     credits: number;
     url?: string;
+    description: string;
+    progress: number;
+    files: number;
   };
+  
+  type RecentFile = {
+      name: string;
+      subject: string;
+      modified: string;
+  };
+
+  const initialCourses = [
+    {
+      id: "1",
+      name: "Calculus I",
+      description: "Master differential and integral calculus.",
+      instructor: "Prof. David Lee",
+      credits: 4,
+      progress: 75,
+      files: 12,
+    },
+    {
+      id: "2",
+      name: "Intro to Programming",
+      description: "Learn Python fundamentals and best practices.",
+      instructor: "Dr. Emily Carter",
+      credits: 3,
+      progress: 60,
+      files: 28,
+    },
+    {
+      id: "3",
+      name: "Linear Algebra",
+      description: "Understand vectors, matrices, and transformations.",
+      instructor: "Dr. Sarah Jones",
+      credits: 3,
+      progress: 90,
+      files: 18,
+    },
+  ];
+
+  const initialRecentFiles: RecentFile[] = [
+    {
+      name: "Calculus Midterm Study Guide.pdf",
+      subject: "Calculus I",
+      modified: "2 hours ago",
+    },
+    {
+      name: "History Chapter 5 Notes.docx",
+      subject: "World History",
+      modified: "Yesterday",
+    },
+    {
+      name: "Programming Assignment 3.py",
+      subject: "Intro to Programming",
+      modified: "3 days ago",
+    },
+  ]
 
 export default function DashboardPage() {
     const [courses, setCourses] = useState<Course[]>([]);
+    const [recentFiles, setRecentFiles] = useState<RecentFile[]>([]);
     const [isAddCourseOpen, setAddCourseOpen] = useState(false);
     const [newCourse, setNewCourse] = useState({ name: '', instructor: '', credits: '', url: ''});
     const { toast } = useToast();
@@ -105,6 +109,15 @@ export default function DashboardPage() {
         const savedCourses = localStorage.getItem('courses');
         if (savedCourses) {
             setCourses(JSON.parse(savedCourses));
+        } else {
+            setCourses(initialCourses);
+        }
+
+        const savedFiles = localStorage.getItem('recentFiles');
+        if (savedFiles) {
+            setRecentFiles(JSON.parse(savedFiles));
+        } else {
+            setRecentFiles(initialRecentFiles);
         }
     }, []);
 
@@ -129,9 +142,12 @@ export default function DashboardPage() {
             instructor: newCourse.instructor,
             credits: parseInt(newCourse.credits, 10),
             url: newCourse.url,
+            description: `A comprehensive course on ${newCourse.name} taught by ${newCourse.instructor}.`,
+            progress: 0,
+            files: 0,
         };
 
-        const updatedCourses = [...courses, courseToAdd];
+        const updatedCourses = [courseToAdd, ...courses];
         setCourses(updatedCourses);
         localStorage.setItem('courses', JSON.stringify(updatedCourses));
         setNewCourse({ name: '', instructor: '', credits: '', url: '' });
@@ -157,7 +173,17 @@ export default function DashboardPage() {
           });
           return;
         }
-        // TODO: Implement actual file upload logic
+        
+        const newFiles: RecentFile[] = Array.from(files).map(file => ({
+            name: file.name,
+            subject: "General", // Or try to infer from context
+            modified: "Just now",
+        }));
+
+        const updatedFiles = [...newFiles, ...recentFiles];
+        setRecentFiles(updatedFiles);
+        localStorage.setItem('recentFiles', JSON.stringify(updatedFiles));
+
         console.log('Uploading files:', files);
         toast({
           title: 'Upload Successful!',
@@ -192,7 +218,8 @@ export default function DashboardPage() {
         
         const droppedFiles = e.dataTransfer.files;
         if (droppedFiles && droppedFiles.length > 0) {
-          setFiles(droppedFiles);
+          handleFileChange(droppedFiles);
+          setUploadOpen(true);
         }
     };
 
@@ -226,7 +253,12 @@ export default function DashboardPage() {
                           Upload Course Information
                         </Button>
                     </DialogTrigger>
-                    <DialogContent>
+                    <DialogContent
+                        onDragEnter={handleDragEnter}
+                        onDragLeave={handleDragLeave}
+                        onDragOver={handleDragOver}
+                        onDrop={handleDrop}
+                    >
                          <DialogHeader>
                             <DialogTitle>Upload Study Materials</DialogTitle>
                         </DialogHeader>
@@ -235,10 +267,6 @@ export default function DashboardPage() {
                                 "relative flex flex-col items-center justify-center w-full p-12 border-2 border-dashed rounded-lg cursor-pointer transition-colors",
                                 isDragging ? "border-primary bg-primary/10" : "border-border hover:border-primary/50"
                             )}
-                            onDragEnter={handleDragEnter}
-                            onDragLeave={handleDragLeave}
-                            onDragOver={handleDragOver}
-                            onDrop={handleDrop}
                             onClick={() => document.getElementById('file-upload-input')?.click()}
                           >
                             <input 
@@ -362,9 +390,11 @@ export default function DashboardPage() {
             <section className="space-y-4">
                 <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-semibold">Recent Files</h2>
-                <Button variant="ghost" className="rounded-2xl">
-                    View All
-                </Button>
+                <Link href="/dashboard/upload">
+                    <Button variant="ghost" className="rounded-2xl">
+                        View All
+                    </Button>
+                </Link>
                 </div>
                 <Card>
                 <Table>
@@ -376,8 +406,8 @@ export default function DashboardPage() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                    {recentFiles.map((file) => (
-                        <TableRow key={file.name}>
+                    {recentFiles.slice(0, 3).map((file, index) => (
+                        <TableRow key={index}>
                              <TableCell className="font-medium">{file.name}</TableCell>
                             <TableCell>{file.subject}</TableCell>
                             <TableCell>{file.modified}</TableCell>
@@ -391,32 +421,34 @@ export default function DashboardPage() {
             <section className="space-y-4">
                 <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-semibold">Active Courses</h2>
-                <Button variant="ghost" className="rounded-2xl">
-                    View All
-                </Button>
+                <Link href="/dashboard/courses">
+                    <Button variant="ghost" className="rounded-2xl">
+                        View All
+                    </Button>
+                </Link>
                 </div>
                  <div className="space-y-4">
-                    {projects.slice(0, 3).map((project) => (
-                        <Card key={project.name}>
+                    {courses.slice(0, 3).map((course) => (
+                        <Card key={course.id}>
                              <CardContent className="p-4">
                                 <div className="flex items-center justify-between mb-2">
-                                    <h3 className="font-medium">{project.name}</h3>
+                                    <h3 className="font-medium">{course.name}</h3>
                                     <Badge variant="outline" className="rounded-xl">
                                     In Progress
                                     </Badge>
                                 </div>
-                                <p className="text-sm text-muted-foreground mb-3">{project.description}</p>
+                                <p className="text-sm text-muted-foreground mb-3">{course.description}</p>
                                 <div className="space-y-2">
                                     <div className="flex items-center justify-between text-sm">
                                     <span>Progress</span>
-                                    <span>{project.progress}%</span>
+                                    <span>{course.progress}%</span>
                                     </div>
-                                    <Progress value={project.progress} className="h-2 rounded-xl" />
+                                    <Progress value={course.progress} className="h-2 rounded-xl" />
                                 </div>
                                 <div className="flex items-center justify-between mt-3 text-sm text-muted-foreground">
                                     <div className="flex items-center">
                                     <FileText className="mr-1 h-4 w-4" />
-                                    {project.files} files
+                                    {course.files} files
                                     </div>
                                 </div>
                             </CardContent>
@@ -428,5 +460,3 @@ export default function DashboardPage() {
     </div>
   )
 }
-
-    
