@@ -91,7 +91,7 @@ export default function LearningLabPage() {
     if (!course) return;
 
     setIsLoading(true);
-    setMiniCourse(null);
+    setMiniCourse(null); // Clear previous course to show loading state
     setCompletedModules([]);
     setIsCourseComplete(false);
     setCurrentModuleIndex(0);
