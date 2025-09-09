@@ -74,13 +74,14 @@ import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/toaster';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { auth } from '@/lib/firebase';
+import { auth, messaging } from '@/lib/firebase';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { getToken } from 'firebase/messaging';
 
 
 // Sample data for sidebar navigation
@@ -267,6 +268,31 @@ export default function DashboardLayout({
     if (savedPic) {
       setProfilePic(savedPic);
     }
+    
+    // Request notification permission
+    async function requestPermission() {
+      console.log('Requesting permission...');
+      const permission = await Notification.requestPermission();
+      if (permission === 'granted') {
+        console.log('Notification permission granted.');
+        
+        // Get the token
+        const currentToken = await getToken(messaging, { vapidKey: 'YOUR_VAPID_KEY_HERE' });
+        
+        if (currentToken) {
+          console.log('FCM Token:', currentToken);
+          // Send the token to your server and update the UI if necessary
+        } else {
+          // Show permission request UI
+          console.log('No registration token available. Request permission to generate one.');
+        }
+      } else {
+        console.log('Unable to get permission to notify.');
+      }
+    }
+    
+    requestPermission();
+
   }, [user, loading, router]);
 
 
