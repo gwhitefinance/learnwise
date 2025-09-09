@@ -54,6 +54,8 @@ export default function SignUpPage() {
             errorMessage = 'Please enter a valid email address.';
         } else if (error.code === 'auth/weak-password') {
             errorMessage = 'The password is too weak.';
+        } else if (error.code === 'auth/internal-error') {
+            errorMessage = 'An internal server error occurred. Please try again later.'
         }
         toast({
             variant: "destructive",
