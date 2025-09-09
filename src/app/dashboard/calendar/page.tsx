@@ -281,13 +281,16 @@ export default function CalendarPage() {
             return;
         }
 
+        // Correctly calculate day before creating the object
+        const dayOfWeek = newEventDate.getUTCDay();
+
         const eventData = {
             title: newEventTitle,
             description: newEventDesc,
             date: newEventDate.toISOString(),
             startTime: newEventStartTime,
             endTime: newEventEndTime,
-            day: newEventDate.getDay() + 1,
+            day: dayOfWeek === 0 ? 7 : dayOfWeek, // Sunday is 0, make it 7 for grid
             type: newEventType,
             color: eventTypes[newEventType],
             location: newEventLocation,
@@ -844,3 +847,5 @@ export default function CalendarPage() {
     </div>
   )
 }
+
+    
