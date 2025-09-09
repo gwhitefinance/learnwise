@@ -158,7 +158,7 @@ export default function CalendarPage() {
 
 
   const scheduleReminder = (event: Event) => {
-    if (Notification.permission !== 'granted' || event.reminderMinutes <= 0) return;
+    if (typeof window === 'undefined' || !('Notification' in window) || Notification.permission !== 'granted' || event.reminderMinutes <= 0) return;
 
     const eventTime = new Date(`${event.date.split('T')[0]}T${event.startTime}`).getTime();
     const reminderTime = eventTime - event.reminderMinutes * 60 * 1000;
@@ -841,5 +841,3 @@ export default function CalendarPage() {
     </div>
   )
 }
-
-    
