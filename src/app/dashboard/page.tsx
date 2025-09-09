@@ -577,6 +577,14 @@ export default function DashboardPage() {
                             This is your command center for smarter studying. Add a course or upload your notes to begin creating personalized study materials with AI.
                             </p>
                             <div className="flex flex-wrap gap-3">
+                            <Link href="/dashboard/ai-chat">
+                                <Button
+                                    variant="outline"
+                                    className="rounded-2xl bg-white text-black hover:bg-gray-100"
+                                >
+                                    Start a Chat
+                                </Button>
+                            </Link>
                             <Button
                                 variant="outline"
                                 className="rounded-2xl bg-transparent border-white text-white hover:bg-white/10"
@@ -584,14 +592,6 @@ export default function DashboardPage() {
                             >
                                 Take a Tour
                             </Button>
-                            <Link href="/dashboard/ai-chat">
-                                <Button
-                                    variant="outline"
-                                    className="rounded-2xl bg-transparent border-white text-white hover:bg-white/10"
-                                >
-                                    Start a Chat
-                                </Button>
-                            </Link>
                             </div>
                         </div>
                         <div className="hidden lg:block">
