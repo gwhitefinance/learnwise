@@ -1,19 +1,67 @@
 
 "use client"
 
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Github } from "lucide-react"
+import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import { useToast } from "@/hooks/use-toast"
+import { auth } from "@/lib/firebase"
 
 export default function SignUpPage() {
   const router = useRouter()
+  const { toast } = useToast()
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
 
-  const handleSignUp = (e: React.FormEvent) => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
-    // In a real app, you'd handle form validation and user creation here.
-    // For this prototype, we'll just redirect.
-    router.push('/learner-type')
+    if (!email || !password || !firstName || !lastName) {
+        toast({
+            variant: "destructive",
+            title: "Missing fields",
+            description: "Please fill out all fields.",
+        });
+        return;
+    }
+    if (password.length < 8) {
+      toast({
+        variant: 'destructive',
+        title: 'Password too short',
+        description: 'Your password must be at least 8 characters long.',
+      })
+      return
+    }
+
+    try {
+      await createUserWithEmailAndPassword(auth, email, password);
+      // In a real app, you would also save the first/last name to a database like Firestore
+      // associated with the user's UID.
+      toast({
+          title: "Account Created!",
+          description: "Welcome to LearnWise. Let's discover your learning style.",
+      });
+      router.push('/learner-type');
+    } catch (error: any) {
+        let errorMessage = "An unknown error occurred.";
+        if (error.code === 'auth/email-already-in-use') {
+            errorMessage = 'This email address is already in use by another account.';
+        } else if (error.code === 'auth/invalid-email') {
+            errorMessage = 'Please enter a valid email address.';
+        } else if (error.code === 'auth/weak-password') {
+            errorMessage = 'The password is too weak.';
+        }
+        toast({
+            variant: "destructive",
+            title: "Sign Up Failed",
+            description: errorMessage,
+        });
+        console.error(error);
+    }
   }
 
   return (
@@ -108,6 +156,8 @@ export default function SignUpPage() {
                     placeholder="First Name"
                     type="text"
                     required
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
                   />
                 </div>
                 <div className="space-y-2">
@@ -116,6 +166,8 @@ export default function SignUpPage() {
                     placeholder="Last Name"
                     type="text"
                     required
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
                   />
                 </div>
               </div>
@@ -126,6 +178,8 @@ export default function SignUpPage() {
                   placeholder="example@email.com"
                   type="email"
                   required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
 
@@ -136,6 +190,8 @@ export default function SignUpPage() {
                   type="password"
                   required
                   minLength={8}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                 />
                 <p className="text-sm text-gray-400">Must be at least 8 characters.</p>
               </div>
