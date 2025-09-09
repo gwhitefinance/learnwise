@@ -2,14 +2,21 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
-import { GitMerge, CheckCircle, Flag, FlaskConical, Calendar as CalendarIcon, Users, Trophy } from "lucide-react";
+import { GitMerge, Plus, Trash2, Edit } from "lucide-react";
 import * as LucideIcons from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { generateRoadmap } from '@/ai/flows/roadmap-flow';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from '@/components/ui/skeleton';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger, DialogClose } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { DatePicker } from '@/components/ui/date-picker';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+
 
 type Course = {
     id: string;
@@ -19,12 +26,14 @@ type Course = {
 };
 
 type Goal = {
+    id: string;
     icon: keyof typeof LucideIcons;
     title: string;
     description: string;
 };
 
 type Milestone = {
+    id: string;
     icon: keyof typeof LucideIcons;
     date: string; // YYYY-MM-DD
     title: string;
@@ -68,13 +77,30 @@ export default function RoadmapsPage() {
     const [roadmaps, setRoadmaps] = useState<Record<string, Roadmap>>({});
     const [isLoading, setIsLoading] = useState<Record<string, boolean>>({});
     const { toast } = useToast();
+    
+    // State for the edit/add dialog
+    const [isItemDialogOpen, setIsItemDialogOpen] = useState(false);
+    const [editingItem, setEditingItem] = useState<Goal | Milestone | null>(null);
+    const [editingType, setEditingType] = useState<'goal' | 'milestone' | null>(null);
+    const [currentItemTitle, setCurrentItemTitle] = useState('');
+    const [currentItemDesc, setCurrentItemDesc] = useState('');
+    const [currentItemDate, setCurrentItemDate] = useState<Date | undefined>(undefined);
+    const [activeCourseId, setActiveCourseId] = useState<string | null>(null);
+
 
     useEffect(() => {
         const savedCourses = localStorage.getItem('courses');
         if (savedCourses) {
-            setCourses(JSON.parse(savedCourses));
+            const parsedCourses = JSON.parse(savedCourses);
+            setCourses(parsedCourses);
+            if(parsedCourses.length > 0) {
+                setActiveCourseId(parsedCourses[0].id);
+            }
         } else {
             setCourses(initialCourses);
+             if(initialCourses.length > 0) {
+                setActiveCourseId(initialCourses[0].id);
+            }
         }
         
         const savedRoadmaps = localStorage.getItem('roadmaps');
@@ -94,8 +120,8 @@ export default function RoadmapsPage() {
             });
 
             const newRoadmap: Roadmap = {
-                goals: response.goals.map(g => ({ ...g, icon: g.icon as keyof typeof LucideIcons || 'Flag' })),
-                milestones: response.milestones.map(m => ({ ...m, description: m.title, icon: m.icon as keyof typeof LucideIcons || 'CalendarIcon', completed: new Date(m.date) < new Date() }))
+                goals: response.goals.map(g => ({ ...g, id: crypto.randomUUID(), icon: g.icon as keyof typeof LucideIcons || 'Flag' })),
+                milestones: response.milestones.map(m => ({ ...m, id: crypto.randomUUID(), description: m.title, icon: m.icon as keyof typeof LucideIcons || 'CalendarIcon', completed: new Date(m.date) < new Date() }))
             };
             
             const updatedRoadmaps = { ...roadmaps, [course.id]: newRoadmap };
@@ -113,8 +139,82 @@ export default function RoadmapsPage() {
             setIsLoading(prev => ({ ...prev, [course.id]: false }));
         }
     };
+    
+    const openItemDialog = (type: 'goal' | 'milestone', item?: Goal | Milestone) => {
+        setEditingType(type);
+        setEditingItem(item || null);
+        setCurrentItemTitle(item?.title || '');
+        setCurrentItemDesc(item?.description || '');
+        if (type === 'milestone' && item && 'date' in item) {
+            setCurrentItemDate(new Date(item.date));
+        } else {
+            setCurrentItemDate(undefined);
+        }
+        setIsItemDialogOpen(true);
+    };
+
+    const handleSaveItem = () => {
+        if (!activeCourseId || !editingType) return;
+        
+        let updatedRoadmap = roadmaps[activeCourseId] || { goals: [], milestones: [] };
+
+        if (editingType === 'goal') {
+            const newGoal: Goal = {
+                id: editingItem?.id || crypto.randomUUID(),
+                title: currentItemTitle,
+                description: currentItemDesc,
+                icon: 'Flag',
+            };
+            if (editingItem) {
+                updatedRoadmap.goals = updatedRoadmap.goals.map(g => g.id === newGoal.id ? newGoal : g);
+            } else {
+                updatedRoadmap.goals.push(newGoal);
+            }
+        } else if (editingType === 'milestone') {
+             const newMilestone: Milestone = {
+                id: editingItem?.id || crypto.randomUUID(),
+                title: currentItemTitle,
+                description: currentItemDesc,
+                date: currentItemDate ? currentItemDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+                icon: 'CalendarIcon',
+                completed: false
+            };
+            if (editingItem) {
+                updatedRoadmap.milestones = updatedRoadmap.milestones.map(m => m.id === newMilestone.id ? newMilestone : m);
+            } else {
+                updatedRoadmap.milestones.push(newMilestone);
+            }
+            // Sort milestones by date
+            updatedRoadmap.milestones.sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        }
+        
+        const updatedRoadmaps = { ...roadmaps, [activeCourseId]: updatedRoadmap };
+        setRoadmaps(updatedRoadmaps);
+        localStorage.setItem('roadmaps', JSON.stringify(updatedRoadmaps));
+        toast({ title: `${editingType} saved!` });
+        setIsItemDialogOpen(false);
+    };
+
+    const handleDeleteItem = (type: 'goal' | 'milestone', id: string) => {
+        if (!activeCourseId) return;
+
+        let updatedRoadmap = roadmaps[activeCourseId];
+        if (!updatedRoadmap) return;
+
+        if (type === 'goal') {
+            updatedRoadmap.goals = updatedRoadmap.goals.filter(g => g.id !== id);
+        } else {
+            updatedRoadmap.milestones = updatedRoadmap.milestones.filter(m => m.id !== id);
+        }
+        
+        const updatedRoadmaps = { ...roadmaps, [activeCourseId]: updatedRoadmap };
+        setRoadmaps(updatedRoadmaps);
+        localStorage.setItem('roadmaps', JSON.stringify(updatedRoadmaps));
+        toast({ title: `${type} deleted.` });
+    };
 
   return (
+    <>
     <div className="space-y-6">
        <div>
             <h1 className="text-3xl font-bold tracking-tight">My Study Roadmaps</h1>
@@ -124,7 +224,7 @@ export default function RoadmapsPage() {
         </div>
         
         {courses.length > 0 ? (
-        <Tabs defaultValue={courses[0].id} className="w-full">
+        <Tabs defaultValue={courses[0].id} onValueChange={setActiveCourseId} className="w-full">
             <TabsList>
                 {courses.map(course => (
                     <TabsTrigger key={course.id} value={course.id}>{course.name}</TabsTrigger>
@@ -151,25 +251,47 @@ export default function RoadmapsPage() {
                     ) : (
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                             <div className="lg:col-span-2 space-y-8">
-                                <h2 className="text-2xl font-semibold">Goals</h2>
+                                <div className="flex justify-between items-center">
+                                    <h2 className="text-2xl font-semibold">Goals</h2>
+                                    <Button variant="outline" size="sm" onClick={() => openItemDialog('goal')}>
+                                        <Plus className="mr-2 h-4 w-4"/> Add Goal
+                                    </Button>
+                                </div>
                                  <div className="grid gap-4 md:grid-cols-2">
                                      {courseIsLoading && !roadmap ? (
                                         <>
-                                            <Skeleton className="h-24"/>
-                                            <Skeleton className="h-24"/>
+                                            <Skeleton className="h-32"/>
+                                            <Skeleton className="h-32"/>
                                         </>
                                      ) : roadmap?.goals.map((goal, index) => {
                                          const GoalIcon = getIcon(goal.icon, 'Flag');
                                          return (
-                                            <Card key={index}>
-                                                <CardContent className="p-6 flex items-start gap-4">
-                                                    <div className="bg-muted p-3 rounded-lg">
-                                                        <GoalIcon className="h-6 w-6 text-muted-foreground"/>
+                                            <Card key={index} className="group">
+                                                <CardHeader>
+                                                    <div className="flex justify-between items-start">
+                                                         <div className="bg-muted p-3 rounded-lg">
+                                                            <GoalIcon className="h-6 w-6 text-muted-foreground"/>
+                                                        </div>
+                                                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openItemDialog('goal', goal)}><Edit className="h-4 w-4"/></Button>
+                                                            <AlertDialog>
+                                                                <AlertDialogTrigger asChild>
+                                                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive"><Trash2 className="h-4 w-4"/></Button>
+                                                                </AlertDialogTrigger>
+                                                                <AlertDialogContent>
+                                                                    <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>This will permanently delete this goal.</AlertDialogDescription></AlertDialogHeader>
+                                                                    <AlertDialogFooter>
+                                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                        <AlertDialogAction onClick={() => handleDeleteItem('goal', goal.id)}>Delete</AlertDialogAction>
+                                                                    </AlertDialogFooter>
+                                                                </AlertDialogContent>
+                                                            </AlertDialog>
+                                                        </div>
                                                     </div>
-                                                    <div>
-                                                        <h3 className="font-semibold text-lg">{goal.title}</h3>
-                                                        <p className="text-muted-foreground text-sm">{goal.description}</p>
-                                                    </div>
+                                                </CardHeader>
+                                                <CardContent>
+                                                    <h3 className="font-semibold text-lg">{goal.title}</h3>
+                                                    <p className="text-muted-foreground text-sm mt-1">{goal.description}</p>
                                                 </CardContent>
                                             </Card>
                                         )
@@ -177,7 +299,12 @@ export default function RoadmapsPage() {
                                 </div>
                             </div>
                              <div className="space-y-8">
-                              <h2 className="text-2xl font-semibold">Milestones</h2>
+                                <div className="flex justify-between items-center">
+                                    <h2 className="text-2xl font-semibold">Milestones</h2>
+                                     <Button variant="outline" size="sm" onClick={() => openItemDialog('milestone')}>
+                                        <Plus className="mr-2 h-4 w-4"/> Add Milestone
+                                    </Button>
+                                </div>
                               <div className="relative">
                                 <div className="absolute left-3.5 top-0 h-full w-0.5 bg-border"></div>
                                  {courseIsLoading && !roadmap ? (
@@ -190,13 +317,28 @@ export default function RoadmapsPage() {
                                      const MilestoneIcon = getIcon(milestone.icon, 'CalendarIcon');
                                      const isCompleted = new Date(milestone.date) < new Date();
                                      return (
-                                        <div key={index} className="relative flex items-start gap-6 mb-8">
+                                        <div key={index} className="relative flex items-start gap-6 mb-8 group">
                                             <div className={`h-8 w-8 rounded-full flex items-center justify-center z-10 ${isCompleted ? 'bg-primary text-primary-foreground' : 'bg-muted border-2 border-primary'}`}>
                                             <MilestoneIcon className="h-4 w-4" />
                                             </div>
-                                            <div>
-                                            <p className="text-sm text-muted-foreground">{new Date(milestone.date).toLocaleDateString('en-US', { timeZone: 'UTC', month: 'long', day: 'numeric', year: 'numeric' })}</p>
-                                            <h3 className="font-semibold text-lg">{milestone.title}</h3>
+                                            <div className="flex-1">
+                                                <p className="text-sm text-muted-foreground">{new Date(milestone.date).toLocaleDateString('en-US', { timeZone: 'UTC', month: 'long', day: 'numeric', year: 'numeric' })}</p>
+                                                <h3 className="font-semibold text-lg">{milestone.title}</h3>
+                                            </div>
+                                             <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openItemDialog('milestone', milestone)}><Edit className="h-4 w-4"/></Button>
+                                                <AlertDialog>
+                                                    <AlertDialogTrigger asChild>
+                                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive"><Trash2 className="h-4 w-4"/></Button>
+                                                    </AlertDialogTrigger>
+                                                    <AlertDialogContent>
+                                                        <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>This will permanently delete this milestone.</AlertDialogDescription></AlertDialogHeader>
+                                                        <AlertDialogFooter>
+                                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                            <AlertDialogAction onClick={() => handleDeleteItem('milestone', milestone.id)}>Delete</AlertDialogAction>
+                                                        </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                </AlertDialog>
                                             </div>
                                         </div>
                                     )
@@ -217,5 +359,34 @@ export default function RoadmapsPage() {
             </Card>
         )}
     </div>
+
+    <Dialog open={isItemDialogOpen} onOpenChange={setIsItemDialogOpen}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>{editingItem ? 'Edit' : 'Add'} {editingType}</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                    <Label htmlFor="item-title">Title</Label>
+                    <Input id="item-title" value={currentItemTitle} onChange={(e) => setCurrentItemTitle(e.target.value)} />
+                </div>
+                <div className="grid gap-2">
+                    <Label htmlFor="item-desc">Description</Label>
+                    <Textarea id="item-desc" value={currentItemDesc} onChange={(e) => setCurrentItemDesc(e.target.value)} />
+                </div>
+                {editingType === 'milestone' && (
+                    <div className="grid gap-2">
+                        <Label htmlFor="item-date">Date</Label>
+                        <DatePicker date={currentItemDate} setDate={setCurrentItemDate} />
+                    </div>
+                )}
+            </div>
+            <DialogFooter>
+                <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
+                <Button onClick={handleSaveItem}>Save</Button>
+            </DialogFooter>
+        </DialogContent>
+    </Dialog>
+    </>
   );
 }
