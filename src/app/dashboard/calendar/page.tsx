@@ -22,6 +22,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DatePicker } from '@/components/ui/date-picker';
+import { useToast } from "@/hooks/use-toast";
+
 
 type Event = {
   id: number;
@@ -35,6 +43,7 @@ type Event = {
   attendees: string[];
   organizer: string;
   type: 'Test' | 'Homework' | 'Quiz' | 'Event' | 'Project';
+  date: string;
 };
 
 const classicalPlaylist = [
@@ -64,6 +73,19 @@ export default function CalendarPage() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [learnerType, setLearnerType] = useState<string | null>(null);
   const [events, setEvents] = useState<Event[]>([]);
+  const { toast } = useToast();
+
+  // New Event Dialog State
+  const [isCreateDialogOpen, setCreateDialogOpen] = useState(false);
+  const [newEventTitle, setNewEventTitle] = useState('');
+  const [newEventDesc, setNewEventDesc] = useState('');
+  const [newEventDate, setNewEventDate] = useState<Date | undefined>(new Date());
+  const [newEventStartTime, setNewEventStartTime] = useState('10:00');
+  const [newEventEndTime, setNewEventEndTime] = useState('11:00');
+  const [newEventLocation, setNewEventLocation] = useState('Remote');
+  const [newEventOrganizer, setNewEventOrganizer] = useState('Self');
+  const [newEventAttendees, setNewEventAttendees] = useState('');
+  const [newEventType, setNewEventType] = useState<keyof typeof eventTypes>('Event');
 
 
   useEffect(() => {
@@ -75,7 +97,7 @@ export default function CalendarPage() {
     
     const savedEvents = localStorage.getItem('calendarEvents');
     if (savedEvents) {
-        setEvents(JSON.parse(savedEvents));
+        setEvents(JSON.parse(savedEvents).map((e: Event) => ({...e, date: e.date ? new Date(e.date).toISOString() : new Date().toISOString() })));
     }
 
 
@@ -174,6 +196,44 @@ export default function CalendarPage() {
         setIsPlaying(!isPlaying);
     }
   }
+
+  const handleAddEvent = () => {
+    if (!newEventTitle || !newEventDate) {
+        toast({
+            variant: "destructive",
+            title: "Missing Fields",
+            description: "Please provide at least a title and a date.",
+        });
+        return;
+    }
+
+    const newEvent: Event = {
+        id: Date.now(),
+        title: newEventTitle,
+        description: newEventDesc,
+        date: newEventDate.toISOString(),
+        startTime: newEventStartTime,
+        endTime: newEventEndTime,
+        day: newEventDate.getDay() + 1, // This is a simplification. Week view is static.
+        type: newEventType,
+        color: eventTypes[newEventType],
+        location: newEventLocation,
+        organizer: newEventOrganizer,
+        attendees: newEventAttendees.split(',').map(s => s.trim()).filter(Boolean),
+    };
+
+    const updatedEvents = [...events, newEvent];
+    setEvents(updatedEvents);
+    localStorage.setItem('calendarEvents', JSON.stringify(updatedEvents));
+    toast({
+        title: "Event Created!",
+        description: `${newEvent.title} has been added to your calendar.`,
+    });
+    setCreateDialogOpen(false);
+    // Reset form
+    setNewEventTitle('');
+    setNewEventDesc('');
+  };
   
   const textClass = backgroundImage ? "text-white" : "text-black";
   const textMutedClass = backgroundImage ? "text-white/70" : "text-gray-500";
@@ -239,10 +299,52 @@ export default function CalendarPage() {
           style={{ animationDelay: "0.4s" }}
         >
           <div>
-            <button className="mb-6 flex items-center justify-center gap-2 rounded-full bg-blue-500 px-4 py-3 text-white w-full">
-              <Plus className="h-5 w-5" />
-              <span>Create</span>
-            </button>
+            <Dialog open={isCreateDialogOpen} onOpenChange={setCreateDialogOpen}>
+              <DialogTrigger asChild>
+                <button className="mb-6 flex items-center justify-center gap-2 rounded-full bg-blue-500 px-4 py-3 text-white w-full">
+                  <Plus className="h-5 w-5" />
+                  <span>Create</span>
+                </button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create New Event</DialogTitle>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="event-title">Title</Label>
+                    <Input id="event-title" value={newEventTitle} onChange={(e) => setNewEventTitle(e.target.value)} placeholder="e.g. Midterm Study Session" />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="event-desc">Description</Label>
+                    <Textarea id="event-desc" value={newEventDesc} onChange={(e) => setNewEventDesc(e.target.value)} placeholder="e.g. Review chapters 3-5" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                     <div className="grid gap-2">
+                        <Label htmlFor="event-date">Date</Label>
+                        <DatePicker date={newEventDate} setDate={setNewEventDate} />
+                    </div>
+                     <div className="grid gap-2">
+                        <Label htmlFor="event-type">Event Type</Label>
+                         <Select onValueChange={(value: keyof typeof eventTypes) => setNewEventType(value)} defaultValue={newEventType}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {Object.keys(eventTypes).map(type => (
+                                    <SelectItem key={type} value={type}>{type}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
+                  <Button onClick={handleAddEvent}>Save Event</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
 
             {/* Mini Calendar */}
             <div className="mb-6">
