@@ -22,6 +22,7 @@ const prompt = ai.definePrompt({
     {{/if}}
 
     Use the provided web content as the primary source of information for the course details.
+    {{{webContent}}}
     
     The roadmap should start from today's date, which is {{currentDate}}. The milestones should be spread out logically over a 3-month period from this date.
     Provide clear, actionable goals and milestones.
