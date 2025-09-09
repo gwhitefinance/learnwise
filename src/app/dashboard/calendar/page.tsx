@@ -71,7 +71,7 @@ export default function CalendarPage() {
 
   useEffect(() => {
     if (showAIPopup) {
-      const baseText = "Looks like you don't have many meetings today. ";
+      const baseText = "I see you don't have many meetings today. ";
       const suggestionText = learnerType
         ? `Shall I help you focus in a ${learnerType.toLowerCase()} way?`
         : "Shall I play some background music to help you get into your Flow State?";
@@ -673,3 +673,5 @@ export default function CalendarPage() {
     </div>
   )
 }
+
+    
