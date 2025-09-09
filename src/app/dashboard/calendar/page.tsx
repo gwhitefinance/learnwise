@@ -50,10 +50,16 @@ export default function CalendarPage() {
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [learnerType, setLearnerType] = useState<string | null>(null);
 
 
   useEffect(() => {
     setIsLoaded(true)
+    const storedLearnerType = localStorage.getItem('learnerType');
+    if (storedLearnerType) {
+        setLearnerType(storedLearnerType);
+    }
+
 
     // Show AI popup after 3 seconds
     const popupTimer = setTimeout(() => {
@@ -65,9 +71,13 @@ export default function CalendarPage() {
 
   useEffect(() => {
     if (showAIPopup) {
-      const text =
-        "Looks like you don't have that many meetings today. Shall I play some Hans Zimmer essentials to help you get into your Flow State?"
-      let i = 0
+      const baseText = "Looks like you don't have many meetings today. ";
+      const suggestionText = learnerType
+        ? `Shall I help you focus in a ${learnerType.toLowerCase()} way?`
+        : "Shall I play some background music to help you get into your Flow State?";
+      
+      const text = baseText + suggestionText;
+      let i = 0;
       const typingInterval = setInterval(() => {
         if (i < text.length) {
           setTypedText((prev) => prev + text.charAt(i))
@@ -79,7 +89,7 @@ export default function CalendarPage() {
 
       return () => clearInterval(typingInterval)
     }
-  }, [showAIPopup])
+  }, [showAIPopup, learnerType])
 
   const [currentView, setCurrentView] = useState("week")
   const [currentMonth, setCurrentMonth] = useState("March 2025")
@@ -663,5 +673,3 @@ export default function CalendarPage() {
     </div>
   )
 }
-
-    
