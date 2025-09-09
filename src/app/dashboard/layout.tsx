@@ -256,6 +256,8 @@ export default function DashboardLayout({
   const router = useRouter();
   const [profilePic, setProfilePic] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+
 
   useEffect(() => {
     if (!loading && !user) {
@@ -289,6 +291,20 @@ export default function DashboardLayout({
   const triggerFileUpload = () => {
     fileInputRef.current?.click();
   }
+
+  const filteredSidebarItems = sidebarItems.map(item => {
+    if (!item.children) {
+      return item.title.toLowerCase().includes(searchQuery.toLowerCase()) ? item : null;
+    }
+    const filteredChildren = item.children.filter(child => child.title.toLowerCase().includes(searchQuery.toLowerCase()));
+    if (filteredChildren.length > 0) {
+      return { ...item, children: filteredChildren };
+    }
+    if (item.title.toLowerCase().includes(searchQuery.toLowerCase())) {
+        return item; // Keep the parent if it matches
+    }
+    return null;
+  }).filter(Boolean);
 
 
   if (loading) {
@@ -348,17 +364,19 @@ export default function DashboardLayout({
           <div className="px-3 py-2">
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input type="search" placeholder="Search..." className="w-full rounded-2xl bg-muted pl-9 pr-4 py-2" />
+              <Input type="search" placeholder="Search..." className="w-full rounded-2xl bg-muted pl-9 pr-4 py-2" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
             </div>
           </div>
 
           <ScrollArea className="flex-1 px-3 py-2">
             <div className="space-y-1">
-              {sidebarItems.map((item) => (
+              {filteredSidebarItems.length > 0 ? filteredSidebarItems.map((item: any) => (
                 <div key={item.title} className="mb-1">
                     <SidebarNavItem item={item} pathname={pathname} setMobileMenuOpen={setMobileMenuOpen} />
                 </div>
-              ))}
+              )) : (
+                <div className="p-4 text-center text-sm text-muted-foreground">No results found.</div>
+              )}
             </div>
           </ScrollArea>
 
@@ -411,17 +429,19 @@ export default function DashboardLayout({
           <div className="px-3 py-2">
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input type="search" placeholder="Search..." className="w-full rounded-2xl bg-muted pl-9 pr-4 py-2" />
+              <Input type="search" placeholder="Search..." className="w-full rounded-2xl bg-muted pl-9 pr-4 py-2" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
             </div>
           </div>
 
           <ScrollArea className="flex-1 px-3 py-2">
             <div className="space-y-1">
-              {sidebarItems.map((item) => (
+              {filteredSidebarItems.length > 0 ? filteredSidebarItems.map((item: any) => (
                 <div key={item.title} className="mb-1">
                     <SidebarNavItem item={item} pathname={pathname} setMobileMenuOpen={setMobileMenuOpen} />
                 </div>
-              ))}
+              )) : (
+                 <div className="p-4 text-center text-sm text-muted-foreground">No results found.</div>
+              )}
             </div>
           </ScrollArea>
 
