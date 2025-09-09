@@ -100,7 +100,7 @@ export default function CourseDetailPage({ params }: { params: { courseId: strin
               </CardHeader>
             </Card>
           </Link>
-          <Link href={`/dashboard/practice-quiz?topics=${encodeURIComponent(course.name)}`}>
+          <Link href={`/dashboard/practice-quiz?topic=${encodeURIComponent(course.name)}`}>
             <Card className="hover:bg-muted transition-colors h-full">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2"><Lightbulb/> Practice Quiz</CardTitle>

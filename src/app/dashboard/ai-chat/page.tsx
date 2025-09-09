@@ -52,12 +52,16 @@ export default function AiChatPage() {
     if (courseId) {
         const savedCourses = localStorage.getItem('courses');
         if (savedCourses) {
-            const allCourses: Course[] = JSON.parse(savedCourses);
-            const currentCourse = allCourses.find(c => c.id === courseId);
-            if(currentCourse) {
-                const context = `Course: ${currentCourse.name}. Description: ${currentCourse.description || 'No description available.'}`;
-                setCourseContext(context);
-                initialMessage = `Hello! I see you're working on ${currentCourse.name}. How can I help you with this course?`;
+            try {
+                const allCourses: Course[] = JSON.parse(savedCourses);
+                const currentCourse = allCourses.find(c => c.id === courseId);
+                if(currentCourse) {
+                    const context = `Course: ${currentCourse.name}. Description: ${currentCourse.description || 'No description available.'}`;
+                    setCourseContext(context);
+                    initialMessage = `Hello! I see you're working on ${currentCourse.name}. How can I help you with this course?`;
+                }
+            } catch (e) {
+                console.error("Failed to parse courses from local storage", e);
             }
         }
     }

@@ -148,7 +148,7 @@ const sidebarItems = [
 const SidebarNavItem = ({ item, pathname, setMobileMenuOpen }: { item: any, pathname: string, setMobileMenuOpen: (open: boolean) => void }) => {
     const [isOpen, setIsOpen] = useState(false);
     const hasChildren = item.children && item.children.length > 0;
-    const isActive = hasChildren ? item.children.some((child: any) => child.href === pathname) : item.href === pathname;
+    const isActive = hasChildren ? item.children.some((child: any) => child.href === pathname || pathname.startsWith(child.href + '/')) : item.href === pathname;
 
     useEffect(() => {
         if (isActive) {
@@ -179,7 +179,7 @@ const SidebarNavItem = ({ item, pathname, setMobileMenuOpen }: { item: any, path
                                 href={child.href || '#'}
                                 className={cn(
                                 "flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm font-medium",
-                                pathname === child.href ? "text-primary" : "hover:bg-muted text-muted-foreground",
+                                (pathname === child.href || pathname.startsWith(child.href + '/')) ? "text-primary" : "hover:bg-muted text-muted-foreground",
                                 )}
                                 onClick={() => setMobileMenuOpen(false)}
                             >
