@@ -55,6 +55,7 @@ import {
   ClipboardPenLine,
   BarChart3,
   PenSquare,
+  ChevronRight,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -68,6 +69,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/toaster';
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
 
 
 // Sample data for sidebar navigation
@@ -78,52 +80,135 @@ const sidebarItems = [
       href: "/dashboard",
     },
     {
-      title: "Courses",
-      icon: <GraduationCap />,
-      href: "/dashboard/courses",
+      title: "Workspace",
+      icon: <LayoutGrid />,
+      children: [
+          {
+            title: "Courses",
+            icon: <GraduationCap />,
+            href: "/dashboard/courses",
+          },
+          {
+            title: "Calendar",
+            icon: <Calendar />,
+            href: "/dashboard/calendar",
+          },
+          {
+            title: "Notes",
+            icon: <ClipboardPenLine />,
+            href: "/dashboard/notes",
+          },
+          {
+            title: "Upload",
+            icon: <UploadCloud />,
+            href: "/dashboard/upload",
+          },
+      ]
     },
     {
-      title: "Calendar",
-      icon: <Calendar />,
-      href: "/dashboard/calendar",
+      title: "Study Tools",
+      icon: <BookOpen />,
+      children: [
+        {
+            title: "Roadmaps",
+            icon: <GitMerge />,
+            href: "/dashboard/roadmaps",
+        },
+        {
+            title: "Practice Quiz",
+            icon: <Lightbulb />,
+            href: "/dashboard/practice-quiz",
+        },
+        {
+            title: "Whiteboard",
+            icon: <PenSquare />,
+            href: "/dashboard/whiteboard",
+        },
+      ]
     },
-    {
-      title: "Roadmaps",
-      icon: <GitMerge />,
-      href: "/dashboard/roadmaps",
-    },
-    {
-      title: "Notes",
-      icon: <ClipboardPenLine />,
-      href: "/dashboard/notes",
-    },
-    {
-      title: "Practice Quiz",
-      icon: <Lightbulb />,
-      href: "/dashboard/practice-quiz",
-    },
-    {
-      title: "AI Chat",
-      icon: <BrainCircuit />,
-      href: "/dashboard/ai-chat",
-    },
-    {
-      title: "Analysis",
-      icon: <BarChart3 />,
-      href: "/dashboard/analysis",
-    },
-    {
-      title: "Whiteboard",
-      icon: <PenSquare />,
-      href: "/dashboard/whiteboard",
-    },
-    {
-      title: "Upload",
-      icon: <UploadCloud />,
-      href: "/dashboard/upload",
+     {
+      title: "AI Tools",
+      icon: <Sparkles />,
+      children: [
+        {
+            title: "AI Chat",
+            icon: <BrainCircuit />,
+            href: "/dashboard/ai-chat",
+        },
+        {
+            title: "Analysis",
+            icon: <BarChart3 />,
+            href: "/dashboard/analysis",
+        },
+      ]
     },
   ];
 
+
+const SidebarNavItem = ({ item, pathname, setMobileMenuOpen }: { item: any, pathname: string, setMobileMenuOpen: (open: boolean) => void }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const hasChildren = item.children && item.children.length > 0;
+    const isActive = hasChildren ? item.children.some((child: any) => child.href === pathname) : item.href === pathname;
+
+    useEffect(() => {
+        if (isActive) {
+            setIsOpen(true);
+        }
+    }, [isActive]);
+
+    if (hasChildren) {
+        return (
+            <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+                 <CollapsibleTrigger asChild>
+                    <button className={cn(
+                          "flex w-full items-center justify-between rounded-2xl px-3 py-2 text-sm font-medium",
+                          isActive ? "bg-primary/10 text-primary" : "hover:bg-muted"
+                        )}>
+                        <div className="flex items-center gap-3">
+                            {item.icon}
+                            <span>{item.title}</span>
+                        </div>
+                        <ChevronRight className={cn("h-4 w-4 transition-transform", isOpen && "rotate-90")} />
+                    </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="py-1 pl-8">
+                    <div className="flex flex-col space-y-1">
+                        {item.children.map((child: any) => (
+                             <Link
+                                key={child.title}
+                                href={child.href || '#'}
+                                className={cn(
+                                "flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm font-medium",
+                                pathname === child.href ? "text-primary" : "hover:bg-muted text-muted-foreground",
+                                )}
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                {child.icon}
+                                <span>{child.title}</span>
+                            </Link>
+                        ))}
+                    </div>
+                </CollapsibleContent>
+            </Collapsible>
+        )
+    }
+
+    return (
+        <Link
+            href={item.href || '#'}
+            className={cn(
+            "flex w-full items-center justify-between rounded-2xl px-3 py-2 text-sm font-medium",
+            pathname === item.href ? "bg-primary/10 text-primary" : "hover:bg-muted",
+            )}
+            onClick={() => setMobileMenuOpen(false)}
+        >
+            <div className="flex items-center gap-3">
+            {item.icon}
+            <span>{item.title}</span>
+            </div>
+        </Link>
+    )
+}
 
 export default function DashboardLayout({
   children,
@@ -193,19 +278,7 @@ export default function DashboardLayout({
             <div className="space-y-1">
               {sidebarItems.map((item) => (
                 <div key={item.title} className="mb-1">
-                  <Link
-                    href={item.href || '#'}
-                    className={cn(
-                      "flex w-full items-center justify-between rounded-2xl px-3 py-2 text-sm font-medium",
-                      pathname === item.href ? "bg-primary/10 text-primary" : "hover:bg-muted",
-                    )}
-                     onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <div className="flex items-center gap-3">
-                      {item.icon}
-                      <span>{item.title}</span>
-                    </div>
-                  </Link>
+                    <SidebarNavItem item={item} pathname={pathname} setMobileMenuOpen={setMobileMenuOpen} />
                 </div>
               ))}
             </div>
@@ -265,18 +338,7 @@ export default function DashboardLayout({
             <div className="space-y-1">
               {sidebarItems.map((item) => (
                 <div key={item.title} className="mb-1">
-                  <Link
-                    href={item.href || '#'}
-                    className={cn(
-                      "flex w-full items-center justify-between rounded-2xl px-3 py-2 text-sm font-medium",
-                      pathname === item.href ? "bg-primary/10 text-primary" : "hover:bg-muted",
-                    )}
-                  >
-                    <div className="flex items-center gap-3">
-                      {item.icon}
-                      <span>{item.title}</span>
-                    </div>
-                  </Link>
+                    <SidebarNavItem item={item} pathname={pathname} setMobileMenuOpen={setMobileMenuOpen} />
                 </div>
               ))}
             </div>
@@ -372,3 +434,5 @@ export default function DashboardLayout({
     </>
   );
 }
+
+    
