@@ -144,3 +144,5 @@ export default function CourseDetailPage({ params }: { params: { courseId: strin
     </div>
   );
 }
+
+    

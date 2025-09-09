@@ -172,14 +172,11 @@ export default function CalendarPage() {
         });
         // Remove reminder once it has fired
         setReminders(prev => prev.filter(r => r.id !== event.id));
-        localStorage.setItem('notifications', JSON.stringify(reminders.filter(r => r.id !== event.id)));
-
       }, reminderTime - now);
       
       const newReminder = { id: event.id, fireTime: reminderTime, title: event.title, timeoutId };
       const updatedReminders = [...reminders.filter(r => r.id !== event.id), newReminder];
       setReminders(updatedReminders);
-      localStorage.setItem('notifications', JSON.stringify(updatedReminders.map(r => ({id: r.id, fireTime: r.fireTime, title: r.title}))));
     }
   };
 

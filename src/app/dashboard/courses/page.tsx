@@ -172,7 +172,9 @@ export default function CoursesPage() {
                 <TableRow key={course.id}>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                        {course.name}
+                        <Link href={`/dashboard/courses/${course.id}`} className="hover:underline">
+                            {course.name}
+                        </Link>
                         {course.url && (
                             <a href={course.url} target="_blank" rel="noopener noreferrer">
                                 <LinkIcon className="h-4 w-4 text-muted-foreground hover:text-primary"/>
@@ -204,3 +206,5 @@ export default function CoursesPage() {
     </div>
   );
 }
+
+    
