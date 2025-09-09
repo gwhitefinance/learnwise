@@ -21,7 +21,8 @@ import {
   Folder,
   Briefcase,
   BookOpen,
-  ArrowRight
+  ArrowRight,
+  Link as LinkIcon
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -35,6 +36,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import Image from "next/image";
 import {
     Table,
     TableBody,
@@ -178,6 +180,38 @@ import {
     { title: "Active Recall", description: "A process of actively stimulating memory during the learning process.", link: "#" },
   ];
 
+  const integrations = [
+    {
+        name: "Google Calendar",
+        icon: "https://upload.wikimedia.org/wikipedia/commons/a/a5/Google_Calendar_icon_%282020%29.svg",
+        description: "Sync deadlines and study sessions automatically.",
+    },
+    {
+        name: "Notion",
+        icon: "https://upload.wikimedia.org/wikipedia/commons/4/45/Notion_app_logo.png",
+        description: "Connect your notes and knowledge bases.",
+    },
+    {
+        name: "Slack",
+        icon: "https://cdn.freebiesupply.com/logos/large/2x/slack-logo-icon.png",
+        description: "Get study reminders and form study groups.",
+    },
+    {
+        name: "Zoom",
+        icon: "https://t4.ftcdn.net/jpg/03/75/33/61/360_F_375336103_KQSAG9rQuOgdSx01GNIPK9abZaIeGoGR.jpg",
+        description: "Launch study sessions directly from your calendar.",
+    },
+    {
+        name: "Google Drive",
+        icon: "https://upload.wikimedia.org/wikipedia/commons/1/12/Google_Drive_icon_%282020%29.svg",
+        description: "Import documents and notes for analysis.",
+    },
+    {
+        name: "GitHub",
+        icon: "https://cdn.iconscout.com/icon/free/png-256/free-github-icon-svg-png-download-1597554.png?f=webp",
+        description: "Track coding projects alongside your coursework.",
+    },
+];
 
 export default function DashboardPage() {
     const [courses, setCourses] = useState<Course[]>([]);
@@ -315,12 +349,13 @@ export default function DashboardPage() {
     <div className="space-y-8 mt-0">
         <Tabs defaultValue="home">
             <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <TabsList className="grid w-full max-w-[600px] grid-cols-5 rounded-2xl p-1">
+              <TabsList className="grid w-full max-w-[750px] grid-cols-6 rounded-2xl p-1">
                 <TabsTrigger value="home" className="rounded-xl data-[state=active]:rounded-xl"><Home className="w-4 h-4 mr-2"/>Home</TabsTrigger>
                 <TabsTrigger value="apps" className="rounded-xl data-[state=active]:rounded-xl"><LayoutGrid className="w-4 h-4 mr-2"/>Apps</TabsTrigger>
                 <TabsTrigger value="files" className="rounded-xl data-[state=active]:rounded-xl"><Folder className="w-4 h-4 mr-2"/>Files</TabsTrigger>
                 <TabsTrigger value="projects" className="rounded-xl data-[state=active]:rounded-xl"><Briefcase className="w-4 h-4 mr-2"/>Projects</TabsTrigger>
                 <TabsTrigger value="learn" className="rounded-xl data-[state=active]:rounded-xl"><BookOpen className="w-4 h-4 mr-2"/>Learn</TabsTrigger>
+                <TabsTrigger value="integrations" className="rounded-xl data-[state=active]:rounded-xl"><LinkIcon className="w-4 h-4 mr-2"/>Integrations</TabsTrigger>
               </TabsList>
               <div className="hidden md:flex gap-2">
                 <Dialog open={isUploadOpen} onOpenChange={setUploadOpen}>
@@ -625,6 +660,37 @@ export default function DashboardPage() {
                         </a>
                     ))}
                 </div>
+            </TabsContent>
+
+            <TabsContent value="integrations">
+                <Card>
+                     <CardHeader>
+                        <CardTitle>Connect Your Apps</CardTitle>
+                        <CardDescription>Seamlessly integrate with the tools you already use.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                         {integrations.map((integration) => (
+                            <Card key={integration.name}>
+                                <CardHeader className="flex flex-row items-center gap-4">
+                                     <Image
+                                        className="size-12"
+                                        src={integration.icon}
+                                        alt={`${integration.name}-icon`}
+                                        width={48}
+                                        height={48}
+                                    />
+                                    <div>
+                                        <CardTitle className="text-lg">{integration.name}</CardTitle>
+                                        <CardDescription className="text-xs">{integration.description}</CardDescription>
+                                    </div>
+                                </CardHeader>
+                                <CardFooter>
+                                    <Button variant="outline" className="w-full">Connect</Button>
+                                </CardFooter>
+                            </Card>
+                        ))}
+                    </CardContent>
+                </Card>
             </TabsContent>
 
         </Tabs>
