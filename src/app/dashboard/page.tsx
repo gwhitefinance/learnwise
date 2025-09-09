@@ -151,6 +151,7 @@ export default function DashboardPage() {
     const [projects, setProjects] = useState<Project[]>([]);
     const [recentFiles, setRecentFiles] = useState<RecentFile[]>([]);
     const [isAddCourseOpen, setAddCourseOpen] = useState(false);
+    const [isSavingCourse, setIsSavingCourse] = useState(false);
     const [newCourse, setNewCourse] = useState({ name: '', instructor: '', credits: '', url: ''});
     const { toast } = useToast();
     const [files, setFiles] = useState<FileList | null>(null);
@@ -291,7 +292,10 @@ export default function DashboardPage() {
         }
         if (!user) return;
 
+        setIsSavingCourse(true);
+        const tempId = crypto.randomUUID();
         const courseToAdd = {
+            id: tempId,
             name: newCourse.name,
             instructor: newCourse.instructor,
             credits: parseInt(newCourse.credits, 10),
@@ -301,12 +305,19 @@ export default function DashboardPage() {
             progress: 0,
             files: 0,
         };
+
+        // Optimistic UI Update
+        setCourses(prev => [...prev, courseToAdd]);
+        setAddCourseOpen(false);
+        setNewCourse({ name: '', instructor: '', credits: '', url: '' });
+        setIsSavingCourse(false);
         
         try {
-            const docRef = await addDoc(collection(db, "courses"), courseToAdd);
-            setCourses(prev => [...prev, { id: docRef.id, ...courseToAdd }]);
-            setNewCourse({ name: '', instructor: '', credits: '', url: '' });
-            setAddCourseOpen(false);
+            const docData = { ...courseToAdd };
+            delete (docData as any).id;
+            const docRef = await addDoc(collection(db, "courses"), docData);
+            setCourses(prev => prev.map(c => c.id === tempId ? { ...c, id: docRef.id } : c));
+            
             toast({
                 title: 'Course Added!',
                 description: `${courseToAdd.name} has been added to your list.`
@@ -317,6 +328,7 @@ export default function DashboardPage() {
                 title: 'Error',
                 description: 'Could not add course. Please try again.',
             });
+            setCourses(prev => prev.filter(c => c.id !== tempId));
         }
     };
     
@@ -543,7 +555,9 @@ export default function DashboardPage() {
                         </div>
                          <DialogFooter>
                             <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
-                            <Button onClick={handleAddCourse}>Add Course</Button>
+                            <Button onClick={handleAddCourse} disabled={isSavingCourse}>
+                                {isSavingCourse ? 'Saving...' : 'Add Course'}
+                            </Button>
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
