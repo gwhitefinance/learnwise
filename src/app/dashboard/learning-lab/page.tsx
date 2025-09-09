@@ -1,17 +1,76 @@
 
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { UploadCloud, Play, Pause, ChevronLeft, ChevronRight } from 'lucide-react';
+import { UploadCloud, Play, Pause, ChevronLeft, ChevronRight, Wand2, FlaskConical, Lightbulb } from 'lucide-react';
 import Link from 'next/link';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
+import { generateMiniCourse } from '@/ai/flows/mini-course-flow';
+import type { GenerateMiniCourseOutput } from '@/ai/schemas/mini-course-schema';
+import { Skeleton } from '@/components/ui/skeleton';
+
+type Course = {
+    id: string;
+    name: string;
+    description: string;
+    url?: string;
+};
+
+type Module = GenerateMiniCourseOutput['modules'][0];
 
 export default function LearningLabPage() {
-  // Mock data - in a real app, this would come from state management
-  const courseTitle = "Introduction to Astrophysics";
-  const progress = 45;
-  const currentModule = "Stellar Evolution";
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
+  const [learnerType, setLearnerType] = useState<string | null>(null);
+  const [miniCourse, setMiniCourse] = useState<GenerateMiniCourseOutput | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [currentModuleIndex, setCurrentModuleIndex] = useState(0);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const savedCourses = localStorage.getItem('courses');
+    if (savedCourses) {
+      setCourses(JSON.parse(savedCourses));
+    }
+    const storedLearnerType = localStorage.getItem('learnerType');
+    setLearnerType(storedLearnerType ?? 'Unknown');
+  }, []);
+
+  const handleGenerateCourse = async () => {
+    if (!selectedCourseId) {
+        toast({ variant: 'destructive', title: 'Please select a course.'});
+        return;
+    }
+    const course = courses.find(c => c.id === selectedCourseId);
+    if (!course) return;
+
+    setIsLoading(true);
+    setMiniCourse(null);
+    setCurrentModuleIndex(0);
+    toast({ title: 'Generating Your Learning Lab...', description: 'The AI is crafting a personalized course for you.' });
+
+    try {
+        const result = await generateMiniCourse({
+            courseName: course.name,
+            courseDescription: course.description,
+            learnerType: (learnerType as any) ?? 'Reading/Writing'
+        });
+        setMiniCourse(result);
+        toast({ title: 'Ready to Learn!', description: 'Your new mini-course has been generated.'});
+    } catch (error) {
+        console.error("Failed to generate mini-course:", error);
+        toast({ variant: 'destructive', title: 'Generation Failed', description: 'Could not create a course at this time.' });
+    } finally {
+        setIsLoading(false);
+    }
+  };
+
+  const progress = miniCourse ? ((currentModuleIndex + 1) / miniCourse.modules.length) * 100 : 0;
+  const currentModule: Module | null = miniCourse ? miniCourse.modules[currentModuleIndex] : null;
 
   return (
     <div className="space-y-6">
@@ -22,63 +81,121 @@ export default function LearningLabPage() {
         </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Now Learning: {courseTitle}</CardTitle>
-          <CardDescription>
-            A mini-course generated from your uploaded materials, tailored to your learning style.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">Overall Progress</span>
-            <span className="text-sm font-medium">{progress}%</span>
-          </div>
-          <Progress value={progress} />
-        </CardContent>
-      </Card>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-2">
-            <Card className="h-full">
+       {!miniCourse && !isLoading && (
+        <Card className="text-center p-12">
+           <FlaskConical className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+          <h2 className="text-xl font-semibold">Select a Course to Begin</h2>
+          <p className="text-muted-foreground mt-2 mb-6 max-w-md mx-auto">
+            Choose one of your courses from the dropdown below, and the AI will generate a personalized mini-course tailored to your learning style.
+          </p>
+           <div className="flex justify-center gap-4">
+                <Select onValueChange={setSelectedCourseId} value={selectedCourseId ?? ''}>
+                    <SelectTrigger className="w-[280px]">
+                        <SelectValue placeholder="Select a course..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {courses.map(course => (
+                            <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+                <Button onClick={handleGenerateCourse} disabled={!selectedCourseId}>
+                    <Wand2 className="mr-2 h-4 w-4"/> Generate
+                </Button>
+           </div>
+        </Card>
+      )}
+
+      {(isLoading || miniCourse) && (
+          <>
+            <Card>
                 <CardHeader>
-                    <CardTitle>Current Module: {currentModule}</CardTitle>
-                    <CardDescription>Engage with the content below. The format is adapted to your learning style.</CardDescription>
+                <CardTitle>Now Learning: {miniCourse?.courseTitle ?? <Skeleton className="h-6 w-2/3"/>}</CardTitle>
+                <CardDescription>
+                    A mini-course generated from your uploaded materials, tailored to your learning style.
+                </CardDescription>
                 </CardHeader>
-                 <CardContent>
-                    {/* Placeholder for dynamic content based on learning style */}
-                    <div className="bg-muted h-96 rounded-lg flex items-center justify-center text-muted-foreground">
-                        <p>Interactive Content Area (e.g., Video, Quiz, Diagram)</p>
-                    </div>
+                <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Overall Progress</span>
+                    <span className="text-sm font-medium">{progress.toFixed(0)}%</span>
+                </div>
+                <Progress value={progress} />
                 </CardContent>
             </Card>
-        </div>
-        <div className="space-y-6">
-             <Card>
-                <CardHeader>
-                    <CardTitle>Controls</CardTitle>
-                </CardHeader>
-                <CardContent className="flex items-center justify-around">
-                    <Button variant="outline" size="icon"><ChevronLeft /></Button>
-                    <Button size="icon" className="h-16 w-16"><Play className="h-8 w-8"/></Button>
-                    <Button variant="outline" size="icon"><ChevronRight /></Button>
-                </CardContent>
-             </Card>
-             <Card>
-                <CardHeader>
-                    <CardTitle>Upload Materials</CardTitle>
-                    <CardDescription>Add new documents to generate or update your course.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <Link href="/dashboard/upload" className="w-full">
-                        <Button className="w-full">
-                            <UploadCloud className="mr-2 h-4 w-4"/> Upload
-                        </Button>
-                    </Link>
-                </CardContent>
-             </Card>
-        </div>
-      </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="md:col-span-2">
+                    <Card className="h-full">
+                        <CardHeader>
+                            {isLoading ? (
+                                <>
+                                 <Skeleton className="h-6 w-3/4 mb-2"/>
+                                 <Skeleton className="h-4 w-1/2"/>
+                                </>
+                            ) : (
+                                <>
+                                <CardTitle>Module {currentModuleIndex + 1}: {currentModule?.title}</CardTitle>
+                                <CardDescription>Engage with the content below. The format is adapted to your learning style.</CardDescription>
+                                </>
+                            )}
+                        </CardHeader>
+                        <CardContent>
+                            {isLoading ? (
+                                <div className="space-y-4">
+                                    <Skeleton className="h-24 w-full" />
+                                    <Skeleton className="h-4 w-1/4 mb-2" />
+                                    <Skeleton className="h-16 w-full" />
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="space-y-2 mb-6">
+                                        <h3 className="font-semibold text-lg">Content</h3>
+                                        <p className="text-muted-foreground whitespace-pre-wrap">{currentModule?.content}</p>
+                                    </div>
+                                    <div className="p-4 bg-amber-500/10 rounded-lg border border-amber-500/20">
+                                        <h4 className="font-semibold flex items-center gap-2 text-amber-700"><Lightbulb/> Suggested Activity</h4>
+                                        <p className="text-muted-foreground mt-2">{currentModule?.activity}</p>
+                                    </div>
+                                </>
+                            )}
+                        </CardContent>
+                    </Card>
+                </div>
+                <div className="space-y-6">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Controls</CardTitle>
+                        </CardHeader>
+                        <CardContent className="flex items-center justify-around">
+                            <Button variant="outline" size="icon" onClick={() => setCurrentModuleIndex(prev => Math.max(0, prev - 1))} disabled={currentModuleIndex === 0 || isLoading}>
+                                <ChevronLeft />
+                            </Button>
+                            <div className="text-center">
+                                <p className="font-bold text-lg">{currentModuleIndex + 1} / {miniCourse?.modules.length ?? '?'}</p>
+                                <p className="text-sm text-muted-foreground">Module</p>
+                            </div>
+                            <Button variant="outline" size="icon" onClick={() => setCurrentModuleIndex(prev => Math.min(miniCourse!.modules.length - 1, prev + 1))} disabled={!miniCourse || currentModuleIndex === miniCourse.modules.length - 1 || isLoading}>
+                                <ChevronRight />
+                            </Button>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Start Over</CardTitle>
+                            <CardDescription>Generate a new course or select a different one.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                             <Button className="w-full" variant="secondary" onClick={() => setMiniCourse(null)}>
+                                Choose a Different Course
+                            </Button>
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
+         </>
+      )}
+
     </div>
   );
 }

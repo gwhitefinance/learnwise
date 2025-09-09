@@ -7,6 +7,8 @@ import './flows/roadmap-flow';
 import './flows/note-summary-flow';
 import './flows/note-to-quiz-flow';
 import './flows/note-to-flashcard-flow';
+import './flows/mini-course-flow';
 import './tools/course-tool';
 import './tools/web-scraper-tool';
+
 
