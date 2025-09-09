@@ -33,6 +33,14 @@ type Event = {
   organizer: string;
 };
 
+const classicalPlaylist = [
+    "https://cdn.pixabay.com/audio/2024/05/25/audio_24944d1835.mp3", // Emotional Cinematic Music
+    "https://cdn.pixabay.com/audio/2024/05/09/audio_2ef13b0649.mp3", // Cinematic Epic
+    "https://cdn.pixabay.com/audio/2023/10/11/audio_a2f2670758.mp3", // Hans Zimmer Style
+    "https://cdn.pixabay.com/audio/2022/11/17/audio_88f002b12e.mp3", // Inspiring Cinematic
+    "https://cdn.pixabay.com/audio/2024/02/08/audio_17316a1c89.mp3", // The Last Piano
+];
+
 
 export default function CalendarPage() {
   const [isLoaded, setIsLoaded] = useState(false)
@@ -319,6 +327,11 @@ export default function CalendarPage() {
         if (isPlaying) {
             audioRef.current.pause();
         } else {
+            // If not playing and no song is selected yet, pick a random one
+            if (!audioRef.current.src) {
+                const randomSong = classicalPlaylist[Math.floor(Math.random() * classicalPlaylist.length)];
+                audioRef.current.src = randomSong;
+            }
             audioRef.current.play();
         }
         setIsPlaying(!isPlaying);
@@ -335,7 +348,7 @@ export default function CalendarPage() {
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-white">
       {/* Audio Element */}
-      <audio ref={audioRef} src="https://cdn.pixabay.com/audio/2023/10/11/audio_a2f2670758.mp3" loop />
+      <audio ref={audioRef} loop />
 
       {/* Background Image */}
       {backgroundImage ? (
@@ -593,7 +606,7 @@ export default function CalendarPage() {
                     onClick={togglePlay}
                   >
                     <Pause className="h-4 w-4" />
-                    <span>Pause Hans Zimmer</span>
+                    <span>Pause Music</span>
                   </button>
                 </div>
               )}
