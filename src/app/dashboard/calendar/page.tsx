@@ -281,15 +281,13 @@ export default function CalendarPage() {
             return;
         }
 
-        const dayOfWeek = newEventDate.getDay();
-
         const eventData = {
             title: newEventTitle,
             description: newEventDesc,
             date: newEventDate.toISOString(),
             startTime: newEventStartTime,
             endTime: newEventEndTime,
-            day: dayOfWeek === 0 ? 7 : dayOfWeek,
+            day: newEventDate.getDay() + 1, // Sun=1, Mon=2... This aligns with the filter logic.
             type: newEventType,
             color: eventTypes[newEventType],
             location: newEventLocation,
@@ -846,5 +844,3 @@ export default function CalendarPage() {
     </div>
   )
 }
-
-    
