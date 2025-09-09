@@ -19,6 +19,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 type Course = {
     id: string;
@@ -40,7 +41,7 @@ export default function LearningLabPage() {
   const [learnerType, setLearnerType] = useState<string | null>(null);
   const [miniCourse, setMiniCourse] = useState<GenerateMiniCourseOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [currentModuleIndex, setCurrentModuleIndex] = useState(0);
+  const [completedModules, setCompletedModules] = useState<number[]>([]);
   const [isCourseComplete, setIsCourseComplete] = useState(false);
   const { toast } = useToast();
 
@@ -76,7 +77,7 @@ export default function LearningLabPage() {
 
     setIsLoading(true);
     setMiniCourse(null);
-    setCurrentModuleIndex(0);
+    setCompletedModules([]);
     setIsCourseComplete(false);
     toast({ title: 'Generating Your Learning Lab...', description: 'The AI is crafting a personalized course for you.' });
 
@@ -96,7 +97,8 @@ export default function LearningLabPage() {
     }
   };
 
-  const handleGenerateQuiz = async (moduleContent: string) => {
+  const handleGenerateQuiz = async (module: Module) => {
+    const moduleContent = module.chapters.map(c => `Chapter: ${c.title}\n${c.content}`).join('\n\n');
     setQuizDialogOpen(true);
     setQuizLoading(true);
     setGeneratedQuiz(null);
@@ -119,7 +121,8 @@ export default function LearningLabPage() {
     }
   };
   
-  const handleGenerateFlashcards = async (moduleContent: string) => {
+  const handleGenerateFlashcards = async (module: Module) => {
+    const moduleContent = module.chapters.map(c => `Chapter: ${c.title}\n${c.content}`).join('\n\n');
     setFlashcardDialogOpen(true);
     setFlashcardLoading(true);
     setFlashcards([]);
@@ -144,21 +147,30 @@ export default function LearningLabPage() {
     }
   };
 
-  const handleMarkComplete = () => {
-    setIsCourseComplete(true);
+  const handleMarkModuleComplete = (moduleIndex: number) => {
+    const newCompletedModules = [...completedModules, moduleIndex];
+    setCompletedModules(newCompletedModules);
     toast({
-        title: "🎉 Congratulations! 🎉",
-        description: "You've completed the mini-course! Great job!",
-    })
+        title: `🎉 Module ${moduleIndex + 1} Complete! 🎉`,
+        description: "Great job! Keep up the momentum.",
+    });
+
+    if (newCompletedModules.length === miniCourse?.modules.length) {
+        setIsCourseComplete(true);
+         toast({
+            title: "🎉 Congratulations! 🎉",
+            description: "You've completed the entire course! Great job!",
+        })
+    }
   }
 
-  const progress = miniCourse ? ((currentModuleIndex + 1) / miniCourse.modules.length) * 100 : 0;
-  const currentModule: Module | null = miniCourse ? miniCourse.modules[currentModuleIndex] : null;
+  const progress = miniCourse ? (completedModules.length / miniCourse.modules.length) * 100 : 0;
 
   const startNewCourse = () => {
     setMiniCourse(null);
     setSelectedCourseId(null);
     setIsCourseComplete(false);
+    setCompletedModules([]);
   }
 
   return (
@@ -219,7 +231,7 @@ export default function LearningLabPage() {
                     <Star className="mx-auto h-12 w-12 text-yellow-400 mb-4" />
                     <h2 className="text-xl font-semibold">Course Complete!</h2>
                     <p className="text-muted-foreground mt-2 mb-6 max-w-md mx-auto">
-                        Fantastic work! You've successfully completed this mini-course.
+                        Fantastic work! You've successfully completed this course.
                     </p>
                     <Button onClick={startNewCourse}>
                         Start a New Course
@@ -228,76 +240,56 @@ export default function LearningLabPage() {
             ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="md:col-span-2">
-                    <Card className="h-full">
-                        <CardHeader>
-                            {isLoading ? (
-                                <>
-                                 <Skeleton className="h-6 w-3/4 mb-2"/>
-                                 <Skeleton className="h-4 w-1/2"/>
-                                </>
-                            ) : (
-                                <>
-                                <CardTitle>Module {currentModuleIndex + 1}: {currentModule?.title}</CardTitle>
-                                <CardDescription>Engage with the content below. The format is adapted to your learning style.</CardDescription>
-                                </>
-                            )}
-                        </CardHeader>
-                        <CardContent>
-                            {isLoading ? (
-                                <div className="space-y-4">
-                                    <Skeleton className="h-24 w-full" />
-                                    <Skeleton className="h-4 w-1/4 mb-2" />
-                                    <Skeleton className="h-16 w-full" />
-                                </div>
-                            ) : (
-                                <>
-                                    <div className="space-y-2 mb-6">
-                                        <h3 className="font-semibold text-lg">Content</h3>
-                                        <p className="text-muted-foreground whitespace-pre-wrap">{currentModule?.content}</p>
+                    {isLoading ? (
+                        <Card>
+                            <CardHeader><Skeleton className="h-6 w-3/4 mb-2"/></CardHeader>
+                            <CardContent><Skeleton className="h-48 w-full" /></CardContent>
+                        </Card>
+                     ) : (
+                        <Accordion type="single" collapsible className="w-full" defaultValue="item-0">
+                          {miniCourse?.modules.map((module, moduleIndex) => (
+                            <AccordionItem value={`item-${moduleIndex}`} key={moduleIndex}>
+                                <AccordionTrigger>
+                                    <div className='flex items-center gap-4'>
+                                        {completedModules.includes(moduleIndex) ? <Check className="h-5 w-5 text-green-500"/> : <div className='h-5 w-5 rounded-full border-2 border-primary'/>}
+                                        <span className="text-lg font-semibold">Module {moduleIndex + 1}: {module.title}</span>
                                     </div>
-                                    <div className="p-4 bg-amber-500/10 rounded-lg border border-amber-500/20 mb-6">
-                                        <h4 className="font-semibold flex items-center gap-2 text-amber-700"><Lightbulb/> Suggested Activity</h4>
-                                        <p className="text-muted-foreground mt-2">{currentModule?.activity}</p>
+                                </AccordionTrigger>
+                                <AccordionContent className="pl-6 border-l-2 ml-2 border-dashed">
+                                    {module.chapters.map((chapter, chapterIndex) => (
+                                        <div key={chapterIndex} className="mb-6">
+                                            <h4 className="font-semibold text-base mb-2">Chapter {chapterIndex + 1}: {chapter.title}</h4>
+                                            <p className="text-muted-foreground whitespace-pre-wrap mb-4">{chapter.content}</p>
+                                            <div className="p-3 bg-amber-500/10 rounded-lg border border-amber-500/20">
+                                                <h5 className="font-semibold flex items-center gap-2 text-amber-700 text-sm"><Lightbulb size={16}/> Suggested Activity</h5>
+                                                <p className="text-muted-foreground mt-1 text-sm">{chapter.activity}</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    <div className="mt-6 pt-4 border-t">
+                                        <h4 className="font-semibold mb-2">Module Review</h4>
+                                        <div className="flex gap-4">
+                                            <Button variant="outline" onClick={() => handleGenerateQuiz(module)}>
+                                                <Lightbulb className="mr-2 h-4 w-4"/> Module Test
+                                            </Button>
+                                            <Button variant="outline" onClick={() => handleGenerateFlashcards(module)}>
+                                                <Copy className="mr-2 h-4 w-4"/> Review Flashcards
+                                            </Button>
+                                             {!completedModules.includes(moduleIndex) && (
+                                                <Button className="bg-green-600 hover:bg-green-700" onClick={() => handleMarkModuleComplete(moduleIndex)}>
+                                                    <Check className="mr-2 h-4 w-4"/> Mark Module Complete
+                                                </Button>
+                                            )}
+                                        </div>
                                     </div>
-                                    <div className="flex gap-4">
-                                        <Button variant="outline" onClick={() => handleGenerateQuiz(currentModule?.content ?? '')}>
-                                            <Lightbulb className="mr-2 h-4 w-4"/> Checkpoint Quiz
-                                        </Button>
-                                        <Button variant="outline" onClick={() => handleGenerateFlashcards(currentModule?.content ?? '')}>
-                                            <Copy className="mr-2 h-4 w-4"/> Generate Flashcards
-                                        </Button>
-                                    </div>
-                                </>
-                            )}
-                        </CardContent>
-                    </Card>
+                                </AccordionContent>
+                            </AccordionItem>
+                          ))}
+                        </Accordion>
+                     )}
                 </div>
-                <div className="space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Controls</CardTitle>
-                        </CardHeader>
-                        <CardContent className="flex items-center justify-around">
-                            <Button variant="outline" size="icon" onClick={() => setCurrentModuleIndex(prev => Math.max(0, prev - 1))} disabled={currentModuleIndex === 0 || isLoading}>
-                                <ChevronLeft />
-                            </Button>
-                            <div className="text-center">
-                                <p className="font-bold text-lg">{currentModuleIndex + 1} / {miniCourse?.modules.length ?? '?'}</p>
-                                <p className="text-sm text-muted-foreground">Module</p>
-                            </div>
-                            <Button variant="outline" size="icon" onClick={() => setCurrentModuleIndex(prev => Math.min(miniCourse!.modules.length - 1, prev + 1))} disabled={!miniCourse || currentModuleIndex === miniCourse.modules.length - 1 || isLoading}>
-                                <ChevronRight />
-                            </Button>
-                        </CardContent>
-                        {miniCourse && currentModuleIndex === miniCourse.modules.length - 1 && (
-                            <CardContent>
-                                 <Button className="w-full bg-green-600 hover:bg-green-700" onClick={handleMarkComplete}>
-                                    <Check className="mr-2 h-4 w-4"/> Mark as Complete
-                                </Button>
-                            </CardContent>
-                        )}
-                    </Card>
-                    <Card>
+                <div>
+                     <Card>
                         <CardHeader>
                             <CardTitle>Start Over</CardTitle>
                             <CardDescription>Generate a new course or select a different one.</CardDescription>
@@ -321,7 +313,7 @@ export default function LearningLabPage() {
             <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
                     <Lightbulb className="text-yellow-500" />
-                    Checkpoint Quiz
+                    Module Test
                 </DialogTitle>
             </DialogHeader>
             <div className="py-4 max-h-[60vh] overflow-y-auto">

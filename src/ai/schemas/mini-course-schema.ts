@@ -11,10 +11,15 @@ export const GenerateMiniCourseInputSchema = z.object({
 });
 export type GenerateMiniCourseInput = z.infer<typeof GenerateMiniCourseInputSchema>;
 
+const ChapterSchema = z.object({
+  title: z.string().describe('The title of the chapter.'),
+  content: z.string().describe('The educational content for this chapter, explained clearly and in detail.'),
+  activity: z.string().describe('A suggested activity or exercise based on the content, tailored to the user\'s learning style.'),
+});
+
 const ModuleSchema = z.object({
   title: z.string().describe('The title of the course module.'),
-  content: z.string().describe('The educational content for this module, explained clearly.'),
-  activity: z.string().describe('A suggested activity or exercise based on the content, tailored to the user\'s learning style.'),
+  chapters: z.array(ChapterSchema),
 });
 
 export const GenerateMiniCourseOutputSchema = z.object({
