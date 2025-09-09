@@ -250,7 +250,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   
-  const [notifications, setNotifications] = useState(5);
+  const [notifications, setNotifications] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
@@ -268,6 +268,11 @@ export default function DashboardLayout({
     const savedPic = localStorage.getItem('profilePic');
     if (savedPic) {
       setProfilePic(savedPic);
+    }
+    
+    const savedNotifications = localStorage.getItem('notifications');
+    if (savedNotifications) {
+      setNotifications(JSON.parse(savedNotifications).length);
     }
     
     // Request notification permission

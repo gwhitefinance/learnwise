@@ -18,6 +18,8 @@ import {
   X,
   Upload,
   Trash,
+  Bell,
+  BellRing,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AnimatePresence, motion } from "framer-motion";
@@ -44,7 +46,15 @@ type Event = {
   organizer: string;
   type: 'Test' | 'Homework' | 'Quiz' | 'Event' | 'Project';
   date: string;
+  reminderMinutes: number;
 };
+
+type Reminder = {
+  id: number;
+  fireTime: number;
+  title: string;
+  timeoutId: NodeJS.Timeout;
+}
 
 type EventTypes = Record<'Test' | 'Homework' | 'Quiz' | 'Project' | 'Event', string>;
 
@@ -80,6 +90,7 @@ export default function CalendarPage() {
   const { toast } = useToast();
   
   const [eventTypes, setEventTypes] = useState<EventTypes>(defaultEventTypes);
+  const [reminders, setReminders] = useState<Reminder[]>([]);
 
   // New Event Dialog State
   const [isCreateDialogOpen, setCreateDialogOpen] = useState(false);
@@ -92,6 +103,7 @@ export default function CalendarPage() {
   const [newEventOrganizer, setNewEventOrganizer] = useState('Self');
   const [newEventAttendees, setNewEventAttendees] = useState('');
   const [newEventType, setNewEventType] = useState<keyof EventTypes>('Event');
+  const [newEventReminder, setNewEventReminder] = useState(10);
   
   // Settings dialog
   const [isSettingsOpen, setSettingsOpen] = useState(false);
@@ -107,7 +119,9 @@ export default function CalendarPage() {
     
     const savedEvents = localStorage.getItem('calendarEvents');
     if (savedEvents) {
-        setEvents(JSON.parse(savedEvents).map((e: Event) => ({...e, date: e.date ? new Date(e.date).toISOString() : new Date().toISOString() })));
+        const parsedEvents = JSON.parse(savedEvents).map((e: Event) => ({...e, date: e.date ? new Date(e.date).toISOString() : new Date().toISOString() }));
+        setEvents(parsedEvents);
+        parsedEvents.forEach(scheduleReminder);
     }
     
     const savedEventTypes = localStorage.getItem('eventTypes');
@@ -124,7 +138,34 @@ export default function CalendarPage() {
         }, 3000)
         return () => clearTimeout(popupTimer)
     }
-  }, [events.length])
+  }, []);
+
+  const scheduleReminder = (event: Event) => {
+    if (Notification.permission !== 'granted' || event.reminderMinutes <= 0) return;
+
+    const eventTime = new Date(`${event.date.split('T')[0]}T${event.startTime}`).getTime();
+    const reminderTime = eventTime - event.reminderMinutes * 60 * 1000;
+    const now = new Date().getTime();
+
+    if (reminderTime > now) {
+      const timeoutId = setTimeout(() => {
+        new Notification(`Reminder: ${event.title}`, {
+          body: `Starts at ${event.startTime}. Location: ${event.location}`,
+          icon: '/logo.png' 
+        });
+        // Remove reminder once it has fired
+        setReminders(prev => prev.filter(r => r.id !== event.id));
+        localStorage.setItem('notifications', JSON.stringify(reminders.filter(r => r.id !== event.id)));
+
+      }, reminderTime - now);
+      
+      const newReminder = { id: event.id, fireTime: reminderTime, title: event.title, timeoutId };
+      const updatedReminders = [...reminders.filter(r => r.id !== event.id), newReminder];
+      setReminders(updatedReminders);
+      localStorage.setItem('notifications', JSON.stringify(updatedReminders.map(r => ({id: r.id, fireTime: r.fireTime, title: r.title}))));
+    }
+  };
+
 
   useEffect(() => {
     if (showAIPopup) {
@@ -236,11 +277,14 @@ export default function CalendarPage() {
         location: newEventLocation,
         organizer: newEventOrganizer,
         attendees: newEventAttendees.split(',').map(s => s.trim()).filter(Boolean),
+        reminderMinutes: newEventReminder,
     };
 
     const updatedEvents = [...events, newEvent];
     setEvents(updatedEvents);
     localStorage.setItem('calendarEvents', JSON.stringify(updatedEvents));
+    scheduleReminder(newEvent);
+
     toast({
         title: "Event Created!",
         description: `${newEvent.title} has been added to your calendar.`,
@@ -420,6 +464,21 @@ export default function CalendarPage() {
                             </SelectContent>
                         </Select>
                     </div>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="event-reminder">Reminder</Label>
+                     <Select onValueChange={(value) => setNewEventReminder(Number(value))} defaultValue={String(newEventReminder)}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Select reminder time" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="0">No reminder</SelectItem>
+                            <SelectItem value="5">5 minutes before</SelectItem>
+                            <SelectItem value="10">10 minutes before</SelectItem>
+                            <SelectItem value="30">30 minutes before</SelectItem>
+                            <SelectItem value="60">1 hour before</SelectItem>
+                        </SelectContent>
+                    </Select>
                   </div>
                 </div>
                 <DialogFooter>
@@ -662,10 +721,16 @@ export default function CalendarPage() {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className={cn(`${eventTypes[selectedEvent.type]}`, "p-6 rounded-lg shadow-xl max-w-md w-full mx-4")}
+              className={cn(`${eventTypes[selectedEvent.type]}`, "p-6 rounded-lg shadow-xl max-w-md w-full mx-4 text-white")}
             >
-              <h3 className="text-2xl font-bold mb-4 text-white">{selectedEvent.title}</h3>
-              <div className="space-y-3 text-white">
+              <h3 className="text-2xl font-bold mb-4 flex justify-between items-center">
+                {selectedEvent.title}
+                {reminders.find(r => r.id === selectedEvent.id) ? 
+                    <BellRing className="h-5 w-5 text-yellow-300" /> : 
+                    <Bell className="h-5 w-5 text-white/70" />
+                }
+              </h3>
+              <div className="space-y-3">
                 <p className="flex items-center">
                   <Clock className="mr-2 h-5 w-5" />
                   {`${selectedEvent.startTime} - ${selectedEvent.endTime}`}
@@ -692,6 +757,10 @@ export default function CalendarPage() {
                 <p>
                   <strong>Description:</strong> {selectedEvent.description}
                 </p>
+                 <p className="flex items-center">
+                  <Bell className="mr-2 h-5 w-5" />
+                  Reminder set for {selectedEvent.reminderMinutes} minutes before.
+                </p>
               </div>
               <div className="mt-6 flex justify-end">
                 <Button
@@ -711,5 +780,3 @@ export default function CalendarPage() {
     </div>
   )
 }
-
-    
