@@ -19,6 +19,9 @@ import {
   Upload,
   Trash,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { AnimatePresence, motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 type Event = {
   id: number;
@@ -479,7 +482,7 @@ export default function CalendarPage() {
           {/* Calendar Controls */}
           <div className={`flex items-center justify-between p-4 border-b ${borderClass}`}>
             <div className="flex items-center gap-4">
-              <button className={`px-4 py-2 ${textClass} bg-blue-500 rounded-md`}>Today</button>
+              <Button variant="outline" className={`px-4 py-2 ${textClass} rounded-md`}>Today</Button>
               <div className="flex">
                 <button className={`p-2 ${textClass} hover:bg-white/10 rounded-l-md`}>
                   <ChevronLeft className="h-5 w-5" />
@@ -491,7 +494,7 @@ export default function CalendarPage() {
               <h2 className={`text-xl font-semibold ${textClass}`}>{currentDate}</h2>
             </div>
 
-            <div className="flex items-center gap-2 rounded-md p-1">
+            <div className={`flex items-center gap-2 rounded-md p-1 ${bgClass}`}>
               <button
                 onClick={() => setCurrentView("day")}
                 className={`px-3 py-1 rounded ${currentView === "day" ? "bg-white/20" : ""} ${textClass} text-sm`}
@@ -536,7 +539,7 @@ export default function CalendarPage() {
                 {/* Time Labels */}
                 <div className={`${textMutedClass}`}>
                   {timeSlots.map((time, i) => (
-                    <div key={i} className={`h-20 border-b ${borderClass} pr-2 text-right text-xs`}>
+                    <div key={i} className={`h-20 border-b ${borderClass} pr-2 text-right text-xs flex items-center justify-end`}>
                       {time > 12 ? `${time - 12} PM` : `${time} AM`}
                     </div>
                   ))}
@@ -578,8 +581,15 @@ export default function CalendarPage() {
         </div>
 
         {/* AI Popup */}
+        <AnimatePresence>
         {showAIPopup && (
-          <div className="fixed bottom-8 right-8 z-20">
+          <motion.div 
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            transition={{ type: "spring", stiffness: 400, damping: 25 }}
+            className="fixed bottom-8 right-8 z-20"
+          >
             <div className="w-[450px] relative bg-gradient-to-br from-blue-400/30 via-blue-500/30 to-blue-600/30 backdrop-blur-lg p-6 rounded-2xl shadow-xl border border-blue-300/30 text-white">
               <button
                 onClick={() => setShowAIPopup(false)}
@@ -621,12 +631,26 @@ export default function CalendarPage() {
                 </div>
               )}
             </div>
-          </div>
+          </motion.div>
         )}
+        </AnimatePresence>
 
+        <AnimatePresence>
         {selectedEvent && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className={`${selectedEvent.color} p-6 rounded-lg shadow-xl max-w-md w-full mx-4`}>
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+             onClick={() => setSelectedEvent(null)}
+          >
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className={cn(`${selectedEvent.color}`, "p-6 rounded-lg shadow-xl max-w-md w-full mx-4")}
+            >
               <h3 className="text-2xl font-bold mb-4 text-white">{selectedEvent.title}</h3>
               <div className="space-y-3 text-white">
                 <p className="flex items-center">
@@ -657,21 +681,20 @@ export default function CalendarPage() {
                 </p>
               </div>
               <div className="mt-6 flex justify-end">
-                <button
+                <Button
+                  variant="outline"
                   className="bg-white text-gray-800 px-4 py-2 rounded hover:bg-gray-100 transition-colors"
                   onClick={() => setSelectedEvent(null)}
                 >
                   Close
-                </button>
+                </Button>
               </div>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         )}
+        </AnimatePresence>
 
-        {/* Floating Action Button - Removed */}
       </main>
     </div>
   )
 }
-
-    
