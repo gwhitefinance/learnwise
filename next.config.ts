@@ -96,6 +96,9 @@ const nextConfig: NextConfig = {
       'https://6000-firebase-studio-1756830492445.cluster-bp7tn4kmnjchatd3dgbbvk2kko.cloudworkstations.dev',
     ],
   },
+  env: {
+    NEXT_PUBLIC_FIREBASE_API_KEY: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  }
 };
 
 export default nextConfig;

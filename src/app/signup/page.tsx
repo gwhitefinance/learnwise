@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Github } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import { auth } from "@/lib/firebase"
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
+import { getAuth, createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
+import { app } from "@/lib/firebase" // Import the initialized app
 
 export default function SignUpPage() {
   const router = useRouter()
@@ -40,6 +40,7 @@ export default function SignUpPage() {
 
     setIsLoading(true);
     try {
+        const auth = getAuth(app); // Get auth instance from the app
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
@@ -57,7 +58,7 @@ export default function SignUpPage() {
         let description = "An unexpected error occurred. Please try again.";
         if (error.code === 'auth/email-already-in-use') {
             description = "This email address is already in use. Please try another one or log in.";
-        } else if (error.code === 'auth/invalid-api-key') {
+        } else if (error.code === 'auth/invalid-api-key' || error.code === 'auth/configuration-not-found') {
             description = "The provided API key is invalid. Please check your Firebase configuration."
         } else {
             console.error("Sign up error:", error);
