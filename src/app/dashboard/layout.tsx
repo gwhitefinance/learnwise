@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Award,
@@ -58,6 +58,7 @@ import {
   ChevronRight,
   FlaskConical,
   LogOut,
+  User,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -74,6 +75,12 @@ import { Toaster } from '@/components/ui/toaster';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '@/lib/firebase';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 
 // Sample data for sidebar navigation
@@ -247,11 +254,16 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const [user, loading] = useAuthState(auth);
   const router = useRouter();
-
+  const [profilePic, setProfilePic] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!loading && !user) {
       router.push('/signup');
+    }
+    const savedPic = localStorage.getItem('profilePic');
+    if (savedPic) {
+      setProfilePic(savedPic);
     }
   }, [user, loading, router]);
 
@@ -260,6 +272,24 @@ export default function DashboardLayout({
     await auth.signOut();
     router.push('/');
   }
+  
+  const handleProfilePicChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        setProfilePic(result);
+        localStorage.setItem('profilePic', result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const triggerFileUpload = () => {
+    fileInputRef.current?.click();
+  }
+
 
   if (loading) {
     return (
@@ -271,6 +301,7 @@ export default function DashboardLayout({
 
   return (
     <>
+    <input type="file" ref={fileInputRef} onChange={handleProfilePicChange} className="hidden" accept="image/*" />
     <div className="relative min-h-screen overflow-hidden bg-background">
       {/* Animated gradient background */}
       <motion.div
@@ -339,10 +370,13 @@ export default function DashboardLayout({
                 </Button>
               <Button className="flex w-full items-center justify-between rounded-2xl px-3 py-2 text-sm font-medium hover:bg-muted">
                 <div className="flex items-center gap-3">
-                  <Avatar className="h-6 w-6">
-                    <AvatarImage src="https://i.pravatar.cc/32" alt="User" />
-                    <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
-                  </Avatar>
+                   <Avatar className="h-6 w-6">
+                        {profilePic ? (
+                            <AvatarImage src={profilePic} alt="User" />
+                        ): (
+                            <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
+                        )}
+                    </Avatar>
                   <span>{user?.displayName}</span>
                 </div>
                 <Badge variant="outline" className="ml-auto">
@@ -399,10 +433,13 @@ export default function DashboardLayout({
               </Button>
               <Button className="flex w-full items-center justify-between rounded-2xl px-3 py-2 text-sm font-medium hover:bg-muted">
                 <div className="flex items-center gap-3">
-                  <Avatar className="h-6 w-6">
-                    <AvatarImage src="https://i.pravatar.cc/32" alt="User" />
-                    <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
-                  </Avatar>
+                    <Avatar className="h-6 w-6">
+                        {profilePic ? (
+                            <AvatarImage src={profilePic} alt="User" />
+                        ): (
+                            <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
+                        )}
+                    </Avatar>
                   <span>{user?.displayName}</span>
                 </div>
                 <Badge variant="outline" className="ml-auto">
@@ -466,10 +503,28 @@ export default function DashboardLayout({
                 </Tooltip>
               </TooltipProvider>
 
-              <Avatar className="h-9 w-9 border-2 border-primary">
-                <AvatarImage src="https://i.pravatar.cc/40" alt="User" />
-                <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
-              </Avatar>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                   <Avatar className="h-9 w-9 border-2 border-primary cursor-pointer">
+                        {profilePic ? (
+                            <AvatarImage src={profilePic} alt="User" />
+                        ): (
+                            <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
+                        )}
+                    </Avatar>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                    <DropdownMenuItem onSelect={triggerFileUpload}>
+                        <User className="mr-2 h-4 w-4" />
+                        <span>Change Picture</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleSignOut}>
+                        <LogOut className="mr-2 h-4 w-4" />
+                        <span>Sign Out</span>
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
             </div>
           </div>
         </header>
@@ -483,5 +538,3 @@ export default function DashboardLayout({
     </>
   );
 }
-
-    
