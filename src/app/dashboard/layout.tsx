@@ -82,72 +82,86 @@ const sidebarItems = [
       title: "Home",
       icon: <Home />,
       href: "/dashboard",
+      id: "dashboard-link",
     },
     {
       title: "Workspace",
       icon: <LayoutGrid />,
+      id: "workspace-section",
       children: [
           {
             title: "Courses",
             icon: <GraduationCap />,
             href: "/dashboard/courses",
+            id: "courses-link",
           },
           {
             title: "Calendar",
             icon: <Calendar />,
             href: "/dashboard/calendar",
+            id: "calendar-link",
           },
           {
             title: "Notes",
             icon: <ClipboardPenLine />,
             href: "/dashboard/notes",
+            id: "notes-link",
           },
           {
             title: "Upload",
             icon: <UploadCloud />,
             href: "/dashboard/upload",
+            id: "upload-link",
           },
       ]
     },
     {
       title: "Study Tools",
       icon: <BookOpen />,
+      id: "study-tools-section",
       children: [
         {
             title: "Roadmaps",
             icon: <GitMerge />,
             href: "/dashboard/roadmaps",
+            id: "roadmaps-link",
         },
         {
             title: "Practice Quiz",
             icon: <Lightbulb />,
             href: "/dashboard/practice-quiz",
+            id: "practice-quiz-link",
         },
         {
             title: "Learning Lab",
             icon: <FlaskConical />,
             href: "/dashboard/learning-lab",
+            id: "learning-lab-link",
         },
         {
             title: "Whiteboard",
             icon: <PenSquare />,
             href: "/dashboard/whiteboard",
+            id: "whiteboard-link",
         },
       ]
     },
      {
       title: "AI Tools",
       icon: <Sparkles />,
+      id: "ai-tools-section",
       children: [
         {
             title: "AI Chat",
             icon: <BrainCircuit />,
             href: "/dashboard/ai-chat",
+            id: "ai-chat-link",
         },
         {
             title: "Analysis",
             icon: <BarChart3 />,
             href: "/dashboard/analysis",
+            id: "analysis-link",
         },
       ]
     },
@@ -167,7 +181,7 @@ const SidebarNavItem = ({ item, pathname, setMobileMenuOpen }: { item: any, path
 
     if (hasChildren) {
         return (
-            <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+            <Collapsible open={isOpen} onOpenChange={setIsOpen} id={item.id}>
                  <CollapsibleTrigger asChild>
                     <button className={cn(
                           "flex w-full items-center justify-between rounded-2xl px-3 py-2 text-sm font-medium",
@@ -186,6 +200,7 @@ const SidebarNavItem = ({ item, pathname, setMobileMenuOpen }: { item: any, path
                              <Link
                                 key={child.title}
                                 href={child.href || '#'}
+                                id={child.id}
                                 className={cn(
                                 "flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm font-medium",
                                 (pathname === child.href || pathname.startsWith(child.href + '/')) ? "text-primary" : "hover:bg-muted text-muted-foreground",
@@ -205,6 +220,7 @@ const SidebarNavItem = ({ item, pathname, setMobileMenuOpen }: { item: any, path
     return (
         <Link
             href={item.href || '#'}
+            id={item.id}
             className={cn(
             "flex w-full items-center justify-between rounded-2xl px-3 py-2 text-sm font-medium",
             pathname === item.href ? "bg-primary/10 text-primary" : "hover:bg-muted",
@@ -404,7 +420,7 @@ export default function DashboardLayout({
           <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileMenuOpen(true)}>
             <Menu className="h-5 w-5" />
           </Button>
-          <Button variant="ghost" size="icon" className="hidden md:flex" onClick={() => setSidebarOpen(!sidebarOpen)}>
+          <Button variant="ghost" size="icon" className="hidden md:flex" onClick={() => setSidebarOpen(!sidebarOpen)} aria-label="Toggle Sidebar">
             <PanelLeft className="h-5 w-5" />
           </Button>
           <div className="flex flex-1 items-center justify-between">
@@ -467,3 +483,5 @@ export default function DashboardLayout({
     </>
   );
 }
+
+    

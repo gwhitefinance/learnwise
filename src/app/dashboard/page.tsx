@@ -172,7 +172,7 @@ export default function DashboardPage() {
             content: 'Use these tabs to navigate between your main workspace, apps, files, and more.',
         },
         {
-            target: '#apps-tab',
+            target: '#apps-tab-trigger',
             content: 'Switch to the "Apps" tab to access powerful AI study tools.',
             placement: 'bottom',
         },
@@ -185,11 +185,15 @@ export default function DashboardPage() {
             content: 'Your active courses will appear here. Add a course to get started.',
         },
         {
-            "target": "#upload-materials-button",
-            "content": "Upload your notes, documents, or syllabus here. The AI will analyze them to create personalized study aids."
+            target: "#upload-materials-button",
+            content: "Upload your notes, documents, or syllabus here. The AI will analyze them to create personalized study aids."
         },
         {
-            target: '#home-tab',
+            target: 'button[aria-label="Toggle Sidebar"]',
+            content: "You can toggle the sidebar to access all your tools and workspaces like Courses, Calendar, and Notes."
+        },
+        {
+            target: '#home-tab-trigger',
             content: "You've completed the tour! You can always restart it from the welcome banner.",
             placement: 'bottom',
         }
@@ -393,15 +397,33 @@ export default function DashboardPage() {
             showSkipButton
             styles={{
                 options: {
-                    arrowColor: '#18181b',
-                    backgroundColor: '#18181b',
-                    primaryColor: '#a3e635',
-                    textColor: '#f4f4f5',
+                    arrowColor: 'hsl(var(--background))',
+                    backgroundColor: 'hsl(var(--background))',
+                    primaryColor: 'hsl(var(--primary))',
+                    textColor: 'hsl(var(--foreground))',
                     zIndex: 1000,
+                },
+                 buttonClose: {
+                    display: 'none',
+                },
+                buttonNext: {
+                    backgroundColor: 'hsl(var(--primary))',
+                    borderRadius: '8px',
+                    color: 'hsl(var(--primary-foreground))',
+                },
+                buttonBack: {
+                     color: 'hsl(var(--foreground))',
+                },
+                tooltip: {
+                    borderRadius: 'var(--radius)',
+                    padding: '1rem',
+                },
+                 spotlight: {
+                    borderRadius: 'var(--radius)',
                 }
             }}
-            callback={({ status }) => {
-                if (status === 'finished' || status === 'skipped') {
+            callback={({ status, action }) => {
+                if (status === 'finished' || status === 'skipped' || action === 'close') {
                     setRunTour(false);
                 }
             }}
@@ -410,8 +432,8 @@ export default function DashboardPage() {
         <Tabs defaultValue="home" id="main-tabs">
             <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <TabsList className="grid w-full max-w-[750px] grid-cols-6 rounded-2xl p-1">
-                <TabsTrigger value="home" className="rounded-xl data-[state=active]:rounded-xl" id="home-tab"><Home className="w-4 h-4 mr-2"/>Home</TabsTrigger>
-                <TabsTrigger value="apps" className="rounded-xl data-[state=active]:rounded-xl" id="apps-tab"><LayoutGrid className="w-4 h-4 mr-2"/>Apps</TabsTrigger>
+                <TabsTrigger value="home" className="rounded-xl data-[state=active]:rounded-xl" id="home-tab-trigger"><Home className="w-4 h-4 mr-2"/>Home</TabsTrigger>
+                <TabsTrigger value="apps" className="rounded-xl data-[state=active]:rounded-xl" id="apps-tab-trigger"><LayoutGrid className="w-4 h-4 mr-2"/>Apps</TabsTrigger>
                 <TabsTrigger value="files" className="rounded-xl data-[state=active]:rounded-xl"><Folder className="w-4 h-4 mr-2"/>Files</TabsTrigger>
                 <TabsTrigger value="projects" className="rounded-xl data-[state=active]:rounded-xl"><Briefcase className="w-4 h-4 mr-2"/>Projects</TabsTrigger>
                 <TabsTrigger value="learn" className="rounded-xl data-[state=active]:rounded-xl"><BookOpen className="w-4 h-4 mr-2"/>Learn</TabsTrigger>
@@ -828,3 +850,5 @@ export default function DashboardPage() {
     </div>
   )
 }
+
+    
