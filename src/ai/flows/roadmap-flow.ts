@@ -38,7 +38,7 @@ const generateRoadmapFlow = ai.defineFlow(
   },
   async (input) => {
     let webContent = '';
-    if (input.courseUrl) {
+    if (input.courseUrl && input.courseUrl.trim() !== '') {
         try {
             webContent = await scrapeWebpageTool({ url: input.courseUrl });
         } catch (error) {
