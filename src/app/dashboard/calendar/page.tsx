@@ -101,6 +101,7 @@ export default function CalendarPage() {
 
   // New Event Dialog State
   const [isCreateDialogOpen, setCreateDialogOpen] = useState(false);
+  const [isSavingEvent, setIsSavingEvent] = useState(false);
   const [newEventTitle, setNewEventTitle] = useState('');
   const [newEventDesc, setNewEventDesc] = useState('');
   const [newEventDate, setNewEventDate] = useState<Date | undefined>(new Date());
@@ -159,6 +160,13 @@ export default function CalendarPage() {
 
   const scheduleReminder = (event: Event) => {
     if (typeof window === 'undefined' || !('Notification' in window) || Notification.permission !== 'granted' || event.reminderMinutes <= 0) return;
+
+    // Clear any existing reminder for this event
+    const existingReminder = reminders.find(r => r.id === event.id);
+    if (existingReminder) {
+        clearTimeout(existingReminder.timeoutId);
+        setReminders(prev => prev.filter(r => r.id !== event.id));
+    }
 
     const eventTime = new Date(`${event.date.split('T')[0]}T${event.startTime}`).getTime();
     const reminderTime = eventTime - event.reminderMinutes * 60 * 1000;
@@ -278,6 +286,7 @@ export default function CalendarPage() {
             return;
         }
 
+        setIsSavingEvent(true);
         const eventData = {
             title: newEventTitle,
             description: newEventDesc,
@@ -325,6 +334,8 @@ export default function CalendarPage() {
                 title: "Error",
                 description: "Could not add event. Please try again.",
             });
+        } finally {
+            setIsSavingEvent(false);
         }
     };
   
@@ -538,7 +549,9 @@ export default function CalendarPage() {
                 </div>
                 <DialogFooter>
                   <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
-                  <Button onClick={handleAddEvent}>Save Event</Button>
+                  <Button onClick={handleAddEvent} disabled={isSavingEvent}>
+                    {isSavingEvent ? "Saving..." : "Save Event"}
+                  </Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
@@ -841,3 +854,5 @@ export default function CalendarPage() {
     </div>
   )
 }
+
+    

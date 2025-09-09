@@ -22,7 +22,7 @@ import { generateFlashcardsFromNote } from '@/ai/flows/note-to-flashcard-flow';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
-import { collection, addDoc, query, where, getDocs, deleteDoc, doc, updateDoc, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs, deleteDoc, doc, updateDoc, Timestamp, onSnapshot, orderBy } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 
 type Note = {
@@ -108,6 +108,7 @@ const TodoListItem = ({ note, onDelete, onToggleComplete }: { note: Note, onDele
 export default function NotesPage() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [isNoteDialogOpen, setNoteDialogOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [newNoteTitle, setNewNoteTitle] = useState('');
   const [newNoteContent, setNewNoteContent] = useState('');
   const [activeTab, setActiveTab] = useState('all');
@@ -124,7 +125,7 @@ export default function NotesPage() {
   const [currentFlashcardIndex, setCurrentFlashcardIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   
-  const [user, loading] = useAuthState(auth);
+  const [user, authLoading] = useAuthState(auth);
   const router = useRouter();
   const { toast } = useToast();
   
@@ -136,16 +137,14 @@ export default function NotesPage() {
   }, []);
 
   useEffect(() => {
-    if (loading) return;
+    if (authLoading) return;
     if (!user) {
         router.push('/signup');
         return;
     }
 
-    const fetchNotes = async () => {
-        if (!user) return;
-        const q = query(collection(db, "notes"), where("userId", "==", user.uid));
-        const querySnapshot = await getDocs(q);
+    const q = query(collection(db, "notes"), where("userId", "==", user.uid), orderBy("date", "desc"));
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const userNotes = querySnapshot.docs.map(doc => {
             const data = doc.data() as FirestoreNote;
             return { 
@@ -153,12 +152,12 @@ export default function NotesPage() {
                 ...data,
                 date: data.date.toDate() 
             } as Note;
-        }).sort((a,b) => b.date.getTime() - a.date.getTime());
+        });
         setNotes(userNotes);
-    };
-
-    fetchNotes();
-  }, [user, loading, router]);
+    });
+    
+    return () => unsubscribe();
+  }, [user, authLoading, router]);
 
 
   const handleAddNote = async () => {
@@ -171,6 +170,7 @@ export default function NotesPage() {
       return;
     }
     
+    setIsSaving(true);
     const noteData = {
       title: newNoteTitle,
       content: newNoteContent,
@@ -182,8 +182,7 @@ export default function NotesPage() {
     };
 
     try {
-        const docRef = await addDoc(collection(db, "notes"), noteData);
-        setNotes(prev => [{ ...noteData, id: docRef.id }, ...prev]);
+        await addDoc(collection(db, "notes"), noteData);
         setNewNoteTitle('');
         setNewNoteContent('');
         setNoteDialogOpen(false);
@@ -198,13 +197,14 @@ export default function NotesPage() {
             title: 'Error',
             description: 'Could not save note. Please try again.',
         });
+    } finally {
+        setIsSaving(false);
     }
   };
   
   const handleDeleteNote = async (id: string) => {
     try {
         await deleteDoc(doc(db, "notes", id));
-        setNotes(notes.filter(n => n.id !== id));
         toast({ title: 'Note Deleted' });
     } catch(error) {
         console.error("Error deleting note: ", error);
@@ -218,7 +218,6 @@ export default function NotesPage() {
     try {
         const noteRef = doc(db, "notes", id);
         await updateDoc(noteRef, { isImportant: !note.isImportant });
-        setNotes(notes.map(n => n.id === id ? {...n, isImportant: !n.isImportant} : n));
     } catch (error) {
          console.error("Error updating note: ", error);
         toast({ variant: 'destructive', title: 'Error', description: 'Could not update note.' });
@@ -229,7 +228,6 @@ export default function NotesPage() {
      try {
         const noteRef = doc(db, "notes", id);
         await updateDoc(noteRef, { isCompleted });
-        setNotes(notes.map(n => n.id === id ? {...n, isCompleted: isCompleted} : n));
         toast({ title: isCompleted ? 'Note Archived' : 'Note Restored' });
     } catch (error) {
         console.error("Error updating note: ", error);
@@ -343,7 +341,9 @@ export default function NotesPage() {
             </div>
             <DialogFooter>
               <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
-              <Button onClick={handleAddNote}>Save Note</Button>
+              <Button onClick={handleAddNote} disabled={isSaving}>
+                {isSaving ? "Saving..." : "Save Note"}
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -519,3 +519,5 @@ export default function NotesPage() {
     </>
   );
 }
+
+    

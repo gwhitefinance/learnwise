@@ -28,6 +28,7 @@ type Course = {
 export default function CoursesPage() {
     const [courses, setCourses] = useState<Course[]>([]);
     const [isAddCourseOpen, setAddCourseOpen] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
     const [newCourse, setNewCourse] = useState({ name: '', instructor: '', credits: '', url: ''});
     const { toast } = useToast();
     const [user, loading] = useAuthState(auth);
@@ -67,6 +68,7 @@ export default function CoursesPage() {
         }
         if (!user) return;
 
+        setIsSaving(true);
         const courseToAdd = {
             name: newCourse.name,
             instructor: newCourse.instructor,
@@ -91,6 +93,8 @@ export default function CoursesPage() {
                 title: 'Error',
                 description: 'Could not add course. Please try again.',
             });
+        } finally {
+            setIsSaving(false);
         }
     };
 
@@ -151,7 +155,9 @@ export default function CoursesPage() {
                 </div>
                  <DialogFooter>
                     <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
-                    <Button onClick={handleAddCourse}>Add Course</Button>
+                    <Button onClick={handleAddCourse} disabled={isSaving}>
+                        {isSaving ? 'Saving...' : 'Add Course'}
+                    </Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
@@ -206,3 +212,5 @@ export default function CoursesPage() {
     </div>
   );
 }
+
+    
