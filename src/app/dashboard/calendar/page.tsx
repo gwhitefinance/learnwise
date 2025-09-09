@@ -17,6 +17,7 @@ import {
   Sparkles,
   X,
   Upload,
+  Trash,
 } from "lucide-react";
 
 type Event = {
@@ -40,6 +41,7 @@ export default function CalendarPage() {
   const [isPlaying, setIsPlaying] = useState(false)
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
 
   useEffect(() => {
@@ -90,6 +92,10 @@ export default function CalendarPage() {
       reader.readAsDataURL(file);
     }
   };
+
+  const clearBackgroundImage = () => {
+    setBackgroundImage(null);
+  }
 
   const triggerFileUpload = () => {
     fileInputRef.current?.click();
@@ -309,8 +315,14 @@ export default function CalendarPage() {
   ]
 
   const togglePlay = () => {
-    setIsPlaying(!isPlaying)
-    // Here you would typically also control the actual audio playback
+    if (audioRef.current) {
+        if (isPlaying) {
+            audioRef.current.pause();
+        } else {
+            audioRef.current.play();
+        }
+        setIsPlaying(!isPlaying);
+    }
   }
   
   const textClass = backgroundImage ? "text-white" : "text-black";
@@ -322,8 +334,11 @@ export default function CalendarPage() {
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-white">
+      {/* Audio Element */}
+      <audio ref={audioRef} src="https://actions.google.com/sounds/v1/ambiences/coffee_shop.ogg" loop />
+
       {/* Background Image */}
-      {backgroundImage && (
+      {backgroundImage ? (
         <Image
             src={backgroundImage}
             alt="Custom background"
@@ -331,7 +346,8 @@ export default function CalendarPage() {
             objectFit="cover"
             className="z-0"
         />
-      )}
+      ) : <div className="absolute inset-0 z-0 bg-white"></div>}
+
 
       {/* Navigation */}
       <header
@@ -358,6 +374,11 @@ export default function CalendarPage() {
           <button onClick={triggerFileUpload} className={`p-2 rounded-full hover:bg-white/20 ${textClass}`}>
             <Upload className="h-5 w-5" />
           </button>
+           {backgroundImage && (
+                <button onClick={clearBackgroundImage} className={`p-2 rounded-full hover:bg-white/20 ${textClass}`}>
+                    <Trash className="h-5 w-5" />
+                </button>
+            )}
         </div>
       </header>
 
