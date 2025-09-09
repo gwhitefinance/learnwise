@@ -11,13 +11,15 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, MoreVertical, Trash2, Star, Archive, Sparkles, Wand2, Lightbulb } from 'lucide-react';
+import { Plus, MoreVertical, Trash2, Star, Archive, Sparkles, Wand2, Lightbulb, Copy, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
 import { generateSummary } from '@/ai/flows/note-summary-flow';
 import { generateQuizFromNote } from '@/ai/flows/note-to-quiz-flow';
 import type { GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { generateFlashcardsFromNote } from '@/ai/flows/note-to-flashcard-flow';
+import { motion, AnimatePresence } from 'framer-motion';
 
 type Note = {
   id: string;
@@ -27,6 +29,11 @@ type Note = {
   color: string;
   isImportant: boolean;
   isCompleted: boolean;
+};
+
+type Flashcard = {
+    front: string;
+    back: string;
 };
 
 const initialNotes: Note[] = [
@@ -39,7 +46,7 @@ const initialNotes: Note[] = [
 ];
 
 
-const NoteCard = ({ note, onDelete, onToggleImportant, onToggleComplete, onSummarize, onGenerateQuiz }: { note: Note, onDelete: (id: string) => void, onToggleImportant: (id: string) => void, onToggleComplete: (id: string) => void, onSummarize: (content: string) => void, onGenerateQuiz: (noteContent: string) => void }) => {
+const NoteCard = ({ note, onDelete, onToggleImportant, onToggleComplete, onSummarize, onGenerateQuiz, onGenerateFlashcards }: { note: Note, onDelete: (id: string) => void, onToggleImportant: (id: string) => void, onToggleComplete: (id: string) => void, onSummarize: (content: string) => void, onGenerateQuiz: (noteContent: string) => void, onGenerateFlashcards: (noteContent: string) => void }) => {
   return (
     <Card className={`overflow-hidden ${note.color}`}>
       <CardHeader className="p-4">
@@ -54,6 +61,9 @@ const NoteCard = ({ note, onDelete, onToggleImportant, onToggleComplete, onSumma
               <DropdownMenuContent align="end">
                  <DropdownMenuItem onClick={() => onSummarize(note.content)}>
                     <Wand2 className="mr-2 h-4 w-4 text-purple-500"/> Summarize with AI
+                </DropdownMenuItem>
+                 <DropdownMenuItem onClick={() => onGenerateFlashcards(note.content)}>
+                    <Copy className="mr-2 h-4 w-4 text-blue-500"/> Generate Flashcards
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => onGenerateQuiz(note.content)}>
                     <Lightbulb className="mr-2 h-4 w-4 text-yellow-500"/> Generate Quiz
@@ -109,6 +119,11 @@ export default function NotesPage() {
   const [isQuizDialogOpen, setQuizDialogOpen] = useState(false);
   const [isQuizLoading, setQuizLoading] = useState(false);
   const [generatedQuiz, setGeneratedQuiz] = useState<GenerateQuizOutput | null>(null);
+  const [isFlashcardDialogOpen, setFlashcardDialogOpen] = useState(false);
+  const [isFlashcardLoading, setFlashcardLoading] = useState(false);
+  const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
+  const [currentFlashcardIndex, setCurrentFlashcardIndex] = useState(0);
+  const [isFlipped, setIsFlipped] = useState(false);
 
 
   const { toast } = useToast();
@@ -206,6 +221,31 @@ export default function NotesPage() {
     }
   };
 
+  const handleGenerateFlashcards = async (noteContent: string) => {
+    setFlashcardDialogOpen(true);
+    setFlashcardLoading(true);
+    setFlashcards([]);
+    setCurrentFlashcardIndex(0);
+    setIsFlipped(false);
+    try {
+        const result = await generateFlashcardsFromNote({
+            noteContent,
+            learnerType: (learnerType as any) ?? 'Reading/Writing'
+        });
+        setFlashcards(result.flashcards);
+    } catch(error) {
+        console.error("Failed to generate flashcards:", error);
+        toast({
+            variant: 'destructive',
+            title: 'Flashcard Generation Failed',
+            description: 'Could not generate flashcards for this note.',
+        });
+        setFlashcardDialogOpen(false);
+    } finally {
+        setFlashcardLoading(false);
+    }
+  };
+
   const filteredNotes = notes.filter(note => {
       if (activeTab === 'important') return note.isImportant && !note.isCompleted;
       if (activeTab === 'todo') return !note.isCompleted;
@@ -257,14 +297,14 @@ export default function NotesPage() {
         <TabsContent value="all" className="mt-4">
            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {filteredNotes.map(note => (
-                <NoteCard key={note.id} note={note} onDelete={handleDeleteNote} onToggleImportant={handleToggleImportant} onToggleComplete={handleToggleComplete} onSummarize={handleSummarize} onGenerateQuiz={handleGenerateQuiz}/>
+                <NoteCard key={note.id} note={note} onDelete={handleDeleteNote} onToggleImportant={handleToggleImportant} onToggleComplete={handleToggleComplete} onSummarize={handleSummarize} onGenerateQuiz={handleGenerateQuiz} onGenerateFlashcards={handleGenerateFlashcards}/>
               ))}
            </div>
         </TabsContent>
         <TabsContent value="important" className="mt-4">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {filteredNotes.map(note => (
-                <NoteCard key={note.id} note={note} onDelete={handleDeleteNote} onToggleImportant={handleToggleImportant} onToggleComplete={handleToggleComplete} onSummarize={handleSummarize} onGenerateQuiz={handleGenerateQuiz}/>
+                <NoteCard key={note.id} note={note} onDelete={handleDeleteNote} onToggleImportant={handleToggleImportant} onToggleComplete={handleToggleComplete} onSummarize={handleSummarize} onGenerateQuiz={handleGenerateQuiz} onGenerateFlashcards={handleGenerateFlashcards}/>
               ))}
            </div>
         </TabsContent>
@@ -281,7 +321,7 @@ export default function NotesPage() {
         <TabsContent value="completed" className="mt-4">
            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {filteredNotes.map(note => (
-                <NoteCard key={note.id} note={note} onDelete={handleDeleteNote} onToggleImportant={handleToggleImportant} onToggleComplete={handleToggleComplete} onSummarize={handleSummarize} onGenerateQuiz={handleGenerateQuiz}/>
+                <NoteCard key={note.id} note={note} onDelete={handleDeleteNote} onToggleImportant={handleToggleImportant} onToggleComplete={handleToggleComplete} onSummarize={handleSummarize} onGenerateQuiz={handleGenerateQuiz} onGenerateFlashcards={handleGenerateFlashcards}/>
               ))}
            </div>
         </TabsContent>
@@ -342,6 +382,68 @@ export default function NotesPage() {
                            ))}
                        </div>
                    )
+                )}
+            </div>
+            <DialogFooter>
+                <DialogClose asChild><Button>Close</Button></DialogClose>
+            </DialogFooter>
+        </DialogContent>
+    </Dialog>
+
+    <Dialog open={isFlashcardDialogOpen} onOpenChange={setFlashcardDialogOpen}>
+        <DialogContent className="max-w-xl">
+             <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                    <Copy className="text-blue-500" />
+                    Flashcards
+                </DialogTitle>
+            </DialogHeader>
+            <div className="py-4">
+                {isFlashcardLoading ? (
+                    <div className="flex items-center justify-center h-52">
+                        <p className="animate-pulse">Generating your flashcards...</p>
+                    </div>
+                ) : flashcards.length > 0 ? (
+                    <div className="space-y-4">
+                         <div className="text-center text-sm text-muted-foreground">
+                            Card {currentFlashcardIndex + 1} of {flashcards.length}
+                        </div>
+                        <div
+                            className="relative w-full h-64 cursor-pointer"
+                            onClick={() => setIsFlipped(!isFlipped)}
+                        >
+                            <AnimatePresence>
+                                <motion.div
+                                    key={isFlipped ? 'back' : 'front'}
+                                    initial={{ rotateY: isFlipped ? 180 : 0 }}
+                                    animate={{ rotateY: 0 }}
+                                    exit={{ rotateY: isFlipped ? 0 : -180 }}
+                                    transition={{ duration: 0.5 }}
+                                    className="absolute w-full h-full p-6 flex items-center justify-center text-center rounded-lg border bg-card text-card-foreground shadow-sm"
+                                    style={{ backfaceVisibility: 'hidden' }}
+                                >
+                                    <p className="text-xl font-semibold">
+                                        {isFlipped ? flashcards[currentFlashcardIndex].back : flashcards[currentFlashcardIndex].front}
+                                    </p>
+                                </motion.div>
+                            </AnimatePresence>
+                        </div>
+                        <div className="flex justify-center items-center gap-4">
+                            <Button variant="outline" size="icon" onClick={() => { setIsFlipped(false); setCurrentFlashcardIndex(prev => Math.max(0, prev - 1))}} disabled={currentFlashcardIndex === 0}>
+                                <ChevronLeft className="h-4 w-4" />
+                            </Button>
+                            <Button onClick={() => setIsFlipped(!isFlipped)}>
+                                <RefreshCw className="mr-2 h-4 w-4"/> Flip Card
+                            </Button>
+                            <Button variant="outline" size="icon" onClick={() => { setIsFlipped(false); setCurrentFlashcardIndex(prev => Math.min(flashcards.length - 1, prev + 1))}} disabled={currentFlashcardIndex === flashcards.length - 1}>
+                                <ChevronRight className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="flex items-center justify-center h-52">
+                        <p>No flashcards were generated.</p>
+                    </div>
                 )}
             </div>
             <DialogFooter>
