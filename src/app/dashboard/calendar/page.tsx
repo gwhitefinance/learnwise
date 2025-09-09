@@ -31,10 +31,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DatePicker } from '@/components/ui/date-picker';
 import { useToast } from "@/hooks/use-toast";
+import { useAuthState } from "react-firebase-hooks/auth";
+import { auth, db } from "@/lib/firebase";
+import { collection, addDoc, query, where, getDocs, deleteDoc, doc, updateDoc } from "firebase/firestore";
+import { useRouter } from "next/navigation";
 
 
 type Event = {
-  id: number;
+  id: string;
   title: string;
   startTime: string;
   endTime: string;
@@ -47,10 +51,11 @@ type Event = {
   type: 'Test' | 'Homework' | 'Quiz' | 'Event' | 'Project';
   date: string;
   reminderMinutes: number;
+  userId?: string;
 };
 
 type Reminder = {
-  id: number;
+  id: string;
   fireTime: number;
   title: string;
   timeoutId: NodeJS.Timeout;
@@ -88,6 +93,8 @@ export default function CalendarPage() {
   const [learnerType, setLearnerType] = useState<string | null>(null);
   const [events, setEvents] = useState<Event[]>([]);
   const { toast } = useToast();
+  const [user, loading] = useAuthState(auth);
+  const router = useRouter();
   
   const [eventTypes, setEventTypes] = useState<EventTypes>(defaultEventTypes);
   const [reminders, setReminders] = useState<Reminder[]>([]);
@@ -109,19 +116,36 @@ export default function CalendarPage() {
   const [isSettingsOpen, setSettingsOpen] = useState(false);
   const [tempEventTypes, setTempEventTypes] = useState(eventTypes);
 
+   useEffect(() => {
+    if (loading) return;
+    if (!user) {
+        router.push('/signup');
+        return;
+    };
+    
+    const fetchEvents = async () => {
+        if (!user) return;
+        const q = query(collection(db, "calendarEvents"), where("userId", "==", user.uid));
+        const querySnapshot = await getDocs(q);
+        const userEvents = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Event));
+        setEvents(userEvents);
+        userEvents.forEach(scheduleReminder);
 
-  useEffect(() => {
-    setIsLoaded(true)
+        // Show AI popup after 3 seconds if there are no events
+        if(userEvents.length === 0) {
+            const popupTimer = setTimeout(() => {
+              setShowAIPopup(true)
+            }, 3000)
+            return () => clearTimeout(popupTimer)
+        }
+    };
+    
+    fetchEvents();
+
+    setIsLoaded(true);
     const storedLearnerType = localStorage.getItem('learnerType');
     if (storedLearnerType) {
         setLearnerType(storedLearnerType);
-    }
-    
-    const savedEvents = localStorage.getItem('calendarEvents');
-    if (savedEvents) {
-        const parsedEvents = JSON.parse(savedEvents).map((e: Event) => ({...e, date: e.date ? new Date(e.date).toISOString() : new Date().toISOString() }));
-        setEvents(parsedEvents);
-        parsedEvents.forEach(scheduleReminder);
     }
     
     const savedEventTypes = localStorage.getItem('eventTypes');
@@ -130,15 +154,8 @@ export default function CalendarPage() {
         setTempEventTypes(JSON.parse(savedEventTypes));
     }
 
+  }, [user, loading, router]);
 
-    // Show AI popup after 3 seconds if there are no events
-    if(events.length === 0) {
-        const popupTimer = setTimeout(() => {
-          setShowAIPopup(true)
-        }, 3000)
-        return () => clearTimeout(popupTimer)
-    }
-  }, []);
 
   const scheduleReminder = (event: Event) => {
     if (Notification.permission !== 'granted' || event.reminderMinutes <= 0) return;
@@ -254,47 +271,67 @@ export default function CalendarPage() {
     }
   }
 
-  const handleAddEvent = () => {
-    if (!newEventTitle || !newEventDate) {
-        toast({
-            variant: "destructive",
-            title: "Missing Fields",
-            description: "Please provide at least a title and a date.",
-        });
-        return;
-    }
-
-    const newEvent: Event = {
-        id: Date.now(),
-        title: newEventTitle,
-        description: newEventDesc,
-        date: newEventDate.toISOString(),
-        startTime: newEventStartTime,
-        endTime: newEventEndTime,
-        day: newEventDate.getDay() + 1, // This is a simplification. Week view is static.
-        type: newEventType,
-        color: eventTypes[newEventType],
-        location: newEventLocation,
-        organizer: newEventOrganizer,
-        attendees: newEventAttendees.split(',').map(s => s.trim()).filter(Boolean),
-        reminderMinutes: newEventReminder,
+    const handleAddEvent = async () => {
+        if (!newEventTitle || !newEventDate || !user) {
+            toast({
+                variant: "destructive",
+                title: "Missing Information",
+                description: "Please provide a title, a date, and be logged in.",
+            });
+            return;
+        }
+    
+        const eventData = {
+            title: newEventTitle,
+            description: newEventDesc,
+            date: newEventDate.toISOString(),
+            startTime: newEventStartTime,
+            endTime: newEventEndTime,
+            day: newEventDate.getDay() + 1, // This is a simplification
+            type: newEventType,
+            color: eventTypes[newEventType],
+            location: newEventLocation,
+            organizer: newEventOrganizer,
+            attendees: newEventAttendees.split(',').map(s => s.trim()).filter(Boolean),
+            reminderMinutes: newEventReminder,
+            userId: user.uid,
+        };
+    
+        try {
+            const docRef = await addDoc(collection(db, "calendarEvents"), eventData);
+            const newEvent: Event = { id: docRef.id, ...eventData };
+            setEvents(prev => [...prev, newEvent]);
+            scheduleReminder(newEvent);
+    
+            toast({
+                title: "Event Created!",
+                description: `${newEvent.title} has been added to your calendar.`,
+            });
+            setCreateDialogOpen(false);
+            setNewEventTitle('');
+            setNewEventDesc('');
+        } catch (error) {
+            console.error("Error adding event: ", error);
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Could not add event. Please try again.",
+            });
+        }
     };
-
-    const updatedEvents = [...events, newEvent];
-    setEvents(updatedEvents);
-    localStorage.setItem('calendarEvents', JSON.stringify(updatedEvents));
-    scheduleReminder(newEvent);
-
-    toast({
-        title: "Event Created!",
-        description: `${newEvent.title} has been added to your calendar.`,
-    });
-    setCreateDialogOpen(false);
-    // Reset form
-    setNewEventTitle('');
-    setNewEventDesc('');
-  };
   
+    const handleDeleteEvent = async (eventId: string) => {
+        try {
+            await deleteDoc(doc(db, "calendarEvents", eventId));
+            setEvents(prev => prev.filter(event => event.id !== eventId));
+            toast({ title: "Event deleted" });
+            setSelectedEvent(null);
+        } catch (error) {
+            console.error("Error deleting event: ", error);
+            toast({ variant: "destructive", title: "Error", description: "Could not delete event." });
+        }
+    };
+    
     const handleSaveSettings = () => {
         setEventTypes(tempEventTypes);
         localStorage.setItem('eventTypes', JSON.stringify(tempEventTypes));
@@ -772,7 +809,13 @@ export default function CalendarPage() {
                   Reminder set for {selectedEvent.reminderMinutes} minutes before.
                 </p>
               </div>
-              <div className="mt-6 flex justify-end">
+               <div className="mt-6 flex justify-between">
+                <Button
+                    variant="destructive"
+                    onClick={() => handleDeleteEvent(selectedEvent.id)}
+                >
+                    <Trash className="mr-2 h-4 w-4"/> Delete
+                </Button>
                 <Button
                   variant="outline"
                   className="bg-white text-gray-800 px-4 py-2 rounded hover:bg-gray-100 transition-colors"
