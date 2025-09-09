@@ -584,6 +584,14 @@ export default function DashboardPage() {
                             >
                                 Take a Tour
                             </Button>
+                            <Link href="/dashboard/ai-chat">
+                                <Button
+                                    variant="outline"
+                                    className="rounded-2xl bg-transparent border-white text-white hover:bg-white/10"
+                                >
+                                    Start a Chat
+                                </Button>
+                            </Link>
                             </div>
                         </div>
                         <div className="hidden lg:block">
