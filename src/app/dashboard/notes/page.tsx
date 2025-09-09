@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
@@ -11,10 +11,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, MoreVertical, Trash2, Star, Archive, Sparkles, Wand2 } from 'lucide-react';
+import { Plus, MoreVertical, Trash2, Star, Archive, Sparkles, Wand2, Lightbulb } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
 import { generateSummary } from '@/ai/flows/note-summary-flow';
+import { generateQuizFromNote } from '@/ai/flows/note-to-quiz-flow';
+import type { GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 type Note = {
   id: string;
@@ -36,7 +39,7 @@ const initialNotes: Note[] = [
 ];
 
 
-const NoteCard = ({ note, onDelete, onToggleImportant, onToggleComplete, onSummarize }: { note: Note, onDelete: (id: string) => void, onToggleImportant: (id: string) => void, onToggleComplete: (id: string) => void, onSummarize: (content: string) => void }) => {
+const NoteCard = ({ note, onDelete, onToggleImportant, onToggleComplete, onSummarize, onGenerateQuiz }: { note: Note, onDelete: (id: string) => void, onToggleImportant: (id: string) => void, onToggleComplete: (id: string) => void, onSummarize: (content: string) => void, onGenerateQuiz: (noteContent: string) => void }) => {
   return (
     <Card className={`overflow-hidden ${note.color}`}>
       <CardHeader className="p-4">
@@ -51,6 +54,9 @@ const NoteCard = ({ note, onDelete, onToggleImportant, onToggleComplete, onSumma
               <DropdownMenuContent align="end">
                  <DropdownMenuItem onClick={() => onSummarize(note.content)}>
                     <Wand2 className="mr-2 h-4 w-4 text-purple-500"/> Summarize with AI
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onGenerateQuiz(note.content)}>
+                    <Lightbulb className="mr-2 h-4 w-4 text-yellow-500"/> Generate Quiz
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => onToggleImportant(note.id)}>
@@ -99,11 +105,20 @@ export default function NotesPage() {
   const [isSummaryDialogOpen, setSummaryDialogOpen] = useState(false);
   const [summaryContent, setSummaryContent] = useState('');
   const [isSummaryLoading, setSummaryLoading] = useState(false);
+  const [learnerType, setLearnerType] = useState<string | null>(null);
+  const [isQuizDialogOpen, setQuizDialogOpen] = useState(false);
+  const [isQuizLoading, setQuizLoading] = useState(false);
+  const [generatedQuiz, setGeneratedQuiz] = useState<GenerateQuizOutput | null>(null);
+
 
   const { toast } = useToast();
   
   const colors = ['bg-red-100 dark:bg-red-900/20', 'bg-yellow-100 dark:bg-yellow-900/20', 'bg-green-100 dark:bg-green-900/20', 'bg-blue-100 dark:bg-blue-900/20', 'bg-purple-100 dark:bg-purple-900/20', 'bg-indigo-100 dark:bg-indigo-900/20'];
 
+  useEffect(() => {
+    const storedLearnerType = localStorage.getItem('learnerType');
+    setLearnerType(storedLearnerType ?? 'Unknown');
+  }, []);
 
   const handleAddNote = () => {
     if (!newNoteTitle) {
@@ -168,6 +183,29 @@ export default function NotesPage() {
     }
   };
   
+  const handleGenerateQuiz = async (noteContent: string) => {
+    setQuizDialogOpen(true);
+    setQuizLoading(true);
+    setGeneratedQuiz(null);
+    try {
+        const result = await generateQuizFromNote({
+            noteContent,
+            learnerType: (learnerType as any) ?? 'Reading/Writing'
+        });
+        setGeneratedQuiz(result);
+    } catch(error) {
+        console.error("Failed to generate quiz:", error);
+        toast({
+            variant: 'destructive',
+            title: 'Quiz Generation Failed',
+            description: 'Could not generate a quiz for this note.',
+        });
+        setQuizDialogOpen(false);
+    } finally {
+        setQuizLoading(false);
+    }
+  };
+
   const filteredNotes = notes.filter(note => {
       if (activeTab === 'important') return note.isImportant && !note.isCompleted;
       if (activeTab === 'todo') return !note.isCompleted;
@@ -219,14 +257,14 @@ export default function NotesPage() {
         <TabsContent value="all" className="mt-4">
            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {filteredNotes.map(note => (
-                <NoteCard key={note.id} note={note} onDelete={handleDeleteNote} onToggleImportant={handleToggleImportant} onToggleComplete={handleToggleComplete} onSummarize={handleSummarize}/>
+                <NoteCard key={note.id} note={note} onDelete={handleDeleteNote} onToggleImportant={handleToggleImportant} onToggleComplete={handleToggleComplete} onSummarize={handleSummarize} onGenerateQuiz={handleGenerateQuiz}/>
               ))}
            </div>
         </TabsContent>
         <TabsContent value="important" className="mt-4">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {filteredNotes.map(note => (
-                <NoteCard key={note.id} note={note} onDelete={handleDeleteNote} onToggleImportant={handleToggleImportant} onToggleComplete={handleToggleComplete} onSummarize={handleSummarize}/>
+                <NoteCard key={note.id} note={note} onDelete={handleDeleteNote} onToggleImportant={handleToggleImportant} onToggleComplete={handleToggleComplete} onSummarize={handleSummarize} onGenerateQuiz={handleGenerateQuiz}/>
               ))}
            </div>
         </TabsContent>
@@ -243,7 +281,7 @@ export default function NotesPage() {
         <TabsContent value="completed" className="mt-4">
            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {filteredNotes.map(note => (
-                <NoteCard key={note.id} note={note} onDelete={handleDeleteNote} onToggleImportant={handleToggleImportant} onToggleComplete={handleToggleComplete} onSummarize={handleSummarize}/>
+                <NoteCard key={note.id} note={note} onDelete={handleDeleteNote} onToggleImportant={handleToggleImportant} onToggleComplete={handleToggleComplete} onSummarize={handleSummarize} onGenerateQuiz={handleGenerateQuiz}/>
               ))}
            </div>
         </TabsContent>
@@ -265,6 +303,45 @@ export default function NotesPage() {
                     </div>
                 ) : (
                     <p className="text-muted-foreground">{summaryContent}</p>
+                )}
+            </div>
+            <DialogFooter>
+                <DialogClose asChild><Button>Close</Button></DialogClose>
+            </DialogFooter>
+        </DialogContent>
+    </Dialog>
+
+    <Dialog open={isQuizDialogOpen} onOpenChange={setQuizDialogOpen}>
+        <DialogContent className="max-w-2xl">
+            <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                    <Lightbulb className="text-yellow-500" />
+                    Practice Quiz
+                </DialogTitle>
+            </DialogHeader>
+            <div className="py-4 max-h-[60vh] overflow-y-auto">
+                {isQuizLoading ? (
+                     <div className="space-y-2">
+                        <p className="animate-pulse">Generating your quiz...</p>
+                    </div>
+                ) : (
+                   generatedQuiz && (
+                       <div className="space-y-6">
+                           {generatedQuiz.questions.map((q, index) => (
+                               <div key={index}>
+                                   <p className="font-semibold">{index + 1}. {q.question}</p>
+                                   <RadioGroup className="mt-2 space-y-2">
+                                       {q.options?.map((opt, i) => (
+                                           <div key={i} className="flex items-center space-x-2">
+                                                <RadioGroupItem value={opt} id={`q${index}-opt${i}`} />
+                                                <Label htmlFor={`q${index}-opt${i}`}>{opt}</Label>
+                                           </div>
+                                       ))}
+                                   </RadioGroup>
+                               </div>
+                           ))}
+                       </div>
+                   )
                 )}
             </div>
             <DialogFooter>
