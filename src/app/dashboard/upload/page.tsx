@@ -1,9 +1,9 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { UploadCloud, Wand2, Link, Image as ImageIcon, Copy, Lightbulb, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
+import { UploadCloud, Wand2, Link, Image as ImageIcon, Copy, Lightbulb, RefreshCw, ChevronLeft, ChevronRight, CheckCircle, XCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -48,6 +48,11 @@ export default function UploadPage() {
   const [tutoringSession, setTutoringSession] = useState<TutoringSessionOutput | null>(null);
   const [learnerType, setLearnerType] = useState<string | null>(null);
 
+  // Practice question state
+  const [selectedPracticeAnswer, setSelectedPracticeAnswer] = useState<string | null>(null);
+  const [practiceAnswerFeedback, setPracticeAnswerFeedback] = useState<'correct' | 'incorrect' | null>(null);
+
+
   // Flashcard states
   const [isFlashcardDialogOpen, setFlashcardDialogOpen] = useState(false);
   const [isFlashcardLoading, setFlashcardLoading] = useState(false);
@@ -55,10 +60,10 @@ export default function UploadPage() {
   const [currentFlashcardIndex, setCurrentFlashcardIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   
-  useState(() => {
+  useEffect(() => {
     const storedLearnerType = localStorage.getItem('learnerType');
     setLearnerType(storedLearnerType ?? 'Unknown');
-  });
+  }, []);
   
   const handleImageFileChange = (selectedFiles: FileList | null) => {
     if (selectedFiles && selectedFiles[0]) {
@@ -118,6 +123,9 @@ export default function UploadPage() {
     setIsLoading(true);
     setSummary('');
     setTutoringSession(null);
+    setPracticeAnswerFeedback(null);
+    setSelectedPracticeAnswer(null);
+
 
     try {
         const reader = new FileReader();
@@ -167,6 +175,12 @@ export default function UploadPage() {
         setFlashcardLoading(false);
     }
   };
+
+  const handleCheckPracticeAnswer = () => {
+      if (!selectedPracticeAnswer || !tutoringSession) return;
+      const isCorrect = selectedPracticeAnswer === tutoringSession.practiceQuestion.answer;
+      setPracticeAnswerFeedback(isCorrect ? 'correct' : 'incorrect');
+  }
 
   const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); };
   const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); };
@@ -335,15 +349,32 @@ export default function UploadPage() {
                 <Card>
                     <CardHeader><CardTitle>Practice Question</CardTitle></CardHeader>
                     <CardContent>
-                        <p className="font-semibold">{tutoringSession.practiceQuestion.question}</p>
-                        <RadioGroup className="mt-2 space-y-2">
-                           {tutoringSession.practiceQuestion.options?.map((opt, i) => (
-                               <div key={i} className="flex items-center space-x-2">
-                                    <RadioGroupItem value={opt} id={`q-opt${i}`} />
-                                    <Label htmlFor={`q-opt${i}`}>{opt}</Label>
-                               </div>
-                           ))}
-                       </RadioGroup>
+                        <p className="font-semibold mb-4">{tutoringSession.practiceQuestion.question}</p>
+                         <RadioGroup value={selectedPracticeAnswer ?? ''} onValueChange={setSelectedPracticeAnswer} disabled={!!practiceAnswerFeedback}>
+                            <div className="space-y-4">
+                            {tutoringSession.practiceQuestion.options?.map((option, index) => {
+                                const isCorrect = option === tutoringSession.practiceQuestion.answer;
+                                const isSelected = option === selectedPracticeAnswer;
+                                
+                                return (
+                                <Label key={index} htmlFor={`q-opt-${index}`} className={cn(
+                                    "flex items-center gap-4 p-4 rounded-lg border transition-all cursor-pointer",
+                                    practiceAnswerFeedback === null && (isSelected ? "border-primary bg-primary/10" : "border-border hover:bg-muted"),
+                                    practiceAnswerFeedback !== null && isCorrect && "border-green-500 bg-green-500/10",
+                                    practiceAnswerFeedback !== null && isSelected && !isCorrect && "border-red-500 bg-red-500/10",
+                                )}>
+                                    <RadioGroupItem value={option} id={`q-opt-${index}`} />
+                                    <span>{option}</span>
+                                    {practiceAnswerFeedback !== null && isCorrect && <CheckCircle className="h-5 w-5 text-green-500 ml-auto"/>}
+                                    {practiceAnswerFeedback !== null && isSelected && !isCorrect && <XCircle className="h-5 w-5 text-red-500 ml-auto"/>}
+                                </Label>
+                                )
+                            })}
+                            </div>
+                        </RadioGroup>
+                         {practiceAnswerFeedback === null && (
+                            <Button className="w-full mt-4" onClick={handleCheckPracticeAnswer} disabled={!selectedPracticeAnswer}>Check Answer</Button>
+                         )}
                     </CardContent>
                 </Card>
                  <Card className="bg-amber-500/10 border-amber-500/20">
