@@ -2,12 +2,15 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { notFound } from 'next/navigation';
+import { notFound, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, BrainCircuit, Lightbulb, FileText, Link as LinkIcon } from 'lucide-react';
 import Link from 'next/link';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { auth, db } from '@/lib/firebase';
+import { doc, getDoc } from 'firebase/firestore';
 
 type Course = {
     id: string;
@@ -16,31 +19,50 @@ type Course = {
     credits: number;
     url?: string;
     imageUrl?: string;
-    description?: string; // Adding a description field
+    description?: string;
+    userId?: string;
 };
 
 
 export default function CourseDetailPage({ params }: { params: { courseId: string } }) {
   const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
+  const [user, authLoading] = useAuthState(auth);
+  const router = useRouter();
 
   useEffect(() => {
-    const savedCourses = localStorage.getItem('courses');
-    if (savedCourses) {
-      const allCourses: Course[] = JSON.parse(savedCourses);
-      const currentCourse = allCourses.find(c => c.id === params.courseId);
-      if (currentCourse) {
-        // Add a mock description if it doesn't exist
-        if (!currentCourse.description) {
-            currentCourse.description = `This course, taught by ${currentCourse.instructor}, provides a comprehensive overview of ${currentCourse.name}. It covers fundamental principles and advanced topics to equip students with the knowledge needed in this field.`;
-        }
-        setCourse(currentCourse);
-      }
+    if (authLoading) return;
+    if (!user) {
+        router.push('/login');
+        return;
     }
-    setLoading(false);
-  }, [params.courseId]);
 
-  if (loading) {
+    const fetchCourse = async () => {
+        const docRef = doc(db, "courses", params.courseId);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+            const courseData = { id: docSnap.id, ...docSnap.data() } as Course;
+            // Security check: Make sure the logged-in user owns this course
+            if (courseData.userId === user.uid) {
+                if (!courseData.description) {
+                    courseData.description = `This course, taught by ${courseData.instructor}, provides a comprehensive overview of ${courseData.name}. It covers fundamental principles and advanced topics to equip students with the knowledge needed in this field.`;
+                }
+                setCourse(courseData);
+            } else {
+                // User does not have access, treat as not found
+                setCourse(null);
+            }
+        } else {
+            console.log("No such document!");
+        }
+        setLoading(false);
+    };
+
+    fetchCourse();
+  }, [params.courseId, user, authLoading, router]);
+
+  if (loading || authLoading) {
     return <div>Loading...</div>; // Or a proper skeleton loader
   }
 

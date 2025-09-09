@@ -57,9 +57,10 @@ import {
   PenSquare,
   ChevronRight,
   FlaskConical,
+  LogOut,
 } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -71,6 +72,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/toaster';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { auth } from '@/lib/firebase';
 
 
 // Sample data for sidebar navigation
@@ -226,7 +229,29 @@ export default function DashboardLayout({
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+  const [user, loading] = useAuthState(auth);
+  const router = useRouter();
 
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/signup');
+    }
+  }, [user, loading, router]);
+
+
+  const handleSignOut = async () => {
+    await auth.signOut();
+    router.push('/');
+  }
+
+  if (loading) {
+    return (
+        <div className="flex items-center justify-center h-screen">
+            <div>Loading...</div>
+        </div>
+    )
+  }
 
   return (
     <>
@@ -292,17 +317,17 @@ export default function DashboardLayout({
 
           <div className="border-t p-3">
             <div className="space-y-1">
-              <Button className="flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm font-medium hover:bg-muted">
-                <Settings className="h-5 w-5" />
-                <span>Settings</span>
-              </Button>
+               <Button onClick={handleSignOut} className="flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm font-medium hover:bg-muted">
+                    <LogOut className="h-5 w-5" />
+                    <span>Sign Out</span>
+                </Button>
               <Button className="flex w-full items-center justify-between rounded-2xl px-3 py-2 text-sm font-medium hover:bg-muted">
                 <div className="flex items-center gap-3">
                   <Avatar className="h-6 w-6">
                     <AvatarImage src="https://i.pravatar.cc/32" alt="User" />
-                    <AvatarFallback>JD</AvatarFallback>
+                    <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
                   </Avatar>
-                  <span>John Doe</span>
+                  <span>{user?.displayName}</span>
                 </div>
                 <Badge variant="outline" className="ml-auto">
                   Pro
@@ -352,17 +377,17 @@ export default function DashboardLayout({
 
           <div className="border-t p-3">
             <div className="space-y-1">
-              <Button className="flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm font-medium hover:bg-muted">
-                <Settings className="h-5 w-5" />
-                <span>Settings</span>
+              <Button onClick={handleSignOut} className="flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm font-medium hover:bg-muted">
+                <LogOut className="h-5 w-5" />
+                <span>Sign Out</span>
               </Button>
               <Button className="flex w-full items-center justify-between rounded-2xl px-3 py-2 text-sm font-medium hover:bg-muted">
                 <div className="flex items-center gap-3">
                   <Avatar className="h-6 w-6">
                     <AvatarImage src="https://i.pravatar.cc/32" alt="User" />
-                    <AvatarFallback>JD</AvatarFallback>
+                    <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
                   </Avatar>
-                  <span>John Doe</span>
+                  <span>{user?.displayName}</span>
                 </div>
                 <Badge variant="outline" className="ml-auto">
                   Pro
@@ -427,7 +452,7 @@ export default function DashboardLayout({
 
               <Avatar className="h-9 w-9 border-2 border-primary">
                 <AvatarImage src="https://i.pravatar.cc/40" alt="User" />
-                <AvatarFallback>JD</AvatarFallback>
+                <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
               </Avatar>
             </div>
           </div>

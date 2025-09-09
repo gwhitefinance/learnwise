@@ -11,30 +11,10 @@ import { Label } from '@/components/ui/label';
 import { FilePenLine, Plus, Trash2, Link as LinkIcon, Eye } from "lucide-react";
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
-
-const initialCourses = [
-    {
-        id: '1',
-        name: "Introduction to Programming",
-        instructor: "Dr. Emily Carter",
-        credits: 3,
-        url: 'https://www.coursera.org/specializations/python'
-    },
-    {
-        id: '2',
-        name: "Calculus I",
-        instructor: "Prof. David Lee",
-        credits: 4,
-        url: ''
-    },
-    {
-        id: '3',
-        name: "Linear Algebra",
-        instructor: "Dr. Sarah Jones",
-        credits: 3,
-        url: ''
-    },
-];
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { auth, db } from '@/lib/firebase';
+import { collection, addDoc, query, where, getDocs, deleteDoc, doc } from 'firebase/firestore';
+import { useRouter } from 'next/navigation';
 
 type Course = {
     id: string;
@@ -42,6 +22,7 @@ type Course = {
     instructor: string;
     credits: number;
     url?: string;
+    userId?: string;
 };
 
 export default function CoursesPage() {
@@ -49,22 +30,33 @@ export default function CoursesPage() {
     const [isAddCourseOpen, setAddCourseOpen] = useState(false);
     const [newCourse, setNewCourse] = useState({ name: '', instructor: '', credits: '', url: ''});
     const { toast } = useToast();
-
+    const [user, loading] = useAuthState(auth);
+    const router = useRouter();
+    
     useEffect(() => {
-        const savedCourses = localStorage.getItem('courses');
-        if (savedCourses) {
-            setCourses(JSON.parse(savedCourses));
-        } else {
-            setCourses(initialCourses);
-        }
-    }, []);
+        if (loading) return;
+        if (!user) {
+            router.push('/signup');
+            return;
+        };
+
+        const fetchCourses = async () => {
+            if (!user) return;
+            const q = query(collection(db, "courses"), where("userId", "==", user.uid));
+            const querySnapshot = await getDocs(q);
+            const userCourses = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
+            setCourses(userCourses);
+        };
+
+        fetchCourses();
+    }, [user, loading, router]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setNewCourse(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleAddCourse = () => {
+    const handleAddCourse = async () => {
         if (!newCourse.name || !newCourse.instructor || !newCourse.credits) {
             toast({
                 variant: 'destructive',
@@ -73,34 +65,56 @@ export default function CoursesPage() {
             });
             return;
         }
+        if (!user) return;
 
-        const courseToAdd: Course = {
-            id: crypto.randomUUID(),
+        const courseToAdd = {
             name: newCourse.name,
             instructor: newCourse.instructor,
             credits: parseInt(newCourse.credits, 10),
             url: newCourse.url,
+            userId: user.uid,
         };
-
-        const updatedCourses = [...courses, courseToAdd];
-        setCourses(updatedCourses);
-        localStorage.setItem('courses', JSON.stringify(updatedCourses));
-        setNewCourse({ name: '', instructor: '', credits: '', url: '' });
-        setAddCourseOpen(false);
-        toast({
-            title: 'Course Added!',
-            description: `${courseToAdd.name} has been added to your list.`
-        });
+        
+        try {
+            const docRef = await addDoc(collection(db, "courses"), courseToAdd);
+            setCourses(prev => [...prev, { id: docRef.id, ...courseToAdd }]);
+            setNewCourse({ name: '', instructor: '', credits: '', url: '' });
+            setAddCourseOpen(false);
+            toast({
+                title: 'Course Added!',
+                description: `${courseToAdd.name} has been added to your list.`
+            });
+        } catch(error) {
+            console.error("Error adding document: ", error);
+            toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: 'Could not add course. Please try again.',
+            });
+        }
     };
 
-    const handleDeleteCourse = (id: string) => {
-        const updatedCourses = courses.filter(c => c.id !== id);
-        setCourses(updatedCourses);
-        localStorage.setItem('courses', JSON.stringify(updatedCourses));
-        toast({
-            title: 'Course Removed',
-        });
+    const handleDeleteCourse = async (id: string) => {
+        try {
+            await deleteDoc(doc(db, "courses", id));
+            const updatedCourses = courses.filter(c => c.id !== id);
+            setCourses(updatedCourses);
+            toast({
+                title: 'Course Removed',
+            });
+        } catch (error) {
+            console.error("Error removing document: ", error);
+             toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: 'Could not remove course. Please try again.',
+            });
+        }
     };
+
+    if (loading) {
+        return <div>Loading...</div>;
+    }
 
 
   return (
