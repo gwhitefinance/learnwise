@@ -35,7 +35,8 @@ type Course = {
     description?: string;
 };
 
-type Event = {
+// Simplified event type for what the AI expects
+type AIEvent = {
   id: string;
   date: string;
   title: string;
@@ -43,6 +44,18 @@ type Event = {
   type: 'Test' | 'Homework' | 'Quiz' | 'Event';
   description: string;
 };
+
+// More detailed event type from the calendar page
+type CalendarEvent = {
+  id: string | number;
+  date: string;
+  title: string;
+  startTime?: string;
+  time?: string; // It could be either
+  type: 'Test' | 'Homework' | 'Quiz' | 'Event';
+  description: string;
+};
+
 
 export default function AiChatPage() {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
@@ -148,15 +161,26 @@ export default function AiChatPage() {
 
     try {
       const savedEvents = localStorage.getItem('calendarEvents');
-      let calendarEvents: Event[] = [];
+      let calendarEvents: CalendarEvent[] = [];
       if (savedEvents) {
-        const parsedEvents = JSON.parse(savedEvents);
-        if (Array.isArray(parsedEvents)) {
-          calendarEvents = parsedEvents;
+        try {
+            const parsedEvents = JSON.parse(savedEvents);
+            if (Array.isArray(parsedEvents)) {
+            calendarEvents = parsedEvents;
+            }
+        } catch (e) {
+            console.error("Failed to parse calendar events", e);
         }
       }
       
-      const serializableEvents = calendarEvents.map(e => ({...e, date: new Date(e.date).toISOString()}));
+      const serializableEvents: AIEvent[] = calendarEvents.map(e => ({
+          id: String(e.id),
+          date: new Date(e.date).toISOString(),
+          title: e.title,
+          time: e.time || e.startTime || 'All day',
+          type: e.type,
+          description: e.description,
+      }));
 
       const response = await studyPlannerFlow({
         history: updatedMessages,
