@@ -545,7 +545,7 @@ export default function DashboardPage() {
                                         ) : (
                                             <TableRow>
                                                 <TableCell colSpan={3} className="text-center text-muted-foreground p-8">
-                                                    No recent files. Upload some materials to get started!
+                                                    You haven't uploaded any files yet.
                                                 </TableCell>
                                             </TableRow>
                                         )}
