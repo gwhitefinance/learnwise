@@ -13,7 +13,7 @@ import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
-import { collection, addDoc, query, where, getDocs, deleteDoc, doc } from 'firebase/firestore';
+import { collection, addDoc, query, where, onSnapshot, deleteDoc, doc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -44,17 +44,14 @@ export default function CoursesPage() {
             return;
         };
 
-        const fetchCourses = async () => {
-            if (!user) return;
-            setIsDataLoading(true);
-            const q = query(collection(db, "courses"), where("userId", "==", user.uid));
-            const querySnapshot = await getDocs(q);
+        const q = query(collection(db, "courses"), where("userId", "==", user.uid));
+        const unsubscribe = onSnapshot(q, (querySnapshot) => {
             const userCourses = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
             setCourses(userCourses);
             setIsDataLoading(false);
-        };
+        });
 
-        fetchCourses();
+        return () => unsubscribe();
     }, [user, authLoading, router]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -75,10 +72,7 @@ export default function CoursesPage() {
 
         setIsSaving(true);
 
-        // Optimistic UI update
-        const tempId = crypto.randomUUID();
         const courseToAdd = {
-            id: tempId,
             name: newCourse.name,
             instructor: newCourse.instructor,
             credits: parseInt(newCourse.credits, 10),
@@ -86,34 +80,23 @@ export default function CoursesPage() {
             userId: user.uid,
         };
 
-        // Immediately update state and close dialog
-        setCourses(prev => [...prev, courseToAdd]);
-        setNewCourse({ name: '', instructor: '', credits: '', url: '' });
-        setAddCourseOpen(false);
-        setIsSaving(false);
-        
         try {
-            const docData = { ...courseToAdd };
-            delete (docData as any).id; // Don't save the temp ID to Firestore
-
-            const docRef = await addDoc(collection(db, "courses"), docData);
-            
-            // Update the course with the real ID from Firestore
-            setCourses(prev => prev.map(c => c.id === tempId ? { ...c, id: docRef.id } : c));
-            
+            await addDoc(collection(db, "courses"), courseToAdd);
             toast({
                 title: 'Course Added!',
                 description: `${courseToAdd.name} has been added to your list.`
             });
         } catch(error) {
             console.error("Error adding document: ", error);
-            // Revert optimistic update on error
-            setCourses(prev => prev.filter(c => c.id !== tempId));
             toast({
                 variant: 'destructive',
                 title: 'Error',
                 description: 'Could not add course. Please try again.',
             });
+        } finally {
+            setNewCourse({ name: '', instructor: '', credits: '', url: '' });
+            setAddCourseOpen(false);
+            setIsSaving(false);
         }
     };
 
@@ -121,8 +104,6 @@ export default function CoursesPage() {
     const handleDeleteCourse = async (id: string) => {
         try {
             await deleteDoc(doc(db, "courses", id));
-            const updatedCourses = courses.filter(c => c.id !== id);
-            setCourses(updatedCourses);
             toast({
                 title: 'Course Removed',
             });

@@ -53,7 +53,7 @@ import { DatePicker } from '@/components/ui/date-picker';
 import { format } from 'date-fns';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
-import { collection, query, where, getDocs, addDoc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, addDoc } from 'firebase/firestore';
 import Joyride, { Step, CallBackProps } from 'react-joyride';
 
 
@@ -203,17 +203,13 @@ export default function DashboardPage() {
     ];
 
      useEffect(() => {
-        const fetchCourses = async () => {
-            if (!user) return;
-            const q = query(collection(db, "courses"), where("userId", "==", user.uid));
-            const querySnapshot = await getDocs(q);
+        if (!user) return;
+        
+        const q = query(collection(db, "courses"), where("userId", "==", user.uid));
+        const unsubscribe = onSnapshot(q, (querySnapshot) => {
             const userCourses = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
             setCourses(userCourses);
-        };
-        
-        if (user) {
-            fetchCourses();
-        }
+        });
 
         // Mock streak calculation
         const lastVisit = localStorage.getItem('lastVisit');
@@ -233,7 +229,8 @@ export default function DashboardPage() {
             }
         }
         localStorage.setItem('lastVisit', today);
-
+        
+        return () => unsubscribe();
     }, [user]);
 
     const handleTourCallback = (data: CallBackProps) => {
@@ -293,9 +290,7 @@ export default function DashboardPage() {
         if (!user) return;
 
         setIsSavingCourse(true);
-        const tempId = crypto.randomUUID();
         const courseToAdd = {
-            id: tempId,
             name: newCourse.name,
             instructor: newCourse.instructor,
             credits: parseInt(newCourse.credits, 10),
@@ -305,19 +300,9 @@ export default function DashboardPage() {
             progress: 0,
             files: 0,
         };
-
-        // Optimistic UI Update
-        setCourses(prev => [...prev, courseToAdd]);
-        setAddCourseOpen(false);
-        setNewCourse({ name: '', instructor: '', credits: '', url: '' });
-        setIsSavingCourse(false);
         
         try {
-            const docData = { ...courseToAdd };
-            delete (docData as any).id;
-            const docRef = await addDoc(collection(db, "courses"), docData);
-            setCourses(prev => prev.map(c => c.id === tempId ? { ...c, id: docRef.id } : c));
-            
+            await addDoc(collection(db, "courses"), courseToAdd);
             toast({
                 title: 'Course Added!',
                 description: `${courseToAdd.name} has been added to your list.`
@@ -328,7 +313,10 @@ export default function DashboardPage() {
                 title: 'Error',
                 description: 'Could not add course. Please try again.',
             });
-            setCourses(prev => prev.filter(c => c.id !== tempId));
+        } finally {
+            setNewCourse({ name: '', instructor: '', credits: '', url: '' });
+            setAddCourseOpen(false);
+            setIsSavingCourse(false);
         }
     };
     
