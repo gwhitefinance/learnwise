@@ -1,12 +1,14 @@
 
 'use client';
 
+import { useState, useEffect } from 'react';
 import { motion } from "framer-motion"
 import {
   Users,
   FileText,
   Download,
-  Plus
+  Plus,
+  UploadCloud
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -14,6 +16,11 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 import {
     Table,
     TableBody,
@@ -77,8 +84,118 @@ import {
     },
   ]
 
+  type Course = {
+    id: string;
+    name: string;
+    instructor: string;
+    credits: number;
+    url?: string;
+  };
 
 export default function DashboardPage() {
+    const [courses, setCourses] = useState<Course[]>([]);
+    const [isAddCourseOpen, setAddCourseOpen] = useState(false);
+    const [newCourse, setNewCourse] = useState({ name: '', instructor: '', credits: '', url: ''});
+    const { toast } = useToast();
+    const [files, setFiles] = useState<FileList | null>(null);
+    const [isDragging, setIsDragging] = useState(false);
+    const [isUploadOpen, setUploadOpen] = useState(false);
+
+     useEffect(() => {
+        const savedCourses = localStorage.getItem('courses');
+        if (savedCourses) {
+            setCourses(JSON.parse(savedCourses));
+        }
+    }, []);
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setNewCourse(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleAddCourse = () => {
+        if (!newCourse.name || !newCourse.instructor || !newCourse.credits) {
+            toast({
+                variant: 'destructive',
+                title: 'Missing Fields',
+                description: 'Please fill out all required fields.'
+            });
+            return;
+        }
+
+        const courseToAdd: Course = {
+            id: crypto.randomUUID(),
+            name: newCourse.name,
+            instructor: newCourse.instructor,
+            credits: parseInt(newCourse.credits, 10),
+            url: newCourse.url,
+        };
+
+        const updatedCourses = [...courses, courseToAdd];
+        setCourses(updatedCourses);
+        localStorage.setItem('courses', JSON.stringify(updatedCourses));
+        setNewCourse({ name: '', instructor: '', credits: '', url: '' });
+        setAddCourseOpen(false);
+        toast({
+            title: 'Course Added!',
+            description: `${courseToAdd.name} has been added to your list.`
+        });
+    };
+    
+    const handleFileChange = (selectedFiles: FileList | null) => {
+        if (selectedFiles) {
+          setFiles(selectedFiles);
+        }
+    };
+
+    const handleUpload = () => {
+        if (!files || files.length === 0) {
+          toast({
+            variant: 'destructive',
+            title: 'No files selected',
+            description: 'Please select at least one file to upload.',
+          });
+          return;
+        }
+        // TODO: Implement actual file upload logic
+        console.log('Uploading files:', files);
+        toast({
+          title: 'Upload Successful!',
+          description: `${files.length} file(s) have been queued for processing.`,
+        });
+        setFiles(null);
+        setUploadOpen(false);
+    };
+      
+    const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(true);
+    };
+    
+    const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+    };
+    
+    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+         if (!isDragging) setIsDragging(true);
+    };
+    
+    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+        
+        const droppedFiles = e.dataTransfer.files;
+        if (droppedFiles && droppedFiles.length > 0) {
+          setFiles(droppedFiles);
+        }
+    };
+
    
   return (
     <div className="space-y-8 mt-0">
@@ -102,14 +219,97 @@ export default function DashboardPage() {
                 </TabsTrigger>
               </TabsList>
               <div className="hidden md:flex gap-2">
-                <Button variant="outline" className="rounded-2xl">
-                  <Download className="mr-2 h-4 w-4" />
-                  Upload Course Information
-                </Button>
-                <Button className="rounded-2xl">
-                  <Plus className="mr-2 h-4 w-4" />
-                  New Course
-                </Button>
+                <Dialog open={isUploadOpen} onOpenChange={setUploadOpen}>
+                    <DialogTrigger asChild>
+                        <Button variant="outline" className="rounded-2xl">
+                          <Download className="mr-2 h-4 w-4" />
+                          Upload Course Information
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                         <DialogHeader>
+                            <DialogTitle>Upload Study Materials</DialogTitle>
+                        </DialogHeader>
+                        <div 
+                            className={cn(
+                                "relative flex flex-col items-center justify-center w-full p-12 border-2 border-dashed rounded-lg cursor-pointer transition-colors",
+                                isDragging ? "border-primary bg-primary/10" : "border-border hover:border-primary/50"
+                            )}
+                            onDragEnter={handleDragEnter}
+                            onDragLeave={handleDragLeave}
+                            onDragOver={handleDragOver}
+                            onDrop={handleDrop}
+                            onClick={() => document.getElementById('file-upload-input')?.click()}
+                          >
+                            <input 
+                              id="file-upload-input"
+                              type="file" 
+                              multiple 
+                              className="hidden"
+                              onChange={(e) => handleFileChange(e.target.files)}
+                            />
+                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                              <UploadCloud className="w-10 h-10 mb-4 text-muted-foreground" />
+                              <p className="mb-2 text-lg font-semibold">
+                                Drag and drop your files here
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                Or click to browse
+                              </p>
+                            </div>
+                        </div>
+                        {files && files.length > 0 && (
+                          <div className="mt-4">
+                              <h3 className="text-lg font-semibold">Selected files:</h3>
+                              <ul className="list-disc list-inside mt-2 text-sm text-muted-foreground">
+                                  {Array.from(files).map((file, index) => (
+                                      <li key={index}>{file.name}</li>
+                                  ))}
+                              </ul>
+                          </div>
+                        )}
+                        <DialogFooter>
+                            <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
+                            <Button onClick={handleUpload}>Upload</Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+                
+                <Dialog open={isAddCourseOpen} onOpenChange={setAddCourseOpen}>
+                    <DialogTrigger asChild>
+                        <Button className="rounded-2xl">
+                          <Plus className="mr-2 h-4 w-4" />
+                          New Course
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Add a New Course</DialogTitle>
+                        </DialogHeader>
+                        <div className="grid gap-4 py-4">
+                            <div className="grid gap-2">
+                                <Label htmlFor="name">Course Name</Label>
+                                <Input id="name" name="name" value={newCourse.name} onChange={handleInputChange} placeholder="e.g., Introduction to AI"/>
+                            </div>
+                             <div className="grid gap-2">
+                                <Label htmlFor="instructor">Instructor</Label>
+                                <Input id="instructor" name="instructor" value={newCourse.instructor} onChange={handleInputChange} placeholder="e.g., Dr. Alan Turing"/>
+                            </div>
+                             <div className="grid gap-2">
+                                <Label htmlFor="credits">Credits</Label>
+                                <Input id="credits" name="credits" type="number" value={newCourse.credits} onChange={handleInputChange} placeholder="e.g., 3"/>
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="url">Course URL (Optional)</Label>
+                                <Input id="url" name="url" value={newCourse.url} onChange={handleInputChange} placeholder="https://example.com/course-link"/>
+                            </div>
+                        </div>
+                         <DialogFooter>
+                            <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
+                            <Button onClick={handleAddCourse}>Add Course</Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
               </div>
             </div>
         </Tabs>
@@ -228,3 +428,5 @@ export default function DashboardPage() {
     </div>
   )
 }
+
+    
