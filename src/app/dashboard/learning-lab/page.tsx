@@ -20,6 +20,9 @@ import { Label } from '@/components/ui/label';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
 import { cn } from '@/lib/utils';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { auth, db } from '@/lib/firebase';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 
 
 type Course = {
@@ -27,6 +30,7 @@ type Course = {
     name: string;
     description: string;
     url?: string;
+    userId?: string;
 };
 
 type Module = GenerateMiniCourseOutput['modules'][0];
@@ -45,6 +49,7 @@ export default function LearningLabPage() {
   const [completedModules, setCompletedModules] = useState<number[]>([]);
   const [isCourseComplete, setIsCourseComplete] = useState(false);
   const { toast } = useToast();
+  const [user] = useAuthState(auth);
 
   const [currentModuleIndex, setCurrentModuleIndex] = useState(0);
   const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
@@ -63,13 +68,20 @@ export default function LearningLabPage() {
 
 
   useEffect(() => {
-    const savedCourses = localStorage.getItem('courses');
-    if (savedCourses) {
-      setCourses(JSON.parse(savedCourses));
+    const fetchCourses = async () => {
+        if (!user) return;
+        const q = query(collection(db, "courses"), where("userId", "==", user.uid));
+        const querySnapshot = await getDocs(q);
+        const userCourses = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
+        setCourses(userCourses);
+    };
+
+    if (user) {
+        fetchCourses();
     }
     const storedLearnerType = localStorage.getItem('learnerType');
     setLearnerType(storedLearnerType ?? 'Unknown');
-  }, []);
+  }, [user]);
 
   const handleGenerateCourse = async () => {
     if (!selectedCourseId) {
@@ -479,5 +491,3 @@ export default function LearningLabPage() {
     </>
   );
 }
-
-    

@@ -20,6 +20,10 @@ import type { GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { generateFlashcardsFromNote } from '@/ai/flows/note-to-flashcard-flow';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { auth, db } from '@/lib/firebase';
+import { collection, addDoc, query, where, getDocs, deleteDoc, doc, updateDoc, Timestamp } from 'firebase/firestore';
+import { useRouter } from 'next/navigation';
 
 type Note = {
   id: string;
@@ -29,14 +33,19 @@ type Note = {
   color: string;
   isImportant: boolean;
   isCompleted: boolean;
+  userId?: string;
 };
+
+type FirestoreNote = Omit<Note, 'date'> & {
+    date: Timestamp;
+}
 
 type Flashcard = {
     front: string;
     back: string;
 };
 
-const NoteCard = ({ note, onDelete, onToggleImportant, onToggleComplete, onSummarize, onGenerateQuiz, onGenerateFlashcards }: { note: Note, onDelete: (id: string) => void, onToggleImportant: (id: string) => void, onToggleComplete: (id: string) => void, onSummarize: (content: string) => void, onGenerateQuiz: (noteContent: string) => void, onGenerateFlashcards: (noteContent: string) => void }) => {
+const NoteCard = ({ note, onDelete, onToggleImportant, onToggleComplete, onSummarize, onGenerateQuiz, onGenerateFlashcards }: { note: Note, onDelete: (id: string) => void, onToggleImportant: (id: string) => void, onToggleComplete: (id: string, isCompleted: boolean) => void, onSummarize: (content: string) => void, onGenerateQuiz: (noteContent: string) => void, onGenerateFlashcards: (noteContent: string) => void }) => {
   return (
     <Card className={`overflow-hidden ${note.color}`}>
       <CardHeader className="p-4">
@@ -62,8 +71,8 @@ const NoteCard = ({ note, onDelete, onToggleImportant, onToggleComplete, onSumma
                 <DropdownMenuItem onClick={() => onToggleImportant(note.id)}>
                     <Star className="mr-2 h-4 w-4"/> {note.isImportant ? 'Unmark' : 'Mark'} as Important
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onToggleComplete(note.id)}>
-                   <Archive className="mr-2 h-4 w-4"/> {note.isCompleted ? 'Unmark' : 'Mark'} as Completed
+                <DropdownMenuItem onClick={() => onToggleComplete(note.id, !note.isCompleted)}>
+                   <Archive className="mr-2 h-4 w-4"/> {note.isCompleted ? 'Un-archive' : 'Archive'}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => onDelete(note.id)} className="text-destructive">
                    <Trash2 className="mr-2 h-4 w-4"/> Delete Note
@@ -80,11 +89,11 @@ const NoteCard = ({ note, onDelete, onToggleImportant, onToggleComplete, onSumma
   );
 };
 
-const TodoListItem = ({ note, onDelete, onToggleComplete }: { note: Note, onDelete: (id: string) => void, onToggleComplete: (id: string) => void }) => {
+const TodoListItem = ({ note, onDelete, onToggleComplete }: { note: Note, onDelete: (id: string) => void, onToggleComplete: (id: string, isCompleted: boolean) => void }) => {
     return (
         <div className="flex items-center justify-between p-4 border-b">
             <div className="flex items-center gap-4">
-                <Checkbox id={`task-${note.id}`} checked={note.isCompleted} onCheckedChange={() => onToggleComplete(note.id)} />
+                <Checkbox id={`task-${note.id}`} checked={note.isCompleted} onCheckedChange={(checked) => onToggleComplete(note.id, !!checked)} />
                 <Label htmlFor={`task-${note.id}`} className={`text-sm ${note.isCompleted ? 'line-through text-muted-foreground' : ''}`}>
                     {note.title}
                 </Label>
@@ -114,8 +123,9 @@ export default function NotesPage() {
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [currentFlashcardIndex, setCurrentFlashcardIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
-
-
+  
+  const [user, loading] = useAuthState(auth);
+  const router = useRouter();
   const { toast } = useToast();
   
   const colors = ['bg-red-100 dark:bg-red-900/20', 'bg-yellow-100 dark:bg-yellow-900/20', 'bg-green-100 dark:bg-green-900/20', 'bg-blue-100 dark:bg-blue-900/20', 'bg-purple-100 dark:bg-purple-900/20', 'bg-indigo-100 dark:bg-indigo-900/20'];
@@ -123,20 +133,36 @@ export default function NotesPage() {
   useEffect(() => {
     const storedLearnerType = localStorage.getItem('learnerType');
     setLearnerType(storedLearnerType ?? 'Unknown');
-
-    const savedNotes = localStorage.getItem('notes');
-    if (savedNotes) {
-        setNotes(JSON.parse(savedNotes));
-    }
   }, []);
 
-  const saveNotes = (updatedNotes: Note[]) => {
-      setNotes(updatedNotes);
-      localStorage.setItem('notes', JSON.stringify(updatedNotes));
-  }
+  useEffect(() => {
+    if (loading) return;
+    if (!user) {
+        router.push('/signup');
+        return;
+    }
 
-  const handleAddNote = () => {
-    if (!newNoteTitle) {
+    const fetchNotes = async () => {
+        if (!user) return;
+        const q = query(collection(db, "notes"), where("userId", "==", user.uid));
+        const querySnapshot = await getDocs(q);
+        const userNotes = querySnapshot.docs.map(doc => {
+            const data = doc.data() as FirestoreNote;
+            return { 
+                id: doc.id, 
+                ...data,
+                date: data.date.toDate() 
+            } as Note;
+        }).sort((a,b) => b.date.getTime() - a.date.getTime());
+        setNotes(userNotes);
+    };
+
+    fetchNotes();
+  }, [user, loading, router]);
+
+
+  const handleAddNote = async () => {
+    if (!newNoteTitle || !user) {
       toast({
         variant: 'destructive',
         title: 'Title is required',
@@ -144,38 +170,71 @@ export default function NotesPage() {
       });
       return;
     }
-    const newNote: Note = {
-      id: crypto.randomUUID(),
+    
+    const noteData = {
       title: newNoteTitle,
       content: newNoteContent,
       date: new Date(),
       color: colors[Math.floor(Math.random() * colors.length)],
       isImportant: false,
       isCompleted: false,
+      userId: user.uid,
     };
-    saveNotes([newNote, ...notes]);
-    setNewNoteTitle('');
-    setNewNoteContent('');
-    setNoteDialogOpen(false);
-    toast({
-      title: 'Note Created!',
-      description: 'Your new note has been saved.',
-    });
+
+    try {
+        const docRef = await addDoc(collection(db, "notes"), noteData);
+        setNotes(prev => [{ ...noteData, id: docRef.id }, ...prev]);
+        setNewNoteTitle('');
+        setNewNoteContent('');
+        setNoteDialogOpen(false);
+        toast({
+            title: 'Note Created!',
+            description: 'Your new note has been saved.',
+        });
+    } catch(error) {
+        console.error("Error adding note: ", error);
+        toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: 'Could not save note. Please try again.',
+        });
+    }
   };
   
-  const handleDeleteNote = (id: string) => {
-    saveNotes(notes.filter(n => n.id !== id));
-     toast({
-      title: 'Note Deleted',
-    });
+  const handleDeleteNote = async (id: string) => {
+    try {
+        await deleteDoc(doc(db, "notes", id));
+        setNotes(notes.filter(n => n.id !== id));
+        toast({ title: 'Note Deleted' });
+    } catch(error) {
+        console.error("Error deleting note: ", error);
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not delete note.' });
+    }
   };
   
-  const handleToggleImportant = (id: string) => {
-    saveNotes(notes.map(n => n.id === id ? {...n, isImportant: !n.isImportant} : n));
+  const handleToggleImportant = async (id: string) => {
+    const note = notes.find(n => n.id === id);
+    if(!note) return;
+    try {
+        const noteRef = doc(db, "notes", id);
+        await updateDoc(noteRef, { isImportant: !note.isImportant });
+        setNotes(notes.map(n => n.id === id ? {...n, isImportant: !n.isImportant} : n));
+    } catch (error) {
+         console.error("Error updating note: ", error);
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not update note.' });
+    }
   };
 
-  const handleToggleComplete = (id: string) => {
-    saveNotes(notes.map(n => n.id === id ? {...n, isCompleted: !n.isCompleted} : n));
+  const handleToggleComplete = async (id: string, isCompleted: boolean) => {
+     try {
+        const noteRef = doc(db, "notes", id);
+        await updateDoc(noteRef, { isCompleted });
+        setNotes(notes.map(n => n.id === id ? {...n, isCompleted: isCompleted} : n));
+        toast({ title: isCompleted ? 'Note Archived' : 'Note Restored' });
+    } catch (error) {
+        console.error("Error updating note: ", error);
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not update note.' });
+    }
   };
 
   const handleSummarize = async (noteContent: string) => {
@@ -250,8 +309,11 @@ export default function NotesPage() {
       if (activeTab === 'important') return note.isImportant && !note.isCompleted;
       if (activeTab === 'todo') return !note.isCompleted;
       if (activeTab === 'completed') return note.isCompleted;
-      return true;
+      return !note.isCompleted;
   });
+
+  const allNotesTab = notes.filter(note => !note.isCompleted);
+  const completedNotesTab = notes.filter(note => note.isCompleted);
 
 
   return (
@@ -292,14 +354,14 @@ export default function NotesPage() {
           <TabsTrigger value="all">All Notes</TabsTrigger>
           <TabsTrigger value="important">Important</TabsTrigger>
           <TabsTrigger value="todo">To Do</TabsTrigger>
-          <TabsTrigger value="completed">Completed</TabsTrigger>
+          <TabsTrigger value="completed">Archived</TabsTrigger>
         </TabsList>
         <TabsContent value="all" className="mt-4">
            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {filteredNotes.map(note => (
+              {allNotesTab.map(note => (
                 <NoteCard key={note.id} note={note} onDelete={handleDeleteNote} onToggleImportant={handleToggleImportant} onToggleComplete={handleToggleComplete} onSummarize={handleSummarize} onGenerateQuiz={handleGenerateQuiz} onGenerateFlashcards={handleGenerateFlashcards}/>
               ))}
-              {filteredNotes.length === 0 && <p className="text-center text-muted-foreground col-span-full py-12">No notes here. Create one to get started!</p>}
+              {allNotesTab.length === 0 && <p className="text-center text-muted-foreground col-span-full py-12">No active notes. Create one to get started!</p>}
            </div>
         </TabsContent>
         <TabsContent value="important" className="mt-4">
@@ -313,19 +375,19 @@ export default function NotesPage() {
         <TabsContent value="todo" className="mt-4">
             <Card>
                 <CardContent className="p-0">
-                    {filteredNotes.filter(n => !n.isCompleted).map(note => (
+                    {filteredNotes.map(note => (
                         <TodoListItem key={note.id} note={note} onDelete={handleDeleteNote} onToggleComplete={handleToggleComplete}/>
                     ))}
-                    {filteredNotes.filter(n => !n.isCompleted).length === 0 && <p className="p-4 text-center text-muted-foreground">No tasks to do!</p>}
+                    {filteredNotes.length === 0 && <p className="p-4 text-center text-muted-foreground">No tasks to do!</p>}
                 </CardContent>
             </Card>
         </TabsContent>
         <TabsContent value="completed" className="mt-4">
            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {filteredNotes.map(note => (
+              {completedNotesTab.map(note => (
                 <NoteCard key={note.id} note={note} onDelete={handleDeleteNote} onToggleImportant={handleToggleImportant} onToggleComplete={handleToggleComplete} onSummarize={handleSummarize} onGenerateQuiz={handleGenerateQuiz} onGenerateFlashcards={handleGenerateFlashcards}/>
               ))}
-              {filteredNotes.length === 0 && <p className="text-center text-muted-foreground col-span-full py-12">No completed notes.</p>}
+              {completedNotesTab.length === 0 && <p className="text-center text-muted-foreground col-span-full py-12">No archived notes.</p>}
            </div>
         </TabsContent>
       </Tabs>

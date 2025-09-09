@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Send, User, Bot, Plus, MessageSquare, Trash2, Edit, X, Check, Home } from "lucide-react";
+import { Send, User, Bot, Plus, MessageSquare, Trash2, Edit, Home } from "lucide-react";
 import { studyPlannerFlow } from '@/ai/flows/study-planner-flow';
 import { generateChatTitle } from '@/ai/flows/chat-title-flow';
 import { useToast } from '@/hooks/use-toast';
@@ -15,7 +15,10 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { auth, db } from '@/lib/firebase';
+import { collection, addDoc, query, where, getDocs, deleteDoc, doc, updateDoc, onSnapshot, orderBy, Timestamp } from 'firebase/firestore';
+import { useRouter } from 'next/navigation';
 
 interface Message {
   role: 'user' | 'ai';
@@ -29,6 +32,17 @@ interface ChatSession {
     timestamp: number;
     courseContext?: string;
     titleGenerated?: boolean;
+    userId?: string;
+}
+
+interface FirestoreChatSession {
+    id: string;
+    title: string;
+    messages: Message[];
+    timestamp: Timestamp;
+    courseContext?: string;
+    titleGenerated?: boolean;
+    userId?: string;
 }
 
 type Course = {
@@ -37,24 +51,13 @@ type Course = {
     description?: string;
 };
 
-// Simplified event type for what the AI expects
-type AIEvent = {
+// This now refers to the Firestore event structure
+type CalendarEvent = {
   id: string;
   date: string;
   title: string;
-  time: string;
-  type: 'Test' | 'Homework' | 'Quiz' | 'Event';
-  description: string;
-};
-
-// More detailed event type from the calendar page
-type CalendarEvent = {
-  id: string | number;
-  date: string;
-  title: string;
-  startTime?: string;
-  time?: string; // It could be either
-  type: 'Test' | 'Homework' | 'Quiz' | 'Event';
+  startTime: string;
+  type: 'Test' | 'Homework' | 'Quiz' | 'Event' | 'Project';
   description: string;
 };
 
@@ -71,32 +74,48 @@ export default function AiChatPage() {
   
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
   const [renameInput, setRenameInput] = useState('');
+  
+  const [user, authLoading] = useAuthState(auth);
+  const router = useRouter();
 
 
   useEffect(() => {
+    if (authLoading) return;
+    if (!user) {
+        router.push('/signup');
+        return;
+    }
+
     const storedLearnerType = localStorage.getItem('learnerType');
     if (storedLearnerType) {
       setLearnerType(storedLearnerType);
     }
-
-    const savedSessions = localStorage.getItem('chatSessions');
-    if (savedSessions) {
-        setSessions(JSON.parse(savedSessions));
-    }
     
-    createNewSession();
+    // Set up a real-time listener for chat sessions
+    const q = query(collection(db, "chatSessions"), where("userId", "==", user.uid), orderBy("timestamp", "desc"));
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+        const userSessions = querySnapshot.docs.map(doc => {
+            const data = doc.data() as FirestoreChatSession;
+            return {
+                id: doc.id,
+                ...data,
+                timestamp: data.timestamp.toMillis()
+            } as ChatSession;
+        });
+        setSessions(userSessions);
 
-  }, []);
+        // If no active session, or active one was deleted, set a new one.
+        if (!activeSessionId && userSessions.length > 0) {
+             setActiveSessionId(userSessions[0].id);
+        } else if (userSessions.length === 0) {
+            createNewSession();
+        }
+    });
 
-  useEffect(() => {
-    // Prevent saving empty initial session
-    if (sessions.length > 0 && sessions.some(s => s.messages.length > 1)) {
-        localStorage.setItem('chatSessions', JSON.stringify(sessions));
-    }
-     if (activeSessionId) {
-        localStorage.setItem('activeChatSessionId', activeSessionId);
-    }
-  }, [sessions, activeSessionId]);
+    return () => unsubscribe();
+
+  }, [user, authLoading, router]);
+
   
   useEffect(() => {
     if(scrollAreaRef.current) {
@@ -106,93 +125,85 @@ export default function AiChatPage() {
 
   const activeSession = sessions.find(s => s.id === activeSessionId);
 
-  const createNewSession = () => {
-    const newSessionId = `chat-${Date.now()}`;
-    const courseIdParam = searchParams.get('courseId');
+  const createNewSession = async () => {
+    if (!user) return;
     
+    const courseIdParam = searchParams.get('courseId');
     let initialMessage = 'Hi there! How can I assist you today with your studies?';
     let courseContext: string | undefined = undefined;
     let title = "New Chat";
 
     if (courseIdParam) {
-        const savedCourses = localStorage.getItem('courses');
-        if (savedCourses) {
-            try {
-                const allCourses: Course[] = JSON.parse(savedCourses);
-                const currentCourse = allCourses.find(c => c.id === courseIdParam);
-                if (currentCourse) {
-                    courseContext = `Course: ${currentCourse.name}. Description: ${currentCourse.description || 'No description available.'}`;
-                    initialMessage = `Hello! I see you're working on ${currentCourse.name}. How can I help you with this course?`;
-                    title = `${currentCourse.name} Chat`;
-                }
-            } catch (e) {
-                console.error("Failed to parse courses from local storage", e);
+        const docRef = doc(db, "courses", courseIdParam);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+            const currentCourse = docSnap.data() as Course;
+            if(currentCourse) {
+                 courseContext = `Course: ${currentCourse.name}. Description: ${currentCourse.description || 'No description available.'}`;
+                initialMessage = `Hello! I see you're working on ${currentCourse.name}. How can I help you with this course?`;
+                title = `${currentCourse.name} Chat`;
             }
         }
     }
 
-    const newSession: ChatSession = {
-        id: newSessionId,
+    const newSessionData = {
         title: title,
         messages: [{ role: 'ai', content: initialMessage }],
-        timestamp: Date.now(),
+        timestamp: new Date(),
         courseContext,
-        titleGenerated: courseIdParam ? true : false,
+        titleGenerated: !!courseIdParam,
+        userId: user.uid,
     };
-
-    setSessions(prev => [newSession, ...prev.filter(s => s.messages.length > 1)]);
-    setActiveSessionId(newSessionId);
+    
+    try {
+        const docRef = await addDoc(collection(db, "chatSessions"), newSessionData);
+        setActiveSessionId(docRef.id);
+    } catch(e) {
+        console.error("Error creating new session: ", e);
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not start a new chat.'})
+    }
   }
 
   const handleSendMessage = async () => {
-    if (!input.trim() || !activeSession) return;
+    if (!input.trim() || !activeSession || !user) return;
 
     const userMessage: Message = { role: 'user', content: input };
     const updatedMessages = [...activeSession.messages, userMessage];
     
     // Optimistically update UI
-    setSessions(sessions.map(s => s.id === activeSessionId ? { ...s, messages: updatedMessages } : s));
+    const tempSession = { ...activeSession, messages: updatedMessages };
+    setSessions(sessions.map(s => s.id === activeSessionId ? tempSession : s));
     setInput('');
     setIsLoading(true);
 
     try {
-      const savedEvents = localStorage.getItem('calendarEvents');
-      let calendarEvents: CalendarEvent[] = [];
-      if (savedEvents) {
-        try {
-            const parsedEvents = JSON.parse(savedEvents);
-            if (Array.isArray(parsedEvents)) {
-            calendarEvents = parsedEvents;
-            }
-        } catch (e) {
-            console.error("Failed to parse calendar events", e);
-        }
-      }
-      
-      const serializableEvents: AIEvent[] = calendarEvents.map(e => ({
-          id: String(e.id),
-          date: new Date(e.date).toISOString(),
-          title: e.title,
-          time: e.startTime || e.time || 'All day',
-          type: e.type,
-          description: e.description,
-      }));
+      const q = query(collection(db, "calendarEvents"), where("userId", "==", user.uid));
+      const querySnapshot = await getDocs(q);
+      const calendarEvents = querySnapshot.docs.map(doc => doc.data() as CalendarEvent);
 
       const response = await studyPlannerFlow({
         history: updatedMessages,
         learnerType: learnerType || undefined,
         courseContext: activeSession.courseContext || undefined,
-        calendarEvents: serializableEvents,
+        calendarEvents: calendarEvents.map(e => ({
+            id: e.id,
+            date: e.date,
+            title: e.title,
+            time: e.startTime,
+            type: e.type,
+            description: e.description,
+        })),
       });
 
       const aiMessage: Message = { role: 'ai', content: response };
       const finalMessages = [...updatedMessages, aiMessage];
-      setSessions(prev => prev.map(s => s.id === activeSessionId ? { ...s, messages: finalMessages } : s));
+      
+      const sessionRef = doc(db, "chatSessions", activeSession.id);
+      await updateDoc(sessionRef, { messages: finalMessages });
 
-      // Auto-generate title after the first user message
       if (!activeSession.titleGenerated && activeSession.messages.length <= 2) {
           const { title } = await generateChatTitle({ messages: finalMessages });
-          setSessions(prev => prev.map(s => s.id === activeSessionId ? { ...s, title, titleGenerated: true } : s));
+          await updateDoc(sessionRef, { title, titleGenerated: true });
       }
 
     } catch (error) {
@@ -202,8 +213,8 @@ export default function AiChatPage() {
         title: 'Error',
         description: 'Failed to get a response from the AI. Please try again.',
       });
-       // Revert to the state before sending the message on error
-       setSessions(sessions.map(s => s.id === activeSessionId ? { ...s, messages: activeSession.messages } : s));
+       // Revert optimistic update on error
+       setSessions(sessions.map(s => s.id === activeSessionId ? activeSession : s));
     } finally {
       setIsLoading(false);
     }
@@ -214,35 +225,42 @@ export default function AiChatPage() {
     setRenameInput(session.title);
   }
 
-  const handleRename = () => {
-    if (!editingSessionId || !renameInput.trim()) return;
-    setSessions(sessions.map(s => s.id === editingSessionId ? { ...s, title: renameInput } : s));
-    setEditingSessionId(null);
-    setRenameInput('');
+  const handleRename = async () => {
+    if (!editingSessionId || !renameInput.trim()) {
+        setEditingSessionId(null);
+        return;
+    };
+    try {
+        const sessionRef = doc(db, "chatSessions", editingSessionId);
+        await updateDoc(sessionRef, { title: renameInput });
+        toast({ title: 'Chat renamed.' });
+    } catch (error) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not rename chat.'});
+    } finally {
+        setEditingSessionId(null);
+        setRenameInput('');
+    }
   };
   
-  const handleDeleteSession = (sessionId: string) => {
-    const updatedSessions = sessions.filter(s => s.id !== sessionId);
-    setSessions(updatedSessions);
-    
-    // If we deleted the active session, activate another one or create a new one
-    if (activeSessionId === sessionId) {
-        if(updatedSessions.length > 0) {
-            setActiveSessionId(updatedSessions[0].id);
-        } else {
-            createNewSession();
+  const handleDeleteSession = async (sessionId: string) => {
+    try {
+        await deleteDoc(doc(db, "chatSessions", sessionId));
+        toast({ title: 'Chat deleted.' });
+        if (activeSessionId === sessionId) {
+            const remainingSessions = sessions.filter(s => s.id !== sessionId);
+            if (remainingSessions.length > 0) {
+                setActiveSessionId(remainingSessions[0].id);
+            } else {
+                createNewSession();
+            }
         }
+    } catch(error) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not delete chat.'});
     }
-    // Remove from local storage if it's the last session
-    if(updatedSessions.length === 0) {
-        localStorage.removeItem('chatSessions');
-    }
-    toast({ title: 'Chat deleted.' });
   }
 
   return (
     <div className="flex h-screen bg-muted/40">
-        {/* Chat History Sidebar */}
         <div className="hidden md:flex flex-col w-72 bg-background border-r">
              <div className="p-4 border-b flex justify-between items-center">
                 <Link href="/dashboard">
@@ -255,7 +273,7 @@ export default function AiChatPage() {
             </div>
             <ScrollArea className="flex-1">
                 <div className="p-2 space-y-1">
-                    {sessions.filter(s => s.messages.length > 1).map(session => (
+                    {sessions.map(session => (
                          <div key={session.id} className="relative group">
                             <button
                                 onClick={() => setActiveSessionId(session.id)}
@@ -308,7 +326,6 @@ export default function AiChatPage() {
             </ScrollArea>
         </div>
         
-        {/* Main Chat Area */}
         <div className="flex flex-col flex-1 h-screen">
             <div className="flex-1 overflow-y-auto p-4" ref={scrollAreaRef}>
                 <div className="flex flex-col gap-4 max-w-4xl mx-auto">

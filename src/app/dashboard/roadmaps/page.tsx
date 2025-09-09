@@ -20,7 +20,7 @@ import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 
 
 type Course = {
@@ -48,6 +48,9 @@ type Milestone = {
 };
 
 type Roadmap = {
+    id: string;
+    courseId: string;
+    userId: string;
     goals: Goal[];
     milestones: Milestone[];
 };
@@ -66,7 +69,6 @@ export default function RoadmapsPage() {
     const { toast } = useToast();
     const [user] = useAuthState(auth);
     
-    // State for the edit/add dialog
     const [isItemDialogOpen, setIsItemDialogOpen] = useState(false);
     const [editingItem, setEditingItem] = useState<Goal | Milestone | null>(null);
     const [editingType, setEditingType] = useState<'goal' | 'milestone' | null>(null);
@@ -77,28 +79,36 @@ export default function RoadmapsPage() {
 
 
     useEffect(() => {
-        const fetchCourses = async () => {
+        const fetchCoursesAndRoadmaps = async () => {
              if (!user) return;
-            const q = query(collection(db, "courses"), where("userId", "==", user.uid));
-            const querySnapshot = await getDocs(q);
-            const userCourses = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
+            const coursesQuery = query(collection(db, "courses"), where("userId", "==", user.uid));
+            const coursesSnapshot = await getDocs(coursesQuery);
+            const userCourses = coursesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
             setCourses(userCourses);
+            
             if(userCourses.length > 0) {
-                setActiveCourseId(userCourses[0].id);
+                const firstCourseId = userCourses[0].id;
+                setActiveCourseId(firstCourseId);
+
+                const roadmapsQuery = query(collection(db, "roadmaps"), where("userId", "==", user.uid));
+                const roadmapsSnapshot = await getDocs(roadmapsQuery);
+                const userRoadmaps: Record<string, Roadmap> = {};
+                roadmapsSnapshot.forEach(doc => {
+                    const roadmapData = { id: doc.id, ...doc.data() } as Roadmap;
+                    userRoadmaps[roadmapData.courseId] = roadmapData;
+                });
+                setRoadmaps(userRoadmaps);
             }
         };
 
         if (user) {
-            fetchCourses();
+            fetchCoursesAndRoadmaps();
         }
         
-        const savedRoadmaps = localStorage.getItem('roadmaps');
-        if (savedRoadmaps) {
-            setRoadmaps(JSON.parse(savedRoadmaps));
-        }
     }, [user]);
 
     const handleGenerateRoadmap = async (course: Course) => {
+        if (!user) return;
         setIsLoading(prev => ({ ...prev, [course.id]: true }));
         toast({ title: 'Generating Roadmap...', description: `The AI is creating a personalized study plan for ${course.name}.` });
         try {
@@ -108,14 +118,28 @@ export default function RoadmapsPage() {
                 courseUrl: course.url,
             });
 
-            const newRoadmap: Roadmap = {
+            const roadmapData = {
+                courseId: course.id,
+                userId: user.uid,
                 goals: response.goals.map(g => ({ ...g, id: crypto.randomUUID(), icon: g.icon as keyof typeof LucideIcons || 'Flag' })),
                 milestones: response.milestones.map(m => ({ ...m, id: crypto.randomUUID(), icon: m.icon as keyof typeof LucideIcons || 'Calendar', completed: new Date(m.date) < new Date() }))
             };
             
-            const updatedRoadmaps = { ...roadmaps, [course.id]: newRoadmap };
-            setRoadmaps(updatedRoadmaps);
-            localStorage.setItem('roadmaps', JSON.stringify(updatedRoadmaps));
+            // Check if a roadmap for this course already exists
+            const existingRoadmapId = roadmaps[course.id]?.id;
+            let docId;
+            if (existingRoadmapId) {
+                // Update existing roadmap
+                const roadmapRef = doc(db, 'roadmaps', existingRoadmapId);
+                await updateDoc(roadmapRef, roadmapData);
+                docId = existingRoadmapId;
+            } else {
+                 // Add new roadmap
+                const docRef = await addDoc(collection(db, 'roadmaps'), roadmapData);
+                docId = docRef.id;
+            }
+           
+            setRoadmaps(prev => ({...prev, [course.id]: { id: docId, ...roadmapData }}));
             
             toast({
                 title: 'Roadmap Generated!',
@@ -142,10 +166,10 @@ export default function RoadmapsPage() {
         setIsItemDialogOpen(true);
     };
 
-    const handleSaveItem = () => {
-        if (!activeCourseId || !editingType) return;
+    const handleSaveItem = async () => {
+        if (!activeCourseId || !editingType || !roadmaps[activeCourseId]) return;
         
-        let updatedRoadmap = roadmaps[activeCourseId] || { goals: [], milestones: [] };
+        let updatedRoadmap = { ...roadmaps[activeCourseId] };
 
         if (editingType === 'goal') {
             const newGoal: Goal = {
@@ -173,37 +197,45 @@ export default function RoadmapsPage() {
             } else {
                 updatedRoadmap.milestones.push(newMilestone);
             }
-            // Sort milestones by date
             updatedRoadmap.milestones.sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime());
         }
         
-        const updatedRoadmaps = { ...roadmaps, [activeCourseId]: updatedRoadmap };
-        setRoadmaps(updatedRoadmaps);
-        localStorage.setItem('roadmaps', JSON.stringify(updatedRoadmaps));
-        toast({ title: `${editingType} saved!` });
+        try {
+            const roadmapRef = doc(db, 'roadmaps', updatedRoadmap.id);
+            await updateDoc(roadmapRef, updatedRoadmap);
+            setRoadmaps(prev => ({ ...prev, [activeCourseId]: updatedRoadmap }));
+            toast({ title: `${editingType} saved!` });
+        } catch (error) {
+            console.error("Error saving item: ", error);
+            toast({ variant: 'destructive', title: 'Save Failed', description: 'Could not save the item.'})
+        }
         setIsItemDialogOpen(false);
     };
 
-    const handleDeleteItem = (type: 'goal' | 'milestone', id: string) => {
-        if (!activeCourseId) return;
+    const handleDeleteItem = async (type: 'goal' | 'milestone', id: string) => {
+        if (!activeCourseId || !roadmaps[activeCourseId]) return;
 
-        let updatedRoadmap = roadmaps[activeCourseId];
-        if (!updatedRoadmap) return;
-
+        let updatedRoadmap = { ...roadmaps[activeCourseId] };
+        
         if (type === 'goal') {
             updatedRoadmap.goals = updatedRoadmap.goals.filter(g => g.id !== id);
         } else {
             updatedRoadmap.milestones = updatedRoadmap.milestones.filter(m => m.id !== id);
         }
         
-        const updatedRoadmaps = { ...roadmaps, [activeCourseId]: updatedRoadmap };
-        setRoadmaps(updatedRoadmaps);
-        localStorage.setItem('roadmaps', JSON.stringify(updatedRoadmaps));
-        toast({ title: `${type} deleted.` });
+        try {
+            const roadmapRef = doc(db, 'roadmaps', updatedRoadmap.id);
+            await updateDoc(roadmapRef, updatedRoadmap);
+            setRoadmaps(prev => ({ ...prev, [activeCourseId]: updatedRoadmap }));
+            toast({ title: `${type} deleted.` });
+        } catch(error) {
+            console.error("Error deleting item: ", error);
+            toast({ variant: 'destructive', title: 'Delete Failed', description: 'Could not delete the item.'})
+        }
     };
 
-    const handleToggleMilestone = (milestoneId: string) => {
-        if (!activeCourseId) return;
+    const handleToggleMilestone = async (milestoneId: string) => {
+        if (!activeCourseId || !roadmaps[activeCourseId]) return;
 
         let updatedRoadmap = { ...roadmaps[activeCourseId] };
         let milestoneCompleted = false;
@@ -219,15 +251,19 @@ export default function RoadmapsPage() {
             return m;
         });
 
-        const updatedRoadmaps = { ...roadmaps, [activeCourseId]: updatedRoadmap };
-        setRoadmaps(updatedRoadmaps);
-        localStorage.setItem('roadmaps', JSON.stringify(updatedRoadmaps));
-
-        if (milestoneCompleted) {
-            toast({
-                title: '🎉 Milestone Complete!',
-                description: "Great job! Keep up the momentum.",
-            });
+        try {
+            const roadmapRef = doc(db, 'roadmaps', updatedRoadmap.id);
+            await updateDoc(roadmapRef, updatedRoadmap);
+            setRoadmaps(prev => ({ ...prev, [activeCourseId]: updatedRoadmap }));
+            if (milestoneCompleted) {
+                toast({
+                    title: '🎉 Milestone Complete!',
+                    description: "Great job! Keep up the momentum.",
+                });
+            }
+        } catch (error) {
+            console.error("Error toggling milestone: ", error);
+            toast({ variant: 'destructive', title: 'Update Failed', description: 'Could not update the milestone.'})
         }
     };
 
@@ -243,7 +279,7 @@ export default function RoadmapsPage() {
         </div>
         
         {courses.length > 0 ? (
-        <Tabs defaultValue={courses[0].id} onValueChange={setActiveCourseId} className="w-full">
+        <Tabs value={activeCourseId ?? undefined} onValueChange={setActiveCourseId} className="w-full">
             <TabsList>
                 {courses.map(course => (
                     <TabsTrigger key={course.id} value={course.id}>{course.name}</TabsTrigger>
@@ -258,7 +294,7 @@ export default function RoadmapsPage() {
                  <TabsContent key={course.id} value={course.id}>
                     <div className="flex justify-end mb-4">
                         <Button onClick={() => handleGenerateRoadmap(course)} disabled={courseIsLoading}>
-                            <GitMerge className="mr-2 h-4 w-4"/> {courseIsLoading ? 'Generating...' : 'Generate with AI'}
+                            <GitMerge className="mr-2 h-4 w-4"/> {courseIsLoading ? 'Generating...' : roadmaps[course.id] ? 'Regenerate with AI' : 'Generate with AI'}
                         </Button>
                     </div>
 
