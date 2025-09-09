@@ -72,16 +72,16 @@ import {
   }
   
   const AppCard = ({ title, description, icon, href, isFeatured, actionButton }: { title: string; description: string; icon: React.ReactNode; href: string, isFeatured?: boolean, actionButton?: React.ReactNode }) => (
-    <Link href={href} className="block">
+    <Link href={href} className="block h-full">
         <motion.div
             whileHover={{ y: -5, scale: 1.02 }}
             transition={{ type: 'spring', stiffness: 300 }}
             className={cn(
-                "relative group rounded-2xl border border-border/20 bg-background/50 p-6 overflow-hidden flex flex-col",
+                "relative group rounded-2xl border border-border/20 bg-background/50 p-6 overflow-hidden flex flex-col h-full",
                 isFeatured ? "lg:col-span-2 lg:row-span-2" : "",
             )}
         >
-            <div>
+            <div className="flex-grow">
                 <div className="bg-primary/10 text-primary p-3 rounded-xl inline-block mb-4">
                     {icon}
                 </div>
@@ -572,17 +572,17 @@ export default function DashboardPage() {
                 </div>
             </TabsContent>
             
-             <TabsContent value="apps">
-                 <div className="grid lg:grid-cols-2 gap-6 items-start">
+            <TabsContent value="apps">
+                <div className="grid lg:grid-cols-2 gap-6 items-start">
                     <div className="grid grid-cols-1 gap-6">
-                         <AppCard title="AI Chat" href="/dashboard/ai-chat" description="Get instant answers and explanations from your AI study partner." icon={<BrainCircuit className="w-8 h-8"/>} isFeatured actionButton={<Button variant="outline" className="w-full">Start Chatting <ArrowRight className="ml-2 h-4 w-4"/></Button>} />
-                         <AppCard title="Practice Quiz" href="/dashboard/practice-quiz" description="Test your knowledge with AI quizzes." icon={<Lightbulb className="w-8 h-8"/>} actionButton={<Button variant="outline" className="w-full">Generate Quiz <ArrowRight className="ml-2 h-4 w-4"/></Button>}/>
+                        <AppCard title="AI Chat" href="/dashboard/ai-chat" description="Get instant answers and explanations from your AI study partner." icon={<BrainCircuit className="w-8 h-8"/>} isFeatured actionButton={<Button variant="outline" className="w-full">Start Chatting <ArrowRight className="ml-2 h-4 w-4"/></Button>} />
+                        <AppCard title="Practice Quiz" href="/dashboard/practice-quiz" description="Test your knowledge with AI quizzes." icon={<Lightbulb className="w-8 h-8"/>} actionButton={<Button variant="outline" className="w-full">Generate Quiz <ArrowRight className="ml-2 h-4 w-4"/></Button>}/>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                       <AppCard title="Study Roadmaps" href="/dashboard/roadmaps" description="Plan your learning journey." icon={<GitMerge className="w-8 h-8"/>} />
-                       <AppCard title="Whiteboard" href="/dashboard/whiteboard" description="Brainstorm and visualize ideas." icon={<PenSquare className="w-8 h-8"/>} />
-                       <AppCard title="Notes" href="/dashboard/notes" description="Create, organize, and review your notes." icon={<Notebook className="w-8 h-8"/>} />
-                       <AppCard title="Calendar" href="/dashboard/calendar" description="Manage your deadlines and study schedule." icon={<Calendar className="w-8 h-8"/>} />
+                        <AppCard title="Study Roadmaps" href="/dashboard/roadmaps" description="Plan your learning journey." icon={<GitMerge className="w-8 h-8"/>} />
+                        <AppCard title="Whiteboard" href="/dashboard/whiteboard" description="Brainstorm and visualize ideas." icon={<PenSquare className="w-8 h-8"/>} />
+                        <AppCard title="Notes" href="/dashboard/notes" description="Create, organize, and review your notes." icon={<Notebook className="w-8 h-8"/>} />
+                        <AppCard title="Calendar" href="/dashboard/calendar" description="Manage your deadlines and study schedule." icon={<Calendar className="w-8 h-8"/>} />
                     </div>
                 </div>
             </TabsContent>
@@ -656,9 +656,10 @@ export default function DashboardPage() {
                             <Card className="hover:bg-muted transition-colors h-full">
                                 <CardHeader>
                                     <CardTitle>{resource.title}</CardTitle>
-                                    <CardDescription>{resource.description}</CardHeader>
-                                </Card>
-                            </a>
+                                    <CardDescription>{resource.description}</CardDescription>
+                                </CardHeader>
+                            </Card>
+                        </a>
                     ))}
                 </div>
             </TabsContent>
@@ -698,5 +699,3 @@ export default function DashboardPage() {
     </div>
   )
 }
-
-    
