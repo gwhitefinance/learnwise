@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Github } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { auth } from "@/lib/firebase"
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
 
 export default function SignUpPage() {
   const router = useRouter()
@@ -15,6 +17,7 @@ export default function SignUpPage() {
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -35,11 +38,34 @@ export default function SignUpPage() {
       return
     }
 
-    toast({
-        title: "Account Created!",
-        description: "Welcome to LearnWise. Let's discover your learning style.",
-    });
-    router.push('/learner-type');
+    setIsLoading(true);
+    try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        await updateProfile(user, {
+            displayName: `${firstName} ${lastName}`
+        });
+
+        toast({
+            title: "Account Created!",
+            description: "Welcome to LearnWise. Let's discover your learning style.",
+        });
+        router.push('/learner-type');
+
+    } catch (error: any) {
+        let description = "An unexpected error occurred. Please try again.";
+        if (error.code === 'auth/email-already-in-use') {
+            description = "This email address is already in use. Please try another one or log in.";
+        }
+        toast({
+            variant: "destructive",
+            title: "Sign-up failed",
+            description: description,
+        });
+    } finally {
+        setIsLoading(false);
+    }
   }
 
   return (
@@ -174,7 +200,9 @@ export default function SignUpPage() {
                 <p className="text-sm text-gray-400">Must be at least 8 characters.</p>
               </div>
 
-              <Button type="submit" className="h-12 w-full bg-white text-black hover:bg-gray-100">Sign Up</Button>
+              <Button type="submit" className="h-12 w-full bg-white text-black hover:bg-gray-100" disabled={isLoading}>
+                {isLoading ? "Signing Up..." : "Sign Up"}
+              </Button>
 
               <p className="text-center text-sm text-gray-400">
                 Already have an account?{" "}
