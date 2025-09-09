@@ -146,6 +146,7 @@ import { collection, query, where, getDocs, addDoc } from 'firebase/firestore';
 export default function DashboardPage() {
     const [courses, setCourses] = useState<Course[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
+    const [recentFiles, setRecentFiles] = useState<RecentFile[]>([]);
     const [isAddCourseOpen, setAddCourseOpen] = useState(false);
     const [newCourse, setNewCourse] = useState({ name: '', instructor: '', credits: '', url: ''});
     const { toast } = useToast();
@@ -174,6 +175,11 @@ export default function DashboardPage() {
         const savedProjects = localStorage.getItem('projects');
         if (savedProjects) {
             setProjects(JSON.parse(savedProjects));
+        }
+
+        const savedFiles = localStorage.getItem('recentFiles');
+        if (savedFiles) {
+            setRecentFiles(JSON.parse(savedFiles));
         }
 
         // Mock streak calculation
@@ -297,8 +303,8 @@ export default function DashboardPage() {
             modified: "Just now",
         }));
 
-        const recentFiles = JSON.parse(localStorage.getItem('recentFiles') || '[]');
         const updatedFiles = [...newFiles, ...recentFiles];
+        setRecentFiles(updatedFiles);
         localStorage.setItem('recentFiles', JSON.stringify(updatedFiles));
 
         console.log('Uploading files:', files);
@@ -512,6 +518,40 @@ export default function DashboardPage() {
                                     View Rewards
                                 </Button>
                            </CardContent>
+                        </Card>
+                        <Card>
+                             <CardHeader>
+                                <CardTitle>Recent Files</CardTitle>
+                                <CardDescription>Your most recently accessed documents.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Name</TableHead>
+                                            <TableHead>Subject</TableHead>
+                                            <TableHead>Last Modified</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {recentFiles.length > 0 ? (
+                                            recentFiles.slice(0, 5).map((file, index) => (
+                                                <TableRow key={index}>
+                                                    <TableCell className="font-medium">{file.name}</TableCell>
+                                                    <TableCell>{file.subject}</TableCell>
+                                                    <TableCell>{file.modified}</TableCell>
+                                                </TableRow>
+                                            ))
+                                        ) : (
+                                            <TableRow>
+                                                <TableCell colSpan={3} className="text-center text-muted-foreground p-8">
+                                                    No recent files. Upload some materials to get started!
+                                                </TableCell>
+                                            </TableRow>
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            </CardContent>
                         </Card>
                     </section>
 
