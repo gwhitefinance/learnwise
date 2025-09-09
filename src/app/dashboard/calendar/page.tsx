@@ -20,16 +20,16 @@ import {
 } from "lucide-react";
 
 type Event = {
-  id: number,
-  title: string,
-  startTime: string,
-  endTime: string,
-  color: string,
-  day: number,
-  description: string,
-  location: string,
-  attendees: string[],
-  organizer: string,
+  id: number;
+  title: string;
+  startTime: string;
+  endTime: string;
+  color: string;
+  day: number;
+  description: string;
+  location: string;
+  attendees: string[];
+  organizer: string;
 }
 
 
@@ -601,5 +601,3 @@ export default function CalendarPage() {
     </div>
   )
 }
-
-    

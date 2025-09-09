@@ -82,6 +82,12 @@ const nextConfig: NextConfig = {
         hostname: 'cdn.freebiesupply.com',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+        port: '',
+        pathname: '/**',
       }
     ],
   },
