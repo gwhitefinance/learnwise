@@ -5,13 +5,12 @@
  */
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
+import { JSDOM } from 'jsdom';
 
 const WebScraperInputSchema = z.object({
     url: z.string().url().describe('The URL of the webpage to scrape.'),
 });
 
-// A real implementation would use a library like Cheerio or Puppeteer.
-// For this prototype, we'll simulate fetching and returning simple text content.
 export const scrapeWebpageTool = ai.defineTool(
     {
         name: 'scrapeWebpageTool',
@@ -21,11 +20,36 @@ export const scrapeWebpageTool = ai.defineTool(
     },
     async ({ url }) => {
         console.log(`Scraping text content from: ${url}`);
-        // In a real application, you would use a library like Cheerio or JSDOM
-        // to parse the HTML and extract the main content.
-        // For this example, we'll return a placeholder string.
-        // This is a simplified simulation. A production implementation would
-        // require a robust HTML parsing and text extraction logic.
-        return `Simulated content for ${url}. This page contains detailed information about the course syllabus, learning objectives, and weekly topics.`;
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`Failed to fetch page: ${response.statusText}`);
+            }
+            const html = await response.text();
+            const dom = new JSDOM(html);
+            const document = dom.window.document;
+
+            // Remove script and style elements
+            document.querySelectorAll('script, style').forEach(elem => elem.remove());
+
+            // Get text from the body, preferring main content if possible
+            const mainContent = document.querySelector('main') || document.querySelector('article') || document.body;
+            
+            // A simple way to get clean text. A more advanced version might
+            // selectively pull from h1, h2, p, etc. and join them.
+            const textContent = mainContent.textContent || "";
+
+            // Simple text cleanup
+            const cleanedText = textContent.replace(/\s\s+/g, ' ').trim();
+            
+            return cleanedText.slice(0, 5000); // Limit content length to avoid overly large inputs
+        } catch (error) {
+            console.error(`Error scraping ${url}:`, error);
+            // Return a meaningful error message or an empty string
+            if (error instanceof Error) {
+                return `Failed to scrape content from the URL. Reason: ${error.message}`;
+            }
+            return 'Failed to scrape content from the URL.';
+        }
     }
 );
