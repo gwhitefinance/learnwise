@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { UploadCloud, Play, Pause, ChevronLeft, ChevronRight, Wand2, FlaskConical, Lightbulb, Copy, RefreshCw, Check, Star } from 'lucide-react';
+import { UploadCloud, Play, Pause, ChevronLeft, ChevronRight, Wand2, FlaskConical, Lightbulb, Copy, RefreshCw, Check, Star, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
@@ -19,7 +19,8 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { cn } from '@/lib/utils';
+
 
 type Course = {
     id: string;
@@ -44,6 +45,9 @@ export default function LearningLabPage() {
   const [completedModules, setCompletedModules] = useState<number[]>([]);
   const [isCourseComplete, setIsCourseComplete] = useState(false);
   const { toast } = useToast();
+
+  const [currentModuleIndex, setCurrentModuleIndex] = useState(0);
+  const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
 
   // Quiz states
   const [isQuizDialogOpen, setQuizDialogOpen] = useState(false);
@@ -79,6 +83,8 @@ export default function LearningLabPage() {
     setMiniCourse(null);
     setCompletedModules([]);
     setIsCourseComplete(false);
+    setCurrentModuleIndex(0);
+    setCurrentChapterIndex(0);
     toast({ title: 'Generating Your Learning Lab...', description: 'The AI is crafting a personalized course for you.' });
 
     try {
@@ -148,6 +154,7 @@ export default function LearningLabPage() {
   };
 
   const handleMarkModuleComplete = (moduleIndex: number) => {
+    if (completedModules.includes(moduleIndex)) return;
     const newCompletedModules = [...completedModules, moduleIndex];
     setCompletedModules(newCompletedModules);
     toast({
@@ -161,10 +168,14 @@ export default function LearningLabPage() {
             title: "🎉 Congratulations! 🎉",
             description: "You've completed the entire course! Great job!",
         })
+    } else {
+        // Move to the next module
+        if (miniCourse && moduleIndex < miniCourse.modules.length - 1) {
+            setCurrentModuleIndex(moduleIndex + 1);
+            setCurrentChapterIndex(0);
+        }
     }
   }
-
-  const progress = miniCourse ? (completedModules.length / miniCourse.modules.length) * 100 : 0;
 
   const startNewCourse = () => {
     setMiniCourse(null);
@@ -172,6 +183,32 @@ export default function LearningLabPage() {
     setIsCourseComplete(false);
     setCompletedModules([]);
   }
+  
+  const handleNextChapter = () => {
+    if (!miniCourse) return;
+    const currentModule = miniCourse.modules[currentModuleIndex];
+    if (currentChapterIndex < currentModule.chapters.length - 1) {
+        setCurrentChapterIndex(prev => prev + 1);
+    }
+  };
+  
+  const handlePrevChapter = () => {
+    if (currentChapterIndex > 0) {
+        setCurrentChapterIndex(prev => prev - 1);
+    } else if (currentModuleIndex > 0) {
+        const prevModuleIndex = currentModuleIndex - 1;
+        const prevModule = miniCourse?.modules[prevModuleIndex];
+        if (prevModule) {
+            setCurrentModuleIndex(prevModuleIndex);
+            setCurrentChapterIndex(prevModule.chapters.length - 1);
+        }
+    }
+  };
+
+  const progress = miniCourse ? (completedModules.length / miniCourse.modules.length) * 100 : 0;
+  const currentModule = miniCourse?.modules[currentModuleIndex];
+  const currentChapter = currentModule?.chapters[currentChapterIndex];
+  const isLastChapterInModule = currentModule ? currentChapterIndex === currentModule.chapters.length - 1 : false;
 
   return (
     <>
@@ -213,16 +250,13 @@ export default function LearningLabPage() {
             <Card>
                 <CardHeader>
                 <CardTitle>Now Learning: {miniCourse?.courseTitle ?? <Skeleton className="h-6 w-2/3"/>}</CardTitle>
-                <CardDescription>
-                    A mini-course generated from your uploaded materials, tailored to your learning style.
-                </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Overall Progress</span>
-                    <span className="text-sm font-medium">{progress.toFixed(0)}%</span>
-                </div>
-                <Progress value={progress} />
+                    <div className="flex items-center justify-between text-sm font-medium">
+                        <span>Overall Progress ({completedModules.length} / {miniCourse?.modules.length ?? 0})</span>
+                        <span>{progress.toFixed(0)}%</span>
+                    </div>
+                    <Progress value={progress} />
                 </CardContent>
             </Card>
             
@@ -238,61 +272,89 @@ export default function LearningLabPage() {
                     </Button>
                 </Card>
             ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
                 <div className="md:col-span-2">
                     {isLoading ? (
                         <Card>
                             <CardHeader><Skeleton className="h-6 w-3/4 mb-2"/></CardHeader>
                             <CardContent><Skeleton className="h-48 w-full" /></CardContent>
                         </Card>
-                     ) : (
-                        <Accordion type="single" collapsible className="w-full" defaultValue="item-0">
-                          {miniCourse?.modules.map((module, moduleIndex) => (
-                            <AccordionItem value={`item-${moduleIndex}`} key={moduleIndex}>
-                                <AccordionTrigger>
-                                    <div className='flex items-center gap-4'>
-                                        {completedModules.includes(moduleIndex) ? <Check className="h-5 w-5 text-green-500"/> : <div className='h-5 w-5 rounded-full border-2 border-primary'/>}
-                                        <span className="text-lg font-semibold">Module {moduleIndex + 1}: {module.title}</span>
+                     ) : currentChapter ? (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>
+                                    Chapter {currentChapterIndex + 1}: {currentChapter.title}
+                                </CardTitle>
+                                <CardDescription>
+                                    Module {currentModuleIndex + 1}: {currentModule?.title}
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="space-y-6">
+                                     <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">{currentChapter.content}</p>
+                                    <div className="p-4 bg-amber-500/10 rounded-lg border border-amber-500/20">
+                                        <h5 className="font-semibold flex items-center gap-2 text-amber-700 text-sm"><Lightbulb size={16}/> Suggested Activity</h5>
+                                        <p className="text-muted-foreground mt-1 text-sm">{currentChapter.activity}</p>
                                     </div>
-                                </AccordionTrigger>
-                                <AccordionContent className="pl-6 border-l-2 ml-2 border-dashed">
-                                    {module.chapters.map((chapter, chapterIndex) => (
-                                        <div key={chapterIndex} className="mb-6">
-                                            <h4 className="font-semibold text-base mb-2">Chapter {chapterIndex + 1}: {chapter.title}</h4>
-                                            <p className="text-muted-foreground whitespace-pre-wrap mb-4">{chapter.content}</p>
-                                            <div className="p-3 bg-amber-500/10 rounded-lg border border-amber-500/20">
-                                                <h5 className="font-semibold flex items-center gap-2 text-amber-700 text-sm"><Lightbulb size={16}/> Suggested Activity</h5>
-                                                <p className="text-muted-foreground mt-1 text-sm">{chapter.activity}</p>
+                                    
+                                     {isLastChapterInModule && (
+                                         <div className="mt-6 pt-6 border-t-2 border-dashed">
+                                            <h4 className="font-semibold mb-4 text-lg text-center">Module {currentModuleIndex + 1} Review</h4>
+                                            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                                                <Button variant="outline" onClick={() => handleGenerateQuiz(currentModule)}>
+                                                    <Lightbulb className="mr-2 h-4 w-4"/> Module Test
+                                                </Button>
+                                                <Button variant="outline" onClick={() => handleGenerateFlashcards(currentModule)}>
+                                                    <Copy className="mr-2 h-4 w-4"/> Review Flashcards
+                                                </Button>
+                                                 {!completedModules.includes(currentModuleIndex) && (
+                                                    <Button className="bg-green-600 hover:bg-green-700" onClick={() => handleMarkModuleComplete(currentModuleIndex)}>
+                                                        <Check className="mr-2 h-4 w-4"/> Mark Module Complete
+                                                    </Button>
+                                                )}
                                             </div>
                                         </div>
-                                    ))}
-                                    <div className="mt-6 pt-4 border-t">
-                                        <h4 className="font-semibold mb-2">Module Review</h4>
-                                        <div className="flex gap-4">
-                                            <Button variant="outline" onClick={() => handleGenerateQuiz(module)}>
-                                                <Lightbulb className="mr-2 h-4 w-4"/> Module Test
-                                            </Button>
-                                            <Button variant="outline" onClick={() => handleGenerateFlashcards(module)}>
-                                                <Copy className="mr-2 h-4 w-4"/> Review Flashcards
-                                            </Button>
-                                             {!completedModules.includes(moduleIndex) && (
-                                                <Button className="bg-green-600 hover:bg-green-700" onClick={() => handleMarkModuleComplete(moduleIndex)}>
-                                                    <Check className="mr-2 h-4 w-4"/> Mark Module Complete
-                                                </Button>
-                                            )}
-                                        </div>
-                                    </div>
-                                </AccordionContent>
-                            </AccordionItem>
-                          ))}
-                        </Accordion>
-                     )}
+                                     )}
+                                </div>
+                            </CardContent>
+                        </Card>
+                     ) : <p>No chapter data found.</p>}
+                     <div className="mt-4 flex justify-between">
+                          <Button variant="outline" onClick={handlePrevChapter} disabled={currentModuleIndex === 0 && currentChapterIndex === 0}>
+                            <ChevronLeft className="mr-2 h-4 w-4"/> Previous
+                          </Button>
+                          <Button onClick={handleNextChapter} disabled={isLastChapterInModule}>
+                            Next <ChevronRight className="ml-2 h-4 w-4"/>
+                          </Button>
+                     </div>
                 </div>
-                <div>
+                <div className="space-y-4">
+                     <Card>
+                        <CardHeader>
+                            <CardTitle>Course Outline</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <ul className="space-y-4">
+                                {miniCourse?.modules.map((module, mIndex) => (
+                                    <li key={mIndex}>
+                                        <button
+                                            className={cn(
+                                                "w-full text-left p-2 rounded-md font-semibold flex items-center gap-3",
+                                                mIndex === currentModuleIndex ? "bg-primary/10 text-primary" : "hover:bg-muted"
+                                            )}
+                                            onClick={() => {setCurrentModuleIndex(mIndex); setCurrentChapterIndex(0);}}
+                                        >
+                                           {completedModules.includes(mIndex) ? <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" /> : <div className="h-5 w-5 rounded-full border-2 border-primary flex-shrink-0" />}
+                                           <span>Module {mIndex + 1}: {module.title}</span>
+                                        </button>
+                                    </li>
+                                ))}
+                            </ul>
+                        </CardContent>
+                    </Card>
                      <Card>
                         <CardHeader>
                             <CardTitle>Start Over</CardTitle>
-                            <CardDescription>Generate a new course or select a different one.</CardDescription>
                         </CardHeader>
                         <CardContent>
                              <Button className="w-full" variant="secondary" onClick={startNewCourse}>
@@ -417,3 +479,5 @@ export default function LearningLabPage() {
     </>
   );
 }
+
+    
