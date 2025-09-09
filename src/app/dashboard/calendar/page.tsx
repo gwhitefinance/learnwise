@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, ChangeEvent } from "react";
 import Image from "next/image";
 import {
   ChevronLeft,
@@ -9,14 +9,14 @@ import {
   Plus,
   Search,
   Settings,
-  Menu,
   Clock,
   MapPin,
   Users,
-  Calendar,
+  Calendar as CalendarIcon,
   Pause,
   Sparkles,
   X,
+  Upload,
 } from "lucide-react";
 
 type Event = {
@@ -30,7 +30,7 @@ type Event = {
   location: string;
   attendees: string[];
   organizer: string;
-}
+};
 
 
 export default function CalendarPage() {
@@ -38,6 +38,9 @@ export default function CalendarPage() {
   const [showAIPopup, setShowAIPopup] = useState(false)
   const [typedText, setTypedText] = useState("")
   const [isPlaying, setIsPlaying] = useState(false)
+  const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
 
   useEffect(() => {
     setIsLoaded(true)
@@ -76,6 +79,21 @@ export default function CalendarPage() {
   const handleEventClick = (event: Event) => {
     setSelectedEvent(event)
   }
+
+  const handleBackgroundImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setBackgroundImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const triggerFileUpload = () => {
+    fileInputRef.current?.click();
+  };
 
   // Updated sample calendar events with all events before 4 PM
   const events: Event[] = [
@@ -294,41 +312,52 @@ export default function CalendarPage() {
     setIsPlaying(!isPlaying)
     // Here you would typically also control the actual audio playback
   }
+  
+  const textClass = backgroundImage ? "text-white" : "text-black";
+  const textMutedClass = backgroundImage ? "text-white/70" : "text-gray-500";
+  const borderClass = backgroundImage ? "border-white/20" : "border-gray-200";
+  const bgClass = backgroundImage ? "bg-white/10 backdrop-blur-sm" : "bg-white/50";
+  const placeholderClass = backgroundImage ? "placeholder:text-white/70" : "placeholder:text-gray-400";
+
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden">
+    <div className="relative min-h-screen w-full overflow-hidden bg-white">
       {/* Background Image */}
-      <Image
-        src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=2070&auto=format&fit=crop"
-        alt="Beautiful mountain landscape"
-        fill
-        className="object-cover"
-        priority
-      />
+      {backgroundImage && (
+        <Image
+            src={backgroundImage}
+            alt="Custom background"
+            layout="fill"
+            objectFit="cover"
+            className="z-0"
+        />
+      )}
 
       {/* Navigation */}
       <header
-        className={`absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-8 py-6 opacity-0 ${isLoaded ? "animate-fade-in" : ""}`}
+        className={`absolute top-0 left-0 right-0 z-10 flex items-center justify-center px-8 py-6 opacity-0 ${isLoaded ? "animate-fade-in" : ""}`}
         style={{ animationDelay: "0.2s" }}
       >
         <div className="flex items-center gap-4">
-          <Menu className="h-6 w-6 text-white" />
-          <span className="text-2xl font-semibold text-white drop-shadow-lg">Calendar</span>
-        </div>
-
-        <div className="flex items-center gap-4">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/70" />
+            <Search className={`absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 ${textMutedClass}`} />
             <input
               type="text"
               placeholder="Search"
-              className="rounded-full bg-white/10 backdrop-blur-sm pl-10 pr-4 py-2 text-white placeholder:text-white/70 border border-white/20 focus:outline-none focus:ring-2 focus:ring-white/30"
+              className={`rounded-full ${bgClass} pl-10 pr-4 py-2 ${textClass} ${placeholderClass} border ${borderClass} focus:outline-none focus:ring-2 focus:ring-white/30`}
             />
           </div>
-          <Settings className="h-6 w-6 text-white drop-shadow-md" />
-          <div className="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold shadow-md">
-            U
-          </div>
+          <Settings className={`h-6 w-6 ${textClass} drop-shadow-md`} />
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleBackgroundImageUpload}
+            className="hidden"
+            accept="image/*"
+          />
+          <button onClick={triggerFileUpload} className={`p-2 rounded-full hover:bg-white/20 ${textClass}`}>
+            <Upload className="h-5 w-5" />
+          </button>
         </div>
       </header>
 
@@ -336,7 +365,7 @@ export default function CalendarPage() {
       <main className="relative h-screen w-full pt-20 flex">
         {/* Sidebar */}
         <div
-          className={`w-64 h-full bg-white/10 backdrop-blur-lg p-4 shadow-xl border-r border-white/20 rounded-tr-3xl opacity-0 ${isLoaded ? "animate-fade-in" : ""} flex flex-col justify-between`}
+          className={`w-64 h-full ${bgClass} p-4 shadow-xl border-r ${borderClass} rounded-tr-3xl opacity-0 ${isLoaded ? "animate-fade-in" : ""} flex flex-col justify-between`}
           style={{ animationDelay: "0.4s" }}
         >
           <div>
@@ -348,20 +377,20 @@ export default function CalendarPage() {
             {/* Mini Calendar */}
             <div className="mb-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-white font-medium">{currentMonth}</h3>
+                <h3 className={`${textClass} font-medium`}>{currentMonth}</h3>
                 <div className="flex gap-1">
                   <button className="p-1 rounded-full hover:bg-white/20">
-                    <ChevronLeft className="h-4 w-4 text-white" />
+                    <ChevronLeft className={`h-4 w-4 ${textClass}`} />
                   </button>
                   <button className="p-1 rounded-full hover:bg-white/20">
-                    <ChevronRight className="h-4 w-4 text-white" />
+                    <ChevronRight className={`h-4 w-4 ${textClass}`} />
                   </button>
                 </div>
               </div>
 
               <div className="grid grid-cols-7 gap-1 text-center">
                 {["S", "M", "T", "W", "T", "F", "S"].map((day, i) => (
-                  <div key={i} className="text-xs text-white/70 font-medium py-1">
+                  <div key={i} className={`text-xs ${textMutedClass} font-medium py-1`}>
                     {day}
                   </div>
                 ))}
@@ -370,7 +399,7 @@ export default function CalendarPage() {
                   <div
                     key={i}
                     className={`text-xs rounded-full w-7 h-7 flex items-center justify-center ${
-                      day === 5 ? "bg-blue-500 text-white" : "text-white hover:bg-white/20"
+                      day === 5 ? "bg-blue-500 text-white" : `${textClass} hover:bg-white/20`
                     } ${!day ? "invisible" : ""}`}
                   >
                     {day}
@@ -381,12 +410,12 @@ export default function CalendarPage() {
 
             {/* My Calendars */}
             <div>
-              <h3 className="text-white font-medium mb-3">My calendars</h3>
+              <h3 className={`${textClass} font-medium mb-3`}>My calendars</h3>
               <div className="space-y-2">
                 {myCalendars.map((cal, i) => (
                   <div key={i} className="flex items-center gap-3">
                     <div className={`w-3 h-3 rounded-sm ${cal.color}`}></div>
-                    <span className="text-white text-sm">{cal.name}</span>
+                    <span className={`${textClass} text-sm`}>{cal.name}</span>
                   </div>
                 ))}
               </div>
@@ -405,36 +434,36 @@ export default function CalendarPage() {
           style={{ animationDelay: "0.6s" }}
         >
           {/* Calendar Controls */}
-          <div className="flex items-center justify-between p-4 border-b border-white/20">
+          <div className={`flex items-center justify-between p-4 border-b ${borderClass}`}>
             <div className="flex items-center gap-4">
-              <button className="px-4 py-2 text-white bg-blue-500 rounded-md">Today</button>
+              <button className={`px-4 py-2 ${textClass} bg-blue-500 rounded-md`}>Today</button>
               <div className="flex">
-                <button className="p-2 text-white hover:bg-white/10 rounded-l-md">
+                <button className={`p-2 ${textClass} hover:bg-white/10 rounded-l-md`}>
                   <ChevronLeft className="h-5 w-5" />
                 </button>
-                <button className="p-2 text-white hover:bg-white/10 rounded-r-md">
+                <button className={`p-2 ${textClass} hover:bg-white/10 rounded-r-md`}>
                   <ChevronRight className="h-5 w-5" />
                 </button>
               </div>
-              <h2 className="text-xl font-semibold text-white">{currentDate}</h2>
+              <h2 className={`text-xl font-semibold ${textClass}`}>{currentDate}</h2>
             </div>
 
             <div className="flex items-center gap-2 rounded-md p-1">
               <button
                 onClick={() => setCurrentView("day")}
-                className={`px-3 py-1 rounded ${currentView === "day" ? "bg-white/20" : ""} text-white text-sm`}
+                className={`px-3 py-1 rounded ${currentView === "day" ? "bg-white/20" : ""} ${textClass} text-sm`}
               >
                 Day
               </button>
               <button
                 onClick={() => setCurrentView("week")}
-                className={`px-3 py-1 rounded ${currentView === "week" ? "bg-white/20" : ""} text-white text-sm`}
+                className={`px-3 py-1 rounded ${currentView === "week" ? "bg-white/20" : ""} ${textClass} text-sm`}
               >
                 Week
               </button>
               <button
                 onClick={() => setCurrentView("month")}
-                className={`px-3 py-1 rounded ${currentView === "month" ? "bg-white/20" : ""} text-white text-sm`}
+                className={`px-3 py-1 rounded ${currentView === "month" ? "bg-white/20" : ""} ${textClass} text-sm`}
               >
                 Month
               </button>
@@ -443,15 +472,15 @@ export default function CalendarPage() {
 
           {/* Week View */}
           <div className="flex-1 overflow-auto p-4">
-            <div className="bg-white/20 backdrop-blur-lg rounded-xl border border-white/20 shadow-xl h-full">
+            <div className={`${bgClass} rounded-xl border ${borderClass} shadow-xl h-full`}>
               {/* Week Header */}
-              <div className="grid grid-cols-8 border-b border-white/20">
-                <div className="p-2 text-center text-white/50 text-xs"></div>
+              <div className={`grid grid-cols-8 border-b ${borderClass}`}>
+                <div className={`p-2 text-center ${textMutedClass} text-xs`}></div>
                 {weekDays.map((day, i) => (
-                  <div key={i} className="p-2 text-center border-l border-white/20">
-                    <div className="text-xs text-white/70 font-medium">{day}</div>
+                  <div key={i} className={`p-2 text-center border-l ${borderClass}`}>
+                    <div className={`text-xs ${textMutedClass} font-medium`}>{day}</div>
                     <div
-                      className={`text-lg font-medium mt-1 text-white ${weekDates[i] === 5 ? "bg-blue-500 rounded-full w-8 h-8 flex items-center justify-center mx-auto" : ""}`}
+                      className={`text-lg font-medium mt-1 ${textClass} ${weekDates[i] === 5 ? "bg-blue-500 rounded-full w-8 h-8 flex items-center justify-center mx-auto" : ""}`}
                     >
                       {weekDates[i]}
                     </div>
@@ -462,9 +491,9 @@ export default function CalendarPage() {
               {/* Time Grid */}
               <div className="grid grid-cols-8">
                 {/* Time Labels */}
-                <div className="text-white/70">
+                <div className={`${textMutedClass}`}>
                   {timeSlots.map((time, i) => (
-                    <div key={i} className="h-20 border-b border-white/10 pr-2 text-right text-xs">
+                    <div key={i} className={`h-20 border-b ${borderClass} pr-2 text-right text-xs`}>
                       {time > 12 ? `${time - 12} PM` : `${time} AM`}
                     </div>
                   ))}
@@ -472,9 +501,9 @@ export default function CalendarPage() {
 
                 {/* Days Columns */}
                 {Array.from({ length: 7 }).map((_, dayIndex) => (
-                  <div key={dayIndex} className="border-l border-white/20 relative">
+                  <div key={dayIndex} className={`border-l ${borderClass} relative`}>
                     {timeSlots.map((_, timeIndex) => (
-                      <div key={timeIndex} className="h-20 border-b border-white/10"></div>
+                      <div key={timeIndex} className={`h-20 border-b ${borderClass}`}></div>
                     ))}
 
                     {/* Events */}
@@ -566,7 +595,7 @@ export default function CalendarPage() {
                   {selectedEvent.location}
                 </p>
                 <p className="flex items-center">
-                  <Calendar className="mr-2 h-5 w-5" />
+                  <CalendarIcon className="mr-2 h-5 w-5" />
                   {`${weekDays[selectedEvent.day - 1]}, ${weekDates[selectedEvent.day - 1]} ${currentMonth}`}
                 </p>
                 <p className="flex items-start">
@@ -601,3 +630,5 @@ export default function CalendarPage() {
     </div>
   )
 }
+
+    
