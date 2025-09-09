@@ -287,7 +287,7 @@ export default function CalendarPage() {
             date: newEventDate.toISOString(),
             startTime: newEventStartTime,
             endTime: newEventEndTime,
-            day: newEventDate.getDay() + 1, // Sun=1, Mon=2... This aligns with the filter logic.
+            day: newEventDate.getDay(), // 0 for Sunday, 1 for Monday, etc.
             type: newEventType,
             color: eventTypes[newEventType],
             location: newEventLocation,
@@ -684,7 +684,7 @@ export default function CalendarPage() {
 
                     {/* Events */}
                     {events
-                      .filter((event) => event.day === dayIndex + 1)
+                      .filter((event) => event.day === dayIndex)
                       .map((event, i) => {
                         const eventStyle = calculateEventStyle(event.startTime, event.endTime)
                         return (
@@ -799,7 +799,7 @@ export default function CalendarPage() {
                 </p>
                 <p className="flex items-center">
                   <CalendarIcon className="mr-2 h-5 w-5" />
-                  {`${weekDays[selectedEvent.day - 1]}, ${weekDates[selectedEvent.day - 1]} ${currentMonth}`}
+                  {`${weekDays[selectedEvent.day]}, ${weekDates[selectedEvent.day]} ${currentMonth}`}
                 </p>
                 <p className="flex items-start">
                   <Users className="mr-2 h-5 w-5 mt-1" />
