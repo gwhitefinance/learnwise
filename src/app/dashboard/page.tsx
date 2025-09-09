@@ -46,6 +46,9 @@ import {
     TableHeader,
     TableRow,
   } from "@/components/ui/table"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DatePicker } from '@/components/ui/date-picker';
+import { format } from 'date-fns';
 
   type Course = {
     id: string;
@@ -65,22 +68,20 @@ import {
   };
 
   type Project = {
+    id: string;
     name: string;
     course: string;
     dueDate: string;
     status: 'Not Started' | 'In Progress' | 'Completed';
   }
   
-  const AppCard = ({ title, description, icon, href, isFeatured, actionButton }: { title: string; description: string; icon: React.ReactNode; href: string, isFeatured?: boolean, actionButton?: React.ReactNode }) => (
-    <Link href={href} className="block h-full">
-        <motion.div
-            whileHover={{ y: -5, scale: 1.02 }}
-            transition={{ type: 'spring', stiffness: 300 }}
-            className={cn(
-                "relative group rounded-2xl border border-border/20 bg-background/50 p-6 overflow-hidden flex flex-col h-full",
-                isFeatured ? "lg:col-span-2 lg:row-span-2" : "",
-            )}
-        >
+  const AppCard = ({ title, description, icon, href, actionButton }: { title: string; description: string; icon: React.ReactNode; href: string, actionButton?: React.ReactNode }) => (
+    <motion.div
+        whileHover={{ y: -5, scale: 1.02 }}
+        transition={{ type: 'spring', stiffness: 300 }}
+        className="relative group rounded-2xl border border-border/20 bg-background/50 p-6 overflow-hidden flex flex-col"
+    >
+        <Link href={href} className="flex flex-col flex-grow">
             <div className="flex-grow">
                 <div className="bg-primary/10 text-primary p-3 rounded-xl inline-block mb-4">
                     {icon}
@@ -88,13 +89,13 @@ import {
                 <h3 className="text-xl font-bold">{title}</h3>
                 <p className="text-muted-foreground mt-2">{description}</p>
             </div>
-            {actionButton && (
-                <div className='mt-6' onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
-                    {actionButton}
-                </div>
-            )}
-        </motion.div>
-    </Link>
+        </Link>
+        {actionButton && (
+            <div className='mt-6' onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+                {actionButton}
+            </div>
+        )}
+    </motion.div>
 );
 
 
@@ -160,18 +161,9 @@ import {
   ];
   
   const initialProjects: Project[] = [
-      { name: 'Research Paper', course: 'World History', dueDate: '2024-12-01', status: 'In Progress' },
-      { name: 'Final Project', course: 'Intro to Programming', dueDate: '2024-12-10', status: 'Not Started' },
-      { name: 'Midterm Exam', course: 'Calculus I', dueDate: '2024-11-15', status: 'Completed' },
-  ];
-
-  const apps = [
-    { title: "AI Chat", href: "/dashboard/ai-chat", description: "Get instant answers and explanations from your AI study partner.", icon: <BrainCircuit className="w-8 h-8"/>, isFeatured: true, actionButton: <Button variant="outline" className="w-full">Start Chatting <ArrowRight className="ml-2 h-4 w-4"/></Button> },
-    { title: "Practice Quiz", href: "/dashboard/practice-quiz", description: "Test your knowledge with AI quizzes.", icon: <Lightbulb className="w-8 h-8"/>, actionButton: <Button variant="outline" className="w-full">Generate Quiz <ArrowRight className="ml-2 h-4 w-4"/></Button>},
-    { title: "Study Roadmaps", href: "/dashboard/roadmaps", description: "Plan your learning journey.", icon: <GitMerge className="w-8 h-8"/> },
-    { title: "Whiteboard", href: "/dashboard/whiteboard", description: "Brainstorm and visualize ideas.", icon: <PenSquare className="w-8 h-8"/> },
-    { title: "Notes", href: "/dashboard/notes", description: "Create, organize, and review your notes.", icon: <Notebook className="w-8 h-8"/> },
-    { title: "Calendar", href: "/dashboard/calendar", description: "Manage your deadlines and study schedule.", icon: <Calendar className="w-8 h-8"/> },
+      { id: '1', name: 'Research Paper', course: 'World History', dueDate: '2024-12-01', status: 'In Progress' },
+      { id: '2', name: 'Final Project', course: 'Intro to Programming', dueDate: '2024-12-10', status: 'Not Started' },
+      { id: '3', name: 'Midterm Exam', course: 'Calculus I', dueDate: '2024-11-15', status: 'Completed' },
   ];
 
   const learningResources = [
@@ -216,13 +208,15 @@ import {
 export default function DashboardPage() {
     const [courses, setCourses] = useState<Course[]>([]);
     const [recentFiles, setRecentFiles] = useState<RecentFile[]>([]);
-    const [projects, setProjects] = useState<Project[]>(initialProjects);
+    const [projects, setProjects] = useState<Project[]>([]);
     const [isAddCourseOpen, setAddCourseOpen] = useState(false);
     const [newCourse, setNewCourse] = useState({ name: '', instructor: '', credits: '', url: ''});
     const { toast } = useToast();
     const [files, setFiles] = useState<FileList | null>(null);
     const [isDragging, setIsDragging] = useState(false);
     const [isUploadOpen, setUploadOpen] = useState(false);
+    const [isAddProjectOpen, setAddProjectOpen] = useState(false);
+    const [newProject, setNewProject] = useState({ name: '', course: '', dueDate: new Date() as Date | undefined });
 
      useEffect(() => {
         const savedCourses = localStorage.getItem('courses');
@@ -240,7 +234,48 @@ export default function DashboardPage() {
             setRecentFiles(initialRecentFiles);
             localStorage.setItem('recentFiles', JSON.stringify(initialRecentFiles));
         }
+        
+        const savedProjects = localStorage.getItem('projects');
+        if (savedProjects) {
+            setProjects(JSON.parse(savedProjects));
+        } else {
+            setProjects(initialProjects);
+            localStorage.setItem('projects', JSON.stringify(initialProjects));
+        }
     }, []);
+
+    const handleProjectInputChange = (field: string, value: string | Date | undefined) => {
+        setNewProject(prev => ({ ...prev, [field]: value }));
+    };
+
+    const handleAddProject = () => {
+        if (!newProject.name || !newProject.course || !newProject.dueDate) {
+            toast({
+                variant: 'destructive',
+                title: 'Missing Fields',
+                description: 'Please fill out all required fields.'
+            });
+            return;
+        }
+
+        const projectToAdd: Project = {
+            id: crypto.randomUUID(),
+            name: newProject.name,
+            course: newProject.course,
+            dueDate: format(newProject.dueDate, 'yyyy-MM-dd'),
+            status: 'Not Started',
+        };
+
+        const updatedProjects = [projectToAdd, ...projects];
+        setProjects(updatedProjects);
+        localStorage.setItem('projects', JSON.stringify(updatedProjects));
+        setNewProject({ name: '', course: '', dueDate: new Date() });
+        setAddProjectOpen(false);
+        toast({
+            title: 'Project Added!',
+            description: `${projectToAdd.name} has been added to your list.`
+        });
+    };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -573,9 +608,9 @@ export default function DashboardPage() {
             </TabsContent>
             
             <TabsContent value="apps">
-                <div className="grid lg:grid-cols-2 gap-6 items-start">
+                 <div className="grid lg:grid-cols-2 gap-6 items-start">
                     <div className="grid grid-cols-1 gap-6">
-                        <AppCard title="AI Chat" href="/dashboard/ai-chat" description="Get instant answers and explanations from your AI study partner." icon={<BrainCircuit className="w-8 h-8"/>} isFeatured actionButton={<Button variant="outline" className="w-full">Start Chatting <ArrowRight className="ml-2 h-4 w-4"/></Button>} />
+                        <AppCard title="AI Chat" href="/dashboard/ai-chat" description="Get instant answers and explanations from your AI study partner." icon={<BrainCircuit className="w-8 h-8"/>} actionButton={<Button variant="outline" className="w-full">Start Chatting <ArrowRight className="ml-2 h-4 w-4"/></Button>} />
                         <AppCard title="Practice Quiz" href="/dashboard/practice-quiz" description="Test your knowledge with AI quizzes." icon={<Lightbulb className="w-8 h-8"/>} actionButton={<Button variant="outline" className="w-full">Generate Quiz <ArrowRight className="ml-2 h-4 w-4"/></Button>}/>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -619,32 +654,75 @@ export default function DashboardPage() {
              <TabsContent value="projects">
                 <Card>
                     <CardHeader>
-                        <CardTitle>Projects & Assignments</CardTitle>
-                        <CardDescription>Keep track of your larger tasks and their deadlines.</CardDescription>
+                        <div className="flex justify-between items-center">
+                            <div>
+                                <CardTitle>Projects & Assignments</CardTitle>
+                                <CardDescription>Keep track of your larger tasks and their deadlines.</CardDescription>
+                            </div>
+                            <Dialog open={isAddProjectOpen} onOpenChange={setAddProjectOpen}>
+                                <DialogTrigger asChild>
+                                    <Button>
+                                    <Plus className="mr-2 h-4 w-4" /> Add Project
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>Add a New Project</DialogTitle>
+                                    </DialogHeader>
+                                    <div className="grid gap-4 py-4">
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="project-name">Project Name</Label>
+                                            <Input id="project-name" value={newProject.name} onChange={(e) => handleProjectInputChange('name', e.target.value)} placeholder="e.g., Research Paper"/>
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="project-course">Course</Label>
+                                            <Select value={newProject.course} onValueChange={(value) => handleProjectInputChange('course', value)}>
+                                                <SelectTrigger id="project-course">
+                                                    <SelectValue placeholder="Select a course" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {courses.map(course => (
+                                                        <SelectItem key={course.id} value={course.name}>{course.name}</SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="project-due-date">Due Date</Label>
+                                            <DatePicker date={newProject.dueDate} setDate={(date) => handleProjectInputChange('dueDate', date)} />
+                                        </div>
+                                    </div>
+                                    <DialogFooter>
+                                        <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
+                                        <Button onClick={handleAddProject}>Add Project</Button>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
+                        </div>
                     </CardHeader>
                     <CardContent>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Project Name</TableHead>
-                                    <TableHead>Course</TableHead>
-                                    <TableHead>Due Date</TableHead>
-                                    <TableHead>Status</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                            {projects.map((project, index) => (
-                                <TableRow key={index}>
-                                    <TableCell className="font-medium">{project.name}</TableCell>
-                                    <TableCell>{project.course}</TableCell>
-                                    <TableCell>{project.dueDate}</TableCell>
-                                    <TableCell>
-                                        <Badge variant={project.status === 'Completed' ? 'secondary' : project.status === 'In Progress' ? 'default' : 'outline'}>{project.status}</Badge>
-                                    </TableCell>
-                                </TableRow>
+                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {projects.map((project) => (
+                                <Card key={project.id} className="flex flex-col">
+                                    <CardHeader>
+                                        <CardTitle>{project.name}</CardTitle>
+                                        <CardDescription>{project.course}</CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="flex-grow">
+                                        <p className="text-sm text-muted-foreground">Due: {format(new Date(project.dueDate), "PPP")}</p>
+                                    </CardContent>
+                                    <CardFooter>
+                                         <Badge 
+                                            variant={project.status === 'Completed' ? 'secondary' : project.status === 'In Progress' ? 'default' : 'outline'}
+                                            className={cn(
+                                                project.status === 'Completed' && 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300',
+                                                project.status === 'In Progress' && 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300'
+                                            )}
+                                        >{project.status}</Badge>
+                                    </CardFooter>
+                                </Card>
                             ))}
-                            </TableBody>
-                        </Table>
+                        </div>
                     </CardContent>
                 </Card>
             </TabsContent>
