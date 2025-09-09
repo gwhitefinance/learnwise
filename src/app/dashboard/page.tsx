@@ -213,11 +213,6 @@ export default function DashboardPage() {
         if (user) {
             fetchCourses();
         }
-        
-        const savedProjects = localStorage.getItem('projects');
-        if (savedProjects) {
-            setProjects(JSON.parse(savedProjects));
-        }
 
         const savedFiles = localStorage.getItem('recentFiles');
         if (savedFiles) {
