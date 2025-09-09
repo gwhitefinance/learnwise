@@ -315,6 +315,11 @@ export default function CalendarPage() {
             setNewEventDate(new Date());
             setNewEventStartTime('10:00');
             setNewEventEndTime('11:00');
+            setNewEventLocation('Remote');
+            setNewEventOrganizer('Self');
+            setNewEventAttendees('');
+            setNewEventType('Event');
+            setNewEventReminder(10);
 
         } catch (error) {
             console.error("Error adding event: ", error);
@@ -839,5 +844,3 @@ export default function CalendarPage() {
     </div>
   )
 }
-
-    
