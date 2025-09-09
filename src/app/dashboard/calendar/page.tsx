@@ -276,18 +276,18 @@ export default function CalendarPage() {
             toast({
                 variant: "destructive",
                 title: "Missing Information",
-                description: "Please provide a title, a date, and be logged in.",
+                description: "Please provide a title and a date.",
             });
             return;
         }
-    
+
         const eventData = {
             title: newEventTitle,
             description: newEventDesc,
             date: newEventDate.toISOString(),
             startTime: newEventStartTime,
             endTime: newEventEndTime,
-            day: newEventDate.getDay() + 1, // This is a simplification
+            day: newEventDate.getDay() + 1,
             type: newEventType,
             color: eventTypes[newEventType],
             location: newEventLocation,
@@ -296,20 +296,26 @@ export default function CalendarPage() {
             reminderMinutes: newEventReminder,
             userId: user.uid,
         };
-    
+
         try {
             const docRef = await addDoc(collection(db, "calendarEvents"), eventData);
             const newEvent: Event = { id: docRef.id, ...eventData };
             setEvents(prev => [...prev, newEvent]);
             scheduleReminder(newEvent);
-    
+
             toast({
                 title: "Event Created!",
                 description: `${newEvent.title} has been added to your calendar.`,
             });
+            
+            // Reset form and close dialog
             setCreateDialogOpen(false);
             setNewEventTitle('');
             setNewEventDesc('');
+            setNewEventDate(new Date());
+            setNewEventStartTime('10:00');
+            setNewEventEndTime('11:00');
+
         } catch (error) {
             console.error("Error adding event: ", error);
             toast({
