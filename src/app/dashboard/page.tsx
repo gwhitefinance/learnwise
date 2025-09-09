@@ -53,6 +53,7 @@ import { format } from 'date-fns';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { collection, query, where, getDocs, addDoc } from 'firebase/firestore';
+import Joyride, { Step } from 'react-joyride';
 
 
   type Course = {
@@ -74,18 +75,19 @@ import { collection, query, where, getDocs, addDoc } from 'firebase/firestore';
   };
 
   type Project = {
-    id: string;
+    id:string;
     name: string;
     course: string;
     dueDate: string;
     status: 'Not Started' | 'In Progress' | 'Completed';
   }
   
-  const AppCard = ({ title, description, icon, href, actionButton }: { title: string; description: string; icon: React.ReactNode; href: string, actionButton?: React.ReactNode }) => (
+  const AppCard = ({ title, description, icon, href, actionButton, id }: { title: string; description: string; icon: React.ReactNode; href: string, actionButton?: React.ReactNode, id?: string }) => (
     <motion.div
         whileHover={{ y: -5, scale: 1.02 }}
         transition={{ type: 'spring', stiffness: 300 }}
         className="relative group rounded-2xl border border-border/20 bg-background/50 p-6 overflow-hidden flex flex-col"
+        id={id}
     >
         <Link href={href} className="flex flex-col flex-grow">
             <div>
@@ -157,7 +159,41 @@ export default function DashboardPage() {
     const [newProject, setNewProject] = useState({ name: '', course: '', dueDate: new Date() as Date | undefined });
     const [streak, setStreak] = useState(0);
     const [user] = useAuthState(auth);
+    const [runTour, setRunTour] = useState(false);
 
+    const tourSteps: Step[] = [
+        {
+            target: '#welcome-banner',
+            content: 'Welcome to your LearnWise dashboard! This is your central hub for managing your studies.',
+            placement: 'bottom',
+        },
+        {
+            target: '#main-tabs',
+            content: 'Use these tabs to navigate between your main workspace, apps, files, and more.',
+        },
+        {
+            target: '#apps-tab',
+            content: 'Switch to the "Apps" tab to access powerful AI study tools.',
+            placement: 'bottom',
+        },
+        {
+            target: '#ai-chat-app',
+            content: 'Our AI Chat is like having a personal tutor available 24/7. Ask it anything about your courses!',
+        },
+        {
+            target: '#active-courses',
+            content: 'Your active courses will appear here. Add a course to get started.',
+        },
+        {
+            "target": "#upload-materials-button",
+            "content": "Upload your notes, documents, or syllabus here. The AI will analyze them to create personalized study aids."
+        },
+        {
+            target: '#home-tab',
+            content: "You've completed the tour! You can always restart it from the welcome banner.",
+            placement: 'bottom',
+        }
+    ];
 
      useEffect(() => {
         const fetchCourses = async () => {
@@ -349,11 +385,33 @@ export default function DashboardPage() {
    
   return (
     <div className="space-y-8 mt-0">
-        <Tabs defaultValue="home">
+        <Joyride
+            continuous
+            run={runTour}
+            steps={tourSteps}
+            showProgress
+            showSkipButton
+            styles={{
+                options: {
+                    arrowColor: '#18181b',
+                    backgroundColor: '#18181b',
+                    primaryColor: '#a3e635',
+                    textColor: '#f4f4f5',
+                    zIndex: 1000,
+                }
+            }}
+            callback={({ status }) => {
+                if (status === 'finished' || status === 'skipped') {
+                    setRunTour(false);
+                }
+            }}
+        />
+
+        <Tabs defaultValue="home" id="main-tabs">
             <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <TabsList className="grid w-full max-w-[750px] grid-cols-6 rounded-2xl p-1">
-                <TabsTrigger value="home" className="rounded-xl data-[state=active]:rounded-xl"><Home className="w-4 h-4 mr-2"/>Home</TabsTrigger>
-                <TabsTrigger value="apps" className="rounded-xl data-[state=active]:rounded-xl"><LayoutGrid className="w-4 h-4 mr-2"/>Apps</TabsTrigger>
+                <TabsTrigger value="home" className="rounded-xl data-[state=active]:rounded-xl" id="home-tab"><Home className="w-4 h-4 mr-2"/>Home</TabsTrigger>
+                <TabsTrigger value="apps" className="rounded-xl data-[state=active]:rounded-xl" id="apps-tab"><LayoutGrid className="w-4 h-4 mr-2"/>Apps</TabsTrigger>
                 <TabsTrigger value="files" className="rounded-xl data-[state=active]:rounded-xl"><Folder className="w-4 h-4 mr-2"/>Files</TabsTrigger>
                 <TabsTrigger value="projects" className="rounded-xl data-[state=active]:rounded-xl"><Briefcase className="w-4 h-4 mr-2"/>Projects</TabsTrigger>
                 <TabsTrigger value="learn" className="rounded-xl data-[state=active]:rounded-xl"><BookOpen className="w-4 h-4 mr-2"/>Learn</TabsTrigger>
@@ -362,7 +420,7 @@ export default function DashboardPage() {
               <div className="hidden md:flex gap-2">
                 <Dialog open={isUploadOpen} onOpenChange={setUploadOpen}>
                     <DialogTrigger asChild>
-                        <Button variant="outline" className="rounded-2xl">
+                        <Button variant="outline" className="rounded-2xl" id="upload-materials-button">
                           <Download className="mr-2 h-4 w-4" />
                           Upload Materials
                         </Button>
@@ -458,6 +516,7 @@ export default function DashboardPage() {
             <TabsContent value="home">
                  <section>
                     <motion.div
+                        id="welcome-banner"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5 }}
@@ -478,6 +537,7 @@ export default function DashboardPage() {
                             <Button
                                 variant="outline"
                                 className="rounded-2xl bg-transparent border-white text-white hover:bg-white/10"
+                                onClick={() => setRunTour(true)}
                             >
                                 Take a Tour
                             </Button>
@@ -502,7 +562,7 @@ export default function DashboardPage() {
 
 
                 <div className="grid grid-cols-1 gap-8 md:grid-cols-2 mt-8">
-                    <section className="space-y-4">
+                    <section className="space-y-4" id="recent-files">
                         <Card className="bg-orange-500/10 border-orange-500/20 text-orange-900 dark:text-orange-200">
                            <CardContent className="p-6 flex items-center gap-6">
                                 <div className="p-4 bg-white/50 rounded-full">
@@ -555,7 +615,7 @@ export default function DashboardPage() {
                         </Card>
                     </section>
 
-                    <section className="space-y-4">
+                    <section className="space-y-4" id="active-courses">
                         <div className="flex items-center justify-between">
                         <h2 className="text-2xl font-semibold">Active Courses</h2>
                         <Link href="/dashboard/courses">
@@ -602,6 +662,7 @@ export default function DashboardPage() {
                     <div className="grid grid-cols-1 gap-6">
                        <motion.div whileHover={{ y: -5, scale: 1.02 }} transition={{ type: 'spring', stiffness: 300 }}>
                             <AppCard 
+                                id="ai-chat-app"
                                 title="AI Chat" 
                                 href="/dashboard/ai-chat" 
                                 description="Get instant answers and explanations from your AI study partner." 
