@@ -571,16 +571,12 @@ export default function DashboardPage() {
                     >
                         <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
                         <div className="space-y-4">
-                            <Badge className="bg-white/20 text-white hover:bg-white/30 rounded-xl">Premium</Badge>
-                            <h2 className="text-3xl font-bold">Welcome to LearnWise Study Suite</h2>
+                            <Badge className="bg-white/20 text-white hover:bg-white/30 rounded-xl">Get Started</Badge>
+                            <h2 className="text-3xl font-bold">Welcome to Your LearnWise Dashboard</h2>
                             <p className="max-w-[600px] text-white/80">
-                            Unleash your potential with our comprehensive suite of AI-powered study tools and
-                            resources.
+                            This is your command center for smarter studying. Add a course or upload your notes to begin creating personalized study materials with AI.
                             </p>
                             <div className="flex flex-wrap gap-3">
-                            <Button className="rounded-2xl bg-white text-indigo-700 hover:bg-white/90">
-                                Upgrade to Pro
-                            </Button>
                             <Button
                                 variant="outline"
                                 className="rounded-2xl bg-transparent border-white text-white hover:bg-white/10"
