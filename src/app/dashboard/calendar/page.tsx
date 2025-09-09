@@ -46,6 +46,17 @@ type Event = {
   date: string;
 };
 
+type EventTypes = Record<'Test' | 'Homework' | 'Quiz' | 'Project' | 'Event', string>;
+
+
+const defaultEventTypes: EventTypes = {
+    'Test': 'bg-red-500',
+    'Homework': 'bg-blue-500',
+    'Quiz': 'bg-yellow-500',
+    'Project': 'bg-purple-500',
+    'Event': 'bg-green-500',
+};
+
 const classicalPlaylist = [
     "https://cdn.pixabay.com/audio/2024/05/25/audio_24944d1835.mp3", // Emotional Cinematic Music
     "https://cdn.pixabay.com/audio/2024/05/09/audio_2ef13b0649.mp3", // Cinematic Epic
@@ -54,13 +65,6 @@ const classicalPlaylist = [
     "https://cdn.pixabay.com/audio/2024/02/08/audio_17316a1c89.mp3", // The Last Piano
 ];
 
-const eventTypes = {
-    'Test': 'bg-red-500',
-    'Homework': 'bg-blue-500',
-    'Quiz': 'bg-yellow-500',
-    'Project': 'bg-purple-500',
-    'Event': 'bg-green-500',
-};
 
 
 export default function CalendarPage() {
@@ -74,6 +78,8 @@ export default function CalendarPage() {
   const [learnerType, setLearnerType] = useState<string | null>(null);
   const [events, setEvents] = useState<Event[]>([]);
   const { toast } = useToast();
+  
+  const [eventTypes, setEventTypes] = useState<EventTypes>(defaultEventTypes);
 
   // New Event Dialog State
   const [isCreateDialogOpen, setCreateDialogOpen] = useState(false);
@@ -85,7 +91,11 @@ export default function CalendarPage() {
   const [newEventLocation, setNewEventLocation] = useState('Remote');
   const [newEventOrganizer, setNewEventOrganizer] = useState('Self');
   const [newEventAttendees, setNewEventAttendees] = useState('');
-  const [newEventType, setNewEventType] = useState<keyof typeof eventTypes>('Event');
+  const [newEventType, setNewEventType] = useState<keyof EventTypes>('Event');
+  
+  // Settings dialog
+  const [isSettingsOpen, setSettingsOpen] = useState(false);
+  const [tempEventTypes, setTempEventTypes] = useState(eventTypes);
 
 
   useEffect(() => {
@@ -98,6 +108,12 @@ export default function CalendarPage() {
     const savedEvents = localStorage.getItem('calendarEvents');
     if (savedEvents) {
         setEvents(JSON.parse(savedEvents).map((e: Event) => ({...e, date: e.date ? new Date(e.date).toISOString() : new Date().toISOString() })));
+    }
+    
+    const savedEventTypes = localStorage.getItem('eventTypes');
+    if(savedEventTypes) {
+        setEventTypes(JSON.parse(savedEventTypes));
+        setTempEventTypes(JSON.parse(savedEventTypes));
     }
 
 
@@ -235,6 +251,28 @@ export default function CalendarPage() {
     setNewEventDesc('');
   };
   
+    const handleSaveSettings = () => {
+        setEventTypes(tempEventTypes);
+        localStorage.setItem('eventTypes', JSON.stringify(tempEventTypes));
+        toast({ title: "Settings Saved", description: "Your event colors have been updated." });
+        setSettingsOpen(false);
+    };
+
+    const handleColorChange = (type: keyof EventTypes, colorClass: string) => {
+        setTempEventTypes(prev => ({ ...prev, [type]: colorClass }));
+    };
+    
+    const colorOptions = [
+        { name: 'Red', class: 'bg-red-500' },
+        { name: 'Blue', class: 'bg-blue-500' },
+        { name: 'Green', class: 'bg-green-500' },
+        { name: 'Yellow', class: 'bg-yellow-500' },
+        { name: 'Purple', class: 'bg-purple-500' },
+        { name: 'Pink', class: 'bg-pink-500' },
+        { name: 'Indigo', class: 'bg-indigo-500' },
+        { name: 'Teal', class: 'bg-teal-500' },
+    ];
+
   const textClass = backgroundImage ? "text-white" : "text-black";
   const textMutedClass = backgroundImage ? "text-white/70" : "text-gray-500";
   const borderClass = backgroundImage ? "border-white/20" : "border-gray-200";
@@ -272,7 +310,52 @@ export default function CalendarPage() {
               className={`rounded-full ${bgClass} pl-10 pr-4 py-2 ${textClass} ${placeholderClass} border ${borderClass} focus:outline-none focus:ring-2 focus:ring-white/30`}
             />
           </div>
-          <Settings className={`h-6 w-6 ${textClass} drop-shadow-md`} />
+          <Dialog open={isSettingsOpen} onOpenChange={setSettingsOpen}>
+              <DialogTrigger asChild>
+                  <button className={`p-2 rounded-full hover:bg-white/20 ${textClass}`}><Settings className={`h-6 w-6 ${textClass} drop-shadow-md`} /></button>
+              </DialogTrigger>
+              <DialogContent>
+                  <DialogHeader>
+                      <DialogTitle>Customize Event Colors</DialogTitle>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                      {Object.keys(tempEventTypes).map((type) => (
+                          <div key={type} className="grid grid-cols-3 items-center gap-4">
+                              <Label htmlFor={`color-${type}`} className="text-right">
+                                  {type}
+                              </Label>
+                              <Select
+                                  value={tempEventTypes[type as keyof EventTypes]}
+                                  onValueChange={(value) => handleColorChange(type as keyof EventTypes, value)}
+                              >
+                                  <SelectTrigger className="col-span-2">
+                                      <SelectValue>
+                                        <div className="flex items-center gap-2">
+                                            <div className={`w-4 h-4 rounded-sm ${tempEventTypes[type as keyof EventTypes]}`}></div>
+                                            <span>{colorOptions.find(c => c.class === tempEventTypes[type as keyof EventTypes])?.name}</span>
+                                        </div>
+                                      </SelectValue>
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                      {colorOptions.map(color => (
+                                          <SelectItem key={color.class} value={color.class}>
+                                               <div className="flex items-center gap-2">
+                                                  <div className={`w-4 h-4 rounded-sm ${color.class}`}></div>
+                                                  <span>{color.name}</span>
+                                              </div>
+                                          </SelectItem>
+                                      ))}
+                                  </SelectContent>
+                              </Select>
+                          </div>
+                      ))}
+                  </div>
+                  <DialogFooter>
+                      <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
+                      <Button onClick={handleSaveSettings}>Save Changes</Button>
+                  </DialogFooter>
+              </DialogContent>
+          </Dialog>
           <input
             type="file"
             ref={fileInputRef}
@@ -326,7 +409,7 @@ export default function CalendarPage() {
                     </div>
                      <div className="grid gap-2">
                         <Label htmlFor="event-type">Event Type</Label>
-                         <Select onValueChange={(value: keyof typeof eventTypes) => setNewEventType(value)} defaultValue={newEventType}>
+                         <Select onValueChange={(value: keyof EventTypes) => setNewEventType(value)} defaultValue={newEventType}>
                             <SelectTrigger>
                                 <SelectValue placeholder="Select type" />
                             </SelectTrigger>
@@ -395,9 +478,13 @@ export default function CalendarPage() {
           </div>
 
           {/* New position for the big plus button */}
-          <button className="mt-6 flex items-center justify-center gap-2 rounded-full bg-blue-500 p-4 text-white w-14 h-14 self-start">
-            <Plus className="h-6 w-6" />
-          </button>
+            <Dialog open={isCreateDialogOpen} onOpenChange={setCreateDialogOpen}>
+              <DialogTrigger asChild>
+                <button className="mt-6 flex items-center justify-center gap-2 rounded-full bg-blue-500 p-4 text-white w-14 h-14 self-start">
+                  <Plus className="h-6 w-6" />
+                </button>
+              </DialogTrigger>
+            </Dialog>
         </div>
 
         {/* Calendar View */}
@@ -486,7 +573,7 @@ export default function CalendarPage() {
                         return (
                           <div
                             key={i}
-                            className={`absolute ${event.color} rounded-md p-2 text-white text-xs shadow-md cursor-pointer transition-all duration-200 ease-in-out hover:translate-y-[-2px] hover:shadow-lg`}
+                            className={`absolute ${eventTypes[event.type]} rounded-md p-2 text-white text-xs shadow-md cursor-pointer transition-all duration-200 ease-in-out hover:translate-y-[-2px] hover:shadow-lg`}
                             style={{
                               ...eventStyle,
                               left: "4px",
@@ -575,7 +662,7 @@ export default function CalendarPage() {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className={cn(`${selectedEvent.color}`, "p-6 rounded-lg shadow-xl max-w-md w-full mx-4")}
+              className={cn(`${eventTypes[selectedEvent.type]}`, "p-6 rounded-lg shadow-xl max-w-md w-full mx-4")}
             >
               <h3 className="text-2xl font-bold mb-4 text-white">{selectedEvent.title}</h3>
               <div className="space-y-3 text-white">
