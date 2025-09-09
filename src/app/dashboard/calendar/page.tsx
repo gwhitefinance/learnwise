@@ -335,16 +335,15 @@ export default function CalendarPage() {
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-white">
       {/* Audio Element */}
-      <audio ref={audioRef} src="https://actions.google.com/sounds/v1/ambiences/coffee_shop.ogg" loop />
+      <audio ref={audioRef} src="https://actions.google.com/sounds/v1/cinematic/dramatic_reveal.ogg" loop />
 
       {/* Background Image */}
       {backgroundImage ? (
         <Image
             src={backgroundImage}
             alt="Custom background"
-            layout="fill"
-            objectFit="cover"
-            className="z-0"
+            fill
+            className="object-cover z-0"
         />
       ) : <div className="absolute inset-0 z-0 bg-white"></div>}
 
@@ -652,4 +651,5 @@ export default function CalendarPage() {
   )
 }
 
+    
     
