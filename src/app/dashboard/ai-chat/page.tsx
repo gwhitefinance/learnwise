@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Send, User, Bot, Plus, MessageSquare, Trash2, Edit, X, Check, Home } from "lucide-react";
 import { studyPlannerFlow } from '@/ai/flows/study-planner-flow';
+import { generateChatTitle } from '@/ai/flows/chat-title-flow';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -27,6 +28,7 @@ interface ChatSession {
     messages: Message[];
     timestamp: number;
     courseContext?: string;
+    titleGenerated?: boolean;
 }
 
 type Course = {
@@ -65,7 +67,6 @@ export default function AiChatPage() {
   const [learnerType, setLearnerType] = useState<string | null>(null);
   const { toast } = useToast();
   const searchParams = useSearchParams();
-  const courseId = searchParams.get('courseId');
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
@@ -81,21 +82,15 @@ export default function AiChatPage() {
     const savedSessions = localStorage.getItem('chatSessions');
     if (savedSessions) {
         setSessions(JSON.parse(savedSessions));
-    } else {
-        createNewSession();
     }
     
-    const lastActiveId = localStorage.getItem('activeChatSessionId');
-    if(lastActiveId && sessions.find(s => s.id === lastActiveId)) {
-        setActiveSessionId(lastActiveId);
-    } else if (sessions.length > 0) {
-        setActiveSessionId(sessions[0].id);
-    }
+    createNewSession();
 
   }, []);
 
   useEffect(() => {
-    if (sessions.length > 0) {
+    // Prevent saving empty initial session
+    if (sessions.length > 0 && sessions.some(s => s.messages.length > 1)) {
         localStorage.setItem('chatSessions', JSON.stringify(sessions));
     }
      if (activeSessionId) {
@@ -142,9 +137,10 @@ export default function AiChatPage() {
         messages: [{ role: 'ai', content: initialMessage }],
         timestamp: Date.now(),
         courseContext,
+        titleGenerated: courseIdParam ? true : false,
     };
 
-    setSessions(prev => [newSession, ...prev]);
+    setSessions(prev => [newSession, ...prev.filter(s => s.messages.length > 1)]);
     setActiveSessionId(newSessionId);
   }
 
@@ -177,7 +173,7 @@ export default function AiChatPage() {
           id: String(e.id),
           date: new Date(e.date).toISOString(),
           title: e.title,
-          time: e.time || e.startTime || 'All day',
+          time: e.startTime || e.time || 'All day',
           type: e.type,
           description: e.description,
       }));
@@ -190,7 +186,14 @@ export default function AiChatPage() {
       });
 
       const aiMessage: Message = { role: 'ai', content: response };
-      setSessions(prev => prev.map(s => s.id === activeSessionId ? { ...s, messages: [...updatedMessages, aiMessage] } : s));
+      const finalMessages = [...updatedMessages, aiMessage];
+      setSessions(prev => prev.map(s => s.id === activeSessionId ? { ...s, messages: finalMessages } : s));
+
+      // Auto-generate title after the first user message
+      if (!activeSession.titleGenerated && activeSession.messages.length <= 2) {
+          const { title } = await generateChatTitle({ messages: finalMessages });
+          setSessions(prev => prev.map(s => s.id === activeSessionId ? { ...s, title, titleGenerated: true } : s));
+      }
 
     } catch (error) {
       console.error(error);
@@ -230,6 +233,10 @@ export default function AiChatPage() {
             createNewSession();
         }
     }
+    // Remove from local storage if it's the last session
+    if(updatedSessions.length === 0) {
+        localStorage.removeItem('chatSessions');
+    }
     toast({ title: 'Chat deleted.' });
   }
 
@@ -248,7 +255,7 @@ export default function AiChatPage() {
             </div>
             <ScrollArea className="flex-1">
                 <div className="p-2 space-y-1">
-                    {sessions.map(session => (
+                    {sessions.filter(s => s.messages.length > 1).map(session => (
                          <div key={session.id} className="relative group">
                             <button
                                 onClick={() => setActiveSessionId(session.id)}
@@ -357,7 +364,7 @@ export default function AiChatPage() {
                     onKeyDown={(e) => e.key === 'Enter' && !isLoading && handleSendMessage()}
                     disabled={isLoading}
                 />
-                <Button className="absolute right-1 top-1/2 -translate-y-1/2 rounded-full" onClick={handleSendMessage} disabled={isLoading}>
+                <Button className="absolute right-1 top-1/2 -translate-y-1/2 rounded-full" onClick={handleSendMessage} disabled={isLoading || !activeSessionId}>
                     Send <Send className="ml-2 h-4 w-4" />
                 </Button>
                 </div>
