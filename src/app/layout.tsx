@@ -1,31 +1,23 @@
+import type React from "react"
+import type { Metadata } from "next"
+import { Inter } from "next/font/google"
+import "./globals.css"
 
-import type { Metadata } from "next";
-import { GeistSans } from "geist/font/sans";
-import { GeistMono } from "geist/font/mono";
-import { Analytics } from "@vercel/analytics/next";
-import { Suspense } from "react";
-import "./globals.css";
+const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "LearnWise",
-  description: "Your AI-Powered Study Partner",
-};
+  title: "Lovy-tech | Smart Glasses OS",
+  description: "Advanced e-OS system for smart glasses with real-time performance tracking",
+}
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className="light">
-      <head>
-        <style>{`
-        `}</style>
-      </head>
-      <body className={`${GeistSans.variable} ${GeistMono.variable} font-sans`}>
-        <Suspense fallback={null}>{children}</Suspense>
-        <Analytics />
-      </body>
+    <html lang="en">
+      <body className={inter.className}>{children}</body>
     </html>
-  );
+  )
 }
