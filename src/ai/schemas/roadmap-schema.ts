@@ -11,7 +11,7 @@ export const GenerateRoadmapInputSchema = z.object({
   currentDate: z.string().optional().describe("The current date in YYYY-MM-DD format to use as a starting point."),
   webContent: z.string().optional().describe("The text content scraped from the course URL.")
 });
-export type GenerateRoadmapInput = z.infer<typeof GenerateRoadband.md>;
+export type GenerateRoadmapInput = z.infer<typeof GenerateRoadmapInputSchema>;
 
 const GoalSchema = z.object({
     title: z.string(),

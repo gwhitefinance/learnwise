@@ -121,7 +121,7 @@ export default function RoadmapsPage() {
 
             const newRoadmap: Roadmap = {
                 goals: response.goals.map(g => ({ ...g, id: crypto.randomUUID(), icon: g.icon as keyof typeof LucideIcons || 'Flag' })),
-                milestones: response.milestones.map(m => ({ ...m, id: crypto.randomUUID(), description: m.title, icon: m.icon as keyof typeof LucideIcons || 'CalendarIcon', completed: new Date(m.date) < new Date() }))
+                milestones: response.milestones.map(m => ({ ...m, id: crypto.randomUUID(), icon: m.icon as keyof typeof LucideIcons || 'Calendar', completed: new Date(m.date) < new Date() }))
             };
             
             const updatedRoadmaps = { ...roadmaps, [course.id]: newRoadmap };
@@ -176,8 +176,8 @@ export default function RoadmapsPage() {
                 title: currentItemTitle,
                 description: currentItemDesc,
                 date: currentItemDate ? currentItemDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-                icon: 'CalendarIcon',
-                completed: false
+                icon: 'Calendar',
+                completed: (editingItem as Milestone)?.completed ?? false,
             };
             if (editingItem) {
                 updatedRoadmap.milestones = updatedRoadmap.milestones.map(m => m.id === newMilestone.id ? newMilestone : m);
@@ -314,7 +314,7 @@ export default function RoadmapsPage() {
                                         <div className="flex items-start gap-6"><Skeleton className="h-8 w-8 rounded-full"/><div className="space-y-2"><Skeleton className="h-4 w-48"/><Skeleton className="h-4 w-32"/></div></div>
                                     </div>
                                  ) : roadmap?.milestones.map((milestone, index) => {
-                                     const MilestoneIcon = getIcon(milestone.icon, 'CalendarIcon');
+                                     const MilestoneIcon = getIcon(milestone.icon, 'Calendar');
                                      const isCompleted = new Date(milestone.date) < new Date();
                                      return (
                                         <div key={index} className="relative flex items-start gap-6 mb-8 group">
@@ -324,6 +324,7 @@ export default function RoadmapsPage() {
                                             <div className="flex-1">
                                                 <p className="text-sm text-muted-foreground">{new Date(milestone.date).toLocaleDateString('en-US', { timeZone: 'UTC', month: 'long', day: 'numeric', year: 'numeric' })}</p>
                                                 <h3 className="font-semibold text-lg">{milestone.title}</h3>
+                                                <p className="text-muted-foreground text-sm">{milestone.description}</p>
                                             </div>
                                              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openItemDialog('milestone', milestone)}><Edit className="h-4 w-4"/></Button>
