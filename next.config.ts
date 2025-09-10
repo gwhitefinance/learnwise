@@ -4,7 +4,6 @@ import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
   /* config options here */
-  transpilePackages: ['@splinetool/react-spline'],
   images: {
     remotePatterns: [
       {
@@ -87,6 +86,12 @@ const nextConfig: NextConfig = {
       }
     ],
   },
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+        config.externals.push('handlebars');
+    }
+    return config;
+  }
 };
 
 export default nextConfig;
