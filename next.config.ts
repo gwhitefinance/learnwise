@@ -1,4 +1,5 @@
 
+
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
@@ -91,7 +92,6 @@ const nextConfig: NextConfig = {
       }
     ],
   },
-  serverComponentsExternalPackages: ['framer-motion'],
 };
 
 export default nextConfig;

@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
@@ -7,8 +8,10 @@ import { Button } from '@/components/ui/button';
 import { Eraser, Palette, Brush } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Slider } from '@/components/ui/slider';
+import dynamic from 'next/dynamic';
 
-export default function WhiteboardPage() {
+
+function WhiteboardPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [color, setColor] = useState('#ffffff');
@@ -135,3 +138,5 @@ export default function WhiteboardPage() {
     </div>
   );
 }
+
+export default dynamic(() => Promise.resolve(WhiteboardPage), { ssr: false });

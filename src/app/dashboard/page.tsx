@@ -53,7 +53,7 @@ import { format } from 'date-fns';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { collection, query, where, onSnapshot, addDoc } from 'firebase/firestore';
-import Joyride, { Step, CallBackProps } from 'react-joyride';
+import type { Step } from 'react-joyride';
 import { Skeleton } from '@/components/ui/skeleton';
 import dynamic from 'next/dynamic';
 
@@ -149,7 +149,7 @@ import dynamic from 'next/dynamic';
 
 const DynamicJoyride = dynamic(() => import('react-joyride'), { ssr: false });
 
-export default function DashboardPage() {
+function DashboardPage() {
     const [courses, setCourses] = useState<Course[]>([]);
     const [isDataLoading, setIsDataLoading] = useState(true);
     const [projects, setProjects] = useState<Project[]>([]);
@@ -239,7 +239,7 @@ export default function DashboardPage() {
         return () => unsubscribe();
     }, [user]);
 
-    const handleTourCallback = (data: CallBackProps) => {
+    const handleTourCallback = (data: any) => {
         const { status } = data;
         if ((status as any) === 'finished' || (status as any) === 'skipped') {
             setRunTour(false);
@@ -434,23 +434,9 @@ export default function DashboardPage() {
                 spotlight: {
                     borderRadius: 'var(--radius)',
                 },
-                beacon: {
-                    width: 48,
-                    height: 48,
-                    border: '2px solid hsl(var(--primary))',
-                    backgroundColor: 'hsl(var(--primary) / 0.2)',
-                    animation: 'joyride-beacon-pulse 2s infinite',
-                }
             }}
         />
-         <style jsx global>{`
-            @keyframes joyride-beacon-pulse {
-                0% { box-shadow: 0 0 0 0 hsl(var(--primary) / 0.4); }
-                70% { box-shadow: 0 0 0 20px hsl(var(--primary) / 0); }
-                100% { box-shadow: 0 0 0 0 hsl(var(--primary) / 0); }
-            }
-        `}</style>
-
+        
         <Tabs defaultValue="home" id="main-tabs">
             <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <TabsList className="grid w-full max-w-[750px] grid-cols-6 rounded-2xl p-1">
@@ -932,3 +918,6 @@ export default function DashboardPage() {
     </div>
   )
 }
+
+
+export default dynamic(() => Promise.resolve(DashboardPage), { ssr: false });

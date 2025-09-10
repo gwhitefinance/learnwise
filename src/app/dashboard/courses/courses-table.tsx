@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -16,6 +17,7 @@ import { auth, db } from '@/lib/firebase';
 import { collection, addDoc, query, where, onSnapshot, deleteDoc, doc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
+import dynamic from 'next/dynamic';
 
 
 type Course = {
@@ -27,7 +29,7 @@ type Course = {
     userId?: string;
 };
 
-export default function CoursesTable({ initialCourses }: { initialCourses: Course[] }) {
+function CoursesTable({ initialCourses }: { initialCourses: Course[] }) {
     const [courses, setCourses] = useState<Course[]>(initialCourses);
     const [isAddCourseOpen, setAddCourseOpen] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
@@ -263,3 +265,6 @@ function LoadingSkeleton() {
         </div>
     );
 }
+
+
+export default dynamic(() => Promise.resolve(CoursesTable), { ssr: false });

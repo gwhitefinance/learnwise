@@ -10,6 +10,8 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import Link from 'next/link';
 import { Pause, Play } from 'lucide-react';
+import dynamic from 'next/dynamic';
+
 
 const classicalPlaylist = [
     "https://cdn.pixabay.com/audio/2024/05/25/audio_24944d1835.mp3", // Emotional Cinematic Music
@@ -19,7 +21,7 @@ const classicalPlaylist = [
     "https://cdn.pixabay.com/audio/2024/02/08/audio_17316a1c89.mp3", // The Last Piano
 ];
 
-export default function AnalysisPage() {
+function AnalysisPage() {
   const [learnerType, setLearnerType] = useState('Visual');
   const [complexity, setComplexity] = useState('Medium');
   const [studyTime, setStudyTime] = useState('4 hours');
@@ -39,25 +41,27 @@ export default function AnalysisPage() {
   }, []);
   
   useEffect(() => {
-    if (!audioRef.current) {
-        audioRef.current = new Audio();
-        audioRef.current.loop = true;
-    }
+    if (typeof window !== 'undefined') {
+        if (!audioRef.current) {
+            audioRef.current = new Audio();
+            audioRef.current.loop = true;
+        }
 
-    if (isFocusMode) {
-      if (!audioRef.current.src) {
-        const randomSong = classicalPlaylist[Math.floor(Math.random() * classicalPlaylist.length)];
-        audioRef.current.src = randomSong;
-      }
-      audioRef.current.play();
-      setIsPlaying(true);
-    } else {
-      audioRef.current.pause();
-      setIsPlaying(false);
-    }
+        if (isFocusMode) {
+          if (!audioRef.current.src) {
+            const randomSong = classicalPlaylist[Math.floor(Math.random() * classicalPlaylist.length)];
+            audioRef.current.src = randomSong;
+          }
+          audioRef.current.play();
+          setIsPlaying(true);
+        } else {
+          audioRef.current.pause();
+          setIsPlaying(false);
+        }
 
-    return () => {
-      audioRef.current?.pause();
+        return () => {
+          audioRef.current?.pause();
+        }
     }
   }, [isFocusMode]);
 
@@ -66,7 +70,7 @@ export default function AnalysisPage() {
       if (isPlaying) {
         audioRef.current.pause();
       } else {
-        audio_ref.current.play();
+        audioRef.current.play();
       }
       setIsPlaying(!isPlaying);
     }
@@ -191,3 +195,6 @@ export default function AnalysisPage() {
     </div>
   );
 }
+
+
+export default dynamic(() => Promise.resolve(AnalysisPage), { ssr: false });

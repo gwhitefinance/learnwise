@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect, useRef, ChangeEvent } from "react";
@@ -35,6 +36,7 @@ import { useAuthState } from "react-firebase-hooks/auth";
 import { auth, db } from "@/lib/firebase";
 import { collection, addDoc, query, where, getDocs, deleteDoc, doc, updateDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 
 
 type Event = {
@@ -82,7 +84,7 @@ const classicalPlaylist = [
 
 
 
-export default function CalendarPage() {
+function CalendarPage() {
   const [isLoaded, setIsLoaded] = useState(false)
   const [showAIPopup, setShowAIPopup] = useState(false)
   const [typedText, setTypedText] = useState("")
@@ -868,3 +870,5 @@ export default function CalendarPage() {
     </div>
   )
 }
+
+export default dynamic(() => Promise.resolve(CalendarPage), { ssr: false });
