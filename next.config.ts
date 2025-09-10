@@ -91,6 +91,7 @@ const nextConfig: NextConfig = {
       }
     ],
   },
+  serverComponentsExternalPackages: ['framer-motion'],
 };
 
 export default nextConfig;

@@ -55,6 +55,7 @@ import { auth, db } from '@/lib/firebase';
 import { collection, query, where, onSnapshot, addDoc } from 'firebase/firestore';
 import Joyride, { Step, CallBackProps } from 'react-joyride';
 import { Skeleton } from '@/components/ui/skeleton';
+import dynamic from 'next/dynamic';
 
 
   type Course = {
@@ -145,6 +146,8 @@ import { Skeleton } from '@/components/ui/skeleton';
         description: "Track coding projects alongside your coursework.",
     },
 ];
+
+const DynamicJoyride = dynamic(() => import('react-joyride'), { ssr: false });
 
 export default function DashboardPage() {
     const [courses, setCourses] = useState<Course[]>([]);
@@ -392,7 +395,7 @@ export default function DashboardPage() {
    
   return (
     <div className="space-y-8 mt-0">
-        <Joyride
+        <DynamicJoyride
             continuous
             run={runTour}
             steps={tourSteps}

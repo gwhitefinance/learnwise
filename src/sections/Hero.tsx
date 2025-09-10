@@ -4,8 +4,10 @@
 import { ArrowRight, CheckCircle } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import SplineScene from "@/components/ui/spline-scene";
+import dynamic from "next/dynamic";
 import Link from "next/link";
+
+const SplineScene = dynamic(() => import('@/components/ui/spline-scene'), { ssr: false });
 
 export default function Hero() {
   return (
