@@ -197,4 +197,4 @@ function AnalysisPage() {
 }
 
 
-export default dynamic(() => Promise.resolve(AnalysisPage), { ssr: false });
+export default AnalysisPage;

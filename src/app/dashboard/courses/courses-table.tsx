@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -266,5 +265,6 @@ function LoadingSkeleton() {
     );
 }
 
+const CoursesTableComponent = dynamic(() => Promise.resolve(CoursesTable), { ssr: false });
 
-export default dynamic(() => Promise.resolve(CoursesTable), { ssr: false });
+export default CoursesTableComponent;
