@@ -53,7 +53,6 @@ import { format } from 'date-fns';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { collection, query, where, onSnapshot, addDoc } from 'firebase/firestore';
-import type { Step } from 'react-joyride';
 import { Skeleton } from '@/components/ui/skeleton';
 import dynamic from 'next/dynamic';
 
@@ -147,8 +146,6 @@ import dynamic from 'next/dynamic';
     },
 ];
 
-const DynamicJoyride = dynamic(() => import('react-joyride'), { ssr: false });
-
 function DashboardPage() {
     const [courses, setCourses] = useState<Course[]>([]);
     const [isDataLoading, setIsDataLoading] = useState(true);
@@ -165,46 +162,6 @@ function DashboardPage() {
     const [newProject, setNewProject] = useState({ name: '', course: '', dueDate: new Date() as Date | undefined });
     const [streak, setStreak] = useState(0);
     const [user] = useAuthState(auth);
-    const [runTour, setRunTour] = useState(false);
-
-    const tourSteps: Step[] = [
-        {
-            target: '#welcome-banner',
-            content: 'Welcome to your LearnWise dashboard! This is your central hub for managing your studies.',
-            placement: 'bottom',
-        },
-        {
-            target: '#main-tabs',
-            content: 'Use these tabs to navigate between your main workspace, apps, files, and more.',
-            placement: 'bottom'
-        },
-        {
-            target: '#apps-tab-trigger',
-            content: 'Switch to the "Apps" tab to access powerful AI study tools like AI Chat and Practice Quizzes.',
-            placement: 'bottom',
-        },
-        {
-            target: '#ai-chat-app',
-            content: 'Our AI Chat is like having a personal tutor available 24/7. Ask it anything about your courses!',
-        },
-        {
-            target: '#active-courses',
-            content: 'Your active courses will appear here. Add a course to get started using the "New Course" button.',
-        },
-        {
-            target: "#upload-materials-button",
-            content: "Upload your notes, documents, or syllabus here. The AI will analyze them to create personalized study aids."
-        },
-        {
-            target: 'button[aria-label="Toggle Sidebar"]',
-            content: "You can toggle this sidebar to access all your tools. Here you can manage your Courses, view your Calendar, or take Notes."
-        },
-        {
-            target: '#home-tab-trigger',
-            content: "You've completed the tour! You can always restart it from the welcome banner.",
-            placement: 'bottom',
-        }
-    ];
 
      useEffect(() => {
         if (!user) return;
@@ -238,13 +195,6 @@ function DashboardPage() {
         
         return () => unsubscribe();
     }, [user]);
-
-    const handleTourCallback = (data: any) => {
-        const { status } = data;
-        if ((status as any) === 'finished' || (status as any) === 'skipped') {
-            setRunTour(false);
-        }
-    };
 
     const handleProjectInputChange = (field: string, value: string | Date | undefined) => {
         setNewProject(prev => ({ ...prev, [field]: value }));
@@ -395,47 +345,6 @@ function DashboardPage() {
    
   return (
     <div className="space-y-8 mt-0">
-        <DynamicJoyride
-            continuous
-            run={runTour}
-            steps={tourSteps}
-            showProgress
-            showSkipButton
-            callback={handleTourCallback}
-            styles={{
-                options: {
-                    arrowColor: 'hsl(var(--card))',
-                    backgroundColor: 'hsl(var(--card))',
-                    primaryColor: 'hsl(var(--primary))',
-                    textColor: 'hsl(var(--card-foreground))',
-                    zIndex: 1000,
-                },
-                 buttonClose: {
-                    display: 'none',
-                },
-                buttonNext: {
-                    backgroundColor: 'hsl(var(--primary))',
-                    borderRadius: 'var(--radius)',
-                    color: 'hsl(var(--primary-foreground))',
-                    padding: '0.75rem 1.5rem',
-                },
-                buttonBack: {
-                     color: 'hsl(var(--foreground))',
-                     padding: '0.75rem 1.5rem',
-                },
-                buttonSkip: {
-                    color: 'hsl(var(--muted-foreground))',
-                },
-                tooltip: {
-                    borderRadius: 'var(--radius)',
-                    padding: '1.5rem',
-                    boxShadow: '0 10px 25px -5px rgb(0 0 0 / 0.2), 0 8px 10px -6px rgb(0 0 0 / 0.2)',
-                },
-                spotlight: {
-                    borderRadius: 'var(--radius)',
-                },
-            }}
-        />
         
         <Tabs defaultValue="home" id="main-tabs">
             <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -570,13 +479,6 @@ function DashboardPage() {
                                     Start a Chat
                                 </Button>
                             </Link>
-                            <Button
-                                variant="outline"
-                                className="rounded-2xl bg-transparent border-white text-white hover:bg-white/10"
-                                onClick={() => setRunTour(true)}
-                            >
-                                Take a Tour
-                            </Button>
                             </div>
                         </div>
                         <div className="hidden lg:block">

@@ -1,0 +1,53 @@
+patch-package
+--- a/node_modules/react-joyride/dist/index.mjs
++++ b/node_modules/react-joyride/dist/index.mjs
+@@ -1,8 +1,7 @@
+-import ReactDOM from 'react-dom';
++import { createRoot } from 'react-dom/client';
+ import React from 'react';
+-import { findDOMNode } from 'react-dom';
+ import PropTypes from 'prop-types';
+ import Floater from 'react-floater';
+ import { canUseDOM, isMobile } from 'fbjs/lib/ExecutionEnvironment';
+@@ -21,7 +20,8 @@
+     };
+ 
+     this.renderBeacon = () => {
+-      ReactDOM.unstable_renderSubtreeIntoContainer(this, this.beacon, this.beaconPortal, () => {
++      const root = createRoot(this.beaconPortal);
++      root.render(this.beacon, () => {
+         const {
+           beaconComponent
+         } = this.props;
+@@ -35,8 +35,8 @@
+     };
+ 
+     this.renderTooltip = () => {
+-      ReactDOM.unstable_renderSubtreeIntoContainer(this, this.tooltip, this.tooltipPortal, function () {
+-        const {
++      const root = createRoot(this.tooltipPortal);
++      root.render(this.tooltip, () => {
++         const {
+           debug
+         } = this.props;
+ 
+@@ -58,7 +58,8 @@
+       }
+ 
+       if (this.beaconPortal) {
+-        ReactDOM.unmountComponentAtNode(this.beaconPortal);
++        const root = createRoot(this.beaconPortal);
++        root.unmount();
+         this.beaconPortal.remove();
+         this.beaconPortal = null;
+       }
+@@ -75,7 +76,8 @@
+       }
+ 
+       if (this.tooltipPortal) {
+-        ReactDOM.unmountComponentAtNode(this.tooltipPortal);
++        const root = createRoot(this.tooltipPortal);
++        root.unmount();
+         this.tooltipPortal.remove();
+         this.tooltipPortal = null;
+       }
