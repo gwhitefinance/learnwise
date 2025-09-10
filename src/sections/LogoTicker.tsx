@@ -33,17 +33,17 @@ const universities = [
     },
     {
         name: "Caltech",
-        src: "https://upload.wikimedia.org/wikipedia/en/thumb/c/c2/California_Institute_of_Technology_seal.svg/1200px-California_Institute_of_Technology_seal.svg.png",
+        src: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Caltech_logo.svg/1200px-Caltech_logo.svg.png",
         hint: "science seal"
     },
     {
         name: "ETH Zurich",
-        src: "https://upload.wikimedia.org/wikipedia/en/thumb/4/49/ETH_Zurich_logo.svg/1200px-ETH_Zurich_logo.svg.png",
+        src: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/ETH_Zurich_Logo_black.svg/1200px-ETH_Zurich_Logo_black.svg.png",
         hint: "swiss university"
     },
     {
         name: "UCL",
-        src: "https://upload.wikimedia.org/wikipedia/en/thumb/0/01/University_College_London_logo.svg/1200px-University_College_London_logo.svg.png",
+        src: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/01/University_College_London_logo.svg/1200px-University_College_London_logo.svg.png",
         hint: "london university"
     },
 ];
