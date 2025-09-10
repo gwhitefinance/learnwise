@@ -122,7 +122,7 @@ export default function CoursesTable({ initialCourses }: { initialCourses: Cours
         }
     };
 
-    if (authLoading) {
+    if (authLoading || isDataLoading) {
         return <LoadingSkeleton />;
     }
 
@@ -180,16 +180,7 @@ export default function CoursesTable({ initialCourses }: { initialCourses: Cours
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isDataLoading ? (
-                Array.from({length: 3}).map((_, i) => (
-                    <TableRow key={i}>
-                        <TableCell><Skeleton className="h-5 w-3/4" /></TableCell>
-                        <TableCell><Skeleton className="h-5 w-1/2" /></TableCell>
-                        <TableCell><Skeleton className="h-5 w-1/4" /></TableCell>
-                        <TableCell className="text-right space-x-2"><Skeleton className="h-8 w-8 inline-block" /><Skeleton className="h-8 w-8 inline-block" /></TableCell>
-                    </TableRow>
-                ))
-              ) : courses.map((course) => (
+              {courses.map((course) => (
                 <TableRow key={course.id}>
                   <TableCell>
                     <div className="flex items-center gap-2">
@@ -222,7 +213,7 @@ export default function CoursesTable({ initialCourses }: { initialCourses: Cours
               ))}
             </TableBody>
           </Table>
-            {!isDataLoading && courses.length === 0 && (
+            {courses.length === 0 && (
                 <div className="text-center p-8 text-muted-foreground">
                     You haven't added any courses yet. Click "Add Course" to get started.
                 </div>
