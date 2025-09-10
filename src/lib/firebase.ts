@@ -7,13 +7,13 @@ import { getMessaging, isSupported } from "firebase/messaging";
 // DO NOT USE process.env HERE
 // Directly hardcode the configuration values.
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID",
-  measurementId: "YOUR_MEASUREMENT_ID"
+  apiKey: "AIzaSyC8nFez_Ye_qT0kVxEYK7uhGB6oQRbRfU0",
+  authDomain: "learnwise-r6us0.firebaseapp.com",
+  projectId: "learnwise-r6us0",
+  storageBucket: "learnwise-r6us0.firebasestorage.app",
+  messagingSenderId: "224206262515",
+  appId: "1:224206262515:web:d5960f2bc62f97be5ba786",
+  measurementId: "G-E68DBM3BDM"
 };
 
 
