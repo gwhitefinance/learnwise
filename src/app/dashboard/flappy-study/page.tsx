@@ -11,8 +11,8 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
-import { generateGameQuestion } from '@/ai/flows/game-quiz-flow';
-import type { GameQuestion } from '@/ai/schemas/game-quiz-schema';
+import { generateQuiz } from '@/ai/flows/quiz-flow';
+import type { GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
 import { cn } from '@/lib/utils';
 import dynamic from 'next/dynamic';
 
@@ -22,6 +22,8 @@ type Course = {
     description: string;
     userId?: string;
 };
+
+type Question = GenerateQuizOutput['questions'][0];
 
 // Game constants
 const BIRD_SIZE = 40;
@@ -38,7 +40,7 @@ const FlappyStudyPage = () => {
     const [gameStarted, setGameStarted] = useState(false);
     const [gameOver, setGameOver] = useState(false);
     const [score, setScore] = useState(0);
-    const [question, setQuestion] = useState<GameQuestion | null>(null);
+    const [question, setQuestion] = useState<Question | null>(null);
     const [isQuestionLoading, setIsQuestionLoading] = useState(false);
     const [isQuestionModalOpen, setIsQuestionModalOpen] = useState(false);
     const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
@@ -49,7 +51,7 @@ const FlappyStudyPage = () => {
     // Game state refs
     const birdY = useRef(300);
     const birdVelocity = useRef(0);
-    const pipes = useRef<{x: number, y: number}[]>([]);
+    const pipes = useRef<{x: number, y: number, passed?: boolean}[]>([]);
     const frameCount = useRef(0);
     const gameLoopRef = useRef<number>();
 
@@ -75,8 +77,17 @@ const FlappyStudyPage = () => {
 
         setIsQuestionLoading(true);
         try {
-            const result = await generateGameQuestion({ topic: course.name });
-            setQuestion(result);
+            const result = await generateQuiz({ 
+                topics: course.name,
+                questionType: 'Multiple Choice',
+                difficulty: 'Medium',
+                numQuestions: 1,
+            });
+            if (result.questions && result.questions.length > 0) {
+                 setQuestion(result.questions[0]);
+            } else {
+                throw new Error("No questions were generated.");
+            }
         } catch (error) {
             console.error("Failed to generate question:", error);
             toast({ variant: 'destructive', title: 'Could not fetch a question.' });
@@ -108,6 +119,14 @@ const FlappyStudyPage = () => {
         ctx.fillText(`Score: ${score}`, 20, 40);
 
     }, [score]);
+
+    const endRound = () => {
+        if (gameLoopRef.current) {
+            cancelAnimationFrame(gameLoopRef.current);
+        }
+        setIsQuestionModalOpen(true);
+        getNewQuestion();
+    };
 
     const gameLoop = useCallback(() => {
         const canvas = canvasRef.current;
@@ -159,15 +178,6 @@ const FlappyStudyPage = () => {
         gameLoopRef.current = requestAnimationFrame(gameLoop);
     }, [draw]);
     
-    const endRound = () => {
-        if (gameLoopRef.current) {
-            cancelAnimationFrame(gameLoopRef.current);
-        }
-        setIsQuestionModalOpen(true);
-        getNewQuestion();
-    };
-
-
     const handleFlap = useCallback(() => {
         if (!gameOver && gameStarted) {
             birdVelocity.current = FLAP_STRENGTH;
@@ -207,7 +217,7 @@ const FlappyStudyPage = () => {
     };
     
     const handleAnswerSubmit = () => {
-        if (!question || !selectedAnswer) return;
+        if (!question || !selectedAnswer || !question.options) return;
 
         const isCorrect = selectedAnswer === question.answer;
         setIsQuestionModalOpen(false);
@@ -273,7 +283,7 @@ const FlappyStudyPage = () => {
                             <p className="font-semibold text-lg mb-4">{question.question}</p>
                             <RadioGroup value={selectedAnswer ?? ''} onValueChange={setSelectedAnswer}>
                                 <div className="space-y-2">
-                                    {question.options.map((option, index) => (
+                                    {question.options?.map((option, index) => (
                                          <Label key={index} htmlFor={`option-${index}`} className={cn(
                                             "flex items-center gap-4 p-3 rounded-lg border transition-all cursor-pointer",
                                             selectedAnswer === option ? "border-primary bg-primary/10" : "border-border hover:bg-muted",
@@ -296,6 +306,5 @@ const FlappyStudyPage = () => {
 };
 
 export default dynamic(() => Promise.resolve(FlappyStudyPage), { ssr: false });
-
 
     
