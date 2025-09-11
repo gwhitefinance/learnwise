@@ -20,6 +20,7 @@ import { generateExplanation } from '@/ai/flows/quiz-explanation-flow';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Slider } from '@/components/ui/slider';
+import AudioPlayer from '@/components/audio-player';
 
 
 const suggestedTopics = ["Mathematics", "Science", "History", "Literature", "Computer Science"];
@@ -359,7 +360,10 @@ export default function PracticeQuizPage() {
                                 {isExplanationLoading ? (
                                     <p className="animate-pulse text-muted-foreground mt-2">Generating personalized feedback...</p>
                                 ) : (
-                                    <p className="text-muted-foreground mt-2">{explanation}</p>
+                                    <div className="text-muted-foreground mt-2">
+                                        {explanation && <AudioPlayer textToPlay={explanation} />}
+                                        <p>{explanation}</p>
+                                    </div>
                                 )}
                             </div>
                         </div>

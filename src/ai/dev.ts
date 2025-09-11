@@ -12,8 +12,10 @@ import './flows/module-quiz-flow';
 import './flows/module-flashcard-flow';
 import './flows/chat-title-flow';
 import './flows/image-tutoring-flow';
+import './flows/text-to-speech-flow';
 import './tools/course-tool';
 import './tools/web-scraper-tool';
+
 
 
 

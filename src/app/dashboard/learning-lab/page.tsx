@@ -16,13 +16,13 @@ import { generateQuizFromModule } from '@/ai/flows/module-quiz-flow';
 import { generateFlashcardsFromModule } from '@/ai/flows/module-flashcard-flow';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
 import { cn } from '@/lib/utils';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import AudioPlayer from '@/components/audio-player';
 
 
 type Course = {
@@ -316,10 +316,16 @@ export default function LearningLabPage() {
                             </CardHeader>
                             <CardContent>
                                 <div className="space-y-6">
-                                     <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">{currentChapter.content}</p>
+                                     <div className="text-muted-foreground whitespace-pre-wrap leading-relaxed">
+                                        <AudioPlayer textToPlay={currentChapter.content} />
+                                        <p>{currentChapter.content}</p>
+                                     </div>
                                     <div className="p-4 bg-amber-500/10 rounded-lg border border-amber-500/20">
                                         <h5 className="font-semibold flex items-center gap-2 text-amber-700 text-sm"><Lightbulb size={16}/> Suggested Activity</h5>
-                                        <p className="text-muted-foreground mt-1 text-sm">{currentChapter.activity}</p>
+                                        <div className="text-muted-foreground mt-1 text-sm">
+                                            <AudioPlayer textToPlay={currentChapter.activity} />
+                                            <p>{currentChapter.activity}</p>
+                                        </div>
                                     </div>
                                     
                                      {isLastChapterInModule && (
@@ -471,9 +477,12 @@ export default function LearningLabPage() {
                                     className="absolute w-full h-full p-6 flex items-center justify-center text-center rounded-lg border bg-card text-card-foreground shadow-sm"
                                     style={{ backfaceVisibility: 'hidden' }}
                                 >
+                                  <div>
+                                    <AudioPlayer textToPlay={isFlipped ? flashcards[currentFlashcardIndex].back : flashcards[currentFlashcardIndex].front} />
                                     <p className="text-xl font-semibold">
                                         {isFlipped ? flashcards[currentFlashcardIndex].back : flashcards[currentFlashcardIndex].front}
                                     </p>
+                                  </div>
                                 </motion.div>
                             </AnimatePresence>
                         </div>

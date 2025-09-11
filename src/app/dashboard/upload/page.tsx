@@ -21,6 +21,7 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { motion, AnimatePresence } from 'framer-motion';
+import AudioPlayer from '@/components/audio-player';
 
 type Flashcard = {
     front: string;
@@ -313,6 +314,7 @@ export default function UploadPage() {
                 <CardTitle>AI Analysis</CardTitle>
             </CardHeader>
             <CardContent>
+                <AudioPlayer textToPlay={summary} />
                 <p className="text-muted-foreground whitespace-pre-wrap">{summary}</p>
             </CardContent>
           </Card>
@@ -324,12 +326,14 @@ export default function UploadPage() {
                 <Card>
                     <CardHeader><CardTitle>Conceptual Explanation</CardTitle></CardHeader>
                     <CardContent>
+                        <AudioPlayer textToPlay={tutoringSession.conceptualExplanation} />
                         <p className="text-muted-foreground whitespace-pre-wrap">{tutoringSession.conceptualExplanation}</p>
                     </CardContent>
                 </Card>
                  <Card>
                     <CardHeader><CardTitle>Step-by-Step Walkthrough</CardTitle></CardHeader>
                     <CardContent>
+                        <AudioPlayer textToPlay={tutoringSession.stepByStepWalkthrough} />
                         <p className="text-muted-foreground whitespace-pre-wrap">{tutoringSession.stepByStepWalkthrough}</p>
                     </CardContent>
                 </Card>
@@ -380,6 +384,7 @@ export default function UploadPage() {
                  <Card className="bg-amber-500/10 border-amber-500/20">
                     <CardHeader><CardTitle className="text-amber-700">Personalized Advice</CardTitle></CardHeader>
                     <CardContent>
+                        <AudioPlayer textToPlay={tutoringSession.personalizedAdvice} />
                         <p className="text-muted-foreground">{tutoringSession.personalizedAdvice}</p>
                     </CardContent>
                 </Card>
@@ -421,9 +426,13 @@ export default function UploadPage() {
                                     className="absolute w-full h-full p-6 flex items-center justify-center text-center rounded-lg border bg-card text-card-foreground shadow-sm"
                                     style={{ backfaceVisibility: 'hidden' }}
                                 >
-                                    <p className="text-xl font-semibold">
-                                        {isFlipped ? flashcards[currentFlashcardIndex].back : flashcards[currentFlashcardIndex].front}
-                                    </p>
+                                    <div>
+                                        <AudioPlayer textToPlay={isFlipped ? flashcards[currentFlashcardIndex].back : flashcards[currentFlashcardIndex].front} />
+                                        <p className="text-xl font-semibold">
+                                            {isFlipped ? flashcards[currentFlashcardIndex].back : flashcards[currentFlashcardIndex].front}
+                                        </p>
+                                    </div>
+
                                 </motion.div>
                             </AnimatePresence>
                         </div>
