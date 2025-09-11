@@ -18,27 +18,26 @@ export default function Hero() {
             {/* Left content */}
             <div className="relative flex-1 p-8 z-10 flex flex-col justify-center overflow-hidden">
               <h1 className="text-4xl md:text-5xl font-bold text-white">
-                Results and Costs Reduced by AI
+                Your Personal AI-Powered Study Suite
               </h1>
               <p className="mt-4 text-neutral-300 max-w-lg">
-                We help businesses automate workflows, build intelligent chatbots, and integrate AI agents that work
-                24/7 to boost productivity and drive growth.
+                LearnWise transforms your notes and course materials into personalized study plans, quizzes, and flashcards. Stop cramming, start learning smarter.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 mt-8">
                 <Link href="/signup">
                   <Button size="lg" className="bg-white text-black hover:bg-gray-100">
-                    Sign Up
+                    Get Started Free
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </Link>
-                <a href="#integrations">
+                <a href="#features">
                   <Button
                     size="lg"
                     variant="outline"
                     className="border-neutral-600 text-neutral-300 hover:bg-neutral-800 bg-transparent"
                   >
-                    View Integrations
+                    Explore Features
                   </Button>
                 </a>
               </div>
@@ -46,11 +45,11 @@ export default function Hero() {
               <div className="flex items-center gap-8 text-sm text-neutral-400 mt-6">
                 <div className="flex items-center gap-2">
                   <CheckCircle className="h-4 w-4 text-green-400" />
-                  <span>No Setup Fees</span>
+                  <span>Free to get started</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle className="h-4 w-4 text-green-400" />
-                  <span>30-Day ROI Guarantee</span>
+                  <span>Works with any subject</span>
                 </div>
               </div>
             </div>

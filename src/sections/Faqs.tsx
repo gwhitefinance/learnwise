@@ -43,9 +43,9 @@ export default function Faqs() {
                 <div className="flex justify-center">
                     <Tag>Faqs</Tag>
                 </div>
-                <h2 className="text-6xl font-medium mt-6 text-center max-w-xl mx-auto">
+                <h2 className="text-6xl font-medium mt-6 text-center max-w-xl mx-auto text-white">
                     Questions? We've got{" "}
-                    <span className="text-lime-400">answers</span>
+                    <span className="text-blue-500">answers</span>
                 </h2>
 
                 <div className="mt-12 flex flex-col gap-6 max-w-xl mx-auto">
@@ -56,13 +56,13 @@ export default function Faqs() {
                             className="bg-neutral-900 rounded-2xl border border-white/10 p-6 cursor-pointer"
                         >
                             <div className="flex justify-between items-start">
-                                <h3 className="font-medium m-0">
+                                <h3 className="font-medium m-0 text-white">
                                     {faq.question}
                                 </h3>
                                 <Plus
                                     size={30}
                                     className={twMerge(
-                                        "feather feather-plus text-lime-400 flex-shrink-0 transition duration-300",
+                                        "feather feather-plus text-blue-500 flex-shrink-0 transition duration-300",
                                         selectedIndex === faqIndex &&
                                             "rotate-45"
                                     )}

@@ -43,7 +43,7 @@ export default function Introduction() {
                     <div className="flex justify-center">
                         <Tag>Introducing LearnWise</Tag>
                     </div>
-                    <div className="text-4xl md:text-6xl lg:text-7xl text-center font-medium mt-10 ">
+                    <div className="text-4xl md:text-6xl lg:text-7xl text-center font-medium mt-10 text-white">
                         <span>Your study process deserves better.&nbsp;</span>
                         <span className="text-white/15 ">
                             {words.map((word, wordIndex) => (
@@ -56,7 +56,7 @@ export default function Introduction() {
                                 >{`${word} `}</span>
                             ))}
                         </span>
-                        <span className="text-lime-400 block">
+                        <span className="text-blue-500 block">
                             That&apos;s why we built LearnWise.
                         </span>
                     </div>

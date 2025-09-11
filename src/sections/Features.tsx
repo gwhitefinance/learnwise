@@ -41,8 +41,8 @@ export default function Features() {
                 <div className="flex justify-center">
                     <Tag>Features</Tag>
                 </div>
-                <h2 className="text-6xl font-medium text-center mt-6 max-w-2xl m-auto">
-                    A smarter way to <span className="text-lime-400">learn</span>
+                <h2 className="text-6xl font-medium text-center mt-6 max-w-2xl m-auto text-white">
+                    A smarter way to <span className="text-blue-500">learn</span>
                 </h2>
                 <motion.div
                     variants={parentVariants}
@@ -119,7 +119,7 @@ export default function Features() {
                                             repeat: Infinity,
                                         }}
                                     >
-                                        <MessageSquare className="w-24 h-24 text-lime-400" />
+                                        <MessageSquare className="w-24 h-24 text-blue-500" />
                                     </motion.div>
                                 </div>
                             </FeatureCard>
@@ -133,10 +133,10 @@ export default function Features() {
                             className="bg-neutral-900 border border-white/10 inline-flex px-3 md:px-5 md:py-2 py-1.5 rounded-2xl gap-3 items-center hover:scale-105 transition duration-500 group"
                             key={feature}
                         >
-                            <span className="bg-lime-400 text-neutral-900 size-5 rounded-full inline-flex items-center justify-center text-xl group-hover:rotate-45 transition duration-500">
+                            <span className="bg-blue-500 text-neutral-900 size-5 rounded-full inline-flex items-center justify-center text-xl group-hover:rotate-45 transition duration-500">
                                 &#10038;
                             </span>
-                            <span className="font-medium md:text-lg">
+                            <span className="font-medium md:text-lg text-white">
                                 {feature}
                             </span>
                         </div>

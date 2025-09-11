@@ -47,9 +47,9 @@ export default function Integrations() {
                 <div className="grid lg:grid-cols-2 items-center lg:gap-16">
                     <div>
                         <Tag>Integration</Tag>
-                        <h2 className="text-6xl font-medium mt-6">
+                        <h2 className="text-6xl font-medium mt-6 text-white">
                             Connects with your{" "}
-                            <span className="text-lime-400 ">workflow</span>
+                            <span className="text-blue-500 ">workflow</span>
                         </h2>
 
                         <p className="text-white/50 mt-4 text-lg ">
