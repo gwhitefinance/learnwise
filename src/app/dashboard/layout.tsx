@@ -155,10 +155,10 @@ const sidebarItems = [
             id: "whiteboard-link",
         },
         {
-            title: "Study Pong",
+            title: "Games",
             icon: <Gamepad2 />,
-            href: "/dashboard/flappy-study",
-            id: "flappy-study-link",
+            href: "/dashboard/games",
+            id: "games-link",
         },
       ]
     },
