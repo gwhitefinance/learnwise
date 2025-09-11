@@ -91,7 +91,11 @@ const nextConfig: NextConfig = {
         config.externals.push('handlebars');
     }
     return config;
-  }
+  },
+  turbo: {
+    // This is the Turbopack equivalent of the webpack config above.
+    externals: ['handlebars'],
+  },
 };
 
 export default nextConfig;
