@@ -41,11 +41,6 @@ const logos = [
         src: "https://cdn.freebiesupply.com/logos/large/2x/slack-logo-icon.png",
         hint: "communication tool"
     },
-    {
-        name: "Khan Academy",
-        src: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Khan_Academy_Logo_Old_2015.svg/1200px-Khan_Academy_Logo_Old_2015.svg.png",
-        hint: "education platform"
-    },
 ];
 
 export default function LogoTicker() {
