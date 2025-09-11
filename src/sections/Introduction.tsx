@@ -11,7 +11,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { twMerge } from "tailwind-merge";
 
-const text = `You're juggling courses, notes, and deadlines, but generic study methods slow you down. It's hard to stay organized and even harder to know what to focus on.`;
+const text = `You're juggling projects, training, and new skills, but generic learning methods slow you down. It's hard to stay organized and even harder to know what to focus on.`;
 const words = text.split(" ");
 
 export default function Introduction() {
@@ -44,7 +44,7 @@ export default function Introduction() {
                         <Tag>Introducing LearnWise</Tag>
                     </div>
                     <div className="text-4xl md:text-6xl lg:text-7xl text-center font-medium mt-10 text-white">
-                        <span>Your study process deserves better.&nbsp;</span>
+                        <span>Your learning process deserves better.&nbsp;</span>
                         <span className="text-white/15 ">
                             {words.map((word, wordIndex) => (
                                 <span
@@ -57,7 +57,7 @@ export default function Introduction() {
                             ))}
                         </span>
                         <span className="text-blue-500 block">
-                            That&apos;s why we built LearnWise.
+                            That's why we built LearnWise.
                         </span>
                     </div>
                 </div>

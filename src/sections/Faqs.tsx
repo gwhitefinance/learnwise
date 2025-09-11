@@ -9,24 +9,24 @@ import { twMerge } from "tailwind-merge";
 
 const faqs = [
     {
-        question: "How does LearnWise personalize my study plans?",
-        answer: "LearnWise analyzes your courses, notes, and even your learning style (through a quick test) to generate custom roadmaps and quizzes that focus on what you need to learn most.",
+        question: "How does LearnWise personalize my learning?",
+        answer: "LearnWise analyzes your uploaded materials—from work training documents to college lecture notes—and your learning style to generate custom roadmaps and quizzes that focus on what you need to learn most.",
     },
     {
-        question: "Can I use LearnWise for any subject?",
-        answer: "Absolutely! LearnWise is designed to be subject-agnostic. Whether you're studying history, calculus, or computer science, our AI can help you create a plan and test your knowledge.",
+        question: "Can I use LearnWise for professional development?",
+        answer: "Absolutely! LearnWise is designed for any learning scenario. Upload your company's training manuals, new project documentation, or any material you need to master for your job.",
     },
     {
         question: "Is my data secure?",
-        answer: "Yes, your privacy and data security are our top priorities. All your study materials and personal information are encrypted and stored securely.",
+        answer: "Yes, your privacy and data security are our top priorities. All your uploaded materials and personal information are encrypted and stored securely.",
     },
     {
-        question: "Can I use my own notes and documents?",
-        answer: "Yes! You can upload your own documents, notes, and other study materials. Our AI will analyze them to provide even more personalized support and generate relevant quizzes.",
+        question: "What kind of materials can I upload?",
+        answer: "You can upload documents, notes, and other study materials. Our AI will analyze them to provide even more personalized support and generate relevant quizzes.",
     },
     {
         question: "How does the AI chat work?",
-        answer: "Our AI chat assistant is available 24/7 to answer your questions, explain complex concepts, and help you with your coursework. It's like having a personal tutor on demand.",
+        answer: "Our AI chat assistant is available 24/7 to answer your questions and explain complex concepts on any topic, whether it's for work, school, or personal curiosity. It's like having a personal tutor in your pocket.",
     },
 ];
 

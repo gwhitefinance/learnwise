@@ -18,10 +18,10 @@ export default function Hero() {
             {/* Left content */}
             <div className="relative flex-1 p-8 z-10 flex flex-col justify-center overflow-hidden">
               <h1 className="text-4xl md:text-5xl font-bold text-white">
-                Your Personal AI-Powered Study Suite
+                Unlock Your Potential. Learn Anything, Anywhere.
               </h1>
               <p className="mt-4 text-neutral-300 max-w-lg">
-                LearnWise transforms your notes and course materials into personalized study plans, quizzes, and flashcards. Stop cramming, start learning smarter.
+                From the classroom to the boardroom, LearnWise is your personal AI tutor. We provide the tools to help you understand complex topics and achieve your goals, no matter your walk of life.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 mt-8">
@@ -44,12 +44,12 @@ export default function Hero() {
 
               <div className="flex items-center gap-8 text-sm text-neutral-400 mt-6">
                 <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-400" />
+                  <CheckCircle className="h-4 w-4 text-blue-500" />
                   <span>Free to get started</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-400" />
-                  <span>Works with any subject</span>
+                  <CheckCircle className="h-4 w-4 text-blue-500" />
+                  <span>For work, school, and life</span>
                 </div>
               </div>
             </div>

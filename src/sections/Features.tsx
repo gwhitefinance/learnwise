@@ -42,7 +42,7 @@ export default function Features() {
                     <Tag>Features</Tag>
                 </div>
                 <h2 className="text-6xl font-medium text-center mt-6 max-w-2xl m-auto text-white">
-                    A smarter way to <span className="text-blue-500">learn</span>
+                    A smarter way to <span className="text-blue-500">understand</span>
                 </h2>
                 <motion.div
                     variants={parentVariants}
@@ -58,8 +58,8 @@ export default function Features() {
                             className="h-full"
                         >
                             <FeatureCard
-                                title="Personalized Study Roadmaps"
-                                description="Don't just study—strategize. Our AI analyzes your course syllabus and learning goals to build a custom, step-by-step roadmap."
+                                title="Personalized Learning Roadmaps"
+                                description="Don't just learn—strategize. Our AI analyzes your goals and materials to build a custom, step-by-step path to understanding."
                                 className="h-full"
                             >
                                 <div className="aspect-video flex items-center justify-center">
@@ -81,8 +81,8 @@ export default function Features() {
                             className="h-full"
                         >
                             <FeatureCard
-                                title="Intelligent Quizzes"
-                                description="Move beyond generic questions. LearnWise generates practice quizzes based on your actual course materials and where you need a little more practice."
+                                title="Intelligent Practice Sessions"
+                                description="Move beyond generic questions. LearnWise generates practice quizzes based on your actual materials, targeting areas where you need more focus."
                                 className="h-full"
                             >
                                 <div className="aspect-video flex items-center justify-center">
@@ -105,7 +105,7 @@ export default function Features() {
                         >
                             <FeatureCard
                                 title="AI-Powered Chat Assistant"
-                                description="Stuck on a problem at 2 AM? Get instant, context-aware help from your AI study partner. Ask questions and get detailed explanations."
+                                description="Stuck on a concept at 2 AM? Get instant, context-aware help. Ask questions and get detailed explanations on any topic."
                                 className="h-full"
                             >
                                 <div className="aspect-video flex justify-center items-center gap-4">

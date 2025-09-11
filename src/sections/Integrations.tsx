@@ -49,11 +49,11 @@ export default function Integrations() {
                         <Tag>Integration</Tag>
                         <h2 className="text-6xl font-medium mt-6 text-white">
                             Connects with your{" "}
-                            <span className="text-blue-500 ">workflow</span>
+                            <span className="text-blue-500 ">entire world</span>
                         </h2>
 
                         <p className="text-white/50 mt-4 text-lg ">
-                            LearnWise seamlessly connects with the tools you already use, making it easy to stay organized and focused without changing your habits.
+                            LearnWise seamlessly connects with the tools you already use for work and school, making it easy to stay organized and focused.
                         </p>
                     </div>
                     <div>
