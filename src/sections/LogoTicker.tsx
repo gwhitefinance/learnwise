@@ -12,19 +12,9 @@ const logos = [
         hint: "company logo"
     },
     {
-        name: "Harvard University",
-        src: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Harvard_shield.svg/1200px-Harvard_shield.svg.png",
-        hint: "university shield"
-    },
-    {
         name: "Microsoft",
         src: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Microsoft_logo.svg/1200px-Microsoft_logo.svg.png",
         hint: "tech company"
-    },
-    {
-        name: "Stanford University",
-        src: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/Stanford_Cardinal_logo.svg/1200px-Stanford_Cardinal_logo.svg.png",
-        hint: "tree logo"
     },
     {
         name: "Coursera",
