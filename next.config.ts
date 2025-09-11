@@ -3,9 +3,7 @@
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
-  devIndicators: {
-    buildActivity: false
-  },
+  devIndicators: false,
   transpilePackages: ['@splinetool/react-spline'],
   images: {
     remotePatterns: [
