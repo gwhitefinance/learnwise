@@ -5,11 +5,21 @@ import { motion } from "framer-motion";
 import React from "react";
 import Image from "next/image";
 
-const universities = [
+const logos = [
+    {
+        name: "Google",
+        src: "https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg",
+        hint: "company logo"
+    },
     {
         name: "Harvard University",
         src: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Harvard_shield.svg/1200px-Harvard_shield.svg.png",
         hint: "university shield"
+    },
+    {
+        name: "Microsoft",
+        src: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Microsoft_logo.svg/1200px-Microsoft_logo.svg.png",
+        hint: "tech company"
     },
     {
         name: "Stanford University",
@@ -17,34 +27,24 @@ const universities = [
         hint: "tree logo"
     },
     {
+        name: "Coursera",
+        src: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/Coursera-Logo_600x600.svg/1200px-Coursera-Logo_600x600.svg.png",
+        hint: "online learning"
+    },
+    {
         name: "MIT",
         src: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/MIT_logo.svg/1200px-MIT_logo.svg.png",
         hint: "modern logo"
     },
     {
-        name: "University of Oxford",
-        src: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/ff/Oxford-University-Circlet.svg/1200px-Oxford-University-Circlet.svg.png",
-        hint: "historic university"
+        name: "Slack",
+        src: "https://cdn.freebiesupply.com/logos/large/2x/slack-logo-icon.png",
+        hint: "communication tool"
     },
     {
-        name: "University of Cambridge",
-        src: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Cambridge_University_shield.svg/1200px-Cambridge_University_shield.svg.png",
-        hint: "college crest"
-    },
-    {
-        name: "Caltech",
-        src: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Caltech_logo.svg/1200px-Caltech_logo.svg.png",
-        hint: "science seal"
-    },
-    {
-        name: "ETH Zurich",
-        src: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/ETH_Zurich_Logo_black.svg/1200px-ETH_Zurich_Logo_black.svg.png",
-        hint: "swiss university"
-    },
-    {
-        name: "UCL",
-        src: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/01/University_College_London_logo.svg/1200px-University_College_London_logo.svg.png",
-        hint: "london university"
+        name: "Khan Academy",
+        src: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Khan_Academy_Logo_Old_2015.svg/1200px-Khan_Academy_Logo_Old_2015.svg.png",
+        hint: "education platform"
     },
 ];
 
@@ -53,7 +53,7 @@ export default function LogoTicker() {
         <section className="py-24 overflow-x-clip">
             <div className="container">
                 <h3 className="text-center text-white/50 text-xl">
-                    Trusted by top universities
+                    For students, professionals, and lifelong learners
                 </h3>
                 <div className="flex overflow-hidden mt-12 [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
                     <motion.div
@@ -69,18 +69,18 @@ export default function LogoTicker() {
                     >
                         {Array.from({ length: 2 }).map((_, i) => (
                             <React.Fragment key={i}>
-                                {universities.map((uni) => (
+                                {logos.map((logo) => (
                                     <div
-                                        key={uni.name}
+                                        key={logo.name}
                                         className="flex-shrink-0"
                                     >
                                         <Image
-                                          src={uni.src}
-                                          alt={`${uni.name} logo`}
+                                          src={logo.src}
+                                          alt={`${logo.name} logo`}
                                           width={150}
                                           height={50}
                                           className="object-contain h-12 w-auto"
-                                          data-ai-hint={uni.hint}
+                                          data-ai-hint={logo.hint}
                                         />
                                     </div>
                                 ))}
