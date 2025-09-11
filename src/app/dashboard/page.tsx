@@ -808,7 +808,7 @@ function DashboardPage() {
                                     </div>
                                 </CardHeader>
                                 <CardFooter>
-                                    <Button variant="outline" className="w-full">Connect</Button>
+                                    <Button variant="outline" className="w-full" disabled>Coming Soon</Button>
                                 </CardFooter>
                             </Card>
                         ))}
