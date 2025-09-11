@@ -173,9 +173,8 @@ export default function AiChatPage() {
     const userMessage: Message = { role: 'user', content: input };
     const updatedMessages = [...activeSession.messages, userMessage];
     
-    // Optimistically update UI
-    const tempSession = { ...activeSession, messages: updatedMessages };
-    setSessions(sessions.map(s => s.id === activeSessionId ? tempSession : s));
+    // Immediately update the UI with the user's message and set loading state
+    setSessions(sessions.map(s => s.id === activeSessionId ? { ...activeSession, messages: updatedMessages } : s));
     setInput('');
     setIsLoading(true);
 
@@ -201,6 +200,10 @@ export default function AiChatPage() {
       const aiMessage: Message = { role: 'ai', content: response };
       const finalMessages = [...updatedMessages, aiMessage];
       
+      // The real-time listener will handle updating the UI, so we just update Firestore.
+      // We set isLoading to false *before* the update to prevent a race condition.
+      setIsLoading(false);
+
       const sessionRef = doc(db, "chatSessions", activeSession.id);
       await updateDoc(sessionRef, { messages: finalMessages });
 
@@ -211,15 +214,14 @@ export default function AiChatPage() {
 
     } catch (error) {
       console.error(error);
+      setIsLoading(false); // Ensure loading is false on error
       toast({
         variant: 'destructive',
         title: 'Error',
         description: 'Failed to get a response from the AI. Please try again.',
       });
-       // Revert optimistic update on error
+       // Revert optimistic update on error by restoring the original session state
        setSessions(sessions.map(s => s.id === activeSessionId ? activeSession : s));
-    } finally {
-      setIsLoading(false);
     }
   };
   
@@ -393,7 +395,3 @@ export default function AiChatPage() {
     </div>
   );
 }
-
-    
-
-    
