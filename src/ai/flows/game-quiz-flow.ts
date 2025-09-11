@@ -38,5 +38,3 @@ const generateGameQuestionFlow = ai.defineFlow(
 export async function generateGameQuestion(input: GameQuestionInput): Promise<GameQuestion> {
     return generateGameQuestionFlow(input);
 }
-
-    
