@@ -60,6 +60,7 @@ import {
   FlaskConical,
   LogOut,
   User,
+  Gamepad2,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -152,6 +153,12 @@ const sidebarItems = [
             icon: <PenSquare />,
             href: "/dashboard/whiteboard",
             id: "whiteboard-link",
+        },
+        {
+            title: "Flappy Study",
+            icon: <Gamepad2 />,
+            href: "/dashboard/flappy-study",
+            id: "flappy-study-link",
         },
       ]
     },
@@ -609,3 +616,5 @@ export default function DashboardLayout({
     </>
   );
 }
+
+    
