@@ -44,7 +44,7 @@ const IntegrationColumn = (props: {
                                     height={96}
                                 />
                             </div>
-                            <h3 className="text-3xl text-center mt-6 ">
+                            <h3 className="text-3xl text-center mt-6 text-white">
                                 {integration.name}
                             </h3>
                             <p className="text-center text-white/50 mt-2 ">
