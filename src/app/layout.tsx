@@ -13,6 +13,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "LearnWise",
   description: "Advanced AI-powered study suite for personalized learning.",
+  icons: null,
 }
 
 export default function RootLayout({
