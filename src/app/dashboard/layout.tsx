@@ -155,7 +155,7 @@ const sidebarItems = [
             id: "whiteboard-link",
         },
         {
-            title: "Flappy Study",
+            title: "Study Pong",
             icon: <Gamepad2 />,
             href: "/dashboard/flappy-study",
             id: "flappy-study-link",
@@ -616,5 +616,3 @@ export default function DashboardLayout({
     </>
   );
 }
-
-    
