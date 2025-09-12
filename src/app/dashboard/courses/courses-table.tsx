@@ -45,20 +45,20 @@ function CoursesTable({ initialCourses }: { initialCourses: Course[] }) {
             return;
         };
 
-        // We already have initial data, so set loading to false.
-        // The real-time listener will update it from here.
-        setCourses(initialCourses.filter(c => c.userId === user.uid));
-        setIsDataLoading(false);
-
+        setIsDataLoading(true);
         const q = query(collection(db, "courses"), where("userId", "==", user.uid));
         const unsubscribe = onSnapshot(q, (querySnapshot) => {
             const userCourses = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
             setCourses(userCourses);
-            // No need to set loading state here as it's for updates
+            setIsDataLoading(false);
+        }, (error) => {
+            console.error("Error fetching courses: ", error);
+            toast({ variant: 'destructive', title: 'Error', description: 'Could not load courses.'});
+            setIsDataLoading(false);
         });
 
         return () => unsubscribe();
-    }, [user, authLoading, router, initialCourses]);
+    }, [user, authLoading, router, toast]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
