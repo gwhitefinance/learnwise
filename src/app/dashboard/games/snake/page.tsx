@@ -291,4 +291,5 @@ const SnakePage = () => {
     );
 };
 
-export default dynamic(() => Promise.resolve(SnakePage), { ssr: false });
+const SnakePageComponent = dynamic(() => Promise.resolve(SnakePage), { ssr: false });
+export default SnakePageComponent;

@@ -277,4 +277,5 @@ const TriviaBlasterPage = () => {
     );
 };
 
-export default dynamic(() => Promise.resolve(TriviaBlasterPage), { ssr: false });
+const TriviaBlasterPageComponent = dynamic(() => Promise.resolve(TriviaBlasterPage), { ssr: false });
+export default TriviaBlasterPageComponent;

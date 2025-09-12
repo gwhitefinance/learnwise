@@ -331,4 +331,5 @@ const PongStudyPage = () => {
     );
 };
 
-export default dynamic(() => Promise.resolve(PongStudyPage), { ssr: false });
+const PongStudyPageComponent = dynamic(() => Promise.resolve(PongStudyPage), { ssr: false });
+export default PongStudyPageComponent;

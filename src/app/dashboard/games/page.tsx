@@ -14,7 +14,7 @@ const games = [
         icon: <Brain className="w-10 h-10 text-purple-500" />
     },
     {
-        title: "Snake",
+        title: "Study Snake",
         description: "A classic game of snake where eating food triggers a quiz question. Grow your snake by answering correctly!",
         href: "/dashboard/games/snake",
         icon: <Flame className="w-10 h-10 text-orange-500" />
@@ -24,6 +24,12 @@ const games = [
         description: "An arcade-style shooter. A question appears, and you must shoot the correct answer asteroid.",
         href: "/dashboard/games/trivia-blaster",
         icon: <Rocket className="w-10 h-10 text-blue-500" />
+    },
+    {
+        title: "Study Pong",
+        description: "A retro pong game where scoring a point gives you a chance to answer a question and earn a real point.",
+        href: "/dashboard/pong-study",
+        icon: <Gamepad2 className="w-10 h-10 text-green-500" />
     }
 ];
 
