@@ -52,7 +52,7 @@ import { DatePicker } from '@/components/ui/date-picker';
 import { format } from 'date-fns';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
-import { collection, query, where, onSnapshot, addDoc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, addDoc, doc, Timestamp } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import dynamic from 'next/dynamic';
 
@@ -68,19 +68,30 @@ import dynamic from 'next/dynamic';
     files: number;
     userId?: string;
   };
-  
-  type RecentFile = {
-      name: string;
-      subject: string;
-      modified: string;
-  };
 
-  type Project = {
+  type FirestoreProject = {
     id:string;
     name: string;
     course: string;
-    dueDate: string;
+    dueDate: Timestamp;
     status: 'Not Started' | 'In Progress' | 'Completed';
+    userId?: string;
+  }
+  
+  type RecentFile = {
+      id: string;
+      name: string;
+      subject: string;
+      modified: Timestamp;
+      userId?: string;
+  };
+
+  type Project = Omit<FirestoreProject, 'dueDate'> & {
+    dueDate: string;
+  }
+
+  type DisplayFile = Omit<RecentFile, 'modified'> & {
+      modified: string;
   }
   
   const AppCard = ({ title, description, icon, href, actionButton, id }: { title: string; description: string; icon: React.ReactNode; href: string, actionButton?: React.ReactNode, id?: string }) => (
@@ -150,7 +161,7 @@ function DashboardPage() {
     const [courses, setCourses] = useState<Course[]>([]);
     const [isDataLoading, setIsDataLoading] = useState(true);
     const [projects, setProjects] = useState<Project[]>([]);
-    const [recentFiles, setRecentFiles] = useState<RecentFile[]>([]);
+    const [recentFiles, setRecentFiles] = useState<DisplayFile[]>([]);
     const [isAddCourseOpen, setAddCourseOpen] = useState(false);
     const [isSavingCourse, setIsSavingCourse] = useState(false);
     const [newCourse, setNewCourse] = useState({ name: '', instructor: '', credits: '', url: ''});
@@ -167,12 +178,45 @@ function DashboardPage() {
         if (!user) return;
         
         setIsDataLoading(true);
-        const q = query(collection(db, "courses"), where("userId", "==", user.uid));
-        const unsubscribe = onSnapshot(q, (querySnapshot) => {
-            const userCourses = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
+
+        const unsubscribes: (() => void)[] = [];
+
+        // Subscribe to courses
+        const qCourses = query(collection(db, "courses"), where("userId", "==", user.uid));
+        unsubscribes.push(onSnapshot(qCourses, (snapshot) => {
+            const userCourses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
             setCourses(userCourses);
             setIsDataLoading(false);
-        });
+        }));
+
+        // Subscribe to projects
+        const qProjects = query(collection(db, "projects"), where("userId", "==", user.uid));
+        unsubscribes.push(onSnapshot(qProjects, (snapshot) => {
+            const userProjects = snapshot.docs.map(doc => {
+                const data = doc.data() as FirestoreProject;
+                return {
+                    ...data,
+                    id: doc.id,
+                    dueDate: data.dueDate.toDate().toISOString(),
+                } as Project;
+            });
+            setProjects(userProjects);
+        }));
+
+        // Subscribe to recent files
+        const qFiles = query(collection(db, "recentFiles"), where("userId", "==", user.uid));
+        unsubscribes.push(onSnapshot(qFiles, (snapshot) => {
+            const userFiles = snapshot.docs.map(doc => {
+                const data = doc.data() as RecentFile;
+                return {
+                    ...data,
+                    id: doc.id,
+                    modified: format(data.modified.toDate(), 'PPP'),
+                } as DisplayFile;
+            });
+            setRecentFiles(userFiles);
+        }));
+
 
         // Mock streak calculation
         const lastVisit = localStorage.getItem('lastVisit');
@@ -193,15 +237,15 @@ function DashboardPage() {
         }
         localStorage.setItem('lastVisit', today);
         
-        return () => unsubscribe();
+        return () => unsubscribes.forEach(unsub => unsub());
     }, [user]);
 
     const handleProjectInputChange = (field: string, value: string | Date | undefined) => {
         setNewProject(prev => ({ ...prev, [field]: value }));
     };
 
-    const handleAddProject = () => {
-        if (!newProject.name || !newProject.course || !newProject.dueDate) {
+    const handleAddProject = async () => {
+        if (!newProject.name || !newProject.course || !newProject.dueDate || !user) {
             toast({
                 variant: 'destructive',
                 title: 'Missing Fields',
@@ -210,23 +254,24 @@ function DashboardPage() {
             return;
         }
 
-        const projectToAdd: Project = {
-            id: crypto.randomUUID(),
-            name: newProject.name,
-            course: newProject.course,
-            dueDate: format(newProject.dueDate, 'yyyy-MM-dd'),
-            status: 'Not Started',
-        };
-
-        const updatedProjects = [projectToAdd, ...projects];
-        setProjects(updatedProjects);
-        localStorage.setItem('projects', JSON.stringify(updatedProjects));
-        setNewProject({ name: '', course: '', dueDate: new Date() });
-        setAddProjectOpen(false);
-        toast({
-            title: 'Project Added!',
-            description: `${projectToAdd.name} has been added to your list.`
-        });
+        try {
+            await addDoc(collection(db, "projects"), {
+                name: newProject.name,
+                course: newProject.course,
+                dueDate: Timestamp.fromDate(newProject.dueDate),
+                status: 'Not Started',
+                userId: user.uid
+            });
+            setNewProject({ name: '', course: '', dueDate: new Date() });
+            setAddProjectOpen(false);
+            toast({
+                title: 'Project Added!',
+                description: `${newProject.name} has been added to your list.`
+            });
+        } catch (error) {
+            console.error("Error adding project: ", error);
+            toast({ variant: "destructive", title: "Error", description: "Could not add project."});
+        }
     };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -283,8 +328,8 @@ function DashboardPage() {
         }
     };
 
-    const handleUpload = () => {
-        if (!files || files.length === 0) {
+    const handleUpload = async () => {
+        if (!files || files.length === 0 || !user) {
           toast({
             variant: 'destructive',
             title: 'No files selected',
@@ -293,21 +338,26 @@ function DashboardPage() {
           return;
         }
         
-        const newFiles: RecentFile[] = Array.from(files).map(file => ({
-            name: file.name,
-            subject: "General", // Or try to infer from context
-            modified: "Just now",
-        }));
-
-        const updatedFiles = [...newFiles, ...recentFiles];
-        setRecentFiles(updatedFiles);
-        localStorage.setItem('recentFiles', JSON.stringify(updatedFiles));
-
-        console.log('Uploading files:', files);
-        toast({
-          title: 'Upload Successful!',
-          description: `${files.length} file(s) have been queued for processing.`,
+        const uploadPromises = Array.from(files).map(file => {
+            return addDoc(collection(db, 'recentFiles'), {
+                name: file.name,
+                subject: "General",
+                modified: Timestamp.now(),
+                userId: user.uid,
+            });
         });
+
+        try {
+            await Promise.all(uploadPromises);
+            toast({
+                title: 'Upload Successful!',
+                description: `${files.length} file(s) have been added.`,
+            });
+        } catch (error) {
+            console.error("Error uploading files: ", error);
+            toast({ variant: "destructive", title: "Error", description: "Could not upload files."});
+        }
+
         setFiles(null);
         setUploadOpen(false);
     };
