@@ -1,18 +1,14 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
-import { notFound, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, BrainCircuit, Lightbulb, FileText, Link as LinkIcon } from 'lucide-react';
 import Link from 'next/link';
-import { useAuthState } from 'react-firebase-hooks/auth';
-import { auth, db } from '@/lib/firebase';
-import { doc, getDoc } from 'firebase/firestore';
 
-type Course = {
+// Define the Course type here so it can be exported and used by the server component.
+export type Course = {
     id: string;
     name: string;
     instructor: string;
@@ -23,52 +19,10 @@ type Course = {
     userId?: string;
 };
 
-
-export default function CourseDetailPageClient({ courseId }: { courseId: string }) {
-  const [course, setCourse] = useState<Course | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [user, authLoading] = useAuthState(auth);
-  const router = useRouter();
-
-  useEffect(() => {
-    if (authLoading) return;
-    if (!user) {
-        router.push('/login');
-        return;
-    }
-
-    const fetchCourse = async () => {
-        const docRef = doc(db, "courses", courseId);
-        const docSnap = await getDoc(docRef);
-
-        if (docSnap.exists()) {
-            const courseData = { id: docSnap.id, ...docSnap.data() } as Course;
-            // Security check: Make sure the logged-in user owns this course
-            if (courseData.userId === user.uid) {
-                if (!courseData.description) {
-                    courseData.description = `This course, taught by ${courseData.instructor}, provides a comprehensive overview of ${courseData.name}. It covers fundamental principles and advanced topics to equip students with the knowledge needed in this field.`;
-                }
-                setCourse(courseData);
-            } else {
-                // User does not have access, treat as not found
-                setCourse(null);
-            }
-        } else {
-            console.log("No such document!");
-        }
-        setLoading(false);
-    };
-
-    fetchCourse();
-  }, [courseId, user, authLoading, router]);
-
-  if (loading || authLoading) {
-    return <div>Loading...</div>; // Or a proper skeleton loader
-  }
-
-  if (!course) {
-    notFound();
-  }
+// This is now a "dumb" presentational component that just receives data and renders it.
+export default function CourseDetailPageClient({ course }: { course: Course }) {
+  
+  const courseDescription = course.description || `This course, taught by ${course.instructor}, provides a comprehensive overview of ${course.name}. It covers fundamental principles and advanced topics to equip students with the knowledge needed in this field.`;
 
   return (
     <div className="space-y-6">
@@ -95,7 +49,7 @@ export default function CourseDetailPageClient({ courseId }: { courseId: string 
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <p className="text-muted-foreground mt-4">{course.description}</p>
+                    <p className="text-muted-foreground mt-4">{courseDescription}</p>
                 </CardContent>
             </Card>
         </div>
