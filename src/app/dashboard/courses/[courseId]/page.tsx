@@ -17,7 +17,18 @@ export default async function Page({ params }: { params: { courseId: string } })
     notFound();
   }
 
-  const course = { id: docSnap.id, ...docSnap.data() } as Course;
+  // Manually create a plain, serializable object to pass to the client component.
+  const courseData = docSnap.data();
+  const course: Course = {
+      id: docSnap.id,
+      name: courseData.name,
+      instructor: courseData.instructor,
+      credits: courseData.credits,
+      url: courseData.url || '',
+      imageUrl: courseData.imageUrl || '',
+      description: courseData.description || '',
+      userId: courseData.userId || '',
+  };
   
   // We now pass the fetched course data directly as a prop to the client component.
   return <CourseDetailPageClient course={course} />;
