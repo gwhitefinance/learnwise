@@ -24,7 +24,10 @@ import {
   ArrowRight,
   Link as LinkIcon,
   Notebook,
-  Flame
+  Flame,
+  Trophy,
+  Palette,
+  Gem,
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -392,6 +395,27 @@ function DashboardPage() {
         }
     };
 
+    const rewards = [
+        {
+            streak: 3,
+            icon: Palette,
+            title: "Crimson UI Theme",
+            description: "A vibrant new look for your dashboard.",
+        },
+        {
+            streak: 7,
+            icon: Trophy,
+            title: "7-Day Scholar Badge",
+            description: "Show off your consistency with a new profile badge.",
+        },
+        {
+            streak: 30,
+            icon: Gem,
+            title: "Exclusive AI Voice",
+            description: "Unlock a new premium voice for the Read Aloud feature.",
+        },
+    ];
+
    
   return (
     <div className="space-y-8 mt-0">
@@ -562,9 +586,42 @@ function DashboardPage() {
                                         {streak > 1 ? "Keep the fire going! You're building a great habit." : "Every journey starts with a single step. Keep it up!"}
                                     </p>
                                 </div>
-                                <Button variant="outline" className="rounded-full border-orange-500/50 bg-transparent hover:bg-white/20">
-                                    View Rewards
-                                </Button>
+                                <Dialog>
+                                    <DialogTrigger asChild>
+                                        <Button variant="outline" className="rounded-full border-orange-500/50 bg-transparent hover:bg-white/20">
+                                            View Rewards
+                                        </Button>
+                                    </DialogTrigger>
+                                    <DialogContent>
+                                        <DialogHeader>
+                                            <DialogTitle className="flex items-center gap-2"><Trophy className="text-yellow-500" /> Your Rewards</DialogTitle>
+                                            <CardDescription>
+                                                You've unlocked these rewards for your amazing consistency!
+                                            </CardDescription>
+                                        </DialogHeader>
+                                        <div className="py-4 space-y-4">
+                                            {rewards.map(reward => {
+                                                const isUnlocked = streak >= reward.streak;
+                                                return (
+                                                    <Card key={reward.title} className={cn("transition-opacity", !isUnlocked && "opacity-50")}>
+                                                        <CardHeader className="flex flex-row items-center justify-between">
+                                                            <div className="flex items-center gap-4">
+                                                                <reward.icon className="h-8 w-8 text-primary" />
+                                                                <div>
+                                                                    <CardTitle>{reward.title}</CardTitle>
+                                                                    <CardDescription>Requires {reward.streak}-day streak</CardDescription>
+                                                                </div>
+                                                            </div>
+                                                            <Button size="sm" disabled={!isUnlocked} onClick={() => toast({ title: `"${reward.title}" claimed!`})}>
+                                                                {isUnlocked ? "Claim" : "Locked"}
+                                                            </Button>
+                                                        </CardHeader>
+                                                    </Card>
+                                                )
+                                            })}
+                                        </div>
+                                    </DialogContent>
+                                </Dialog>
                            </CardContent>
                         </Card>
                         <Card>
@@ -874,3 +931,5 @@ function DashboardPage() {
 const DashboardPageComponent = dynamic(() => Promise.resolve(DashboardPage), { ssr: false });
 
 export default DashboardPageComponent;
+
+    
