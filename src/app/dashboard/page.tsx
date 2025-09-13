@@ -28,6 +28,8 @@ import {
   Trophy,
   Palette,
   Gem,
+  Music,
+  Gamepad2,
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -397,22 +399,28 @@ function DashboardPage() {
 
     const rewards = [
         {
-            streak: 3,
-            icon: Palette,
-            title: "Crimson UI Theme",
-            description: "A vibrant new look for your dashboard.",
-        },
-        {
             streak: 7,
             icon: Trophy,
             title: "7-Day Scholar Badge",
             description: "Show off your consistency with a new profile badge.",
         },
         {
+            streak: 14,
+            icon: Music,
+            title: "'Deep Focus' Playlist",
+            description: "Unlock an exclusive playlist for Focus Mode.",
+        },
+        {
+            streak: 21,
+            icon: Palette,
+            title: "Unlock 'Arcade' Theme",
+            description: "A fun, retro-inspired theme for your dashboard.",
+        },
+        {
             streak: 30,
-            icon: Gem,
-            title: "Exclusive AI Voice",
-            description: "Unlock a new premium voice for the Read Aloud feature.",
+            icon: Gamepad2,
+            title: "Unlock 'Study Pong' Game",
+            description: "A new retro game to make studying fun.",
         },
     ];
 
@@ -594,22 +602,28 @@ function DashboardPage() {
                                     </DialogTrigger>
                                     <DialogContent>
                                         <DialogHeader>
-                                            <DialogTitle className="flex items-center gap-2"><Trophy className="text-yellow-500" /> Your Rewards</DialogTitle>
+                                            <DialogTitle className="flex items-center gap-2"><Trophy className="text-yellow-500" /> Your Reward Path</DialogTitle>
                                             <CardDescription>
-                                                You've unlocked these rewards for your amazing consistency!
+                                                You are on a {streak}-day streak! Keep it up to unlock these rewards.
                                             </CardDescription>
                                         </DialogHeader>
                                         <div className="py-4 space-y-4">
                                             {rewards.map(reward => {
                                                 const isUnlocked = streak >= reward.streak;
+                                                const nextMilestone = Math.ceil(streak / 7) * 7;
+                                                const isNextUp = !isUnlocked && reward.streak === nextMilestone;
                                                 return (
-                                                    <Card key={reward.title} className={cn("transition-opacity", !isUnlocked && "opacity-50")}>
+                                                    <Card key={reward.title} className={cn("transition-all", !isUnlocked && "opacity-50", isNextUp && "border-primary shadow-lg")}>
                                                         <CardHeader className="flex flex-row items-center justify-between">
                                                             <div className="flex items-center gap-4">
-                                                                <reward.icon className="h-8 w-8 text-primary" />
+                                                                <div className={cn("p-2 rounded-lg", isUnlocked ? "bg-primary/20" : "bg-muted")}>
+                                                                    <reward.icon className={cn("h-8 w-8", isUnlocked ? "text-primary" : "text-muted-foreground")} />
+                                                                </div>
                                                                 <div>
                                                                     <CardTitle>{reward.title}</CardTitle>
-                                                                    <CardDescription>Requires {reward.streak}-day streak</CardDescription>
+                                                                    <CardDescription>
+                                                                        {isUnlocked ? "Unlocked!" : `Unlocks at ${reward.streak}-day streak`}
+                                                                    </CardDescription>
                                                                 </div>
                                                             </div>
                                                             <Button size="sm" disabled={!isUnlocked} onClick={() => toast({ title: `"${reward.title}" claimed!`})}>
@@ -931,5 +945,7 @@ function DashboardPage() {
 const DashboardPageComponent = dynamic(() => Promise.resolve(DashboardPage), { ssr: false });
 
 export default DashboardPageComponent;
+
+    
 
     
