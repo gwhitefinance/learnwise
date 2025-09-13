@@ -86,7 +86,7 @@ const TriviaBlasterPage = () => {
             if (result.questions && result.questions.length > 0 && result.questions[0].options) {
                 const q = result.questions[0];
                 setQuestion(q);
-                const newAsteroids = q.options.map(option => ({
+                const newAsteroids = (q.options ?? []).map(option => ({
                     x: Math.random() * (CANVAS_WIDTH - 100),
                     y: -50 - Math.random() * 300,
                     text: option,
@@ -277,5 +277,4 @@ const TriviaBlasterPage = () => {
     );
 };
 
-const TriviaBlasterPageComponent = dynamic(() => Promise.resolve(TriviaBlasterPage), { ssr: false });
-export default TriviaBlasterPageComponent;
+export default dynamic(() => Promise.resolve(TriviaBlasterPage), { ssr: false });

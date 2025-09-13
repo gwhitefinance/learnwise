@@ -149,11 +149,11 @@ export default function NotesPage() {
     const q = query(collection(db, "notes"), where("userId", "==", user.uid), orderBy("date", "desc"));
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const userNotes = querySnapshot.docs.map(doc => {
-            const data = doc.data() as FirestoreNote;
+            const data = doc.data() as Omit<FirestoreNote, 'id'>;
             return { 
-                id: doc.id, 
+                id: doc.id,
                 ...data,
-                date: data.date.toDate() 
+                date: data.date.toDate()
             } as Note;
         });
         setNotes(userNotes);

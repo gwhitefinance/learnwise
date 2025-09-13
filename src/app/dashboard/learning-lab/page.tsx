@@ -23,7 +23,7 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import AudioPlayer from '@/components/audio-player';
-
+import { Label } from '@/components/ui/label';
 
 type Course = {
     id: string;
@@ -513,5 +513,3 @@ export default function LearningLabPage() {
     </>
   );
 }
-
-    

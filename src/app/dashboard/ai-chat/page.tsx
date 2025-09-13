@@ -36,7 +36,7 @@ interface ChatSession {
 }
 
 interface FirestoreChatSession {
-    id: string;
+    id?: string; // optional here, since we use doc.id instead
     title: string;
     messages: Message[];
     timestamp: Timestamp;
@@ -96,9 +96,10 @@ export default function AiChatPage() {
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const userSessions = querySnapshot.docs.map(doc => {
             const data = doc.data() as FirestoreChatSession;
+            const { id, ...rest } = data as any;  // <-- Remove id from data to prevent duplicate key
             return {
                 id: doc.id,
-                ...data,
+                ...rest,
                 timestamp: data.timestamp.toMillis()
             } as ChatSession;
         });
@@ -187,12 +188,14 @@ export default function AiChatPage() {
         history: updatedMessages,
         learnerType: learnerType || undefined,
         courseContext: activeSession.courseContext || undefined,
-        calendarEvents: calendarEvents.map(e => ({
+        calendarEvents: calendarEvents
+          .filter(e => e.type !== 'Project') // Filter out 'Project' type to match expected type
+          .map(e => ({
             id: e.id,
             date: e.date,
             title: e.title,
             time: e.startTime,
-            type: e.type,
+            type: e.type as 'Test' | 'Homework' | 'Quiz' | 'Event', // cast to expected type
             description: e.description,
         })),
       });
@@ -252,18 +255,13 @@ export default function AiChatPage() {
         await deleteDoc(doc(db, "chatSessions", sessionId));
         toast({ title: 'Chat deleted.' });
         if (activeSessionId === sessionId) {
-            const remainingSessions = sessions.filter(s => s.id !== sessionId);
-            if (remainingSessions.length > 0) {
-                setActiveSessionId(remainingSessions[0].id);
-            } else {
-                createNewSession();
-            }
+          setActiveSessionId(null);
         }
-    } catch(error) {
+    } catch (error) {
         toast({ variant: 'destructive', title: 'Error', description: 'Could not delete chat.'});
     }
-  }
-
+  };
+  
   return (
     <div className="flex h-screen bg-muted/40">
         <div className="hidden md:flex flex-col w-72 bg-background border-r">

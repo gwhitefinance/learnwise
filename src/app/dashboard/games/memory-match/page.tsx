@@ -228,9 +228,7 @@ const MemoryMatchPage = () => {
     );
 };
 
-const MemoryMatchPageComponent = dynamic(() => Promise.resolve(MemoryMatchPage), { ssr: false });
-export default MemoryMatchPageComponent;
-
+export default dynamic(() => Promise.resolve(MemoryMatchPage), { ssr: false });
 
 // Helper CSS for 3D transform
 const style = document.createElement('style');

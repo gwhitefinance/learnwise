@@ -1,10 +1,10 @@
 
-
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
   devIndicators: false,
   transpilePackages: ['@splinetool/react-spline'],
+  reactStrictMode: true,
   images: {
     remotePatterns: [
       {
@@ -32,10 +32,10 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
       {
-          protocol: 'https',
-          hostname: 'upload.wikimedia.org',
-          port: '',
-          pathname: '/**',
+        protocol: 'https',
+        hostname: 'upload.wikimedia.org',
+        port: '',
+        pathname: '/**',
       },
       {
         protocol: 'https',
@@ -73,7 +73,7 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
-       {
+      {
         protocol: 'https',
         hostname: 'cdn.freebiesupply.com',
         port: '',
@@ -84,12 +84,12 @@ const nextConfig: NextConfig = {
         hostname: 'images.unsplash.com',
         port: '',
         pathname: '/**',
-      }
+      },
     ],
   },
   webpack: (config, { isServer }) => {
     if (isServer) {
-        config.externals.push('handlebars');
+      config.externals.push('handlebars');
     }
     return config;
   },
