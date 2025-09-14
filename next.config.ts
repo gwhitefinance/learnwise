@@ -72,7 +72,7 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
       {
-        protocol: 'https,
+        protocol: 'https',
         hostname: 't4.ftcdn.net',
         port: '',
         pathname: '/**',
