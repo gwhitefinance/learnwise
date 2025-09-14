@@ -2,6 +2,10 @@
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
+  serverActions: {
+    bodySizeLimit: '2mb',
+    serverActions: true,
+  },
   devIndicators: false,
   transpilePackages: ['@splinetool/react-spline'],
   reactStrictMode: true,
@@ -92,6 +96,14 @@ const nextConfig: NextConfig = {
       config.externals.push('handlebars');
     }
     return config;
+  },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '2mb',
+      serverActions: true,
+    },
+    // Increase timeout for AI operations
+    serverActionsTimeout: 120,
   },
 };
 
