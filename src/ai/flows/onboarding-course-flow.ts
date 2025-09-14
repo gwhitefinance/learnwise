@@ -13,7 +13,6 @@ const prompt = ai.definePrompt({
     name: 'onboardingCoursePrompt',
     input: { schema: GenerateOnboardingCourseInputSchema },
     output: { schema: GenerateOnboardingCourseOutputSchema },
-    model: 'googleai/gemini-pro', // Explicitly use the more reliable model
     prompt: `You are an expert curriculum designer who creates exciting and accessible introductory courses.
     
     A new user has just signed up. Your task is to generate a single, compelling starter course for them based on their interests and grade level.
