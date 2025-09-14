@@ -41,12 +41,7 @@ const generateOnboardingCourseFlow = ai.defineFlow(
     outputSchema: GenerateOnboardingCourseOutputSchema,
   },
   async (input) => {
-    const { output } = await ai.generate({
-        prompt: prompt.prompt,
-        model: 'googleai/gemini-pro',
-        input: input,
-        output: { schema: GenerateOnboardingCourseOutputSchema }
-    });
+    const { output } = await prompt(input);
 
     if (!output) {
         throw new Error('Failed to generate onboarding course.');
