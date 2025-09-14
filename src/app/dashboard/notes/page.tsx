@@ -146,7 +146,7 @@ export default function NotesPage() {
     }
 
     setIsNotesLoading(true);
-    const q = query(collection(db, "notes"), where("userId", "==", user.uid), orderBy("date", "desc"));
+    const q = query(collection(db, "notes"), where("userId", "==", user.uid));
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const userNotes = querySnapshot.docs.map(doc => {
             const data = doc.data() as Omit<FirestoreNote, 'id'>;
@@ -156,6 +156,10 @@ export default function NotesPage() {
                 date: data.date.toDate()
             } as Note;
         });
+        
+        // Sort on the client side
+        userNotes.sort((a, b) => b.date.getTime() - a.date.getTime());
+        
         setNotes(userNotes);
         setIsNotesLoading(false);
     });

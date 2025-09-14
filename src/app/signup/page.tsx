@@ -52,9 +52,9 @@ export default function SignUpPage() {
 
         toast({
             title: "Account Created!",
-            description: "Welcome to LearnWise. Let's discover your learning style.",
+            description: "Welcome to LearnWise. Let's get you set up.",
         });
-        router.push('/learner-type');
+        router.push('/onboarding/grade-level');
 
     } catch (error: any) {
         let description = "An unexpected error occurred. Please try again.";
@@ -138,7 +138,7 @@ export default function SignUpPage() {
                   <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white">
                     2
                   </span>
-                  <span className="text-lg">Discover your learning style</span>
+                  <span className="text-lg">Personalize your experience</span>
                 </div>
               </div>
               <div className="rounded-lg bg-white/5 p-4 backdrop-blur-sm">
@@ -146,7 +146,7 @@ export default function SignUpPage() {
                   <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white">
                     3
                   </span>
-                  <span className="text-lg">Access your dashboard</span>
+                  <span className="text-lg">Discover your learning style</span>
                 </div>
               </div>
             </div>
@@ -276,5 +276,3 @@ export default function SignUpPage() {
     </div>
   )
 }
-
-    

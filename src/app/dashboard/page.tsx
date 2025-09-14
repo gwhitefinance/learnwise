@@ -205,6 +205,8 @@ function DashboardPage() {
                     dueDate: data.dueDate.toDate().toISOString(),
                 } as Project;
             });
+            // Sort on client
+            userProjects.sort((a,b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
             setProjects(userProjects);
         }));
 
@@ -219,6 +221,8 @@ function DashboardPage() {
                     modified: format(data.modified.toDate(), 'PPP'),
                 } as DisplayFile;
             });
+            // Sort on client
+            userFiles.sort((a,b) => new Date(b.modified).getTime() - new Date(a.modified).getTime());
             setRecentFiles(userFiles);
         }));
 

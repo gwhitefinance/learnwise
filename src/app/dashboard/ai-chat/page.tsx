@@ -92,7 +92,7 @@ export default function AiChatPage() {
     }
     
     // Set up a real-time listener for chat sessions
-    const q = query(collection(db, "chatSessions"), where("userId", "==", user.uid), orderBy("timestamp", "desc"));
+    const q = query(collection(db, "chatSessions"), where("userId", "==", user.uid));
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const userSessions = querySnapshot.docs.map(doc => {
             const data = doc.data() as FirestoreChatSession;
@@ -103,6 +103,10 @@ export default function AiChatPage() {
                 timestamp: data.timestamp.toMillis()
             } as ChatSession;
         });
+
+        // Sort on the client side
+        userSessions.sort((a, b) => b.timestamp - a.timestamp);
+
         setSessions(userSessions);
 
         // If no active session, or active one was deleted, set a new one.
