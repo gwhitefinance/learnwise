@@ -13,7 +13,26 @@ const prompt = ai.definePrompt({
     input: { schema: GenerateMiniCourseInputSchema },
     output: { schema: GenerateMiniCourseOutputSchema },
     prompt: `You are an expert instructional designer who creates engaging, personalized, and in-depth courses. 
-    Generate a 3-5 module course based on the provided course name and description. Each module should represent a major topic or unit within the course.
+
+    Your main task is to generate a complete mini-course based on the user's details.
+    
+    {{#if interests}}
+    First, if the user has provided their interests and grade level, you MUST come up with a creative and engaging course concept that combines their passions.
+    - User's Grade Level: {{gradeLevel}}
+    - User's Interests: {{interests}}
+    The course name should be catchy and inspiring. Then, write a compelling course description that explains how the course will explore the connections between these interests.
+
+    Example for an Elementary schooler interested in Space, Dinosaurs, and Art:
+    Course Title: "Galactic Dino Artists"
+    Course Description: "Welcome, explorer! Get ready for an adventure where we travel back in time to draw mighty dinosaurs and then blast off into space to paint swirling galaxies. In this course, we'll learn how to sketch a T-Rex, design our own amazing planets, and discover the secrets of the stars. It's time to let your imagination run wild and become a master artist of the past and future!"
+    After creating the title and description, proceed to generate the course content.
+    {{else}}
+    The user has provided a specific course name and description. Use these directly.
+    - Course Name: {{courseName}}
+    - Course Description: {{courseDescription}}
+    {{/if}}
+
+    Generate a 3-5 module course. Each module should represent a major topic or unit within the course.
 
     For each module, create 3-4 chapters. The chapters within a module should be structured progressively, starting with foundational concepts and building upon them. Each chapter should contain detailed, long-form content that thoroughly explains the topic.
     
@@ -22,9 +41,6 @@ const prompt = ai.definePrompt({
     - For Auditory learners, content should be conversational, like a script for a podcast. Activities could involve listening to a podcast on the topic, or explaining the concept out loud to a friend or a rubber duck.
     - For Kinesthetic learners, activities must be hands-on and interactive. Suggest things like building a small model, performing a practical exercise, creating a simple game based on the concepts, or relating the topic to a physical task they can perform.
     - For Reading/Writing learners, provide clear, well-structured, text-based explanations and suggest activities like writing detailed summaries, creating outlines, or answering essay-style questions.
-
-    Course Name: {{courseName}}
-    Course Description: {{courseDescription}}
 
     For each module, provide a title.
     For each chapter within a module, provide a title, the main educational content (which should be detailed and comprehensive), and a tailored, interactive activity.
@@ -50,3 +66,4 @@ const generateMiniCourseFlow = ai.defineFlow(
 export async function generateMiniCourse(input: GenerateMiniCourseInput): Promise<GenerateMiniCourseOutput> {
     return generateMiniCourseFlow(input);
 }
+

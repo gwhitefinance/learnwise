@@ -8,6 +8,8 @@ export const GenerateMiniCourseInputSchema = z.object({
   courseName: z.string().describe('The name of the course.'),
   courseDescription: z.string().describe('A brief description of the course.'),
   learnerType: z.enum(['Visual', 'Auditory', 'Kinesthetic', 'Reading/Writing', 'Unknown']),
+  gradeLevel: z.string().optional().describe('The grade level of the user (e.g., "High School", "College").'),
+  interests: z.array(z.string()).optional().describe('A list of topics the user is interested in.'),
 });
 export type GenerateMiniCourseInput = z.infer<typeof GenerateMiniCourseInputSchema>;
 
@@ -27,3 +29,4 @@ export const GenerateMiniCourseOutputSchema = z.object({
   modules: z.array(ModuleSchema),
 });
 export type GenerateMiniCourseOutput = z.infer<typeof GenerateMiniCourseOutputSchema>;
+

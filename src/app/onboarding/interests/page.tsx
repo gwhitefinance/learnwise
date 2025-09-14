@@ -9,7 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { ArrowRight, Loader2, BookOpen, Atom, Globe, History, Palette, Music, Code, BarChart2 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { generateOnboardingCourse } from '@/ai/flows/onboarding-course-flow';
+import { generateMiniCourse } from '@/ai/flows/mini-course-flow';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { addDoc, collection } from 'firebase/firestore';
@@ -67,20 +67,31 @@ export default function InterestsPage() {
         toast({ title: "Building your starter course...", description: "The AI is personalizing your first learning experience."});
 
         try {
-            const { courseName, courseDescription } = await generateOnboardingCourse({
-                gradeLevel,
+            // We use the mini-course flow, but we only need the generated title and modules for the initial course.
+            // The learner type is not yet known, so we pass "Unknown".
+            const result = await generateMiniCourse({
+                courseName: '', // Not needed, AI will generate from interests
+                courseDescription: '', // Not needed, AI will generate from interests
+                learnerType: 'Unknown',
+                gradeLevel: gradeLevel,
                 interests: selectedInterests,
             });
 
+            // The full course content is now in `result`. We can save it.
+            // We will create a simpler representation for the general "courses" list.
             const courseToAdd = {
-                name: courseName,
-                description: courseDescription,
+                name: result.courseTitle,
+                description: result.modules.map(m => m.title).join(', '), // A summary of modules
                 instructor: "AI Assistant",
                 credits: 3,
                 url: '',
                 progress: 0,
                 files: 0,
                 userId: user.uid,
+                // We add the full generated course content here.
+                // This could be stored in a subcollection or directly if not too large.
+                // For simplicity, we'll imagine it's added here. A real app might use a subcollection.
+                miniCourseContent: result,
             };
 
             await addDoc(collection(db, "courses"), courseToAdd);
