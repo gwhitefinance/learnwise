@@ -4,7 +4,6 @@ import type {NextConfig} from 'next';
 const nextConfig: NextConfig = {
   serverActions: {
     bodySizeLimit: '2mb',
-    serverActions: true,
   },
   devIndicators: false,
   transpilePackages: ['@splinetool/react-spline'],
@@ -54,7 +53,7 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
       {
-        protocol: 'https',
+        protocol: 'https,',
         hostname: 'img.favpng.com',
         port: '',
         pathname: '/**',
@@ -96,14 +95,6 @@ const nextConfig: NextConfig = {
       config.externals.push('handlebars');
     }
     return config;
-  },
-  experimental: {
-    serverActions: {
-      bodySizeLimit: '2mb',
-      serverActions: true,
-    },
-    // Increase timeout for AI operations
-    serverActionsTimeout: 120,
   },
 };
 
