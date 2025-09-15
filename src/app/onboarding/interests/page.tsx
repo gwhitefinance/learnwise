@@ -75,6 +75,7 @@ export default function InterestsPage() {
                 gradeLevel: fullGrade ?? 'High School',
                 interest: interest,
             }).then(async (result) => {
+                // Correctly structure the data to be saved to the 'courses' collection
                 const courseToAdd = {
                     name: result.courseTitle,
                     description: `A personalized course about ${interest} for a ${fullGrade} student.`,
@@ -84,8 +85,6 @@ export default function InterestsPage() {
                     progress: 0,
                     files: 0,
                     userId: user.uid,
-                    // Note: In a real app, you might save the full 'result' object to a different collection
-                    // and link it here. For simplicity, we are just saving the title and a basic description.
                 };
 
                 await addDoc(collection(db, "courses"), courseToAdd);
