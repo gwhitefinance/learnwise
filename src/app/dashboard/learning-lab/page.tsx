@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { UploadCloud, Play, Pause, ChevronLeft, ChevronRight, Wand2, FlaskConical, Lightbulb, Copy, RefreshCw, Check, Star, CheckCircle } from 'lucide-react';
+import { UploadCloud, Play, Pause, ChevronLeft, ChevronRight, Wand2, FlaskConical, Lightbulb, Copy, RefreshCw, Check, Star, CheckCircle, Send, Bot, User } from 'lucide-react';
 import Link from 'next/link';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
@@ -24,6 +24,9 @@ import { auth, db } from '@/lib/firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import AudioPlayer from '@/components/audio-player';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { generateTutorResponse } from '@/ai/flows/tutor-chat-flow';
 
 type Course = {
     id: string;
@@ -39,6 +42,11 @@ type Flashcard = {
     front: string;
     back: string;
 };
+
+interface ChatMessage {
+  role: 'user' | 'ai';
+  content: string;
+}
 
 export default function LearningLabPage() {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -66,6 +74,11 @@ export default function LearningLabPage() {
   const [currentFlashcardIndex, setCurrentFlashcardIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
 
+  // Tutor Chat states
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
+  const [chatInput, setChatInput] = useState('');
+  const [isTutorLoading, setIsTutorLoading] = useState(false);
+
 
   useEffect(() => {
     if (authLoading || !user) return;
@@ -81,6 +94,12 @@ export default function LearningLabPage() {
 
     return () => unsubscribe();
   }, [user, authLoading]);
+  
+  useEffect(() => {
+    // Reset chat when chapter changes
+    setChatHistory([]);
+    setChatInput('');
+  }, [currentChapterIndex, currentModuleIndex]);
 
   const handleGenerateCourse = async () => {
     if (!selectedCourseId) {
@@ -215,6 +234,32 @@ export default function LearningLabPage() {
         }
     }
   };
+  
+  const handleSendTutorMessage = async () => {
+    if (!chatInput.trim() || !currentChapter) return;
+
+    const userMessage: ChatMessage = { role: 'user', content: chatInput };
+    const newHistory = [...chatHistory, userMessage];
+    setChatHistory(newHistory);
+    setChatInput('');
+    setIsTutorLoading(true);
+
+    try {
+        const response = await generateTutorResponse({
+            chapterContext: currentChapter.content,
+            question: chatInput,
+        });
+        const aiMessage: ChatMessage = { role: 'ai', content: response.answer };
+        setChatHistory([...newHistory, aiMessage]);
+    } catch (error) {
+        console.error("Tutor chat error:", error);
+        toast({ variant: 'destructive', title: 'AI Tutor Error', description: 'Could not get a response.'});
+        setChatHistory(chatHistory); // Revert on error
+    } finally {
+        setIsTutorLoading(false);
+    }
+  }
+
 
   const progress = miniCourse ? (completedModules.length / miniCourse.modules.length) * 100 : 0;
   const currentModule = miniCourse?.modules[currentModuleIndex];
@@ -303,7 +348,7 @@ export default function LearningLabPage() {
                 </div>
             ) : miniCourse && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-                <div className="md:col-span-2">
+                <div className="md:col-span-2 space-y-6">
                     {currentChapter ? (
                         <Card>
                             <CardHeader>
@@ -350,6 +395,47 @@ export default function LearningLabPage() {
                             </CardContent>
                         </Card>
                      ) : <p>No chapter data found.</p>}
+
+                     {currentChapter && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>AI Tutor</CardTitle>
+                                <CardDescription>Have a question about this chapter? Ask away!</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="space-y-4">
+                                    {chatHistory.map((msg, index) => (
+                                        <div key={index} className={`flex items-start gap-3 ${msg.role === 'user' ? 'justify-end' : ''}`}>
+                                             {msg.role === 'ai' && <Avatar><AvatarFallback><Bot size={20}/></AvatarFallback></Avatar>}
+                                             <div className={cn("rounded-lg p-3 max-w-lg", msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
+                                                <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                                             </div>
+                                             {msg.role === 'user' && <Avatar><AvatarFallback><User size={20}/></AvatarFallback></Avatar>}
+                                        </div>
+                                    ))}
+                                    {isTutorLoading && (
+                                         <div className="flex items-start gap-3">
+                                            <Avatar><AvatarFallback><Bot size={20}/></AvatarFallback></Avatar>
+                                            <div className="rounded-lg p-3 bg-muted animate-pulse">Thinking...</div>
+                                         </div>
+                                    )}
+                                </div>
+                                <div className="mt-4 flex gap-2">
+                                    <Input 
+                                        placeholder="Ask a question about this chapter..."
+                                        value={chatInput}
+                                        onChange={(e) => setChatInput(e.target.value)}
+                                        onKeyDown={(e) => e.key === 'Enter' && !isTutorLoading && handleSendTutorMessage()}
+                                        disabled={isTutorLoading}
+                                    />
+                                    <Button onClick={handleSendTutorMessage} disabled={isTutorLoading}>
+                                        <Send size={16}/>
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        </Card>
+                     )}
+
                      <div className="mt-4 flex justify-between">
                           <Button variant="outline" onClick={handlePrevChapter} disabled={currentModuleIndex === 0 && currentChapterIndex === 0}>
                             <ChevronLeft className="mr-2 h-4 w-4"/> Previous
