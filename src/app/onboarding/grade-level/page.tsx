@@ -36,7 +36,12 @@ export default function GradeLevelPage() {
         }
         
         localStorage.setItem('onboardingGradeLevel', selectedGrade);
-        router.push('/onboarding/interests');
+
+        if (['Elementary', 'Junior High', 'High School'].includes(selectedGrade)) {
+            router.push('/onboarding/grade');
+        } else {
+            router.push('/onboarding/interests');
+        }
     };
 
     return (
@@ -48,8 +53,8 @@ export default function GradeLevelPage() {
                 className="w-full max-w-2xl px-8"
             >
                  <div className="mb-8">
-                    <p className="text-sm text-muted-foreground mb-2">Onboarding (1/3)</p>
-                    <Progress value={33} />
+                    <p className="text-sm text-muted-foreground mb-2">Onboarding (1/4)</p>
+                    <Progress value={25} />
                  </div>
 
                 <h1 className="text-4xl font-bold text-center mb-12">What is your current grade level?</h1>

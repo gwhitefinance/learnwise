@@ -66,4 +66,3 @@ const generateMiniCourseFlow = ai.defineFlow(
 export async function generateMiniCourse(input: GenerateMiniCourseInput): Promise<GenerateMiniCourseOutput> {
     return generateMiniCourseFlow(input);
 }
-

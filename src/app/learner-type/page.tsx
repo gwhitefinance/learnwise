@@ -13,50 +13,54 @@ import { ArrowRight } from 'lucide-react';
 
 const questions = [
   {
-    question: "How do you prefer to learn?",
+    question: "How do you prefer to learn new things?",
     options: {
-      a: "I like to read and write notes",
-      b: "I like to listen to lectures or podcasts",
-      c: "I like to watch videos or demonstrations",
-      d: "I like to learn by doing and practicing",
+      a: "By reading books, articles, and written instructions.",
+      b: "By listening to someone explain it, like in a lecture or podcast.",
+      c: "By watching videos, looking at diagrams, or seeing demonstrations.",
+      d: "By jumping in and trying it myself, learning through hands-on practice.",
     },
-    styles: { a: "Visual", b: "Auditory", c: "Visual", d: "Kinesthetic" },
+    styles: { a: "Reading/Writing", b: "Auditory", c: "Visual", d: "Kinesthetic" },
   },
   {
     question: "When you are trying to remember a phone number, you are most likely to:",
     options: {
-        a: "Visualize the numbers on a keypad.",
-        b: "Say the numbers out loud to yourself.",
+        a: "Visualize the numbers on a keypad as you dial.",
+        b: "Say the numbers out loud to yourself, over and over.",
         c: "Write the numbers down or trace them with your finger.",
+        d: "Associate the numbers with a pattern or rhythm.",
     },
-    styles: { a: "Visual", b: "Auditory", c: "Kinesthetic" },
+    styles: { a: "Visual", b: "Auditory", c: "Kinesthetic", d: "Auditory" },
   },
   {
-    question: "What's your favorite way to get news?",
+    question: "When assembling furniture, what are you most likely to do?",
     options: {
-        a: "Reading articles in a newspaper or online.",
-        b: "Listening to a news radio station or podcast.",
-        c: "Watching news broadcasts on TV.",
+        a: "Read the instruction manual from start to finish before beginning.",
+        b: "Have someone read the instructions to you while you work.",
+        c: "Look at the diagrams and pictures to see how it fits together.",
+        d: "Start putting pieces together and figure it out as you go.",
     },
-    styles: { a: "Visual", b: "Auditory", c: "Visual" }, // Watching is visual
+    styles: { a: "Reading/Writing", b: "Auditory", c: "Visual", d: "Kinesthetic" },
   },
    {
-    question: "When you get a new gadget, you first:",
+    question: "How do you best remember someone's name after meeting them?",
     options: {
-        a: "Read the instruction manual carefully.",
-        b: "Ask someone to explain how to use it.",
-        c: "Start pressing buttons and figure it out as you go.",
+        a: "By seeing it written down.",
+        b: "By repeating their name out loud when you talk to them.",
+        c: "By picturing their face.",
+        d: "By associating them with an action, like a firm handshake.",
     },
-    styles: { a: "Visual", b: "Auditory", c: "Kinesthetic" },
+    styles: { a: "Reading/Writing", b: "Auditory", c: "Visual", d: "Kinesthetic" },
   },
   {
     question: "If you were learning a new dance step, you would prefer to:",
     options: {
-        a: "Watch a video of someone doing the step.",
-        b: "Listen to the instructor count out the rhythm and steps.",
-        c: "Jump in and try to follow along with the movements.",
+        a: "Read a written description of the steps.",
+        b: "Listen to the instructor count out the rhythm and call out the steps.",
+        c: "Watch a video of someone doing the step multiple times.",
+        d: "Jump in and physically try to follow along.",
     },
-    styles: { a: "Visual", b: "Auditory", c: "Kinesthetic" },
+    styles: { a: "Reading/Writing", b: "Auditory", c: "Visual", d: "Kinesthetic" },
   }
 ];
 
@@ -91,7 +95,7 @@ export default function LearnerTypeQuizPage() {
     };
 
     const calculateResult = (finalAnswers: Record<number, string>) => {
-        const counts = { Visual: 0, Auditory: 0, Kinesthetic: 0 };
+        const counts = { Visual: 0, Auditory: 0, Kinesthetic: 0, "Reading/Writing": 0 };
         questions.forEach((q, i) => {
             const answer = finalAnswers[i];
             const style = q.styles[answer as keyof typeof q.styles] as keyof typeof counts;
@@ -121,7 +125,7 @@ export default function LearnerTypeQuizPage() {
         <div className="flex items-center justify-center min-h-screen bg-background text-foreground">
             <div className="w-full max-w-2xl px-8">
                  <div className="mb-8">
-                    <p className="text-sm text-muted-foreground mb-2">Question {currentQuestionIndex + 1} of {questions.length}</p>
+                    <p className="text-sm text-muted-foreground mb-2">Onboarding (4/4)</p>
                     <Progress value={progress} />
                  </div>
 
