@@ -9,7 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { ArrowRight, Loader2, BookOpen, Atom, Globe, History, Palette, Music, Code, BarChart2 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { generateMiniCourse } from '@/ai/flows/mini-course-flow';
+import { generateOnboardingCourse } from '@/ai/flows/onboarding-course-flow';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { addDoc, collection } from 'firebase/firestore';
@@ -71,12 +71,9 @@ export default function InterestsPage() {
 
         // Trigger all course generations in the background
         selectedInterests.forEach(interest => {
-            generateMiniCourse({
-                courseName: '', // Let the AI generate this
-                courseDescription: '', // Let the AI generate this
-                learnerType: 'Unknown',
-                gradeLevel: fullGrade,
-                interests: [interest], // Pass one interest per course
+            generateOnboardingCourse({
+                gradeLevel: fullGrade ?? 'High School',
+                interest: interest,
             }).then(async (result) => {
                 const courseToAdd = {
                     name: result.courseTitle,
