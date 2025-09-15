@@ -60,6 +60,8 @@ export default function SignUpPage() {
         let description = "An unexpected error occurred. Please try again.";
         if (error.code === 'auth/email-already-in-use') {
             description = "This email address is already in use. Please try another one or log in.";
+        } else if (error.code === 'auth/operation-not-allowed') {
+            description = "Email/Password sign-in is not enabled for this project. Please enable it in the Firebase console under Authentication > Sign-in method.";
         } else if (error.code === 'auth/invalid-api-key' || error.code === 'auth/configuration-not-found' || error.code === 'auth/invalid-credential') {
             description = "The provided API key is invalid. Please check your Firebase configuration."
         } else {
