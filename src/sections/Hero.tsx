@@ -4,7 +4,6 @@
 import { ArrowRight, CheckCircle } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import Image from "next/image";
 import Link from "next/link";
 import dynamic from 'next/dynamic';
 
@@ -15,10 +14,10 @@ export default function Hero() {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black">
       <div className="container mx-auto px-4">
-        <Card className="w-full h-auto lg:h-[500px] bg-black/[0.96] relative overflow-hidden border-none">
-          <div className="flex flex-col lg:flex-row h-full">
+        <Card className="w-full bg-black/[0.96] relative overflow-hidden border-none">
+          <div className="flex flex-col lg:flex-row h-full items-center">
             {/* Left content */}
-            <div className="relative flex-1 p-8 z-10 flex flex-col justify-center overflow-hidden">
+            <div className="relative flex-1 p-8 z-10 flex flex-col justify-center">
               <h1 className="text-4xl md:text-5xl font-bold text-white">
                 Unlock Your Potential. Learn Anything, Anywhere.
               </h1>
@@ -57,10 +56,9 @@ export default function Hero() {
             </div>
 
             {/* Right content */}
-            <div className="flex-1 relative min-h-[300px] lg:min-h-0">
+            <div className="flex-1 w-full h-[300px] lg:h-[500px]">
                <Spline
                     scene="https://prod.spline.design/yAJRn2DNNi6cVh2o/scene.splinecode"
-                    className="w-full h-full"
                 />
             </div>
           </div>
