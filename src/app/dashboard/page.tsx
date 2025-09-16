@@ -575,7 +575,7 @@ function DashboardPage() {
                         </div>
                         <div className="hidden lg:block w-64 h-64">
                              <SplineScene
-                                scene="https://prod.spline.design/dwz1-rI2v7i-b8jC/scene.splinecode"
+                                scene="https://prod.spline.design/yAJRn2DNNi6cVh2o/scene.splinecode"
                                 className="w-full h-full"
                             />
                         </div>

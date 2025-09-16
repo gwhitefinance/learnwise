@@ -1,6 +1,7 @@
+
 "use client"
 
-import Spline from "@splinetool/react-spline";
+import Script from "next/script";
 
 interface SplineSceneProps {
   scene: string
@@ -9,6 +10,10 @@ interface SplineSceneProps {
 
 export default function SplineScene({ scene, className }: SplineSceneProps) {
   return (
-    <Spline scene={scene} className={className} />
+    <>
+      <Script type="module" src="https://unpkg.com/@splinetool/viewer@1.10.57/build/spline-viewer.js" />
+      {/* @ts-ignore */}
+      <spline-viewer url={scene} class={className}></spline-viewer>
+    </>
   )
 }

@@ -6,7 +6,6 @@ const nextConfig: NextConfig = {
     bodySizeLimit: '2mb',
   },
   devIndicators: false,
-  transpilePackages: ['@splinetool/react-spline'],
   reactStrictMode: true,
   images: {
     remotePatterns: [
