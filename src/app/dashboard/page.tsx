@@ -945,8 +945,4 @@ function DashboardPage() {
   )
 }
 
-const DashboardPageComponent = dynamic(() => Promise.resolve(DashboardPage), { ssr: false });
-
-export default DashboardPageComponent;
-
-    
+export default DashboardPage;
