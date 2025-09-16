@@ -1,20 +1,17 @@
-
 'use client';
 
 import { ArrowRight, CheckCircle } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import dynamic from "next/dynamic";
+import Image from "next/image";
 import Link from "next/link";
-
-const SplineScene = dynamic(() => import('@/components/ui/spline-scene'), { ssr: false });
 
 export default function Hero() {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black">
       <div className="container mx-auto px-4">
-        <Card className="w-full h-[500px] bg-black/[0.96] relative overflow-hidden border-none">
-          <div className="flex h-full">
+        <Card className="w-full h-auto lg:h-[500px] bg-black/[0.96] relative overflow-hidden border-none">
+          <div className="flex flex-col lg:flex-row h-full">
             {/* Left content */}
             <div className="relative flex-1 p-8 z-10 flex flex-col justify-center overflow-hidden">
               <h1 className="text-4xl md:text-5xl font-bold text-white">
@@ -55,10 +52,14 @@ export default function Hero() {
             </div>
 
             {/* Right content */}
-            <div className="flex-1 relative">
-              <SplineScene
-                scene="https://prod.spline.design/UbM7F-HZcyTbZ4y3/scene.splinecode"
+            <div className="flex-1 relative min-h-[300px] lg:min-h-0">
+              <Image
+                src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?q=80&w=2574&auto=format&fit=crop"
+                alt="Team collaborating"
+                layout="fill"
+                objectFit="cover"
                 className="w-full h-full"
+                data-ai-hint="team collaboration"
               />
             </div>
           </div>

@@ -61,7 +61,7 @@ import { collection, query, where, onSnapshot, addDoc, doc, Timestamp } from 'fi
 import { Skeleton } from '@/components/ui/skeleton';
 import dynamic from 'next/dynamic';
 import { generateMotivationalMessage } from '@/ai/flows/motivational-message-flow';
-const SplineScene = dynamic(() => import('@/components/ui/spline-scene'), { ssr: false });
+import AIBuddy from '@/components/ai-buddy';
 
 
   type Course = {
@@ -181,6 +181,8 @@ function DashboardPage() {
     const [streak, setStreak] = useState(0);
     const [user] = useAuthState(auth);
     const [motivationalMessage, setMotivationalMessage] = useState('');
+    const [customizations, setCustomizations] = useState({ color: 'Default', hat: 'None' });
+
 
      useEffect(() => {
         if (!user) return;
@@ -229,6 +231,10 @@ function DashboardPage() {
             setRecentFiles(userFiles);
         }));
 
+        const savedCustomizations = localStorage.getItem(`robotCustomizations_${user.uid}`);
+        if(savedCustomizations) {
+            setCustomizations(JSON.parse(savedCustomizations));
+        }
 
         // Mock streak calculation
         const lastVisit = localStorage.getItem('lastVisit');
@@ -574,10 +580,11 @@ function DashboardPage() {
                             </p>
                         </div>
                         <div className="hidden lg:block w-64 h-64">
-                             <SplineScene
-                                scene="https://prod.spline.design/yAJRn2DNNi6cVh2o/scene.splinecode"
-                                className="w-full h-full"
-                            />
+                             <AIBuddy
+                                colorName={customizations.color}
+                                hatName={customizations.hat}
+                                isThinking={true}
+                             />
                         </div>
                     </motion.div>
                 </section>
@@ -947,3 +954,5 @@ function DashboardPage() {
 const DashboardPageComponent = dynamic(() => Promise.resolve(DashboardPage), { ssr: false });
 
 export default DashboardPageComponent;
+
+    
