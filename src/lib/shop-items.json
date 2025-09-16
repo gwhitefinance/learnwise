@@ -1,0 +1,28 @@
+{
+    "colors": [
+        { "name": "Default", "hex": "#4f4f4f", "price": 0 },
+        { "name": "Sky Blue", "hex": "#87CEEB", "price": 50 },
+        { "name": "Mint Green", "hex": "#98FF98", "price": 50 },
+        { "name": "Lavender", "hex": "#E6E6FA", "price": 50 },
+        { "name": "Gold", "hex": "#FFD700", "price": 100 },
+        { "name": "Rose", "hex": "#FFC0CB", "price": 50 }
+    ],
+    "hats": [
+        { "name": "None", "component": null, "price": 0 },
+        {
+            "name": "Top Hat",
+            "component": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M20,90 L80,90 L80,80 L90,80 L90,40 L10,40 L10,80 L20,80 Z' fill='black' /><path d='M20,38 L80,38 L80,20 L20,20 Z' fill='black' /><rect x='20' y='38' width='60' height='2' fill='#555' /></svg>",
+            "price": 100
+        },
+        {
+            "name": "Propeller Hat",
+            "component": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M20 50 C 20 30, 80 30, 80 50' fill='gold' /><path d='M 50 10 L 50 30' stroke='black' stroke-width='2' /><path d='M 30 20 L 70 20' stroke='red' stroke-width='4' style='transform-origin: center; animation: spin 1s linear infinite;' /></svg><style>@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }</style>",
+            "price": 150
+        },
+        {
+            "name": "Crown",
+            "component": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M10 80 L90 80 L90 70 L10 70 Z M 10 70 L 20 40 L 40 60 L 50 30 L 60 60 L 80 40 L 90 70 Z' fill='gold' stroke='black' stroke-width='2' /></svg>",
+            "price": 500
+        }
+    ]
+}
