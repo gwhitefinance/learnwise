@@ -62,6 +62,7 @@ import {
   User,
   Gamepad2,
   Gem,
+  ShoppingBag,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -83,6 +84,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { getToken } from 'firebase/messaging';
 import { doc, onSnapshot } from 'firebase/firestore';
@@ -597,7 +599,7 @@ export default function DashboardLayout({
                 <TooltipProvider>
                     <Tooltip>
                         <TooltipTrigger asChild>
-                             <Link href="/dashboard/profile">
+                             <Link href="/dashboard/shop">
                                 <div className="flex items-center gap-2 rounded-full bg-amber-500/10 px-3 py-1.5 text-amber-600">
                                     <Gem className="h-4 w-4" />
                                     <span className="text-sm font-medium">{userCoins}</span>
@@ -624,8 +626,13 @@ export default function DashboardLayout({
                   <DropdownMenuContent>
                       <DropdownMenuItem onSelect={() => router.push('/dashboard/profile')}>
                           <User className="mr-2 h-4 w-4" />
-                          <span>Profile & Rewards</span>
+                          <span>Profile</span>
                       </DropdownMenuItem>
+                       <DropdownMenuItem onSelect={() => router.push('/dashboard/shop')}>
+                          <ShoppingBag className="mr-2 h-4 w-4" />
+                          <span>Shop & Rewards</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
                       <DropdownMenuItem onSelect={triggerFileUpload}>
                           <User className="mr-2 h-4 w-4" />
                           <span>Change Picture</span>
