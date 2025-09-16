@@ -21,6 +21,9 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Slider } from '@/components/ui/slider';
 import AudioPlayer from '@/components/audio-player';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { auth, db } from '@/lib/firebase';
+import { doc, updateDoc, increment } from 'firebase/firestore';
 
 
 const suggestedTopics = ["Mathematics", "Science", "History", "Literature", "Computer Science"];
@@ -51,6 +54,7 @@ export default function PracticeQuizPage() {
     const [learnerType, setLearnerType] = useState<string | null>(null);
     
     const { toast } = useToast();
+    const [user] = useAuthState(auth);
     
     // Whiteboard state
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -154,6 +158,21 @@ export default function PracticeQuizPage() {
         if (currentQuestionIndex < quiz.questions.length - 1) {
             setCurrentQuestionIndex(prev => prev + 1);
         } else {
+            // Quiz finished, award coins
+            if(user) {
+                const correctAnswers = answers.filter(a => a.isCorrect).length;
+                if (correctAnswers > 0) {
+                    const coinsEarned = correctAnswers * 2; // 2 coins per correct answer
+                    const userRef = doc(db, "users", user.uid);
+                    updateDoc(userRef, {
+                        coins: increment(coinsEarned)
+                    });
+                    toast({
+                        title: "Quiz Complete!",
+                        description: `You earned ${coinsEarned} coins for answering ${correctAnswers} questions correctly!`
+                    });
+                }
+            }
             setQuizState('results');
         }
     };

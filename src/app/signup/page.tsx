@@ -8,8 +8,9 @@ import { Input } from "@/components/ui/input"
 import { Github } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { getAuth, createUserWithEmailAndPassword, updateProfile, signInWithEmailAndPassword } from "firebase/auth"
-import { app } from "@/lib/firebase" // Import the initialized app
+import { app, db } from "@/lib/firebase" // Import the initialized app and db
 import { AnimatePresence, motion } from "framer-motion"
+import { doc, setDoc } from "firebase/firestore"
 
 export default function SignUpPage() {
   const router = useRouter()
@@ -49,6 +50,16 @@ export default function SignUpPage() {
         await updateProfile(user, {
             displayName: `${firstName} ${lastName}`
         });
+
+        // Create a user document in Firestore
+        await setDoc(doc(db, "users", user.uid), {
+            uid: user.uid,
+            displayName: `${firstName} ${lastName}`,
+            email: user.email,
+            createdAt: new Date(),
+            coins: 0, // Initialize coins
+        });
+
 
         toast({
             title: "Account Created!",
@@ -278,3 +289,5 @@ export default function SignUpPage() {
     </div>
   )
 }
+
+    

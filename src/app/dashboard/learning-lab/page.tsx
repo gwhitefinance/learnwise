@@ -21,7 +21,7 @@ import type { GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
 import { cn } from '@/lib/utils';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, updateDoc, increment } from 'firebase/firestore';
 import AudioPlayer from '@/components/audio-player';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -183,13 +183,21 @@ export default function LearningLabPage() {
     }
   };
 
-  const handleMarkModuleComplete = (moduleIndex: number) => {
-    if (completedModules.includes(moduleIndex)) return;
+  const handleMarkModuleComplete = async (moduleIndex: number) => {
+    if (completedModules.includes(moduleIndex) || !user) return;
+    
     const newCompletedModules = [...completedModules, moduleIndex];
     setCompletedModules(newCompletedModules);
+    
+    // Award coins
+    const userRef = doc(db, "users", user.uid);
+    await updateDoc(userRef, {
+        coins: increment(50)
+    });
+
     toast({
         title: `🎉 Module ${moduleIndex + 1} Complete! 🎉`,
-        description: "Great job! Keep up the momentum.",
+        description: "Great job! You've earned 50 coins.",
     });
 
     if (newCompletedModules.length === miniCourse?.modules.length) {
@@ -599,3 +607,5 @@ export default function LearningLabPage() {
     </>
   );
 }
+
+    
