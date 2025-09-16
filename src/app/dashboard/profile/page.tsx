@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -39,10 +38,9 @@ export default function ProfilePage() {
             if (doc.exists()) {
                 setProfile(doc.data() as UserProfile);
             }
-            setProfileLoading(false);
+            setProfileLoading(false); // Set loading to false after we get the data (or not)
         });
 
-        // Load saved customizations for the robot preview
         const savedCustomizations = localStorage.getItem(`robotCustomizations_${user.uid}`);
         if(savedCustomizations) {
             setCustomizations(JSON.parse(savedCustomizations));
@@ -69,7 +67,7 @@ export default function ProfilePage() {
     }
 
     if (!profile) {
-        return <div>Could not load user profile.</div>
+        return <div>Could not load user profile. Please try refreshing.</div>
     }
     
     const achievements = [
