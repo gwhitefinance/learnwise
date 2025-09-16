@@ -5,6 +5,10 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
+import dynamic from 'next/dynamic';
+
+const Spline = dynamic(() => import('@splinetool/react-spline'), { ssr: false });
+
 
 export default function Hero() {
   return (
@@ -53,14 +57,10 @@ export default function Hero() {
 
             {/* Right content */}
             <div className="flex-1 relative min-h-[300px] lg:min-h-0">
-              <Image
-                src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?q=80&w=2574&auto=format&fit=crop"
-                alt="Team collaborating"
-                layout="fill"
-                objectFit="cover"
-                className="w-full h-full"
-                data-ai-hint="team collaboration"
-              />
+               <Spline
+                    scene="https://prod.spline.design/yAJRn2DNNi6cVh2o/scene.splinecode"
+                    className="w-full h-full"
+                />
             </div>
           </div>
         </Card>
