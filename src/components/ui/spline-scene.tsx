@@ -22,3 +22,5 @@ export default function SplineScene({ scene, className }: SplineSceneProps) {
     </Suspense>
   )
 }
+
+    

@@ -60,8 +60,8 @@ import { auth, db } from '@/lib/firebase';
 import { collection, query, where, onSnapshot, addDoc, doc, Timestamp } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import dynamic from 'next/dynamic';
-import AIBuddy from '@/components/ai-buddy';
 import { generateMotivationalMessage } from '@/ai/flows/motivational-message-flow';
+const SplineScene = dynamic(() => import('@/components/ui/spline-scene'), { ssr: false });
 
 
   type Course = {
@@ -573,8 +573,11 @@ function DashboardPage() {
                                 "{motivationalMessage || 'Ready to learn something new today?'}"
                             </p>
                         </div>
-                        <div className="hidden lg:block">
-                            <AIBuddy />
+                        <div className="hidden lg:block w-64 h-64">
+                             <SplineScene
+                                scene="https://prod.spline.design/dwz1-rI2v7i-b8jC/scene.splinecode"
+                                className="w-full h-full"
+                            />
                         </div>
                     </motion.div>
                 </section>
@@ -944,3 +947,5 @@ function DashboardPage() {
 const DashboardPageComponent = dynamic(() => Promise.resolve(DashboardPage), { ssr: false });
 
 export default DashboardPageComponent;
+
+    
