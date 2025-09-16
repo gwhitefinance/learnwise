@@ -61,6 +61,7 @@ import {
   LogOut,
   User,
   Gamepad2,
+  Gem,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -76,7 +77,7 @@ import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/toaster';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { auth, messaging } from '@/lib/firebase';
+import { auth, db, messaging } from '@/lib/firebase';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -84,6 +85,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { getToken } from 'firebase/messaging';
+import { doc, onSnapshot } from 'firebase/firestore';
 
 
 // Sample data for sidebar navigation
@@ -266,11 +268,13 @@ export default function DashboardLayout({
   const [profilePic, setProfilePic] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [userCoins, setUserCoins] = useState<number>(0);
 
 
   useEffect(() => {
     if (!loading && !user) {
       router.push('/signup');
+      return;
     }
     const savedPic = localStorage.getItem('profilePic');
     if (savedPic) {
@@ -312,6 +316,17 @@ export default function DashboardLayout({
     }
     
     requestPermission();
+
+    // Listen for coin updates
+    if (user) {
+        const userDocRef = doc(db, 'users', user.uid);
+        const unsubscribe = onSnapshot(userDocRef, (doc) => {
+            if (doc.exists()) {
+                setUserCoins(doc.data().coins || 0);
+            }
+        });
+        return () => unsubscribe();
+    }
 
   }, [user, loading, router]);
 
@@ -580,17 +595,38 @@ export default function DashboardLayout({
                   </Tooltip>
                 </TooltipProvider>
 
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                             <Link href="/dashboard/profile">
+                                <div className="flex items-center gap-2 rounded-full bg-amber-500/10 px-3 py-1.5 text-amber-600">
+                                    <Gem className="h-4 w-4" />
+                                    <span className="text-sm font-medium">{userCoins}</span>
+                                </div>
+                            </Link>
+                        </TooltipTrigger>
+                        <TooltipContent>Your Coins</TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+
+
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Avatar className="h-9 w-9 border-2 border-primary cursor-pointer">
-                          {profilePic ? (
-                              <AvatarImage src={profilePic} alt="User" />
-                          ): (
-                              <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
-                          )}
-                      </Avatar>
+                     <button>
+                        <Avatar className="h-9 w-9 border-2 border-primary cursor-pointer">
+                            {profilePic ? (
+                                <AvatarImage src={profilePic} alt="User" />
+                            ): (
+                                <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
+                            )}
+                        </Avatar>
+                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
+                      <DropdownMenuItem onSelect={() => router.push('/dashboard/profile')}>
+                          <User className="mr-2 h-4 w-4" />
+                          <span>Profile & Rewards</span>
+                      </DropdownMenuItem>
                       <DropdownMenuItem onSelect={triggerFileUpload}>
                           <User className="mr-2 h-4 w-4" />
                           <span>Change Picture</span>
