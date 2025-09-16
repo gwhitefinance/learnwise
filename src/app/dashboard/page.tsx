@@ -61,7 +61,8 @@ import { collection, query, where, onSnapshot, addDoc, doc, Timestamp } from 'fi
 import { Skeleton } from '@/components/ui/skeleton';
 import dynamic from 'next/dynamic';
 import { generateMotivationalMessage } from '@/ai/flows/motivational-message-flow';
-import AIBuddy from '@/components/ai-buddy';
+
+const SplineScene = dynamic(() => import('@/components/ui/spline-scene'), { ssr: false });
 
 
   type Course = {
@@ -181,7 +182,6 @@ function DashboardPage() {
     const [streak, setStreak] = useState(0);
     const [user] = useAuthState(auth);
     const [motivationalMessage, setMotivationalMessage] = useState('');
-    const [customizations, setCustomizations] = useState({ color: 'Default', hat: 'None' });
 
 
      useEffect(() => {
@@ -230,11 +230,6 @@ function DashboardPage() {
             userFiles.sort((a,b) => new Date(b.modified).getTime() - new Date(a.modified).getTime());
             setRecentFiles(userFiles);
         }));
-
-        const savedCustomizations = localStorage.getItem(`robotCustomizations_${user.uid}`);
-        if(savedCustomizations) {
-            setCustomizations(JSON.parse(savedCustomizations));
-        }
 
         // Mock streak calculation
         const lastVisit = localStorage.getItem('lastVisit');
@@ -580,11 +575,10 @@ function DashboardPage() {
                             </p>
                         </div>
                         <div className="hidden lg:block w-64 h-64">
-                             <AIBuddy
-                                colorName={customizations.color}
-                                hatName={customizations.hat}
-                                isThinking={true}
-                             />
+                             <SplineScene
+                                scene="https://prod.spline.design/yAJRn2DNNi6cVh2o/scene.splinecode"
+                                className="w-full h-full"
+                              />
                         </div>
                     </motion.div>
                 </section>
