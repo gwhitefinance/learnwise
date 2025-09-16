@@ -285,7 +285,8 @@ export default function DashboardLayout({
                 setUserCoins(doc.data().coins || 0);
             }
         });
-
+        
+        // This code must run on the client
         const savedPic = localStorage.getItem('profilePic');
         if (savedPic) {
           setProfilePic(savedPic);
