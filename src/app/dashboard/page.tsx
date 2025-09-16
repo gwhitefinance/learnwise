@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -62,7 +63,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import dynamic from 'next/dynamic';
 import { generateMotivationalMessage } from '@/ai/flows/motivational-message-flow';
 
-const SplineScene = dynamic(() => import('@/components/ui/spline-scene'), { ssr: false });
+const SplineScene = dynamic(() => import('@splinetool/react-spline'), { ssr: false });
 
 
   type Course = {
