@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -947,5 +946,3 @@ function DashboardPage() {
 const DashboardPageComponent = dynamic(() => Promise.resolve(DashboardPage), { ssr: false });
 
 export default DashboardPageComponent;
-
-    
