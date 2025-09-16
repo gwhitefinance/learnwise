@@ -40,7 +40,7 @@ export default function ShopPage() {
             if (doc.exists()) {
                 setProfile(doc.data() as UserProfile);
             }
-            setProfileLoading(false); // Set loading to false after we get the data (or not)
+            setProfileLoading(false);
         });
 
         // Load saved customizations for the robot preview
@@ -134,7 +134,8 @@ export default function ShopPage() {
     const RobotHat = shopItems.hats.find(h => h.name === customizations.hat)?.component;
 
     const isItemUnlocked = (category: string, itemName: string) => {
-        if (item.price === 0) return true;
+        const item = category === 'colors' ? shopItems.colors.find(c => c.name === itemName) : shopItems.hats.find(h => h.name === itemName);
+        if (item && item.price === 0) return true;
         return profile.unlockedItems?.[category]?.includes(itemName) ?? false;
     }
 

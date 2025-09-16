@@ -38,7 +38,7 @@ export default function ProfilePage() {
             if (doc.exists()) {
                 setProfile(doc.data() as UserProfile);
             }
-            setProfileLoading(false); // Set loading to false after we get the data (or not)
+            setProfileLoading(false);
         });
 
         const savedCustomizations = localStorage.getItem(`robotCustomizations_${user.uid}`);
