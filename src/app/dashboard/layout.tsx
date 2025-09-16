@@ -276,48 +276,6 @@ export default function DashboardLayout({
       router.push('/signup');
       return;
     }
-    const savedPic = localStorage.getItem('profilePic');
-    if (savedPic) {
-      setProfilePic(savedPic);
-    }
-    
-    const savedNotifications = localStorage.getItem('notifications');
-    if (savedNotifications) {
-      setNotifications(JSON.parse(savedNotifications).length);
-    }
-    
-    // Request notification permission
-    async function requestPermission() {
-      if (typeof window === 'undefined' || !("Notification" in window)) return;
-      console.log('Requesting permission...');
-      try {
-        const permission = await Notification.requestPermission();
-        if (permission === 'granted') {
-          console.log('Notification permission granted.');
-          
-          const messagingInstance = await messaging();
-          if (messagingInstance) {
-            const currentToken = await getToken(messagingInstance, { vapidKey: 'YOUR_VAPID_KEY_HERE' });
-          
-            if (currentToken) {
-              console.log('FCM Token:', currentToken);
-              // Send the token to your server and update the UI if necessary
-            } else {
-              // Show permission request UI
-              console.log('No registration token available. Request permission to generate one.');
-            }
-          }
-        } else {
-          console.log('Unable to get permission to notify.');
-        }
-      } catch (error) {
-        console.error('An error occurred while requesting permission. ', error);
-      }
-    }
-    
-    requestPermission();
-
-    // Listen for coin updates
     if (user) {
         const userDocRef = doc(db, 'users', user.uid);
         const unsubscribe = onSnapshot(userDocRef, (doc) => {
@@ -325,9 +283,50 @@ export default function DashboardLayout({
                 setUserCoins(doc.data().coins || 0);
             }
         });
+
+        const savedPic = localStorage.getItem('profilePic');
+        if (savedPic) {
+          setProfilePic(savedPic);
+        }
+        
+        const savedNotifications = localStorage.getItem('notifications');
+        if (savedNotifications) {
+          setNotifications(JSON.parse(savedNotifications).length);
+        }
+        
+        // Request notification permission
+        async function requestPermission() {
+          if (typeof window === 'undefined' || !("Notification" in window)) return;
+          console.log('Requesting permission...');
+          try {
+            const permission = await Notification.requestPermission();
+            if (permission === 'granted') {
+              console.log('Notification permission granted.');
+              
+              const messagingInstance = await messaging();
+              if (messagingInstance) {
+                const currentToken = await getToken(messagingInstance, { vapidKey: 'YOUR_VAPID_KEY_HERE' });
+              
+                if (currentToken) {
+                  console.log('FCM Token:', currentToken);
+                  // Send the token to your server and update the UI if necessary
+                } else {
+                  // Show permission request UI
+                  console.log('No registration token available. Request permission to generate one.');
+                }
+              }
+            } else {
+              console.log('Unable to get permission to notify.');
+            }
+          } catch (error) {
+            console.error('An error occurred while requesting permission. ', error);
+          }
+        }
+        
+        requestPermission();
+        
         return () => unsubscribe();
     }
-
   }, [user, loading, router]);
 
 
