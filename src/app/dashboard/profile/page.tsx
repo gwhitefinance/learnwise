@@ -161,7 +161,7 @@ export default function ProfilePage() {
                                 <div className="col-span-1 flex items-center justify-center bg-muted rounded-lg p-4 relative aspect-square">
                                     {/* Robot Preview */}
                                     <div className="relative w-40 h-40">
-                                        {RobotHat && <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-32 h-32 z-10">{RobotHat}</div>}
+                                        {RobotHat && <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-32 h-32 z-10" dangerouslySetInnerHTML={{ __html: RobotHat }} />}
                                         <div 
                                             className="w-full h-full rounded-full"
                                             style={{ backgroundColor: robotColor }}
@@ -200,7 +200,7 @@ export default function ProfilePage() {
                                                         onClick={() => handleSelectItem('hat', item.name)}
                                                         className={cn("p-2 rounded-lg border flex flex-col items-center gap-1 transition-all", selectedItems.hat === item.name ? 'border-primary bg-primary/10 ring-2 ring-primary' : 'hover:bg-muted')}
                                                     >
-                                                        <div className="w-12 h-12">{item.component}</div>
+                                                        <div className="w-12 h-12" dangerouslySetInnerHTML={{ __html: item.component || '' }} />
                                                         <span className="text-xs font-medium">{item.name}</span>
                                                         <span className="text-xs text-amber-500 font-semibold">{item.price} Coins</span>
                                                     </button>
@@ -217,5 +217,3 @@ export default function ProfilePage() {
         </div>
     );
 }
-
-    
