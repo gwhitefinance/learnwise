@@ -133,7 +133,7 @@ export default function ShopPage() {
     }
     
     const isItemUnlocked = (category: string, itemName: string) => {
-        const item = category === 'colors' ? shopItems.colors.find(c => c.name === itemName) : shopItems.hats.find(h => h.name === itemName);
+        const item = category === 'colors' ? shopItems.colors.find(c => c.name === itemName) : shopItems.hats.find(h => h.name === itemName) || shopItems.shirts.find(s => s.name === itemName) || shopItems.shoes.find(s => s.name === itemName);
         if (item && item.price === 0) return true;
         return profile.unlockedItems?.[category]?.includes(itemName) ?? false;
     }
@@ -166,6 +166,8 @@ export default function ShopPage() {
                                 className="w-48 h-48" 
                                 color={customizations.color}
                                 hat={customizations.hat}
+                                shirt={customizations.shirt}
+                                shoes={customizations.shoes}
                             />
                         </div>
                         <div className="md:col-span-2">
@@ -199,22 +201,23 @@ export default function ShopPage() {
                                     </div>
                                 </div>
                                 <div>
-                                    <h4 className="font-semibold mb-3 text-lg flex items-center gap-2"><Shirt className="h-5 w-5 text-primary"/> Hats & Accessories</h4>
+                                    <h4 className="font-semibold mb-3 text-lg flex items-center gap-2"><Shirt className="h-5 w-5 text-primary"/> Accessories</h4>
                                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                                        {shopItems.hats.map(item => {
-                                            const unlocked = isItemUnlocked('hats', item.name);
+                                        {[...shopItems.hats, ...shopItems.shirts, ...shopItems.shoes].map(item => {
+                                            const category = shopItems.hats.includes(item) ? 'hats' : shopItems.shirts.includes(item) ? 'shirts' : 'shoes';
+                                            const unlocked = isItemUnlocked(category, item.name);
                                             return (
-                                             <div key={item.name} className={cn("p-2 rounded-lg border flex flex-col items-center gap-2 transition-all", customizations.hat === item.name ? 'border-primary bg-primary/10 ring-2 ring-primary' : 'hover:bg-muted')}>
+                                             <div key={item.name} className={cn("p-2 rounded-lg border flex flex-col items-center gap-2 transition-all", customizations[category] === item.name ? 'border-primary bg-primary/10 ring-2 ring-primary' : 'hover:bg-muted')}>
                                                 <button 
                                                     className="w-full"
-                                                    onClick={() => handleSelectItem('hat', item.name)}
+                                                    onClick={() => handleSelectItem(category, item.name)}
                                                     title={unlocked ? `Equip ${item.name}` : `Locked`}
                                                 >
                                                     <div className="w-16 h-16 mx-auto" dangerouslySetInnerHTML={{ __html: item.component || '<div class="w-16 h-16"></div>' }} />
                                                     <span className="text-sm font-medium mt-1">{item.name}</span>
                                                 </button>
                                                 {!unlocked ? (
-                                                     <Button size="sm" className="h-7 text-xs w-full" onClick={() => handleBuyItem('hats', item.name, item.price)} disabled={profile.coins < item.price}>
+                                                     <Button size="sm" className="h-7 text-xs w-full" onClick={() => handleBuyItem(category, item.name, item.price)} disabled={profile.coins < item.price}>
                                                         <Gem className="w-3 h-3 mr-1" /> {item.price}
                                                     </Button>
                                                 ) : (
