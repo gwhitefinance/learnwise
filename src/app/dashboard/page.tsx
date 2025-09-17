@@ -582,15 +582,13 @@ function DashboardPage() {
                                 This is your central hub for all your learning activities. Let's make today a productive one!
                             </p>
                         </div>
-                        <div className="hidden lg:flex items-center justify-center gap-4">
-                            <div className="relative">
-                                {motivationalMessage && (
-                                    <p className="relative z-10 max-w-xs bg-white/20 backdrop-blur-sm p-3 rounded-lg text-center text-sm italic after:content-[''] after:absolute after:left-full after:top-1/2 after:-translate-y-1/2 after:border-y-8 after:border-y-transparent after:border-l-[12px] after:border-l-white/20">
-                                        "{motivationalMessage}"
-                                    </p>
-                                )}
-                            </div>
-                            <AIBuddy className="w-32 h-32" />
+                         <div className="hidden lg:flex items-center justify-center gap-2">
+                            {motivationalMessage && (
+                                <p className="relative z-10 max-w-[200px] bg-white/20 backdrop-blur-sm p-3 rounded-lg text-center text-sm italic after:content-[''] after:absolute after:left-full after:top-1/2 after:-translate-y-1/2 after:border-y-8 after:border-y-transparent after:border-l-[12px] after:border-l-white/20">
+                                    {motivationalMessage}
+                                </p>
+                            )}
+                            <AIBuddy className="w-32 h-32 -ml-2" />
                         </div>
                     </motion.div>
                 </section>
