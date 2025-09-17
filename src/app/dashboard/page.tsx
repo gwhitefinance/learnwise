@@ -581,6 +581,12 @@ function DashboardPage() {
                             <p className="max-w-md text-white/80">
                                 This is your central hub for all your learning activities. Let's make today a productive one!
                             </p>
+                            <Link href="/dashboard/ai-chat">
+                                <Button variant="outline" className="bg-white/20 text-white hover:bg-white/30 rounded-xl">
+                                    Start Chat
+                                    <ArrowRight className="ml-2 h-4 w-4" />
+                                </Button>
+                            </Link>
                         </div>
                          <div className="hidden lg:flex items-center justify-center gap-2">
                             {motivationalMessage && (
