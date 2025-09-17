@@ -166,7 +166,7 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, color, hat }) => {
                              <motion.path
                                 d="M 75 72 Q 85 82, 95 72"
                                 fill="none"
-                                stroke={bodyColor}
+                                stroke="#222"
                                 strokeWidth="20"
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: isBlinking ? 1 : 0 }}
@@ -186,7 +186,7 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, color, hat }) => {
                              <motion.path
                                 d="M 105 72 Q 115 82, 125 72"
                                 fill="none"
-                                stroke={bodyColor}
+                                stroke="#222"
                                 strokeWidth="20"
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: isBlinking ? 1 : 0 }}
