@@ -5,10 +5,7 @@ import { ArrowRight, CheckCircle } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import dynamic from 'next/dynamic';
-
-const Spline = dynamic(() => import('@splinetool/react-spline'), { ssr: false });
-
+import AIBuddy from "@/components/ai-buddy";
 
 export default function Hero() {
   return (
@@ -56,10 +53,8 @@ export default function Hero() {
             </div>
 
             {/* Right content */}
-            <div className="flex-1 w-full h-[300px] lg:h-[500px]">
-               <Spline
-                    scene="https://prod.spline.design/yAJRn2DNNi6cVh2o/scene.splinecode"
-                />
+            <div className="flex-1 w-full h-[300px] lg:h-[500px] flex items-center justify-center">
+               <AIBuddy className="w-64 h-64 lg:w-80 lg:h-80" />
             </div>
           </div>
         </Card>

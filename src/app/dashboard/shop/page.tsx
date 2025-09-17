@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
-import { doc, onSnapshot, updateDoc, arrayUnion, increment, arrayRemove } from 'firebase/firestore';
+import { doc, onSnapshot, updateDoc, arrayUnion, increment } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -12,6 +12,7 @@ import { Gem, Palette, Shirt, CheckCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import shopItems from '@/lib/shop-items.json';
 import { useToast } from '@/hooks/use-toast';
+import AIBuddy from '@/components/ai-buddy';
 
 type UserProfile = {
     displayName: string;
@@ -130,9 +131,6 @@ export default function ShopPage() {
         return <div>Could not load user profile. Please try refreshing.</div>
     }
     
-    const robotColor = shopItems.colors.find(c => c.name === customizations.color)?.hex || '#4f4f4f';
-    const RobotHat = shopItems.hats.find(h => h.name === customizations.hat)?.component;
-
     const isItemUnlocked = (category: string, itemName: string) => {
         const item = category === 'colors' ? shopItems.colors.find(c => c.name === itemName) : shopItems.hats.find(h => h.name === itemName);
         if (item && item.price === 0) return true;
@@ -163,19 +161,11 @@ export default function ShopPage() {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         <div className="md:col-span-1 flex items-center justify-center bg-muted rounded-lg p-4 relative aspect-square">
                             {/* Robot Preview */}
-                            <div className="relative w-48 h-48">
-                                {RobotHat && <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-36 h-36 z-10" dangerouslySetInnerHTML={{ __html: RobotHat }} />}
-                                <div 
-                                    className="w-full h-full rounded-full"
-                                    style={{ backgroundColor: robotColor }}
-                                >
-                                    <div className="absolute inset-0 flex items-center justify-center">
-                                        <div className="w-2/3 h-1/4 bg-black/30 rounded-full flex items-center justify-center">
-                                            <div className="w-1/2 h-1/2 bg-white rounded-full animate-pulse"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            <AIBuddy 
+                                className="w-48 h-48" 
+                                color={customizations.color}
+                                hat={customizations.hat}
+                            />
                         </div>
                         <div className="md:col-span-2">
                              <div className="space-y-8">
@@ -189,8 +179,7 @@ export default function ShopPage() {
                                                     <button 
                                                         className={cn("w-12 h-12 rounded-full border-2 transition-transform hover:scale-110", customizations.color === item.name ? 'border-primary ring-2 ring-primary ring-offset-2' : 'border-border')}
                                                         style={{ backgroundColor: item.hex }}
-                                                        onClick={() => unlocked ? handleSelectItem('color', item.name) : null}
-                                                        disabled={!unlocked}
+                                                        onClick={() => handleSelectItem('color', item.name)}
                                                         title={unlocked ? `Equip ${item.name}` : `Locked`}
                                                     >
                                                         <span className="sr-only">{item.name}</span>
@@ -217,8 +206,7 @@ export default function ShopPage() {
                                              <div key={item.name} className={cn("p-2 rounded-lg border flex flex-col items-center gap-2 transition-all", customizations.hat === item.name ? 'border-primary bg-primary/10 ring-2 ring-primary' : 'hover:bg-muted')}>
                                                 <button 
                                                     className="w-full"
-                                                    onClick={() => unlocked ? handleSelectItem('hat', item.name) : null}
-                                                    disabled={!unlocked}
+                                                    onClick={() => handleSelectItem('hat', item.name)}
                                                     title={unlocked ? `Equip ${item.name}` : `Locked`}
                                                 >
                                                     <div className="w-16 h-16 mx-auto" dangerouslySetInnerHTML={{ __html: item.component || '<div class="w-16 h-16"></div>' }} />

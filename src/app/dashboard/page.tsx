@@ -62,8 +62,7 @@ import { collection, query, where, onSnapshot, addDoc, doc, Timestamp } from 'fi
 import { Skeleton } from '@/components/ui/skeleton';
 import dynamic from 'next/dynamic';
 import { generateMotivationalMessage } from '@/ai/flows/motivational-message-flow';
-
-const SplineScene = dynamic(() => import('@splinetool/react-spline'), { ssr: false });
+import AIBuddy from '@/components/ai-buddy';
 
 
   type Course = {
@@ -576,10 +575,7 @@ function DashboardPage() {
                             </p>
                         </div>
                         <div className="hidden lg:block w-64 h-64">
-                             <SplineScene
-                                scene="https://prod.spline.design/yAJRn2DNNi6cVh2o/scene.splinecode"
-                                className="w-full h-full"
-                              />
+                             <AIBuddy className="w-full h-full" />
                         </div>
                     </motion.div>
                 </section>
