@@ -54,7 +54,7 @@ export default function Hero() {
 
             {/* Right content */}
             <div className="flex-1 w-full h-[300px] lg:h-[500px] flex items-center justify-center">
-               <AIBuddy className="w-64 h-64 lg:w-80 lg:h-80" />
+               <AIBuddy className="w-80 h-80 lg:w-96 lg:h-96" />
             </div>
           </div>
         </Card>
