@@ -9,11 +9,16 @@ interface AIBuddyProps {
     className?: string;
     color?: string; // Color name from shop-items.json
     hat?: string;   // Hat name from shop-items.json
+    shirt?: string; // Shirt name
+    shoes?: string; // Shoes name
 }
 
-const AIBuddy: React.FC<AIBuddyProps> = ({ className, color, hat }) => {
+const AIBuddy: React.FC<AIBuddyProps> = ({ className, color, hat, shirt, shoes }) => {
     const bodyColor = shopItems.colors.find(c => c.name === color)?.hex || '#87CEEB'; // Cheerful blue default
     const HatComponent = shopItems.hats.find(h => h.name === hat)?.component;
+    const ShirtComponent = shopItems.shirts.find(s => s.name === shirt)?.component;
+    const ShoesComponent = shopItems.shoes.find(s => s.name === shoes)?.component;
+
 
     const containerRef = useRef<HTMLDivElement>(null);
     const mouse = {
@@ -88,9 +93,15 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, color, hat }) => {
                 <motion.g
                      animate={{ y: [0, -4, 0], transition: { duration: 4, repeat: Infinity, ease: 'easeInOut' } }}
                 >
-                    {/* Feet */}
-                    <rect x="70" y="175" width="20" height="10" rx="5" fill="#333" />
-                    <rect x="110" y="175" width="20" height="10" rx="5" fill="#333" />
+                    {/* Feet/Shoes */}
+                    {ShoesComponent ? (
+                         <g dangerouslySetInnerHTML={{ __html: ShoesComponent }} />
+                    ) : (
+                        <>
+                         <rect x="70" y="175" width="20" height="10" rx="5" fill="#333" />
+                         <rect x="110" y="175" width="20" height="10" rx="5" fill="#333" />
+                        </>
+                    )}
                     
                      {/* Body */}
                      <motion.g
@@ -103,6 +114,10 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, color, hat }) => {
                         
                         {/* Main Body - Bigger */}
                         <rect x="65" y="100" width="70" height="60" rx="20" fill={bodyColor} />
+                        
+                        {/* Shirt */}
+                        {ShirtComponent && <g dangerouslySetInnerHTML={{ __html: ShirtComponent }} />}
+
                         <rect x="65" y="100" width="70" height="60" rx="20" fill="url(#bodyGradient)" />
                     </motion.g>
 

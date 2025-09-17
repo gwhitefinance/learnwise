@@ -185,6 +185,12 @@ const sidebarItems = [
         },
       ]
     },
+    {
+        title: "Shop",
+        icon: <ShoppingBag />,
+        href: "/dashboard/shop",
+        id: "shop-link",
+    }
   ];
 
 
