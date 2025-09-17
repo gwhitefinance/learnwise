@@ -107,22 +107,27 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, color, hat }) => {
                         initial={{ y: 200, opacity: 0 }}
                         animate={{ y: 0, opacity: 1, transition: { type: 'spring', stiffness: 100, damping: 15, delay: 0.2 } }}
                     >
-                        <rect x="65" y="120" width="70" height="60" rx="35" fill={bodyColor} />
-                        <rect x="65" y="120" width="70" height="60" rx="35" fill="url(#bodyGradient)" />
+                        {/* Legs */}
+                        <rect x="75" y="150" width="15" height="25" fill={bodyColor} />
+                        <rect x="110" y="150" width="15" height="25" fill={bodyColor} />
+                        
+                        {/* Main Body - Bigger */}
+                        <rect x="65" y="100" width="70" height="60" rx="20" fill={bodyColor} />
+                        <rect x="65" y="100" width="70" height="60" rx="20" fill="url(#bodyGradient)" />
                     </motion.g>
 
                     {/* Arms */}
                     <motion.g
                         animate={{ rotate: [0, -8, 0, 8, 0], transition: { duration: 5, repeat: Infinity, ease: 'easeInOut' }}}
-                        style={{ transformOrigin: '70px 135px' }}
+                        style={{ transformOrigin: '70px 115px' }}
                     >
-                        <rect x="45" y="130" width="20" height="35" rx="10" fill={bodyColor} />
+                        <rect x="45" y="110" width="20" height="35" rx="10" fill={bodyColor} />
                     </motion.g>
                      <motion.g
                         animate={{ rotate: [0, 8, 0, -8, 0], transition: { duration: 5, delay: 0.5, repeat: Infinity, ease: 'easeInOut' }}}
-                        style={{ transformOrigin: '130px 135px' }}
+                        style={{ transformOrigin: '130px 115px' }}
                     >
-                        <rect x="135" y="130" width="20" height="35" rx="10" fill={bodyColor} />
+                        <rect x="135" y="110" width="20" height="35" rx="10" fill={bodyColor} />
                     </motion.g>
                     
 
@@ -131,35 +136,35 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, color, hat }) => {
                         initial={{ scale: 0 }}
                         animate={{ scale: 1, transition: { delay: 0.3, type: 'spring', stiffness: 120 } }}
                      >
-                        <rect x="50" y="40" width="100" height="90" rx="50" fill={bodyColor} />
-                        <rect x="50" y="40" width="100" height="90" rx="50" fill="url(#bodyGradient)" />
+                        <rect x="50" y="30" width="100" height="80" rx="40" fill={bodyColor} />
+                        <rect x="50" y="30" width="100" height="80" rx="40" fill="url(#bodyGradient)" />
 
                         {/* Antenna */}
                         <motion.g 
-                            style={{ transformOrigin: '100px 40px'}}
+                            style={{ transformOrigin: '100px 30px'}}
                             animate={{ rotate: [-5, 5, -5], transition: { duration: 6, repeat: Infinity, ease: 'linear' }}}
                         >
-                            <line x1="100" y1="40" x2="100" y2="20" stroke="#333" strokeWidth="3" />
-                            <circle cx="100" cy="18" r="5" fill="#FFC700" />
+                            <line x1="100" y1="30" x2="100" y2="10" stroke="#333" strokeWidth="3" />
+                            <circle cx="100" cy="8" r="5" fill="#FFC700" />
                         </motion.g>
                         
                         {/* Face Screen */}
-                        <rect x="65" y="60" width="70" height="50" rx="15" fill="#222" />
+                        <rect x="65" y="50" width="70" height="45" rx="15" fill="#222" />
                         
                         {/* Eyes */}
                         <g>
                             {/* Left Eye */}
-                            <circle cx="85" cy="85" r="10" fill="white" />
+                            <circle cx="85" cy="72" r="10" fill="white" />
                             <motion.circle 
                                 cx="85" 
-                                cy="85" 
+                                cy="72" 
                                 r="5" 
                                 fill="black"
                                 style={{ x: pupilX, y: pupilY }}
                             />
                             {/* Blink */}
                              <motion.path
-                                d="M 75 85 Q 85 95, 95 85"
+                                d="M 75 72 Q 85 82, 95 72"
                                 fill="none"
                                 stroke={bodyColor}
                                 strokeWidth="20"
@@ -170,16 +175,16 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, color, hat }) => {
 
 
                              {/* Right Eye */}
-                            <circle cx="115" cy="85" r="10" fill="white" />
+                            <circle cx="115" cy="72" r="10" fill="white" />
                              <motion.circle 
                                 cx="115" 
-                                cy="85" 
+                                cy="72" 
                                 r="5" 
                                 fill="black"
                                 style={{ x: pupilX, y: pupilY }}
                             />
                              <motion.path
-                                d="M 105 85 Q 115 95, 125 85"
+                                d="M 105 72 Q 115 82, 125 72"
                                 fill="none"
                                 stroke={bodyColor}
                                 strokeWidth="20"
@@ -189,7 +194,7 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, color, hat }) => {
                             />
                             
                              {/* Mouth */}
-                            <path d="M92,100 Q100,105 108,100" stroke="white" strokeWidth="2" fill="none" strokeLinecap="round" />
+                            <path d="M92,88 Q100,93 108,88" stroke="white" strokeWidth="2" fill="none" strokeLinecap="round" />
                         </g>
                     </motion.g>
                 </motion.g>
