@@ -565,17 +565,22 @@ function DashboardPage() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5 }}
-                        className="overflow-hidden rounded-3xl bg-gradient-to-r from-violet-600 via-indigo-600 to-blue-600 p-8 text-white flex items-center gap-8"
+                        className="overflow-hidden rounded-3xl bg-gradient-to-r from-violet-600 via-indigo-600 to-blue-600 p-8 text-white flex flex-col md:flex-row items-center gap-8"
                     >
                         <div className="flex-1 space-y-4">
                             <Badge className="bg-white/20 text-white hover:bg-white/30 rounded-xl">Get Started</Badge>
                             <h2 className="text-3xl font-bold">Welcome back, {user?.displayName?.split(' ')[0] || 'Learner'}!</h2>
-                            <p className="max-w-[600px] text-white/80">
-                                "{motivationalMessage || 'Ready to learn something new today?'}"
+                            <p className="max-w-md text-white/80">
+                                This is your central hub for all your learning activities. Let's make today a productive one!
                             </p>
                         </div>
-                        <div className="hidden lg:block w-64 h-64">
-                             <AIBuddy className="w-full h-full" />
+                        <div className="hidden lg:flex items-center justify-center gap-4">
+                            <div className="relative">
+                                <p className="relative z-10 max-w-xs bg-white/20 backdrop-blur-sm p-4 rounded-xl rounded-bl-none text-center italic">
+                                    "{motivationalMessage || 'Ready to learn something new today?'}"
+                                </p>
+                            </div>
+                            <AIBuddy className="w-48 h-48" />
                         </div>
                     </motion.div>
                 </section>
