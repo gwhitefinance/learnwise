@@ -1,8 +1,8 @@
 
 'use client';
 
-import React, { useRef, useEffect, useState } from 'react';
-import { motion, useSpring, useTransform, animate } from 'framer-motion';
+import React, { useRef, useEffect } from 'react';
+import { motion, useSpring, useTransform } from 'framer-motion';
 import shopItems from '@/lib/shop-items.json';
 
 interface AIBuddyProps {
@@ -42,16 +42,6 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, color, hat }) => {
 
     const pupilX = useTransform(mouse.x, [0, 1], [-6, 6]);
     const pupilY = useTransform(mouse.y, [0, 1], [-4, 4]);
-
-    const [isBlinking, setIsBlinking] = useState(false);
-
-    useEffect(() => {
-        const blinkInterval = setInterval(() => {
-            setIsBlinking(true);
-            setTimeout(() => setIsBlinking(false), 200);
-        }, 3000); // Blink every 3 seconds
-        return () => clearInterval(blinkInterval);
-    }, []);
 
     return (
         <div ref={containerRef} className={`relative w-full h-full ${className}`}>
@@ -162,18 +152,7 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, color, hat }) => {
                                 fill="black"
                                 style={{ x: pupilX, y: pupilY }}
                             />
-                            {/* Blink */}
-                             <motion.path
-                                d="M 75 72 Q 85 82, 95 72"
-                                fill="none"
-                                stroke="#222"
-                                strokeWidth="20"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: isBlinking ? 1 : 0 }}
-                                transition={{ duration: 0.1 }}
-                            />
-
-
+                            
                              {/* Right Eye */}
                             <circle cx="115" cy="72" r="10" fill="white" />
                              <motion.circle 
@@ -182,15 +161,6 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, color, hat }) => {
                                 r="5" 
                                 fill="black"
                                 style={{ x: pupilX, y: pupilY }}
-                            />
-                             <motion.path
-                                d="M 105 72 Q 115 82, 125 72"
-                                fill="none"
-                                stroke="#222"
-                                strokeWidth="20"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: isBlinking ? 1 : 0 }}
-                                transition={{ duration: 0.1 }}
                             />
                             
                              {/* Mouth */}
