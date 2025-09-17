@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useRef, useEffect, useState } from 'react';
-import { motion, useMotionValue, useSpring } from 'framer-motion';
+import { motion, useSpring, useTransform, animate } from 'framer-motion';
 import shopItems from '@/lib/shop-items.json';
 
 interface AIBuddyProps {
@@ -12,22 +12,13 @@ interface AIBuddyProps {
 }
 
 const AIBuddy: React.FC<AIBuddyProps> = ({ className, color, hat }) => {
-    const bodyColor = shopItems.colors.find(c => c.name === color)?.hex || '#4f4f4f';
+    const bodyColor = shopItems.colors.find(c => c.name === color)?.hex || '#87CEEB'; // Cheerful blue default
     const HatComponent = shopItems.hats.find(h => h.name === hat)?.component;
 
-    const eyeLidVariants = {
-        open: { y: 0 },
-        blink: { y: 15, transition: { duration: 0.05, yoyo: Infinity, repeatDelay: 3 } }
-    };
-    
     const containerRef = useRef<HTMLDivElement>(null);
     const mouse = {
-        x: useMotionValue(0.5),
-        y: useMotionValue(0.5)
-    };
-    const smoothMouse = {
-        x: useSpring(mouse.x, { stiffness: 70, damping: 20, mass: 0.1 }),
-        y: useSpring(mouse.y, { stiffness: 70, damping: 20, mass: 0.1 })
+        x: useSpring(0.5, { stiffness: 100, damping: 15, mass: 0.1 }),
+        y: useSpring(0.5, { stiffness: 100, damping: 15, mass: 0.1 })
     };
 
     const handleMouseMove = (e: MouseEvent) => {
@@ -42,18 +33,25 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, color, hat }) => {
     };
     
     useEffect(() => {
-        const currentRef = containerRef.current;
-        if(currentRef) {
-            currentRef.addEventListener('mousemove', handleMouseMove);
-            return () => {
-                currentRef.removeEventListener('mousemove', handleMouseMove);
-            };
-        }
+        // Use the window for mouse tracking to make it feel more connected
+        window.addEventListener('mousemove', handleMouseMove);
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+        };
     }, []);
 
-    const pupilX = (val: number) => (val - 0.5) * 20;
-    const pupilY = (val: number) => (val - 0.5) * 15;
+    const pupilX = useTransform(mouse.x, [0, 1], [-6, 6]);
+    const pupilY = useTransform(mouse.y, [0, 1], [-4, 4]);
 
+    const [isBlinking, setIsBlinking] = useState(false);
+
+    useEffect(() => {
+        const blinkInterval = setInterval(() => {
+            setIsBlinking(true);
+            setTimeout(() => setIsBlinking(false), 200);
+        }, 3000); // Blink every 3 seconds
+        return () => clearInterval(blinkInterval);
+    }, []);
 
     return (
         <div ref={containerRef} className={`relative w-full h-full ${className}`}>
@@ -76,98 +74,122 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, color, hat }) => {
                 initial="initial"
                 animate="animate"
             >
+                <defs>
+                    <radialGradient id="bodyGradient" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" style={{stopColor: '#ffffff', stopOpacity: 0.3}} />
+                        <stop offset="100%" style={{stopColor: '#ffffff', stopOpacity: 0}} />
+                    </radialGradient>
+                </defs>
+
                 {/* Shadow */}
                 <motion.ellipse
                     cx="100"
                     cy="185"
-                    rx="50"
-                    ry="8"
-                    fill="rgba(0,0,0,0.15)"
-                    variants={{
-                        initial: { opacity: 0 },
-                        animate: { opacity: 1, transition: { delay: 0.5 } }
+                    rx="45"
+                    ry="5"
+                    fill="rgba(0,0,0,0.1)"
+                    animate={{ 
+                        scale: [1, 1.05, 1],
+                        transition: { duration: 4, repeat: Infinity, ease: 'easeInOut' }
                     }}
                 />
                 
                 {/* Main Body Animation Group */}
                 <motion.g
-                     variants={{
-                        initial: { y: 0 },
-                        animate: { y: [0, -5, 0], transition: { duration: 3, repeat: Infinity, ease: 'easeInOut' } }
-                    }}
+                     animate={{ y: [0, -4, 0], transition: { duration: 4, repeat: Infinity, ease: 'easeInOut' } }}
                 >
-                    {/* Legs */}
-                    <path d="M85,170 L85,180 L75,180 L75,170 Z" fill={bodyColor} />
-                    <path d="M115,170 L115,180 L125,180 L125,170 Z" fill={bodyColor} />
+                    {/* Feet */}
+                    <rect x="70" y="175" width="20" height="10" rx="5" fill="#333" />
+                    <rect x="110" y="175" width="20" height="10" rx="5" fill="#333" />
                     
-                    {/* Body */}
+                     {/* Body */}
                      <motion.g
-                        variants={{
-                            initial: { y: 200, opacity: 0 },
-                            animate: { y: 0, opacity: 1, transition: { type: 'spring', stiffness: 100, damping: 15 } }
-                        }}
+                        initial={{ y: 200, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1, transition: { type: 'spring', stiffness: 100, damping: 15, delay: 0.2 } }}
                     >
-                        <rect x="60" y="110" width="80" height="60" rx="15" fill={bodyColor} />
+                        <rect x="65" y="120" width="70" height="60" rx="35" fill={bodyColor} />
+                        <rect x="65" y="120" width="70" height="60" rx="35" fill="url(#bodyGradient)" />
                     </motion.g>
 
                     {/* Arms */}
                     <motion.g
-                        initial={{ rotate: 0 }}
-                        animate={{ rotate: [0, -5, 0, 5, 0], transition: { duration: 4, repeat: Infinity, ease: 'easeInOut' }}}
-                        style={{ transformOrigin: '55px 120px' }}
+                        animate={{ rotate: [0, -8, 0, 8, 0], transition: { duration: 5, repeat: Infinity, ease: 'easeInOut' }}}
+                        style={{ transformOrigin: '70px 135px' }}
                     >
-                        <path d="M55,120 Q40,140 50,160 L60,155 Q50,140 65,125 Z" fill={bodyColor} />
+                        <rect x="45" y="130" width="20" height="35" rx="10" fill={bodyColor} />
                     </motion.g>
                      <motion.g
-                        initial={{ rotate: 0 }}
-                        animate={{ rotate: [0, 5, 0, -5, 0], transition: { duration: 4, delay: 0.5, repeat: Infinity, ease: 'easeInOut' }}}
-                        style={{ transformOrigin: '145px 120px' }}
+                        animate={{ rotate: [0, 8, 0, -8, 0], transition: { duration: 5, delay: 0.5, repeat: Infinity, ease: 'easeInOut' }}}
+                        style={{ transformOrigin: '130px 135px' }}
                     >
-                        <path d="M145,120 Q160,140 150,160 L140,155 Q150,140 135,125 Z" fill={bodyColor} />
+                        <rect x="135" y="130" width="20" height="35" rx="10" fill={bodyColor} />
                     </motion.g>
                     
 
                     {/* Head */}
                      <motion.g
-                        variants={{
-                            initial: { scale: 0 },
-                            animate: { scale: 1, transition: { delay: 0.2, type: 'spring', stiffness: 120 } }
-                        }}
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1, transition: { delay: 0.3, type: 'spring', stiffness: 120 } }}
                      >
-                        <circle cx="100" cy="80" r="50" fill={bodyColor} />
+                        <rect x="50" y="40" width="100" height="90" rx="50" fill={bodyColor} />
+                        <rect x="50" y="40" width="100" height="90" rx="50" fill="url(#bodyGradient)" />
+
+                        {/* Antenna */}
+                        <motion.g 
+                            style={{ transformOrigin: '100px 40px'}}
+                            animate={{ rotate: [-5, 5, -5], transition: { duration: 6, repeat: Infinity, ease: 'linear' }}}
+                        >
+                            <line x1="100" y1="40" x2="100" y2="20" stroke="#333" strokeWidth="3" />
+                            <circle cx="100" cy="18" r="5" fill="#FFC700" />
+                        </motion.g>
                         
-                        {/* Face */}
+                        {/* Face Screen */}
+                        <rect x="65" y="60" width="70" height="50" rx="15" fill="#222" />
+                        
+                        {/* Eyes */}
                         <g>
                             {/* Left Eye */}
-                            <circle cx="80" cy="80" r="12" fill="white" />
+                            <circle cx="85" cy="85" r="10" fill="white" />
                             <motion.circle 
-                                cx="80" 
-                                cy="80" 
-                                r="6" 
+                                cx="85" 
+                                cy="85" 
+                                r="5" 
                                 fill="black"
-                                style={{
-                                    translateX: useSpring(useMotionValue(0), { stiffness: 300, damping: 20 }),
-                                    translateY: useSpring(useMotionValue(0), { stiffness: 300, damping: 20 })
-                                }}
-                                transformTemplate={({translateX, translateY}) => `translateX(${pupilX(smoothMouse.x.get())}px) translateY(${pupilY(smoothMouse.y.get())}px)`}
+                                style={{ x: pupilX, y: pupilY }}
+                            />
+                            {/* Blink */}
+                             <motion.path
+                                d="M 75 85 Q 85 95, 95 85"
+                                fill="none"
+                                stroke={bodyColor}
+                                strokeWidth="20"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: isBlinking ? 1 : 0 }}
+                                transition={{ duration: 0.1 }}
                             />
 
+
                              {/* Right Eye */}
-                            <circle cx="120" cy="80" r="12" fill="white" />
+                            <circle cx="115" cy="85" r="10" fill="white" />
                              <motion.circle 
-                                cx="120" 
-                                cy="80" 
-                                r="6" 
+                                cx="115" 
+                                cy="85" 
+                                r="5" 
                                 fill="black"
-                                style={{
-                                    translateX: useSpring(useMotionValue(0), { stiffness: 300, damping: 20 }),
-                                    translateY: useSpring(useMotionValue(0), { stiffness: 300, damping: 20 })
-                                }}
-                                transformTemplate={({translateX, translateY}) => `translateX(${pupilX(smoothMouse.x.get())}px) translateY(${pupilY(smoothMouse.y.get())}px)`}
+                                style={{ x: pupilX, y: pupilY }}
+                            />
+                             <motion.path
+                                d="M 105 85 Q 115 95, 125 85"
+                                fill="none"
+                                stroke={bodyColor}
+                                strokeWidth="20"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: isBlinking ? 1 : 0 }}
+                                transition={{ duration: 0.1 }}
                             />
                             
                              {/* Mouth */}
-                            <path d="M90,100 Q100,110 110,100" stroke="white" strokeWidth="2" fill="none" strokeLinecap="round" />
+                            <path d="M92,100 Q100,105 108,100" stroke="white" strokeWidth="2" fill="none" strokeLinecap="round" />
                         </g>
                     </motion.g>
                 </motion.g>
