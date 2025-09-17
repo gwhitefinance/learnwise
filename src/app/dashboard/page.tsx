@@ -250,21 +250,29 @@ function DashboardPage() {
         }
         localStorage.setItem('lastVisit', today);
         
-        // Fetch motivational message
-        async function getMotivation() {
+        // Fetch motivational message and set an interval to refetch
+        const getMotivation = async () => {
             if (user?.displayName) {
                  try {
                     const { message } = await generateMotivationalMessage({ userName: user.displayName.split(' ')[0] });
                     setMotivationalMessage(message);
                 } catch(e) {
                     console.error("Couldn't get motivational message", e);
-                    setMotivationalMessage("Let's get learning!");
+                    // Don't overwrite a previous message if the fetch fails
+                    if (!motivationalMessage) {
+                        setMotivationalMessage("Let's get learning!");
+                    }
                 }
             }
         }
-        getMotivation();
 
-        return () => unsubscribes.forEach(unsub => unsub());
+        getMotivation(); // Fetch immediately on load
+        const intervalId = setInterval(getMotivation, 30000); // Refetch every 30 seconds
+
+        return () => {
+            unsubscribes.forEach(unsub => unsub());
+            clearInterval(intervalId); // Clear interval on cleanup
+        }
     }, [user]);
 
     const handleProjectInputChange = (field: string, value: string | Date | undefined) => {
@@ -575,10 +583,12 @@ function DashboardPage() {
                             </p>
                         </div>
                         <div className="hidden lg:flex items-center justify-center gap-4">
-                             <div className="relative">
-                                <p className="relative z-10 max-w-xs bg-white/20 backdrop-blur-sm p-4 rounded-xl text-center text-sm italic after:content-[''] after:absolute after:left-[-10px] after:top-1/2 after:-translate-y-1/2 after:border-t-[10px] after:border-t-transparent after:border-r-[10px] after:border-r-white/20 after:border-b-[10px] after:border-b-transparent">
-                                    "{motivationalMessage || 'Ready to learn something new today?'}"
-                                </p>
+                            <div className="relative">
+                                {motivationalMessage && (
+                                    <p className="relative z-10 max-w-xs bg-white/20 backdrop-blur-sm p-3 rounded-lg text-center text-sm italic after:content-[''] after:absolute after:left-full after:top-1/2 after:-translate-y-1/2 after:border-y-8 after:border-y-transparent after:border-l-[12px] after:border-l-white/20">
+                                        "{motivationalMessage}"
+                                    </p>
+                                )}
                             </div>
                             <AIBuddy className="w-32 h-32" />
                         </div>

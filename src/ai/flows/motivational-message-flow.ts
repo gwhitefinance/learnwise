@@ -14,7 +14,7 @@ const MotivationalMessageInputSchema = z.object({
 export type MotivationalMessageInput = z.infer<typeof MotivationalMessageInputSchema>;
 
 const MotivationalMessageOutputSchema = z.object({
-  message: z.string().describe('A short (1-2 sentence) motivational message for a student.'),
+  message: z.string().describe('A very short (1-2 sentences) motivational message for a student.'),
 });
 export type MotivationalMessageOutput = z.infer<typeof MotivationalMessageOutputSchema>;
 
@@ -23,10 +23,10 @@ const prompt = ai.definePrompt({
     input: { schema: MotivationalMessageInputSchema },
     output: { schema: MotivationalMessageOutputSchema },
     prompt: `You are a cheerful and encouraging study buddy. 
-    Generate a short (1-2 sentence) motivational message for {{userName}} to start their study session.
-    Keep it positive and uplifting.
+    Generate a very short (1-2 sentences) motivational message for {{userName}} to start their study session.
+    Keep it positive, uplifting, and concise.
     
-    Example: "You've got this, {{userName}}! Every step forward is a victory."
+    Example: "You've got this, {{userName}}! Let's make today count."
     `,
 });
 
