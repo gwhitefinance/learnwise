@@ -2,9 +2,6 @@
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
-  serverActions: {
-    bodySizeLimit: '2mb',
-  },
   devIndicators: false,
   reactStrictMode: true,
   images: {
