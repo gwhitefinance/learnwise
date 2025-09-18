@@ -134,7 +134,7 @@ export default function ShopClientPage() {
     }
     
     const isItemUnlocked = (category: string, itemName: string) => {
-        const item = category === 'colors' ? shopItems.colors.find(c => c.name === itemName) : shopItems.hats.find(h => h.name === itemName) || shopItems.shirts.find(s => s.name === itemName) || shopItems.shoes.find(s => s.name === itemName);
+        const item = category === 'colors' ? shopItems.colors.find(c => c.name === itemName) : shopItems.hats.find(h => h.name === itemName) || shopItems.shirts.find(s => s.name === itemName);
         if (item && item.price === 0) return true;
         return profile.unlockedItems?.[category]?.includes(itemName) ?? false;
     }
@@ -168,7 +168,6 @@ export default function ShopClientPage() {
                                 color={customizations.color}
                                 hat={customizations.hat}
                                 shirt={customizations.shirt}
-                                shoes={customizations.shoes}
                             />
                         </div>
                         <div className="md:col-span-2">
@@ -204,8 +203,8 @@ export default function ShopClientPage() {
                                 <div>
                                     <h4 className="font-semibold mb-3 text-lg flex items-center gap-2"><Shirt className="h-5 w-5 text-primary"/> Accessories</h4>
                                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                                        {[...shopItems.hats, ...shopItems.shirts, ...shopItems.shoes].map(item => {
-                                            const category = shopItems.hats.includes(item) ? 'hats' : shopItems.shirts.includes(item) ? 'shirts' : 'shoes';
+                                        {[...shopItems.hats, ...shopItems.shirts].map(item => {
+                                            const category = shopItems.hats.includes(item) ? 'hats' : 'shirts';
                                             const unlocked = isItemUnlocked(category, item.name);
                                             return (
                                              <div key={item.name} className={cn("p-2 rounded-lg border flex flex-col items-center gap-2 transition-all", customizations[category] === item.name ? 'border-primary bg-primary/10 ring-2 ring-primary' : 'hover:bg-muted')}>
