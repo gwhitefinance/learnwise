@@ -22,11 +22,5 @@ const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Conditionally initialize messaging only on the client side
-const messaging = async () => {
-    const isSupportedBrowser = await isSupported();
-    return isSupportedBrowser ? getMessaging(app) : null;
-};
 
-
-export { app, auth, db, messaging };
+export { app, auth, db, getMessaging, isSupported };

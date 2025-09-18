@@ -77,7 +77,7 @@ import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/toaster';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { auth, db, messaging } from '@/lib/firebase';
+import { auth, db, getMessaging, isSupported } from '@/lib/firebase';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -310,14 +310,19 @@ export default function DashboardLayout({
         
         // Request notification permission
         async function requestPermission() {
-          if (typeof window === 'undefined' || !("Notification" in window)) return;
+          const supported = await isSupported();
+          if (!supported) {
+              console.log('Firebase Messaging is not supported in this browser.');
+              return;
+          }
+          
           console.log('Requesting permission...');
           try {
             const permission = await Notification.requestPermission();
             if (permission === 'granted') {
               console.log('Notification permission granted.');
               
-              const messagingInstance = await messaging();
+              const messagingInstance = getMessaging();
               if (messagingInstance) {
                 const currentToken = await getToken(messagingInstance, { vapidKey: 'YOUR_VAPID_KEY_HERE' });
               
