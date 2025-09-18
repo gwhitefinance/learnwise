@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
@@ -97,6 +96,12 @@ const sidebarItems = [
       icon: <Home />,
       href: "/dashboard",
       id: "dashboard-link",
+    },
+    {
+      title: "Profile",
+      icon: <User />,
+      href: "/dashboard/profile",
+      id: "profile-link",
     },
     {
       title: "Workspace",

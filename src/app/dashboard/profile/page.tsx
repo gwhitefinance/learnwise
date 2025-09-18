@@ -10,7 +10,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Skeleton } from '@/components/ui/skeleton';
 import { Gem, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import shopItems from '@/lib/shop-items.json';
 import AIBuddy from '@/components/ai-buddy';
 
 type UserProfile = {
@@ -146,6 +145,8 @@ export default function ProfilePage() {
                                     className="w-48 h-48"
                                     color={customizations.color}
                                     hat={customizations.hat}
+                                    shirt={customizations.shirt}
+                                    shoes={customizations.shoes}
                                 />
                             </div>
                         </CardContent>
