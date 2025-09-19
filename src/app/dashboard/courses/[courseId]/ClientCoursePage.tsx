@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { notFound, useRouter } from 'next/navigation';
+import { notFound, useRouter, useParams } from 'next/navigation';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
@@ -24,17 +24,24 @@ type Course = {
   userId?: string;
 };
 
-export default function ClientCoursePage({ courseId }: { courseId: string }) {
+export default function ClientCoursePage() {
   const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
   const [user, authLoading] = useAuthState(auth);
   const router = useRouter();
+  const params = useParams();
+  const courseId = params.courseId as string;
 
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
       router.push('/login');
       return;
+    }
+    
+    if (!courseId) {
+        setLoading(false);
+        return;
     }
 
     const fetchCourse = async () => {
