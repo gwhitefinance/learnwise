@@ -62,6 +62,7 @@ import {
   Gamepad2,
   Gem,
   ShoppingBag,
+  Shield,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -87,6 +88,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { getToken } from 'firebase/messaging';
 import { doc, onSnapshot, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { Progress } from '@/components/ui/progress';
 
 
 // Sample data for sidebar navigation
@@ -283,7 +285,8 @@ export default function DashboardLayout({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [userCoins, setUserCoins] = useState<number>(0);
-
+  const [userLevel, setUserLevel] = useState<number>(1);
+  const [userXp, setUserXp] = useState<number>(0);
 
   useEffect(() => {
     setIsMounted(true);
@@ -308,6 +311,8 @@ export default function DashboardLayout({
                         email: user.email,
                         createdAt: serverTimestamp(),
                         coins: 0,
+                        level: 1,
+                        xp: 0,
                     });
                     console.log("Created profile for new user:", user.uid);
                 } catch (error) {
@@ -320,7 +325,10 @@ export default function DashboardLayout({
         const userDocRef = doc(db, 'users', user.uid);
         const unsubscribe = onSnapshot(userDocRef, (doc) => {
             if (doc.exists()) {
-                setUserCoins(doc.data().coins || 0);
+                const data = doc.data();
+                setUserCoins(data.coins || 0);
+                setUserLevel(data.level || 1);
+                setUserXp(data.xp || 0);
             }
         });
         
@@ -411,6 +419,8 @@ export default function DashboardLayout({
 
   const isChatPage = pathname.startsWith('/dashboard/ai-chat');
 
+  const xpForNextLevel = userLevel * 100;
+  const xpProgress = (userXp / xpForNextLevel) * 100;
 
   if (loading || !isMounted) {
     return (
@@ -419,6 +429,31 @@ export default function DashboardLayout({
         </div>
     )
   }
+
+  const userProfileDisplay = (
+    <div className="w-full p-2 rounded-2xl hover:bg-muted cursor-pointer" onClick={() => router.push('/dashboard/profile')}>
+        <div className="flex items-center gap-3">
+            <Avatar className="h-10 w-10">
+                {profilePic ? (
+                    <AvatarImage src={profilePic} alt="User" />
+                ): (
+                    <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
+                )}
+            </Avatar>
+            <div className="flex-1 overflow-hidden">
+                <p className="font-semibold text-sm truncate">{user?.displayName}</p>
+                <div className="text-xs text-muted-foreground">
+                    <span>{userXp} / {xpForNextLevel} XP</span>
+                    <Progress value={xpProgress} className="h-1 mt-1" />
+                </div>
+            </div>
+             <Badge variant="outline" className="flex items-center gap-1.5 shrink-0">
+                <Shield className="h-3 w-3 text-blue-500" /> Lvl {userLevel}
+            </Badge>
+        </div>
+    </div>
+);
+
 
   return (
     <>
@@ -492,21 +527,7 @@ export default function DashboardLayout({
                         <LogOut className="h-5 w-5" />
                         <span>Sign Out</span>
                     </Button>
-                  <Button className="flex w-full items-center justify-between rounded-2xl px-3 py-2 text-sm font-medium hover:bg-muted">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-6 w-6">
-                            {profilePic ? (
-                                <AvatarImage src={profilePic} alt="User" />
-                            ): (
-                                <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
-                            )}
-                        </Avatar>
-                      <span>{user?.displayName}</span>
-                    </div>
-                    <Badge variant="outline" className="ml-auto">
-                      Pro
-                    </Badge>
-                  </Button>
+                  {userProfileDisplay}
                 </div>
               </div>
             </div>
@@ -554,26 +575,12 @@ export default function DashboardLayout({
               </ScrollArea>
 
               <div className="border-t p-3">
-                <div className="space-y-1">
+                <div className="space-y-2">
                   <Button onClick={handleSignOut} className="flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm font-medium hover:bg-muted">
                     <LogOut className="h-5 w-5" />
                     <span>Sign Out</span>
                   </Button>
-                  <Button className="flex w-full items-center justify-between rounded-2xl px-3 py-2 text-sm font-medium hover:bg-muted">
-                    <div className="flex items-center gap-3">
-                        <Avatar className="h-6 w-6">
-                            {profilePic ? (
-                                <AvatarImage src={profilePic} alt="User" />
-                            ): (
-                                <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
-                            )}
-                        </Avatar>
-                      <span>{user?.displayName}</span>
-                    </div>
-                    <Badge variant="outline" className="ml-auto">
-                      Pro
-                    </Badge>
-                  </Button>
+                  {userProfileDisplay}
                 </div>
               </div>
             </div>
