@@ -196,7 +196,7 @@ import rewardsData from '@/lib/rewards.json';
     },
 ];
 
-function DashboardPage() {
+function DashboardPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean }) {
     const [courses, setCourses] = useState<Course[]>([]);
     const [isDataLoading, setIsDataLoading] = useState(true);
     const [projects, setProjects] = useState<Project[]>([]);
@@ -632,7 +632,10 @@ function DashboardPage() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5 }}
-                        className="overflow-hidden rounded-3xl bg-gradient-to-r from-violet-600 via-indigo-600 to-blue-600 p-8 text-white flex flex-col md:flex-row items-center justify-between gap-8"
+                        className={cn(
+                            "overflow-hidden rounded-3xl p-8 text-white flex flex-col md:flex-row items-center justify-between gap-8",
+                             isHalloweenTheme ? 'halloween-welcome' : 'bg-gradient-to-r from-violet-600 via-indigo-600 to-blue-600'
+                        )}
                     >
                         <div className="flex-1 space-y-4">
                             <Badge className="bg-white/20 text-white hover:bg-white/30 rounded-xl">Get Started</Badge>

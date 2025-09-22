@@ -476,7 +476,17 @@ export default function DashboardLayout({
         isHalloweenTheme && 'halloween-bg'
     )}>
       <input type="file" ref={fileInputRef} onChange={handleProfilePicChange} className="hidden" accept="image/*" />
-      {/* Animated gradient background */}
+      
+      {isHalloweenTheme && (
+         <div className="halloween-decorations">
+            <div className="pumpkin left"></div>
+            <div className="gravestone left"></div>
+            <div className="pumpkin right"></div>
+            <div className="gravestone right"></div>
+            <div className="tree left"></div>
+            <div className="tree right"></div>
+        </div>
+      )}
       {!isHalloweenTheme && (
         <motion.div
             className="absolute inset-0 -z-10 opacity-20"
@@ -627,7 +637,7 @@ export default function DashboardLayout({
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <Button variant="ghost" size="icon" className="rounded-2xl" onClick={() => setIsHalloweenTheme(!isHalloweenTheme)}>
-                                {isHalloweenTheme ? <Cloud className="h-5 w-5" /> : <PumpkinIcon className="h-5 w-5 text-orange-500"/>}
+                               <PumpkinIcon className="h-5 w-5 text-orange-500"/>
                             </Button>
                         </TooltipTrigger>
                         <TooltipContent>
@@ -719,7 +729,7 @@ export default function DashboardLayout({
         )}
 
         <main className={cn("flex-1", !isChatPage && "p-4 md:p-6")}>
-            {children}
+            {React.cloneElement(children as React.ReactElement, { isHalloweenTheme })}
         </main>
       </div>
     </div>
