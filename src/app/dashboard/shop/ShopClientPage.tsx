@@ -9,7 +9,7 @@ import { doc, onSnapshot, updateDoc, arrayUnion, increment } from 'firebase/fire
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Gem, Palette, Shirt, CheckCircle, Check } from 'lucide-react';
+import { Gem, Palette, Shirt, CheckCircle, Check, Footprints } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import shopItems from '@/lib/shop-items.json';
 import { useToast } from '@/hooks/use-toast';
@@ -20,6 +20,22 @@ type UserProfile = {
     email: string;
     coins: number;
     unlockedItems?: Record<string, string[]>;
+};
+
+type Item = {
+    name: string;
+    component?: string | null;
+    hex?: string;
+    price: number;
+    rarity: 'Common' | 'Uncommon' | 'Rare' | 'Epic' | 'Legendary';
+};
+
+const rarityConfig = {
+    Common: { color: 'text-gray-400', ring: 'ring-gray-400' },
+    Uncommon: { color: 'text-green-500', ring: 'ring-green-500' },
+    Rare: { color: 'text-blue-500', ring: 'ring-blue-500' },
+    Epic: { color: 'text-purple-500', ring: 'ring-purple-500' },
+    Legendary: { color: 'text-orange-500', ring: 'ring-orange-500' },
 };
 
 export default function ShopClientPage() {
@@ -134,10 +150,18 @@ export default function ShopClientPage() {
     }
     
     const isItemUnlocked = (category: string, itemName: string) => {
-        const item = category === 'colors' ? shopItems.colors.find(c => c.name === itemName) : shopItems.hats.find(h => h.name === itemName) || shopItems.shirts.find(s => s.name === itemName) || shopItems.shoes.find(s => s.name === itemName);
+        const item = (shopItems as any)[category].find((i: any) => i.name === itemName);
         if (item && item.price === 0) return true;
         return profile.unlockedItems?.[category]?.includes(itemName) ?? false;
     }
+    
+    const shopCategories = [
+        { id: 'colors', name: 'Colors', icon: <Palette className="h-5 w-5 text-primary" />, items: shopItems.colors },
+        { id: 'hats', name: 'Hats', icon: <Shirt className="h-5 w-5 text-primary" />, items: shopItems.hats },
+        { id: 'shirts', name: 'Shirts', icon: <Shirt className="h-5 w-5 text-primary" />, items: shopItems.shirts },
+        { id: 'shoes', name: 'Shoes', icon: <Footprints className="h-5 w-5 text-primary" />, items: shopItems.shoes },
+    ];
+
 
     return (
         <div className="space-y-8">
@@ -173,62 +197,59 @@ export default function ShopClientPage() {
                         </div>
                         <div className="md:col-span-2">
                              <div className="space-y-8">
-                                <div>
-                                    <h4 className="font-semibold mb-3 text-lg flex items-center gap-2"><Palette className="h-5 w-5 text-primary"/> Colors</h4>
-                                    <div className="grid grid-cols-4 sm:grid-cols-6 gap-4">
-                                        {shopItems.colors.map(item => {
-                                            const unlocked = isItemUnlocked('colors', item.name);
-                                            return (
-                                                <div key={item.name} className="flex flex-col items-center gap-2">
-                                                    <button 
-                                                        className={cn("w-12 h-12 rounded-full border-2 transition-transform hover:scale-110", customizations.color === item.name ? 'border-primary ring-2 ring-primary ring-offset-2' : 'border-border')}
-                                                        style={{ backgroundColor: item.hex }}
-                                                        onClick={() => unlocked && handleSelectItem('color', item.name)}
-                                                        title={unlocked ? `Equip ${item.name}` : `Locked`}
-                                                    >
-                                                        <span className="sr-only">{item.name}</span>
-                                                         {!unlocked && <Gem className="w-4 h-4 text-white opacity-80" />}
-                                                    </button>
-                                                    {!unlocked ? (
-                                                        <Button size="sm" className="h-7 text-xs" onClick={() => handleBuyItem('colors', item.name, item.price)} disabled={profile.coins < item.price}>
-                                                            <Gem className="w-3 h-3 mr-1" /> {item.price}
-                                                        </Button>
-                                                    ) : (
-                                                        <span className="text-xs font-semibold text-green-600 flex items-center gap-1"><CheckCircle className="w-3 h-3"/> Owned</span>
-                                                    )}
-                                                </div>
-                                            )
-                                        })}
+                                {shopCategories.map(category => (
+                                    <div key={category.id}>
+                                        <h4 className="font-semibold mb-3 text-lg flex items-center gap-2">{category.icon} {category.name}</h4>
+                                        <div className={`grid ${category.id === 'colors' ? 'grid-cols-4 sm:grid-cols-6' : 'grid-cols-2 sm:grid-cols-3'} gap-4`}>
+                                            {category.items.map(item => {
+                                                const unlocked = isItemUnlocked(category.id, item.name);
+                                                const isEquipped = customizations[category.id] === item.name;
+                                                const rarityClass = rarityConfig[item.rarity as keyof typeof rarityConfig] || rarityConfig.Common;
+                                                return (
+                                                    <div key={item.name} className="flex flex-col items-center gap-2">
+                                                        {category.id === 'colors' ? (
+                                                            <button 
+                                                                className={cn("w-12 h-12 rounded-full border-2 transition-transform hover:scale-110 relative", isEquipped ? 'border-primary ring-2 ring-primary ring-offset-2' : 'border-border')}
+                                                                style={{ backgroundColor: item.hex }}
+                                                                onClick={() => unlocked && handleSelectItem('color', item.name)}
+                                                                title={unlocked ? `Equip ${item.name}` : `Locked`}
+                                                            >
+                                                                {!unlocked && <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center"><Gem className="w-4 h-4 text-white opacity-80" /></div>}
+                                                            </button>
+                                                        ) : (
+                                                            <div className={cn("p-2 rounded-lg border flex flex-col items-center gap-2 transition-all w-full cursor-pointer", isEquipped ? 'border-primary bg-primary/10 ring-2 ring-primary' : 'hover:bg-muted')}>
+                                                                <button 
+                                                                    className="w-full relative"
+                                                                    onClick={() => unlocked && handleSelectItem(category.id, item.name)}
+                                                                    title={unlocked ? `Equip ${item.name}` : `Locked`}
+                                                                    disabled={!unlocked}
+                                                                >
+                                                                    <div className={cn("w-16 h-16 mx-auto", !unlocked && "opacity-40") } dangerouslySetInnerHTML={{ __html: item.component || '<div class="w-16 h-16"></div>' }} />
+                                                                     {!unlocked && <div className="absolute inset-0 flex items-center justify-center"><Gem className="w-6 h-6 text-white" /></div>}
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                         <div className="text-center">
+                                                            <p className={cn("text-xs font-bold", rarityClass.color)}>{item.rarity}</p>
+                                                            <p className="text-sm font-medium -mt-1">{item.name}</p>
+                                                         </div>
+                                                        {!unlocked ? (
+                                                            <Button size="sm" className="h-7 text-xs" onClick={() => handleBuyItem(category.id, item.name, item.price)} disabled={profile.coins < item.price}>
+                                                                <Gem className="w-3 h-3 mr-1" /> {item.price}
+                                                            </Button>
+                                                        ) : (
+                                                            isEquipped ? (
+                                                                <span className="text-xs font-semibold text-green-600 flex items-center gap-1 h-7"><CheckCircle className="w-3 h-3"/> Equipped</span>
+                                                            ) : (
+                                                                <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => handleSelectItem(category.id, item.name)}>Equip</Button>
+                                                            )
+                                                        )}
+                                                    </div>
+                                                )
+                                            })}
+                                        </div>
                                     </div>
-                                </div>
-                                <div>
-                                    <h4 className="font-semibold mb-3 text-lg flex items-center gap-2"><Shirt className="h-5 w-5 text-primary"/> Accessories</h4>
-                                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                                        {[...shopItems.hats, ...shopItems.shirts, ...shopItems.shoes].map(item => {
-                                            const category = shopItems.hats.some(h => h.name === item.name) ? 'hats' : shopItems.shirts.some(s => s.name === item.name) ? 'shirts' : 'shoes';
-                                            const unlocked = isItemUnlocked(category, item.name);
-                                            return (
-                                             <div key={item.name} className={cn("p-2 rounded-lg border flex flex-col items-center gap-2 transition-all", customizations[category] === item.name ? 'border-primary bg-primary/10 ring-2 ring-primary' : 'hover:bg-muted')}>
-                                                <button 
-                                                    className="w-full"
-                                                    onClick={() => unlocked && handleSelectItem(category, item.name)}
-                                                    title={unlocked ? `Equip ${item.name}` : `Locked`}
-                                                >
-                                                    <div className="w-16 h-16 mx-auto" dangerouslySetInnerHTML={{ __html: item.component || '<div class="w-16 h-16"></div>' }} />
-                                                    <span className="text-sm font-medium mt-1">{item.name}</span>
-                                                </button>
-                                                {!unlocked ? (
-                                                     <Button size="sm" className="h-7 text-xs w-full" onClick={() => handleBuyItem(category, item.name, item.price)} disabled={profile.coins < item.price}>
-                                                        <Gem className="w-3 h-3 mr-1" /> {item.price}
-                                                    </Button>
-                                                ) : (
-                                                    <span className="text-xs font-semibold text-green-600 flex items-center gap-1"><CheckCircle className="w-3 h-3"/> Owned</span>
-                                                )}
-                                             </div>
-                                            )
-                                        })}
-                                     </div>
-                                </div>
+                                ))}
                              </div>
                         </div>
                     </div>
