@@ -268,6 +268,19 @@ const SidebarNavItem = ({ item, pathname, setMobileMenuOpen }: { item: any, path
     )
 }
 
+const PumpkinIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+        <path d="M21.24 9.51a8.5 8.5 0 1 0-18.48 0"/>
+        <path d="M12 2.02c1.88 4.5-3.32 8.7-3.32 8.7"/>
+        <path d="M12 2.02c-1.88 4.5 3.32 8.7 3.32 8.7"/>
+        <path d="M12 22a8.5 8.5 0 0 0 8.5-8.5c0-4.69-3.81-8.5-8.5-8.5s-8.5 3.81-8.5 8.5A8.5 8.5 0 0 0 12 22z" fill="#f97316"/>
+        <path d="M12 22c-4.7 0-8.5-3.8-8.5-8.5a8.5 8.5 0 0 1 8.5-8.5 8.5 8.5 0 0 1 8.5 8.5c0 4.7-3.8 8.5-8.5 8.5z" strokeWidth="0"/>
+        <path d="M8 14h8" stroke="black" strokeWidth="1.5" strokeLinecap="round"/>
+        <path d="M10 11l-1 1" stroke="black" strokeWidth="1.5" strokeLinecap="round"/>
+        <path d="M14 11l1 1" stroke="black" strokeWidth="1.5" strokeLinecap="round"/>
+    </svg>
+)
+
 export default function DashboardLayout({
   children,
 }: {
@@ -287,6 +300,7 @@ export default function DashboardLayout({
   const [userCoins, setUserCoins] = useState<number>(0);
   const [userLevel, setUserLevel] = useState<number>(1);
   const [userXp, setUserXp] = useState<number>(0);
+  const [isHalloweenTheme, setIsHalloweenTheme] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -457,21 +471,26 @@ export default function DashboardLayout({
 
   return (
     <>
-    <div className="relative min-h-screen overflow-hidden bg-background">
+    <div className={cn(
+        "relative min-h-screen overflow-hidden bg-background",
+        isHalloweenTheme && 'halloween-bg'
+    )}>
       <input type="file" ref={fileInputRef} onChange={handleProfilePicChange} className="hidden" accept="image/*" />
       {/* Animated gradient background */}
-      <motion.div
-        className="absolute inset-0 -z-10 opacity-20"
-        animate={{
-          background: [
-            "radial-gradient(circle at 50% 50%, rgba(120, 41, 190, 0.5) 0%, rgba(53, 71, 125, 0.5) 50%, rgba(0, 0, 0, 0) 100%)",
-            "radial-gradient(circle at 30% 70%, rgba(233, 30, 99, 0.5) 0%, rgba(81, 45, 168, 0.5) 50%, rgba(0, 0, 0, 0) 100%)",
-            "radial-gradient(circle at 70% 30%, rgba(76, 175, 80, 0.5) 0%, rgba(32, 119, 188, 0.5) 50%, rgba(0, 0, 0, 0) 100%)",
-            "radial-gradient(circle at 50% 50%, rgba(120, 41, 190, 0.5) 0%, rgba(53, 71, 125, 0.5) 50%, rgba(0, 0, 0, 0) 100%)",
-          ],
-        }}
-        transition={{ duration: 30, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
-      />
+      {!isHalloweenTheme && (
+        <motion.div
+            className="absolute inset-0 -z-10 opacity-20"
+            animate={{
+            background: [
+                "radial-gradient(circle at 50% 50%, rgba(120, 41, 190, 0.5) 0%, rgba(53, 71, 125, 0.5) 50%, rgba(0, 0, 0, 0) 100%)",
+                "radial-gradient(circle at 30% 70%, rgba(233, 30, 99, 0.5) 0%, rgba(81, 45, 168, 0.5) 50%, rgba(0, 0, 0, 0) 100%)",
+                "radial-gradient(circle at 70% 30%, rgba(76, 175, 80, 0.5) 0%, rgba(32, 119, 188, 0.5) 50%, rgba(0, 0, 0, 0) 100%)",
+                "radial-gradient(circle at 50% 50%, rgba(120, 41, 190, 0.5) 0%, rgba(53, 71, 125, 0.5) 50%, rgba(0, 0, 0, 0) 100%)",
+            ],
+            }}
+            transition={{ duration: 30, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
+        />
+      )}
 
       {/* Mobile menu overlay */}
       {mobileMenuOpen && (
@@ -604,15 +623,17 @@ export default function DashboardLayout({
             <div className="flex flex-1 items-center justify-between">
               <h1 className="text-xl font-semibold">LearnWise</h1>
               <div className="flex items-center gap-3">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" className="rounded-2xl">
-                        <Cloud className="h-5 w-5" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Cloud Storage</TooltipContent>
-                  </Tooltip>
+                 <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button variant="ghost" size="icon" className="rounded-2xl" onClick={() => setIsHalloweenTheme(!isHalloweenTheme)}>
+                                {isHalloweenTheme ? <PumpkinIcon className="h-5 w-5 text-orange-500"/> : <Cloud className="h-5 w-5" />}
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            {isHalloweenTheme ? 'Disable Halloween Theme' : 'Enable Halloween Theme'}
+                        </TooltipContent>
+                    </Tooltip>
                 </TooltipProvider>
 
                 <Link href="/dashboard/ai-chat">
