@@ -1,47 +1,59 @@
 
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Users can only read and write their own profile document.
     match /users/{userId} {
+      // Users can read and write their own document
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Users can only access their own chat sessions.
     match /chatSessions/{sessionId} {
-      allow read, write, create, delete: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      // Allow users to list and create their own chat sessions
+      allow list, create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      // Allow users to read and write their own chat sessions
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
     }
 
-    // Users can only access their own courses.
     match /courses/{courseId} {
-        allow read, write, create, delete: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      // Allow users to list and create their own courses
+      allow list, create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+       // Allow users to read and write their own courses
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
     }
-    
-    // Users can only access their own calendar events.
+
     match /calendarEvents/{eventId} {
-        allow read, write, create, delete: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      // Allow users to list and create their own calendar events
+      allow list, create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+       // Allow users to read and write their own calendar events
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
     }
-    
-    // Users can only access their own notes.
+
     match /notes/{noteId} {
-        allow read, write, create, delete: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      // Allow users to list and create their own notes
+      allow list, create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      // Allow users to read and write their own notes
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+
+    match /projects/{projectId} {
+      // Allow users to list and create their own projects
+      allow list, create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      // Allow users to read and write their own projects
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+
+     match /recentFiles/{fileId} {
+      // Allow users to list and create their own recent files
+      allow list, create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      // Allow users to read and write their own recent files
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
     }
     
-    // Users can only access their own projects.
-    match /projects/{projectId} {
-        allow read, write, create, delete: if request.auth != null && request.resource.data.userId == request.auth.uid;
-    }
-
-    // Users can only access their own recent files.
-    match /recentFiles/{fileId} {
-        allow read, write, create, delete: if request.auth != null && request.resource.data.userId == request.auth.uid;
-    }
-
-    // Users can only access their own roadmaps.
     match /roadmaps/{roadmapId} {
-        allow read, write, create, delete: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      // Allow users to list and create their own roadmaps
+      allow list, create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      // Allow users to read and write their own roadmaps
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
     }
   }
 }
