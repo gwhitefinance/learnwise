@@ -139,9 +139,15 @@ export default function ShopClientPage() {
     }
     
     const isItemUnlocked = (category: string, itemName: string) => {
-        const categoryKey = `${category}s` as keyof typeof shopItems;
-        const item = shopItems[categoryKey]?.find((i: any) => i.name === itemName);
+        // Items with price 0 are always considered unlocked for equipping, but might not be in the profile yet.
+        const item = (shopItems as any)[`${category}s`]?.find((i: any) => i.name === itemName);
         if (item && item.price === 0) return true;
+        
+        // This checks if the item has been explicitly purchased and is in the user's profile data.
+        return profile.unlockedItems?.[category]?.includes(itemName) ?? false;
+    }
+     const hasPurchased = (category: string, itemName: string) => {
+        // Check if item is in the user's unlockedItems array in Firestore
         return profile.unlockedItems?.[category]?.includes(itemName) ?? false;
     }
     
@@ -199,14 +205,14 @@ export default function ShopClientPage() {
                             <TabsContent key={category.id} value={category.id}>
                                 <div className={`grid ${category.id === 'color' ? 'grid-cols-4 sm:grid-cols-6' : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4'} gap-4 pt-4`}>
                                     {(category.items as Item[]).map((item: Item) => {
-                                        const unlocked = isItemUnlocked(category.id, item.name);
+                                        const purchased = hasPurchased(category.id, item.name);
                                         const isEquipped = customizations[category.id] === item.name;
                                         const rarityClass = rarityConfig[item.rarity as keyof typeof rarityConfig] || rarityConfig.Common;
                                         
                                         return (
                                             <Card 
                                                 key={item.name}
-                                                onClick={() => unlocked && handleSelectItem(category.id, item.name)}
+                                                onClick={() => purchased && handleSelectItem(category.id, item.name)}
                                                 className={cn(
                                                     "p-0 flex flex-col items-center gap-2 transition-all cursor-pointer relative overflow-hidden ring-2",
                                                     isEquipped ? 'ring-primary' : 'ring-transparent hover:ring-primary/50',
@@ -230,7 +236,7 @@ export default function ShopClientPage() {
                                                 </div>
                                                 
                                                 <div className="w-full p-1">
-                                                    {!unlocked ? (
+                                                    {!purchased ? (
                                                         <Button
                                                             size="sm"
                                                             className="h-7 text-xs w-full bg-blue-600 hover:bg-blue-700"
