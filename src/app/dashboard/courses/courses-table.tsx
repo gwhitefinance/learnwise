@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -7,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { FilePenLine, Plus, Trash2, Link as LinkIcon, Eye } from "lucide-react";
+import { FilePenLine, Plus, Trash2, Link as LinkIcon, Eye, Info } from "lucide-react";
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { useAuthState } from 'react-firebase-hooks/auth';
@@ -16,6 +17,7 @@ import { collection, addDoc, query, where, onSnapshot, deleteDoc, doc } from 'fi
 import { useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
 import dynamic from 'next/dynamic';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 
 type Course = {
@@ -168,7 +170,16 @@ function CoursesTable({ initialCourses }: { initialCourses: Course[] }) {
             </DialogContent>
         </Dialog>
       </div>
-      <Card>
+
+       <Alert className="mt-4">
+          <Info className="h-4 w-4" />
+          <AlertTitle>Pro Tip!</AlertTitle>
+          <AlertDescription>
+            Click on a course name to view its details, add units, and upload files.
+          </AlertDescription>
+        </Alert>
+
+      <Card className="mt-4">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
