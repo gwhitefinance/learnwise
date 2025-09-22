@@ -29,9 +29,16 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, color, hat, shirt, shoes }
                 { "name": "Mint", "hex": "#98FF98" },
                 { "name": "Lavender", "hex": "#E6E6FA" },
                 { "name": "Rose", "hex": "#FFC0CB" },
+                { "name": "Ocean", "hex": "#008B8B" },
+                { "name": "Sunset", "hex": "#FF6347" },
                 { "name": "Graphite", "hex": "#4f4f4f" },
+                { "name": "Pumpkin", "hex": "#f57d00" },
+                { "name": "Autumn Leaf", "hex": "#b33b00" },
                 { "name": "Gold", "hex": "#FFD700" },
-                { "name": "Ruby", "hex": "#E0115F" }
+                { "name": "Emerald", "hex": "#50C878" },
+                { "name": "Forest Green", "hex": "#228B22" },
+                { "name": "Ruby", "hex": "#E0115F" },
+                { "name": "Amethyst", "hex": "#9966CC" }
             ];
             const selectedColor = colors.find(c => c.name === color)?.hex || '#87CEEB';
             setBodyColor(selectedColor);

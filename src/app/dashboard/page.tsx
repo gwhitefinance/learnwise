@@ -182,12 +182,18 @@ function DashboardPage() {
     const [streak, setStreak] = useState(0);
     const [user] = useAuthState(auth);
     const [motivationalMessage, setMotivationalMessage] = useState('');
+    const [customizations, setCustomizations] = useState<Record<string, string>>({});
 
 
      useEffect(() => {
         if (!user) return;
         
         setIsDataLoading(true);
+
+        const savedCustomizations = localStorage.getItem(`robotCustomizations_${user.uid}`);
+        if(savedCustomizations) {
+            setCustomizations(JSON.parse(savedCustomizations));
+        }
 
         const unsubscribes: (() => void)[] = [];
 
@@ -596,7 +602,13 @@ function DashboardPage() {
                                     {motivationalMessage}
                                 </p>
                             )}
-                            <AIBuddy className="w-32 h-32" />
+                            <AIBuddy 
+                                className="w-32 h-32"
+                                color={customizations.color}
+                                hat={customizations.hat}
+                                shirt={customizations.shirt}
+                                shoes={customizations.shoes}
+                            />
                         </div>
                     </motion.div>
                 </section>
