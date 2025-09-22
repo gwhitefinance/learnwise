@@ -30,11 +30,11 @@ type Item = {
 };
 
 const rarityConfig = {
-    Common: { color: 'text-gray-400', ring: 'ring-gray-400' },
-    Uncommon: { color: 'text-green-500', ring: 'ring-green-500' },
-    Rare: { color: 'text-blue-500', ring: 'ring-blue-500' },
-    Epic: { color: 'text-purple-500', ring: 'ring-purple-500' },
-    Legendary: { color: 'text-orange-500', ring: 'ring-orange-500' },
+    Common: { text: 'text-gray-400', ring: 'ring-gray-500', bg: 'bg-gray-500/10' },
+    Uncommon: { text: 'text-green-400', ring: 'ring-green-500', bg: 'bg-green-500/10' },
+    Rare: { text: 'text-blue-400', ring: 'ring-blue-500', bg: 'bg-blue-500/10' },
+    Epic: { text: 'text-purple-400', ring: 'ring-purple-500', bg: 'bg-purple-500/10' },
+    Legendary: { text: 'text-orange-400', ring: 'ring-orange-500', bg: 'bg-orange-500/10' },
 };
 
 export default function ShopClientPage() {
@@ -67,7 +67,6 @@ export default function ShopClientPage() {
             setProfileLoading(false);
         });
 
-        // Load saved customizations for the robot preview
         const savedCustomizations = localStorage.getItem(`robotCustomizations_${user.uid}`);
         if(savedCustomizations) {
             setCustomizations(JSON.parse(savedCustomizations));
@@ -112,40 +111,29 @@ export default function ShopClientPage() {
                     <Skeleton className="h-8 w-1/2 mb-2" />
                     <Skeleton className="h-4 w-3/4" />
                 </div>
-                <Card>
-                    <CardHeader>
-                        <div className="flex items-center justify-between">
-                            <Skeleton className="h-8 w-64" />
-                            <Skeleton className="h-8 w-24" />
-                        </div>
-                        <Skeleton className="h-4 w-96 mt-2" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                            <div className="md:col-span-1">
-                                <Skeleton className="w-full aspect-square rounded-lg" />
-                            </div>
-                            <div className="md:col-span-2 space-y-8">
-                                <div>
-                                    <Skeleton className="h-6 w-24 mb-4" />
-                                    <div className="flex gap-4">
-                                        <Skeleton className="h-16 w-16 rounded-full" />
-                                        <Skeleton className="h-16 w-16 rounded-full" />
-                                        <Skeleton className="h-16 w-16 rounded-full" />
-                                    </div>
-                                </div>
-                                <div>
-                                    <Skeleton className="h-6 w-32 mb-4" />
-                                    <div className="grid grid-cols-3 gap-4">
-                                        <Skeleton className="h-24 w-full" />
-                                        <Skeleton className="h-24 w-full" />
-                                        <Skeleton className="h-24 w-full" />
-                                    </div>
-                                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div className="lg:col-span-2 space-y-8">
+                        <div>
+                            <Skeleton className="h-6 w-24 mb-4" />
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <Skeleton className="h-32 w-full" />
+                                <Skeleton className="h-32 w-full" />
+                                <Skeleton className="h-32 w-full" />
+                                <Skeleton className="h-32 w-full" />
                             </div>
                         </div>
-                    </CardContent>
-                </Card>
+                        <div>
+                            <Skeleton className="h-6 w-32 mb-4" />
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <Skeleton className="h-32 w-full" />
+                                <Skeleton className="h-32 w-full" />
+                            </div>
+                        </div>
+                    </div>
+                    <div className="lg:col-span-1">
+                        <Skeleton className="w-full aspect-square rounded-lg" />
+                    </div>
+                </div>
             </div>
         );
     }
@@ -162,116 +150,101 @@ export default function ShopClientPage() {
     }
     
     const shopCategories = [
-        { id: 'color', name: 'Colors', icon: <Palette className="h-5 w-5 text-primary" />, items: shopItems.colors },
-        { id: 'hat', name: 'Hats', icon: <Shirt className="h-5 w-5 text-primary" />, items: shopItems.hats },
-        { id: 'shirt', name: 'Shirts', icon: <Shirt className="h-5 w-5 text-primary" />, items: shopItems.shirts },
-        { id: 'shoes', name: 'Shoes', icon: <Footprints className="h-5 w-5 text-primary" />, items: shopItems.shoes },
+        { id: 'color', name: 'Colors', icon: <Palette className="h-5 w-5" />, items: shopItems.colors },
+        { id: 'hat', name: 'Hats', icon: <Shirt className="h-5 w-5" />, items: shopItems.hats },
+        { id: 'shirt', name: 'Shirts', icon: <Shirt className="h-5 w-5" />, items: shopItems.shirts },
+        { id: 'shoes', name: 'Shoes', icon: <Footprints className="h-5 w-5" />, items: shopItems.shoes },
     ];
 
 
     return (
         <div className="space-y-8">
-             <div>
-                <h1 className="text-3xl font-bold tracking-tight">Shop & Rewards</h1>
-                <p className="text-muted-foreground">
-                    Use your coins to unlock new customizations for your AI study buddy.
-                </p>
+            <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight">Customization Shop</h1>
+                    <p className="text-muted-foreground">
+                        Use your coins to unlock new looks for your AI study buddy.
+                    </p>
+                </div>
+                <div className="flex items-center gap-2 text-2xl font-bold text-amber-500 bg-amber-500/10 px-4 py-2 rounded-lg">
+                    <Gem className="h-6 w-6"/>
+                    <span>{profile.coins}</span>
+                </div>
             </div>
             
-            <Card>
-                <CardHeader>
-                    <CardTitle className="text-2xl flex items-center justify-between">
-                        <span>Robot Customization Shop</span>
-                        <div className="flex items-center gap-2 text-xl font-bold text-amber-500">
-                            <Gem className="h-5 w-5"/>
-                            <span>{profile.coins} Coins</span>
-                        </div>
-                    </CardTitle>
-                    <CardDescription>Click an item to preview it on your robot. Unlocked items can be equipped freely.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        <div className="md:col-span-1 flex items-center justify-center bg-muted rounded-lg p-4 relative aspect-square">
-                            {/* Robot Preview */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                {/* Right side: Robot Preview */}
+                <div className="lg:col-span-1 lg:sticky top-24">
+                     <Card className="overflow-hidden">
+                         <div className="aspect-square w-full bg-muted flex items-center justify-center p-4">
                             <AIBuddy 
-                                className="w-48 h-48" 
+                                className="w-64 h-64" 
                                 color={customizations.color}
                                 hat={customizations.hat}
                                 shirt={customizations.shirt}
                                 shoes={customizations.shoes}
                             />
                         </div>
-                        <div className="md:col-span-2">
-                             <div className="space-y-8">
-                                {shopCategories.map(category => (
-                                    <div key={category.id}>
-                                        <h4 className="font-semibold mb-3 text-lg flex items-center gap-2">{category.icon} {category.name}</h4>
-                                        <div className={`grid ${category.id === 'color' ? 'grid-cols-4 sm:grid-cols-6' : 'grid-cols-2 sm:grid-cols-4'} gap-4`}>
-                                            {category.items.map((item: Item) => {
-                                                const unlocked = isItemUnlocked(category.id, item.name);
-                                                const isEquipped = customizations[category.id] === item.name;
-                                                const rarityClass = rarityConfig[item.rarity as keyof typeof rarityConfig] || rarityConfig.Common;
-                                                
-                                                const ItemComponent = category.id === 'hat' ? 'Hat' : category.id === 'shirt' ? 'Shirt' : category.id === 'shoes' ? 'Shoes' : null;
-                                                
-                                                let PreviewComponent = null;
-                                                if (ItemComponent) {
-                                                    const components = require('@/components/robot-accessories');
-                                                    const SpecificComponent = components[ItemComponent];
-                                                    PreviewComponent = <SpecificComponent name={item.name} />;
-                                                }
+                     </Card>
+                </div>
 
-                                                return (
-                                                    <div key={item.name} className="flex flex-col items-center gap-2">
-                                                        {category.id === 'color' ? (
-                                                            <button 
-                                                                className={cn("w-12 h-12 rounded-full border-2 transition-transform hover:scale-110 relative", isEquipped ? 'border-primary ring-2 ring-primary ring-offset-2' : 'border-border')}
-                                                                style={{ backgroundColor: item.hex }}
-                                                                onClick={() => unlocked && handleSelectItem('color', item.name)}
-                                                                title={unlocked ? `Equip ${item.name}` : `Locked`}
-                                                            >
-                                                                {!unlocked && <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center"><Gem className="w-4 h-4 text-white opacity-80" /></div>}
-                                                            </button>
-                                                        ) : (
-                                                            <Card 
-                                                                className={cn("p-2 flex flex-col items-center gap-2 transition-all w-full cursor-pointer", isEquipped ? 'border-primary bg-primary/10 ring-2 ring-primary' : 'hover:bg-muted')}
-                                                                onClick={() => unlocked && handleSelectItem(category.id, item.name)}
-                                                                title={unlocked ? `Equip ${item.name}` : `Locked`}
-                                                            >
-                                                                <div className={cn("w-16 h-16 mx-auto flex items-center justify-center relative", !unlocked && "opacity-40" ) }>
-                                                                     <svg viewBox='0 0 200 200' className="w-full h-full">
-                                                                        {PreviewComponent}
-                                                                     </svg>
-                                                                     {!unlocked && <div className="absolute inset-0 flex items-center justify-center"><Gem className="w-6 h-6 text-foreground" /></div>}
-                                                                </div>
-                                                            </Card>
-                                                        )}
-                                                         <div className="text-center">
-                                                            <p className={cn("text-xs font-bold", rarityClass.color)}>{item.rarity}</p>
-                                                            <p className="text-sm font-medium -mt-1">{item.name}</p>
-                                                         </div>
-                                                        {!unlocked ? (
-                                                            <Button size="sm" className="h-7 text-xs" onClick={() => handleBuyItem(category.id, item.name, item.price)} disabled={profile.coins < item.price}>
-                                                                <Gem className="w-3 h-3 mr-1" /> {item.price}
-                                                            </Button>
-                                                        ) : (
-                                                            isEquipped ? (
-                                                                <span className="text-xs font-semibold text-green-600 flex items-center gap-1 h-7"><CheckCircle className="w-3 h-3"/> Equipped</span>
-                                                            ) : (
-                                                                <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => handleSelectItem(category.id, item.name)}>Equip</Button>
-                                                            )
-                                                        )}
+                {/* Left side: Shop Items */}
+                <div className="lg:col-span-2 space-y-10">
+                     {shopCategories.map(category => (
+                        <div key={category.id}>
+                            <h2 className="font-semibold mb-4 text-2xl flex items-center gap-3">{category.icon} {category.name}</h2>
+                             <div className={`grid ${category.id === 'color' ? 'grid-cols-4 sm:grid-cols-6' : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4'} gap-4`}>
+                                {category.items.map((item: Item) => {
+                                    const unlocked = isItemUnlocked(category.id, item.name);
+                                    const isEquipped = customizations[category.id] === item.name;
+                                    const rarityClass = rarityConfig[item.rarity as keyof typeof rarityConfig] || rarityConfig.Common;
+                                    
+                                    const components = require('@/components/robot-accessories');
+                                    const AccessoryComponent = category.id === 'hat' ? components.Hat : category.id === 'shirt' ? components.Shirt : category.id === 'shoes' ? components.Shoes : null;
+
+                                    return (
+                                        <Card 
+                                            key={item.name}
+                                            onClick={() => unlocked && handleSelectItem(category.id, item.name)}
+                                            className={cn(
+                                                "p-3 flex flex-col items-center gap-2 transition-all cursor-pointer relative overflow-hidden",
+                                                isEquipped ? 'ring-2 ring-offset-2 ring-offset-background' : 'hover:bg-muted',
+                                                rarityClass.ring,
+                                                rarityClass.bg
+                                            )}
+                                        >
+                                            <div className="w-full aspect-square flex items-center justify-center">
+                                                {category.id === 'color' ? (
+                                                    <div className="w-16 h-16 rounded-full" style={{ backgroundColor: item.hex }}/>
+                                                ) : AccessoryComponent ? (
+                                                    <svg viewBox='0 0 200 200' className={cn("w-20 h-20", !unlocked && "opacity-40")}>
+                                                        <AccessoryComponent name={item.name} />
+                                                    </svg>
+                                                ) : null}
+                                            </div>
+                                            <div className="text-center w-full">
+                                                <p className={cn("text-xs font-bold uppercase", rarityClass.text)}>{item.rarity}</p>
+                                                <p className="text-sm font-semibold truncate">{item.name}</p>
+                                            </div>
+                                             {unlocked ? (
+                                                isEquipped && (
+                                                     <div className="absolute top-2 right-2 bg-green-500 text-white rounded-full p-1">
+                                                        <CheckCircle className="w-4 h-4"/>
                                                     </div>
                                                 )
-                                            })}
-                                        </div>
-                                    </div>
-                                ))}
-                             </div>
+                                            ) : (
+                                                <Button size="sm" className="h-7 text-xs w-[calc(100%-1rem)]" onClick={(e) => {e.stopPropagation(); handleBuyItem(category.id, item.name, item.price)}} disabled={profile.coins < item.price}>
+                                                    <Gem className="w-3 h-3 mr-1" /> {item.price}
+                                                </Button>
+                                            )}
+                                        </Card>
+                                    )
+                                })}
+                            </div>
                         </div>
-                    </div>
-                </CardContent>
-            </Card>
+                    ))}
+                </div>
+            </div>
         </div>
     );
 }
