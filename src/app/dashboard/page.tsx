@@ -633,11 +633,18 @@ function DashboardPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean }) {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5 }}
                         className={cn(
-                            "overflow-hidden rounded-3xl p-8 text-white flex flex-col md:flex-row items-center justify-between gap-8",
+                            "relative overflow-hidden rounded-3xl p-8 text-white flex flex-col md:flex-row items-center justify-between gap-8",
                              isHalloweenTheme ? 'halloween-welcome' : 'bg-gradient-to-r from-violet-600 via-indigo-600 to-blue-600'
                         )}
                     >
-                        <div className="flex-1 space-y-4">
+                         {isHalloweenTheme && (
+                            <div className="absolute bottom-0 left-0 right-0 h-24 pointer-events-none">
+                                <div className="absolute bottom-0 left-[10%] w-16 h-20 bg-neutral-700 rounded-t-full border-b-4 border-neutral-800"></div>
+                                <div className="absolute bottom-0 left-[15%] w-12 h-16 bg-neutral-700/80 rounded-t-full border-b-4 border-neutral-800"></div>
+                                 <div className="absolute bottom-0 right-[8%] w-20 h-24 bg-neutral-700 rounded-t-lg border-b-4 border-neutral-800 after:content-['+'] after:absolute after:inset-x-0 after:top-4 after:text-4xl after:font-bold after:text-neutral-600"></div>
+                            </div>
+                        )}
+                        <div className="relative flex-1 space-y-4">
                             <Badge className="bg-white/20 text-white hover:bg-white/30 rounded-xl">Get Started</Badge>
                             <h2 className="text-3xl font-bold">Welcome back, {user?.displayName?.split(' ')[0] || 'Learner'}!</h2>
                             <p className="max-w-md text-white/80">
