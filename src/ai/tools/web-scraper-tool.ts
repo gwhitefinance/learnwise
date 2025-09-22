@@ -42,7 +42,7 @@ export const scrapeWebpageTool = ai.defineTool(
             // Simple text cleanup
             const cleanedText = textContent.replace(/\s\s+/g, ' ').trim();
             
-            return cleanedText.slice(0, 5000); // Limit content length to avoid overly large inputs
+            return cleanedText.slice(0, 15000); // Limit content length to avoid overly large inputs
         } catch (error) {
             console.error(`Error scraping ${url}:`, error);
             // Return a meaningful error message or an empty string
