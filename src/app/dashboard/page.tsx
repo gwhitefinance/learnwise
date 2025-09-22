@@ -31,6 +31,7 @@ import {
   Gem,
   Music,
   Gamepad2,
+  FolderOpen,
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -63,7 +64,20 @@ import { Skeleton } from '@/components/ui/skeleton';
 import dynamic from 'next/dynamic';
 import { generateMotivationalMessage } from '@/ai/flows/motivational-message-flow';
 import AIBuddy from '@/components/ai-buddy';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
+  type CourseFile = {
+      id: string;
+      name: string;
+      type: string;
+      size: number;
+  };
+
+  type Unit = {
+      id: string;
+      name: string;
+      files?: CourseFile[];
+  };
 
   type Course = {
     id: string;
@@ -73,8 +87,9 @@ import AIBuddy from '@/components/ai-buddy';
     url?: string;
     description: string;
     progress: number;
-    files: number;
+    files: number; // This might be a count or can be removed if we calculate it
     userId?: string;
+    units?: Unit[];
   };
 
   type FirestoreProject = {
@@ -787,16 +802,65 @@ function DashboardPage() {
             </TabsContent>
 
             <TabsContent value="files">
-                 <Card>
+                <Card>
                     <CardHeader>
                         <CardTitle>All Files</CardTitle>
-                        <CardDescription>Manage all your uploaded study materials.</CardDescription>
+                        <CardDescription>Manage all your uploaded study materials, organized by course and unit.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                       <div className="text-center text-muted-foreground p-8">Upload a file to get started.</div>
+                        {courses.filter(course => course.units && course.units.some(unit => unit.files && unit.files.length > 0)).length > 0 ? (
+                            <Accordion type="multiple" className="w-full">
+                                {courses.filter(course => course.units && course.units.some(unit => unit.files && unit.files.length > 0)).map(course => (
+                                    <AccordionItem key={course.id} value={course.id}>
+                                        <AccordionTrigger className="text-xl font-semibold">
+                                            <div className="flex items-center gap-3">
+                                                <FolderOpen />
+                                                {course.name}
+                                            </div>
+                                        </AccordionTrigger>
+                                        <AccordionContent>
+                                            <div className="pl-6">
+                                                {course.units?.filter(unit => unit.files && unit.files.length > 0).map(unit => (
+                                                    <Accordion key={unit.id} type="single" collapsible>
+                                                        <AccordionItem value={unit.id}>
+                                                            <AccordionTrigger>{unit.name}</AccordionTrigger>
+                                                            <AccordionContent>
+                                                                <Table>
+                                                                    <TableHeader>
+                                                                        <TableRow>
+                                                                            <TableHead>File Name</TableHead>
+                                                                            <TableHead>Type</TableHead>
+                                                                            <TableHead>Size</TableHead>
+                                                                        </TableRow>
+                                                                    </TableHeader>
+                                                                    <TableBody>
+                                                                        {unit.files?.map(file => (
+                                                                            <TableRow key={file.id}>
+                                                                                <TableCell className="font-medium">{file.name}</TableCell>
+                                                                                <TableCell>{file.type}</TableCell>
+                                                                                <TableCell>{(file.size / 1024).toFixed(2)} KB</TableCell>
+                                                                            </TableRow>
+                                                                        ))}
+                                                                    </TableBody>
+                                                                </Table>
+                                                            </AccordionContent>
+                                                        </AccordionItem>
+                                                    </Accordion>
+                                                ))}
+                                            </div>
+                                        </AccordionContent>
+                                    </AccordionItem>
+                                ))}
+                            </Accordion>
+                        ) : (
+                            <div className="text-center text-muted-foreground p-8">
+                                You haven't uploaded any files to your courses yet.
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
             </TabsContent>
+
 
             <TabsContent value="projects">
                 {projects.length > 0 ? (
@@ -976,3 +1040,5 @@ function DashboardPage() {
 }
 
 export default DashboardPage;
+
+    
