@@ -14,7 +14,7 @@ import { cn } from '@/lib/utils';
 import shopItems from '@/lib/shop-items.json';
 import { useToast } from '@/hooks/use-toast';
 import AIBuddy from '@/components/ai-buddy';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 type UserProfile = {
     displayName: string;
@@ -181,63 +181,66 @@ export default function ShopClientPage() {
 
                 {/* Left side: Shop Items */}
                 <div className="lg:col-span-2">
-                    <Accordion type="multiple" defaultValue={['color', 'hat', 'shirt', 'shoes']} className="w-full">
-                        {shopCategories.map(category => (
-                            <AccordionItem value={category.id} key={category.id}>
-                                <AccordionTrigger className="text-xl font-semibold flex items-center gap-3 hover:no-underline py-4">
+                    <Tabs defaultValue="color" className="w-full">
+                        <TabsList className="grid w-full grid-cols-4">
+                             {shopCategories.map(category => (
+                                <TabsTrigger key={category.id} value={category.id} className="flex items-center gap-2">
                                     {category.icon} {category.name}
-                                </AccordionTrigger>
-                                <AccordionContent>
-                                    <div className={`grid ${category.id === 'color' ? 'grid-cols-4 sm:grid-cols-6' : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4'} gap-4 pt-4`}>
-                                        {category.items.map((item: Item) => {
-                                            const unlocked = isItemUnlocked(category.id, item.name);
-                                            const isEquipped = customizations[category.id] === item.name;
-                                            const rarityClass = rarityConfig[item.rarity as keyof typeof rarityConfig] || rarityConfig.Common;
-                                            
-                                            return (
-                                                <Card 
-                                                    key={item.name}
-                                                    onClick={() => unlocked && handleSelectItem(category.id, item.name)}
-                                                    className={cn(
-                                                        "p-3 flex flex-col items-center gap-2 transition-all cursor-pointer relative overflow-hidden ring-2",
-                                                        isEquipped ? 'ring-primary' : 'ring-transparent hover:ring-primary/50',
-                                                        rarityClass.bg
-                                                    )}
-                                                >
-                                                    <div className="w-full aspect-square flex items-center justify-center">
-                                                        {category.id === 'color' ? (
-                                                            <div className="w-16 h-16 rounded-full" style={{ backgroundColor: item.hex }}/>
-                                                        ) : (
-                                                            <AIBuddy 
-                                                                className="w-20 h-20"
-                                                                {...{[category.id]: item.name}}
-                                                                color={category.id === 'hat' ? '#87CEEB' : 'transparent'} // Show default body for hats, transparent otherwise
-                                                             />
-                                                        )}
-                                                    </div>
-                                                    <div className="text-center w-full">
-                                                        <p className={cn("text-xs font-bold uppercase", rarityClass.text)}>{item.rarity}</p>
-                                                        <p className="text-sm font-semibold truncate">{item.name}</p>
-                                                    </div>
-                                                    {unlocked ? (
-                                                        isEquipped && (
-                                                            <div className="absolute top-2 right-2 bg-green-500 text-white rounded-full p-1">
-                                                                <CheckCircle className="w-4 h-4"/>
-                                                            </div>
-                                                        )
+                                </TabsTrigger>
+                            ))}
+                        </TabsList>
+                        
+                        {shopCategories.map(category => (
+                            <TabsContent key={category.id} value={category.id}>
+                                <div className={`grid ${category.id === 'color' ? 'grid-cols-4 sm:grid-cols-6' : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4'} gap-4 pt-4`}>
+                                    {(category.items as Item[]).map((item: Item) => {
+                                        const unlocked = isItemUnlocked(category.id, item.name);
+                                        const isEquipped = customizations[category.id] === item.name;
+                                        const rarityClass = rarityConfig[item.rarity as keyof typeof rarityConfig] || rarityConfig.Common;
+                                        
+                                        return (
+                                            <Card 
+                                                key={item.name}
+                                                onClick={() => unlocked && handleSelectItem(category.id, item.name)}
+                                                className={cn(
+                                                    "p-3 flex flex-col items-center gap-2 transition-all cursor-pointer relative overflow-hidden ring-2",
+                                                    isEquipped ? 'ring-primary' : 'ring-transparent hover:ring-primary/50',
+                                                    rarityClass.bg
+                                                )}
+                                            >
+                                                <div className="w-full aspect-square flex items-center justify-center">
+                                                    {category.id === 'color' ? (
+                                                        <div className="w-16 h-16 rounded-full" style={{ backgroundColor: item.hex }}/>
                                                     ) : (
-                                                        <Button size="sm" className="h-7 text-xs w-[calc(100%-1rem)]" onClick={(e) => {e.stopPropagation(); handleBuyItem(category.id, item.name, item.price)}} disabled={profile.coins < item.price}>
-                                                            <Gem className="w-3 h-3 mr-1" /> {item.price}
-                                                        </Button>
+                                                        <AIBuddy 
+                                                            className="w-20 h-20"
+                                                            {...{[category.id]: item.name}}
+                                                            color={category.id === 'hat' ? '#87CEEB' : 'transparent'} // Show default body for hats, transparent otherwise
+                                                            />
                                                     )}
-                                                </Card>
-                                            )
-                                        })}
-                                    </div>
-                                </AccordionContent>
-                            </AccordionItem>
+                                                </div>
+                                                <div className="text-center w-full">
+                                                    <p className={cn("text-xs font-bold uppercase", rarityClass.text)}>{item.rarity}</p>
+                                                    <p className="text-sm font-semibold truncate">{item.name}</p>
+                                                </div>
+                                                {unlocked ? (
+                                                    isEquipped && (
+                                                        <div className="absolute top-2 right-2 bg-green-500 text-white rounded-full p-1">
+                                                            <CheckCircle className="w-4 h-4"/>
+                                                        </div>
+                                                    )
+                                                ) : (
+                                                    <Button size="sm" className="h-7 text-xs w-[calc(100%-1rem)]" onClick={(e) => {e.stopPropagation(); handleBuyItem(category.id, item.name, item.price)}} disabled={profile.coins < item.price}>
+                                                        <Gem className="w-3 h-3 mr-1" /> {item.price}
+                                                    </Button>
+                                                )}
+                                            </Card>
+                                        )
+                                    })}
+                                </div>
+                            </TabsContent>
                         ))}
-                    </Accordion>
+                    </Tabs>
                 </div>
             </div>
         </div>
