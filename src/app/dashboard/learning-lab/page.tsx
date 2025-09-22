@@ -27,6 +27,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { generateTutorResponse } from '@/ai/flows/tutor-chat-flow';
+import { addXp as addXpAction } from '@/lib/actions';
 
 type Course = {
     id: string;
@@ -189,16 +190,23 @@ export default function LearningLabPage() {
     const newCompletedModules = [...completedModules, moduleIndex];
     setCompletedModules(newCompletedModules);
     
-    // Award coins
-    const userRef = doc(db, "users", user.uid);
-    await updateDoc(userRef, {
-        coins: increment(50)
-    });
+    try {
+      const { levelUp, newLevel } = await addXpAction(user.uid, 50); // Award 50 XP
+      if (levelUp) {
+        toast({
+          title: `🎉 Level Up! You are now Level ${newLevel}! 🎉`,
+          description: "You've earned 50 coins for leveling up!",
+        });
+      } else {
+        toast({
+          title: `🎉 Module ${moduleIndex + 1} Complete! 🎉`,
+          description: "Great job! You've earned 50 XP.",
+        });
+      }
+    } catch (error) {
+      console.error("Error awarding XP:", error);
+    }
 
-    toast({
-        title: `🎉 Module ${moduleIndex + 1} Complete! 🎉`,
-        description: "Great job! You've earned 50 coins.",
-    });
 
     if (newCompletedModules.length === miniCourse?.modules.length) {
         setIsCourseComplete(true);
@@ -232,7 +240,7 @@ export default function LearningLabPage() {
   
   const handlePrevChapter = () => {
     if (currentChapterIndex > 0) {
-        setCurrentChapterIndex(prev => prev - 1);
+        setCurrentChapterIndex(prev => prev + 1);
     } else if (currentModuleIndex > 0) {
         const prevModuleIndex = currentModuleIndex - 1;
         const prevModule = miniCourse?.modules[prevModuleIndex];
@@ -588,7 +596,7 @@ export default function LearningLabPage() {
                                 <RefreshCw className="mr-2 h-4 w-4"/> Flip Card
                             </Button>
                             <Button variant="outline" size="icon" onClick={() => { setIsFlipped(false); setCurrentFlashcardIndex(prev => Math.min(flashcards.length - 1, prev + 1))}} disabled={currentFlashcardIndex === flashcards.length - 1}>
-                                <ChevronRight className="h-4 w-4" />
+                                <ChevronRight className="ml-2 h-4 w-4" />
                             </Button>
                         </div>
                     </div>

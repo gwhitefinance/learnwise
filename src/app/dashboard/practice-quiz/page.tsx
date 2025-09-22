@@ -24,6 +24,7 @@ import AudioPlayer from '@/components/audio-player';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { doc, updateDoc, increment } from 'firebase/firestore';
+import { addXp as addXpAction } from '@/lib/actions';
 
 
 const suggestedTopics = ["Mathematics", "Science", "History", "Literature", "Computer Science"];
@@ -148,8 +149,8 @@ export default function PracticeQuizPage() {
         }
     }
 
-    const handleNextQuestion = () => {
-        if (!quiz) return;
+    const handleNextQuestion = async () => {
+        if (!quiz || !user) return;
         setFeedback(null);
         setExplanation(null);
         setSelectedAnswer(null);
@@ -158,19 +159,30 @@ export default function PracticeQuizPage() {
         if (currentQuestionIndex < quiz.questions.length - 1) {
             setCurrentQuestionIndex(prev => prev + 1);
         } else {
-            // Quiz finished, award coins
-            if(user) {
-                const correctAnswers = answers.filter(a => a.isCorrect).length;
-                if (correctAnswers > 0) {
-                    const coinsEarned = correctAnswers * 2; // 2 coins per correct answer
-                    const userRef = doc(db, "users", user.uid);
-                    updateDoc(userRef, {
-                        coins: increment(coinsEarned)
-                    });
+            // Quiz finished, award coins and XP
+            const correctAnswers = answers.filter(a => a.isCorrect).length;
+            if (correctAnswers > 0) {
+                const xpEarned = correctAnswers * 10; // 10 XP per correct answer
+                try {
+                    const { levelUp, newLevel } = await addXpAction(user.uid, xpEarned);
+                    if (levelUp) {
+                        toast({
+                            title: `🎉 Level Up! You are now Level ${newLevel}! 🎉`,
+                            description: `You also earned ${xpEarned} XP and some coins!`,
+                        });
+                    } else {
+                         toast({
+                            title: "Quiz Complete!",
+                            description: `You earned ${xpEarned} XP for answering ${correctAnswers} questions correctly!`
+                        });
+                    }
+                } catch(e) {
+                    console.error("Error awarding XP:", e);
                     toast({
-                        title: "Quiz Complete!",
-                        description: `You earned ${coinsEarned} coins for answering ${correctAnswers} questions correctly!`
-                    });
+                        variant: 'destructive',
+                        title: "XP Award Failed",
+                        description: "There was an issue awarding your XP. Please try again."
+                    })
                 }
             }
             setQuizState('results');

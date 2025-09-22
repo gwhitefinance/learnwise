@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import Navbar from '@/sections/Navbar';
 import Footer from '@/sections/Footer';
 import { getLeaderboard } from './actions';
+import { Progress } from '@/components/ui/progress';
 
 export type UserProfile = {
     uid: string;
@@ -18,6 +19,7 @@ export type UserProfile = {
     email: string;
     coins: number;
     level: number;
+    xp: number;
 };
 
 export default function LeaderboardPage() {
@@ -63,7 +65,7 @@ export default function LeaderboardPage() {
                 <Card className="bg-neutral-900 border-white/10">
                     <CardHeader>
                         <CardTitle>Top Learners</CardTitle>
-                        <CardDescription>Ranked by total coins earned.</CardDescription>
+                        <CardDescription>Ranked by level and XP earned.</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <Table>
@@ -71,47 +73,63 @@ export default function LeaderboardPage() {
                                 <TableRow className="border-b-white/10">
                                     <TableHead className="w-[80px]">Rank</TableHead>
                                     <TableHead>User</TableHead>
-                                    <TableHead className="text-right">Level</TableHead>
+                                    <TableHead>Level Progress</TableHead>
                                     <TableHead className="text-right">Coins</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {leaderboard.map((user, index) => (
-                                    <TableRow key={user.uid} className={cn(
-                                        "border-b-white/10",
-                                        index < 3 && "bg-white/5"
-                                    )}>
-                                        <TableCell className="font-bold text-lg">
-                                            <div className="flex items-center gap-2">
-                                                <Trophy className={cn("h-6 w-6", getRankColor(index))} />
-                                                <span>{index + 1}</span>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell>
-                                            <div className="flex items-center gap-4">
-                                                <Avatar>
-                                                    <AvatarImage src={`https://i.pravatar.cc/150?u=${user.uid}`} />
-                                                    <AvatarFallback>{user.displayName?.[0]}</AvatarFallback>
-                                                </Avatar>
-                                                <span className="font-medium">{user.displayName}</span>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell className="text-right font-medium">
-                                            <div className="flex items-center justify-end gap-2 text-blue-400">
-                                                <Shield className="h-5 w-5"/>
-                                                <span>{user.level}</span>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell className="text-right font-bold">
-                                            <div className="flex items-center justify-end gap-2 text-amber-400">
-                                                <Gem className="h-5 w-5"/>
-                                                <span>{user.coins}</span>
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
+                                {leaderboard.map((user, index) => {
+                                    const xpForNextLevel = user.level * 100;
+                                    const xpProgress = (user.xp / xpForNextLevel) * 100;
+                                    
+                                    return (
+                                        <TableRow key={user.uid} className={cn(
+                                            "border-b-white/10",
+                                            index < 3 && "bg-white/5"
+                                        )}>
+                                            <TableCell className="font-bold text-lg">
+                                                <div className="flex items-center gap-2">
+                                                    <Trophy className={cn("h-6 w-6", getRankColor(index))} />
+                                                    <span>{index + 1}</span>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                <div className="flex items-center gap-4">
+                                                    <Avatar>
+                                                        <AvatarImage src={`https://i.pravatar.cc/150?u=${user.uid}`} />
+                                                        <AvatarFallback>{user.displayName?.[0]}</AvatarFallback>
+                                                    </Avatar>
+                                                    <span className="font-medium">{user.displayName}</span>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                <div className='flex items-center gap-4'>
+                                                    <div className="flex items-center justify-end gap-2 text-blue-400 font-medium">
+                                                        <Shield className="h-5 w-5"/>
+                                                        <span>{user.level}</span>
+                                                    </div>
+                                                    <div className='w-24'>
+                                                        <Progress value={xpProgress} className="h-2" />
+                                                        <span className="text-xs text-muted-foreground">{user.xp}/{xpForNextLevel} XP</span>
+                                                    </div>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="text-right font-bold">
+                                                <div className="flex items-center justify-end gap-2 text-amber-400">
+                                                    <Gem className="h-5 w-5"/>
+                                                    <span>{user.coins}</span>
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    )
+                                })}
                             </TableBody>
                         </Table>
+                         {leaderboard.length === 0 && (
+                            <div className="text-center text-muted-foreground p-8">
+                                The leaderboard is currently empty. Start learning to get on the board!
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
             </div>

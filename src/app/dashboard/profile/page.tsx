@@ -10,15 +10,17 @@ import { doc, onSnapshot } from 'firebase/firestore';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Gem, Zap, Shield } from 'lucide-react';
+import { Gem, Zap, Shield, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import AIBuddy from '@/components/ai-buddy';
+import { Progress } from '@/components/ui/progress';
 
 type UserProfile = {
     displayName: string;
     email: string;
     coins: number;
     level: number;
+    xp: number;
     unlockedItems?: Record<string, string[]>;
 };
 
@@ -42,7 +44,8 @@ export default function ProfilePage() {
                 const data = doc.data();
                 setProfile({
                     ...data,
-                    level: Math.floor(data.coins / 100)
+                    level: data.level || 1,
+                    xp: data.xp || 0,
                 } as UserProfile);
             }
             setProfileLoading(false);
@@ -55,6 +58,9 @@ export default function ProfilePage() {
 
         return () => unsubscribe();
     }, [user, authLoading, router]);
+
+    const xpForNextLevel = profile ? profile.level * 100 : 100;
+    const xpProgress = profile ? (profile.xp / xpForNextLevel) * 100 : 0;
 
 
     if (authLoading || profileLoading) {
@@ -97,14 +103,21 @@ export default function ProfilePage() {
              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 space-y-8">
                      <Card>
-                        <CardHeader className="flex flex-row items-center gap-4">
+                        <CardHeader className="flex flex-col md:flex-row items-start md:items-center gap-4">
                              <Avatar className="h-20 w-20">
                                 <AvatarImage src={user?.photoURL ?? undefined} />
                                 <AvatarFallback>{profile.displayName?.[0]}</AvatarFallback>
                             </Avatar>
-                            <div>
+                            <div className='flex-1'>
                                 <CardTitle className="text-2xl">{profile.displayName}</CardTitle>
                                 <CardDescription>{profile.email}</CardDescription>
+                                <div className="mt-4 space-y-2">
+                                    <div className="flex justify-between text-sm font-medium">
+                                        <span>Level {profile.level}</span>
+                                        <span className="text-muted-foreground">{profile.xp} / {xpForNextLevel} XP</span>
+                                    </div>
+                                    <Progress value={xpProgress} />
+                                </div>
                             </div>
                         </CardHeader>
                         <CardContent className="flex items-center gap-8">
@@ -122,7 +135,7 @@ export default function ProfilePage() {
                     <Card>
                         <CardHeader>
                             <CardTitle>Achievements</CardTitle>
-                             <CardDescription>Earn coins by completing tasks.</CardDescription>
+                             <CardDescription>Earn coins and XP by completing tasks.</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-4">
@@ -130,7 +143,7 @@ export default function ProfilePage() {
                                     <div key={ach.title} className={cn("flex items-center justify-between p-3 rounded-lg", ach.unlocked ? "bg-green-500/10" : "bg-muted opacity-60")}>
                                         <div className="flex items-center gap-3">
                                             <div className={cn("p-2 rounded-full", ach.unlocked ? "bg-green-500/20 text-green-600" : "bg-muted-foreground/20 text-muted-foreground")}>
-                                                <Zap className="h-5 w-5" />
+                                                <Star className="h-5 w-5" />
                                             </div>
                                             <div>
                                                 <p className="font-semibold">{ach.title}</p>

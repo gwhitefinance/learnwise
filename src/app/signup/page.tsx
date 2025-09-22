@@ -10,7 +10,7 @@ import { useToast } from "@/hooks/use-toast"
 import { getAuth, createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
 import { app, db } from "@/lib/firebase" // Import the initialized app and db
 import { AnimatePresence, motion } from "framer-motion"
-import { doc, setDoc } from "firebase/firestore"
+import { doc, setDoc, serverTimestamp } from "firebase/firestore"
 import Link from "next/link"
 
 export default function SignUpPage() {
@@ -56,9 +56,10 @@ export default function SignUpPage() {
             uid: user.uid,
             displayName: `${firstName} ${lastName}`,
             email: user.email,
-            createdAt: new Date(),
+            createdAt: serverTimestamp(),
             coins: 0, // Initialize coins
-            level: 0, // Initialize level
+            level: 1, // Initialize level
+            xp: 0, // Initialize xp
         });
 
 
