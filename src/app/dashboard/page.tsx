@@ -64,7 +64,6 @@ import { auth, db } from '@/lib/firebase';
 import { collection, query, where, onSnapshot, addDoc, doc, Timestamp, updateDoc, increment } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import dynamic from 'next/dynamic';
-import { generateMotivationalMessage } from '@/ai/flows/motivational-message-flow';
 import AIBuddy from '@/components/ai-buddy';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import rewardsData from '@/lib/rewards.json';
@@ -212,7 +211,6 @@ function DashboardPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean }) {
     const [newProject, setNewProject] = useState({ name: '', course: '', dueDate: new Date() as Date | undefined });
     const [streak, setStreak] = useState(0);
     const [user] = useAuthState(auth);
-    const [motivationalMessage, setMotivationalMessage] = useState('');
     const [customizations, setCustomizations] = useState<Record<string, string>>({});
     const [userCoins, setUserCoins] = useState(0);
 
@@ -304,24 +302,6 @@ function DashboardPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean }) {
         }
         localStorage.setItem('lastVisit', today);
         
-        // Fetch motivational message
-        const getMotivation = async () => {
-            if (user?.displayName) {
-                 try {
-                    const { message } = await generateMotivationalMessage({ userName: user.displayName.split(' ')[0] });
-                    setMotivationalMessage(message);
-                } catch(e) {
-                    console.error("Couldn't get motivational message", e);
-                    // Don't overwrite a previous message if the fetch fails
-                    if (!motivationalMessage) {
-                        setMotivationalMessage("Let's get learning!");
-                    }
-                }
-            }
-        }
-
-        getMotivation();
-
         return () => {
             unsubscribes.forEach(unsub => unsub());
         }
@@ -658,11 +638,6 @@ function DashboardPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean }) {
                             </div>
                         </div>
                          <div className="hidden lg:flex items-center justify-center gap-2">
-                            {motivationalMessage && (
-                                <p className="relative z-10 max-w-[200px] bg-white/20 backdrop-blur-sm p-3 rounded-lg text-center text-sm italic after:content-[''] after:absolute after:left-full after:top-1/2 after:-translate-y-1/2 after:border-y-8 after:border-y-transparent after:border-l-[12px] after:border-l-white/20">
-                                    {motivationalMessage}
-                                </p>
-                            )}
                             <AIBuddy 
                                 className="w-32 h-32"
                                 color={customizations.color}
