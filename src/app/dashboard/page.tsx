@@ -617,9 +617,9 @@ function DashboardPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean }) {
                     >
                          {isHalloweenTheme && (
                             <div className="absolute bottom-0 left-0 right-0 h-24 pointer-events-none">
-                                <div className="absolute bottom-0 left-[10%] w-16 h-20 bg-neutral-700 rounded-t-full border-b-4 border-neutral-800"></div>
-                                <div className="absolute bottom-0 left-[15%] w-12 h-16 bg-neutral-700/80 rounded-t-full border-b-4 border-neutral-800"></div>
-                                 <div className="absolute bottom-0 right-[8%] w-20 h-24 bg-neutral-700 rounded-t-lg border-b-4 border-neutral-800 after:content-['+'] after:absolute after:inset-x-0 after:top-4 after:text-4xl after:font-bold after:text-neutral-600"></div>
+                                <div className="absolute bottom-0 left-[10%] w-16 h-20 bg-neutral-700 rounded-t-full border-b-4 border-neutral-800" />
+                                <div className="absolute bottom-0 left-[15%] w-12 h-16 bg-neutral-700/80 rounded-t-full border-b-4 border-neutral-800" />
+                                <div className="absolute bottom-0 right-[8%] w-20 h-24 bg-neutral-700 rounded-t-lg border-b-4 border-neutral-800 after:content-['+'] after:absolute after:inset-x-0 after:top-4 after:text-4xl after:font-bold after:text-neutral-600" />
                             </div>
                         )}
                         <div className="relative flex-1 space-y-4">
