@@ -1,23 +1,37 @@
 
 'use client';
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { motion, useSpring, useTransform } from 'framer-motion';
-import shopItems from '@/lib/shop-items.json';
+import { Hat, Shirt, Shoes } from '@/components/robot-accessories';
+
 
 interface AIBuddyProps {
     className?: string;
-    color?: string; // Color name from shop-items.json
-    hat?: string;   // Hat name from shop-items.json
-    shirt?: string; // Shirt name
-    shoes?: string; // Shoes name
+    color?: string; 
+    hat?: string;   
+    shirt?: string; 
+    shoes?: string;
 }
 
 const AIBuddy: React.FC<AIBuddyProps> = ({ className, color, hat, shirt, shoes }) => {
-    const bodyColor = shopItems.colors.find(c => c.name === color)?.hex || '#87CEEB'; // Cheerful blue default
-    const HatComponent = shopItems.hats.find(h => h.name === hat)?.component;
-    const ShirtComponent = shopItems.shirts.find(s => s.name === shirt)?.component;
-    const ShoesComponent = shopItems.shoes.find(s => s.name === shoes)?.component;
+    const [bodyColor, setBodyColor] = useState('#87CEEB');
+
+    useEffect(() => {
+        // This logic now runs only on the client, avoiding mismatches
+        // In a real app, you might fetch this from a user profile or a theme context
+        const colors = [
+             { "name": "Default", "hex": "#87CEEB" },
+            { "name": "Mint", "hex": "#98FF98" },
+            { "name": "Lavender", "hex": "#E6E6FA" },
+            { "name": "Rose", "hex": "#FFC0CB" },
+            { "name": "Graphite", "hex": "#4f4f4f" },
+            { "name": "Gold", "hex": "#FFD700" },
+            { "name": "Ruby", "hex": "#E0115F" }
+        ];
+        const selectedColor = colors.find(c => c.name === color)?.hex || '#87CEEB';
+        setBodyColor(selectedColor);
+    }, [color]);
 
 
     const containerRef = useRef<HTMLDivElement>(null);
@@ -38,7 +52,6 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, color, hat, shirt, shoes }
     };
     
     useEffect(() => {
-        // Use the window for mouse tracking to make it feel more connected
         window.addEventListener('mousemove', handleMouseMove);
         return () => {
             window.removeEventListener('mousemove', handleMouseMove);
@@ -82,14 +95,7 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, color, hat, shirt, shoes }
                      animate={{ y: [0, -4, 0], transition: { duration: 4, repeat: Infinity, ease: 'easeInOut' } }}
                 >
                     {/* Feet/Shoes */}
-                    {ShoesComponent ? (
-                         <g dangerouslySetInnerHTML={{ __html: ShoesComponent }} />
-                    ) : (
-                        <>
-                         <rect x="70" y="175" width="20" height="10" rx="5" fill="#333" />
-                         <rect x="110" y="175" width="20" height="10" rx="5" fill="#333" />
-                        </>
-                    )}
+                    <Shoes name={shoes} />
                     
                      {/* Body */}
                      <motion.g
@@ -104,7 +110,7 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, color, hat, shirt, shoes }
                         <rect x="65" y="100" width="70" height="60" rx="20" fill={bodyColor} />
                         
                         {/* Shirt */}
-                        {ShirtComponent && <g dangerouslySetInnerHTML={{ __html: ShirtComponent }} />}
+                        <Shirt name={shirt} />
 
                         <rect x="65" y="100" width="70" height="60" rx="20" fill="url(#bodyGradient)" />
                     </motion.g>
@@ -133,7 +139,9 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, color, hat, shirt, shoes }
                         <rect x="50" y="30" width="100" height="80" rx="40" fill="url(#bodyGradient)" />
 
                         {/* Antenna or Hat */}
-                        {!HatComponent ? (
+                        {(hat && hat !== 'None') ? (
+                            <Hat name={hat} />
+                        ) : (
                           <motion.g 
                               style={{ transformOrigin: '100px 30px'}}
                               animate={{ rotate: [-5, 5, -5], transition: { duration: 6, repeat: Infinity, ease: 'linear' }}}
@@ -141,8 +149,6 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, color, hat, shirt, shoes }
                               <line x1="100" y1="30" x2="100" y2="10" stroke="#333" strokeWidth="3" />
                               <circle cx="100" cy="8" r="5" fill="#FFC700" />
                           </motion.g>
-                        ) : (
-                          <g transform="translate(50, 0)" dangerouslySetInnerHTML={{ __html: HatComponent }} />
                         )}
                         
                         {/* Face Screen */}

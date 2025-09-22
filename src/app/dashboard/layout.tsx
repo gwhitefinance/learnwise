@@ -272,6 +272,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   
+  const [isMounted, setIsMounted] = useState(false);
   const [notifications, setNotifications] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -285,6 +286,12 @@ export default function DashboardLayout({
 
 
   useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isMounted) return;
+
     if (!loading && !user) {
       router.push('/signup');
       return;
@@ -317,7 +324,6 @@ export default function DashboardLayout({
             }
         });
         
-        // This code must run on the client
         const savedPic = localStorage.getItem('profilePic');
         if (savedPic) {
           setProfilePic(savedPic);
@@ -348,9 +354,7 @@ export default function DashboardLayout({
               
                 if (currentToken) {
                   console.log('FCM Token:', currentToken);
-                  // Send the token to your server and update the UI if necessary
                 } else {
-                  // Show permission request UI
                   console.log('No registration token available. Request permission to generate one.');
                 }
               }
@@ -366,7 +370,7 @@ export default function DashboardLayout({
         
         return () => unsubscribe();
     }
-  }, [user, loading, router]);
+  }, [user, loading, router, isMounted]);
 
 
   const handleSignOut = async () => {
@@ -408,7 +412,7 @@ export default function DashboardLayout({
   const isChatPage = pathname.startsWith('/dashboard/ai-chat');
 
 
-  if (loading) {
+  if (loading || !isMounted) {
     return (
         <div className="flex items-center justify-center h-screen">
             <div>Loading...</div>

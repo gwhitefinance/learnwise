@@ -10,64 +10,55 @@
         { "name": "Ruby", "hex": "#E0115F", "price": 0, "rarity": "Epic" }
     ],
     "hats": [
-        { "name": "None", "component": null, "price": 0, "rarity": "Common" },
+        { "name": "None", "price": 0, "rarity": "Common" },
         {
             "name": "Top Hat",
-            "component": "<g transform='translate(-50, 0)'><path d='M20,90 L80,90 L80,80 L90,80 L90,40 L10,40 L10,80 L20,80 Z' fill='black' /><path d='M20,38 L80,38 L80,20 L20,20 Z' fill='black' /><rect x='20' y='38' width='60' height='2' fill='#555' /></g>",
             "price": 0,
             "rarity": "Uncommon"
         },
         {
             "name": "Propeller Hat",
-            "component": "<g transform='translate(-50, 0)'><path d='M20 50 C 20 30, 80 30, 80 50' fill='gold' /><path d='M 50 10 L 50 30' stroke='black' stroke-width='2' /><path d='M 30 20 L 70 20' stroke='red' stroke-width='4' style='transform-origin: center; animation: spin 1s linear infinite;' /></g><style>@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }</style>",
             "price": 0,
             "rarity": "Rare"
         },
         {
             "name": "Crown",
-            "component": "<g transform='translate(-50, 0)'><path d='M10 80 L90 80 L90 70 L10 70 Z M 10 70 L 20 40 L 40 60 L 50 30 L 60 60 L 80 40 L 90 70 Z' fill='gold' stroke='black' stroke-width='2' /></g>",
             "price": 0,
             "rarity": "Epic"
         },
         {
             "name": "Wizard Hat",
-            "component": "<g transform='translate(-50, 0)'><path d='M10 80 L90 80 Q50 70 10 80 M50,10 L20,80 Q50,70 80,80 L50,10' fill='#2c3e50' /><path d='M45 40 L55 50 L65 40' stroke='yellow' stroke-width='3' fill='none' /><path d='M40 55 L50 65 L60 55' stroke='yellow' stroke-width='3' fill='none' /></g>",
             "price": 0,
             "rarity": "Legendary"
         }
     ],
     "shirts": [
-        { "name": "None", "component": null, "price": 0, "rarity": "Common" },
+        { "name": "None", "price": 0, "rarity": "Common" },
         {
             "name": "T-Shirt",
-            "component": "<g transform='translate(0, -5)'><path d='M65 110 L135 110 L135 150 L65 150 Z' fill='rgba(255,0,0,0.5)' /><path d='M45 120 L65 110 L65 130 L45 130 Z' fill='rgba(255,0,0,0.5)'/><path d='M155 120 L135 110 L135 130 L155 130 Z' fill='rgba(255,0,0,0.5)'/></g>",
             "price": 0,
             "rarity": "Common"
         },
         {
             "name": "Bow Tie",
-            "component": "<g transform='translate(0, 5)'><path d='M85 105 L100 95 L100 115 Z' fill='red' stroke='black' stroke-width='2' /><path d='M115 105 L100 95 L100 115 Z' fill='red' stroke='black' stroke-width='2' /></g>",
             "price": 0,
             "rarity": "Uncommon"
         }
     ],
     "shoes": [
-        { "name": "None", "component": null, "price": 0, "rarity": "Common" },
+        { "name": "None", "price": 0, "rarity": "Common" },
         {
             "name": "Boots",
-            "component": "<g><rect x='70' y='170' width='25' height='15' rx='5' fill='#8B4513' /><rect x='105' y='170' width='25' height='15' rx='5' fill='#8B4513' /></g>",
             "price": 0,
             "rarity": "Common"
         },
         {
             "name": "Sneakers",
-            "component": "<g><path d='M70,175 L95,175 L95,185 L70,185 Z' fill='white' /><path d='M70,180 L75,175' stroke='red' stroke-width='2' /><path d='M105,175 L130,175 L130,185 L105,185 Z' fill='white' /><path d='M105,180 L110,175' stroke='red' stroke-width='2' /></g>",
             "price": 0,
             "rarity": "Uncommon"
         },
         {
             "name": "Rocket Boots",
-            "component": "<g><rect x='65' y='170' width='30' height='20' rx='8' fill='#D3D3D3'/><rect x='105' y='170' width='30' height='20' rx='8' fill='#D3D3D3'/><ellipse cx='80' cy='195' rx='10' ry='5' fill='orange'><animate attributeName='ry' values='5;8;5' dur='0.5s' repeatCount='indefinite' /></ellipse><ellipse cx='120' cy='195' rx='10' ry='5' fill='orange'><animate attributeName='ry' values='5;8;5' dur='0.5s' repeatCount='indefinite' /></ellipse></g>",
             "price": 0,
             "rarity": "Epic"
         }
