@@ -116,9 +116,12 @@ export default function ShopClientPage() {
                     <div className="lg:col-span-2 space-y-8">
                         <div>
                             <Skeleton className="h-12 w-full mb-4" />
-                            <Skeleton className="h-12 w-full mb-4" />
-                            <Skeleton className="h-12 w-full mb-4" />
-                            <Skeleton className="h-12 w-full" />
+                            <div className="grid grid-cols-3 md:grid-cols-4 gap-4">
+                                <Skeleton className="w-full aspect-square"/>
+                                <Skeleton className="w-full aspect-square"/>
+                                <Skeleton className="w-full aspect-square"/>
+                                <Skeleton className="w-full aspect-square hidden md:block"/>
+                            </div>
                         </div>
                     </div>
                     <div className="lg:col-span-1">
@@ -224,20 +227,21 @@ export default function ShopClientPage() {
                                                     <p className="text-sm font-semibold truncate">{item.name}</p>
                                                 </div>
                                                 {unlocked ? (
-                                                    isEquipped && (
-                                                        <div className="absolute top-2 right-2 bg-green-500 text-white rounded-full p-1">
-                                                            <CheckCircle className="w-4 h-4"/>
-                                                        </div>
-                                                    )
+                                                    <div
+                                                        className={cn(
+                                                            'flex items-center justify-center gap-1 w-full p-1.5 text-xs font-bold rounded-b-lg',
+                                                            isEquipped
+                                                            ? 'bg-green-500 text-white'
+                                                            : 'bg-primary/80 text-primary-foreground'
+                                                        )}
+                                                    >
+                                                        {isEquipped && <CheckCircle className="w-3 h-3" />}
+                                                        {isEquipped ? 'Equipped' : 'Equip'}
+                                                    </div>
                                                 ) : (
                                                     <Button size="sm" className="h-7 text-xs w-full rounded-t-none" onClick={(e) => {e.stopPropagation(); handleBuyItem(category.id, item.name, item.price)}} disabled={profile.coins < item.price}>
                                                         <Gem className="w-3 h-3 mr-1" /> {item.price}
                                                     </Button>
-                                                )}
-                                                {unlocked && (
-                                                  <div className="bg-primary/80 text-primary-foreground w-full p-1.5 text-center rounded-b-lg">
-                                                      <span className="text-xs font-bold">Equip</span>
-                                                  </div>
                                                 )}
                                             </Card>
                                         )
@@ -251,3 +255,5 @@ export default function ShopClientPage() {
         </div>
     );
 }
+
+    
