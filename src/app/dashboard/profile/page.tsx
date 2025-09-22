@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -148,6 +149,7 @@ export default function ProfilePage() {
                                     hat={customizations.hat}
                                     shirt={customizations.shirt}
                                     shoes={customizations.shoes}
+                                    dance={customizations.dance}
                                 />
                             </div>
                         </CardContent>

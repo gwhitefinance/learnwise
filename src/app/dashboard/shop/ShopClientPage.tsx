@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -9,7 +10,7 @@ import { doc, onSnapshot, updateDoc, arrayUnion, increment } from 'firebase/fire
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Gem, Palette, Shirt, CheckCircle, Footprints, GraduationCap as HatIcon, Sparkles } from 'lucide-react';
+import { Gem, Palette, Shirt, CheckCircle, Footprints, GraduationCap as HatIcon, Sparkles, Hand } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import shopItemsData from '@/lib/shop-items.json';
 import { useToast } from '@/hooks/use-toast';
@@ -49,6 +50,7 @@ export default function ShopClientPage() {
         hat: 'None',
         shirt: 'None',
         shoes: 'None',
+        dance: 'None',
     });
     const router = useRouter();
     const { toast } = useToast();
@@ -149,6 +151,7 @@ export default function ShopClientPage() {
         { id: 'hat', name: 'Hats', icon: <HatIcon className="h-5 w-5" />, items: shopItems.hats },
         { id: 'shirt', name: 'Shirts', icon: <Shirt className="h-5 w-5" />, items: shopItems.shirts },
         { id: 'shoes', name: 'Shoes', icon: <Footprints className="h-5 w-5" />, items: shopItems.shoes },
+        { id: 'dance', name: 'Dances', icon: <Hand className="h-5 w-5" />, items: shopItems.dances },
     ];
 
 
@@ -187,6 +190,7 @@ export default function ShopClientPage() {
                                 hat={customizations.hat}
                                 shirt={customizations.shirt}
                                 shoes={customizations.shoes}
+                                dance={customizations.dance}
                             />
                         </div>
                      </Card>
@@ -195,7 +199,7 @@ export default function ShopClientPage() {
                 {/* Left side: Shop Items */}
                 <div className="lg:col-span-2">
                     <Tabs defaultValue="color" className="w-full">
-                        <TabsList className="grid w-full grid-cols-4">
+                        <TabsList className="grid w-full grid-cols-5">
                              {shopCategories.map(category => (
                                 <TabsTrigger key={category.id} value={category.id} className="flex items-center gap-2">
                                     {category.icon} {category.name}
@@ -224,6 +228,8 @@ export default function ShopClientPage() {
                                                 <div className="w-full aspect-square flex items-center justify-center p-3">
                                                     {category.id === 'color' ? (
                                                         <div className="w-16 h-16 rounded-full" style={{ backgroundColor: item.hex }}/>
+                                                    ) : category.id === 'dance' ? (
+                                                        <Hand className="w-16 h-16" />
                                                     ) : (
                                                         <AIBuddy 
                                                             className="w-20 h-20"

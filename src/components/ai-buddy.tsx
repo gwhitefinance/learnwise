@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useRef, useEffect, useState } from 'react';
@@ -12,9 +13,10 @@ interface AIBuddyProps {
     hat?: string;   
     shirt?: string; 
     shoes?: string;
+    dance?: string;
 }
 
-const AIBuddy: React.FC<AIBuddyProps> = ({ className, color, hat, shirt, shoes }) => {
+const AIBuddy: React.FC<AIBuddyProps> = ({ className, color, hat, shirt, shoes, dance }) => {
     const [bodyColor, setBodyColor] = useState('#87CEEB');
     const [isMounted, setIsMounted] = useState(false);
 
@@ -74,6 +76,33 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, color, hat, shirt, shoes }
 
     const pupilX = useTransform(mouse.x, [0, 1], [-6, 6]);
     const pupilY = useTransform(mouse.y, [0, 1], [-4, 4]);
+    
+    const getDanceAnimation = () => {
+        switch (dance) {
+            case 'Wave':
+                return { rotate: [0, 20, -20, 20, 0], transition: { duration: 2, repeat: Infinity, ease: 'easeInOut' }};
+            case 'Spin':
+                return { rotate: 360, transition: { duration: 1.5, repeat: Infinity, ease: 'linear' }};
+            case 'Jump':
+                 return { y: [0, -20, 0], transition: { duration: 0.8, repeat: Infinity, ease: 'easeInOut' }};
+            default:
+                return { y: [0, -4, 0], transition: { duration: 4, repeat: Infinity, ease: 'easeInOut' } };
+        }
+    };
+    
+    const getWaveAnimation = () => {
+         if (dance === 'Wave') {
+            return {
+                rotate: [0, -30, 0],
+                transition: { duration: 2, repeat: Infinity, ease: 'easeInOut' }
+            };
+        }
+        return {
+            rotate: [0, -8, 0, 8, 0],
+            transition: { duration: 5, repeat: Infinity, ease: 'easeInOut' }
+        };
+    };
+
 
     if (!isMounted) {
         return null; // Or a placeholder/skeleton
@@ -110,7 +139,8 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, color, hat, shirt, shoes }
                 
                 {/* Main Body Animation Group */}
                 <motion.g
-                     animate={{ y: [0, -4, 0], transition: { duration: 4, repeat: Infinity, ease: 'easeInOut' } }}
+                     animate={getDanceAnimation()}
+                     style={dance === 'Spin' ? { transformOrigin: '100px 100px' } : {}}
                 >
                     {/* Feet/Shoes */}
                     <Shoes name={shoes} />
@@ -135,7 +165,7 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, color, hat, shirt, shoes }
 
                     {/* Arms */}
                     <motion.g
-                        animate={{ rotate: [0, -8, 0, 8, 0], transition: { duration: 5, repeat: Infinity, ease: 'easeInOut' }}}
+                        animate={getWaveAnimation()}
                         style={{ transformOrigin: '70px 115px' }}
                     >
                         <rect x="45" y="110" width="20" height="35" rx="10" fill={bodyColor} />

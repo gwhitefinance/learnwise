@@ -44,5 +44,11 @@
         { "name": "Formal Shoes", "price": 0, "rarity": "Rare" },
         { "name": "Pumpkin Shoes", "price": 0, "rarity": "Epic" },
         { "name": "Rocket Boots", "price": 0, "rarity": "Epic" }
+    ],
+    "dances": [
+        { "name": "None", "price": 0, "rarity": "Common" },
+        { "name": "Wave", "price": 0, "rarity": "Common" },
+        { "name": "Spin", "price": 0, "rarity": "Uncommon" },
+        { "name": "Jump", "price": 0, "rarity": "Rare" }
     ]
 }
