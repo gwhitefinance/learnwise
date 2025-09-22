@@ -30,7 +30,7 @@ const prompt = ai.definePrompt({
     2.  **Generate Course**:
         -   If the "Additional Content" is relevant, use it as the primary source to create the course.
         -   If the "Additional Content" is irrelevant or empty, generate a high-quality, comprehensive course based ONLY on the "Course Name" and "Course Description".
-    3.  **Structure**: Your main goal is to accurately reflect the structure of the provided "Additional Content". Identify the main sections or headings on the page and treat them as modules. Identify the sub-sections within each main section and treat them as chapters. Generate as many modules and chapters as are present in the source content. DO NOT limit yourself to a specific number. The titles of modules and chapters should be extracted directly from the text.
+    3.  **Structure**: Your main goal is to accurately reflect the structure of the provided "Additional Content". Identify the main sections or headings on the page and treat them as modules. Identify the sub-sections within each main section and treat them as chapters. Generate as many modules and chapters as are present in the source content. DO NOT limit yourself to a specific number. The titles of modules and chapters MUST be extracted directly from the text of the 'Additional Content' and must be exact matches.
     4.  **Tailor Content**: The user is a {{learnerType}} learner. Adapt the content and activities for each chapter accordingly:
         -   **Visual**: Use descriptive language and analogies. Suggest creating diagrams or mind maps.
         -   **Auditory**: Write in a conversational, step-by-step manner. Suggest explaining concepts aloud.
