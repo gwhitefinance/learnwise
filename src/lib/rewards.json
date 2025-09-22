@@ -1,0 +1,38 @@
+
+{
+    "chests": [
+        {
+            "id": "daily_free",
+            "name": "Daily Login Chest",
+            "description": "Your first one is on us! Claim a reward just for showing up.",
+            "cost": 0,
+            "coinRange": [10, 50],
+            "rarity": "Common"
+        },
+        {
+            "id": "weekly_streak",
+            "name": "Weekly Streak Chest",
+            "description": "Keep your streak alive for 7 days to unlock this special reward.",
+            "cost": 0,
+            "unlocksAt": 7,
+            "coinRange": [100, 250],
+            "rarity": "Rare"
+        },
+        {
+            "id": "small_coin_chest",
+            "name": "Small Coin Chest",
+            "description": "A small token of appreciation for your hard work.",
+            "cost": 100,
+            "coinRange": [120, 200],
+            "rarity": "Uncommon"
+        },
+        {
+            "id": "epic_study_chest",
+            "name": "Epic Study Chest",
+            "description": "A massive reward for dedicated learners. Contains a large sum of coins!",
+            "cost": 500,
+            "coinRange": [600, 1000],
+            "rarity": "Epic"
+        }
+    ]
+}

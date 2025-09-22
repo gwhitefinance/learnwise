@@ -32,6 +32,8 @@ import {
   Music,
   Gamepad2,
   FolderOpen,
+  X,
+  Gift,
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -59,12 +61,14 @@ import { DatePicker } from '@/components/ui/date-picker';
 import { format } from 'date-fns';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
-import { collection, query, where, onSnapshot, addDoc, doc, Timestamp } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, addDoc, doc, Timestamp, updateDoc, increment } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import dynamic from 'next/dynamic';
 import { generateMotivationalMessage } from '@/ai/flows/motivational-message-flow';
 import AIBuddy from '@/components/ai-buddy';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import rewardsData from '@/lib/rewards.json';
+
 
   type CourseFile = {
       id: string;
@@ -116,6 +120,18 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
   type DisplayFile = Omit<RecentFile, 'modified'> & {
       modified: string;
   }
+
+  type Chest = {
+    id: string;
+    name: string;
+    description: string;
+    cost: number;
+    coinRange: [number, number];
+    rarity: 'Common' | 'Uncommon' | 'Rare' | 'Epic' | 'Legendary';
+    unlocksAt?: number;
+  };
+
+  type RewardState = 'idle' | 'opening' | 'revealed';
   
   const AppCard = ({ title, description, icon, href, actionButton, id }: { title: string; description: string; icon: React.ReactNode; href: string, actionButton?: React.ReactNode, id?: string }) => (
     <motion.div
@@ -198,6 +214,11 @@ function DashboardPage() {
     const [user] = useAuthState(auth);
     const [motivationalMessage, setMotivationalMessage] = useState('');
     const [customizations, setCustomizations] = useState<Record<string, string>>({});
+    const [userCoins, setUserCoins] = useState(0);
+
+    const [rewardState, setRewardState] = useState<RewardState>('idle');
+    const [claimedCoins, setClaimedCoins] = useState(0);
+    const [hasClaimedFreeChest, setHasClaimedFreeChest] = useState(false);
 
 
      useEffect(() => {
@@ -210,7 +231,19 @@ function DashboardPage() {
             setCustomizations(JSON.parse(savedCustomizations));
         }
 
+        const freeChestClaimed = localStorage.getItem(`freeChestClaimed_${user.uid}`);
+        if (freeChestClaimed === 'true') {
+            setHasClaimedFreeChest(true);
+        }
+
         const unsubscribes: (() => void)[] = [];
+
+        const userDocRef = doc(db, 'users', user.uid);
+        unsubscribes.push(onSnapshot(userDocRef, (doc) => {
+            if (doc.exists()) {
+                setUserCoins(doc.data().coins || 0);
+            }
+        }));
 
         // Subscribe to courses
         const qCourses = query(collection(db, "courses"), where("userId", "==", user.uid));
@@ -448,33 +481,38 @@ function DashboardPage() {
         }
     };
 
-    const rewards = [
-        {
-            streak: 7,
-            icon: Trophy,
-            title: "7-Day Scholar Badge",
-            description: "Show off your consistency with a new profile badge.",
-        },
-        {
-            streak: 14,
-            icon: Music,
-            title: "'Deep Focus' Playlist",
-            description: "Unlock an exclusive playlist for Focus Mode.",
-        },
-        {
-            streak: 21,
-            icon: Palette,
-            title: "Unlock 'Arcade' Theme",
-            description: "A fun, retro-inspired theme for your dashboard.",
-        },
-        {
-            streak: 30,
-            icon: Gamepad2,
-            title: "Unlock 'Study Pong' Game",
-            description: "A new retro game to make studying fun.",
-        },
-    ];
+    const handleClaimChest = async (chest: Chest) => {
+        if (!user) return;
+        if (userCoins < chest.cost) {
+            toast({ variant: 'destructive', title: 'Not enough coins!' });
+            return;
+        }
 
+        // Deduct cost and give coins
+        const coinsWon = Math.floor(Math.random() * (chest.coinRange[1] - chest.coinRange[0] + 1)) + chest.coinRange[0];
+        setClaimedCoins(coinsWon);
+        setRewardState('opening');
+
+        setTimeout(async () => {
+            setRewardState('revealed');
+            try {
+                const userRef = doc(db, 'users', user.uid);
+                await updateDoc(userRef, {
+                    coins: increment(coinsWon - chest.cost),
+                });
+
+                if (chest.id === 'daily_free') {
+                    setHasClaimedFreeChest(true);
+                    localStorage.setItem(`freeChestClaimed_${user.uid}`, 'true');
+                }
+            } catch (e) {
+                console.error("Failed to update coins: ", e);
+                toast({ variant: 'destructive', title: 'Error updating coins.' });
+            }
+        }, 2000); // Duration of the animation
+    };
+    
+    const chests: Chest[] = rewardsData.chests;
    
   return (
     <div className="space-y-8 mt-0">
@@ -642,7 +680,7 @@ function DashboardPage() {
                                         {streak > 1 ? "Keep the fire going! You're building a great habit." : "Every journey starts with a single step. Keep it up!"}
                                     </p>
                                 </div>
-                                <Dialog>
+                                <Dialog onOpenChange={(open) => !open && setRewardState('idle')}>
                                     <DialogTrigger asChild>
                                         <Button variant="outline" className="rounded-full border-orange-500/50 bg-transparent hover:bg-white/20">
                                             View Rewards
@@ -650,37 +688,62 @@ function DashboardPage() {
                                     </DialogTrigger>
                                     <DialogContent>
                                         <DialogHeader>
-                                            <DialogTitle className="flex items-center gap-2"><Trophy className="text-yellow-500" /> Your Reward Path</DialogTitle>
+                                            <DialogTitle className="flex items-center gap-2"><Trophy className="text-yellow-500" /> Your Reward Chests</DialogTitle>
                                             <CardDescription>
-                                                You are on a {streak}-day streak! Keep it up to unlock these rewards.
+                                                Claim chests with your coins or by completing challenges.
                                             </CardDescription>
                                         </DialogHeader>
                                         <div className="py-4 space-y-4">
-                                            {rewards.map(reward => {
-                                                const isUnlocked = streak >= reward.streak;
-                                                const nextMilestone = Math.ceil(streak / 7) * 7;
-                                                const isNextUp = !isUnlocked && reward.streak === nextMilestone;
+                                            {rewardState === 'idle' && chests.map(chest => {
+                                                const canAfford = userCoins >= chest.cost;
+                                                const isStreakLocked = chest.unlocksAt && streak < chest.unlocksAt;
+                                                const isFreeClaimed = chest.id === 'daily_free' && hasClaimedFreeChest;
+                                                const isDisabled = isStreakLocked || isFreeClaimed || (!canAfford && chest.cost > 0);
+                                                
                                                 return (
-                                                    <Card key={reward.title} className={cn("transition-all", !isUnlocked && "opacity-50", isNextUp && "border-primary shadow-lg")}>
-                                                        <CardHeader className="flex flex-row items-center justify-between">
-                                                            <div className="flex items-center gap-4">
-                                                                <div className={cn("p-2 rounded-lg", isUnlocked ? "bg-primary/20" : "bg-muted")}>
-                                                                    <reward.icon className={cn("h-8 w-8", isUnlocked ? "text-primary" : "text-muted-foreground")} />
-                                                                </div>
-                                                                <div>
-                                                                    <CardTitle>{reward.title}</CardTitle>
-                                                                    <CardDescription>
-                                                                        {isUnlocked ? "Unlocked!" : `Unlocks at ${reward.streak}-day streak`}
-                                                                    </CardDescription>
-                                                                </div>
+                                                <Card key={chest.id} className={cn("transition-all", isDisabled && "opacity-50")}>
+                                                    <CardHeader className="flex flex-row items-center justify-between">
+                                                        <div className="flex items-center gap-4">
+                                                            <div className={cn("p-3 rounded-lg bg-muted")}>
+                                                                <Gift className="h-8 w-8 text-primary" />
                                                             </div>
-                                                            <Button size="sm" disabled={!isUnlocked} onClick={() => toast({ title: `"${reward.title}" claimed!`})}>
-                                                                {isUnlocked ? "Claim" : "Locked"}
-                                                            </Button>
-                                                        </CardHeader>
-                                                    </Card>
+                                                            <div>
+                                                                <CardTitle>{chest.name}</CardTitle>
+                                                                <CardDescription>{chest.description}</CardDescription>
+                                                            </div>
+                                                        </div>
+                                                        <Button size="sm" disabled={isDisabled} onClick={() => handleClaimChest(chest)}>
+                                                            {isStreakLocked ? `Unlock in ${chest.unlocksAt! - streak} days` : isFreeClaimed ? 'Claimed' : chest.cost > 0 ? <><Gem className="mr-2 h-4 w-4"/>{chest.cost}</> : 'Claim Free'}
+                                                        </Button>
+                                                    </CardHeader>
+                                                </Card>
                                                 )
                                             })}
+
+                                            {rewardState !== 'idle' && (
+                                                <div className="flex flex-col items-center justify-center h-48">
+                                                    <motion.div
+                                                        className="relative w-32 h-32"
+                                                        animate={rewardState === 'opening' ? { y: [0, -20, 0, -10, 0], rotate: [0, 5, -5, 5, 0] } : {}}
+                                                        transition={rewardState === 'opening' ? { duration: 0.8, ease: 'easeInOut' } : {}}
+                                                    >
+                                                        <Gift className={cn("w-32 h-32 text-yellow-500 transition-all duration-500", rewardState === 'revealed' && 'scale-150 opacity-0')} />
+                                                        {rewardState === 'revealed' && (
+                                                            <motion.div 
+                                                                className="absolute inset-0 flex items-center justify-center text-3xl font-bold text-amber-400"
+                                                                initial={{ scale: 0, opacity: 0 }}
+                                                                animate={{ scale: 1, opacity: 1 }}
+                                                                transition={{ delay: 0.3, type: 'spring' }}
+                                                            >
+                                                                <Gem className="mr-2 h-6 w-6"/> +{claimedCoins}
+                                                            </motion.div>
+                                                        )}
+                                                    </motion.div>
+                                                    {rewardState === 'revealed' && (
+                                                         <Button className="mt-8" onClick={() => setRewardState('idle')}>Awesome!</Button>
+                                                    )}
+                                                </div>
+                                            )}
                                         </div>
                                     </DialogContent>
                                 </Dialog>
