@@ -18,6 +18,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 
+type CourseFile = {
+    id: string;
+    name: string;
+    type: string;
+    size: number;
+}
+
 type Chapter = {
     id: string;
     title: string;
@@ -29,6 +36,7 @@ type Unit = {
     id: string;
     name: string;
     chapters: Chapter[];
+    files?: CourseFile[];
 }
 
 type Course = {
@@ -55,10 +63,13 @@ export default function ClientCoursePage() {
   // State for dialogs
   const [isUnitDialogOpen, setUnitDialogOpen] = useState(false);
   const [newUnitName, setNewUnitName] = useState('');
+  const [isUploadDialogOpen, setUploadDialogOpen] = useState(false);
+  const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
+  const [filesToUpload, setFilesToUpload] = useState<FileList | null>(null);
   
   const fetchCourse = async () => {
       if (!user || !courseId) return;
-      
+      setLoading(true);
       const docRef = doc(db, "courses", courseId);
       const docSnap = await getDoc(docRef);
 
@@ -102,7 +113,8 @@ export default function ClientCoursePage() {
       const newUnit: Unit = {
           id: crypto.randomUUID(),
           name: newUnitName,
-          chapters: []
+          chapters: [],
+          files: [],
       };
 
       try {
@@ -119,6 +131,49 @@ export default function ClientCoursePage() {
           toast({ variant: 'destructive', title: 'Error', description: 'Could not add the unit.' });
       }
   };
+
+  const handleFileUpload = async () => {
+    if (!filesToUpload || filesToUpload.length === 0 || !selectedUnitId || !course) {
+        toast({ variant: 'destructive', title: 'File and unit selection are required.'});
+        return;
+    }
+
+    const newFiles: CourseFile[] = Array.from(filesToUpload).map(file => ({
+        id: crypto.randomUUID(),
+        name: file.name,
+        type: file.type,
+        size: file.size,
+    }));
+
+    const updatedUnits = course.units?.map(unit => {
+        if (unit.id === selectedUnitId) {
+            return {
+                ...unit,
+                files: [...(unit.files || []), ...newFiles]
+            }
+        }
+        return unit;
+    });
+
+    try {
+        const courseRef = doc(db, 'courses', course.id);
+        await updateDoc(courseRef, { units: updatedUnits });
+        toast({ title: 'Files Added!', description: `${newFiles.length} file(s) added to the unit.`});
+        fetchCourse();
+    } catch (error) {
+        console.error("Error uploading files: ", error);
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not upload files.'});
+    } finally {
+        setUploadDialogOpen(false);
+        setFilesToUpload(null);
+        setSelectedUnitId(null);
+    }
+  }
+  
+  const openUploadDialog = (unitId: string) => {
+    setSelectedUnitId(unitId);
+    setUploadDialogOpen(true);
+  }
 
 
   if (loading || authLoading) {
@@ -153,6 +208,7 @@ export default function ClientCoursePage() {
   }
 
   return (
+    <>
     <div className="space-y-6">
       <Link href="/dashboard/courses">
         <Button variant="ghost">
@@ -223,22 +279,50 @@ export default function ClientCoursePage() {
                     <AccordionItem key={unit.id} value={unit.id}>
                         <AccordionTrigger className="text-lg font-medium">{unit.name}</AccordionTrigger>
                         <AccordionContent>
-                           {unit.chapters?.length > 0 ? (
-                               <div className="space-y-4 pl-4 border-l-2 ml-2">
-                                   {unit.chapters.map(chapter => (
-                                       <div key={chapter.id}>
-                                           <h4 className="font-semibold text-md">{chapter.title}</h4>
-                                           <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">{chapter.content}</p>
-                                           <div className="mt-2 p-3 bg-amber-500/10 rounded-md border border-amber-500/20 text-sm">
-                                               <p className="font-semibold text-amber-700">Activity:</p>
-                                               <p className="text-muted-foreground">{chapter.activity}</p>
-                                           </div>
-                                       </div>
-                                   ))}
-                               </div>
-                           ) : (
-                               <p className="text-sm text-muted-foreground text-center py-4">No chapters in this unit yet.</p>
-                           )}
+                           <div className="space-y-6 pl-4 border-l-2 ml-2">
+                                {/* Chapters Section */}
+                                {unit.chapters?.length > 0 ? (
+                                <div className="space-y-4">
+                                    {unit.chapters.map(chapter => (
+                                        <div key={chapter.id}>
+                                            <h4 className="font-semibold text-md">{chapter.title}</h4>
+                                            <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">{chapter.content}</p>
+                                            <div className="mt-2 p-3 bg-amber-500/10 rounded-md border border-amber-500/20 text-sm">
+                                                <p className="font-semibold text-amber-700">Activity:</p>
+                                                <p className="text-muted-foreground">{chapter.activity}</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                                ) : (
+                                    <p className="text-sm text-muted-foreground text-center py-4">No chapters in this unit yet.</p>
+                                )}
+
+                                {/* Files Section */}
+                                <div className="pt-4 border-t">
+                                     <div className="flex justify-between items-center mb-2">
+                                        <h4 className="font-semibold text-md">Unit Files</h4>
+                                        <Button variant="ghost" size="sm" onClick={() => openUploadDialog(unit.id)}>
+                                            <UploadCloud className="mr-2 h-4 w-4"/> Upload File
+                                        </Button>
+                                    </div>
+                                    {unit.files?.length > 0 ? (
+                                        <ul className="space-y-2">
+                                            {unit.files.map(file => (
+                                                <li key={file.id} className="flex items-center justify-between text-sm p-2 rounded-md bg-muted/50">
+                                                    <div className="flex items-center gap-2">
+                                                        <FileText className="h-4 w-4 text-muted-foreground" />
+                                                        <span>{file.name}</span>
+                                                    </div>
+                                                    <Button variant="ghost" size="icon" className="h-6 w-6"><Trash2 className="h-4 w-4 text-destructive"/></Button>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    ) : (
+                                        <p className="text-sm text-muted-foreground text-center py-4">No files uploaded to this unit.</p>
+                                    )}
+                                </div>
+                           </div>
                         </AccordionContent>
                     </AccordionItem>
                 )) : (
@@ -292,5 +376,24 @@ export default function ClientCoursePage() {
         </div>
       </div>
     </div>
+    
+    <Dialog open={isUploadDialogOpen} onOpenChange={setUploadDialogOpen}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Upload Files</DialogTitle>
+                <DialogDescription>Add files to the selected unit.</DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+                <Label htmlFor="file-upload">Choose files</Label>
+                <Input id="file-upload" type="file" multiple onChange={(e) => setFilesToUpload(e.target.files)}/>
+            </div>
+            <DialogFooter>
+                <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
+                <Button onClick={handleFileUpload}>Upload</Button>
+            </DialogFooter>
+        </DialogContent>
+    </Dialog>
+
+    </>
   );
 }
