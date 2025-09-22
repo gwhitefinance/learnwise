@@ -25,7 +25,7 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, color, hat, shirt, shoes }
     useEffect(() => {
         if (isMounted) {
             const colors = [
-                 { "name": "Default", "hex": "#87CEEB" },
+                { "name": "Default", "hex": "#87CEEB" },
                 { "name": "Mint", "hex": "#98FF98" },
                 { "name": "Lavender", "hex": "#E6E6FA" },
                 { "name": "Rose", "hex": "#FFC0CB" },

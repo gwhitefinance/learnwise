@@ -9,11 +9,12 @@ import { doc, onSnapshot, updateDoc, arrayUnion, increment } from 'firebase/fire
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Gem, Palette, Shirt, CheckCircle, Footprints } from 'lucide-react';
+import { Gem, Palette, Shirt, CheckCircle, Footprints, Hat as HatIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import shopItems from '@/lib/shop-items.json';
 import { useToast } from '@/hooks/use-toast';
 import AIBuddy from '@/components/ai-buddy';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 type UserProfile = {
     displayName: string;
@@ -30,11 +31,11 @@ type Item = {
 };
 
 const rarityConfig = {
-    Common: { text: 'text-gray-400', ring: 'ring-gray-500', bg: 'bg-gray-500/10' },
-    Uncommon: { text: 'text-green-400', ring: 'ring-green-500', bg: 'bg-green-500/10' },
-    Rare: { text: 'text-blue-400', ring: 'ring-blue-500', bg: 'bg-blue-500/10' },
-    Epic: { text: 'text-purple-400', ring: 'ring-purple-500', bg: 'bg-purple-500/10' },
-    Legendary: { text: 'text-orange-400', ring: 'ring-orange-500', bg: 'bg-orange-500/10' },
+    Common: { text: 'text-gray-400', ring: 'ring-gray-500/30', bg: 'bg-gray-500/10' },
+    Uncommon: { text: 'text-green-400', ring: 'ring-green-500/30', bg: 'bg-green-500/10' },
+    Rare: { text: 'text-blue-400', ring: 'ring-blue-500/30', bg: 'bg-blue-500/10' },
+    Epic: { text: 'text-purple-400', ring: 'ring-purple-500/30', bg: 'bg-purple-500/10' },
+    Legendary: { text: 'text-orange-400', ring: 'ring-orange-500/30', bg: 'bg-orange-500/10' },
 };
 
 export default function ShopClientPage() {
@@ -114,20 +115,10 @@ export default function ShopClientPage() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-2 space-y-8">
                         <div>
-                            <Skeleton className="h-6 w-24 mb-4" />
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                <Skeleton className="h-32 w-full" />
-                                <Skeleton className="h-32 w-full" />
-                                <Skeleton className="h-32 w-full" />
-                                <Skeleton className="h-32 w-full" />
-                            </div>
-                        </div>
-                        <div>
-                            <Skeleton className="h-6 w-32 mb-4" />
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                <Skeleton className="h-32 w-full" />
-                                <Skeleton className="h-32 w-full" />
-                            </div>
+                            <Skeleton className="h-12 w-full mb-4" />
+                            <Skeleton className="h-12 w-full mb-4" />
+                            <Skeleton className="h-12 w-full mb-4" />
+                            <Skeleton className="h-12 w-full" />
                         </div>
                     </div>
                     <div className="lg:col-span-1">
@@ -151,7 +142,7 @@ export default function ShopClientPage() {
     
     const shopCategories = [
         { id: 'color', name: 'Colors', icon: <Palette className="h-5 w-5" />, items: shopItems.colors },
-        { id: 'hat', name: 'Hats', icon: <Shirt className="h-5 w-5" />, items: shopItems.hats },
+        { id: 'hat', name: 'Hats', icon: <HatIcon className="h-5 w-5" />, items: shopItems.hats },
         { id: 'shirt', name: 'Shirts', icon: <Shirt className="h-5 w-5" />, items: shopItems.shirts },
         { id: 'shoes', name: 'Shoes', icon: <Footprints className="h-5 w-5" />, items: shopItems.shoes },
     ];
@@ -173,7 +164,7 @@ export default function ShopClientPage() {
             </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-                {/* Right side: Robot Preview */}
+                 {/* Right side: Robot Preview */}
                 <div className="lg:col-span-1 lg:sticky top-24">
                      <Card className="overflow-hidden">
                          <div className="aspect-square w-full bg-muted flex items-center justify-center p-4">
@@ -189,60 +180,66 @@ export default function ShopClientPage() {
                 </div>
 
                 {/* Left side: Shop Items */}
-                <div className="lg:col-span-2 space-y-10">
-                     {shopCategories.map(category => (
-                        <div key={category.id}>
-                            <h2 className="font-semibold mb-4 text-2xl flex items-center gap-3">{category.icon} {category.name}</h2>
-                             <div className={`grid ${category.id === 'color' ? 'grid-cols-4 sm:grid-cols-6' : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4'} gap-4`}>
-                                {category.items.map((item: Item) => {
-                                    const unlocked = isItemUnlocked(category.id, item.name);
-                                    const isEquipped = customizations[category.id] === item.name;
-                                    const rarityClass = rarityConfig[item.rarity as keyof typeof rarityConfig] || rarityConfig.Common;
-                                    
-                                    const components = require('@/components/robot-accessories');
-                                    const AccessoryComponent = category.id === 'hat' ? components.Hat : category.id === 'shirt' ? components.Shirt : category.id === 'shoes' ? components.Shoes : null;
+                <div className="lg:col-span-2">
+                    <Accordion type="multiple" defaultValue={['color', 'hat', 'shirt', 'shoes']} className="w-full">
+                        {shopCategories.map(category => (
+                            <AccordionItem value={category.id} key={category.id}>
+                                <AccordionTrigger className="text-xl font-semibold flex items-center gap-3 hover:no-underline py-4">
+                                    {category.icon} {category.name}
+                                </AccordionTrigger>
+                                <AccordionContent>
+                                    <div className={`grid ${category.id === 'color' ? 'grid-cols-4 sm:grid-cols-6' : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4'} gap-4 pt-4`}>
+                                        {category.items.map((item: Item) => {
+                                            const unlocked = isItemUnlocked(category.id, item.name);
+                                            const isEquipped = customizations[category.id] === item.name;
+                                            const rarityClass = rarityConfig[item.rarity as keyof typeof rarityConfig] || rarityConfig.Common;
+                                            
+                                            const AccessoryComponent = category.id === 'hat' ? HatIcon : category.id === 'shirt' ? Shirt : category.id === 'shoes' ? Footprints : null;
 
-                                    return (
-                                        <Card 
-                                            key={item.name}
-                                            onClick={() => unlocked && handleSelectItem(category.id, item.name)}
-                                            className={cn(
-                                                "p-3 flex flex-col items-center gap-2 transition-all cursor-pointer relative overflow-hidden",
-                                                isEquipped ? 'ring-2 ring-offset-2 ring-offset-background' : 'hover:bg-muted',
-                                                rarityClass.ring,
-                                                rarityClass.bg
-                                            )}
-                                        >
-                                            <div className="w-full aspect-square flex items-center justify-center">
-                                                {category.id === 'color' ? (
-                                                    <div className="w-16 h-16 rounded-full" style={{ backgroundColor: item.hex }}/>
-                                                ) : AccessoryComponent ? (
-                                                    <svg viewBox='0 0 200 200' className={cn("w-20 h-20", !unlocked && "opacity-40")}>
-                                                        <AccessoryComponent name={item.name} />
-                                                    </svg>
-                                                ) : null}
-                                            </div>
-                                            <div className="text-center w-full">
-                                                <p className={cn("text-xs font-bold uppercase", rarityClass.text)}>{item.rarity}</p>
-                                                <p className="text-sm font-semibold truncate">{item.name}</p>
-                                            </div>
-                                             {unlocked ? (
-                                                isEquipped && (
-                                                     <div className="absolute top-2 right-2 bg-green-500 text-white rounded-full p-1">
-                                                        <CheckCircle className="w-4 h-4"/>
+                                            return (
+                                                <Card 
+                                                    key={item.name}
+                                                    onClick={() => unlocked && handleSelectItem(category.id, item.name)}
+                                                    className={cn(
+                                                        "p-3 flex flex-col items-center gap-2 transition-all cursor-pointer relative overflow-hidden ring-2",
+                                                        isEquipped ? 'ring-primary' : 'ring-transparent hover:ring-primary/50',
+                                                        rarityClass.bg
+                                                    )}
+                                                >
+                                                    <div className="w-full aspect-square flex items-center justify-center">
+                                                        {category.id === 'color' ? (
+                                                            <div className="w-16 h-16 rounded-full" style={{ backgroundColor: item.hex }}/>
+                                                        ) : (
+                                                            <AIBuddy 
+                                                                className="w-20 h-20"
+                                                                {...{[category.id]: item.name}}
+                                                                color={category.id === 'hat' ? '#87CEEB' : 'transparent'} // Show default body for hats, transparent otherwise
+                                                             />
+                                                        )}
                                                     </div>
-                                                )
-                                            ) : (
-                                                <Button size="sm" className="h-7 text-xs w-[calc(100%-1rem)]" onClick={(e) => {e.stopPropagation(); handleBuyItem(category.id, item.name, item.price)}} disabled={profile.coins < item.price}>
-                                                    <Gem className="w-3 h-3 mr-1" /> {item.price}
-                                                </Button>
-                                            )}
-                                        </Card>
-                                    )
-                                })}
-                            </div>
-                        </div>
-                    ))}
+                                                    <div className="text-center w-full">
+                                                        <p className={cn("text-xs font-bold uppercase", rarityClass.text)}>{item.rarity}</p>
+                                                        <p className="text-sm font-semibold truncate">{item.name}</p>
+                                                    </div>
+                                                    {unlocked ? (
+                                                        isEquipped && (
+                                                            <div className="absolute top-2 right-2 bg-green-500 text-white rounded-full p-1">
+                                                                <CheckCircle className="w-4 h-4"/>
+                                                            </div>
+                                                        )
+                                                    ) : (
+                                                        <Button size="sm" className="h-7 text-xs w-[calc(100%-1rem)]" onClick={(e) => {e.stopPropagation(); handleBuyItem(category.id, item.name, item.price)}} disabled={profile.coins < item.price}>
+                                                            <Gem className="w-3 h-3 mr-1" /> {item.price}
+                                                        </Button>
+                                                    )}
+                                                </Card>
+                                            )
+                                        })}
+                                    </div>
+                                </AccordionContent>
+                            </AccordionItem>
+                        ))}
+                    </Accordion>
                 </div>
             </div>
         </div>
