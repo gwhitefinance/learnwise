@@ -637,7 +637,7 @@ export default function DashboardLayout({
                     <Tooltip>
                         <TooltipTrigger asChild>
                              <Button variant="ghost" size="icon" className="rounded-2xl" onClick={() => setIsHalloweenTheme(!isHalloweenTheme)}>
-                                {isHalloweenTheme ? <Cloud className="h-5 w-5 text-sky-400" /> : <PumpkinIcon className="h-5 w-5 text-orange-500"/>}
+                                <PumpkinIcon className="h-5 w-5 text-orange-500"/>
                             </Button>
                         </TooltipTrigger>
                         <TooltipContent>
@@ -737,5 +737,3 @@ export default function DashboardLayout({
     </>
   );
 }
-
-    
