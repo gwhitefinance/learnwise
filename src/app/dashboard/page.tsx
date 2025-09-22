@@ -1086,5 +1086,3 @@ function DashboardPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean }) {
 }
 
 export default DashboardPage;
-
-    

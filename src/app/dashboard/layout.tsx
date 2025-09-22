@@ -477,16 +477,6 @@ export default function DashboardLayout({
     )}>
       <input type="file" ref={fileInputRef} onChange={handleProfilePicChange} className="hidden" accept="image/*" />
       
-      {isHalloweenTheme && (
-         <div className="halloween-decorations">
-            <div className="pumpkin left"></div>
-            <div className="gravestone left"></div>
-            <div className="pumpkin right"></div>
-            <div className="gravestone right"></div>
-            <div className="tree left"></div>
-            <div className="tree right"></div>
-        </div>
-      )}
       {!isHalloweenTheme && (
         <motion.div
             className="absolute inset-0 -z-10 opacity-20"
