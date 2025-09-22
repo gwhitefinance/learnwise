@@ -203,12 +203,12 @@ export default function ShopClientPage() {
                                                 key={item.name}
                                                 onClick={() => unlocked && handleSelectItem(category.id, item.name)}
                                                 className={cn(
-                                                    "p-3 flex flex-col items-center gap-2 transition-all cursor-pointer relative overflow-hidden ring-2",
+                                                    "p-0 flex flex-col items-center gap-2 transition-all cursor-pointer relative overflow-hidden ring-2",
                                                     isEquipped ? 'ring-primary' : 'ring-transparent hover:ring-primary/50',
                                                     rarityClass.bg
                                                 )}
                                             >
-                                                <div className="w-full aspect-square flex items-center justify-center">
+                                                <div className="w-full aspect-square flex items-center justify-center p-3">
                                                     {category.id === 'color' ? (
                                                         <div className="w-16 h-16 rounded-full" style={{ backgroundColor: item.hex }}/>
                                                     ) : (
@@ -219,7 +219,7 @@ export default function ShopClientPage() {
                                                             />
                                                     )}
                                                 </div>
-                                                <div className="text-center w-full">
+                                                <div className="text-center w-full p-3 pt-0">
                                                     <p className={cn("text-xs font-bold uppercase", rarityClass.text)}>{item.rarity}</p>
                                                     <p className="text-sm font-semibold truncate">{item.name}</p>
                                                 </div>
@@ -230,9 +230,14 @@ export default function ShopClientPage() {
                                                         </div>
                                                     )
                                                 ) : (
-                                                    <Button size="sm" className="h-7 text-xs w-[calc(100%-1rem)]" onClick={(e) => {e.stopPropagation(); handleBuyItem(category.id, item.name, item.price)}} disabled={profile.coins < item.price}>
+                                                    <Button size="sm" className="h-7 text-xs w-full rounded-t-none" onClick={(e) => {e.stopPropagation(); handleBuyItem(category.id, item.name, item.price)}} disabled={profile.coins < item.price}>
                                                         <Gem className="w-3 h-3 mr-1" /> {item.price}
                                                     </Button>
+                                                )}
+                                                {unlocked && (
+                                                  <div className="bg-primary/80 text-primary-foreground w-full p-1.5 text-center rounded-b-lg">
+                                                      <span className="text-xs font-bold">Equip</span>
+                                                  </div>
                                                 )}
                                             </Card>
                                         )
