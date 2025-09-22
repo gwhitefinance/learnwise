@@ -200,7 +200,7 @@ export default function ShopClientPage() {
                                 {shopCategories.map(category => (
                                     <div key={category.id}>
                                         <h4 className="font-semibold mb-3 text-lg flex items-center gap-2">{category.icon} {category.name}</h4>
-                                        <div className={`grid ${category.id === 'colors' ? 'grid-cols-4 sm:grid-cols-6' : 'grid-cols-2 sm:grid-cols-3'} gap-4`}>
+                                        <div className={`grid ${category.id === 'colors' ? 'grid-cols-4 sm:grid-cols-6' : 'grid-cols-2 sm:grid-cols-4'} gap-4`}>
                                             {category.items.map(item => {
                                                 const unlocked = isItemUnlocked(category.id, item.name);
                                                 const isEquipped = customizations[category.id] === item.name;
@@ -224,7 +224,7 @@ export default function ShopClientPage() {
                                                                     title={unlocked ? `Equip ${item.name}` : `Locked`}
                                                                     disabled={!unlocked}
                                                                 >
-                                                                    <div className={cn("w-16 h-16 mx-auto", !unlocked && "opacity-40") } dangerouslySetInnerHTML={{ __html: item.component || '<div class="w-16 h-16"></div>' }} />
+                                                                    <div className={cn("w-16 h-16 mx-auto flex items-center justify-center", !unlocked && "opacity-40" ) } dangerouslySetInnerHTML={{ __html: item.component || '<div class="w-16 h-16"></div>' }} />
                                                                      {!unlocked && <div className="absolute inset-0 flex items-center justify-center"><Gem className="w-6 h-6 text-white" /></div>}
                                                                 </button>
                                                             </div>
@@ -258,3 +258,5 @@ export default function ShopClientPage() {
         </div>
     );
 }
+
+    
