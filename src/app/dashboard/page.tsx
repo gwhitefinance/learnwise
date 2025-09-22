@@ -304,7 +304,7 @@ function DashboardPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean }) {
         }
         localStorage.setItem('lastVisit', today);
         
-        // Fetch motivational message and set an interval to refetch
+        // Fetch motivational message
         const getMotivation = async () => {
             if (user?.displayName) {
                  try {
@@ -320,12 +320,10 @@ function DashboardPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean }) {
             }
         }
 
-        getMotivation(); // Fetch immediately on load
-        const intervalId = setInterval(getMotivation, 30000); // Refetch every 30 seconds
+        getMotivation();
 
         return () => {
             unsubscribes.forEach(unsub => unsub());
-            clearInterval(intervalId); // Clear interval on cleanup
         }
     }, [user]);
 
