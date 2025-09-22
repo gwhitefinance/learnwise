@@ -1,9 +1,8 @@
 
-
 'use client';
 
 import React, { useRef, useEffect, useState } from 'react';
-import { motion, useSpring, useTransform } from 'framer-motion';
+import { motion, useSpring, useTransform, useAnimation } from 'framer-motion';
 import { Hat, Shirt, Shoes } from '@/components/robot-accessories';
 
 
@@ -19,6 +18,9 @@ interface AIBuddyProps {
 const AIBuddy: React.FC<AIBuddyProps> = ({ className, color, hat, shirt, shoes, dance }) => {
     const [bodyColor, setBodyColor] = useState('#87CEEB');
     const [isMounted, setIsMounted] = useState(false);
+    const [isDancing, setIsDancing] = useState(false);
+    const controls = useAnimation();
+
 
     useEffect(() => {
         setIsMounted(true);
@@ -78,23 +80,24 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, color, hat, shirt, shoes, 
     const pupilY = useTransform(mouse.y, [0, 1], [-4, 4]);
     
     const getDanceAnimation = () => {
+        if (!isDancing) {
+             return { y: [0, -4, 0], transition: { duration: 4, repeat: Infinity, ease: 'easeInOut' } };
+        }
         switch (dance) {
-            case 'Wave':
-                return { rotate: [0, 20, -20, 20, 0], transition: { duration: 2, repeat: Infinity, ease: 'easeInOut' }};
             case 'Spin':
-                return { rotate: 360, transition: { duration: 1.5, repeat: Infinity, ease: 'linear' }};
+                return { rotate: [0, 360], transition: { duration: 1.5, ease: 'linear' }};
             case 'Jump':
-                 return { y: [0, -20, 0], transition: { duration: 0.8, repeat: Infinity, ease: 'easeInOut' }};
-            default:
-                return { y: [0, -4, 0], transition: { duration: 4, repeat: Infinity, ease: 'easeInOut' } };
+                 return { y: [0, -40, 0, -20, 0], transition: { duration: 0.8, ease: 'easeInOut' }};
+            default: // Default wave on click if no dance is equipped
+                return { rotate: [0, 15, -15, 10, -10, 0], transition: { duration: 1, ease: 'easeInOut' }};
         }
     };
     
     const getWaveAnimation = () => {
-         if (dance === 'Wave') {
+         if (isDancing) {
             return {
-                rotate: [0, -30, 0],
-                transition: { duration: 2, repeat: Infinity, ease: 'easeInOut' }
+                rotate: [0, -45, 10, -30, 0],
+                transition: { duration: 1.2, ease: 'easeInOut' }
             };
         }
         return {
@@ -102,6 +105,16 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, color, hat, shirt, shoes, 
             transition: { duration: 5, repeat: Infinity, ease: 'easeInOut' }
         };
     };
+    
+    const handleDanceClick = () => {
+        if (!isDancing) {
+            setIsDancing(true);
+        }
+    }
+    
+    const onDanceComplete = () => {
+        setIsDancing(false);
+    }
 
 
     if (!isMounted) {
@@ -109,7 +122,7 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, color, hat, shirt, shoes, 
     }
 
     return (
-        <div ref={containerRef} className={`relative w-full h-full ${className}`}>
+        <div ref={containerRef} className={`relative w-full h-full cursor-pointer ${className}`} onClick={handleDanceClick}>
            
             <motion.svg 
                 viewBox="0 0 200 200" 
@@ -141,6 +154,7 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, color, hat, shirt, shoes, 
                 <motion.g
                      animate={getDanceAnimation()}
                      style={dance === 'Spin' ? { transformOrigin: '100px 100px' } : {}}
+                     onAnimationComplete={onDanceComplete}
                 >
                     {/* Feet/Shoes */}
                     <Shoes name={shoes} />
