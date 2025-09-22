@@ -1,22 +1,31 @@
 
 import * as admin from 'firebase-admin';
 
-// DO NOT USE process.env HERE
-// Directly hardcode the configuration values.
-const firebaseConfig = {
-  apiKey: "AIzaSyC8nFez_Ye_qT0kVxEYK7uhGB6oQRbRfU0",
-  authDomain: "learnwise-r6us0.firebaseapp.com",
-  projectId: "learnwise-r6us0",
-  storageBucket: "learnwise-r6us0.firebasestorage.app",
-  messagingSenderId: "224206262515",
-  appId: "1:224206262515:web:d5960f2bc62f97be5ba786",
-  measurementId: "G-E68DBM3BDM"
-};
-
 // This is a server-side only file.
-// The service account key is stored in an environment variable on the server.
+// The service account key is stored in environment variables on the server.
 // It is NOT exposed to the client.
-if (!admin.apps.length) {
+
+// Check if the necessary environment variables are set before initializing
+if (
+  !process.env.FIREBASE_PROJECT_ID ||
+  !process.env.FIREBASE_CLIENT_EMAIL ||
+  !process.env.FIREBASE_PRIVATE_KEY
+) {
+  if (process.env.NODE_ENV === 'production') {
+    // In production, you'll want to ensure these are set.
+    // This will cause the server to fail to start if they are missing.
+    throw new Error(
+      'Firebase Admin SDK environment variables are not set. Please add them to your production environment.'
+    );
+  } else {
+    // In development, it might be okay to not have them if you're not using admin features.
+    console.warn(
+      'Firebase Admin SDK environment variables are not set. Server-side Firebase features will not work.'
+    );
+  }
+}
+
+if (!admin.apps.length && process.env.FIREBASE_PROJECT_ID) {
   try {
     admin.initializeApp({
       credential: admin.credential.cert({
@@ -30,7 +39,18 @@ if (!admin.apps.length) {
   }
 }
 
-const db = admin.firestore();
-const auth = admin.auth();
+let db: admin.firestore.Firestore;
+let auth: admin.auth.Auth;
+
+// Only export db and auth if the app was initialized
+if (admin.apps.length) {
+  db = admin.firestore();
+  auth = admin.auth();
+} else {
+  // Provide dummy objects or handle the case where admin is not initialized
+  // This prevents the app from crashing if the admin SDK is not configured
+  db = {} as admin.firestore.Firestore;
+  auth = {} as admin.auth.Auth;
+}
 
 export { db, auth };
