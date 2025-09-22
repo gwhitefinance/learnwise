@@ -9,7 +9,7 @@ import { doc, onSnapshot, updateDoc, arrayUnion, increment } from 'firebase/fire
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Gem, Palette, Shirt, CheckCircle, Check, Footprints } from 'lucide-react';
+import { Gem, Palette, Shirt, CheckCircle, Footprints } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import shopItems from '@/lib/shop-items.json';
 import { useToast } from '@/hooks/use-toast';
@@ -24,10 +24,9 @@ type UserProfile = {
 
 type Item = {
     name: string;
-    component?: string | null;
-    hex?: string;
     price: number;
     rarity: 'Common' | 'Uncommon' | 'Rare' | 'Epic' | 'Legendary';
+    hex?: string;
 };
 
 const rarityConfig = {
@@ -42,11 +41,18 @@ export default function ShopClientPage() {
     const [user, authLoading] = useAuthState(auth);
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [profileLoading, setProfileLoading] = useState(true);
-    const [customizations, setCustomizations] = useState<Record<string, string>>({});
+    const [customizations, setCustomizations] = useState<Record<string, string>>({
+        color: 'Default',
+        hat: 'None',
+        shirt: 'None',
+        shoes: 'None',
+    });
     const router = useRouter();
     const { toast } = useToast();
+    const [isMounted, setIsMounted] = useState(false);
 
     useEffect(() => {
+        setIsMounted(true);
         if (authLoading) return;
         if (!user) {
             router.push('/signup');
@@ -99,7 +105,7 @@ export default function ShopClientPage() {
         }
     }
 
-    if (authLoading || profileLoading) {
+    if (!isMounted || authLoading || profileLoading) {
         return (
              <div className="space-y-8">
                 <div>
@@ -145,7 +151,6 @@ export default function ShopClientPage() {
     }
 
     if (!profile) {
-        // This can happen briefly or if the user document doesn't exist
         return <div>Could not load user profile. Please try again.</div>;
     }
     
@@ -156,9 +161,9 @@ export default function ShopClientPage() {
     }
     
     const shopCategories = [
-        { id: 'colors', name: 'Colors', icon: <Palette className="h-5 w-5 text-primary" />, items: shopItems.colors },
-        { id: 'hats', name: 'Hats', icon: <Shirt className="h-5 w-5 text-primary" />, items: shopItems.hats },
-        { id: 'shirts', name: 'Shirts', icon: <Shirt className="h-5 w-5 text-primary" />, items: shopItems.shirts },
+        { id: 'color', name: 'Colors', icon: <Palette className="h-5 w-5 text-primary" />, items: shopItems.colors },
+        { id: 'hat', name: 'Hats', icon: <Shirt className="h-5 w-5 text-primary" />, items: shopItems.hats },
+        { id: 'shirt', name: 'Shirts', icon: <Shirt className="h-5 w-5 text-primary" />, items: shopItems.shirts },
         { id: 'shoes', name: 'Shoes', icon: <Footprints className="h-5 w-5 text-primary" />, items: shopItems.shoes },
     ];
 
@@ -200,14 +205,24 @@ export default function ShopClientPage() {
                                 {shopCategories.map(category => (
                                     <div key={category.id}>
                                         <h4 className="font-semibold mb-3 text-lg flex items-center gap-2">{category.icon} {category.name}</h4>
-                                        <div className={`grid ${category.id === 'colors' ? 'grid-cols-4 sm:grid-cols-6' : 'grid-cols-2 sm:grid-cols-4'} gap-4`}>
-                                            {category.items.map(item => {
+                                        <div className={`grid ${category.id === 'color' ? 'grid-cols-4 sm:grid-cols-6' : 'grid-cols-2 sm:grid-cols-4'} gap-4`}>
+                                            {category.items.map((item: Item) => {
                                                 const unlocked = isItemUnlocked(category.id, item.name);
                                                 const isEquipped = customizations[category.id] === item.name;
                                                 const rarityClass = rarityConfig[item.rarity as keyof typeof rarityConfig] || rarityConfig.Common;
+                                                
+                                                const ItemComponent = category.id === 'hat' ? 'Hat' : category.id === 'shirt' ? 'Shirt' : category.id === 'shoes' ? 'Shoes' : null;
+                                                
+                                                let PreviewComponent = null;
+                                                if (ItemComponent) {
+                                                    const components = require('@/components/robot-accessories');
+                                                    const SpecificComponent = components[ItemComponent];
+                                                    PreviewComponent = <SpecificComponent name={item.name} />;
+                                                }
+
                                                 return (
                                                     <div key={item.name} className="flex flex-col items-center gap-2">
-                                                        {category.id === 'colors' ? (
+                                                        {category.id === 'color' ? (
                                                             <button 
                                                                 className={cn("w-12 h-12 rounded-full border-2 transition-transform hover:scale-110 relative", isEquipped ? 'border-primary ring-2 ring-primary ring-offset-2' : 'border-border')}
                                                                 style={{ backgroundColor: item.hex }}
@@ -217,17 +232,18 @@ export default function ShopClientPage() {
                                                                 {!unlocked && <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center"><Gem className="w-4 h-4 text-white opacity-80" /></div>}
                                                             </button>
                                                         ) : (
-                                                            <div className={cn("p-2 rounded-lg border flex flex-col items-center gap-2 transition-all w-full cursor-pointer", isEquipped ? 'border-primary bg-primary/10 ring-2 ring-primary' : 'hover:bg-muted')}>
-                                                                <button 
-                                                                    className="w-full relative"
-                                                                    onClick={() => unlocked && handleSelectItem(category.id, item.name)}
-                                                                    title={unlocked ? `Equip ${item.name}` : `Locked`}
-                                                                    disabled={!unlocked}
-                                                                >
-                                                                    <div className={cn("w-16 h-16 mx-auto flex items-center justify-center", !unlocked && "opacity-40" ) } dangerouslySetInnerHTML={{ __html: item.component || '<div class="w-16 h-16"></div>' }} />
-                                                                     {!unlocked && <div className="absolute inset-0 flex items-center justify-center"><Gem className="w-6 h-6 text-white" /></div>}
-                                                                </button>
-                                                            </div>
+                                                            <Card 
+                                                                className={cn("p-2 flex flex-col items-center gap-2 transition-all w-full cursor-pointer", isEquipped ? 'border-primary bg-primary/10 ring-2 ring-primary' : 'hover:bg-muted')}
+                                                                onClick={() => unlocked && handleSelectItem(category.id, item.name)}
+                                                                title={unlocked ? `Equip ${item.name}` : `Locked`}
+                                                            >
+                                                                <div className={cn("w-16 h-16 mx-auto flex items-center justify-center relative", !unlocked && "opacity-40" ) }>
+                                                                     <svg viewBox='0 0 200 200' className="w-full h-full">
+                                                                        {PreviewComponent}
+                                                                     </svg>
+                                                                     {!unlocked && <div className="absolute inset-0 flex items-center justify-center"><Gem className="w-6 h-6 text-foreground" /></div>}
+                                                                </div>
+                                                            </Card>
                                                         )}
                                                          <div className="text-center">
                                                             <p className={cn("text-xs font-bold", rarityClass.color)}>{item.rarity}</p>

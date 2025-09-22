@@ -16,22 +16,27 @@ interface AIBuddyProps {
 
 const AIBuddy: React.FC<AIBuddyProps> = ({ className, color, hat, shirt, shoes }) => {
     const [bodyColor, setBodyColor] = useState('#87CEEB');
+    const [isMounted, setIsMounted] = useState(false);
 
     useEffect(() => {
-        // This logic now runs only on the client, avoiding mismatches
-        // In a real app, you might fetch this from a user profile or a theme context
-        const colors = [
-             { "name": "Default", "hex": "#87CEEB" },
-            { "name": "Mint", "hex": "#98FF98" },
-            { "name": "Lavender", "hex": "#E6E6FA" },
-            { "name": "Rose", "hex": "#FFC0CB" },
-            { "name": "Graphite", "hex": "#4f4f4f" },
-            { "name": "Gold", "hex": "#FFD700" },
-            { "name": "Ruby", "hex": "#E0115F" }
-        ];
-        const selectedColor = colors.find(c => c.name === color)?.hex || '#87CEEB';
-        setBodyColor(selectedColor);
-    }, [color]);
+        setIsMounted(true);
+    }, []);
+
+    useEffect(() => {
+        if (isMounted) {
+            const colors = [
+                 { "name": "Default", "hex": "#87CEEB" },
+                { "name": "Mint", "hex": "#98FF98" },
+                { "name": "Lavender", "hex": "#E6E6FA" },
+                { "name": "Rose", "hex": "#FFC0CB" },
+                { "name": "Graphite", "hex": "#4f4f4f" },
+                { "name": "Gold", "hex": "#FFD700" },
+                { "name": "Ruby", "hex": "#E0115F" }
+            ];
+            const selectedColor = colors.find(c => c.name === color)?.hex || '#87CEEB';
+            setBodyColor(selectedColor);
+        }
+    }, [color, isMounted]);
 
 
     const containerRef = useRef<HTMLDivElement>(null);
@@ -52,14 +57,20 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, color, hat, shirt, shoes }
     };
     
     useEffect(() => {
-        window.addEventListener('mousemove', handleMouseMove);
-        return () => {
-            window.removeEventListener('mousemove', handleMouseMove);
-        };
-    }, []);
+        if (isMounted) {
+            window.addEventListener('mousemove', handleMouseMove);
+            return () => {
+                window.removeEventListener('mousemove', handleMouseMove);
+            };
+        }
+    }, [isMounted]);
 
     const pupilX = useTransform(mouse.x, [0, 1], [-6, 6]);
     const pupilY = useTransform(mouse.y, [0, 1], [-4, 4]);
+
+    if (!isMounted) {
+        return null; // Or a placeholder/skeleton
+    }
 
     return (
         <div ref={containerRef} className={`relative w-full h-full ${className}`}>
