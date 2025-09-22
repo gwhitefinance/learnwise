@@ -191,15 +191,13 @@ function CoursesTable({ initialCourses }: { initialCourses: Course[] }) {
                 <AlertDescription>
                     Click on a course name to view its details, add units, and upload files.
                 </AlertDescription>
-                 <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute top-2 right-2 h-6 w-6"
+                 <button
+                    className="absolute top-3 right-3 text-muted-foreground hover:text-foreground"
                     onClick={dismissInfoAlert}
+                    aria-label="Dismiss pro tip"
                 >
-                    <X className="h-4 w-4" />
-                    <span className="sr-only">Don't show again</span>
-                </Button>
+                    <X className="h-5 w-5" />
+                </button>
             </Alert>
         )}
 
@@ -302,3 +300,5 @@ function LoadingSkeleton() {
 const CoursesTableComponent = dynamic(() => Promise.resolve(CoursesTable), { ssr: false });
 
 export default CoursesTableComponent;
+
+    
