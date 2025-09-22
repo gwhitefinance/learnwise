@@ -80,20 +80,19 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, color, hat, shirt, shoes, 
     const pupilY = useTransform(mouse.y, [0, 1], [-4, 4]);
     
     const getDanceAnimation = () => {
-        if (!isDancing) {
-             return { y: [0, -4, 0], transition: { duration: 4, repeat: Infinity, ease: 'easeInOut' } };
+        if (isDancing) {
+            const danceType = dance || 'None';
+            switch (danceType) {
+                case 'Spin':
+                    return { rotate: [0, 360], transition: { duration: 1.5, ease: 'linear' }};
+                case 'Jump':
+                    return { y: [0, -40, 0, -20, 0], transition: { duration: 0.8, ease: 'easeInOut' }};
+                default: // 'None' or any other value will trigger the wave
+                    return { rotate: [0, 15, -15, 10, -10, 0], transition: { duration: 1, ease: 'easeInOut' }};
+            }
         }
-        
-        const danceType = dance || 'Wave'; // Default to wave if no dance is equipped
-
-        switch (danceType) {
-            case 'Spin':
-                return { rotate: [0, 360], transition: { duration: 1.5, ease: 'linear' }};
-            case 'Jump':
-                 return { y: [0, -40, 0, -20, 0], transition: { duration: 0.8, ease: 'easeInOut' }};
-            default: // Default wave on click if dance is 'None' or not set
-                return { rotate: [0, 15, -15, 10, -10, 0], transition: { duration: 1, ease: 'easeInOut' }};
-        }
+        // Default idle animation
+        return { y: [0, -4, 0], transition: { duration: 4, repeat: Infinity, ease: 'easeInOut' } };
     };
     
     const getWaveAnimation = () => {
