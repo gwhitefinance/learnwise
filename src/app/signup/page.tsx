@@ -58,6 +58,7 @@ export default function SignUpPage() {
             email: user.email,
             createdAt: new Date(),
             coins: 0, // Initialize coins
+            level: 0, // Initialize level
         });
 
 

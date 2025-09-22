@@ -56,6 +56,7 @@ export default function Navbar() {
   const navLinksData = [
     { label: "Features", href: "#features" },
     { label: "Integrations", href: "#integrations" },
+    { label: "Leaderboard", href: "/leaderboard" },
   ]
 
   const loginButtonElement = (

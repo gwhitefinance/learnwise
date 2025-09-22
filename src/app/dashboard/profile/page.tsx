@@ -10,7 +10,7 @@ import { doc, onSnapshot } from 'firebase/firestore';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Gem, Zap } from 'lucide-react';
+import { Gem, Zap, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import AIBuddy from '@/components/ai-buddy';
 
@@ -18,6 +18,7 @@ type UserProfile = {
     displayName: string;
     email: string;
     coins: number;
+    level: number;
     unlockedItems?: Record<string, string[]>;
 };
 
@@ -38,7 +39,11 @@ export default function ProfilePage() {
         const userDocRef = doc(db, 'users', user.uid);
         const unsubscribe = onSnapshot(userDocRef, (doc) => {
             if (doc.exists()) {
-                setProfile(doc.data() as UserProfile);
+                const data = doc.data();
+                setProfile({
+                    ...data,
+                    level: Math.floor(data.coins / 100)
+                } as UserProfile);
             }
             setProfileLoading(false);
         });
@@ -102,10 +107,14 @@ export default function ProfilePage() {
                                 <CardDescription>{profile.email}</CardDescription>
                             </div>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="flex items-center gap-8">
                              <div className="flex items-center gap-2 text-2xl font-bold text-amber-500">
                                 <Gem className="h-6 w-6"/>
                                 <span>{profile.coins} Coins</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-2xl font-bold text-blue-400">
+                                <Shield className="h-6 w-6"/>
+                                <span>Level {profile.level}</span>
                             </div>
                         </CardContent>
                     </Card>
