@@ -59,7 +59,7 @@ export default function Navbar() {
   ]
 
   const loginButtonElement = (
-    <Link href="/signup">
+    <Link href="/login">
         <button className="px-4 py-2 sm:px-3 text-xs sm:text-sm border border-[#333] bg-[rgba(31,31,31,0.62)] text-gray-300 rounded-full hover:border-white/50 hover:text-white transition-colors duration-200 w-full sm:w-auto">
             Login
         </button>

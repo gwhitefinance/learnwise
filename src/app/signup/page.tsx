@@ -7,10 +7,11 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Github } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import { getAuth, createUserWithEmailAndPassword, updateProfile, signInWithEmailAndPassword } from "firebase/auth"
+import { getAuth, createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
 import { app, db } from "@/lib/firebase" // Import the initialized app and db
 import { AnimatePresence, motion } from "framer-motion"
 import { doc, setDoc } from "firebase/firestore"
+import Link from "next/link"
 
 export default function SignUpPage() {
   const router = useRouter()
@@ -20,7 +21,6 @@ export default function SignUpPage() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isLogin, setIsLogin] = useState(false);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -89,44 +89,6 @@ export default function SignUpPage() {
     }
   }
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email || !password) {
-        toast({
-            variant: "destructive",
-            title: "Missing fields",
-            description: "Please enter your email and password.",
-        });
-        return;
-    }
-
-    setIsLoading(true);
-    try {
-        const auth = getAuth(app);
-        await signInWithEmailAndPassword(auth, email, password);
-        toast({
-            title: "Logged In Successfully!",
-            description: "Welcome back to your dashboard.",
-        });
-        router.push('/dashboard');
-    } catch (error: any) {
-        let description = "An unexpected error occurred. Please try again.";
-        if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
-            description = "Invalid email or password. Please check your credentials and try again.";
-        } else {
-            console.error("Login error:", error);
-        }
-        toast({
-            variant: "destructive",
-            title: "Login Failed",
-            description: description,
-        });
-    } finally {
-        setIsLoading(false);
-    }
-  }
-
-
   return (
     <div className="flex min-h-screen bg-black">
       {/* Left Section */}
@@ -171,8 +133,8 @@ export default function SignUpPage() {
       <div className="flex w-full items-center justify-center bg-black p-6 lg:w-1/2">
         <div className="w-full max-w-md rounded-[40px] p-12">
           <div className="mx-auto max-w-sm">
-            <h2 className="mb-2 text-3xl font-bold text-white">{isLogin ? 'Log In to LearnWise' : 'Sign Up Account'}</h2>
-            <p className="mb-8 text-gray-400">{isLogin ? 'Welcome back! Enter your details to continue.' : 'Enter your personal data to create your account.'}</p>
+            <h2 className="mb-2 text-3xl font-bold text-white">Sign Up Account</h2>
+            <p className="mb-8 text-gray-400">Enter your personal data to create your account.</p>
 
             <div className="mb-8 grid gap-4">
               <Button variant="outline" className="h-12">
@@ -211,41 +173,39 @@ export default function SignUpPage() {
               </div>
             </div>
 
-            <form className="space-y-6" onSubmit={isLogin ? handleLogin : handleSignUp}>
+            <form className="space-y-6" onSubmit={handleSignUp}>
               <AnimatePresence>
-                {!isLogin && (
-                    <motion.div
-                        key="name-fields"
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="overflow-hidden"
-                    >
-                        <div className="grid gap-4 md:grid-cols-2">
-                            <div className="space-y-2">
-                            <Input
-                                className="h-12 border-gray-800 bg-gray-900 text-white placeholder:text-gray-400"
-                                placeholder="First Name"
-                                type="text"
-                                required={!isLogin}
-                                value={firstName}
-                                onChange={(e) => setFirstName(e.target.value)}
-                            />
-                            </div>
-                            <div className="space-y-2">
-                            <Input
-                                className="h-12 border-gray-800 bg-gray-900 text-white placeholder:text-gray-400"
-                                placeholder="Last Name"
-                                type="text"
-                                required={!isLogin}
-                                value={lastName}
-                                onChange={(e) => setLastName(e.target.value)}
-                            />
-                            </div>
+                <motion.div
+                    key="name-fields"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="overflow-hidden"
+                >
+                    <div className="grid gap-4 md:grid-cols-2">
+                        <div className="space-y-2">
+                        <Input
+                            className="h-12 border-gray-800 bg-gray-900 text-white placeholder:text-gray-400"
+                            placeholder="First Name"
+                            type="text"
+                            required
+                            value={firstName}
+                            onChange={(e) => setFirstName(e.target.value)}
+                        />
                         </div>
-                    </motion.div>
-                )}
+                        <div className="space-y-2">
+                        <Input
+                            className="h-12 border-gray-800 bg-gray-900 text-white placeholder:text-gray-400"
+                            placeholder="Last Name"
+                            type="text"
+                            required
+                            value={lastName}
+                            onChange={(e) => setLastName(e.target.value)}
+                        />
+                        </div>
+                    </div>
+                </motion.div>
               </AnimatePresence>
 
               <div className="space-y-2">
@@ -269,18 +229,18 @@ export default function SignUpPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
-                {!isLogin && <p className="text-sm text-gray-400">Must be at least 8 characters.</p>}
+                <p className="text-sm text-gray-400">Must be at least 8 characters.</p>
               </div>
 
               <Button type="submit" className="h-12 w-full bg-white text-black hover:bg-gray-100" disabled={isLoading}>
-                {isLoading ? (isLogin ? 'Logging In...' : 'Signing Up...') : (isLogin ? 'Log In' : 'Sign Up')}
+                {isLoading ? 'Signing Up...' : 'Sign Up'}
               </Button>
 
               <p className="text-center text-sm text-gray-400">
-                {isLogin ? "Don't have an account? " : "Already have an account? "}
-                <button type="button" onClick={() => setIsLogin(!isLogin)} className="text-white hover:underline font-semibold">
-                  {isLogin ? 'Sign Up' : 'Log in'}
-                </button>
+                Already have an account?{" "}
+                <Link href="/login" className="text-white hover:underline font-semibold">
+                  Log in
+                </Link>
               </p>
             </form>
           </div>
@@ -289,5 +249,3 @@ export default function SignUpPage() {
     </div>
   )
 }
-
-    
