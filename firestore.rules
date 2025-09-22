@@ -1,44 +1,62 @@
-
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
+    
+    // Helper function to check ownership
     function isOwner(userId) {
       return request.auth != null && request.auth.uid == userId;
     }
 
+    // Users can read/update their own profile.
+    // Allow creation if the user is creating their own document.
     match /users/{userId} {
       allow read, update: if isOwner(userId);
-      allow create: if request.auth.uid != null;
-    }
-
-    match /courses/{document=**} {
-      allow read, write: if isOwner(request.resource.data.userId);
+      allow create: if isOwner(userId);
     }
     
-    match /chatSessions/{document=**} {
-       allow read, write: if isOwner(request.resource.data.userId);
+    // Secure all other collections by ensuring the user owns the data.
+    // The `list` rule ensures that any query on the collection *must* filter by userId.
+    match /chatSessions/{docId} {
+      allow get, update, delete: if isOwner(resource.data.userId);
+      allow list: if request.auth != null && request.query.filters.size() == 1 && 'userId' in request.query.filters && request.query.filters.userId == request.auth.uid;
+      allow create: if isOwner(request.resource.data.userId);
     }
 
-    match /calendarEvents/{document=**} {
-       allow read, write: if isOwner(request.resource.data.userId);
+    match /courses/{docId} {
+      allow get, update, delete: if isOwner(resource.data.userId);
+      allow list: if request.auth != null && request.query.filters.size() == 1 && 'userId' in request.query.filters && request.query.filters.userId == request.auth.uid;
+      allow create: if isOwner(request.resource.data.userId);
     }
 
-    match /notes/{document=**} {
-       allow read, write: if isOwner(request.resource.data.userId);
+    match /calendarEvents/{docId} {
+      allow get, update, delete: if isOwner(resource.data.userId);
+      allow list: if request.auth != null && request.query.filters.size() == 1 && 'userId' in request.query.filters && request.query.filters.userId == request.auth.uid;
+      allow create: if isOwner(request.resource.data.userId);
     }
 
-    match /projects/{document=**} {
-       allow read, write: if isOwner(request.resource.data.userId);
+    match /notes/{docId} {
+      allow get, update, delete: if isOwner(resource.data.userId);
+      allow list: if request.auth != null && request.query.filters.size() == 1 && 'userId' in request.query.filters && request.query.filters.userId == request.auth.uid;
+      allow create: if isOwner(request.resource.data.userId);
+    }
+
+    match /projects/{docId} {
+      allow get, update, delete: if isOwner(resource.data.userId);
+      allow list: if request.auth != null && request.query.filters.size() == 1 && 'userId' in request.query.filters && request.query.filters.userId == request.auth.uid;
+      allow create: if isOwner(request.resource.data.userId);
     }
     
-    match /recentFiles/{document=**} {
-       allow read, write: if isOwner(request.resource.data.userId);
+    match /recentFiles/{docId} {
+      allow get, update, delete: if isOwner(resource.data.userId);
+      allow list: if request.auth != null && request.query.filters.size() == 1 && 'userId' in request.query.filters && request.query.filters.userId == request.auth.uid;
+      allow create: if isOwner(request.resource.data.userId);
     }
 
-    match /roadmaps/{document=**} {
-       allow read, write: if isOwner(request.resource.data.userId);
+    match /roadmaps/{docId} {
+      allow get, update, delete: if isOwner(resource.data.userId);
+      allow list: if request.auth != null && request.query.filters.size() == 1 && 'userId' in request.query.filters && request.query.filters.userId == request.auth.uid;
+      allow create: if isOwner(request.resource.data.userId);
     }
   }
 }
