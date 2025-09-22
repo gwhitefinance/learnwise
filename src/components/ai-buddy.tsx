@@ -83,23 +83,21 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, color, hat, shirt, shoes, 
         if (!isDancing) {
              return { y: [0, -4, 0], transition: { duration: 4, repeat: Infinity, ease: 'easeInOut' } };
         }
-        switch (dance) {
+        
+        const danceType = dance || 'Wave'; // Default to wave if no dance is equipped
+
+        switch (danceType) {
             case 'Spin':
                 return { rotate: [0, 360], transition: { duration: 1.5, ease: 'linear' }};
             case 'Jump':
                  return { y: [0, -40, 0, -20, 0], transition: { duration: 0.8, ease: 'easeInOut' }};
-            default: // Default wave on click if no dance is equipped
+            default: // Default wave on click if dance is 'None' or not set
                 return { rotate: [0, 15, -15, 10, -10, 0], transition: { duration: 1, ease: 'easeInOut' }};
         }
     };
     
     const getWaveAnimation = () => {
-         if (isDancing) {
-            return {
-                rotate: [0, -45, 10, -30, 0],
-                transition: { duration: 1.2, ease: 'easeInOut' }
-            };
-        }
+        // This is now just a subtle idle animation for the arm
         return {
             rotate: [0, -8, 0, 8, 0],
             transition: { duration: 5, repeat: Infinity, ease: 'easeInOut' }
