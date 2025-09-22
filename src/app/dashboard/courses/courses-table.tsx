@@ -26,6 +26,7 @@ type Course = {
     name: string;
     instructor: string;
     credits: number;
+    description?: string;
     url?: string;
     userId?: string;
 };
@@ -34,7 +35,7 @@ function CoursesTable({ initialCourses }: { initialCourses: Course[] }) {
     const [courses, setCourses] = useState<Course[]>(initialCourses);
     const [isAddCourseOpen, setAddCourseOpen] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
-    const [newCourse, setNewCourse] = useState({ name: '', instructor: '', credits: '', url: ''});
+    const [newCourse, setNewCourse] = useState({ name: '', instructor: '', credits: '', url: '', description: '' });
     const { toast } = useToast();
     const [user, authLoading] = useAuthState(auth);
     const router = useRouter();
@@ -70,7 +71,7 @@ function CoursesTable({ initialCourses }: { initialCourses: Course[] }) {
         return () => unsubscribe();
     }, [user, authLoading, router, toast]);
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setNewCourse(prev => ({ ...prev, [name]: value }));
     };
@@ -94,6 +95,7 @@ function CoursesTable({ initialCourses }: { initialCourses: Course[] }) {
             instructor: newCourse.instructor,
             credits: parseInt(newCourse.credits, 10),
             url: newCourse.url,
+            description: newCourse.description,
             userId: user.uid,
         };
 
@@ -114,7 +116,12 @@ function CoursesTable({ initialCourses }: { initialCourses: Course[] }) {
                 const learnerType = localStorage.getItem('learnerType') as any || 'Reading/Writing';
 
                 try {
-                    const { modules } = await generateCourseFromUrl({ courseUrl: newCourse.url, learnerType });
+                    const { modules } = await generateCourseFromUrl({ 
+                        courseUrl: newCourse.url, 
+                        learnerType,
+                        courseName: newCourse.name,
+                        courseDescription: newCourse.description,
+                    });
                     const units = modules.map(module => ({
                         id: crypto.randomUUID(),
                         name: module.title,
@@ -145,7 +152,7 @@ function CoursesTable({ initialCourses }: { initialCourses: Course[] }) {
                 description: 'Could not add course. Please try again.',
             });
         } finally {
-            setNewCourse({ name: '', instructor: '', credits: '', url: '' });
+            setNewCourse({ name: '', instructor: '', credits: '', url: '', description: '' });
             setIsSaving(false);
         }
     };
@@ -187,7 +194,7 @@ function CoursesTable({ initialCourses }: { initialCourses: Course[] }) {
                   <Plus className="mr-2 h-4 w-4" /> Add Course
                 </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
                     <DialogTitle>Add a New Course</DialogTitle>
                 </DialogHeader>
@@ -207,6 +214,10 @@ function CoursesTable({ initialCourses }: { initialCourses: Course[] }) {
                     <div className="grid gap-2">
                         <Label htmlFor="url">Course URL (Optional)</Label>
                         <Input id="url" name="url" value={newCourse.url} onChange={handleInputChange} placeholder="https://example.com/course-link"/>
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="description">Course Description (Optional)</Label>
+                        <Input id="description" name="description" value={newCourse.description} onChange={handleInputChange} placeholder="A brief summary of the course."/>
                     </div>
                 </div>
                  <DialogFooter>

@@ -5,6 +5,8 @@
 import { z } from 'zod';
 
 export const GenerateCourseFromUrlInputSchema = z.object({
+  courseName: z.string().describe('The name of the course.'),
+  courseDescription: z.string().optional().describe('The description of the course.'),
   courseUrl: z.string().url().describe('The URL of the course page to scrape.'),
   learnerType: z.enum(['Visual', 'Auditory', 'Kinesthetic', 'Reading/Writing', 'Unknown']),
   webContent: z.string().optional().describe("The text content scraped from the course URL. This is added by the flow, not the user.")

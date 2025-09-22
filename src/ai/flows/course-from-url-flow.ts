@@ -14,22 +14,29 @@ const prompt = ai.definePrompt({
     input: { schema: GenerateCourseFromUrlInputSchema },
     output: { schema: GenerateCourseFromUrlOutputSchema },
     tools: [scrapeWebpageTool],
-    prompt: `You are an expert instructional designer. Your task is to create a detailed, multi-module mini-course based on the content scraped from a webpage.
+    prompt: `You are an expert instructional designer. Your task is to create a detailed, multi-module mini-course.
 
-    Webpage Content:
+    Primary Course Information:
+    - Course Name: {{courseName}}
+    {{#if courseDescription}}
+    - Course Description: {{courseDescription}}
+    {{/if}}
+
+    Additional Content (from a URL):
     "{{webContent}}"
     
     Instructions:
-    1.  **Analyze Content**: Read through the provided webpage content and identify the main topics, concepts, and structure.
-    2.  **Extract Course Title**: Determine a suitable and concise title for the course based on the content.
-    3.  **Create Modules**: Group the content into 3-5 logical modules. Each module should represent a major section or theme of the source material. Give each module a clear title.
-    4.  **Develop Chapters**: For each module, break down the information into 3-4 detailed chapters. Each chapter should cover a specific sub-topic and include comprehensive educational content derived from the source text.
-    5.  **Tailor Content**: The user is a {{learnerType}} learner. Adapt the content and activities for each chapter accordingly:
+    1.  **Analyze Content**: First, determine if the "Additional Content" is relevant to the "Primary Course Information". If it seems like a generic login page, marketing page, or is otherwise irrelevant, IGNORE it.
+    2.  **Generate Course**:
+        -   If the "Additional Content" is relevant, use it as the primary source to create the course.
+        -   If the "Additional Content" is irrelevant or empty, generate a high-quality, comprehensive course based ONLY on the "Course Name" and "Course Description".
+    3.  **Structure**: Create 3-5 logical modules with clear titles. For each module, develop 3-4 detailed chapters with educational content.
+    4.  **Tailor Content**: The user is a {{learnerType}} learner. Adapt the content and activities for each chapter accordingly:
         -   **Visual**: Use descriptive language and analogies. Suggest creating diagrams or mind maps.
         -   **Auditory**: Write in a conversational, step-by-step manner. Suggest explaining concepts aloud.
         -   **Kinesthetic**: Include hands-on activities, real-world examples, or simple practical exercises.
         -   **Reading/Writing**: Provide clear, well-structured text and suggest summarizing or outlining.
-    6.  **Create Activities**: For each chapter, devise a simple, interactive activity that reinforces the chapter's content and is tailored to the learner's style.
+    5.  **Create Activities**: For each chapter, devise a simple, interactive activity that reinforces the chapter's content and is tailored to the learner's style.
 
     Generate the complete course structure with a course title, modules, and for each module, a list of chapters containing detailed content and a relevant activity.
     `,
@@ -49,10 +56,10 @@ const generateCourseFromUrlFlow = ai.defineFlow(
             webContent = await scrapeWebpageTool({ url: input.courseUrl });
         } catch (error) {
             console.warn(`Could not scrape ${input.courseUrl}:`, error);
-            throw new Error(`Failed to retrieve content from the provided URL. Please check the link and try again.`);
+            webContent = 'Scraping failed. Please generate content based on the course title and description.';
         }
     } else {
-        throw new Error('A valid course URL is required.');
+        webContent = 'No URL provided. Please generate content based on the course title and description.';
     }
 
     const { output } = await prompt({
