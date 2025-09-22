@@ -155,7 +155,8 @@ export default function ShopClientPage() {
     }
     
     const isItemUnlocked = (category: string, itemName: string) => {
-        const item = (shopItems as any)[category].find((i: any) => i.name === itemName);
+        const categoryKey = `${category}s` as keyof typeof shopItems;
+        const item = shopItems[categoryKey]?.find((i: any) => i.name === itemName);
         if (item && item.price === 0) return true;
         return profile.unlockedItems?.[category]?.includes(itemName) ?? false;
     }
@@ -274,5 +275,3 @@ export default function ShopClientPage() {
         </div>
     );
 }
-
-    
