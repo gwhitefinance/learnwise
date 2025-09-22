@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Award,
@@ -636,8 +636,8 @@ export default function DashboardLayout({
                  <TooltipProvider>
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <Button variant="ghost" size="icon" className="rounded-2xl" onClick={() => setIsHalloweenTheme(!isHalloweenTheme)}>
-                               <PumpkinIcon className="h-5 w-5 text-orange-500"/>
+                             <Button variant="ghost" size="icon" className="rounded-2xl" onClick={() => setIsHalloweenTheme(!isHalloweenTheme)}>
+                                {isHalloweenTheme ? <Cloud className="h-5 w-5 text-sky-400" /> : <PumpkinIcon className="h-5 w-5 text-orange-500"/>}
                             </Button>
                         </TooltipTrigger>
                         <TooltipContent>
@@ -737,3 +737,5 @@ export default function DashboardLayout({
     </>
   );
 }
+
+    
