@@ -8,8 +8,11 @@
         { "name": "Ocean", "hex": "#008B8B", "price": 0, "rarity": "Uncommon" },
         { "name": "Sunset", "hex": "#FF6347", "price": 0, "rarity": "Uncommon" },
         { "name": "Graphite", "hex": "#4f4f4f", "price": 0, "rarity": "Uncommon" },
+        { "name": "Pumpkin", "hex": "#f57d00", "price": 0, "rarity": "Rare" },
+        { "name": "Autumn Leaf", "hex": "#b33b00", "price": 0, "rarity": "Rare" },
         { "name": "Gold", "hex": "#FFD700", "price": 0, "rarity": "Rare" },
         { "name": "Emerald", "hex": "#50C878", "price": 0, "rarity": "Rare" },
+        { "name": "Forest Green", "hex": "#228B22", "price": 0, "rarity": "Epic" },
         { "name": "Ruby", "hex": "#E0115F", "price": 0, "rarity": "Epic" },
         { "name": "Amethyst", "hex": "#9966CC", "price": 0, "rarity": "Epic" }
     ],
@@ -19,6 +22,8 @@
         { "name": "Top Hat", "price": 0, "rarity": "Uncommon" },
         { "name": "Propeller Hat", "price": 0, "rarity": "Rare" },
         { "name": "Party Hat", "price": 0, "rarity": "Rare" },
+        { "name": "Pumpkin Hat", "price": 0, "rarity": "Epic" },
+        { "name": "Witch Hat", "price": 0, "rarity": "Epic" },
         { "name": "Cowboy Hat", "price": 0, "rarity": "Epic" },
         { "name": "Crown", "price": 0, "rarity": "Epic" },
         { "name": "Wizard Hat", "price": 0, "rarity": "Legendary" }
@@ -28,7 +33,8 @@
         { "name": "T-Shirt", "price": 0, "rarity": "Common" },
         { "name": "Vest", "price": 0, "rarity": "Uncommon" },
         { "name": "Bow Tie", "price": 0, "rarity": "Uncommon" },
-        { "name": "Hoodie", "price": 0, "rarity": "Rare" }
+        { "name": "Hoodie", "price": 0, "rarity": "Rare" },
+        { "name": "Ghost Costume", "price": 0, "rarity": "Epic" }
     ],
     "shoes": [
         { "name": "None", "price": 0, "rarity": "Common" },
@@ -36,6 +42,7 @@
         { "name": "Boots", "price": 0, "rarity": "Common" },
         { "name": "Sneakers", "price": 0, "rarity": "Uncommon" },
         { "name": "Formal Shoes", "price": 0, "rarity": "Rare" },
+        { "name": "Pumpkin Shoes", "price": 0, "rarity": "Epic" },
         { "name": "Rocket Boots", "price": 0, "rarity": "Epic" }
     ]
 }

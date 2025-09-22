@@ -50,6 +50,18 @@ const hatComponents: Record<string, React.FC> = {
             <circle cx="10" cy="35" r="5" fill="lime" />
         </g>
     ),
+    "Pumpkin Hat": () => (
+        <g transform='translate(65, 5)'>
+            <path d='M0,25 a35,35 0 1,1 70,0 a35,35 0 1,1 -70,0' fill='#f57d00' />
+            <rect x="30" y="-5" width="10" height="10" fill="green" />
+        </g>
+    ),
+    "Witch Hat": () => (
+        <g transform='translate(50, -15)'>
+            <path d='M0 45 L100 45 L100 35 L0 35 Z' fill='#222' />
+            <path d='M50 -30 L10 40 L90 40 Z' fill='#222' />
+        </g>
+    ),
 };
 
 const shirtComponents: Record<string, React.FC> = {
@@ -75,7 +87,14 @@ const shirtComponents: Record<string, React.FC> = {
             <path d='M75 105 L125 105 L120 155 L80 155 Z' fill='#8B4513' />
             <path d='M80 105 L120 105 L115 150 L85 150 Z' fill='white' />
         </g>
-    )
+    ),
+    "Ghost Costume": () => (
+        <g>
+            <path d='M60 100 L140 100 L150 180 L120 170 L100 180 L80 170 L50 180 Z' fill='rgba(255,255,255,0.9)' />
+            <circle cx="85" cy="120" r="4" fill="black" />
+            <circle cx="115" cy="120" r="4" fill="black" />
+        </g>
+    ),
 };
 
 const shoeComponents: Record<string, React.FC> = {
@@ -113,6 +132,12 @@ const shoeComponents: Record<string, React.FC> = {
         <g>
             <path d='M65 175 L100 175 L95 185 L65 185 Z' fill='black' />
             <path d='M100 175 L135 175 L135 185 L105 185 Z' fill='black' />
+        </g>
+    ),
+    "Pumpkin Shoes": () => (
+        <g>
+            <path d='M65,175 a15,15 0 1,1 30,0 a15,15 0 1,1 -30,0' fill='#f57d00' />
+            <path d='M105,175 a15,15 0 1,1 30,0 a15,15 0 1,1 -30,0' fill='#f57d00' />
         </g>
     )
 };

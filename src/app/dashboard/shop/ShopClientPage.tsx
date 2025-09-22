@@ -9,7 +9,7 @@ import { doc, onSnapshot, updateDoc, arrayUnion, increment } from 'firebase/fire
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Gem, Palette, Shirt, CheckCircle, Footprints, GraduationCap as HatIcon } from 'lucide-react';
+import { Gem, Palette, Shirt, CheckCircle, Footprints, GraduationCap as HatIcon, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import shopItemsData from '@/lib/shop-items.json';
 import { useToast } from '@/hooks/use-toast';
@@ -138,16 +138,9 @@ export default function ShopClientPage() {
         return <div>Could not load user profile. Please try again.</div>;
     }
     
-    const isItemUnlocked = (category: string, itemName: string) => {
-        // Items with price 0 are always considered unlocked for equipping, but might not be in the profile yet.
+    const hasPurchased = (category: string, itemName: string) => {
         const item = (shopItems as any)[`${category}s`]?.find((i: any) => i.name === itemName);
         if (item && item.price === 0) return true;
-        
-        // This checks if the item has been explicitly purchased and is in the user's profile data.
-        return profile.unlockedItems?.[category]?.includes(itemName) ?? false;
-    }
-     const hasPurchased = (category: string, itemName: string) => {
-        // Check if item is in the user's unlockedItems array in Firestore
         return profile.unlockedItems?.[category]?.includes(itemName) ?? false;
     }
     
@@ -172,6 +165,15 @@ export default function ShopClientPage() {
                     <Gem className="h-6 w-6"/>
                     <span>{profile.coins}</span>
                 </div>
+            </div>
+
+            <div className="bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 text-white p-6 rounded-2xl flex items-center justify-center gap-4">
+                <Sparkles className="h-8 w-8"/>
+                <div className="text-center">
+                    <h2 className="text-2xl font-bold">The Fall Update is Here!</h2>
+                    <p className="opacity-90">Check out new spooky costumes and autumn colors!</p>
+                </div>
+                <Sparkles className="h-8 w-8"/>
             </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
