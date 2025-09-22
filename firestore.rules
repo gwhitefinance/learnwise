@@ -1,71 +1,60 @@
-
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-
+    
     // Helper function to check ownership
     function isOwner(userId) {
       return request.auth != null && request.auth.uid == userId;
     }
 
+    // Users Collection
     match /users/{userId} {
-      // A user can read and write to their own user document
-      allow read, write: if isOwner(userId);
-      // Anyone authenticated can create their own user record
-      allow create: if isOwner(userId);
+      allow read, update, delete: if isOwner(userId);
+      allow create: if request.auth != null;
     }
 
+    // Generic rule for user-owned collections
+    function userOwnedCollectionRules() {
+      return {
+        // A user can query for their own documents
+        allow list: if isOwner(request.query.filters.userId),
+
+        // A user can create a document if they are the owner
+        allow create: if isOwner(request.resource.data.userId),
+
+        // A user can get, update, or delete their own document
+        allow get, update, delete: if isOwner(resource.data.userId)
+      }
+    }
+    
+    // Apply rules to all user-specific collections
     match /chatSessions/{docId} {
-      // Users can only query for their own chat sessions
-      allow list: if isOwner(request.query.filters.userId);
-      // Users can only get their own chat sessions
-      allow get: if isOwner(get(/databases/$(database)/documents/chatSessions/$(docId)).data.userId);
-      // Users can only create chat sessions for themselves
-      allow create: if isOwner(request.resource.data.userId);
-      // Users can only update or delete their own chat sessions
-      allow update, delete: if isOwner(resource.data.userId);
+      allow read, write: if isOwner(request.auth.uid);
     }
     
     match /courses/{docId} {
-      allow list: if isOwner(request.query.filters.userId);
-      allow get: if isOwner(get(/databases/$(database)/documents/courses/$(docId)).data.userId);
-      allow create: if isOwner(request.resource.data.userId);
-      allow update, delete: if isOwner(resource.data.userId);
+        allow read, write: if isOwner(request.auth.uid);
     }
-
+    
     match /calendarEvents/{docId} {
-      allow list: if isOwner(request.query.filters.userId);
-      allow get: if isOwner(get(/databases/$(database)/documents/calendarEvents/$(docId)).data.userId);
-      allow create: if isOwner(request.resource.data.userId);
-      allow update, delete: if isOwner(resource.data.userId);
+       allow read, write: if isOwner(request.auth.uid);
     }
 
     match /notes/{docId} {
-      allow list: if isOwner(request.query.filters.userId);
-      allow get: if isOwner(get(/databases/$(database)/documents/notes/$(docId)).data.userId);
-      allow create: if isOwner(request.resource.data.userId);
-      allow update, delete: if isOwner(resource.data.userId);
+       allow read, write: if isOwner(request.auth.uid);
     }
 
     match /projects/{docId} {
-      allow list: if isOwner(request.query.filters.userId);
-      allow get: if isOwner(get(/databases/$(database)/documents/projects/$(docId)).data.userId);
-      allow create: if isOwner(request.resource.data.userId);
-      allow update, delete: if isOwner(resource.data.userId);
+       allow read, write: if isOwner(request.auth.uid);
     }
 
     match /recentFiles/{docId} {
-      allow list: if isOwner(request.query.filters.userId);
-      allow get: if isOwner(get(/databases/$(database)/documents/recentFiles/$(docId)).data.userId);
-      allow create: if isOwner(request.resource.data.userId);
-      allow update, delete: if isOwner(resource.data.userId);
+       allow read, write: if isOwner(request.auth.uid);
     }
     
     match /roadmaps/{docId} {
-      allow list: if isOwner(request.query.filters.userId);
-      allow get: if isOwner(get(/databases/$(database)/documents/roadmaps/$(docId)).data.userId);
-      allow create: if isOwner(request.resource.data.userId);
-      allow update, delete: if isOwner(resource.data.userId);
+       allow read, write: if isOwner(request.auth.uid);
     }
   }
 }
