@@ -615,13 +615,6 @@ function DashboardPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean }) {
                              isHalloweenTheme ? 'halloween-welcome' : 'bg-gradient-to-r from-violet-600 via-indigo-600 to-blue-600'
                         )}
                     >
-                        {isHalloweenTheme && (
-                            <div className="absolute bottom-0 left-0 right-0 h-24 pointer-events-none">
-                                <div className="halloween-welcome-gravestone one" />
-                                <div className="halloween-welcome-gravestone two" />
-                                <div className="halloween-welcome-gravestone three" />
-                            </div>
-                        )}
                         <div className="relative flex-1 space-y-4">
                             <Badge className="bg-white/20 text-white hover:bg-white/30 rounded-xl">Get Started</Badge>
                             <h2 className="text-3xl font-bold">Welcome back, {user?.displayName?.split(' ')[0] || 'Learner'}!</h2>
@@ -637,7 +630,13 @@ function DashboardPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean }) {
                                 </Link>
                             </div>
                         </div>
-                         <div className="hidden lg:flex items-center justify-center gap-2">
+                         <div className="relative hidden lg:flex items-center justify-center gap-2">
+                            {isHalloweenTheme && (
+                                <div className="halloween-scene">
+                                    <div className="tree" />
+                                    <div className="jack-o-lantern" />
+                                </div>
+                            )}
                             <AIBuddy 
                                 className="w-32 h-32"
                                 color={customizations.color}

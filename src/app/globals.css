@@ -73,107 +73,77 @@
   -webkit-backdrop-filter: blur(16px);
 }
 
-.halloween-decorations {
+.halloween-scene {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    bottom: -10px;
+    right: 0;
+    width: 200px;
+    height: 150px;
     pointer-events: none;
-    overflow: hidden;
-    z-index: 0;
 }
 
-.halloween-decorations > div {
+.halloween-scene .tree {
     position: absolute;
     bottom: 0;
-    --size: 150px;
-}
-
-.pumpkin {
-    width: var(--size);
-    height: calc(var(--size) * 0.8);
-    background: #f97316;
-    border-radius: 50%;
-    box-shadow: inset -10px 0 #d97706;
-}
-.pumpkin::before {
-    content: '';
-    position: absolute;
-    top: -10px;
-    left: 50%;
-    transform: translateX(-50%);
+    left: 20px;
     width: 15px;
-    height: 20px;
-    background: #3f6212;
-    border-radius: 5px 5px 0 0;
-}
-.pumpkin.left { left: 5%; --size: 100px; }
-.pumpkin.right { right: 8%; --size: 120px; transform: scaleX(-1); }
-
-.gravestone {
-    width: 80px;
     height: 100px;
-    background: #44403c;
-    border-radius: 40px 40px 0 0;
-    box-shadow: inset 0 0 10px #292524;
-}
-.gravestone.left { left: 15%; height: 80px; width: 60px;}
-.gravestone.right { right: 2%; height: 120px; width: 90px; }
-
-.tree {
-    width: 10px;
-    height: 200px;
     background: #1c1917;
     border-radius: 5px 5px 0 0;
 }
-.tree::before, .tree::after {
+.halloween-scene .tree::before {
     content: '';
     position: absolute;
-    width: 10px;
-    height: 80px;
+    width: 8px;
+    height: 40px;
     background: #1c1917;
     border-radius: 5px;
+    top: 20px;
+    left: -10px;
+    transform: rotate(-35deg);
 }
-.tree::before { top: 30px; left: -20px; transform: rotate(-30deg); }
-.tree::after { top: 60px; right: -25px; transform: rotate(25deg); height: 60px; }
 
-.tree.left { left: -2%; height: 250px; }
-.tree.right { right: -3%; height: 300px; transform: scaleX(-1); }
-
-.halloween-welcome-gravestone {
+.halloween-scene .jack-o-lantern {
     position: absolute;
     bottom: 0;
-    background-color: #6b7280;
-    border-bottom: 4px solid #4b5563;
+    right: 30px;
+    width: 70px;
+    height: 60px;
+    background: #f97316;
+    border-radius: 50%;
+    box-shadow: inset -5px 0 #d97706;
 }
-.halloween-welcome-gravestone.one {
-    left: 10%;
-    width: 4rem;
-    height: 5rem;
-    border-radius: 9999px 9999px 0 0;
-}
-.halloween-welcome-gravestone.two {
-    left: 15%;
-    width: 3rem;
-    height: 4rem;
-    background-color: rgba(107, 114, 128, 0.8);
-    border-radius: 9999px 9999px 0 0;
-}
-.halloween-welcome-gravestone.three {
-    right: 8%;
-    width: 5rem;
-    height: 6rem;
-    border-radius: 0.5rem 0.5rem 0 0;
-}
-.halloween-welcome-gravestone.three::after {
-    content: '+';
+.halloween-scene .jack-o-lantern::before {
+    content: '';
     position: absolute;
-    inset-inline-start: 0;
-    inset-inline-end: 0;
-    top: 1rem;
-    font-size: 2.25rem;
-    line-height: 2.5rem;
-    font-weight: 700;
-    color: #4b5563;
+    top: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 8px;
+    height: 10px;
+    background: #3f6212;
+    border-radius: 2px 2px 0 0;
+}
+
+.halloween-scene .jack-o-lantern::after {
+    content: '';
+    position: absolute;
+    top: 20px;
+    left: 15px;
+    width: 10px;
+    height: 10px;
+    background: #FFD700;
+    box-shadow: 30px 0 #FFD700, 15px 15px #FFD700;
+    border-radius: 2px;
+    animation: flicker 1.5s infinite alternate;
+}
+
+@keyframes flicker {
+  0%, 18%, 22%, 25%, 53%, 57%, 100% {
+    box-shadow: 30px 0 #FFD700, 15px 15px #FFD700, 
+                0 0 4px #fff, 0 0 11px #fff, 0 0 19px #fff, 0 0 40px #f09, 0 0 80px #f09, 0 0 90px #f09, 0 0 100px #f09, 0 0 150px #f09;
+  }
+  20%, 24%, 55% {
+    box-shadow: none;
+  }
 }
