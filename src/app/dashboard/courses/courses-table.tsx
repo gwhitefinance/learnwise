@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { FilePenLine, Plus, Trash2, Link as LinkIcon, Eye, Info } from "lucide-react";
+import { FilePenLine, Plus, Trash2, Link as LinkIcon, Eye, Info, X } from "lucide-react";
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { useAuthState } from 'react-firebase-hooks/auth';
@@ -38,6 +38,14 @@ function CoursesTable({ initialCourses }: { initialCourses: Course[] }) {
     const [user, authLoading] = useAuthState(auth);
     const router = useRouter();
     const [isDataLoading, setIsDataLoading] = useState(true);
+    const [showInfoAlert, setShowInfoAlert] = useState(false);
+
+    useEffect(() => {
+        const hideAlert = localStorage.getItem('hideCoursesInfoAlert');
+        if (hideAlert !== 'true') {
+            setShowInfoAlert(true);
+        }
+    }, []);
     
     useEffect(() => {
         if (authLoading) return;
@@ -123,6 +131,11 @@ function CoursesTable({ initialCourses }: { initialCourses: Course[] }) {
             });
         }
     };
+    
+    const dismissInfoAlert = () => {
+        setShowInfoAlert(false);
+        localStorage.setItem('hideCoursesInfoAlert', 'true');
+    };
 
     if (authLoading || isDataLoading) {
         return <LoadingSkeleton />;
@@ -171,13 +184,24 @@ function CoursesTable({ initialCourses }: { initialCourses: Course[] }) {
         </Dialog>
       </div>
 
-       <Alert className="mt-4">
-          <Info className="h-4 w-4" />
-          <AlertTitle>Pro Tip!</AlertTitle>
-          <AlertDescription>
-            Click on a course name to view its details, add units, and upload files.
-          </AlertDescription>
-        </Alert>
+       {showInfoAlert && (
+            <Alert className="mt-4 pr-12 relative">
+                <Info className="h-4 w-4" />
+                <AlertTitle>Pro Tip!</AlertTitle>
+                <AlertDescription>
+                    Click on a course name to view its details, add units, and upload files.
+                </AlertDescription>
+                 <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute top-2 right-2 h-6 w-6"
+                    onClick={dismissInfoAlert}
+                >
+                    <X className="h-4 w-4" />
+                    <span className="sr-only">Don't show again</span>
+                </Button>
+            </Alert>
+        )}
 
       <Card className="mt-4">
         <CardContent className="p-0">
