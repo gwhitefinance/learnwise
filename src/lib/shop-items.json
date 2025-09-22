@@ -5,62 +5,37 @@
         { "name": "Mint", "hex": "#98FF98", "price": 0, "rarity": "Common" },
         { "name": "Lavender", "hex": "#E6E6FA", "price": 0, "rarity": "Common" },
         { "name": "Rose", "hex": "#FFC0CB", "price": 0, "rarity": "Common" },
+        { "name": "Ocean", "hex": "#008B8B", "price": 0, "rarity": "Uncommon" },
+        { "name": "Sunset", "hex": "#FF6347", "price": 0, "rarity": "Uncommon" },
         { "name": "Graphite", "hex": "#4f4f4f", "price": 0, "rarity": "Uncommon" },
         { "name": "Gold", "hex": "#FFD700", "price": 0, "rarity": "Rare" },
-        { "name": "Ruby", "hex": "#E0115F", "price": 0, "rarity": "Epic" }
+        { "name": "Emerald", "hex": "#50C878", "price": 0, "rarity": "Rare" },
+        { "name": "Ruby", "hex": "#E0115F", "price": 0, "rarity": "Epic" },
+        { "name": "Amethyst", "hex": "#9966CC", "price": 0, "rarity": "Epic" }
     ],
     "hats": [
         { "name": "None", "price": 0, "rarity": "Common" },
-        {
-            "name": "Top Hat",
-            "price": 0,
-            "rarity": "Uncommon"
-        },
-        {
-            "name": "Propeller Hat",
-            "price": 0,
-            "rarity": "Rare"
-        },
-        {
-            "name": "Crown",
-            "price": 0,
-            "rarity": "Epic"
-        },
-        {
-            "name": "Wizard Hat",
-            "price": 0,
-            "rarity": "Legendary"
-        }
+        { "name": "Beanie", "price": 0, "rarity": "Common" },
+        { "name": "Top Hat", "price": 0, "rarity": "Uncommon" },
+        { "name": "Propeller Hat", "price": 0, "rarity": "Rare" },
+        { "name": "Party Hat", "price": 0, "rarity": "Rare" },
+        { "name": "Cowboy Hat", "price": 0, "rarity": "Epic" },
+        { "name": "Crown", "price": 0, "rarity": "Epic" },
+        { "name": "Wizard Hat", "price": 0, "rarity": "Legendary" }
     ],
     "shirts": [
         { "name": "None", "price": 0, "rarity": "Common" },
-        {
-            "name": "T-Shirt",
-            "price": 0,
-            "rarity": "Common"
-        },
-        {
-            "name": "Bow Tie",
-            "price": 0,
-            "rarity": "Uncommon"
-        }
+        { "name": "T-Shirt", "price": 0, "rarity": "Common" },
+        { "name": "Vest", "price": 0, "rarity": "Uncommon" },
+        { "name": "Bow Tie", "price": 0, "rarity": "Uncommon" },
+        { "name": "Hoodie", "price": 0, "rarity": "Rare" }
     ],
     "shoes": [
         { "name": "None", "price": 0, "rarity": "Common" },
-        {
-            "name": "Boots",
-            "price": 0,
-            "rarity": "Common"
-        },
-        {
-            "name": "Sneakers",
-            "price": 0,
-            "rarity": "Uncommon"
-        },
-        {
-            "name": "Rocket Boots",
-            "price": 0,
-            "rarity": "Epic"
-        }
+        { "name": "Sandals", "price": 0, "rarity": "Common" },
+        { "name": "Boots", "price": 0, "rarity": "Common" },
+        { "name": "Sneakers", "price": 0, "rarity": "Uncommon" },
+        { "name": "Formal Shoes", "price": 0, "rarity": "Rare" },
+        { "name": "Rocket Boots", "price": 0, "rarity": "Epic" }
     ]
 }

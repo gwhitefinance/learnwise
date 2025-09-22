@@ -31,20 +31,49 @@ const hatComponents: Record<string, React.FC> = {
             <path d='M40 5 L50 15 L60 5' stroke='yellow' strokeWidth='3' fill='none' />
         </g>
     ),
+    "Beanie": () => (
+        <g transform='translate(55, 10)'>
+            <path d='M0 20 C0 -10, 90 -10, 90 20 Z' fill='teal' />
+            <circle cx="45" cy="-5" r="8" fill="white" />
+        </g>
+    ),
+    "Cowboy Hat": () => (
+        <g transform='translate(50, 10)'>
+            <path d='M-10 20 Q50 -30 110 20 L90 20 Q50 10 10 20 Z' fill='#A0522D' />
+        </g>
+    ),
+    "Party Hat": () => (
+        <g transform='translate(75, -15)'>
+            <path d='M25 0 L-25 45 L50 45 Z' fill='pink' />
+            <circle cx="0" cy="15" r="5" fill="yellow" />
+            <circle cx="25" cy="25" r="5" fill="cyan" />
+            <circle cx="10" cy="35" r="5" fill="lime" />
+        </g>
+    ),
 };
 
 const shirtComponents: Record<string, React.FC> = {
     "T-Shirt": () => (
         <g>
-            <path d='M65 110 L135 110 L135 150 L65 150 Z' fill='rgba(255,0,0,0.5)' />
-            <path d='M45 120 L65 110 L65 130 L45 130 Z' fill='rgba(255,0,0,0.5)'/>
-            <path d='M155 120 L135 110 L135 130 L155 130 Z' fill='rgba(255,0,0,0.5)'/>
+            <path d='M70 110 L130 110 L130 150 L70 150 Z' fill='rgba(255,0,0,0.7)' />
         </g>
     ),
     "Bow Tie": () => (
         <g>
             <path d='M85 105 L100 95 L100 115 Z' fill='red' stroke='black' strokeWidth='2' />
             <path d='M115 105 L100 95 L100 115 Z' fill='red' stroke='black' strokeWidth='2' />
+        </g>
+    ),
+    "Hoodie": () => (
+         <g>
+            <path d='M70 110 L130 110 L130 150 L70 150 Z' fill='rgba(60,60,60,0.8)' />
+            <path d='M85 110 L115 110 L115 120 L85 120 Z' fill='rgba(40,40,40,0.8)' />
+        </g>
+    ),
+    "Vest": () => (
+         <g>
+            <path d='M75 105 L125 105 L120 155 L80 155 Z' fill='#8B4513' />
+            <path d='M80 105 L120 105 L115 150 L85 150 Z' fill='white' />
         </g>
     )
 };
@@ -72,6 +101,20 @@ const shoeComponents: Record<string, React.FC> = {
             <ellipse cx='120' cy='195' rx='10' ry='5' fill='orange'><animate attributeName='ry' values='5;8;5' dur='0.5s' repeatCount='indefinite' /></ellipse>
         </g>
     ),
+    "Sandals": () => (
+        <g>
+            <path d='M70 180 L95 180 L95 185 L70 185 Z' fill='#8B4513' />
+            <path d='M75 175 L80 185' stroke='#A0522D' strokeWidth='3' />
+             <path d='M105 180 L130 180 L130 185 L105 185 Z' fill='#8B4513' />
+            <path d='M110 175 L115 185' stroke='#A0522D' strokeWidth='3' />
+        </g>
+    ),
+    "Formal Shoes": () => (
+        <g>
+            <path d='M65 175 L100 175 L95 185 L65 185 Z' fill='black' />
+            <path d='M100 175 L135 175 L135 185 L105 185 Z' fill='black' />
+        </g>
+    )
 };
 
 
@@ -102,5 +145,3 @@ export const Shoes: React.FC<{ name?: string }> = ({ name }) => {
     const Component = shoeComponents[name];
     return Component ? <Component /> : <DefaultShoes />;
 };
-
-
