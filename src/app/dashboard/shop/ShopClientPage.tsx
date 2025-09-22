@@ -7,11 +7,11 @@ import { auth, db } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import { doc, onSnapshot, updateDoc, arrayUnion, increment } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Gem, Palette, Shirt, CheckCircle, Footprints, GraduationCap as HatIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import shopItems from '@/lib/shop-items.json';
+import shopItemsData from '@/lib/shop-items.json';
 import { useToast } from '@/hooks/use-toast';
 import AIBuddy from '@/components/ai-buddy';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -37,6 +37,8 @@ const rarityConfig = {
     Epic: { text: 'text-purple-400', ring: 'ring-purple-500/30', bg: 'bg-purple-500/10' },
     Legendary: { text: 'text-orange-400', ring: 'ring-orange-500/30', bg: 'bg-orange-500/10' },
 };
+
+const shopItems: Record<string, Item[]> = shopItemsData;
 
 export default function ShopClientPage() {
     const [user, authLoading] = useAuthState(auth);
@@ -226,23 +228,36 @@ export default function ShopClientPage() {
                                                     <p className={cn("text-xs font-bold uppercase", rarityClass.text)}>{item.rarity}</p>
                                                     <p className="text-sm font-semibold truncate">{item.name}</p>
                                                 </div>
-                                                {unlocked ? (
-                                                    <div
-                                                        className={cn(
-                                                            'flex items-center justify-center gap-1 w-full p-1.5 text-xs font-bold rounded-b-lg',
-                                                            isEquipped
-                                                            ? 'bg-green-500 text-white'
-                                                            : 'bg-primary/80 text-primary-foreground'
-                                                        )}
-                                                    >
-                                                        {isEquipped && <CheckCircle className="w-3 h-3" />}
-                                                        {isEquipped ? 'Equipped' : 'Equip'}
-                                                    </div>
-                                                ) : (
-                                                    <Button size="sm" className="h-7 text-xs w-full rounded-t-none" onClick={(e) => {e.stopPropagation(); handleBuyItem(category.id, item.name, item.price)}} disabled={profile.coins < item.price}>
-                                                        <Gem className="w-3 h-3 mr-1" /> {item.price}
-                                                    </Button>
-                                                )}
+                                                
+                                                <div className="w-full p-1">
+                                                    {!unlocked ? (
+                                                        <Button
+                                                            size="sm"
+                                                            className="h-7 text-xs w-full bg-blue-600 hover:bg-blue-700"
+                                                            onClick={(e) => { e.stopPropagation(); handleBuyItem(category.id, item.name, item.price); }}
+                                                            disabled={profile.coins < item.price}
+                                                        >
+                                                            <Gem className="w-3 h-3 mr-1.5" /> {item.price}
+                                                        </Button>
+                                                    ) : isEquipped ? (
+                                                        <Button
+                                                            variant="secondary"
+                                                            size="sm"
+                                                            className="h-7 text-xs w-full bg-green-600 hover:bg-green-700 text-white cursor-default"
+                                                        >
+                                                            <CheckCircle className="w-3 h-3 mr-1.5" /> Equipped
+                                                        </Button>
+                                                    ) : (
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            className="h-7 text-xs w-full"
+                                                            onClick={() => handleSelectItem(category.id, item.name)}
+                                                        >
+                                                            Equip
+                                                        </Button>
+                                                    )}
+                                                </div>
                                             </Card>
                                         )
                                     })}
@@ -255,5 +270,3 @@ export default function ShopClientPage() {
         </div>
     );
 }
-
-    
