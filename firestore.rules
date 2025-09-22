@@ -1,60 +1,44 @@
+
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Helper function to check ownership
+
     function isOwner(userId) {
       return request.auth != null && request.auth.uid == userId;
     }
 
-    // Users Collection
     match /users/{userId} {
-      allow read, update, delete: if isOwner(userId);
-      allow create: if request.auth != null;
+      allow read, update: if isOwner(userId);
+      allow create: if request.auth.uid != null;
     }
 
-    // Generic rule for user-owned collections
-    function userOwnedCollectionRules() {
-      return {
-        // A user can query for their own documents
-        allow list: if isOwner(request.query.filters.userId),
-
-        // A user can create a document if they are the owner
-        allow create: if isOwner(request.resource.data.userId),
-
-        // A user can get, update, or delete their own document
-        allow get, update, delete: if isOwner(resource.data.userId)
-      }
+    match /courses/{document=**} {
+      allow read, write: if isOwner(request.resource.data.userId);
     }
     
-    // Apply rules to all user-specific collections
-    match /chatSessions/{docId} {
-      allow read, write: if isOwner(request.auth.uid);
-    }
-    
-    match /courses/{docId} {
-        allow read, write: if isOwner(request.auth.uid);
-    }
-    
-    match /calendarEvents/{docId} {
-       allow read, write: if isOwner(request.auth.uid);
+    match /chatSessions/{document=**} {
+       allow read, write: if isOwner(request.resource.data.userId);
     }
 
-    match /notes/{docId} {
-       allow read, write: if isOwner(request.auth.uid);
+    match /calendarEvents/{document=**} {
+       allow read, write: if isOwner(request.resource.data.userId);
     }
 
-    match /projects/{docId} {
-       allow read, write: if isOwner(request.auth.uid);
+    match /notes/{document=**} {
+       allow read, write: if isOwner(request.resource.data.userId);
     }
 
-    match /recentFiles/{docId} {
-       allow read, write: if isOwner(request.auth.uid);
+    match /projects/{document=**} {
+       allow read, write: if isOwner(request.resource.data.userId);
     }
     
-    match /roadmaps/{docId} {
-       allow read, write: if isOwner(request.auth.uid);
+    match /recentFiles/{document=**} {
+       allow read, write: if isOwner(request.resource.data.userId);
+    }
+
+    match /roadmaps/{document=**} {
+       allow read, write: if isOwner(request.resource.data.userId);
     }
   }
 }
