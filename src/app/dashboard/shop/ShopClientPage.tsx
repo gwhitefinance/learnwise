@@ -9,7 +9,7 @@ import { doc, onSnapshot, updateDoc, arrayUnion, increment } from 'firebase/fire
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Gem, Palette, Shirt, CheckCircle, Footprints, Hat as HatIcon } from 'lucide-react';
+import { Gem, Palette, Shirt, CheckCircle, Footprints, GraduationCap as HatIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import shopItems from '@/lib/shop-items.json';
 import { useToast } from '@/hooks/use-toast';
@@ -194,8 +194,6 @@ export default function ShopClientPage() {
                                             const isEquipped = customizations[category.id] === item.name;
                                             const rarityClass = rarityConfig[item.rarity as keyof typeof rarityConfig] || rarityConfig.Common;
                                             
-                                            const AccessoryComponent = category.id === 'hat' ? HatIcon : category.id === 'shirt' ? Shirt : category.id === 'shoes' ? Footprints : null;
-
                                             return (
                                                 <Card 
                                                     key={item.name}
