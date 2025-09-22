@@ -87,7 +87,9 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, color, hat, shirt, shoes, 
                     return { rotate: [0, 360], transition: { duration: 1.5, ease: 'linear' }};
                 case 'Jump':
                     return { y: [0, -40, 0, -20, 0], transition: { duration: 0.8, ease: 'easeInOut' }};
-                default: // 'None' or any other value will trigger the wave
+                case 'None':
+                    return { rotate: [0, 15, -15, 10, -10, 0], transition: { duration: 1, ease: 'easeInOut' }};
+                default: // All other equipped dances will default to a wave if not specified
                     return { rotate: [0, 15, -15, 10, -10, 0], transition: { duration: 1, ease: 'easeInOut' }};
             }
         }
