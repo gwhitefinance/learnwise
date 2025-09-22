@@ -2,8 +2,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { db } from '@/lib/firebase';
-import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -12,8 +10,9 @@ import Loading from './loading';
 import { cn } from '@/lib/utils';
 import Navbar from '@/sections/Navbar';
 import Footer from '@/sections/Footer';
+import { getLeaderboard } from './actions';
 
-type UserProfile = {
+export type UserProfile = {
     uid: string;
     displayName: string;
     email: string;
@@ -27,22 +26,9 @@ export default function LeaderboardPage() {
 
     useEffect(() => {
         const fetchLeaderboard = async () => {
+            setLoading(true);
             try {
-                const usersRef = collection(db, 'users');
-                const q = query(usersRef, orderBy('coins', 'desc'), limit(100));
-                const querySnapshot = await getDocs(q);
-
-                const users: UserProfile[] = [];
-                querySnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    users.push({
-                        uid: doc.id,
-                        displayName: data.displayName,
-                        email: data.email,
-                        coins: data.coins,
-                        level: Math.floor(data.coins / 100),
-                    });
-                });
+                const users = await getLeaderboard();
                 setLeaderboard(users);
             } catch (error) {
                 console.error("Error fetching leaderboard:", error);
