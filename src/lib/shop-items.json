@@ -13,25 +13,25 @@
         { "name": "None", "component": null, "price": 0, "rarity": "Common" },
         {
             "name": "Top Hat",
-            "component": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M20,90 L80,90 L80,80 L90,80 L90,40 L10,40 L10,80 L20,80 Z' fill='black' /><path d='M20,38 L80,38 L80,20 L20,20 Z' fill='black' /><rect x='20' y='38' width='60' height='2' fill='#555' /></svg>",
+            "component": "<g transform='translate(-50, 0)'><path d='M20,90 L80,90 L80,80 L90,80 L90,40 L10,40 L10,80 L20,80 Z' fill='black' /><path d='M20,38 L80,38 L80,20 L20,20 Z' fill='black' /><rect x='20' y='38' width='60' height='2' fill='#555' /></g>",
             "price": 0,
             "rarity": "Uncommon"
         },
         {
             "name": "Propeller Hat",
-            "component": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M20 50 C 20 30, 80 30, 80 50' fill='gold' /><path d='M 50 10 L 50 30' stroke='black' stroke-width='2' /><path d='M 30 20 L 70 20' stroke='red' stroke-width='4' style='transform-origin: center; animation: spin 1s linear infinite;' /></svg><style>@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }</style>",
+            "component": "<g transform='translate(-50, 0)'><path d='M20 50 C 20 30, 80 30, 80 50' fill='gold' /><path d='M 50 10 L 50 30' stroke='black' stroke-width='2' /><path d='M 30 20 L 70 20' stroke='red' stroke-width='4' style='transform-origin: center; animation: spin 1s linear infinite;' /></g><style>@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }</style>",
             "price": 0,
             "rarity": "Rare"
         },
         {
             "name": "Crown",
-            "component": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M10 80 L90 80 L90 70 L10 70 Z M 10 70 L 20 40 L 40 60 L 50 30 L 60 60 L 80 40 L 90 70 Z' fill='gold' stroke='black' stroke-width='2' /></svg>",
+            "component": "<g transform='translate(-50, 0)'><path d='M10 80 L90 80 L90 70 L10 70 Z M 10 70 L 20 40 L 40 60 L 50 30 L 60 60 L 80 40 L 90 70 Z' fill='gold' stroke='black' stroke-width='2' /></g>",
             "price": 0,
             "rarity": "Epic"
         },
         {
             "name": "Wizard Hat",
-            "component": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M10 80 L90 80 Q50 70 10 80 M50,10 L20,80 Q50,70 80,80 L50,10' fill='#2c3e50' /><path d='M45 40 L55 50 L65 40' stroke='yellow' stroke-width='3' fill='none' /><path d='M40 55 L50 65 L60 55' stroke='yellow' stroke-width='3' fill='none' /></svg>",
+            "component": "<g transform='translate(-50, 0)'><path d='M10 80 L90 80 Q50 70 10 80 M50,10 L20,80 Q50,70 80,80 L50,10' fill='#2c3e50' /><path d='M45 40 L55 50 L65 40' stroke='yellow' stroke-width='3' fill='none' /><path d='M40 55 L50 65 L60 55' stroke='yellow' stroke-width='3' fill='none' /></g>",
             "price": 0,
             "rarity": "Legendary"
         }
@@ -40,13 +40,13 @@
         { "name": "None", "component": null, "price": 0, "rarity": "Common" },
         {
             "name": "T-Shirt",
-            "component": "<path d='M65 110 L135 110 L135 150 L65 150 Z' fill='rgba(255,0,0,0.5)' style='transform: translate(-32px, -35px);' /><path d='M45 120 L65 110 L65 130 L45 130 Z' fill='rgba(255,0,0,0.5)' style='transform: translate(-32px, -35px);'/><path d='M155 120 L135 110 L135 130 L155 130 Z' fill='rgba(255,0,0,0.5)' style='transform: translate(-32px, -35px);'/>",
+            "component": "<g transform='translate(0, -5)'><path d='M65 110 L135 110 L135 150 L65 150 Z' fill='rgba(255,0,0,0.5)' /><path d='M45 120 L65 110 L65 130 L45 130 Z' fill='rgba(255,0,0,0.5)'/><path d='M155 120 L135 110 L135 130 L155 130 Z' fill='rgba(255,0,0,0.5)'/></g>",
             "price": 0,
             "rarity": "Common"
         },
         {
             "name": "Bow Tie",
-            "component": "<path d='M85 105 L100 95 L100 115 Z' fill='red' stroke='black' stroke-width='2' style='transform: translate(-15px, -5px);' /><path d='M115 105 L100 95 L100 115 Z' fill='red' stroke='black' stroke-width='2' style='transform: translate(-15px, -5px);' />",
+            "component": "<g transform='translate(0, 5)'><path d='M85 105 L100 95 L100 115 Z' fill='red' stroke='black' stroke-width='2' /><path d='M115 105 L100 95 L100 115 Z' fill='red' stroke='black' stroke-width='2' /></g>",
             "price": 0,
             "rarity": "Uncommon"
         }
@@ -73,5 +73,3 @@
         }
     ]
 }
-
-    
