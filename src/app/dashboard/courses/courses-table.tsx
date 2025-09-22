@@ -13,11 +13,12 @@ import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
-import { collection, addDoc, query, where, onSnapshot, deleteDoc, doc } from 'firebase/firestore';
+import { collection, addDoc, query, where, onSnapshot, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
 import dynamic from 'next/dynamic';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { generateCourseFromUrl } from '@/ai/flows/course-from-url-flow';
 
 
 type Course = {
@@ -97,11 +98,45 @@ function CoursesTable({ initialCourses }: { initialCourses: Course[] }) {
         };
 
         try {
-            await addDoc(collection(db, "courses"), courseToAdd);
+            const docRef = await addDoc(collection(db, "courses"), courseToAdd);
             toast({
                 title: 'Course Added!',
                 description: `${courseToAdd.name} has been added to your list.`
             });
+
+            // If a URL was provided, generate the course content with AI
+            if (newCourse.url) {
+                toast({
+                    title: 'Generating Course Content...',
+                    description: 'The AI is analyzing the URL to create course units. This may take a moment.',
+                });
+                
+                const learnerType = localStorage.getItem('learnerType') as any || 'Reading/Writing';
+
+                try {
+                    const { modules } = await generateCourseFromUrl({ courseUrl: newCourse.url, learnerType });
+                    const units = modules.map(module => ({
+                        id: crypto.randomUUID(),
+                        name: module.title,
+                        chapters: module.chapters.map(chapter => ({ ...chapter, id: crypto.randomUUID() }))
+                    }));
+
+                    const courseDocRef = doc(db, 'courses', docRef.id);
+                    await updateDoc(courseDocRef, { units });
+
+                    toast({
+                        title: 'Course Content Generated!',
+                        description: `We've added ${units.length} units to your course.`,
+                    });
+                } catch (aiError) {
+                    console.error("AI generation failed:", aiError);
+                    toast({
+                        variant: 'destructive',
+                        title: 'AI Generation Failed',
+                        description: 'Could not generate course content from the URL. You can add units manually.',
+                    });
+                }
+            }
         } catch(error) {
             console.error("Error adding document: ", error);
             toast({

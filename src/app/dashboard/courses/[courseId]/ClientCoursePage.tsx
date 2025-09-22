@@ -18,18 +18,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 
-type FileInfo = {
-    name: string;
-    type: string;
-    size: number;
-    // In a real app, you'd have a URL from a storage service
-    url: string;
-}
+type Chapter = {
+    id: string;
+    title: string;
+    content: string;
+    activity: string;
+};
 
 type Unit = {
     id: string;
     name: string;
-    files: FileInfo[];
+    chapters: Chapter[];
 }
 
 type Course = {
@@ -55,10 +54,7 @@ export default function ClientCoursePage() {
 
   // State for dialogs
   const [isUnitDialogOpen, setUnitDialogOpen] = useState(false);
-  const [isFileDialogOpen, setFileDialogOpen] = useState(false);
   const [newUnitName, setNewUnitName] = useState('');
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [activeUnitId, setActiveUnitId] = useState<string | null>(null);
   
   const fetchCourse = async () => {
       if (!user || !courseId) return;
@@ -106,7 +102,7 @@ export default function ClientCoursePage() {
       const newUnit: Unit = {
           id: crypto.randomUUID(),
           name: newUnitName,
-          files: []
+          chapters: []
       };
 
       try {
@@ -123,62 +119,6 @@ export default function ClientCoursePage() {
           toast({ variant: 'destructive', title: 'Error', description: 'Could not add the unit.' });
       }
   };
-
-  const handleFileUpload = async () => {
-      if (!selectedFile || !activeUnitId || !course) {
-          toast({ variant: 'destructive', title: 'File and unit are required.' });
-          return;
-      }
-      
-      const fileInfo: FileInfo = {
-          name: selectedFile.name,
-          type: selectedFile.type,
-          size: selectedFile.size,
-          url: '#' // Placeholder URL
-      };
-
-      const updatedUnits = course.units?.map(unit => {
-          if (unit.id === activeUnitId) {
-              return { ...unit, files: [...unit.files, fileInfo] };
-          }
-          return unit;
-      });
-
-      try {
-          const courseRef = doc(db, 'courses', course.id);
-          await updateDoc(courseRef, {
-              units: updatedUnits
-          });
-          toast({ title: 'File Uploaded!', description: `"${selectedFile.name}" has been added.` });
-          setFileDialogOpen(false);
-          setSelectedFile(null);
-          fetchCourse(); // Refetch
-      } catch (error) {
-          console.error("Error uploading file: ", error);
-          toast({ variant: 'destructive', title: 'Error', description: 'Could not upload the file.' });
-      }
-  };
-  
-   const handleDeleteFile = async (unitId: string, fileName: string) => {
-        if (!course) return;
-
-        const updatedUnits = course.units?.map(unit => {
-            if (unit.id === unitId) {
-                return { ...unit, files: unit.files.filter(file => file.name !== fileName) };
-            }
-            return unit;
-        });
-
-        try {
-            const courseRef = doc(db, 'courses', course.id);
-            await updateDoc(courseRef, { units: updatedUnits });
-            toast({ title: 'File Deleted' });
-            fetchCourse(); // Refetch
-        } catch (error) {
-            console.error("Error deleting file: ", error);
-            toast({ variant: 'destructive', title: 'Error', description: 'Could not delete the file.' });
-        }
-    };
 
 
   if (loading || authLoading) {
@@ -283,49 +223,27 @@ export default function ClientCoursePage() {
                     <AccordionItem key={unit.id} value={unit.id}>
                         <AccordionTrigger className="text-lg font-medium">{unit.name}</AccordionTrigger>
                         <AccordionContent>
-                            <div className="flex justify-end mb-4">
-                                <Dialog open={isFileDialogOpen} onOpenChange={setFileDialogOpen}>
-                                    <DialogTrigger asChild>
-                                        <Button size="sm" onClick={() => setActiveUnitId(unit.id)}>
-                                            <UploadCloud className="mr-2 h-4 w-4"/> Upload File
-                                        </Button>
-                                    </DialogTrigger>
-                                    <DialogContent>
-                                        <DialogHeader><DialogTitle>Upload File to "{unit.name}"</DialogTitle></DialogHeader>
-                                        <div className="py-4">
-                                            <Label htmlFor="file-upload">Choose a file</Label>
-                                            <Input id="file-upload" type="file" onChange={e => setSelectedFile(e.target.files?.[0] || null)} />
-                                        </div>
-                                        <DialogFooter>
-                                            <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
-                                            <Button onClick={handleFileUpload}>Upload</Button>
-                                        </DialogFooter>
-                                    </DialogContent>
-                                </Dialog>
-                            </div>
-                           {unit.files.length > 0 ? (
-                                <ul className="space-y-2">
-                                   {unit.files.map(file => (
-                                       <li key={file.name} className="flex items-center justify-between p-2 bg-muted rounded-md">
-                                           <div className="flex items-center gap-3">
-                                               <FileText className="h-5 w-5 text-muted-foreground"/>
-                                               <span className="font-medium text-sm">{file.name}</span>
-                                               <span className="text-xs text-muted-foreground">({(file.size / 1024).toFixed(1)} KB)</span>
+                           {unit.chapters?.length > 0 ? (
+                               <div className="space-y-4 pl-4 border-l-2 ml-2">
+                                   {unit.chapters.map(chapter => (
+                                       <div key={chapter.id}>
+                                           <h4 className="font-semibold text-md">{chapter.title}</h4>
+                                           <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">{chapter.content}</p>
+                                           <div className="mt-2 p-3 bg-amber-500/10 rounded-md border border-amber-500/20 text-sm">
+                                               <p className="font-semibold text-amber-700">Activity:</p>
+                                               <p className="text-muted-foreground">{chapter.activity}</p>
                                            </div>
-                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDeleteFile(unit.id, file.name)}>
-                                                <Trash2 className="h-4 w-4"/>
-                                           </Button>
-                                       </li>
+                                       </div>
                                    ))}
-                               </ul>
+                               </div>
                            ) : (
-                               <p className="text-sm text-muted-foreground text-center py-4">No files in this unit yet.</p>
+                               <p className="text-sm text-muted-foreground text-center py-4">No chapters in this unit yet.</p>
                            )}
                         </AccordionContent>
                     </AccordionItem>
                 )) : (
                     <Card className="text-center p-8 border-dashed">
-                        <p className="text-muted-foreground">No units created yet. Click "Add Unit" to start organizing your course.</p>
+                        <p className="text-muted-foreground">No units created yet. Add a unit or regenerate course content from a URL.</p>
                     </Card>
                 )}
             </Accordion>
@@ -376,4 +294,3 @@ export default function ClientCoursePage() {
     </div>
   );
 }
-
