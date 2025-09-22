@@ -86,7 +86,7 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { getToken } from 'firebase/messaging';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { doc, onSnapshot, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 
 // Sample data for sidebar navigation
@@ -290,6 +290,26 @@ export default function DashboardLayout({
       return;
     }
     if (user) {
+        // Automatically create user profile if it doesn't exist
+        const initUserProfile = async () => {
+            const userRef = doc(db, "users", user.uid);
+            const userSnap = await getDoc(userRef);
+            if (!userSnap.exists()) {
+                try {
+                    await setDoc(userRef, {
+                        displayName: user.displayName || "New User",
+                        email: user.email,
+                        createdAt: serverTimestamp(),
+                        coins: 0,
+                    });
+                    console.log("Created profile for new user:", user.uid);
+                } catch (error) {
+                    console.error("Error creating user profile:", error);
+                }
+            }
+        };
+        initUserProfile();
+
         const userDocRef = doc(db, 'users', user.uid);
         const unsubscribe = onSnapshot(userDocRef, (doc) => {
             if (doc.exists()) {
