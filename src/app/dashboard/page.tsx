@@ -661,7 +661,6 @@ function DashboardPage() {
                                 hat={customizations.hat}
                                 shirt={customizations.shirt}
                                 shoes={customizations.shoes}
-                                dance={customizations.dance}
                             />
                         </div>
                     </motion.div>
