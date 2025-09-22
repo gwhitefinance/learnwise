@@ -418,8 +418,8 @@ export default function DashboardLayout({
 
   return (
     <>
-    <input type="file" ref={fileInputRef} onChange={handleProfilePicChange} className="hidden" accept="image/*" />
     <div className="relative min-h-screen overflow-hidden bg-background">
+      <input type="file" ref={fileInputRef} onChange={handleProfilePicChange} className="hidden" accept="image/*" />
       {/* Animated gradient background */}
       <motion.div
         className="absolute inset-0 -z-10 opacity-20"
@@ -695,5 +695,3 @@ export default function DashboardLayout({
     </>
   );
 }
-
-    
