@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect, useRef, ChangeEvent } from "react";
@@ -35,7 +36,7 @@ import { useAuthState } from "react-firebase-hooks/auth";
 import { auth, db } from "@/lib/firebase";
 import { collection, addDoc, query, where, getDocs, deleteDoc, doc, updateDoc, onSnapshot, orderBy } from "firebase/firestore";
 import { useRouter } from "next/navigation";
-import { format, eachDayOfInterval, startOfWeek, endOfWeek, startOfMonth, endOfMonth, getDay } from 'date-fns';
+import { format, eachDayOfInterval, startOfWeek, endOfWeek, startOfMonth, endOfMonth, getDay, isToday, isEqual, addMonths, subMonths, eachWeekOfInterval, addDays, getWeek } from 'date-fns';
 
 
 type Event = {
@@ -119,7 +120,7 @@ export default function CalendarClientPage() {
   const [tempEventTypes, setTempEventTypes] = useState(eventTypes);
 
   // Date state
-  const [today, setToday] = useState(new Date());
+  const [currentDate, setCurrentDate] = useState(new Date());
 
    useEffect(() => {
     if (loading) return;
@@ -223,8 +224,8 @@ export default function CalendarClientPage() {
 
   const [currentView, setCurrentView] = useState("week")
   
-  const currentMonth = format(today, "MMMM yyyy");
-  const currentDate = format(today, "MMMM d");
+  const currentMonthName = format(currentDate, "MMMM yyyy");
+  const currentDayName = format(currentDate, "MMMM d");
   
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
 
@@ -251,31 +252,33 @@ export default function CalendarClientPage() {
     fileInputRef.current?.click();
   };
 
-  // Dynamic calendar days for the week view
   const weekDays = eachDayOfInterval({
-    start: startOfWeek(today),
-    end: endOfWeek(today)
+    start: startOfWeek(currentDate),
+    end: endOfWeek(currentDate)
   });
 
-  const timeSlots = Array.from({ length: 9 }, (_, i) => i + 8) // 8 AM to 4 PM
+  const monthWeeks = eachWeekOfInterval({
+    start: startOfMonth(currentDate),
+    end: endOfMonth(currentDate)
+  }, { weekStartsOn: 0 });
 
-  // Helper function to calculate event position and height
+  const timeSlots = Array.from({ length: 17 }, (_, i) => i + 8) // 8 AM to 12 AM
+
   const calculateEventStyle = (startTime: string, endTime: string) => {
     const start = Number.parseInt(startTime.split(":")[0]) + Number.parseInt(startTime.split(":")[1]) / 60
     const end = Number.parseInt(endTime.split(":")[0]) + Number.parseInt(endTime.split(":")[1]) / 60
-    const top = (start - 8) * 80 // 80px per hour
-    const height = (end - start) * 80
+    const top = (start - 8) * 60 // 60px per hour
+    const height = (end - start) * 60
     return { top: `${top}px`, height: `${height}px` }
   }
 
-  // Dynamic data for mini calendar
-  const firstDayOfMonth = startOfMonth(today);
-  const lastDayOfMonth = endOfMonth(today);
+  const firstDayOfMonth = startOfMonth(currentDate);
+  const lastDayOfMonth = endOfMonth(currentDate);
   const daysInMonthArray = eachDayOfInterval({ start: firstDayOfMonth, end: lastDayOfMonth });
   const firstDayOffset = getDay(firstDayOfMonth);
   
-  const miniCalendarDays = Array.from({ length: firstDayOffset + daysInMonthArray.length }, (_, i) =>
-    i < firstDayOffset ? null : daysInMonthArray[i - firstDayOffset].getDate()
+  const miniCalendarDays = Array.from({ length: firstDayOffset }, () => null).concat(
+    daysInMonthArray.map(day => day.getDate())
   );
 
 
@@ -284,7 +287,6 @@ export default function CalendarClientPage() {
         if (isPlaying) {
             audioRef.current.pause();
         } else {
-            // If not playing and no song is selected yet, pick a random one
             if (!audioRef.current.src) {
                 const randomSong = classicalPlaylist[Math.floor(Math.random() * classicalPlaylist.length)];
                 audioRef.current.src = randomSong;
@@ -320,7 +322,6 @@ export default function CalendarClientPage() {
 
         setIsSavingEvent(true);
         
-        // Optimistic UI update
         const tempId = crypto.randomUUID();
         const eventData = {
             id: tempId,
@@ -339,7 +340,6 @@ export default function CalendarClientPage() {
             userId: user.uid,
         };
 
-        // Immediately update state and close dialog
         setEvents(prev => [...prev, eventData]);
         scheduleReminder(eventData);
         setCreateDialogOpen(false);
@@ -348,11 +348,10 @@ export default function CalendarClientPage() {
 
         try {
             const docData = { ...eventData };
-            delete (docData as any).id; // Don't save temp ID
+            delete (docData as any).id;
 
             const docRef = await addDoc(collection(db, "calendarEvents"), docData);
 
-            // Update the event with the real ID from Firestore
             setEvents(prev => prev.map(e => e.id === tempId ? { ...e, id: docRef.id } : e));
 
             toast({
@@ -362,7 +361,6 @@ export default function CalendarClientPage() {
 
         } catch (error) {
             console.error("Error adding event: ", error);
-            // Revert optimistic update
             setEvents(prev => prev.filter(e => e.id !== tempId));
             toast({
                 variant: "destructive",
@@ -415,10 +413,8 @@ export default function CalendarClientPage() {
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-white">
-      {/* Audio Element */}
       <audio ref={audioRef} loop />
 
-      {/* Background Image */}
       {backgroundImage ? (
         <Image
             src={backgroundImage}
@@ -428,8 +424,6 @@ export default function CalendarClientPage() {
         />
       ) : <div className="absolute inset-0 z-0 bg-white"></div>}
 
-
-      {/* Navigation */}
       <header
         className={`absolute top-0 left-0 right-0 z-10 flex items-center justify-center px-8 py-6 opacity-0 ${isLoaded ? "animate-fade-in" : ""}`}
         style={{ animationDelay: "0.2s" }}
@@ -507,9 +501,7 @@ export default function CalendarClientPage() {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="relative h-screen w-full pt-20 flex">
-        {/* Sidebar */}
         <div
           className={`w-64 h-full ${bgClass} p-4 shadow-xl border-r ${borderClass} rounded-tr-3xl opacity-0 ${isLoaded ? "animate-fade-in" : ""} flex flex-col justify-between`}
           style={{ animationDelay: "0.4s" }}
@@ -589,15 +581,14 @@ export default function CalendarClientPage() {
               </DialogContent>
             </Dialog>
 
-            {/* Mini Calendar */}
             <div className="mb-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className={`${textClass} font-medium`}>{currentMonth}</h3>
+                <h3 className={`${textClass} font-medium`}>{currentMonthName}</h3>
                 <div className="flex gap-1">
-                  <button className="p-1 rounded-full hover:bg-white/20">
+                  <button onClick={() => setCurrentDate(subMonths(currentDate, 1))} className="p-1 rounded-full hover:bg-white/20">
                     <ChevronLeft className={`h-4 w-4 ${textClass}`} />
                   </button>
-                  <button className="p-1 rounded-full hover:bg-white/20">
+                  <button onClick={() => setCurrentDate(addMonths(currentDate, 1))} className="p-1 rounded-full hover:bg-white/20">
                     <ChevronRight className={`h-4 w-4 ${textClass}`} />
                   </button>
                 </div>
@@ -614,7 +605,7 @@ export default function CalendarClientPage() {
                   <div
                     key={i}
                     className={`text-xs rounded-full w-7 h-7 flex items-center justify-center ${
-                      day === today.getDate() ? "bg-blue-500 text-white" : `${textClass} hover:bg-white/20`
+                      day && isToday(new Date(currentDate.getFullYear(), currentDate.getMonth(), day)) ? "bg-blue-500 text-white" : `${textClass} hover:bg-white/20`
                     } ${!day ? "invisible" : ""}`}
                   >
                     {day}
@@ -623,7 +614,6 @@ export default function CalendarClientPage() {
               </div>
             </div>
 
-            {/* Event Type Legend */}
             <div>
               <h3 className={`${textClass} font-medium mb-3`}>Event Types</h3>
               <div className="space-y-2">
@@ -637,7 +627,6 @@ export default function CalendarClientPage() {
             </div>
           </div>
 
-          {/* New position for the big plus button */}
             <Dialog open={isCreateDialogOpen} onOpenChange={setCreateDialogOpen}>
               <DialogTrigger asChild>
                 <button className="mt-6 flex items-center justify-center gap-2 rounded-full bg-blue-500 p-4 text-white w-14 h-14 self-start">
@@ -647,24 +636,22 @@ export default function CalendarClientPage() {
             </Dialog>
         </div>
 
-        {/* Calendar View */}
         <div
           className={`flex-1 flex flex-col opacity-0 ${isLoaded ? "animate-fade-in" : ""}`}
           style={{ animationDelay: "0.6s" }}
         >
-          {/* Calendar Controls */}
           <div className={`flex items-center justify-between p-4 border-b ${borderClass}`}>
             <div className="flex items-center gap-4">
-              <Button variant="outline" className={`px-4 py-2 ${textClass} rounded-md`}>Today</Button>
+              <Button onClick={() => setCurrentDate(new Date())} variant="outline" className={`px-4 py-2 ${textClass} rounded-md`}>Today</Button>
               <div className="flex">
-                <button className={`p-2 ${textClass} hover:bg-white/10 rounded-l-md`}>
+                <button onClick={() => setCurrentDate(currentView === 'month' ? subMonths(currentDate, 1) : addDays(currentDate, -1))} className={`p-2 ${textClass} hover:bg-white/10 rounded-l-md`}>
                   <ChevronLeft className="h-5 w-5" />
                 </button>
-                <button className={`p-2 ${textClass} hover:bg-white/10 rounded-r-md`}>
+                <button onClick={() => setCurrentDate(currentView === 'month' ? addMonths(currentDate, 1) : addDays(currentDate, 1))} className={`p-2 ${textClass} hover:bg-white/10 rounded-r-md`}>
                   <ChevronRight className="h-5 w-5" />
                 </button>
               </div>
-              <h2 className={`text-xl font-semibold ${textClass}`}>{currentDate}</h2>
+              <h2 className={`text-xl font-semibold ${textClass}`}>{currentView === 'month' ? currentMonthName : currentDayName}</h2>
             </div>
 
             <div className={`flex items-center gap-2 rounded-md p-1 ${bgClass}`}>
@@ -689,71 +676,117 @@ export default function CalendarClientPage() {
             </div>
           </div>
 
-          {/* Week View */}
           <div className="flex-1 overflow-auto p-4">
-            <div className={`${bgClass} rounded-xl border ${borderClass} shadow-xl h-full`}>
-              {/* Week Header */}
-              <div className={`grid grid-cols-8 border-b ${borderClass}`}>
-                <div className={`p-2 text-center ${textMutedClass} text-xs`}></div>
-                {weekDays.map((day, i) => (
-                  <div key={i} className={`p-2 text-center border-l ${borderClass}`}>
-                    <div className={`text-xs ${textMutedClass} font-medium`}>{format(day, 'EEE')}</div>
-                    <div
-                      className={`text-lg font-medium mt-1 ${textClass} ${format(day, 'd') === format(today, 'd') ? "bg-blue-500 rounded-full w-8 h-8 flex items-center justify-center mx-auto" : ""}`}
-                    >
-                      {format(day, 'd')}
-                    </div>
+              <div className={`${bgClass} rounded-xl border ${borderClass} shadow-xl h-full`}>
+              {currentView === 'day' && (
+                  <div className="grid grid-cols-[auto,1fr]">
+                      <div className={`${textMutedClass}`}>
+                          {timeSlots.map((time, i) => (
+                              <div key={i} className={`h-16 border-b ${borderClass} pr-2 text-right text-xs flex items-center justify-end`}>
+                                  {time > 12 ? `${time - 12} PM` : `${time === 12 ? '12 PM' : `${time} AM`}`}
+                              </div>
+                          ))}
+                      </div>
+                      <div className={`border-l ${borderClass} relative`}>
+                          {timeSlots.map((_, timeIndex) => (
+                              <div key={timeIndex} className={`h-16 border-b ${borderClass}`}></div>
+                          ))}
+                          {events
+                              .filter((event) => new Date(event.date).toDateString() === currentDate.toDateString())
+                              .map((event, i) => {
+                                  const eventStyle = calculateEventStyle(event.startTime, event.endTime);
+                                  return (
+                                      <div
+                                          key={i}
+                                          className={`absolute ${eventTypes[event.type]} rounded-md p-2 text-white text-xs shadow-md cursor-pointer transition-all duration-200 ease-in-out hover:translate-y-[-2px] hover:shadow-lg`}
+                                          style={{ ...eventStyle, left: "4px", right: "4px" }}
+                                          onClick={() => handleEventClick(event)}
+                                      >
+                                          <div className="font-medium">{event.title}</div>
+                                          <div className="opacity-80 text-[10px] mt-1">{`${event.startTime} - ${event.endTime}`}</div>
+                                      </div>
+                                  )
+                              })}
+                      </div>
                   </div>
-                ))}
-              </div>
+              )}
 
-              {/* Time Grid */}
-              <div className="grid grid-cols-8">
-                {/* Time Labels */}
-                <div className={`${textMutedClass}`}>
-                  {timeSlots.map((time, i) => (
-                    <div key={i} className={`h-20 border-b ${borderClass} pr-2 text-right text-xs flex items-center justify-end`}>
-                      {time > 12 ? `${time - 12} PM` : `${time} AM`}
-                    </div>
-                  ))}
-                </div>
-
-                {/* Days Columns */}
-                {weekDays.map((day, dayIndex) => (
-                  <div key={dayIndex} className={`border-l ${borderClass} relative`}>
-                    {timeSlots.map((_, timeIndex) => (
-                      <div key={timeIndex} className={`h-20 border-b ${borderClass}`}></div>
-                    ))}
-
-                    {/* Events */}
-                    {events
-                      .filter((event) => new Date(event.date).toDateString() === day.toDateString())
-                      .map((event, i) => {
-                        const eventStyle = calculateEventStyle(event.startTime, event.endTime)
-                        return (
-                          <div
-                            key={i}
-                            className={`absolute ${eventTypes[event.type]} rounded-md p-2 text-white text-xs shadow-md cursor-pointer transition-all duration-200 ease-in-out hover:translate-y-[-2px] hover:shadow-lg`}
-                            style={{
-                              ...eventStyle,
-                              left: "4px",
-                              right: "4px",
-                            }}
-                            onClick={() => handleEventClick(event)}
-                          >
-                            <div className="font-medium">{event.title}</div>
-                            <div className="opacity-80 text-[10px] mt-1">{`${event.startTime} - ${event.endTime}`}</div>
+              {currentView === 'week' && (
+                  <div className="grid grid-cols-8">
+                      <div className={`${textMutedClass} text-xs`}>
+                          {timeSlots.map((time, i) => (
+                              <div key={i} className={`h-16 border-b ${borderClass} pr-2 text-right flex items-center justify-end`}>
+                                  {time > 12 ? `${time - 12} PM` : `${time === 12 ? '12 PM' : `${time} AM`}`}
+                              </div>
+                          ))}
+                      </div>
+                      {weekDays.map((day, dayIndex) => (
+                           <div key={dayIndex} className={`border-l ${borderClass} relative`}>
+                               <div className={`p-2 text-center border-b ${borderClass}`}>
+                                  <div className={`text-xs ${textMutedClass} font-medium`}>{format(day, 'EEE')}</div>
+                                  <div className={`text-lg font-medium mt-1 ${textClass} ${isToday(day) ? "bg-blue-500 rounded-full w-8 h-8 flex items-center justify-center mx-auto" : ""}`}>
+                                      {format(day, 'd')}
+                                  </div>
+                              </div>
+                              <div className="relative">
+                                  {timeSlots.map((_, timeIndex) => (
+                                      <div key={timeIndex} className={`h-16 border-b ${borderClass}`}></div>
+                                  ))}
+                                  {events
+                                      .filter((event) => new Date(event.date).toDateString() === day.toDateString())
+                                      .map((event, i) => {
+                                          const eventStyle = calculateEventStyle(event.startTime, event.endTime);
+                                          return (
+                                              <div
+                                                  key={i}
+                                                  className={`absolute ${eventTypes[event.type]} rounded-md p-2 text-white text-xs shadow-md cursor-pointer transition-all duration-200 ease-in-out hover:translate-y-[-2px] hover:shadow-lg`}
+                                                  style={{ ...eventStyle, left: "4px", right: "4px" }}
+                                                  onClick={() => handleEventClick(event)}
+                                              >
+                                                  <div className="font-medium">{event.title}</div>
+                                                  <div className="opacity-80 text-[10px] mt-1">{`${event.startTime} - ${event.endTime}`}</div>
+                                              </div>
+                                          )
+                                      })}
+                              </div>
                           </div>
-                        )
-                      })}
+                      ))}
                   </div>
-                ))}
-              </div>
+              )}
+              
+              {currentView === 'month' && (
+                  <div className="flex flex-col h-full">
+                      <div className={`grid grid-cols-7 border-b ${borderClass}`}>
+                          {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((dayName) => (
+                              <div key={dayName} className={`p-2 text-center text-sm font-semibold ${textClass}`}>{dayName}</div>
+                          ))}
+                      </div>
+                      <div className="grid grid-cols-7 flex-1">
+                          {Array.from({ length: getDay(startOfMonth(currentDate)) }).map((_, i) => (
+                              <div key={`empty-${i}`} className={`border-r border-b ${borderClass}`}></div>
+                          ))}
+                          {daysInMonthArray.map((day) => (
+                               <div key={day.toString()} className={`relative p-2 border-r border-b ${borderClass} min-h-[120px]`}>
+                                  <div className={`text-sm font-medium ${isToday(day) ? `bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center` : textClass}`}>{format(day, 'd')}</div>
+                                  <div className="mt-1 space-y-1">
+                                      {events.filter(e => isEqual(new Date(e.date.split('T')[0]), day)).map(event => (
+                                          <div key={event.id} className={`${eventTypes[event.type]} text-white text-xs rounded p-1 truncate cursor-pointer`} onClick={() => handleEventClick(event)}>
+                                              {event.title}
+                                          </div>
+                                      ))}
+                                  </div>
+                              </div>
+                          ))}
+                           {Array.from({ length: 6 - getDay(endOfMonth(currentDate)) }).map((_, i) => (
+                              <div key={`empty-end-${i}`} className={`border-r border-b ${borderClass}`}></div>
+                          ))}
+                      </div>
+                  </div>
+              )}
             </div>
           </div>
         </div>
 
-        {/* AI Popup */}
         <AnimatePresence>
         {showAIPopup && (
           <motion.div 
