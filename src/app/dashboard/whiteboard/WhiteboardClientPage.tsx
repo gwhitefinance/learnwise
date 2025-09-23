@@ -12,6 +12,7 @@ import Draggable from 'react-draggable';
 
 export default function WhiteboardClientPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const textRef = useRef<HTMLTextAreaElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [color, setColor] = useState('#ffffff');
   const [brushSize, setBrushSize] = useState(5);
@@ -168,10 +169,12 @@ export default function WhiteboardClientPage() {
             />
              {textBox && textBox.isEditing && (
                 <Draggable
+                    nodeRef={textRef}
                     defaultPosition={{x: textBox.x, y: textBox.y}}
                     onStop={(_, data) => setTextBox({...textBox, x: data.x, y: data.y})}
                 >
                     <textarea
+                        ref={textRef}
                         autoFocus
                         value={textBox.value}
                         onChange={(e) => setTextBox({...textBox, value: e.target.value})}
@@ -183,7 +186,6 @@ export default function WhiteboardClientPage() {
                             position: 'absolute',
                             top: 0, 
                             left: 0,
-                            transform: `translate(${textBox.x}px, ${textBox.y}px)`,
                             color: color,
                             fontSize: `${brushSize * 4}px`,
                             background: 'transparent',
