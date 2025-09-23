@@ -133,7 +133,7 @@ export default function CalendarClientPage() {
         );
         const unsubscribe = onSnapshot(q, (querySnapshot) => {
             const userEvents = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Event));
-            setEvents(userEvents.reverse());
+            setEvents(userEvents);
             userEvents.forEach(scheduleReminder);
 
             // Show AI popup after 3 seconds if there are no events
