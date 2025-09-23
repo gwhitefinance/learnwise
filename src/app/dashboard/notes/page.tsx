@@ -25,6 +25,18 @@ import { auth, db } from '@/lib/firebase';
 import { collection, addDoc, query, where, getDocs, deleteDoc, doc, updateDoc, Timestamp, onSnapshot, orderBy } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+type Unit = {
+    id: string;
+    name: string;
+};
+
+type Course = {
+    id: string;
+    name: string;
+    units?: Unit[];
+};
 
 type Note = {
   id: string;
@@ -35,6 +47,8 @@ type Note = {
   isImportant: boolean;
   isCompleted: boolean;
   userId?: string;
+  courseId?: string;
+  unitId?: string;
 };
 
 type FirestoreNote = Omit<Note, 'date'> & {
@@ -108,11 +122,18 @@ const TodoListItem = ({ note, onDelete, onToggleComplete }: { note: Note, onDele
 
 export default function NotesPage() {
   const [notes, setNotes] = useState<Note[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
   const [isNoteDialogOpen, setNoteDialogOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [newNoteTitle, setNewNoteTitle] = useState('');
   const [newNoteContent, setNewNoteContent] = useState('');
+  const [newNoteCourseId, setNewNoteCourseId] = useState<string | undefined>(undefined);
+  const [newNoteUnitId, setNewNoteUnitId] = useState<string | undefined>(undefined);
   const [activeTab, setActiveTab] = useState('all');
+
+  const [filterCourseId, setFilterCourseId] = useState<string | null>(null);
+  const [filterUnitId, setFilterUnitId] = useState<string | null>(null);
+
   const [isSummaryDialogOpen, setSummaryDialogOpen] = useState(false);
   const [summaryContent, setSummaryContent] = useState('');
   const [isSummaryLoading, setSummaryLoading] = useState(false);
@@ -157,19 +178,28 @@ export default function NotesPage() {
             } as Note;
         });
         
-        // Sort on the client side
         userNotes.sort((a, b) => b.date.getTime() - a.date.getTime());
-        
         setNotes(userNotes);
         setIsNotesLoading(false);
     });
-    
-    return () => unsubscribe();
-  }, [user, authLoading, router]);
 
+    const coursesQuery = query(collection(db, "courses"), where("userId", "==", user.uid));
+    const unsubscribeCourses = onSnapshot(coursesQuery, (snapshot) => {
+        const userCourses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
+        setCourses(userCourses);
+    });
+    
+    return () => {
+        unsubscribe();
+        unsubscribeCourses();
+    }
+  }, [user, authLoading, router]);
+  
   const resetNewNoteForm = () => {
     setNewNoteTitle('');
     setNewNoteContent('');
+    setNewNoteCourseId(undefined);
+    setNewNoteUnitId(undefined);
   };
 
   const handleAddNote = async () => {
@@ -184,7 +214,7 @@ export default function NotesPage() {
     
     setIsSaving(true);
     const tempId = crypto.randomUUID();
-    const noteData = {
+    const noteData: Note = {
       id: tempId,
       title: newNoteTitle,
       content: newNoteContent,
@@ -193,9 +223,10 @@ export default function NotesPage() {
       isImportant: false,
       isCompleted: false,
       userId: user.uid,
+      courseId: newNoteCourseId,
+      unitId: newNoteUnitId,
     };
 
-    // Optimistic UI update
     setNotes(prev => [noteData, ...prev]);
     setNoteDialogOpen(false);
     resetNewNoteForm();
@@ -203,12 +234,11 @@ export default function NotesPage() {
 
 
     try {
-        const docData = { ...noteData };
-        delete (docData as any).id; // Don't save temp ID
+        const docData: Omit<Note, 'id'> = { ...noteData };
+        delete (docData as any).id;
 
         const docRef = await addDoc(collection(db, "notes"), docData);
 
-        // Update note with real ID
         setNotes(prev => prev.map(n => n.id === tempId ? { ...n, id: docRef.id } : n));
 
         toast({
@@ -217,7 +247,6 @@ export default function NotesPage() {
         });
     } catch(error) {
         console.error("Error adding note: ", error);
-        // Revert optimistic update
         setNotes(prev => prev.filter(n => n.id !== tempId));
         toast({
             variant: 'destructive',
@@ -328,11 +357,28 @@ export default function NotesPage() {
     }
   };
 
-  const allNotesTab = notes.filter(note => !note.isCompleted);
-  const importantNotesTab = notes.filter(note => note.isImportant && !note.isCompleted);
-  const todoNotesTab = notes.filter(note => !note.isCompleted);
-  const completedNotesTab = notes.filter(note => note.isCompleted);
+  const getFilteredNotes = () => {
+    let filtered = notes;
 
+    if (filterCourseId && filterCourseId !== 'all') {
+        filtered = filtered.filter(note => note.courseId === filterCourseId);
+        if (filterUnitId && filterUnitId !== 'all') {
+            filtered = filtered.filter(note => note.unitId === filterUnitId);
+        }
+    }
+
+    if (activeTab === 'all') return filtered.filter(note => !note.isCompleted);
+    if (activeTab === 'important') return filtered.filter(note => note.isImportant && !note.isCompleted);
+    if (activeTab === 'todo') return filtered.filter(note => !note.isCompleted);
+    if (activeTab === 'completed') return filtered.filter(note => note.isCompleted);
+
+    return [];
+  };
+
+  const displayedNotes = getFilteredNotes();
+  const selectedCourseForFilter = courses.find(c => c.id === filterCourseId);
+
+  const selectedCourseForDialog = courses.find(c => c.id === newNoteCourseId);
 
   return (
     <>
@@ -354,6 +400,30 @@ export default function NotesPage() {
                 <Label htmlFor="note-title">Title</Label>
                 <Input id="note-title" value={newNoteTitle} onChange={(e) => setNewNoteTitle(e.target.value)} placeholder="Note title"/>
               </div>
+               <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                      <Label htmlFor="note-course">Course</Label>
+                      <Select value={newNoteCourseId} onValueChange={setNewNoteCourseId}>
+                          <SelectTrigger id="note-course"><SelectValue placeholder="Select Course" /></SelectTrigger>
+                          <SelectContent>
+                              {courses.map(course => (
+                                  <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>
+                              ))}
+                          </SelectContent>
+                      </Select>
+                  </div>
+                  <div className="grid gap-2">
+                      <Label htmlFor="note-unit">Unit</Label>
+                      <Select value={newNoteUnitId} onValueChange={setNewNoteUnitId} disabled={!newNoteCourseId || !selectedCourseForDialog?.units}>
+                          <SelectTrigger id="note-unit"><SelectValue placeholder="Select Unit" /></SelectTrigger>
+                          <SelectContent>
+                              {selectedCourseForDialog?.units?.map(unit => (
+                                  <SelectItem key={unit.id} value={unit.id}>{unit.name}</SelectItem>
+                              ))}
+                          </SelectContent>
+                      </Select>
+                  </div>
+              </div>
               <div className="grid gap-2">
                 <Label htmlFor="note-content">Content</Label>
                 <Textarea id="note-content" value={newNoteContent} onChange={(e) => setNewNoteContent(e.target.value)} placeholder="Write your note here..."/>
@@ -368,6 +438,27 @@ export default function NotesPage() {
           </DialogContent>
         </Dialog>
       </div>
+
+       <div className="flex gap-4">
+          <Select value={filterCourseId || 'all'} onValueChange={val => { setFilterCourseId(val); setFilterUnitId(null); }}>
+              <SelectTrigger className="w-[220px]"><SelectValue placeholder="Filter by Course" /></SelectTrigger>
+              <SelectContent>
+                  <SelectItem value="all">All Courses</SelectItem>
+                  {courses.map(course => (
+                      <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>
+                  ))}
+              </SelectContent>
+          </Select>
+          <Select value={filterUnitId || 'all'} onValueChange={val => setFilterUnitId(val)} disabled={!filterCourseId || filterCourseId === 'all'}>
+              <SelectTrigger className="w-[220px]"><SelectValue placeholder="Filter by Unit" /></SelectTrigger>
+              <SelectContent>
+                  <SelectItem value="all">All Units</SelectItem>
+                  {selectedCourseForFilter?.units?.map(unit => (
+                      <SelectItem key={unit.id} value={unit.id}>{unit.name}</SelectItem>
+                  ))}
+              </SelectContent>
+          </Select>
+       </div>
 
       <Tabs defaultValue="all" onValueChange={setActiveTab}>
         <TabsList>
@@ -385,10 +476,10 @@ export default function NotesPage() {
                 </div>
             ) : (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {allNotesTab.map(note => (
+                    {displayedNotes.map(note => (
                         <NoteCard key={note.id} note={note} onDelete={handleDeleteNote} onToggleImportant={handleToggleImportant} onToggleComplete={handleToggleComplete} onSummarize={handleSummarize} onGenerateQuiz={handleGenerateQuiz} onGenerateFlashcards={handleGenerateFlashcards}/>
                     ))}
-                    {allNotesTab.length === 0 && <p className="text-center text-muted-foreground col-span-full py-12">No active notes. Create one to get started!</p>}
+                    {displayedNotes.length === 0 && <p className="text-center text-muted-foreground col-span-full py-12">No active notes. Create one to get started!</p>}
                 </div>
             )}
         </TabsContent>
@@ -400,10 +491,10 @@ export default function NotesPage() {
                 </div>
             ) : (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {importantNotesTab.map(note => (
+                {displayedNotes.map(note => (
                     <NoteCard key={note.id} note={note} onDelete={handleDeleteNote} onToggleImportant={handleToggleImportant} onToggleComplete={handleToggleComplete} onSummarize={handleSummarize} onGenerateQuiz={handleGenerateQuiz} onGenerateFlashcards={handleGenerateFlashcards}/>
                 ))}
-                {importantNotesTab.length === 0 && <p className="text-center text-muted-foreground col-span-full py-12">No important notes yet.</p>}
+                {displayedNotes.length === 0 && <p className="text-center text-muted-foreground col-span-full py-12">No important notes yet.</p>}
                 </div>
             )}
         </TabsContent>
@@ -418,10 +509,10 @@ export default function NotesPage() {
                         </div>
                     ) : (
                         <>
-                        {todoNotesTab.map(note => (
+                        {displayedNotes.map(note => (
                             <TodoListItem key={note.id} note={note} onDelete={handleDeleteNote} onToggleComplete={handleToggleComplete}/>
                         ))}
-                        {todoNotesTab.length === 0 && <p className="p-4 text-center text-muted-foreground">No tasks to do!</p>}
+                        {displayedNotes.length === 0 && <p className="p-4 text-center text-muted-foreground">No tasks to do!</p>}
                         </>
                     )}
                 </CardContent>
@@ -436,10 +527,10 @@ export default function NotesPage() {
                 </div>
             ) : (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {completedNotesTab.map(note => (
+                {displayedNotes.map(note => (
                     <NoteCard key={note.id} note={note} onDelete={handleDeleteNote} onToggleImportant={handleToggleImportant} onToggleComplete={handleToggleComplete} onSummarize={handleSummarize} onGenerateQuiz={handleGenerateQuiz} onGenerateFlashcards={handleGenerateFlashcards}/>
                 ))}
-                {completedNotesTab.length === 0 && <p className="text-center text-muted-foreground col-span-full py-12">No archived notes.</p>}
+                {displayedNotes.length === 0 && <p className="text-center text-muted-foreground col-span-full py-12">No archived notes.</p>}
                 </div>
             )}
         </TabsContent>
