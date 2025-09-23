@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
@@ -14,7 +15,7 @@ export default function WhiteboardClientPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const textRef = useRef<HTMLTextAreaElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
-  const [color, setColor] = useState('#ffffff');
+  const [color, setColor] = useState('#000000');
   const [brushSize, setBrushSize] = useState(5);
   const [tool, setTool] = useState<'pen' | 'text'>('pen');
 
@@ -103,7 +104,7 @@ export default function WhiteboardClientPage() {
     context.fillText(box.value, box.x, box.y);
   };
 
-  const colors = ['#ffffff', '#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6'];
+  const colors = ['#000000', '#ffffff', '#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6'];
 
   return (
     <div className="flex flex-col h-full">
@@ -167,36 +168,36 @@ export default function WhiteboardClientPage() {
               onMouseLeave={stopDrawing}
               onClick={handleCanvasClick}
             />
-             {textBox && textBox.isEditing && (
-                <Draggable
-                    nodeRef={textRef}
-                    defaultPosition={{x: textBox.x, y: textBox.y}}
-                    onStop={(_, data) => setTextBox({...textBox, x: data.x, y: data.y})}
-                >
-                    <textarea
-                        ref={textRef}
-                        autoFocus
-                        value={textBox.value}
-                        onChange={(e) => setTextBox({...textBox, value: e.target.value})}
-                        onBlur={() => {
-                            drawTextOnCanvas(textBox);
-                            setTextBox(null);
-                        }}
-                        style={{
-                            position: 'absolute',
-                            top: 0, 
-                            left: 0,
-                            color: color,
-                            fontSize: `${brushSize * 4}px`,
-                            background: 'transparent',
-                            border: '1px dashed grey',
-                            outline: 'none',
-                            resize: 'none',
-                            lineHeight: 1,
-                        }}
-                        className="p-1"
-                    />
-                </Draggable>
+            {textBox && textBox.isEditing && (
+              <Draggable
+                nodeRef={textRef}
+                defaultPosition={{x: textBox.x, y: textBox.y}}
+                onStop={(_, data) => setTextBox(t => t ? {...t, x: data.x, y: data.y} : null)}
+              >
+                  <textarea
+                      ref={textRef}
+                      autoFocus
+                      value={textBox.value}
+                      onChange={(e) => setTextBox(t => t ? {...t, value: e.target.value} : null)}
+                      onBlur={() => {
+                          if (textBox) drawTextOnCanvas(textBox);
+                          setTextBox(null);
+                      }}
+                      style={{
+                          position: 'absolute',
+                          top: 0, 
+                          left: 0,
+                          color: color,
+                          fontSize: `${brushSize * 4}px`,
+                          background: 'transparent',
+                          border: '1px dashed grey',
+                          outline: 'none',
+                          resize: 'none',
+                          lineHeight: 1,
+                      }}
+                      className="p-1"
+                  />
+              </Draggable>
             )}
           </div>
         </CardContent>
