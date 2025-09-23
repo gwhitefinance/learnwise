@@ -38,6 +38,7 @@ import { auth, db } from "@/lib/firebase";
 import { collection, addDoc, query, where, getDocs, deleteDoc, doc, updateDoc, onSnapshot, orderBy } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { format, eachDayOfInterval, startOfWeek, endOfWeek, startOfMonth, endOfMonth, getDay, isToday, isEqual, addMonths, subMonths, eachWeekOfInterval, addDays, getWeek } from 'date-fns';
+import AIBuddy from "@/components/ai-buddy";
 
 
 type Event = {
@@ -103,6 +104,10 @@ export default function CalendarClientPage() {
   const [reminders, setReminders] = useState<Reminder[]>([]);
   
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+  
+  // State for AI Buddy customizations
+  const [customizations, setCustomizations] = useState<Record<string, string>>({});
+
 
   // New/Edit Event Dialog State
   const [isEventDialogOpen, setEventDialogOpen] = useState(false);
@@ -169,6 +174,11 @@ export default function CalendarClientPage() {
     if(savedEventTypes) {
         setEventTypes(JSON.parse(savedEventTypes));
         setTempEventTypes(JSON.parse(savedEventTypes));
+    }
+    
+    const savedCustomizations = localStorage.getItem(`robotCustomizations_${user.uid}`);
+    if(savedCustomizations) {
+        setCustomizations(JSON.parse(savedCustomizations));
     }
 
   }, [user, loading, router]);
@@ -816,44 +826,53 @@ export default function CalendarClientPage() {
             transition={{ type: "spring", stiffness: 400, damping: 25 }}
             className="fixed bottom-8 right-8 z-20"
           >
-            <div className="w-[450px] relative bg-gradient-to-br from-blue-400/30 via-blue-500/30 to-blue-600/30 backdrop-blur-lg p-6 rounded-2xl shadow-xl border border-blue-300/30 text-white">
+            <div className="w-[400px] relative bg-card/80 backdrop-blur-lg p-4 rounded-2xl shadow-xl border border-border/30 text-card-foreground">
               <button
                 onClick={() => setShowAIPopup(false)}
-                className="absolute top-2 right-2 text-white/70 hover:text-white transition-colors"
+                className="absolute top-2 right-2 text-muted-foreground hover:text-foreground transition-colors"
               >
                 <X className="h-5 w-5" />
               </button>
-              <div className="flex gap-3">
-                <div className="flex-shrink-0">
-                  <Sparkles className="h-5 w-5 text-blue-300" />
+              <div className="flex gap-4">
+                <div className="flex-shrink-0 w-20 h-20">
+                   <AIBuddy
+                        className="w-20 h-20"
+                        color={customizations.color}
+                        hat={customizations.hat}
+                        shirt={customizations.shirt}
+                        shoes={customizations.shoes}
+                    />
                 </div>
-                <div className="min-h-[80px]">
-                  <p className="text-base font-light">{typedText}</p>
+                <div className="flex-1">
+                  <p className="font-semibold">Need help focusing?</p>
+                  <p className="text-sm text-muted-foreground">{typedText}</p>
+                   <div className="mt-3 flex gap-2">
+                    <Button
+                      size="sm"
+                      onClick={togglePlay}
+                    >
+                      Sure, let's focus!
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setShowAIPopup(false)}
+                    >
+                      No thanks
+                    </Button>
+                  </div>
                 </div>
-              </div>
-              <div className="mt-6 flex gap-3">
-                <button
-                  onClick={togglePlay}
-                  className="flex-1 py-2.5 bg-white/10 hover:bg-white/20 rounded-xl text-sm transition-colors font-medium"
-                >
-                  Yes
-                </button>
-                <button
-                  onClick={() => setShowAIPopup(false)}
-                  className="flex-1 py-2.5 bg-white/10 hover:bg-white/20 rounded-xl text-sm transition-colors font-medium"
-                >
-                  No
-                </button>
               </div>
               {isPlaying && (
-                <div className="mt-4 flex items-center justify-between">
-                  <button
-                    className="flex items-center justify-center gap-2 rounded-xl bg-white/10 px-4 py-2.5 text-white text-sm hover:bg-white/20 transition-colors"
+                <div className="mt-2 flex items-center justify-center">
+                  <Button
+                    size="sm"
+                    variant="outline"
                     onClick={togglePlay}
                   >
-                    <Pause className="h-4 w-4" />
-                    <span>Pause Music</span>
-                  </button>
+                    <Pause className="h-4 w-4 mr-2" />
+                    Pause Music
+                  </Button>
                 </div>
               )}
             </div>
