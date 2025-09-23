@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowRight, RotateCcw, Lightbulb, CheckCircle, XCircle, PenSquare, Palette, Brush, Eraser } from 'lucide-react';
+import { ArrowRight, RotateCcw, Lightbulb, CheckCircle, XCircle, PenSquare, Palette, Brush, Eraser, Minimize, Maximize } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { generateQuiz } from '@/ai/flows/quiz-flow';
 import type { GenerateQuizInput, GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
@@ -56,6 +56,9 @@ export default function PracticeQuizPage() {
     
     const { toast } = useToast();
     const [user] = useAuthState(auth);
+
+    const [isFocusMode, setIsFocusMode] = useState(false);
+    const [showFocusModeDialog, setShowFocusModeDialog] = useState(false);
     
     // Whiteboard state
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -73,6 +76,33 @@ export default function PracticeQuizPage() {
     useEffect(() => {
         const storedLearnerType = localStorage.getItem('learnerType');
         setLearnerType(storedLearnerType ?? 'Unknown');
+    }, []);
+
+    const enterFocusMode = () => {
+        document.documentElement.requestFullscreen();
+        setIsFocusMode(true);
+        setShowFocusModeDialog(false);
+    };
+
+    const exitFocusMode = () => {
+        if (document.fullscreenElement) {
+            document.exitFullscreen();
+        }
+        setIsFocusMode(false);
+    };
+
+    useEffect(() => {
+        const handleFullscreenChange = () => {
+            if (!document.fullscreenElement) {
+                setIsFocusMode(false);
+            }
+        };
+
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+
+        return () => {
+            document.removeEventListener('fullscreenchange', handleFullscreenChange);
+        };
     }, []);
 
     const handleGenerateQuiz = async () => {
@@ -95,7 +125,7 @@ export default function PracticeQuizPage() {
             };
             const generatedQuiz = await generateQuiz(input);
             setQuiz(generatedQuiz);
-            setQuizState('in-progress');
+            setShowFocusModeDialog(true); // Show focus mode dialog
              toast({
                 title: 'Quiz Generated!',
                 description: 'Your quiz is ready.',
@@ -111,6 +141,11 @@ export default function PracticeQuizPage() {
             setIsLoading(false);
         }
     };
+
+    const startQuiz = () => {
+        setQuizState('in-progress');
+        setShowFocusModeDialog(false);
+    }
     
     const handleSubmitAnswer = async () => {
         if (!quiz || selectedAnswer === null) return;
@@ -185,11 +220,13 @@ export default function PracticeQuizPage() {
                     })
                 }
             }
+            if (isFocusMode) exitFocusMode();
             setQuizState('results');
         }
     };
     
     const handleStartNewQuiz = () => {
+        if (isFocusMode) exitFocusMode();
         setQuizState('configuring');
         setQuiz(null);
         setCurrentQuestionIndex(0);
@@ -271,6 +308,11 @@ export default function PracticeQuizPage() {
 
         return (
              <div className="flex flex-col items-center">
+                {isFocusMode && (
+                    <Button onClick={exitFocusMode} variant="outline" className="fixed top-4 right-4 z-50">
+                        <Minimize className="mr-2 h-4 w-4"/> Exit Focus Mode
+                    </Button>
+                )}
                 <div className="text-center mb-10 w-full max-w-3xl">
                     <p className="text-muted-foreground mb-2">Question {currentQuestionIndex + 1} of {quiz.questions.length}</p>
                     <Progress value={progress} className="mb-4 h-2"/>
@@ -436,6 +478,21 @@ export default function PracticeQuizPage() {
     
     return (
         <div className="flex flex-col items-center">
+            <Dialog open={showFocusModeDialog} onOpenChange={setShowFocusModeDialog}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Enter Focus Mode?</DialogTitle>
+                        <DialogDescription>
+                            Focus Mode provides a distraction-free, fullscreen environment for your quiz. You can exit anytime by pressing 'Esc' or clicking the exit button.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button variant="ghost" onClick={startQuiz}>No, thanks</Button>
+                        <Button onClick={enterFocusMode}><Maximize className="mr-2 h-4 w-4"/> Enter Focus Mode</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
             <div className="text-center mb-10">
                 <h1 className="text-4xl font-bold">Practice Quiz</h1>
                 <p className="text-muted-foreground mt-2">Generate a customized quiz to test your knowledge.</p>
