@@ -21,6 +21,7 @@ import {
   Trash,
   Bell,
   BellRing,
+  Edit,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AnimatePresence, motion } from "framer-motion";
@@ -100,21 +101,25 @@ export default function CalendarClientPage() {
   
   const [eventTypes, setEventTypes] = useState<EventTypes>(defaultEventTypes);
   const [reminders, setReminders] = useState<Reminder[]>([]);
-
-  // New Event Dialog State
-  const [isCreateDialogOpen, setCreateDialogOpen] = useState(false);
-  const [isSavingEvent, setIsSavingEvent] = useState(false);
-  const [newEventTitle, setNewEventTitle] = useState('');
-  const [newEventDesc, setNewEventDesc] = useState('');
-  const [newEventDate, setNewEventDate] = useState<Date | undefined>(new Date());
-  const [newEventStartTime, setNewEventStartTime] = useState('10:00');
-  const [newEventEndTime, setNewEventEndTime] = useState('11:00');
-  const [newEventLocation, setNewEventLocation] = useState('Remote');
-  const [newEventOrganizer, setNewEventOrganizer] = useState('Self');
-  const [newEventAttendees, setNewEventAttendees] = useState('');
-  const [newEventType, setNewEventType] = useState<keyof EventTypes>('Event');
-  const [newEventReminder, setNewEventReminder] = useState(10);
   
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+
+  // New/Edit Event Dialog State
+  const [isEventDialogOpen, setEventDialogOpen] = useState(false);
+  const [isSavingEvent, setIsSavingEvent] = useState(false);
+  const [eventForm, setEventForm] = useState({
+    title: '',
+    description: '',
+    date: new Date() as Date | undefined,
+    startTime: '10:00',
+    endTime: '11:00',
+    location: 'Remote',
+    organizer: 'Self',
+    attendees: '',
+    type: 'Event' as keyof EventTypes,
+    reminderMinutes: 10,
+  });
+
   // Settings dialog
   const [isSettingsOpen, setSettingsOpen] = useState(false);
   const [tempEventTypes, setTempEventTypes] = useState(eventTypes);
@@ -297,21 +302,47 @@ export default function CalendarClientPage() {
     }
   }
 
-    const resetNewEventForm = () => {
-        setNewEventTitle('');
-        setNewEventDesc('');
-        setNewEventDate(new Date());
-        setNewEventStartTime('10:00');
-        setNewEventEndTime('11:00');
-        setNewEventLocation('Remote');
-        setNewEventOrganizer('Self');
-        setNewEventAttendees('');
-        setNewEventType('Event');
-        setNewEventReminder(10);
+    const resetEventForm = () => {
+        setEventForm({
+            title: '',
+            description: '',
+            date: new Date(),
+            startTime: '10:00',
+            endTime: '11:00',
+            location: 'Remote',
+            organizer: 'Self',
+            attendees: '',
+            type: 'Event',
+            reminderMinutes: 10,
+        });
+        setEditingEvent(null);
+    }
+    
+    const handleOpenCreateDialog = () => {
+        resetEventForm();
+        setEventDialogOpen(true);
+    };
+
+    const handleOpenEditDialog = (event: Event) => {
+        setSelectedEvent(null);
+        setEditingEvent(event);
+        setEventForm({
+            title: event.title,
+            description: event.description,
+            date: new Date(event.date),
+            startTime: event.startTime,
+            endTime: event.endTime,
+            location: event.location,
+            organizer: event.organizer,
+            attendees: event.attendees.join(', '),
+            type: event.type,
+            reminderMinutes: event.reminderMinutes,
+        });
+        setEventDialogOpen(true);
     }
 
-    const handleAddEvent = async () => {
-        if (!newEventTitle || !newEventDate || !user) {
+    const handleSaveEvent = async () => {
+        if (!eventForm.title || !eventForm.date || !user) {
             toast({
                 variant: "destructive",
                 title: "Missing Information",
@@ -322,52 +353,46 @@ export default function CalendarClientPage() {
 
         setIsSavingEvent(true);
         
-        const tempId = crypto.randomUUID();
         const eventData = {
-            id: tempId,
-            title: newEventTitle,
-            description: newEventDesc,
-            date: newEventDate.toISOString(),
-            startTime: newEventStartTime,
-            endTime: newEventEndTime,
-            day: newEventDate.getDay(),
-            type: newEventType,
-            color: eventTypes[newEventType],
-            location: newEventLocation,
-            organizer: newEventOrganizer,
-            attendees: newEventAttendees.split(',').map(s => s.trim()).filter(Boolean),
-            reminderMinutes: newEventReminder,
+            title: eventForm.title,
+            description: eventForm.description,
+            date: eventForm.date.toISOString(),
+            startTime: eventForm.startTime,
+            endTime: eventForm.endTime,
+            day: eventForm.date.getDay(),
+            type: eventForm.type,
+            color: eventTypes[eventForm.type],
+            location: eventForm.location,
+            organizer: eventForm.organizer,
+            attendees: eventForm.attendees.split(',').map(s => s.trim()).filter(Boolean),
+            reminderMinutes: eventForm.reminderMinutes,
             userId: user.uid,
         };
-
-        setEvents(prev => [...prev, eventData]);
-        scheduleReminder(eventData);
-        setCreateDialogOpen(false);
-        resetNewEventForm();
-        setIsSavingEvent(false);
-
-        try {
-            const docData = { ...eventData };
-            delete (docData as any).id;
-
-            const docRef = await addDoc(collection(db, "calendarEvents"), docData);
-
-            setEvents(prev => prev.map(e => e.id === tempId ? { ...e, id: docRef.id } : e));
-
-            toast({
-                title: "Event Created!",
-                description: `${eventData.title} has been added to your calendar.`,
-            });
-
-        } catch (error) {
-            console.error("Error adding event: ", error);
-            setEvents(prev => prev.filter(e => e.id !== tempId));
-            toast({
-                variant: "destructive",
-                title: "Error",
-                description: "Could not add event. Please try again.",
-            });
+        
+        if (editingEvent) {
+             try {
+                const eventRef = doc(db, "calendarEvents", editingEvent.id);
+                await updateDoc(eventRef, eventData);
+                scheduleReminder({ ...editingEvent, ...eventData });
+                toast({ title: "Event Updated!", description: `${eventData.title} has been updated.` });
+            } catch (error) {
+                console.error("Error updating event:", error);
+                toast({ variant: "destructive", title: "Error", description: "Could not update event." });
+            }
+        } else {
+            try {
+                const docRef = await addDoc(collection(db, "calendarEvents"), eventData);
+                scheduleReminder({ id: docRef.id, ...eventData });
+                toast({ title: "Event Created!", description: `${eventData.title} has been added to your calendar.` });
+            } catch (error) {
+                console.error("Error adding event: ", error);
+                toast({ variant: "destructive", title: "Error", description: "Could not add event. Please try again." });
+            }
         }
+
+        setEventDialogOpen(false);
+        resetEventForm();
+        setIsSavingEvent(false);
     };
   
     const handleDeleteEvent = async (eventId: string) => {
@@ -507,34 +532,37 @@ export default function CalendarClientPage() {
           style={{ animationDelay: "0.4s" }}
         >
           <div>
-            <Dialog open={isCreateDialogOpen} onOpenChange={setCreateDialogOpen}>
+            <Dialog open={isEventDialogOpen} onOpenChange={setEventDialogOpen}>
               <DialogTrigger asChild>
-                <button className="mb-6 flex items-center justify-center gap-2 rounded-full bg-blue-500 px-4 py-3 text-white w-full">
+                <button
+                    onClick={handleOpenCreateDialog}
+                    className="mb-6 flex items-center justify-center gap-2 rounded-full bg-blue-500 px-4 py-3 text-white w-full"
+                >
                   <Plus className="h-5 w-5" />
                   <span>Create</span>
                 </button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Create New Event</DialogTitle>
+                  <DialogTitle>{editingEvent ? 'Edit Event' : 'Create New Event'}</DialogTitle>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                   <div className="grid gap-2">
                     <Label htmlFor="event-title">Title</Label>
-                    <Input id="event-title" value={newEventTitle} onChange={(e) => setNewEventTitle(e.target.value)} placeholder="e.g. Midterm Study Session" />
+                    <Input id="event-title" value={eventForm.title} onChange={(e) => setEventForm({...eventForm, title: e.target.value})} placeholder="e.g. Midterm Study Session" />
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="event-desc">Description</Label>
-                    <Textarea id="event-desc" value={newEventDesc} onChange={(e) => setNewEventDesc(e.target.value)} placeholder="e.g. Review chapters 3-5" />
+                    <Textarea id="event-desc" value={eventForm.description} onChange={(e) => setEventForm({...eventForm, description: e.target.value})} placeholder="e.g. Review chapters 3-5" />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                      <div className="grid gap-2">
                         <Label htmlFor="event-date">Date</Label>
-                        <DatePicker date={newEventDate} setDate={setNewEventDate} />
+                        <DatePicker date={eventForm.date} setDate={(d) => setEventForm({...eventForm, date: d})} />
                     </div>
                      <div className="grid gap-2">
                         <Label htmlFor="event-type">Event Type</Label>
-                         <Select onValueChange={(value: keyof EventTypes) => setNewEventType(value)} defaultValue={newEventType}>
+                         <Select onValueChange={(value: keyof EventTypes) => setEventForm({...eventForm, type: value})} value={eventForm.type}>
                             <SelectTrigger>
                                 <SelectValue placeholder="Select type" />
                             </SelectTrigger>
@@ -549,16 +577,16 @@ export default function CalendarClientPage() {
                   <div className="grid grid-cols-2 gap-4">
                         <div className="grid gap-2">
                             <Label htmlFor="event-start-time">Start Time</Label>
-                            <Input id="event-start-time" type="time" value={newEventStartTime} onChange={(e) => setNewEventStartTime(e.target.value)} />
+                            <Input id="event-start-time" type="time" value={eventForm.startTime} onChange={(e) => setEventForm({...eventForm, startTime: e.target.value})} />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="event-end-time">End Time</Label>
-                            <Input id="event-end-time" type="time" value={newEventEndTime} onChange={(e) => setNewEventEndTime(e.target.value)} />
+                            <Input id="event-end-time" type="time" value={eventForm.endTime} onChange={(e) => setEventForm({...eventForm, endTime: e.target.value})} />
                         </div>
                     </div>
                   <div className="grid gap-2">
                     <Label htmlFor="event-reminder">Reminder</Label>
-                     <Select onValueChange={(value) => setNewEventReminder(Number(value))} defaultValue={String(newEventReminder)}>
+                     <Select onValueChange={(value) => setEventForm({...eventForm, reminderMinutes: Number(value)})} value={String(eventForm.reminderMinutes)}>
                         <SelectTrigger>
                             <SelectValue placeholder="Select reminder time" />
                         </SelectTrigger>
@@ -574,7 +602,7 @@ export default function CalendarClientPage() {
                 </div>
                 <DialogFooter>
                   <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
-                  <Button onClick={handleAddEvent} disabled={isSavingEvent}>
+                  <Button onClick={handleSaveEvent} disabled={isSavingEvent}>
                     {isSavingEvent ? "Saving..." : "Save Event"}
                   </Button>
                 </DialogFooter>
@@ -626,14 +654,6 @@ export default function CalendarClientPage() {
               </div>
             </div>
           </div>
-
-            <Dialog open={isCreateDialogOpen} onOpenChange={setCreateDialogOpen}>
-              <DialogTrigger asChild>
-                <button className="mt-6 flex items-center justify-center gap-2 rounded-full bg-blue-500 p-4 text-white w-14 h-14 self-start">
-                  <Plus className="h-6 w-6" />
-                </button>
-              </DialogTrigger>
-            </Dialog>
         </div>
 
         <div
@@ -897,12 +917,18 @@ export default function CalendarClientPage() {
                 </p>
               </div>
                <div className="mt-6 flex justify-between">
-                <Button
-                    variant="destructive"
-                    onClick={() => handleDeleteEvent(selectedEvent.id)}
-                >
-                    <Trash className="mr-2 h-4 w-4"/> Delete
-                </Button>
+                <div>
+                  <Button variant="outline" className="bg-white/20 hover:bg-white/30 text-white" onClick={() => handleOpenEditDialog(selectedEvent)}>
+                      <Edit className="mr-2 h-4 w-4"/> Edit
+                  </Button>
+                  <Button
+                      variant="ghost"
+                      className="text-white hover:bg-white/20 hover:text-white"
+                      onClick={() => handleDeleteEvent(selectedEvent.id)}
+                  >
+                      <Trash className="mr-2 h-4 w-4"/> Delete
+                  </Button>
+                </div>
                 <Button
                   variant="outline"
                   className="bg-white text-gray-800 px-4 py-2 rounded hover:bg-gray-100 transition-colors"
