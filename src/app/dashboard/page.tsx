@@ -37,8 +37,6 @@ import {
   Wand2,
   CheckCircle,
   XCircle,
-  RadioGroup,
-  RadioGroupItem,
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -75,6 +73,7 @@ import rewardsData from '@/lib/rewards.json';
 import { generateExplanation } from '@/ai/flows/quiz-explanation-flow';
 import AudioPlayer from '@/components/audio-player';
 import type { GenerateExplanationOutput } from '@/ai/schemas/quiz-explanation-schema';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 
   type CourseFile = {
