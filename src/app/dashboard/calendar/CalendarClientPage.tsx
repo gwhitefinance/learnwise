@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef, ChangeEvent } from "react";
@@ -128,11 +129,11 @@ export default function CalendarClientPage() {
         const q = query(
             collection(db, "calendarEvents"), 
             where("userId", "==", user.uid),
-            orderBy("date", "desc")
+            orderBy("date", "asc")
         );
         const unsubscribe = onSnapshot(q, (querySnapshot) => {
             const userEvents = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Event));
-            setEvents(userEvents);
+            setEvents(userEvents.reverse());
             userEvents.forEach(scheduleReminder);
 
             // Show AI popup after 3 seconds if there are no events
