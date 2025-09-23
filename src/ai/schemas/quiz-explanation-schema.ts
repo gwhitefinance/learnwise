@@ -13,7 +13,15 @@ export const GenerateExplanationInputSchema = z.object({
 export type GenerateExplanationInput = z.infer<typeof GenerateExplanationInputSchema>;
 
 
+const PracticeQuestionSchema = z.object({
+    question: z.string(),
+    options: z.array(z.string()),
+    answer: z.string(),
+});
+
+
 export const GenerateExplanationOutputSchema = z.object({
   explanation: z.string().describe('The tailored explanation for the user.'),
+  practiceQuestion: PracticeQuestionSchema.describe("A new practice question that is similar to the one the user got wrong, but with different values or context."),
 });
 export type GenerateExplanationOutput = z.infer<typeof GenerateExplanationOutputSchema>;

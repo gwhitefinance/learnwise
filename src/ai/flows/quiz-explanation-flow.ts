@@ -12,18 +12,21 @@ const prompt = ai.definePrompt({
     input: { schema: GenerateExplanationInputSchema },
     output: { schema: GenerateExplanationOutputSchema },
     prompt: `You are an expert tutor. A student has answered a quiz question incorrectly. 
-    Your task is to provide a clear, encouraging, and helpful explanation. Keep your explanation concise and to the point, around 2-3 sentences.
+    Your tasks are:
+    1. Provide a clear, encouraging, and helpful explanation (2-3 sentences).
+    2. Generate a brand new, similar multiple-choice practice question to test their understanding.
 
     The user's learning style is {{learnerType}}. Tailor your explanation accordingly:
     - For Visual learners, use descriptive language that helps them visualize the concept.
     - For Auditory learners, explain it as if you were speaking to them.
     - For Kinesthetic learners, relate the concept to a real-world example or a physical action.
 
-    Question: "{{question}}"
-    Their Answer: "{{userAnswer}}"
+    Original Question: "{{question}}"
+    Their Incorrect Answer: "{{userAnswer}}"
     Correct Answer: "{{correctAnswer}}"
 
-    Explain why their answer is incorrect and how to arrive at the correct answer. Keep the tone positive and supportive. Do not just give the answer away. Guide them to the correct thinking process.
+    Explain why their answer is incorrect and how to arrive at the correct answer. Keep the tone positive and supportive.
+    Then, create a new multiple-choice question that tests the same concept but uses different numbers, scenarios, or wording. Provide 4 options and the correct answer for this new question.
     `,
 });
 
