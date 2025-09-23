@@ -23,7 +23,7 @@ import { Slider } from '@/components/ui/slider';
 import AudioPlayer from '@/components/audio-player';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
-import { doc, updateDoc, increment } from 'firebase/firestore';
+import { doc, updateDoc, increment, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { addXp as addXpAction } from '@/lib/actions';
 
 
@@ -83,7 +83,7 @@ export default function PracticeQuizPage() {
             setIsFocusMode(true);
             startQuiz(); // Start the quiz right after entering fullscreen
         }).catch(err => {
-            console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+            console.error(`Error attempting to enable full-screen mode: ${'${err.message}'} (${'${err.name}'})`);
             // If fullscreen fails, still start the quiz.
             setIsFocusMode(false);
             startQuiz();
@@ -149,12 +149,16 @@ export default function PracticeQuizPage() {
     };
 
     const startQuiz = () => {
-        setQuizState('in-progress');
+        if (!quiz) {
+            handleGenerateQuiz();
+        } else {
+            setQuizState('in-progress');
+        }
         setShowFocusModeDialog(false);
     }
     
     const handleSubmitAnswer = async () => {
-        if (!quiz || selectedAnswer === null) return;
+        if (!quiz || selectedAnswer === null || !user) return;
         
         const currentQuestion = quiz.questions[currentQuestionIndex];
         const isCorrect = selectedAnswer.toLowerCase() === currentQuestion.answer.toLowerCase();
@@ -171,6 +175,21 @@ export default function PracticeQuizPage() {
         setAnswers(prev => [...prev, answerFeedback]);
         
         if (!isCorrect) {
+            // Save incorrect answer to Firestore
+            try {
+                await addDoc(collection(db, 'quizAttempts'), {
+                    userId: user.uid,
+                    question: currentQuestion.question,
+                    userAnswer: selectedAnswer,
+                    correctAnswer: currentQuestion.answer,
+                    topic: topics, // Store the general topic for context
+                    timestamp: serverTimestamp()
+                });
+            } catch (error) {
+                console.error("Error saving incorrect answer:", error);
+            }
+            
+            // Generate explanation
             setIsExplanationLoading(true);
             setExplanation(null); // Clear previous explanation
             try {
@@ -208,13 +227,13 @@ export default function PracticeQuizPage() {
                     const { levelUp, newLevel } = await addXpAction(user.uid, xpEarned);
                     if (levelUp) {
                         toast({
-                            title: `🎉 Level Up! You are now Level ${newLevel}! 🎉`,
-                            description: `You also earned ${xpEarned} XP and some coins!`,
+                            title: `🎉 Level Up! You are now Level ${'${newLevel}'}! 🎉`,
+                            description: `You also earned ${'${xpEarned}'} XP and some coins!`,
                         });
                     } else {
                          toast({
                             title: "Quiz Complete!",
-                            description: `You earned ${xpEarned} XP for answering ${correctAnswers} questions correctly!`
+                            description: `You earned ${'${xpEarned}'} XP for answering ${'${correctAnswers}'} questions correctly!`
                         });
                     }
                 } catch(e) {
@@ -521,7 +540,7 @@ export default function PracticeQuizPage() {
                              <Label className="text-sm font-medium">Or Select a Suggested Area</Label>
                              <div className="flex flex-wrap gap-2 mt-2">
                                 {suggestedTopics.map(topic => (
-                                    <Button key={topic} variant="outline" size="sm" onClick={() => setTopics(prev => prev ? `${prev}, ${topic}` : topic)}>
+                                    <Button key={topic} variant="outline" size="sm" onClick={() => setTopics(prev => prev ? `${'${prev}'}, ${'${topic}'}` : topic)}>
                                         {topic}
                                     </Button>
                                 ))}
