@@ -35,6 +35,7 @@ import { useAuthState } from "react-firebase-hooks/auth";
 import { auth, db } from "@/lib/firebase";
 import { collection, addDoc, query, where, getDocs, deleteDoc, doc, updateDoc, onSnapshot, orderBy } from "firebase/firestore";
 import { useRouter } from "next/navigation";
+import { format, eachDayOfInterval, startOfWeek, endOfWeek, startOfMonth, endOfMonth, getDay } from 'date-fns';
 
 
 type Event = {
@@ -116,6 +117,9 @@ export default function CalendarClientPage() {
   // Settings dialog
   const [isSettingsOpen, setSettingsOpen] = useState(false);
   const [tempEventTypes, setTempEventTypes] = useState(eventTypes);
+
+  // Date state
+  const [today, setToday] = useState(new Date());
 
    useEffect(() => {
     if (loading) return;
@@ -218,8 +222,10 @@ export default function CalendarClientPage() {
   }, [showAIPopup, learnerType])
 
   const [currentView, setCurrentView] = useState("week")
-  const [currentMonth, setCurrentMonth] = useState("March 2025")
-  const [currentDate, setCurrentDate] = useState("March 5")
+  
+  const currentMonth = format(today, "MMMM yyyy");
+  const currentDate = format(today, "MMMM d");
+  
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
 
   const handleEventClick = (event: Event) => {
@@ -245,9 +251,12 @@ export default function CalendarClientPage() {
     fileInputRef.current?.click();
   };
 
-  // Sample calendar days for the week view
-  const weekDays = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"]
-  const weekDates = [3, 4, 5, 6, 7, 8, 9]
+  // Dynamic calendar days for the week view
+  const weekDays = eachDayOfInterval({
+    start: startOfWeek(today),
+    end: endOfWeek(today)
+  });
+
   const timeSlots = Array.from({ length: 9 }, (_, i) => i + 8) // 8 AM to 4 PM
 
   // Helper function to calculate event position and height
@@ -259,12 +268,16 @@ export default function CalendarClientPage() {
     return { top: `${top}px`, height: `${height}px` }
   }
 
-  // Sample calendar for mini calendar
-  const daysInMonth = 31
-  const firstDayOffset = 5 // Friday is the first day of the month in this example
-  const miniCalendarDays = Array.from({ length: daysInMonth + firstDayOffset }, (_, i) =>
-    i < firstDayOffset ? null : i - firstDayOffset + 1,
-  )
+  // Dynamic data for mini calendar
+  const firstDayOfMonth = startOfMonth(today);
+  const lastDayOfMonth = endOfMonth(today);
+  const daysInMonthArray = eachDayOfInterval({ start: firstDayOfMonth, end: lastDayOfMonth });
+  const firstDayOffset = getDay(firstDayOfMonth);
+  
+  const miniCalendarDays = Array.from({ length: firstDayOffset + daysInMonthArray.length }, (_, i) =>
+    i < firstDayOffset ? null : daysInMonthArray[i - firstDayOffset].getDate()
+  );
+
 
   const togglePlay = () => {
     if (audioRef.current) {
@@ -601,7 +614,7 @@ export default function CalendarClientPage() {
                   <div
                     key={i}
                     className={`text-xs rounded-full w-7 h-7 flex items-center justify-center ${
-                      day === 5 ? "bg-blue-500 text-white" : `${textClass} hover:bg-white/20`
+                      day === today.getDate() ? "bg-blue-500 text-white" : `${textClass} hover:bg-white/20`
                     } ${!day ? "invisible" : ""}`}
                   >
                     {day}
@@ -684,11 +697,11 @@ export default function CalendarClientPage() {
                 <div className={`p-2 text-center ${textMutedClass} text-xs`}></div>
                 {weekDays.map((day, i) => (
                   <div key={i} className={`p-2 text-center border-l ${borderClass}`}>
-                    <div className={`text-xs ${textMutedClass} font-medium`}>{day}</div>
+                    <div className={`text-xs ${textMutedClass} font-medium`}>{format(day, 'EEE')}</div>
                     <div
-                      className={`text-lg font-medium mt-1 ${textClass} ${weekDates[i] === 5 ? "bg-blue-500 rounded-full w-8 h-8 flex items-center justify-center mx-auto" : ""}`}
+                      className={`text-lg font-medium mt-1 ${textClass} ${format(day, 'd') === format(today, 'd') ? "bg-blue-500 rounded-full w-8 h-8 flex items-center justify-center mx-auto" : ""}`}
                     >
-                      {weekDates[i]}
+                      {format(day, 'd')}
                     </div>
                   </div>
                 ))}
@@ -706,7 +719,7 @@ export default function CalendarClientPage() {
                 </div>
 
                 {/* Days Columns */}
-                {Array.from({ length: 7 }).map((_, dayIndex) => (
+                {weekDays.map((day, dayIndex) => (
                   <div key={dayIndex} className={`border-l ${borderClass} relative`}>
                     {timeSlots.map((_, timeIndex) => (
                       <div key={timeIndex} className={`h-20 border-b ${borderClass}`}></div>
@@ -714,7 +727,7 @@ export default function CalendarClientPage() {
 
                     {/* Events */}
                     {events
-                      .filter((event) => event.day === dayIndex)
+                      .filter((event) => new Date(event.date).toDateString() === day.toDateString())
                       .map((event, i) => {
                         const eventStyle = calculateEventStyle(event.startTime, event.endTime)
                         return (
@@ -829,7 +842,7 @@ export default function CalendarClientPage() {
                 </p>
                 <p className="flex items-center">
                   <CalendarIcon className="mr-2 h-5 w-5" />
-                  {`${weekDays[selectedEvent.day]}, ${weekDates[selectedEvent.day]} ${currentMonth}`}
+                  {`${format(new Date(selectedEvent.date), "EEEE, MMMM d, yyyy")}`}
                 </p>
                 <p className="flex items-start">
                   <Users className="mr-2 h-5 w-5 mt-1" />
