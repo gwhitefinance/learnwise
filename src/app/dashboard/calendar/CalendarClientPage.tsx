@@ -217,13 +217,9 @@ export default function CalendarClientPage() {
 
   useEffect(() => {
     if (showAIPopup) {
-      const baseText = "I see you don't have many meetings today. ";
-      const suggestionText = learnerType
-        ? `Shall I help you focus in a ${learnerType.toLowerCase()} way?`
-        : "Shall I play some background music to help you get into your Flow State?";
-      
-      const text = baseText + suggestionText;
+      const text = "I see your schedule is open. Want to block out some time to study for one of your courses?";
       let i = 0;
+      setTypedText(""); // Clear previous text
       const typingInterval = setInterval(() => {
         if (i < text.length) {
           setTypedText((prev) => prev + text.charAt(i))
@@ -235,7 +231,7 @@ export default function CalendarClientPage() {
 
       return () => clearInterval(typingInterval)
     }
-  }, [showAIPopup, learnerType])
+  }, [showAIPopup])
 
   const [currentView, setCurrentView] = useState("week")
   
@@ -444,6 +440,12 @@ export default function CalendarClientPage() {
   const borderClass = backgroundImage ? "border-white/20" : "border-gray-200";
   const bgClass = backgroundImage ? "bg-white/10 backdrop-blur-sm" : "bg-white/50";
   const placeholderClass = backgroundImage ? "placeholder:text-white/70" : "placeholder:text-gray-400";
+  
+  const handleAiPlan = () => {
+      setShowAIPopup(false);
+      setEventForm(prev => ({...prev, title: 'Study Session'}));
+      setEventDialogOpen(true);
+  }
 
 
   return (
@@ -849,9 +851,9 @@ export default function CalendarClientPage() {
                    <div className="mt-3 flex gap-2">
                     <Button
                       size="sm"
-                      onClick={togglePlay}
+                      onClick={handleAiPlan}
                     >
-                      Sure, let's focus!
+                      Yes, let's plan
                     </Button>
                     <Button
                       size="sm"
@@ -863,18 +865,6 @@ export default function CalendarClientPage() {
                   </div>
                 </div>
               </div>
-              {isPlaying && (
-                <div className="mt-2 flex items-center justify-center">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={togglePlay}
-                  >
-                    <Pause className="h-4 w-4 mr-2" />
-                    Pause Music
-                  </Button>
-                </div>
-              )}
             </div>
           </motion.div>
         )}
