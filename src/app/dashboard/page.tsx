@@ -34,6 +34,9 @@ import {
   FolderOpen,
   X,
   Gift,
+  Wand2,
+  CheckCircle,
+  XCircle,
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -61,12 +64,14 @@ import { DatePicker } from '@/components/ui/date-picker';
 import { format } from 'date-fns';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
-import { collection, query, where, onSnapshot, addDoc, doc, Timestamp, updateDoc, increment } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, addDoc, doc, Timestamp, updateDoc, increment, orderBy, limit, getDocs } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import dynamic from 'next/dynamic';
 import AIBuddy from '@/components/ai-buddy';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import rewardsData from '@/lib/rewards.json';
+import { generateExplanation } from '@/ai/flows/quiz-explanation-flow';
+import AudioPlayer from '@/components/audio-player';
 
 
   type CourseFile = {
@@ -131,6 +136,16 @@ import rewardsData from '@/lib/rewards.json';
   };
 
   type RewardState = 'idle' | 'opening' | 'revealed';
+
+  type QuizAttempt = {
+      id: string;
+      userId: string;
+      question: string;
+      userAnswer: string;
+      correctAnswer: string;
+      topic: string;
+      timestamp: Timestamp;
+  }
   
   const AppCard = ({ title, description, icon, href, actionButton, id }: { title: string; description: string; icon: React.ReactNode; href: string, actionButton?: React.ReactNode, id?: string }) => (
     <motion.div
@@ -218,6 +233,13 @@ function DashboardPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean }) {
     const [claimedCoins, setClaimedCoins] = useState(0);
     const [hasClaimedFreeChest, setHasClaimedFreeChest] = useState(false);
 
+    // Weakest Link State
+    const [weakestLink, setWeakestLink] = useState<QuizAttempt | null>(null);
+    const [weakestLinkLoading, setWeakestLinkLoading] = useState(true);
+    const [explanation, setExplanation] = useState<string | null>(null);
+    const [isExplanationLoading, setIsExplanationLoading] = useState(false);
+    const [learnerType, setLearnerType] = useState<string | null>(null);
+
 
      useEffect(() => {
         if (!user) return;
@@ -233,6 +255,9 @@ function DashboardPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean }) {
         if (freeChestClaimed === 'true') {
             setHasClaimedFreeChest(true);
         }
+
+        const storedLearnerType = localStorage.getItem('learnerType');
+        setLearnerType(storedLearnerType ?? 'Unknown');
 
         const unsubscribes: (() => void)[] = [];
 
@@ -282,6 +307,19 @@ function DashboardPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean }) {
             userFiles.sort((a,b) => new Date(b.modified).getTime() - new Date(a.modified).getTime());
             setRecentFiles(userFiles);
         }));
+        
+         // Fetch weakest link
+        const qWeakest = query(collection(db, 'quizAttempts'), where('userId', '==', user.uid), orderBy('timestamp', 'desc'), limit(1));
+        unsubscribes.push(onSnapshot(qWeakest, (snapshot) => {
+            if (!snapshot.empty) {
+                const attempt = { id: snapshot.docs[0].id, ...snapshot.docs[0].data() } as QuizAttempt;
+                setWeakestLink(attempt);
+            } else {
+                setWeakestLink(null);
+            }
+            setWeakestLinkLoading(false);
+        }));
+
 
         // Mock streak calculation
         const lastVisit = localStorage.getItem('lastVisit');
@@ -491,6 +529,26 @@ function DashboardPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean }) {
     };
     
     const chests: Chest[] = rewardsData.chests;
+    
+    const handleGetExplanation = async (attempt: QuizAttempt) => {
+        if (!learnerType) return;
+        setIsExplanationLoading(true);
+        setExplanation(null);
+        try {
+            const result = await generateExplanation({
+                question: attempt.question,
+                userAnswer: attempt.userAnswer,
+                correctAnswer: attempt.correctAnswer,
+                learnerType: learnerType as any,
+            });
+            setExplanation(result.explanation);
+        } catch (error) {
+            console.error("Failed to get explanation:", error);
+            toast({ variant: 'destructive', title: 'AI Error', description: 'Could not generate an explanation.' });
+        } finally {
+            setIsExplanationLoading(false);
+        }
+    };
    
   return (
     <div className="space-y-8 mt-0">
@@ -696,7 +754,7 @@ function DashboardPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean }) {
                                                             </div>
                                                         </div>
                                                         <Button size="sm" disabled={isDisabled} onClick={() => handleClaimChest(chest)}>
-                                                            {isStreakLocked ? `Unlock in ${chest.unlocksAt! - streak} days` : isFreeClaimed ? 'Claimed' : chest.cost > 0 ? <><Gem className="mr-2 h-4 w-4"/>{chest.cost}</> : 'Claim Free'}
+                                                            {isStreakLocked ? `Unlock in ${'${chest.unlocksAt! - streak}'} days` : isFreeClaimed ? 'Claimed' : chest.cost > 0 ? <><Gem className="mr-2 h-4 w-4"/>{chest.cost}</> : 'Claim Free'}
                                                         </Button>
                                                     </CardHeader>
                                                 </Card>
@@ -1035,18 +1093,63 @@ function DashboardPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean }) {
 
 
              <TabsContent value="learn">
-                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {learningResources.map((resource) => (
-                        <a key={resource.title} href={resource.link} target="_blank" rel="noopener noreferrer">
-                            <Card className="hover:bg-muted transition-colors h-full">
-                                <CardHeader>
-                                    <CardTitle>{resource.title}</CardTitle>
-                                    <CardDescription>{resource.description}</CardDescription>
-                                </CardHeader>
-                            </Card>
-                        </a>
-                    ))}
-                </div>
+                 {weakestLinkLoading ? (
+                    <Card>
+                        <CardHeader>
+                            <Skeleton className="h-8 w-1/3 mb-2" />
+                            <Skeleton className="h-4 w-2/3" />
+                        </CardHeader>
+                        <CardContent>
+                             <Skeleton className="h-32 w-full" />
+                        </CardContent>
+                    </Card>
+                 ) : weakestLink ? (
+                    <Card className="bg-amber-500/5 border-amber-500/20">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <Lightbulb className="text-amber-500" /> Weakest Link Workout
+                            </CardTitle>
+                            <CardDescription>
+                                Here's a question you struggled with recently. Let's conquer it!
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <p className="font-semibold text-lg">Question: {weakestLink.question}</p>
+                            <div className="space-y-2">
+                                <div className="flex items-center gap-2 p-2 rounded-md bg-red-500/10 text-red-700">
+                                    <XCircle className="h-5 w-5 flex-shrink-0" />
+                                    <div><span className="font-semibold">Your Answer:</span> {weakestLink.userAnswer}</div>
+                                </div>
+                                <div className="flex items-center gap-2 p-2 rounded-md bg-green-500/10 text-green-700">
+                                    <CheckCircle className="h-5 w-5 flex-shrink-0" />
+                                    <div><span className="font-semibold">Correct Answer:</span> {weakestLink.correctAnswer}</div>
+                                </div>
+                            </div>
+                             {explanation ? (
+                                <div className="p-4 bg-background rounded-lg border">
+                                    <h4 className="font-semibold flex items-center gap-2 mb-2"><Wand2 size={16}/> AI Explanation</h4>
+                                    <AudioPlayer textToPlay={explanation} />
+                                    <p className="text-muted-foreground text-sm">{explanation}</p>
+                                </div>
+                            ) : (
+                                <Button onClick={() => handleGetExplanation(weakestLink)} disabled={isExplanationLoading}>
+                                    {isExplanationLoading ? "Thinking..." : "Explain with AI"}
+                                </Button>
+                            )}
+                        </CardContent>
+                    </Card>
+                 ) : (
+                     <Card className="text-center p-12">
+                        <Trophy className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                        <h3 className="text-xl font-semibold">No Weak Links!</h3>
+                        <p className="text-muted-foreground mt-2">
+                           Great job! We haven't found any incorrect answers yet. Keep up the good work.
+                        </p>
+                         <Link href="/dashboard/practice-quiz">
+                            <Button variant="outline" className="mt-4">Take a Quiz</Button>
+                        </Link>
+                    </Card>
+                 )}
             </TabsContent>
 
             <TabsContent value="integrations">
@@ -1062,7 +1165,7 @@ function DashboardPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean }) {
                                      <Image
                                         className="size-12"
                                         src={integration.icon}
-                                        alt={`${integration.name}-icon`}
+                                        alt={`${'${integration.name}'}-icon`}
                                         width={48}
                                         height={48}
                                     />
