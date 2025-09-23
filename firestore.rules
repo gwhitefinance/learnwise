@@ -1,55 +1,22 @@
+
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // USERS collection
+    // Default-deny all access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Allow users to read/write their own data in these collections
+    match /(courses|notes|calendarEvents|chatSessions|projects|recentFiles|quizAttempts)/{docId} {
+      allow read, write, delete, create: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+
+    // Allow users to manage their own user profile document
     match /users/{userId} {
-      allow read, update: if request.auth != null && request.auth.uid == userId;
-      allow create: if request.auth != null;
+      allow read: if request.auth != null;
+      allow create, update: if request.auth != null && request.auth.uid == userId;
     }
-    
-    // COURSES collection
-    match /courses/{courseId} {
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
-    }
-
-    // PROJECTS collection
-    match /projects/{projectId} {
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
-    }
-
-    // NOTES collection
-    match /notes/{noteId} {
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
-    }
-
-    // TODOS collection
-    match /todos/{todoId} {
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
-    }
-
-    // CHAT SESSIONS collection
-    match /chatSessions/{sessionId} {
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
-    }
-
-    // CALENDAR EVENTS collection
-    match /calendarEvents/{calendarId} {
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
-    }
-
-    // RECENT FILES collection
-    match /recentFiles/{fileId} {
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
-    }
-
   }
 }
