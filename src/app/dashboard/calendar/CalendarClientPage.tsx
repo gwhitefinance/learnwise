@@ -32,7 +32,7 @@ import { DatePicker } from '@/components/ui/date-picker';
 import { useToast } from "@/hooks/use-toast";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth, db } from "@/lib/firebase";
-import { collection, addDoc, query, where, getDocs, deleteDoc, doc, updateDoc } from "firebase/firestore";
+import { collection, addDoc, query, where, getDocs, deleteDoc, doc, updateDoc, onSnapshot, orderBy } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 
 
@@ -125,19 +125,25 @@ export default function CalendarClientPage() {
     
     const fetchEvents = async () => {
         if (!user) return;
-        const q = query(collection(db, "calendarEvents"), where("userId", "==", user.uid));
-        const querySnapshot = await getDocs(q);
-        const userEvents = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Event));
-        setEvents(userEvents);
-        userEvents.forEach(scheduleReminder);
+        const q = query(
+            collection(db, "calendarEvents"), 
+            where("userId", "==", user.uid),
+            orderBy("date", "desc")
+        );
+        const unsubscribe = onSnapshot(q, (querySnapshot) => {
+            const userEvents = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Event));
+            setEvents(userEvents);
+            userEvents.forEach(scheduleReminder);
 
-        // Show AI popup after 3 seconds if there are no events
-        if(userEvents.length === 0) {
-            const popupTimer = setTimeout(() => {
-              setShowAIPopup(true)
-            }, 3000)
-            return () => clearTimeout(popupTimer)
-        }
+            // Show AI popup after 3 seconds if there are no events
+            if(userEvents.length === 0) {
+                const popupTimer = setTimeout(() => {
+                  setShowAIPopup(true)
+                }, 3000)
+                return () => clearTimeout(popupTimer)
+            }
+        });
+        return unsubscribe;
     };
     
     fetchEvents();
