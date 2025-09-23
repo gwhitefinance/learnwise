@@ -79,9 +79,15 @@ export default function PracticeQuizPage() {
     }, []);
 
     const enterFocusMode = () => {
-        document.documentElement.requestFullscreen();
-        setIsFocusMode(true);
-        setShowFocusModeDialog(false);
+        document.documentElement.requestFullscreen().then(() => {
+            setIsFocusMode(true);
+            startQuiz(); // Start the quiz right after entering fullscreen
+        }).catch(err => {
+            console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+            // If fullscreen fails, still start the quiz.
+            setIsFocusMode(false);
+            startQuiz();
+        });
     };
 
     const exitFocusMode = () => {
