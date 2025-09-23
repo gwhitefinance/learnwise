@@ -1,11 +1,13 @@
+
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
-import { Eraser, Palette, Brush } from 'lucide-react';
+import { Eraser, Palette, Brush, Type } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Slider } from '@/components/ui/slider';
+import Draggable from 'react-draggable';
 
 
 export default function WhiteboardClientPage() {
@@ -13,8 +15,12 @@ export default function WhiteboardClientPage() {
   const [isDrawing, setIsDrawing] = useState(false);
   const [color, setColor] = useState('#ffffff');
   const [brushSize, setBrushSize] = useState(5);
+  const [tool, setTool] = useState<'pen' | 'text'>('pen');
+
+  const [textBox, setTextBox] = useState<{x: number, y: number, value: string, isEditing: boolean} | null>(null);
 
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (tool !== 'pen') return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const context = canvas.getContext('2d');
@@ -30,7 +36,7 @@ export default function WhiteboardClientPage() {
   };
 
   const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isDrawing) return;
+    if (!isDrawing || tool !== 'pen') return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const context = canvas.getContext('2d');
@@ -69,6 +75,33 @@ export default function WhiteboardClientPage() {
     }
   }, []);
 
+  const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (tool === 'text') {
+        if (textBox && textBox.isEditing) {
+            drawTextOnCanvas(textBox);
+            setTextBox(null);
+        } else {
+            setTextBox({
+                x: e.nativeEvent.offsetX,
+                y: e.nativeEvent.offsetY,
+                value: '',
+                isEditing: true
+            });
+        }
+    }
+  };
+
+  const drawTextOnCanvas = (box: {x: number, y: number, value: string}) => {
+    const canvas = canvasRef.current;
+    if (!canvas || !box.value) return;
+    const context = canvas.getContext('2d');
+    if (!context) return;
+
+    context.fillStyle = color;
+    context.font = `${brushSize * 4}px sans-serif`;
+    context.fillText(box.value, box.x, box.y);
+  };
+
   const colors = ['#ffffff', '#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6'];
 
   return (
@@ -80,6 +113,9 @@ export default function WhiteboardClientPage() {
           <CardDescription className="flex justify-between items-center">
             <span>Use this space for brainstorming, drawing diagrams, and taking notes.</span>
             <div className="flex items-center gap-2">
+               <Button variant={tool === 'text' ? 'secondary' : 'outline'} size="icon" onClick={() => setTool('text')}>
+                <Type />
+              </Button>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="outline" size="icon"><Palette /></Button>
@@ -119,7 +155,7 @@ export default function WhiteboardClientPage() {
             </div>
           </CardDescription>
         </CardHeader>
-        <CardContent className="flex-1">
+        <CardContent className="flex-1 relative">
           <div className="aspect-video bg-muted rounded-lg border border-dashed h-full">
             <canvas
               ref={canvasRef}
@@ -128,7 +164,38 @@ export default function WhiteboardClientPage() {
               onMouseMove={draw}
               onMouseUp={stopDrawing}
               onMouseLeave={stopDrawing}
+              onClick={handleCanvasClick}
             />
+             {textBox && textBox.isEditing && (
+                <Draggable
+                    defaultPosition={{x: textBox.x, y: textBox.y}}
+                    onStop={(_, data) => setTextBox({...textBox, x: data.x, y: data.y})}
+                >
+                    <textarea
+                        autoFocus
+                        value={textBox.value}
+                        onChange={(e) => setTextBox({...textBox, value: e.target.value})}
+                        onBlur={() => {
+                            drawTextOnCanvas(textBox);
+                            setTextBox(null);
+                        }}
+                        style={{
+                            position: 'absolute',
+                            top: 0, 
+                            left: 0,
+                            transform: `translate(${textBox.x}px, ${textBox.y}px)`,
+                            color: color,
+                            fontSize: `${brushSize * 4}px`,
+                            background: 'transparent',
+                            border: '1px dashed grey',
+                            outline: 'none',
+                            resize: 'none',
+                            lineHeight: 1,
+                        }}
+                        className="p-1"
+                    />
+                </Draggable>
+            )}
           </div>
         </CardContent>
       </Card>
