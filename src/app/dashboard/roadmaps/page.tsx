@@ -21,6 +21,8 @@ import { auth, db } from '@/lib/firebase';
 import { collection, query, where, addDoc, doc, updateDoc, deleteDoc, onSnapshot } from 'firebase/firestore';
 import { generateRoadmap } from '@/lib/actions';
 
+export const dynamic = "force-dynamic";
+
 type Course = {
     id: string;
     name: string;

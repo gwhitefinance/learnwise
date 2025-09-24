@@ -14,7 +14,7 @@ import { Progress } from '@/components/ui/progress';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
-import { generateExplanation } from '@/ai/flows/quiz-explanation-flow';
+import { generateExplanation } from '@/lib/actions';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Slider } from '@/components/ui/slider';
@@ -25,6 +25,7 @@ import { doc, updateDoc, increment, collection, addDoc, serverTimestamp } from '
 import { addXp as addXpAction, generateQuizAction } from '@/lib/actions';
 import { RewardContext } from '@/context/RewardContext';
 
+export const dynamic = "force-dynamic";
 
 const suggestedTopics = ["Mathematics", "Science", "History", "Literature", "Computer Science"];
 
