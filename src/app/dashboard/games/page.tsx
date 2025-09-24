@@ -3,7 +3,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
-import { Gamepad2, Brain, Flame, Rocket } from 'lucide-react';
+import { Gamepad2, Brain, Flame, Rocket, Puzzle } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const games = [
@@ -18,6 +18,12 @@ const games = [
         description: "An arcade-style shooter. A question appears, and you must shoot the correct answer asteroid.",
         href: "/dashboard/games/trivia-blaster",
         icon: <Rocket className="w-10 h-10 text-blue-500" />
+    },
+    {
+        title: "Concept Tetris",
+        description: "A logic puzzle where you match falling blocks of related concepts, terms, and definitions.",
+        href: "#",
+        icon: <Puzzle className="w-10 h-10 text-purple-500" />
     }
 ];
 
