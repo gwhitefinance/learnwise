@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -18,7 +17,7 @@ import { useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
 import dynamic from 'next/dynamic';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { generateCourseFromUrl } from '@/ai/flows/course-from-url-flow';
+import { generateCourseFromUrl } from '@/lib/actions';
 
 
 type Course = {
@@ -121,6 +120,7 @@ function CoursesTable({ initialCourses }: { initialCourses: Course[] }) {
                         learnerType,
                         courseName: newCourse.name,
                         courseDescription: newCourse.description,
+                        webContent: ''
                     });
                     const units = modules.map(module => ({
                         id: crypto.randomUUID(),

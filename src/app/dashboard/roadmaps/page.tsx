@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -7,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { GitMerge, Plus, Trash2, Edit, Check, Lightbulb } from "lucide-react";
 import * as LucideIcons from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { generateRoadmap } from '@/ai/flows/roadmap-flow';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger, DialogClose } from '@/components/ui/dialog';
@@ -21,7 +19,7 @@ import Link from 'next/link';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { collection, query, where, addDoc, doc, updateDoc, deleteDoc, onSnapshot } from 'firebase/firestore';
-
+import { generateRoadmap } from '@/lib/actions';
 
 type Course = {
     id: string;

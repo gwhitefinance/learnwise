@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -14,11 +13,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, MoreVertical, Trash2, Star, Archive, Sparkles, Wand2, Lightbulb, Copy, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
-import { generateSummary } from '@/ai/flows/note-summary-flow';
-import { generateQuizFromNote } from '@/ai/flows/note-to-quiz-flow';
 import type { GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { generateFlashcardsFromNote } from '@/ai/flows/note-to-flashcard-flow';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
@@ -26,6 +22,7 @@ import { collection, addDoc, query, where, getDocs, deleteDoc, doc, updateDoc, T
 import { useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { generateSummary, generateFlashcardsFromNote, generateQuizFromNote } from '@/lib/actions';
 
 type Unit = {
     id: string;

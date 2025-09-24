@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useContext } from 'react';
@@ -9,11 +8,8 @@ import { UploadCloud, Play, Pause, ChevronLeft, ChevronRight, Wand2, FlaskConica
 import Link from 'next/link';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { generateMiniCourse } from '@/ai/flows/mini-course-flow';
 import type { GenerateMiniCourseOutput } from '@/ai/schemas/mini-course-schema';
 import { Skeleton } from '@/components/ui/skeleton';
-import { generateQuizFromModule } from '@/ai/flows/module-quiz-flow';
-import { generateFlashcardsFromModule } from '@/ai/flows/module-flashcard-flow';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -26,8 +22,7 @@ import AudioPlayer from '@/components/audio-player';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { generateTutorResponse } from '@/ai/flows/tutor-chat-flow';
-import { addXp as addXpAction } from '@/lib/actions';
+import { addXp, generateMiniCourse, generateQuizFromModule, generateFlashcardsFromModule, generateTutorResponse } from '@/lib/actions';
 import { RewardContext } from '@/context/RewardContext';
 
 type Course = {
@@ -194,7 +189,7 @@ export default function LearningLabPage() {
     
     try {
       const xpToAward = 50;
-      const { levelUp, newLevel, newCoins } = await addXpAction(user.uid, xpToAward);
+      const { levelUp, newLevel, newCoins } = await addXp(user.uid, xpToAward);
       
       if (levelUp) {
         showReward({
@@ -602,7 +597,7 @@ export default function LearningLabPage() {
                                 <RefreshCw className="mr-2 h-4 w-4"/> Flip Card
                             </Button>
                             <Button variant="outline" size="icon" onClick={() => { setIsFlipped(false); setCurrentFlashcardIndex(prev => Math.min(flashcards.length - 1, prev + 1))}} disabled={currentFlashcardIndex === flashcards.length - 1}>
-                                <ChevronRight className="ml-2 h-4 w-4" />
+                                <ChevronRight className="h-4 w-4" />
                             </Button>
                         </div>
                     </div>

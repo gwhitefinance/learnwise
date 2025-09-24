@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -8,10 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { generateSummary } from '@/ai/flows/note-summary-flow';
-import { generateTutoringSession } from '@/ai/flows/image-tutoring-flow';
 import type { TutoringSessionOutput } from '@/ai/schemas/image-tutoring-schema';
-import { generateFlashcardsFromNote } from '@/ai/flows/note-to-flashcard-flow';
 import { scrapeWebpageTool } from '@/ai/tools/web-scraper-tool';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
@@ -22,6 +18,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogC
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { motion, AnimatePresence } from 'framer-motion';
 import AudioPlayer from '@/components/audio-player';
+import { generateSummary, generateTutoringSession, generateFlashcardsFromNote } from '@/lib/actions';
 
 type Flashcard = {
     front: string;

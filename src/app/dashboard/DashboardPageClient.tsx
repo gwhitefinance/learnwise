@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useContext } from 'react';
@@ -69,7 +68,7 @@ import dynamic from 'next/dynamic';
 import AIBuddy from '@/components/ai-buddy';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import rewardsData from '@/lib/rewards.json';
-import { generateExplanation } from '@/ai/flows/quiz-explanation-flow';
+import { generateExplanation } from '@/lib/actions';
 import AudioPlayer from '@/components/audio-player';
 import type { GenerateExplanationOutput } from '@/ai/schemas/quiz-explanation-schema';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';

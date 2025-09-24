@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
@@ -8,8 +7,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Send, User, Bot, Plus, MessageSquare, Trash2, Edit, Home } from "lucide-react";
-import { studyPlannerFlow } from '@/ai/flows/study-planner-flow';
-import { generateChatTitle } from '@/ai/flows/chat-title-flow';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -19,6 +16,7 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { collection, addDoc, query, where, getDocs, deleteDoc, doc, updateDoc, onSnapshot, orderBy, Timestamp, getDoc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
+import { studyPlannerFlow, generateChatTitle } from '@/lib/actions';
 
 interface Message {
   role: 'user' | 'ai';

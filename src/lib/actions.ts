@@ -1,8 +1,44 @@
 'use server';
 
 import { addXp as addXpAdmin } from './firebase-admin';
+
+// All AI flow imports are centralized here
 import { generateQuiz } from '@/ai/flows/quiz-flow';
-import type { GenerateQuizInput, GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
+import { generateExplanation } from '@/ai/flows/quiz-explanation-flow';
+import { generateCourseFromUrl } from '@/ai/flows/course-from-url-flow';
+import { generateSummary } from '@/ai_flows/note-summary-flow';
+import { generateFlashcardsFromNote } from '@/ai_flows/note-to-flashcard-flow';
+import { generateQuizFromNote } from '@/ai_flows/note-to-quiz-flow';
+import { generateMiniCourse } from '@/ai/flows/mini-course-flow';
+import { generateQuizFromModule } from '@/ai/flows/module-quiz-flow';
+import { generateFlashcardsFromModule } from '@/ai/flows/module-flashcard-flow';
+import { generateTutoringSession } from '@/ai/flows/image-tutoring-flow';
+import { generateAudio } from '@/ai/flows/text-to-speech-flow';
+import { studyPlannerFlow } from '@/ai/flows/study-planner-flow';
+import { generateChatTitle } from '@/ai/flows/chat-title-flow';
+import { generateRoadmap } from '@/ai/flows/roadmap-flow';
+import { generateTutorResponse } from '@/ai/flows/tutor-chat-flow';
+import { generateOnboardingCourse } from '@/ai/flows/onboarding-course-flow';
+
+// Re-exporting all AI functions as Server Actions
+export { 
+    generateQuiz,
+    generateExplanation,
+    generateCourseFromUrl,
+    generateSummary,
+    generateFlashcardsFromNote,
+    generateQuizFromNote,
+    generateMiniCourse,
+    generateQuizFromModule,
+    generateFlashcardsFromModule,
+    generateTutoringSession,
+    generateAudio,
+    studyPlannerFlow,
+    generateChatTitle,
+    generateRoadmap,
+    generateTutorResponse,
+    generateOnboardingCourse
+};
 
 export async function addXp(userId: string, xp: number) {
     try {
@@ -12,15 +48,5 @@ export async function addXp(userId: string, xp: number) {
         console.error("Action error adding XP:", e);
         // This will be caught by the client-side try/catch block
         throw new Error("Failed to update XP on the server.");
-    }
-}
-
-export async function generateQuizAction(input: GenerateQuizInput): Promise<GenerateQuizOutput> {
-    try {
-        const quiz = await generateQuiz(input);
-        return quiz;
-    } catch (e) {
-        console.error("Action error generating quiz:", e);
-        throw new Error("Failed to generate quiz on the server.");
     }
 }
