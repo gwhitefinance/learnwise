@@ -130,7 +130,13 @@ export default function CalendarClientPage() {
   const [tempEventTypes, setTempEventTypes] = useState(eventTypes);
 
   // Date state
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentDate, setCurrentDate] = useState<Date>(new Date());
+  const [isDateInitialized, setIsDateInitialized] = useState(false);
+
+  useEffect(() => {
+    setCurrentDate(new Date());
+    setIsDateInitialized(true);
+  }, []);
 
    useEffect(() => {
     if (loading) return;
@@ -641,7 +647,7 @@ export default function CalendarClientPage() {
                   </div>
                 ))}
 
-                {miniCalendarDays.map((day, i) => (
+                {isDateInitialized && miniCalendarDays.map((day, i) => (
                   <div
                     key={i}
                     className={`text-xs rounded-full w-7 h-7 flex items-center justify-center ${
@@ -752,7 +758,7 @@ export default function CalendarClientPage() {
                               </div>
                           ))}
                       </div>
-                      {weekDays.map((day, dayIndex) => (
+                      {isDateInitialized && weekDays.map((day, dayIndex) => (
                            <div key={dayIndex} className={`border-l ${borderClass} relative`}>
                                <div className={`p-2 text-center border-b ${borderClass}`}>
                                   <div className={`text-xs ${textMutedClass} font-medium`}>{format(day, 'EEE')}</div>
@@ -794,10 +800,10 @@ export default function CalendarClientPage() {
                           ))}
                       </div>
                       <div className="grid grid-cols-7 flex-1">
-                          {Array.from({ length: getDay(startOfMonth(currentDate)) }).map((_, i) => (
+                          {isDateInitialized && Array.from({ length: getDay(startOfMonth(currentDate)) }).map((_, i) => (
                               <div key={`empty-${i}`} className={`border-r border-b ${borderClass}`}></div>
                           ))}
-                          {daysInMonthArray.map((day) => (
+                          {isDateInitialized && daysInMonthArray.map((day) => (
                                <div key={day.toString()} className={`relative p-2 border-r border-b ${borderClass} min-h-[120px]`}>
                                   <div className={`text-sm font-medium ${isToday(day) ? `bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center` : textClass}`}>{format(day, 'd')}</div>
                                   <div className="mt-1 space-y-1">
@@ -809,7 +815,7 @@ export default function CalendarClientPage() {
                                   </div>
                               </div>
                           ))}
-                           {Array.from({ length: 6 - getDay(endOfMonth(currentDate)) }).map((_, i) => (
+                           {isDateInitialized && Array.from({ length: 6 - getDay(endOfMonth(currentDate)) }).map((_, i) => (
                               <div key={`empty-end-${i}`} className={`border-r border-b ${borderClass}`}></div>
                           ))}
                       </div>
