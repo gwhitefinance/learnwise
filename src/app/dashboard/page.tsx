@@ -245,7 +245,7 @@ function DashboardPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean }) {
     const [hasClaimedFreeChest, setHasClaimedFreeChest] = useState(false);
 
     // Weakest Link State
-    const [weakestLinks, setWeakestLinks] = useState<Record<string, WeakestLinkState>>({});
+    const [weakestLinks, setWeakestLinks] = useState<Record<string, WeakestLinkState[]>>({});
     const [weakestLinkLoading, setWeakestLinkLoading] = useState(true);
     const [learnerType, setLearnerType] = useState<string | null>(null);
 
@@ -317,25 +317,26 @@ function DashboardPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean }) {
             setRecentFiles(userFiles);
         }));
         
-         // Fetch all quiz attempts
+        // Fetch all quiz attempts
         const qAttempts = query(collection(db, 'quizAttempts'), where('userId', '==', user.uid), orderBy('timestamp', 'desc'));
         unsubscribes.push(onSnapshot(qAttempts, (snapshot) => {
             const attempts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as QuizAttempt));
             
-            // Group by topic and get the most recent for each
-            const latestByTopic: Record<string, QuizAttempt> = {};
+            // Group by topic
+            const groupedByTopic: Record<string, QuizAttempt[]> = {};
             for (const attempt of attempts) {
-                if (!latestByTopic[attempt.topic]) {
-                    latestByTopic[attempt.topic] = attempt;
+                if (!groupedByTopic[attempt.topic]) {
+                    groupedByTopic[attempt.topic] = [];
                 }
+                groupedByTopic[attempt.topic].push(attempt);
             }
 
-            const newWeakestLinks: Record<string, WeakestLinkState> = {};
-            for (const topic in latestByTopic) {
-                newWeakestLinks[topic] = {
-                    attempt: latestByTopic[topic],
+            const newWeakestLinks: Record<string, WeakestLinkState[]> = {};
+            for (const topic in groupedByTopic) {
+                newWeakestLinks[topic] = groupedByTopic[topic].map(attempt => ({
+                    attempt,
                     isExplanationLoading: false,
-                };
+                }));
             }
             
             setWeakestLinks(newWeakestLinks);
@@ -552,34 +553,58 @@ function DashboardPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean }) {
     
     const chests: Chest[] = rewardsData.chests;
     
-    const handleGetExplanation = async (topic: string) => {
-        if (!learnerType || !weakestLinks[topic]) return;
+    const handleGetExplanation = async (topic: string, attemptId: string) => {
+        if (!learnerType) return;
+        
+        const currentLink = weakestLinks[topic].find(l => l.attempt.id === attemptId);
+        if (!currentLink) return;
 
-        setWeakestLinks(prev => ({ ...prev, [topic]: { ...prev[topic], isExplanationLoading: true, explanation: undefined } }));
+        setWeakestLinks(prev => ({
+            ...prev,
+            [topic]: prev[topic].map(l => l.attempt.id === attemptId ? { ...l, isExplanationLoading: true, explanation: undefined } : l)
+        }));
 
         try {
-            const { attempt } = weakestLinks[topic];
+            const { attempt } = currentLink;
             const result = await generateExplanation({
                 question: attempt.question,
                 userAnswer: attempt.userAnswer,
                 correctAnswer: attempt.correctAnswer,
                 learnerType: learnerType as any,
             });
-            setWeakestLinks(prev => ({ ...prev, [topic]: { ...prev[topic], explanation: result } }));
+            setWeakestLinks(prev => ({
+                ...prev,
+                [topic]: prev[topic].map(l => l.attempt.id === attemptId ? { ...l, explanation: result } : l)
+            }));
         } catch (error) {
             console.error("Failed to get explanation:", error);
             toast({ variant: 'destructive', title: 'AI Error', description: 'Could not generate an explanation.' });
         } finally {
-            setWeakestLinks(prev => ({ ...prev, [topic]: { ...prev[topic], isExplanationLoading: false } }));
+             setWeakestLinks(prev => ({
+                ...prev,
+                [topic]: prev[topic].map(l => l.attempt.id === attemptId ? { ...l, isExplanationLoading: false } : l)
+            }));
         }
     };
 
-    const handleCheckPracticeAnswer = (topic: string, selectedAnswer: string) => {
-        const { explanation } = weakestLinks[topic];
-        if (!explanation) return;
-        const isCorrect = selectedAnswer === explanation.practiceQuestion.answer;
-        setWeakestLinks(prev => ({ ...prev, [topic]: { ...prev[topic], practiceFeedback: isCorrect ? 'correct' : 'incorrect' } }));
+    const handleCheckPracticeAnswer = (topic: string, attemptId: string, selectedAnswer: string) => {
+        const currentLink = weakestLinks[topic].find(l => l.attempt.id === attemptId);
+        if (!currentLink?.explanation) return;
+        
+        const isCorrect = selectedAnswer === currentLink.explanation.practiceQuestion.answer;
+
+        setWeakestLinks(prev => ({
+            ...prev,
+            [topic]: prev[topic].map(l => l.attempt.id === attemptId ? { ...l, practiceFeedback: isCorrect ? 'correct' : 'incorrect' } : l)
+        }));
     };
+    
+    const setPracticeAnswer = (topic: string, attemptId: string, answer: string) => {
+        setWeakestLinks(prev => ({
+            ...prev,
+            [topic]: prev[topic].map(l => l.attempt.id === attemptId ? { ...l, practiceAnswer: answer } : l)
+        }));
+    }
 
    
   return (
@@ -1136,84 +1161,88 @@ function DashboardPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean }) {
                   </CardContent>
                 </Card>
               ) : Object.keys(weakestLinks).length > 0 ? (
-                <div className="space-y-6">
-                    {Object.entries(weakestLinks).map(([topic, state]) => (
-                        <Card key={topic} className="bg-amber-500/5 border-amber-500/20">
-                            <CardHeader>
-                                <CardTitle className="flex items-center justify-between">
-                                <span className="flex items-center gap-2">
-                                    <Lightbulb className="text-amber-500" />
-                                    Weakest Link: {topic}
-                                </span>
-                                </CardTitle>
-                                <CardDescription>
-                                Here's a question you struggled with recently. Let's conquer it!
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <p className="font-semibold text-lg">Question: {state.attempt.question}</p>
-                                <div className="space-y-2">
-                                <div className="flex items-center gap-2 p-2 rounded-md bg-red-500/10 text-red-700">
-                                    <XCircle className="h-5 w-5 flex-shrink-0" />
-                                    <div><span className="font-semibold">Your Answer:</span> {state.attempt.userAnswer}</div>
-                                </div>
-                                <div className="flex items-center gap-2 p-2 rounded-md bg-green-500/10 text-green-700">
-                                    <CheckCircle className="h-5 w-5 flex-shrink-0" />
-                                    <div><span className="font-semibold">Correct Answer:</span> {state.attempt.correctAnswer}</div>
-                                </div>
-                                </div>
-                                {state.explanation ? (
-                                <div className="space-y-4 pt-4 border-t border-dashed border-amber-500/30">
-                                    <div className="p-4 bg-background rounded-lg border">
-                                    <h4 className="font-semibold flex items-center gap-2 mb-2"><Wand2 size={16}/> AI Explanation</h4>
-                                    <AudioPlayer textToPlay={state.explanation.explanation} />
-                                    <p className="text-muted-foreground text-sm">{state.explanation.explanation}</p>
+                <Accordion type="multiple" className="w-full space-y-4">
+                    {Object.entries(weakestLinks).map(([topic, states]) => (
+                         <AccordionItem key={topic} value={topic} className="bg-amber-500/5 border border-amber-500/20 rounded-lg">
+                            <AccordionTrigger className="p-6">
+                                 <div className="flex items-center gap-3">
+                                    <Lightbulb className="h-6 w-6 text-amber-500" />
+                                    <div>
+                                        <h3 className="font-semibold text-lg text-left">Weakest Link Workout: {topic}</h3>
+                                        <p className="text-sm text-muted-foreground text-left">{states.length} questions to review</p>
                                     </div>
-                                    
-                                    <div className="p-4 bg-background rounded-lg border">
-                                        <h4 className="font-semibold flex items-center gap-2 mb-2"><BrainCircuit size={16}/> Try Again: New Question</h4>
-                                        <p className="font-semibold mb-4">{state.explanation.practiceQuestion.question}</p>
-                                        <RadioGroup 
-                                            value={state.practiceAnswer} 
-                                            onValueChange={(val) => setWeakestLinks(p => ({...p, [topic]: {...p[topic], practiceAnswer: val}}))}
-                                            disabled={!!state.practiceFeedback}
-                                        >
-                                            <div className="space-y-2">
-                                                {state.explanation.practiceQuestion.options.map((option, index) => {
-                                                    const isCorrect = option === state.explanation!.practiceQuestion.answer;
-                                                    const isSelected = option === state.practiceAnswer;
-                                                    return(
-                                                        <Label key={index} htmlFor={`pq-${topic}-${index}`} className={cn(
-                                                            "flex items-center gap-4 p-3 rounded-lg border transition-all cursor-pointer",
-                                                            !state.practiceFeedback && (isSelected ? "border-primary bg-primary/10" : "border-border hover:bg-muted"),
-                                                            state.practiceFeedback && isCorrect && "border-green-500 bg-green-500/10",
-                                                            state.practiceFeedback && isSelected && !isCorrect && "border-red-500 bg-red-500/10",
-                                                        )}>
-                                                            <RadioGroupItem value={option} id={`pq-${topic}-${index}`} />
-                                                            <span>{option}</span>
-                                                        </Label>
-                                                    )
-                                                })}
+                                </div>
+                            </AccordionTrigger>
+                            <AccordionContent>
+                               <div className="px-6 pb-6 space-y-8">
+                                    {states.map((state, index) => (
+                                         <div key={state.attempt.id} className="border-t border-dashed border-amber-500/30 pt-6">
+                                            <p className="font-semibold text-base">Question {index+1}: {state.attempt.question}</p>
+                                            <div className="space-y-2 mt-2">
+                                                <div className="flex items-center gap-2 p-2 rounded-md bg-red-500/10 text-red-700 text-sm">
+                                                    <XCircle className="h-5 w-5 flex-shrink-0" />
+                                                    <div><span className="font-semibold">Your Answer:</span> {state.attempt.userAnswer}</div>
+                                                </div>
+                                                <div className="flex items-center gap-2 p-2 rounded-md bg-green-500/10 text-green-700 text-sm">
+                                                    <CheckCircle className="h-5 w-5 flex-shrink-0" />
+                                                    <div><span className="font-semibold">Correct Answer:</span> {state.attempt.correctAnswer}</div>
+                                                </div>
                                             </div>
-                                        </RadioGroup>
-                                        {!state.practiceFeedback && (
-                                            <Button className="mt-4" onClick={() => handleCheckPracticeAnswer(topic, state.practiceAnswer!)} disabled={!state.practiceAnswer}>
-                                                Check Answer
-                                            </Button>
-                                        )}
-                                        {state.practiceFeedback === 'correct' && <p className="mt-2 text-green-600 font-semibold">Correct! Great job.</p>}
-                                        {state.practiceFeedback === 'incorrect' && <p className="mt-2 text-red-600 font-semibold">Not quite. The correct answer was: {state.explanation.practiceQuestion.answer}</p>}
-                                    </div>
-                                </div>
-                                ) : (
-                                <Button onClick={() => handleGetExplanation(topic)} disabled={state.isExplanationLoading}>
-                                    {state.isExplanationLoading ? "Thinking..." : "Explain with AI & Give Me a New Question"}
-                                </Button>
-                                )}
-                            </CardContent>
-                        </Card>
+                                            {state.explanation ? (
+                                                <div className="space-y-4 pt-4">
+                                                    <div className="p-4 bg-background rounded-lg border">
+                                                        <h4 className="font-semibold flex items-center gap-2 mb-2"><Wand2 size={16}/> AI Explanation</h4>
+                                                        <AudioPlayer textToPlay={state.explanation.explanation} />
+                                                        <p className="text-muted-foreground text-sm">{state.explanation.explanation}</p>
+                                                    </div>
+                                                    
+                                                    <div className="p-4 bg-background rounded-lg border">
+                                                        <h4 className="font-semibold flex items-center gap-2 mb-2"><BrainCircuit size={16}/> Try Again: New Question</h4>
+                                                        <p className="font-semibold mb-4 text-sm">{state.explanation.practiceQuestion.question}</p>
+                                                        <RadioGroup 
+                                                            value={state.practiceAnswer} 
+                                                            onValueChange={(val) => setPracticeAnswer(topic, state.attempt.id, val)}
+                                                            disabled={!!state.practiceFeedback}
+                                                        >
+                                                            <div className="space-y-2">
+                                                                {state.explanation.practiceQuestion.options.map((option, index) => {
+                                                                    const isCorrect = option === state.explanation!.practiceQuestion.answer;
+                                                                    const isSelected = option === state.practiceAnswer;
+                                                                    return(
+                                                                        <Label key={index} htmlFor={`pq-${topic}-${index}`} className={cn(
+                                                                            "flex items-center gap-4 p-3 rounded-lg border transition-all cursor-pointer text-sm",
+                                                                            !state.practiceFeedback && (isSelected ? "border-primary bg-primary/10" : "border-border hover:bg-muted"),
+                                                                            state.practiceFeedback && isCorrect && "border-green-500 bg-green-500/10",
+                                                                            state.practiceFeedback && isSelected && !isCorrect && "border-red-500 bg-red-500/10",
+                                                                        )}>
+                                                                            <RadioGroupItem value={option} id={`pq-${topic}-${index}`} />
+                                                                            <span>{option}</span>
+                                                                        </Label>
+                                                                    )
+                                                                })}
+                                                            </div>
+                                                        </RadioGroup>
+                                                        {!state.practiceFeedback && (
+                                                            <Button size="sm" className="mt-4" onClick={() => handleCheckPracticeAnswer(topic, state.attempt.id, state.practiceAnswer!)} disabled={!state.practiceAnswer}>
+                                                                Check Answer
+                                                            </Button>
+                                                        )}
+                                                        {state.practiceFeedback === 'correct' && <p className="mt-2 text-green-600 font-semibold text-sm">Correct! Great job.</p>}
+                                                        {state.practiceFeedback === 'incorrect' && <p className="mt-2 text-red-600 font-semibold text-sm">Not quite. The correct answer was: {state.explanation.practiceQuestion.answer}</p>}
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <Button size="sm" className="mt-4" onClick={() => handleGetExplanation(topic, state.attempt.id)} disabled={state.isExplanationLoading}>
+                                                    {state.isExplanationLoading ? "Thinking..." : "Explain with AI & Give Me a New Question"}
+                                                </Button>
+                                            )}
+                                        </div>
+                                    ))}
+                               </div>
+                            </AccordionContent>
+                         </AccordionItem>
                     ))}
-                </div>
+                </Accordion>
               ) : (
                 <Card className="text-center p-12">
                     <Trophy className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
