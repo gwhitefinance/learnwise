@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -64,7 +63,7 @@ import { DatePicker } from '@/components/ui/date-picker';
 import { format } from 'date-fns';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
-import { collection, query, where, onSnapshot, addDoc, doc, Timestamp, updateDoc, increment, orderBy, limit, getDocs } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, addDoc, doc, Timestamp, updateDoc, increment, orderBy, limit, getDocs, deleteDoc } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import dynamic from 'next/dynamic';
 import AIBuddy from '@/components/ai-buddy';
