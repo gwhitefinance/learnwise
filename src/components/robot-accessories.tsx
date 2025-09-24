@@ -5,30 +5,30 @@ import React from 'react';
 
 const hatComponents: Record<string, React.FC> = {
     "Top Hat": () => (
-        <g transform='translate(50, -5)'>
-            <path d='M20,30 L80,30 L80,20 L90,20 L90,-10 L10,-10 L10,20 L20,20 Z' fill='black' />
-            <rect x='20' y='-12' width='60' height='2' fill='#555' />
+        <g transform='translate(60, -5)'>
+            <path d='M10,30 L70,30 L70,25 L80,25 L80,0 L0,0 L0,25 L10,25 Z' fill='black' />
+            <rect x='0' y='-2' width='80' height='2' fill='#555' />
         </g>
     ),
     "Propeller Hat": () => (
         <g transform='translate(100, 20)'>
-            <path d='M-30 0 C -30 -20, 30 -20, 30 0' fill='gold' />
+            <path d='M-35 0 C-35 -20, 35 -20, 35 0' fill='gold' />
             <path d='M 0 -30 L 0 -20' stroke='black' strokeWidth='2' />
             <path d='M -20 -25 L 20 -25' stroke='red' strokeWidth='4' style={{ transformOrigin: 'center', animation: 'spin 1s linear infinite' }} />
             <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
         </g>
     ),
     "Crown": () => (
-        <g transform='translate(50, 0)'>
-            <path d='M10 30 L90 30 L90 20 L80 -10 L60 10 L50 -20 L40 10 L20 -10 L10 20 Z' fill='gold' stroke='black' strokeWidth='2' />
+        <g transform='translate(65, 5)'>
+            <path d='M0 25 L70 25 L65 0 L50 15 L35 -10 L20 15 L5 0 Z' fill='gold' stroke='black' strokeWidth='1.5' />
         </g>
     ),
     "Wizard Hat": () => (
-        <g transform='translate(50, -10)'>
-            <path d='M10 30 L90 30 Q50 20 10 30' fill='#2c3e50' />
-            <path d='M50 -40 L20 30 Q50 20 80 30 L50 -40' fill='#2c3e50' />
-            <path d='M45 -10 L55 0 L65 -10' stroke='yellow' strokeWidth='3' fill='none' />
-            <path d='M40 5 L50 15 L60 5' stroke='yellow' strokeWidth='3' fill='none' />
+        <g transform='translate(50, -5)'>
+            <path d='M0 35 L100 35 Q50 25 0 35' fill='#2c3e50' />
+            <path d='M50 -30 L10 35 Q50 25 90 35 L50 -30' fill='#2c3e50' />
+            <path d='M45 0 L55 10 L65 0' stroke='yellow' strokeWidth='2' fill='none' />
+            <path d='M40 15 L50 25 L60 15' stroke='yellow' strokeWidth='2' fill='none' />
         </g>
     ),
     "Beanie": () => (
@@ -38,16 +38,16 @@ const hatComponents: Record<string, React.FC> = {
         </g>
     ),
     "Cowboy Hat": () => (
-        <g transform='translate(50, 10)'>
-            <path d='M-10 20 Q50 -30 110 20 L90 20 Q50 10 10 20 Z' fill='#A0522D' />
+        <g transform='translate(45, 12)'>
+            <path d='M-10 18 Q55 -30 120 18 L100 18 Q55 5 10 18 Z' fill='#A0522D' />
         </g>
     ),
     "Party Hat": () => (
-        <g transform='translate(75, -15)'>
-            <path d='M25 0 L-25 45 L50 45 Z' fill='pink' />
-            <circle cx="0" cy="15" r="5" fill="yellow" />
-            <circle cx="25" cy="25" r="5" fill="cyan" />
-            <circle cx="10" cy="35" r="5" fill="lime" />
+        <g transform='translate(75, -5)'>
+            <path d='M25 0 L0 50 L50 50 Z' fill='pink' />
+            <circle cx="25" cy="20" r="4" fill="yellow" />
+            <circle cx="15" cy="35" r="4" fill="cyan" />
+            <circle cx="35" cy="35" r="4" fill="lime" />
         </g>
     ),
     "Pumpkin Hat": () => (
@@ -57,9 +57,9 @@ const hatComponents: Record<string, React.FC> = {
         </g>
     ),
     "Witch Hat": () => (
-        <g transform='translate(50, -15)'>
-            <path d='M0 45 L100 45 L100 35 L0 35 Z' fill='#222' />
-            <path d='M50 -30 L10 40 L90 40 Z' fill='#222' />
+        <g transform='translate(45, -5)'>
+            <path d='M-5 40 L115 40 L115 30 L-5 30 Z' fill='#222' />
+            <path d='M55 -20 L15 35 L95 35 Z' fill='#222' />
         </g>
     ),
     "Viking Helmet": () => (
@@ -76,11 +76,10 @@ const hatComponents: Record<string, React.FC> = {
         </g>
     ),
     "Chef's Hat": () => (
-        <g transform="translate(70, -5)">
-            <rect x="0" y="25" width="60" height="10" fill="white" />
-            <path d="M0 25 Q15 0, 30 0 T60 25" fill="white" />
-            <path d="M-5 10 Q15 -15, 30 -15 T65 10" fill="white" />
-            <path d="M-5 20 Q15 5, 30 5 T65 20" fill="white" />
+        <g transform="translate(70, -10)">
+            <rect x="0" y="30" width="60" height="10" fill="white" />
+            <path d="M0 30 C 0 10, 60 10, 60 30" fill="white" />
+            <path d="M-10 15 C -10 -5, 30 -15, 35 0 C 40 -15, 70 -5, 70 15" fill="white" />
         </g>
     ),
     "Detective Hat": () => (

@@ -217,7 +217,7 @@ export default function CalendarClientPage() {
 
   useEffect(() => {
     if (showAIPopup) {
-      const text = "I see your schedule is open. Want to block out some time to study for one of your courses?";
+      const text = "I  see your schedule is open. Want to block out some time to study for one of your courses?";
       let i = 0;
       setTypedText(""); // Clear previous text
       const typingInterval = setInterval(() => {
