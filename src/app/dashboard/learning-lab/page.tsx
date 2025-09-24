@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -28,6 +28,7 @@ import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { generateTutorResponse } from '@/ai/flows/tutor-chat-flow';
 import { addXp as addXpAction } from '@/lib/actions';
+import { RewardContext } from '@/context/RewardContext';
 
 type Course = {
     id: string;
@@ -59,6 +60,7 @@ export default function LearningLabPage() {
   const [isCourseComplete, setIsCourseComplete] = useState(false);
   const { toast } = useToast();
   const [user, authLoading] = useAuthState(auth);
+  const { showReward } = useContext(RewardContext);
 
   const [currentModuleIndex, setCurrentModuleIndex] = useState(0);
   const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
@@ -191,20 +193,24 @@ export default function LearningLabPage() {
     setCompletedModules(newCompletedModules);
     
     try {
-      const { levelUp, newLevel } = await addXpAction(user.uid, 50); // Award 50 XP
+      const xpToAward = 50;
+      const { levelUp, newLevel, newCoins } = await addXpAction(user.uid, xpToAward);
+      
       if (levelUp) {
-        toast({
-          title: `🎉 Level Up! You are now Level ${newLevel}! 🎉`,
-          description: "You've earned 50 coins for leveling up!",
+        showReward({
+          type: 'levelUp',
+          level: newLevel,
+          coins: newCoins,
         });
       } else {
-        toast({
-          title: `🎉 Module ${moduleIndex + 1} Complete! 🎉`,
-          description: "Great job! You've earned 50 XP.",
+        showReward({
+          type: 'xp',
+          amount: xpToAward
         });
       }
     } catch (error) {
       console.error("Error awarding XP:", error);
+      toast({ variant: 'destructive', title: 'Error', description: "Could not award XP for module completion."})
     }
 
 
@@ -240,7 +246,7 @@ export default function LearningLabPage() {
   
   const handlePrevChapter = () => {
     if (currentChapterIndex > 0) {
-        setCurrentChapterIndex(prev => prev + 1);
+        setCurrentChapterIndex(prev => prev - 1);
     } else if (currentModuleIndex > 0) {
         const prevModuleIndex = currentModuleIndex - 1;
         const prevModule = miniCourse?.modules[prevModuleIndex];
@@ -596,7 +602,7 @@ export default function LearningLabPage() {
                                 <RefreshCw className="mr-2 h-4 w-4"/> Flip Card
                             </Button>
                             <Button variant="outline" size="icon" onClick={() => { setIsFlipped(false); setCurrentFlashcardIndex(prev => Math.min(flashcards.length - 1, prev + 1))}} disabled={currentFlashcardIndex === flashcards.length - 1}>
-                                <ChevronRight className="ml-2 h-4 w-4" />
+                                <ChevronRight className="h-4 w-4" />
                             </Button>
                         </div>
                     </div>

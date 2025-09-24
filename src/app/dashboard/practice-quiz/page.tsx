@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useContext } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,7 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { doc, updateDoc, increment, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { addXp as addXpAction } from '@/lib/actions';
+import { RewardContext } from '@/context/RewardContext';
 
 
 const suggestedTopics = ["Mathematics", "Science", "History", "Literature", "Computer Science"];
@@ -56,6 +57,7 @@ export default function PracticeQuizPage() {
     
     const { toast } = useToast();
     const [user] = useAuthState(auth);
+    const { showReward } = useContext(RewardContext);
 
     const [isFocusMode, setIsFocusMode] = useState(false);
     const [showFocusModeDialog, setShowFocusModeDialog] = useState(false);
@@ -83,7 +85,7 @@ export default function PracticeQuizPage() {
             setIsFocusMode(true);
             startQuiz(); // Start the quiz right after entering fullscreen
         }).catch(err => {
-            console.error(`Error attempting to enable full-screen mode: ${'${err.message}'} (${'${err.name}'})`);
+            console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
             // If fullscreen fails, still start the quiz.
             setIsFocusMode(false);
             startQuiz();
@@ -224,16 +226,17 @@ export default function PracticeQuizPage() {
             if (correctAnswers > 0) {
                 const xpEarned = correctAnswers * 10; // 10 XP per correct answer
                 try {
-                    const { levelUp, newLevel } = await addXpAction(user.uid, xpEarned);
+                    const { levelUp, newLevel, newCoins } = await addXpAction(user.uid, xpEarned);
                     if (levelUp) {
-                        toast({
-                            title: `🎉 Level Up! You are now Level ${'${newLevel}'}! 🎉`,
-                            description: `You also earned ${'${xpEarned}'} XP and some coins!`,
+                         showReward({
+                            type: 'levelUp',
+                            level: newLevel,
+                            coins: newCoins
                         });
                     } else {
-                         toast({
-                            title: "Quiz Complete!",
-                            description: `You earned ${'${xpEarned}'} XP for answering ${'${correctAnswers}'} questions correctly!`
+                        showReward({
+                           type: 'xp',
+                           amount: xpEarned,
                         });
                     }
                 } catch(e) {
@@ -540,7 +543,7 @@ export default function PracticeQuizPage() {
                              <Label className="text-sm font-medium">Or Select a Suggested Area</Label>
                              <div className="flex flex-wrap gap-2 mt-2">
                                 {suggestedTopics.map(topic => (
-                                    <Button key={topic} variant="outline" size="sm" onClick={() => setTopics(prev => prev ? `${'${prev}'}, ${'${topic}'}` : topic)}>
+                                    <Button key={topic} variant="outline" size="sm" onClick={() => setTopics(prev => prev ? `${prev}, ${topic}` : topic)}>
                                         {topic}
                                     </Button>
                                 ))}

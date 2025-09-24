@@ -59,10 +59,10 @@ if (admin.apps.length) {
 // --- LEVELING SYSTEM ---
 const XP_PER_LEVEL = 100;
 
-export async function addXp(userId: string, xp: number): Promise<{ levelUp: boolean, newLevel: number }> {
+export async function addXp(userId: string, xp: number): Promise<{ levelUp: boolean, newLevel: number, newCoins: number }> {
   if (!db || !Object.keys(db).length) {
     console.log("Admin SDK not initialized. Skipping XP update.");
-    return { levelUp: false, newLevel: 0 };
+    return { levelUp: false, newLevel: 0, newCoins: 0 };
   }
 
   const userRef = db.collection('users').doc(userId);
@@ -76,6 +76,7 @@ export async function addXp(userId: string, xp: number): Promise<{ levelUp: bool
     const userData = doc.data()!;
     const currentXp = userData.xp || 0;
     const currentLevel = userData.level || 1;
+    let newCoins = 0;
     
     const newXp = currentXp + xp;
     let newLevel = currentLevel;
@@ -86,10 +87,11 @@ export async function addXp(userId: string, xp: number): Promise<{ levelUp: bool
     if (newXp >= xpForNextLevel) {
       newLevel += 1;
       levelUp = true;
+      newCoins = 50 * newLevel;
       await userRef.update({
         xp: newXp - xpForNextLevel, // Reset XP for the new level
         level: newLevel,
-        coins: admin.firestore.FieldValue.increment(50 * newLevel) // Award coins on level up
+        coins: admin.firestore.FieldValue.increment(newCoins) // Award coins on level up
       });
     } else {
       await userRef.update({
@@ -97,7 +99,7 @@ export async function addXp(userId: string, xp: number): Promise<{ levelUp: bool
       });
     }
 
-    return { levelUp, newLevel };
+    return { levelUp, newLevel, newCoins };
 
   } catch (error) {
     console.error(`Failed to add XP for user ${userId}:`, error);
