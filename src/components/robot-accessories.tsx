@@ -299,3 +299,5 @@ export const Shoes: React.FC<{ name?: string }> = ({ name }) => {
     const Component = shoeComponents[name];
     return Component ? <Component /> : <DefaultShoes />;
 };
+
+    
