@@ -1,16 +1,15 @@
+
 "use client"
 
-import dynamic from 'next/dynamic';
-
-const CallToAction = dynamic(() => import('@/sections/CallToAction'), { ssr: false });
-const Faqs = dynamic(() => import('@/sections/Faqs'), { ssr: false });
-const Features = dynamic(() => import('@/sections/Features'), { ssr: false });
-const Footer = dynamic(() => import('@/sections/Footer'), { ssr: false });
-const Hero = dynamic(() => import('@/sections/Hero'), { ssr: false });
-const Integrations = dynamic(() => import('@/sections/Integrations'), { ssr: false });
-const Introduction = dynamic(() => import('@/sections/Introduction'), { ssr: false });
-const LogoTicker = dynamic(() => import('@/sections/LogoTicker'), { ssr: false });
-const Navbar = dynamic(() => import('@/sections/Navbar'), { ssr: false });
+import CallToAction from '@/sections/CallToAction';
+import Faqs from '@/sections/Faqs';
+import Features from '@/sections/Features';
+import Footer from '@/sections/Footer';
+import Hero from '@/sections/Hero';
+import Integrations from '@/sections/Integrations';
+import Introduction from '@/sections/Introduction';
+import LogoTicker from '@/sections/LogoTicker';
+import Navbar from '@/sections/Navbar';
 
 
 export default function Home() {
