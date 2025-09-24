@@ -35,6 +35,25 @@ const getRandomShape = (): Shape => {
   return shapeKeys[Math.floor(Math.random() * shapeKeys.length)];
 };
 
+function PiecePreview({ shapeKey }: { shapeKey: Shape }) {
+    const shapeMatrix = SHAPES[shapeKey];
+    return (
+        <div className="flex flex-col items-center">
+            {shapeMatrix.map((row, r_idx) => (
+                <div key={r_idx} className="flex">
+                    {row.map((cell, c_idx) => (
+                        <div
+                            key={c_idx}
+                            style={{ width: BLOCK_SIZE, height: BLOCK_SIZE }}
+                            className={cell ? 'bg-secondary-foreground rounded-sm' : 'opacity-0'}
+                        ></div>
+                    ))}
+                </div>
+            ))}
+        </div>
+    );
+}
+
 export default function BlockPuzzleClientPage() {
     const [board, setBoard] = useState(createEmptyBoard);
     const [pieces, setPieces] = useState<Shape[]>([]);
@@ -42,6 +61,7 @@ export default function BlockPuzzleClientPage() {
     const [gameOver, setGameOver] = useState(false);
     const [draggedPieceInfo, setDraggedPieceInfo] = useState<{ shape: Shape; index: number; } | null>(null);
     const gridRef = useRef<HTMLDivElement>(null);
+    const [dragPosition, setDragPosition] = useState<{ x: number; y: number } | null>(null);
 
     const generateNewPieces = useCallback(() => {
         setPieces([getRandomShape(), getRandomShape(), getRandomShape()]);
@@ -88,7 +108,7 @@ export default function BlockPuzzleClientPage() {
     }, []);
 
 
-    const placePiece = (shape: Shape, row: number, col: number) => {
+    const placePiece = (shape: Shape, row: number, col: number, pieceIndex: number) => {
         const shapeMatrix = SHAPES[shape];
         if (!isValidMove(board, shapeMatrix, row, col)) {
             return false;
@@ -134,7 +154,7 @@ export default function BlockPuzzleClientPage() {
         const comboBonus = linesCleared > 1 ? (linesCleared - 1) * 10 : 0;
         setScore(prev => prev + pieceScore + (lineBonus[linesCleared] || 0) + comboBonus);
         
-        const remainingPieces = pieces.map((p, i) => i === draggedPieceInfo!.index ? null : p).filter(Boolean) as Shape[];
+        const remainingPieces = pieces.map((p, i) => i === pieceIndex ? null : p).filter(Boolean) as Shape[];
         
         if (checkForGameOver(newBoard, remainingPieces)) {
             setGameOver(true);
@@ -166,19 +186,37 @@ export default function BlockPuzzleClientPage() {
         e.dataTransfer.setDragImage(img, 0, 0);
     };
 
+    const handleDrag = (e: React.DragEvent<HTMLDivElement>) => {
+        // clientX and clientY are what we need for screen position
+        setDragPosition({ x: e.clientX, y: e.clientY });
+    };
+
+
     const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
         if (draggedPieceInfo && gridRef.current) {
             const gridRect = gridRef.current.getBoundingClientRect();
+            // We use clientX/Y for consistency with the handleDrag event
             const x = e.clientX - gridRect.left;
             const y = e.clientY - gridRect.top;
             
-            const row = Math.floor(y / BLOCK_SIZE);
-            const col = Math.floor(x / BLOCK_SIZE);
+            const shapeMatrix = SHAPES[draggedPieceInfo.shape];
+            const shapeHeight = shapeMatrix.length;
+            const shapeWidth = shapeMatrix[0].length;
 
-            placePiece(draggedPieceInfo.shape, row, col);
+            // Adjust for the center of the piece so it feels natural
+            const row = Math.floor((y - (shapeHeight * BLOCK_SIZE) / 2) / BLOCK_SIZE);
+            const col = Math.floor((x - (shapeWidth * BLOCK_SIZE) / 2) / BLOCK_SIZE);
+
+            placePiece(draggedPieceInfo.shape, row, col, draggedPieceInfo.index);
         }
         setDraggedPieceInfo(null);
+        setDragPosition(null);
+    };
+
+    const handleDragEnd = () => {
+        setDraggedPieceInfo(null);
+        setDragPosition(null);
     };
 
     const newGame = () => {
@@ -190,6 +228,17 @@ export default function BlockPuzzleClientPage() {
 
     return (
         <div className="flex flex-col items-center p-4">
+            {draggedPieceInfo && dragPosition && (
+                <div 
+                    className="pointer-events-none fixed z-50 opacity-70"
+                    style={{
+                        left: dragPosition.x - (SHAPES[draggedPieceInfo.shape][0].length * BLOCK_SIZE / 2),
+                        top: dragPosition.y - (SHAPES[draggedPieceInfo.shape].length * BLOCK_SIZE / 2)
+                    }}
+                >
+                    <PiecePreview shapeKey={draggedPieceInfo.shape} />
+                </div>
+            )}
             <h1 className="text-4xl font-bold mb-4">Puzzle Blocks</h1>
             <div className="flex flex-col md:flex-row gap-8 items-center md:items-start">
                 <div 
@@ -227,16 +276,16 @@ export default function BlockPuzzleClientPage() {
                         <CardContent className="flex flex-row md:flex-col items-center justify-center gap-4">
                             {pieces.map((shapeKey, index) => {
                                 const shapeMatrix = SHAPES[shapeKey];
-                                const isDragging = draggedPieceInfo?.index === index;
                                 return (
                                     <div
                                         key={index}
                                         draggable
                                         onDragStart={(e) => handleDragStart(e, shapeKey, index)}
-                                        onDragEnd={() => setDraggedPieceInfo(null)}
+                                        onDrag={handleDrag}
+                                        onDragEnd={handleDragEnd}
                                         className={cn(
                                             "cursor-grab active:cursor-grabbing p-2",
-                                            isDragging && "opacity-50"
+                                            draggedPieceInfo?.index === index && "opacity-50"
                                         )}
                                     >
                                         <div className="flex flex-col items-center">
