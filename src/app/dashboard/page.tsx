@@ -255,12 +255,12 @@ function DashboardPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean }) {
         
         setIsDataLoading(true);
 
-        const savedCustomizations = localStorage.getItem(`robotCustomizations_${'${user.uid}'}`);
+        const savedCustomizations = localStorage.getItem(`robotCustomizations_${user.uid}`);
         if(savedCustomizations) {
             setCustomizations(JSON.parse(savedCustomizations));
         }
 
-        const freeChestClaimed = localStorage.getItem(`freeChestClaimed_${'${user.uid}'}`);
+        const freeChestClaimed = localStorage.getItem(`freeChestClaimed_${user.uid}`);
         if (freeChestClaimed === 'true') {
             setHasClaimedFreeChest(true);
         }
@@ -394,7 +394,7 @@ function DashboardPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean }) {
             setAddProjectOpen(false);
             toast({
                 title: 'Project Added!',
-                description: `${'${newProject.name}'} has been added to your list.`
+                description: `${newProject.name} has been added to your list.`
             });
         } catch (error) {
             console.error("Error adding project: ", error);
@@ -427,7 +427,7 @@ function DashboardPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean }) {
             credits: parseInt(newCourse.credits, 10),
             url: newCourse.url,
             userId: user.uid,
-            description: `A comprehensive course on ${'${newCourse.name}'} taught by ${'${newCourse.instructor}'}.`,
+            description: `A comprehensive course on ${newCourse.name} taught by ${newCourse.instructor}.`,
             progress: 0,
             files: 0,
         };
@@ -436,7 +436,7 @@ function DashboardPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean }) {
             await addDoc(collection(db, "courses"), courseToAdd);
             toast({
                 title: 'Course Added!',
-                description: `${'${courseToAdd.name}'} has been added to your list.`
+                description: `${courseToAdd.name} has been added to your list.`
             });
         } catch(error) {
              toast({
@@ -479,7 +479,7 @@ function DashboardPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean }) {
             await Promise.all(uploadPromises);
             toast({
                 title: 'Upload Successful!',
-                description: `${'${files.length}'} file(s) have been added.`,
+                description: `${files.length} file(s) have been added.`,
             });
         } catch (error) {
             console.error("Error uploading files: ", error);
@@ -522,7 +522,7 @@ function DashboardPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean }) {
 
     const handleClaimChest = async (chest: Chest) => {
         if (!user) return;
-        if (userCoins < chest.cost) {
+        if (chest.cost > 0 && userCoins < chest.cost) {
             toast({ variant: 'destructive', title: 'Not enough coins!' });
             return;
         }
@@ -537,12 +537,12 @@ function DashboardPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean }) {
             try {
                 const userRef = doc(db, 'users', user.uid);
                 await updateDoc(userRef, {
-                    coins: increment(coinsWon - chest.cost),
+                    coins: increment(coinsWon - (chest.cost > 0 ? chest.cost : 0)),
                 });
 
                 if (chest.id === 'daily_free') {
                     setHasClaimedFreeChest(true);
-                    localStorage.setItem(`freeChestClaimed_${'${user.uid}'}`, 'true');
+                    localStorage.setItem(`freeChestClaimed_${user.uid}`, 'true');
                 }
             } catch (e) {
                 console.error("Failed to update coins: ", e);
@@ -852,10 +852,20 @@ function DashboardPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean }) {
                                                 const isFreeClaimed = chest.id === 'daily_free' && hasClaimedFreeChest;
                                                 const isDisabled = isStreakLocked || isFreeClaimed || (!canAfford && chest.cost > 0);
                                                 
+                                                let buttonText: React.ReactNode = <><Gem className="mr-2 h-4 w-4"/>{chest.cost}</>;
+                                                if (isStreakLocked) {
+                                                    const daysLeft = chest.unlocksAt! - streak;
+                                                    buttonText = `Unlock in ${daysLeft} day${daysLeft > 1 ? 's' : ''}`;
+                                                } else if (isFreeClaimed) {
+                                                    buttonText = 'Claimed';
+                                                } else if (chest.cost === 0) {
+                                                    buttonText = 'Claim Free';
+                                                }
+
                                                 return (
                                                     <Card key={chest.id} className={cn("transition-all", isDisabled && "opacity-50")}>
-                                                        <CardContent className="p-4 flex items-center justify-between">
-                                                            <div className="flex items-center gap-4">
+                                                        <CardContent className="p-4 flex items-center justify-between gap-2">
+                                                            <div className="flex items-center gap-4 flex-1">
                                                                 <div className="p-3 rounded-lg bg-muted">
                                                                     <Gift className="h-8 w-8 text-primary" />
                                                                 </div>
@@ -864,8 +874,8 @@ function DashboardPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean }) {
                                                                     <p className="text-sm text-muted-foreground">{chest.description}</p>
                                                                 </div>
                                                             </div>
-                                                            <Button size="sm" className="w-32" disabled={isDisabled} onClick={() => handleClaimChest(chest)}>
-                                                                {isStreakLocked ? `Unlock in ${chest.unlocksAt! - streak} days` : isFreeClaimed ? 'Claimed' : chest.cost > 0 ? <><Gem className="mr-2 h-4 w-4"/>{chest.cost}</> : 'Claim Free'}
+                                                            <Button size="sm" className="w-36" disabled={isDisabled} onClick={() => handleClaimChest(chest)}>
+                                                                {buttonText}
                                                             </Button>
                                                         </CardContent>
                                                     </Card>
@@ -1262,8 +1272,8 @@ function DashboardPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean }) {
                                                             <div className="space-y-2">
                                                                 {state.explanation.practiceQuestion.options.map((option, i) => {
                                                                     return(
-                                                                        <Label key={`${'${state.attempt.id}'}-${i}`} htmlFor={`pq-${'${state.attempt.id}'}-${i}`} className="flex items-center gap-4 p-3 rounded-lg border transition-all cursor-pointer text-sm">
-                                                                            <RadioGroupItem value={option} id={`pq-${'${state.attempt.id}'}-${i}`} />
+                                                                        <Label key={`${state.attempt.id}-${i}`} htmlFor={`pq-${state.attempt.id}-${i}`} className="flex items-center gap-4 p-3 rounded-lg border transition-all cursor-pointer text-sm">
+                                                                            <RadioGroupItem value={option} id={`pq-${state.attempt.id}-${i}`} />
                                                                             <span>{option}</span>
                                                                         </Label>
                                                                     )
@@ -1314,7 +1324,7 @@ function DashboardPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean }) {
                                      <Image
                                         className="size-12"
                                         src={integration.icon}
-                                        alt={`${'${integration.name}'}-icon`}
+                                        alt={`${integration.name}-icon`}
                                         width={48}
                                         height={48}
                                     />

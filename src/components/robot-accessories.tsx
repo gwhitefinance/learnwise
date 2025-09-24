@@ -5,14 +5,14 @@ import React from 'react';
 
 const hatComponents: Record<string, React.FC> = {
     "Top Hat": () => (
-        <g transform='translate(60, 0) scale(0.9)'>
+        <g transform='translate(60, 20) scale(0.9)'>
             <path d="M 0,30 C 0,25 5,25 10,20 H 70 C 75,25 80,25 80,30 V 28 H 0 Z" fill="#333"/>
             <rect x="15" y="0" width="50" height="25" fill="#333" />
             <rect x="12" y="18" width="56" height="4" fill="#555" />
         </g>
     ),
     "Propeller Hat": () => (
-        <g transform='translate(100, 28)'>
+        <g transform='translate(100, 38)'>
             <path d='M-35 0 C-35 -15, 35 -15, 35 0' fill='#f44336' />
             <path d='M-25,0 L-25,-5 L25,-5 L25,0' fill="#3b82f6" />
             <path d='M 0 -25 L 0 -5' stroke='#333' strokeWidth='3' />
@@ -23,7 +23,7 @@ const hatComponents: Record<string, React.FC> = {
         </g>
     ),
     "Crown": () => (
-        <g transform='translate(62, 15)'>
+        <g transform='translate(62, 25) scale(1)'>
             <path d='M0 20 L75 20 L70 -5 L55 10 L37.5 -15 L20 10 L5 -5 Z' fill='gold' stroke='#f59e0b' strokeWidth='1.5' />
             <circle cx="10" cy="15" r="3" fill="red" />
             <circle cx="37.5" cy="5" r="3" fill="blue" />
@@ -31,7 +31,7 @@ const hatComponents: Record<string, React.FC> = {
         </g>
     ),
     "Wizard Hat": () => (
-        <g transform='translate(50, 0) scale(0.95)'>
+        <g transform='translate(50, 15) scale(0.95)'>
             <path d='M-10 50 L110 50 Q50 40 -10 50' fill='#2c3e50' />
             <path d='M50 -20 L20 50 Q50 40 80 50 L50 -20' fill='#2c3e50' />
             <path d='M45 20 L55 30 L65 20' stroke='yellow' strokeWidth='2' fill='none' />
@@ -39,20 +39,20 @@ const hatComponents: Record<string, React.FC> = {
         </g>
     ),
     "Beanie": () => (
-        <g transform='translate(52, 20)'>
+        <g transform='translate(52, 30)'>
             <path d='M0 15 C0 -15, 95 -15, 95 15 Z' fill='teal' />
             <rect x="0" y="10" width="95" height="10" fill="darkcyan" />
             <circle cx="47.5" cy="-10" r="8" fill="white" />
         </g>
     ),
     "Cowboy Hat": () => (
-        <g transform='translate(45, 15)'>
+        <g transform='translate(45, 25)'>
             <path d="M -15,25 C 20,5 90,5 125,25 L 120,25 C 85,15 25,15 -10,25 Z" fill="#A0522D" stroke="#654321" strokeWidth="2" />
             <path d="M 15,22 C 25,0 85,0 95,22 L 85,22 C 75,10 35,10 25,22 Z" fill="#8B4513" />
         </g>
     ),
     "Party Hat": () => (
-        <g transform='translate(75, 5)'>
+        <g transform='translate(75, 15)'>
             <path d='M25 0 L0 50 L50 50 Z' fill='pink' />
             <circle cx="25" cy="20" r="4" fill="yellow" />
             <circle cx="15" cy="35" r="4" fill="cyan" />
@@ -61,41 +61,41 @@ const hatComponents: Record<string, React.FC> = {
         </g>
     ),
     "Pumpkin Hat": () => (
-        <g transform='translate(65, 10)'>
+        <g transform='translate(65, 20)'>
             <path d='M0,25 a35,35 0 1,1 70,0 a35,35 0 1,1 -70,0' fill='#f57d00' />
             <rect x="30" y="-8" width="10" height="15" rx="3" fill="green" />
         </g>
     ),
     "Witch Hat": () => (
-        <g transform='translate(45, 10) scale(0.9)'>
+        <g transform='translate(45, 20) scale(0.9)'>
             <path d='M-10 40 L115 40 L115 30 L-10 30 Z' fill='#222' />
             <path d='M55 -15 L20 35 L90 35 Z' fill='#222' />
             <rect x="15" y="28" width="70" height="7" fill="#4A00B4" />
         </g>
     ),
     "Viking Helmet": () => (
-        <g transform="translate(58, 25)">
+        <g transform="translate(58, 35)">
             <path d="M0 10 C0 -10, 85 -10, 85 10" fill="#C0C0C0" stroke="#A9A9A9" strokeWidth="2" />
             <path d="M-10 5 C-20 -15, -30 -5, -10 5" fill="#F0E68C" stroke="#B8860B" strokeWidth="1.5" />
             <path d="M95 5 C 105 -15, 115 -5, 95 5" fill="#F0E68C" stroke="#B8860B" strokeWidth="1.5" />
         </g>
     ),
     "Fedora": () => (
-        <g transform="translate(50, 18)">
+        <g transform="translate(50, 28)">
             <path d="M-5 15 L105 15 L100 5 L0 5 Z" fill="#3D2B1F"/>
             <path d="M10 5 Q50 -10 90 5 L 80 5 Q50 -2 20 5 Z" fill="#332211"/>
             <rect x="0" y="3" width="100" height="4" fill="#111" />
         </g>
     ),
     "Chef's Hat": () => (
-        <g transform="translate(65, -5)">
+        <g transform="translate(65, 5)">
             <rect x="0" y="35" width="70" height="10" fill="white" stroke="#ccc" strokeWidth="1" />
             <path d="M-5 20 C-15 -10, 30 -20, 35 0 C 40 -20, 85 -10, 75 20 Z" fill="white" stroke="#ccc" strokeWidth="1" />
             <path d="M0 35 C 0 15, 70 15, 70 35" fill="white" stroke="#ccc" strokeWidth="1" />
         </g>
     ),
     "Detective Hat": () => (
-        <g transform="translate(52, 15)">
+        <g transform="translate(52, 25)">
             <path d="M0 20 C0 -10, 95 -10, 95 20 Z" fill="#a05a2c" />
             <path d="M-10 20 L10 20 L5 15 Z" fill="#804515" stroke="black" strokeWidth="1"/>
             <path d="M105 20 L85 20 L90 15 Z" fill="#804515" stroke="black" strokeWidth="1"/>
@@ -103,7 +103,7 @@ const hatComponents: Record<string, React.FC> = {
         </g>
     ),
     "Headphones": () => (
-        <g transform="translate(45, 42)">
+        <g transform="translate(45, 52)">
             <path d="M0 0 C0 -45, 110 -45, 110 0" stroke="black" strokeWidth="8" fill="none" />
             <rect x="-15" y="-10" width="30" height="35" rx="8" fill="gray" />
             <rect x="95" y="-10" width="30" height="35" rx="8" fill="gray" />
@@ -112,7 +112,7 @@ const hatComponents: Record<string, React.FC> = {
         </g>
     ),
     "Flower Crown": () => (
-        <g transform="translate(52, 25)">
+        <g transform="translate(52, 35)">
             <path d="M0 0 C15 -15, 80 -15, 95 0" stroke="#22c55e" strokeWidth="4" fill="none"/>
             <circle cx="10" cy="-10" r="8" fill="#f472b6" />
             <circle cx="30" cy="-15" r="8" fill="#facc15" />
@@ -236,7 +236,7 @@ const shoeComponents: Record<string, React.FC> = {
             <rect x='65' y='170' width='30' height='20' rx='8' fill='#D3D3D3'/>
             <rect x='105' y='170' width='30' height='20' rx='8' fill='#D3D3D3'/>
             <ellipse cx='80' cy='195' rx='10' ry='5' fill='orange'><animate attributeName='ry' values='5;8;5' dur='0.5s' repeatCount='indefinite' /></ellipse>
-            <ellipse cx='120' cy='195' rx='10' ry='5' fill='orange'><animate attributeName='ry' values='5;8;5' dur='0.5s' repeatCount='indefinite' /></ellipse>
+            <ellipse cx='120' cy='195' rx='10' ry='5' fill='orange'><animate attributeName='ry' values='5;8.5;5' dur='0.5s' repeatCount='indefinite' /></ellipse>
         </g>
     ),
     "Sandals": () => (
