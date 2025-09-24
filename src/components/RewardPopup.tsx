@@ -1,14 +1,27 @@
-
 'use client';
 
-import { useContext } from 'react';
+import { useContext, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Gem } from 'lucide-react';
 import { RewardContext } from '@/context/RewardContext';
 import AIBuddy from '@/components/ai-buddy';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { auth } from '@/lib/firebase';
 
 export default function RewardPopup() {
     const { rewardInfo, isRewardVisible, hideReward } = useContext(RewardContext);
+    const [user] = useAuthState(auth);
+    const [customizations, setCustomizations] = useState<Record<string, string>>({});
+
+    useEffect(() => {
+        if (user) {
+            const savedCustomizations = localStorage.getItem(`robotCustomizations_${user.uid}`);
+            if(savedCustomizations) {
+                setCustomizations(JSON.parse(savedCustomizations));
+            }
+        }
+    }, [user, isRewardVisible]);
+
 
     const getMessage = () => {
         if (!rewardInfo) return null;
@@ -45,7 +58,13 @@ export default function RewardPopup() {
                             <X className="h-5 w-5" />
                         </button>
                         <div className="flex flex-col items-center text-center gap-4">
-                            <AIBuddy className="w-24 h-24" />
+                            <AIBuddy 
+                                className="w-24 h-24" 
+                                color={customizations.color}
+                                hat={customizations.hat}
+                                shirt={customizations.shirt}
+                                shoes={customizations.shoes}
+                            />
                             {getMessage()}
                         </div>
                     </div>
