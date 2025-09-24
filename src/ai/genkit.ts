@@ -1,8 +1,19 @@
 
 import {genkit} from 'genkit';
 import {googleAI} from '@genkit-ai/googleai';
+import { Plugin } from 'genkit';
+
+const plugins: Plugin<any>[] = [];
+
+if (process.env.GEMINI_API_KEY) {
+  plugins.push(googleAI({ apiKey: process.env.GEMINI_API_KEY }));
+} else {
+  console.warn(
+    'GEMINI_API_KEY environment variable not set. Genkit will not be able to use Google AI models.'
+  );
+}
 
 export const ai = genkit({
-  plugins: [googleAI({apiKey: process.env.GEMINI_API_KEY})],
+  plugins,
   model: 'googleai/gemini-2.5-flash',
 });
