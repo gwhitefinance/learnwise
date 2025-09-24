@@ -1,11 +1,12 @@
 
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RotateCw } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const GRID_SIZE = 10;
 const BLOCK_SIZE = 35;
@@ -39,7 +40,8 @@ export default function BlockPuzzleClientPage() {
     const [pieces, setPieces] = useState<Shape[]>([]);
     const [score, setScore] = useState(0);
     const [gameOver, setGameOver] = useState(false);
-    const [draggedPiece, setDraggedPiece] = useState<{ shape: Shape; index: number } | null>(null);
+    const [draggedPieceInfo, setDraggedPieceInfo] = useState<{ shape: Shape; index: number; } | null>(null);
+    const gridRef = useRef<HTMLDivElement>(null);
 
     const generateNewPieces = useCallback(() => {
         setPieces([getRandomShape(), getRandomShape(), getRandomShape()]);
@@ -71,11 +73,13 @@ export default function BlockPuzzleClientPage() {
     const checkForGameOver = useCallback((currentBoard: number[][], currentPieces: Shape[]) => {
         if (currentPieces.length === 0) return false;
         for (const pieceShape of currentPieces) {
-            const shapeMatrix = SHAPES[pieceShape];
-            for (let r = 0; r < GRID_SIZE; r++) {
-                for (let c = 0; c < GRID_SIZE; c++) {
-                    if (isValidMove(currentBoard, shapeMatrix, r, c)) {
-                        return false; // Found a valid move
+            if (pieceShape) { // Ensure pieceShape is not null/undefined
+                const shapeMatrix = SHAPES[pieceShape];
+                for (let r = 0; r < GRID_SIZE; r++) {
+                    for (let c = 0; c < GRID_SIZE; c++) {
+                        if (isValidMove(currentBoard, shapeMatrix, r, c)) {
+                            return false; // Found a valid move
+                        }
                     }
                 }
             }
@@ -130,7 +134,7 @@ export default function BlockPuzzleClientPage() {
         const comboBonus = linesCleared > 1 ? (linesCleared - 1) * 10 : 0;
         setScore(prev => prev + pieceScore + (lineBonus[linesCleared] || 0) + comboBonus);
         
-        const remainingPieces = pieces.filter((_, i) => i !== draggedPiece!.index);
+        const remainingPieces = pieces.map((p, i) => i === draggedPieceInfo!.index ? null : p).filter(Boolean) as Shape[];
         
         if (checkForGameOver(newBoard, remainingPieces)) {
             setGameOver(true);
@@ -153,16 +157,28 @@ export default function BlockPuzzleClientPage() {
             setGameOver(true);
         }
     }, [board, pieces, checkForGameOver]);
-
-    const handleDrop = (row: number, col: number) => {
-        if (draggedPiece) {
-            placePiece(draggedPiece.shape, row, col);
-            setDraggedPiece(null);
-        }
+    
+    const handleDragStart = (e: React.DragEvent<HTMLDivElement>, shape: Shape, index: number) => {
+        setDraggedPieceInfo({ shape, index });
+        // Use a transparent image to hide the default drag preview
+        const img = new Image();
+        img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs=';
+        e.dataTransfer.setDragImage(img, 0, 0);
     };
 
-    const handleDragStart = (shape: Shape, index: number) => {
-        setDraggedPiece({ shape, index });
+    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        if (draggedPieceInfo && gridRef.current) {
+            const gridRect = gridRef.current.getBoundingClientRect();
+            const x = e.clientX - gridRect.left;
+            const y = e.clientY - gridRect.top;
+            
+            const row = Math.floor(y / BLOCK_SIZE);
+            const col = Math.floor(x / BLOCK_SIZE);
+
+            placePiece(draggedPieceInfo.shape, row, col);
+        }
+        setDraggedPieceInfo(null);
     };
 
     const newGame = () => {
@@ -177,15 +193,16 @@ export default function BlockPuzzleClientPage() {
             <h1 className="text-4xl font-bold mb-4">Puzzle Blocks</h1>
             <div className="flex flex-col md:flex-row gap-8 items-center md:items-start">
                 <div 
+                    ref={gridRef}
                     className="grid bg-muted p-2 rounded-lg" 
                     style={{ gridTemplateColumns: `repeat(${GRID_SIZE}, ${BLOCK_SIZE}px)` }}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={handleDrop}
                 >
                     {board.map((row, r_idx) => 
                         row.map((cell, c_idx) => (
                             <div
                                 key={`${r_idx}-${c_idx}`}
-                                onDragOver={(e) => e.preventDefault()}
-                                onDrop={() => handleDrop(r_idx, c_idx)}
                                 style={{ width: BLOCK_SIZE, height: BLOCK_SIZE }}
                                 className={`border border-black/10 ${cell ? 'bg-primary' : ''}`}
                             ></div>
@@ -210,12 +227,17 @@ export default function BlockPuzzleClientPage() {
                         <CardContent className="flex flex-row md:flex-col items-center justify-center gap-4">
                             {pieces.map((shapeKey, index) => {
                                 const shapeMatrix = SHAPES[shapeKey];
+                                const isDragging = draggedPieceInfo?.index === index;
                                 return (
                                     <div
                                         key={index}
                                         draggable
-                                        onDragStart={() => handleDragStart(shapeKey, index)}
-                                        className="cursor-grab active:cursor-grabbing p-2"
+                                        onDragStart={(e) => handleDragStart(e, shapeKey, index)}
+                                        onDragEnd={() => setDraggedPieceInfo(null)}
+                                        className={cn(
+                                            "cursor-grab active:cursor-grabbing p-2",
+                                            isDragging && "opacity-50"
+                                        )}
                                     >
                                         <div className="flex flex-col items-center">
                                             {shapeMatrix.map((row, r_idx) => (
@@ -262,4 +284,3 @@ export default function BlockPuzzleClientPage() {
         </div>
     );
 }
-
