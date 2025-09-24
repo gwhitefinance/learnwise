@@ -552,7 +552,7 @@ function DashboardPageClient({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
         }, 2000); // Duration of the animation
     };
     
-    const chests: Chest[] = rewardsData.chests;
+    const chests: Chest[] = rewardsData.chests as Chest[];
     
     const handleGetExplanation = async (topic: string, attemptId: string) => {
         if (!learnerType) return;
@@ -1349,3 +1349,5 @@ function DashboardPageClient({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
 }
 
 export default DashboardPageClient;
+
+    
