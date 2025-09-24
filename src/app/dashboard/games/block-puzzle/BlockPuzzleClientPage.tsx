@@ -7,9 +7,28 @@ import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RotateCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { auth, db } from '@/lib/firebase';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { generateQuiz } from '@/ai/flows/quiz-flow';
+import type { GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 
 const GRID_SIZE = 10;
 const BLOCK_SIZE = 35;
+
+type Course = {
+    id: string;
+    name: string;
+    description: string;
+    userId?: string;
+};
+
+type Question = GenerateQuizOutput['questions'][0];
 
 const SHAPES = {
   I: [[1, 1, 1, 1]],
@@ -63,13 +82,71 @@ export default function BlockPuzzleClientPage() {
     const gridRef = useRef<HTMLDivElement>(null);
     const [dragPosition, setDragPosition] = useState<{ x: number; y: number } | null>(null);
 
+    const [courses, setCourses] = useState<Course[]>([]);
+    const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
+    const [gameStarted, setGameStarted] = useState(false);
+    
+    const [question, setQuestion] = useState<Question | null>(null);
+    const [isQuestionLoading, setIsQuestionLoading] = useState(false);
+    const [isQuestionModalOpen, setIsQuestionModalOpen] = useState(false);
+    const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+    
+    const { toast } = useToast();
+    const [user, authLoading] = useAuthState(auth);
+
+    useEffect(() => {
+        if (authLoading || !user) return;
+
+        const q = query(collection(db, "courses"), where("userId", "==", user.uid));
+        const unsubscribe = onSnapshot(q, (querySnapshot) => {
+            const userCourses = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
+            setCourses(userCourses);
+            if (userCourses.length > 0 && !selectedCourseId) {
+                setSelectedCourseId(userCourses[0].id);
+            }
+        });
+
+        return () => unsubscribe();
+    }, [user, authLoading, selectedCourseId]);
+
     const generateNewPieces = useCallback(() => {
         setPieces([getRandomShape(), getRandomShape(), getRandomShape()]);
     }, []);
 
+    const getNewQuestion = useCallback(async () => {
+        if (!selectedCourseId) return;
+        const course = courses.find(c => c.id === selectedCourseId);
+        if (!course) return;
+
+        setIsQuestionLoading(true);
+        setIsQuestionModalOpen(true);
+        try {
+            const result = await generateQuiz({ 
+                topics: course.name,
+                questionType: 'Multiple Choice',
+                difficulty: 'Easy',
+                numQuestions: 1,
+            });
+            if (result.questions && result.questions.length > 0) {
+                setQuestion(result.questions[0]);
+            } else {
+                throw new Error("No questions were generated.");
+            }
+        } catch (error) {
+            console.error("Failed to generate question:", error);
+            toast({ variant: 'destructive', title: 'Could not fetch a question.' });
+            setIsQuestionModalOpen(false); // Close modal if question fails
+        } finally {
+            setIsQuestionLoading(false);
+        }
+    }, [selectedCourseId, courses, toast]);
+
+
     useEffect(() => {
-        generateNewPieces();
-    }, [generateNewPieces]);
+        if(gameStarted) {
+            generateNewPieces();
+        }
+    }, [gameStarted, generateNewPieces]);
 
     const isValidMove = (boardState: number[][], shape: number[][], row: number, col: number) => {
         for (let r = 0; r < shape.length; r++) {
@@ -93,18 +170,18 @@ export default function BlockPuzzleClientPage() {
     const checkForGameOver = useCallback((currentBoard: number[][], currentPieces: Shape[]) => {
         if (currentPieces.length === 0) return false;
         for (const pieceShape of currentPieces) {
-            if (pieceShape) { // Ensure pieceShape is not null/undefined
+            if (pieceShape) { 
                 const shapeMatrix = SHAPES[pieceShape];
                 for (let r = 0; r < GRID_SIZE; r++) {
                     for (let c = 0; c < GRID_SIZE; c++) {
                         if (isValidMove(currentBoard, shapeMatrix, r, c)) {
-                            return false; // Found a valid move
+                            return false; 
                         }
                     }
                 }
             }
         }
-        return true; // No valid moves for any available piece
+        return true; 
     }, []);
 
 
@@ -148,18 +225,15 @@ export default function BlockPuzzleClientPage() {
             colsToClear.forEach(c => {
                 for (let r = 0; r < GRID_SIZE; r++) newBoard[r][c] = 0;
             });
+            getNewQuestion();
         }
         
-        const lineBonus = [0, 10, 30, 60, 100, 150, 200, 250, 300, 400, 500]; // Bonus for clearing lines
+        const lineBonus = [0, 10, 30, 60, 100, 150, 200, 250, 300, 400, 500];
         const comboBonus = linesCleared > 1 ? (linesCleared - 1) * 10 : 0;
         setScore(prev => prev + pieceScore + (lineBonus[linesCleared] || 0) + comboBonus);
         
         const remainingPieces = pieces.map((p, i) => i === pieceIndex ? null : p).filter(Boolean) as Shape[];
         
-        if (checkForGameOver(newBoard, remainingPieces)) {
-            setGameOver(true);
-        }
-
         setBoard(newBoard);
         setPieces(remainingPieces);
         
@@ -167,27 +241,25 @@ export default function BlockPuzzleClientPage() {
     };
 
     useEffect(() => {
-        if (pieces.length === 0 && !gameOver) {
+        if (pieces.length === 0 && !gameOver && gameStarted) {
             generateNewPieces();
         }
-    }, [pieces, gameOver, generateNewPieces]);
+    }, [pieces, gameOver, generateNewPieces, gameStarted]);
 
     useEffect(() => {
-        if(pieces.length > 0 && checkForGameOver(board, pieces)){
+        if(gameStarted && pieces.length > 0 && checkForGameOver(board, pieces)){
             setGameOver(true);
         }
-    }, [board, pieces, checkForGameOver]);
+    }, [board, pieces, checkForGameOver, gameStarted]);
     
     const handleDragStart = (e: React.DragEvent<HTMLDivElement>, shape: Shape, index: number) => {
         setDraggedPieceInfo({ shape, index });
-        // Use a transparent image to hide the default drag preview
         const img = new Image();
         img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs=';
         e.dataTransfer.setDragImage(img, 0, 0);
     };
 
     const handleDrag = (e: React.DragEvent<HTMLDivElement>) => {
-        // clientX and clientY are what we need for screen position
         setDragPosition({ x: e.clientX, y: e.clientY });
     };
 
@@ -196,7 +268,6 @@ export default function BlockPuzzleClientPage() {
         e.preventDefault();
         if (draggedPieceInfo && gridRef.current) {
             const gridRect = gridRef.current.getBoundingClientRect();
-            // We use clientX/Y for consistency with the handleDrag event
             const x = e.clientX - gridRect.left;
             const y = e.clientY - gridRect.top;
             
@@ -204,9 +275,8 @@ export default function BlockPuzzleClientPage() {
             const shapeHeight = shapeMatrix.length;
             const shapeWidth = shapeMatrix[0].length;
 
-            // Adjust for the center of the piece so it feels natural
-            const row = Math.floor((y - (shapeHeight * BLOCK_SIZE) / 2) / BLOCK_SIZE);
-            const col = Math.floor((x - (shapeWidth * BLOCK_SIZE) / 2) / BLOCK_SIZE);
+            const row = Math.round(y / BLOCK_SIZE - shapeHeight / 2);
+            const col = Math.round(x / BLOCK_SIZE - shapeWidth / 2);
 
             placePiece(draggedPieceInfo.shape, row, col, draggedPieceInfo.index);
         }
@@ -223,8 +293,66 @@ export default function BlockPuzzleClientPage() {
         setBoard(createEmptyBoard());
         setScore(0);
         setGameOver(false);
-        generateNewPieces();
+        setGameStarted(false); // Go back to course selection
+        setSelectedCourseId(null);
     };
+
+    const startGame = () => {
+        if (!selectedCourseId) {
+            toast({ variant: 'destructive', title: 'Please select a course.'});
+            return;
+        }
+        setBoard(createEmptyBoard());
+        setScore(0);
+        setGameOver(false);
+        setGameStarted(true);
+    }
+    
+    const handleAnswerSubmit = () => {
+        if (!question || !selectedAnswer) return;
+
+        const isCorrect = selectedAnswer === question.answer;
+        
+        if (isCorrect) {
+            toast({ title: "Correct!", description: "+100 bonus points!" });
+            setScore(s => s + 100);
+        } else {
+            toast({ variant: 'destructive', title: "Incorrect!", description: `The correct answer was: ${question.answer}` });
+        }
+        setIsQuestionModalOpen(false);
+        setSelectedAnswer(null);
+        setQuestion(null);
+        if (checkForGameOver(board, pieces)) {
+            setGameOver(true);
+        }
+    };
+
+
+    if (!gameStarted) {
+        return (
+            <div className="flex flex-col items-center p-4">
+                <h1 className="text-4xl font-bold mb-4">Puzzle Blocks</h1>
+                <Card className="w-full max-w-md p-8 text-center">
+                    <p className="text-muted-foreground mb-4">Select a course to start the game!</p>
+                     <div className="flex flex-col items-center gap-4">
+                        <Select onValueChange={setSelectedCourseId} value={selectedCourseId ?? ''} disabled={courses.length === 0}>
+                            <SelectTrigger className="w-[280px]">
+                                <SelectValue placeholder="Select a course..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {courses.map(course => (
+                                    <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <Button onClick={startGame} disabled={!selectedCourseId || authLoading}>
+                            Start Game
+                        </Button>
+                    </div>
+                </Card>
+            </div>
+        )
+    }
 
     return (
         <div className="flex flex-col items-center p-4">
@@ -279,7 +407,7 @@ export default function BlockPuzzleClientPage() {
                                 return (
                                     <div
                                         key={index}
-                                        draggable
+                                        draggable={!isQuestionModalOpen}
                                         onDragStart={(e) => handleDragStart(e, shapeKey, index)}
                                         onDrag={handleDrag}
                                         onDragEnd={handleDragEnd}
@@ -330,6 +458,35 @@ export default function BlockPuzzleClientPage() {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            <Dialog open={isQuestionModalOpen} onOpenChange={setIsQuestionModalOpen}>
+                <DialogContent onInteractOutside={(e) => e.preventDefault()}>
+                    <DialogHeader>
+                        <DialogTitle>Bonus Question!</DialogTitle>
+                        <DialogDescription>Answer correctly for bonus points.</DialogDescription>
+                    </DialogHeader>
+                    {isQuestionLoading || !question ? (
+                        <div className="p-8 text-center">Loading question...</div>
+                    ) : (
+                        <div className="py-4">
+                            <p className="font-semibold text-lg mb-4">{question.question}</p>
+                            <RadioGroup value={selectedAnswer ?? ''} onValueChange={setSelectedAnswer}>
+                                <div className="space-y-2">
+                                    {question.options?.map((option, index) => (
+                                         <Label key={index} htmlFor={`option-${index}`} className={cn("flex items-center gap-4 p-3 rounded-lg border transition-all cursor-pointer", selectedAnswer === option ? "border-primary bg-primary/10" : "border-border hover:bg-muted")}>
+                                            <RadioGroupItem value={option} id={`option-${index}`} />
+                                            <span>{option}</span>
+                                        </Label>
+                                    ))}
+                                </div>
+                            </RadioGroup>
+                        </div>
+                    )}
+                     <DialogFooter>
+                        <Button onClick={handleAnswerSubmit} disabled={isQuestionLoading || !selectedAnswer}>Submit Answer</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
