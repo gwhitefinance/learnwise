@@ -294,7 +294,7 @@ export default function CalendarClientPage() {
   const daysInMonthArray = eachDayOfInterval({ start: firstDayOfMonth, end: lastDayOfMonth });
   const firstDayOffset = getDay(firstDayOfMonth);
   
-  const miniCalendarDays = Array.from({ length: firstDayOffset }, () => null).concat(
+  const miniCalendarDays: (number | null)[] = Array.from({ length: firstDayOffset }, () => null).concat(
     daysInMonthArray.map(day => day.getDate())
   );
 
