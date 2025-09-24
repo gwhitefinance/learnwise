@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useRef, useContext } from 'react';
@@ -10,7 +9,6 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowRight, RotateCcw, Lightbulb, CheckCircle, XCircle, PenSquare, Palette, Brush, Eraser, Minimize, Maximize } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { generateQuiz } from '@/ai/flows/quiz-flow';
 import type { GenerateQuizInput, GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
 import { Progress } from '@/components/ui/progress';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -24,7 +22,7 @@ import AudioPlayer from '@/components/audio-player';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { doc, updateDoc, increment, collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { addXp as addXpAction } from '@/lib/actions';
+import { addXp as addXpAction, generateQuizAction } from '@/lib/actions';
 import { RewardContext } from '@/context/RewardContext';
 
 
@@ -131,7 +129,7 @@ export default function PracticeQuizPage() {
                 difficulty: difficulty as 'Easy' | 'Medium' | 'Hard',
                 numQuestions: parseInt(numQuestions),
             };
-            const generatedQuiz = await generateQuiz(input);
+            const generatedQuiz = await generateQuizAction(input);
             setQuiz(generatedQuiz);
             setShowFocusModeDialog(true); // Show focus mode dialog
              toast({
