@@ -1,3 +1,4 @@
+
 'use server';
 
 import { addXp as addXpAdmin } from './firebase-admin';
@@ -6,9 +7,9 @@ import { addXp as addXpAdmin } from './firebase-admin';
 import { generateQuiz } from '@/ai/flows/quiz-flow';
 import { generateExplanation } from '@/ai/flows/quiz-explanation-flow';
 import { generateCourseFromUrl } from '@/ai/flows/course-from-url-flow';
-import { generateSummary } from '@/ai_flows/note-summary-flow';
-import { generateFlashcardsFromNote } from '@/ai_flows/note-to-flashcard-flow';
-import { generateQuizFromNote } from '@/ai_flows/note-to-quiz-flow';
+import { generateSummary } from '@/ai/flows/note-summary-flow';
+import { generateFlashcardsFromNote } from '@/ai/flows/note-to-flashcard-flow';
+import { generateQuizFromNote } from '@/ai/flows/note-to-quiz-flow';
 import { generateMiniCourse } from '@/ai/flows/mini-course-flow';
 import { generateQuizFromModule } from '@/ai/flows/module-quiz-flow';
 import { generateFlashcardsFromModule } from '@/ai/flows/module-flashcard-flow';
@@ -22,7 +23,7 @@ import { generateOnboardingCourse } from '@/ai/flows/onboarding-course-flow';
 
 // Re-exporting all AI functions as Server Actions
 export { 
-    generateQuiz,
+    generateQuiz as generateQuizAction,
     generateExplanation,
     generateCourseFromUrl,
     generateSummary,
