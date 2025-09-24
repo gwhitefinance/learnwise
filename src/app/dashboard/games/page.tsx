@@ -3,7 +3,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
-import { Gamepad2, Brain, Flame, Rocket, Puzzle } from 'lucide-react';
+import { Gamepad2, Brain, Flame, Rocket, Puzzle, Grid } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const games = [
@@ -24,6 +24,12 @@ const games = [
         description: "A logic puzzle where you match falling blocks of related concepts, terms, and definitions.",
         href: "/dashboard/games/concept-tetris",
         icon: <Puzzle className="w-10 h-10 text-purple-500" />
+    },
+    {
+        title: "Puzzle Blocks",
+        description: "A relaxing puzzle game to test your spatial reasoning. Strategically place blocks to clear lines on the board.",
+        href: "/dashboard/games/block-puzzle",
+        icon: <Grid className="w-10 h-10 text-green-500" />
     }
 ];
 
