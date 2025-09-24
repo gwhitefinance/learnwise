@@ -22,7 +22,7 @@ const games = [
     {
         title: "Concept Tetris",
         description: "A logic puzzle where you match falling blocks of related concepts, terms, and definitions.",
-        href: "#",
+        href: "/dashboard/games/concept-tetris",
         icon: <Puzzle className="w-10 h-10 text-purple-500" />
     }
 ];
