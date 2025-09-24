@@ -126,7 +126,7 @@ export default function MemoryMatchClientPage() {
 
     useEffect(() => {
         if (flippedCards.length === 2) {
-            setMoves(moves + 1);
+            setMoves(prevMoves => prevMoves + 1);
             const [firstIndex, secondIndex] = flippedCards;
             const firstCard = cards[firstIndex];
             const secondCard = cards[secondIndex];
