@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -39,7 +38,7 @@ const rarityConfig = {
     Legendary: { text: 'text-orange-400', ring: 'ring-orange-500/30', bg: 'bg-orange-500/10' },
 };
 
-const shopItems: Record<string, Item[]> = shopItemsData;
+const shopItems: Record<string, Item[]> = shopItemsData as Record<string, Item[]>;
 
 export default function ShopClientPage() {
     const [user, authLoading] = useAuthState(auth);
