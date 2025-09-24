@@ -24,12 +24,6 @@ const games = [
         description: "An arcade-style shooter. A question appears, and you must shoot the correct answer asteroid.",
         href: "/dashboard/games/trivia-blaster",
         icon: <Rocket className="w-10 h-10 text-blue-500" />
-    },
-    {
-        title: "Study Pong",
-        description: "A retro pong game where scoring a point gives you a chance to answer a question and earn a real point.",
-        href: "/dashboard/pong-study",
-        icon: <Gamepad2 className="w-10 h-10 text-green-500" />
     }
 ];
 
@@ -73,5 +67,3 @@ export default function GamesPage() {
         </div>
     );
 }
-
-    
