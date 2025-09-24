@@ -490,7 +490,7 @@ export default function DashboardLayout({
                   "radial-gradient(circle at 50% 50%, rgba(120, 41, 190, 0.5) 0%, rgba(53, 71, 125, 0.5) 50%, rgba(0, 0, 0, 0) 100%)",
               ],
               }}
-              transition={{ duration: 30, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
+              transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
           />
         )}
 

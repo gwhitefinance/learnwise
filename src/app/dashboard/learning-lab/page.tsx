@@ -602,7 +602,7 @@ export default function LearningLabPage() {
                                 <RefreshCw className="mr-2 h-4 w-4"/> Flip Card
                             </Button>
                             <Button variant="outline" size="icon" onClick={() => { setIsFlipped(false); setCurrentFlashcardIndex(prev => Math.min(flashcards.length - 1, prev + 1))}} disabled={currentFlashcardIndex === flashcards.length - 1}>
-                                <ChevronRight className="h-4 w-4" />
+                                <ChevronRight className="ml-2 h-4 w-4" />
                             </Button>
                         </div>
                     </div>
