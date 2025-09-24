@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { notFound, useRouter, useParams } from 'next/navigation';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -67,7 +67,7 @@ export default function ClientCoursePage() {
   const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
   const [filesToUpload, setFilesToUpload] = useState<FileList | null>(null);
   
-  const fetchCourse = async () => {
+  const fetchCourse = useCallback(async () => {
       if (!user || !courseId) return;
       setLoading(true);
       const docRef = doc(db, "courses", courseId);
@@ -87,7 +87,7 @@ export default function ClientCoursePage() {
         setCourse(null);
       }
       setLoading(false);
-    };
+    }, [user, courseId]);
 
   useEffect(() => {
     if (authLoading) return;
@@ -102,7 +102,7 @@ export default function ClientCoursePage() {
     }
 
     fetchCourse();
-  }, [courseId, user, authLoading, router]);
+  }, [courseId, user, authLoading, router, fetchCourse]);
 
   const handleAddUnit = async () => {
       if (!newUnitName.trim() || !course) {
