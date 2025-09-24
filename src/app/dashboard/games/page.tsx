@@ -8,12 +8,6 @@ import { motion } from 'framer-motion';
 
 const games = [
     {
-        title: "Memory Match",
-        description: "Test your recall by matching terms with their definitions. Great for vocabulary and key concepts.",
-        href: "/dashboard/games/memory-match",
-        icon: <Brain className="w-10 h-10 text-purple-500" />
-    },
-    {
         title: "Study Snake",
         description: "A classic game of snake where eating food triggers a quiz question. Grow your snake by answering correctly!",
         href: "/dashboard/games/snake",
