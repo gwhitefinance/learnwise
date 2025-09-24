@@ -306,7 +306,7 @@ export default function ClientCoursePage() {
                                             <UploadCloud className="mr-2 h-4 w-4"/> Upload File
                                         </Button>
                                     </div>
-                                    {unit.files?.length > 0 ? (
+                                    {unit.files && unit.files.length > 0 ? (
                                         <ul className="space-y-2">
                                             {unit.files.map(file => (
                                                 <li key={file.id} className="flex items-center justify-between text-sm p-2 rounded-md bg-muted/50">
