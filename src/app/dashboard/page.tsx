@@ -255,12 +255,12 @@ function DashboardPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean }) {
         
         setIsDataLoading(true);
 
-        const savedCustomizations = localStorage.getItem(`robotCustomizations_${user.uid}`);
+        const savedCustomizations = localStorage.getItem(`robotCustomizations_${'${user.uid}'}`);
         if(savedCustomizations) {
             setCustomizations(JSON.parse(savedCustomizations));
         }
 
-        const freeChestClaimed = localStorage.getItem(`freeChestClaimed_${user.uid}`);
+        const freeChestClaimed = localStorage.getItem(`freeChestClaimed_${'${user.uid}'}`);
         if (freeChestClaimed === 'true') {
             setHasClaimedFreeChest(true);
         }
@@ -394,7 +394,7 @@ function DashboardPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean }) {
             setAddProjectOpen(false);
             toast({
                 title: 'Project Added!',
-                description: `${newProject.name} has been added to your list.`
+                description: `${'${newProject.name}'} has been added to your list.`
             });
         } catch (error) {
             console.error("Error adding project: ", error);
@@ -427,7 +427,7 @@ function DashboardPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean }) {
             credits: parseInt(newCourse.credits, 10),
             url: newCourse.url,
             userId: user.uid,
-            description: `A comprehensive course on ${newCourse.name} taught by ${newCourse.instructor}.`,
+            description: `A comprehensive course on ${'${newCourse.name}'} taught by ${'${newCourse.instructor}'}.`,
             progress: 0,
             files: 0,
         };
@@ -436,7 +436,7 @@ function DashboardPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean }) {
             await addDoc(collection(db, "courses"), courseToAdd);
             toast({
                 title: 'Course Added!',
-                description: `${courseToAdd.name} has been added to your list.`
+                description: `${'${courseToAdd.name}'} has been added to your list.`
             });
         } catch(error) {
              toast({
@@ -479,7 +479,7 @@ function DashboardPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean }) {
             await Promise.all(uploadPromises);
             toast({
                 title: 'Upload Successful!',
-                description: `${files.length} file(s) have been added.`,
+                description: `${'${files.length}'} file(s) have been added.`,
             });
         } catch (error) {
             console.error("Error uploading files: ", error);
@@ -542,7 +542,7 @@ function DashboardPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean }) {
 
                 if (chest.id === 'daily_free') {
                     setHasClaimedFreeChest(true);
-                    localStorage.setItem(`freeChestClaimed_${user.uid}`, 'true');
+                    localStorage.setItem(`freeChestClaimed_${'${user.uid}'}`, 'true');
                 }
             } catch (e) {
                 console.error("Failed to update coins: ", e);
@@ -571,10 +571,11 @@ function DashboardPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean }) {
                 userAnswer: attempt.userAnswer,
                 correctAnswer: attempt.correctAnswer,
                 learnerType: learnerType as any,
+                provideFullExplanation: true,
             });
             setWeakestLinks(prev => ({
                 ...prev,
-                [topic]: prev[topic].map(l => l.attempt.id === attemptId ? { ...l, explanation: result } : l)
+                [topic]: prev[topic].map(l => l.attempt.id === attemptId ? { ...l, explanation: result, practiceAnswer: undefined, practiceFeedback: undefined } : l)
             }));
         } catch (error) {
             console.error("Failed to get explanation:", error);
@@ -587,23 +588,76 @@ function DashboardPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean }) {
         }
     };
 
-    const handleCheckPracticeAnswer = (topic: string, attemptId: string, selectedAnswer: string) => {
+    const handleCheckPracticeAnswer = async (topic: string, attemptId: string, selectedAnswer: string) => {
         const currentLink = weakestLinks[topic].find(l => l.attempt.id === attemptId);
-        if (!currentLink?.explanation) return;
+        if (!currentLink?.explanation || !user || !learnerType) return;
         
         const isCorrect = selectedAnswer === currentLink.explanation.practiceQuestion.answer;
 
-        setWeakestLinks(prev => ({
-            ...prev,
-            [topic]: prev[topic].map(l => l.attempt.id === attemptId ? { ...l, practiceFeedback: isCorrect ? 'correct' : 'incorrect' } : l)
-        }));
+        if (isCorrect) {
+            toast({ title: "Correct!", description: "Great job! This question has been mastered." });
+            // Optimistically remove the item from the UI
+            setWeakestLinks(prev => ({
+                ...prev,
+                [topic]: prev[topic].filter(l => l.attempt.id !== attemptId)
+            }));
+            
+            // Remove from Firestore in the background
+            try {
+                await deleteDoc(doc(db, 'quizAttempts', attemptId));
+            } catch (error) {
+                console.error("Failed to delete mastered question:", error);
+                // If deletion fails, we might want to add it back to the UI, but for now, we'll leave it as is for a smoother user experience.
+            }
+
+        } else {
+            toast({ variant: 'destructive', title: "Not quite...", description: "Let's try another one!" });
+            
+            setWeakestLinks(prev => ({
+                ...prev,
+                [topic]: prev[topic].map(l => l.attempt.id === attemptId ? { ...l, isExplanationLoading: true } : l)
+            }));
+
+            try {
+                const { attempt } = currentLink;
+                const result = await generateExplanation({
+                    question: attempt.question,
+                    userAnswer: attempt.userAnswer, // This is the original wrong answer
+                    correctAnswer: attempt.correctAnswer, // This is the original correct answer
+                    learnerType: learnerType as any,
+                    provideFullExplanation: false, // We only want a new question
+                });
+                
+                // Update the state with the new practice question, clearing old feedback
+                setWeakestLinks(prev => ({
+                    ...prev,
+                    [topic]: prev[topic].map(l => l.attempt.id === attemptId ? { 
+                        ...l,
+                        explanation: { ...l.explanation!, practiceQuestion: result.practiceQuestion }, // Keep old explanation, update question
+                        isExplanationLoading: false,
+                        practiceAnswer: undefined,
+                        practiceFeedback: undefined,
+                    } : l)
+                }));
+
+            } catch (error) {
+                console.error("Failed to get another question:", error);
+                toast({ variant: 'destructive', title: 'AI Error', description: 'Could not generate a new question.' });
+                setWeakestLinks(prev => ({
+                    ...prev,
+                    [topic]: prev[topic].map(l => l.attempt.id === attemptId ? { ...l, isExplanationLoading: false } : l)
+                }));
+            }
+        }
     };
     
     const setPracticeAnswer = (topic: string, attemptId: string, answer: string) => {
-        setWeakestLinks(prev => ({
-            ...prev,
-            [topic]: prev[topic].map(l => l.attempt.id === attemptId ? { ...l, practiceAnswer: answer } : l)
-        }));
+        setWeakestLinks(prev => {
+            const topicLinks = prev[topic].map(l => 
+                l.attempt.id === attemptId ? { ...l, practiceAnswer: answer } : l
+            );
+            return { ...prev, [topic]: topicLinks };
+        });
     }
 
    
@@ -1190,11 +1244,13 @@ function DashboardPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean }) {
                                             </div>
                                             {state.explanation ? (
                                                 <div className="space-y-4 pt-4">
-                                                    <div className="p-4 bg-background rounded-lg border">
-                                                        <h4 className="font-semibold flex items-center gap-2 mb-2"><Wand2 size={16}/> AI Explanation</h4>
-                                                        <AudioPlayer textToPlay={state.explanation.explanation} />
-                                                        <p className="text-muted-foreground text-sm">{state.explanation.explanation}</p>
-                                                    </div>
+                                                    {state.explanation.explanation && (
+                                                        <div className="p-4 bg-background rounded-lg border">
+                                                            <h4 className="font-semibold flex items-center gap-2 mb-2"><Wand2 size={16}/> AI Explanation</h4>
+                                                            <AudioPlayer textToPlay={state.explanation.explanation} />
+                                                            <p className="text-muted-foreground text-sm">{state.explanation.explanation}</p>
+                                                        </div>
+                                                    )}
                                                     
                                                     <div className="p-4 bg-background rounded-lg border">
                                                         <h4 className="font-semibold flex items-center gap-2 mb-2"><BrainCircuit size={16}/> Try Again: New Question</h4>
@@ -1202,33 +1258,21 @@ function DashboardPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean }) {
                                                         <RadioGroup 
                                                             value={state.practiceAnswer} 
                                                             onValueChange={(val) => setPracticeAnswer(topic, state.attempt.id, val)}
-                                                            disabled={!!state.practiceFeedback}
                                                         >
                                                             <div className="space-y-2">
-                                                                {state.explanation.practiceQuestion.options.map((option, index) => {
-                                                                    const isCorrect = option === state.explanation!.practiceQuestion.answer;
-                                                                    const isSelected = option === state.practiceAnswer;
+                                                                {state.explanation.practiceQuestion.options.map((option, i) => {
                                                                     return(
-                                                                        <Label key={index} htmlFor={`pq-${topic}-${index}`} className={cn(
-                                                                            "flex items-center gap-4 p-3 rounded-lg border transition-all cursor-pointer text-sm",
-                                                                            !state.practiceFeedback && (isSelected ? "border-primary bg-primary/10" : "border-border hover:bg-muted"),
-                                                                            state.practiceFeedback && isCorrect && "border-green-500 bg-green-500/10",
-                                                                            state.practiceFeedback && isSelected && !isCorrect && "border-red-500 bg-red-500/10",
-                                                                        )}>
-                                                                            <RadioGroupItem value={option} id={`pq-${topic}-${index}`} />
+                                                                        <Label key={`${'${state.attempt.id}'}-${i}`} htmlFor={`pq-${'${state.attempt.id}'}-${i}`} className="flex items-center gap-4 p-3 rounded-lg border transition-all cursor-pointer text-sm">
+                                                                            <RadioGroupItem value={option} id={`pq-${'${state.attempt.id}'}-${i}`} />
                                                                             <span>{option}</span>
                                                                         </Label>
                                                                     )
                                                                 })}
                                                             </div>
                                                         </RadioGroup>
-                                                        {!state.practiceFeedback && (
-                                                            <Button size="sm" className="mt-4" onClick={() => handleCheckPracticeAnswer(topic, state.attempt.id, state.practiceAnswer!)} disabled={!state.practiceAnswer}>
-                                                                Check Answer
-                                                            </Button>
-                                                        )}
-                                                        {state.practiceFeedback === 'correct' && <p className="mt-2 text-green-600 font-semibold text-sm">Correct! Great job.</p>}
-                                                        {state.practiceFeedback === 'incorrect' && <p className="mt-2 text-red-600 font-semibold text-sm">Not quite. The correct answer was: {state.explanation.practiceQuestion.answer}</p>}
+                                                        <Button size="sm" className="mt-4" onClick={() => handleCheckPracticeAnswer(topic, state.attempt.id, state.practiceAnswer!)} disabled={!state.practiceAnswer || state.isExplanationLoading}>
+                                                            {state.isExplanationLoading ? "Checking..." : "Check Answer"}
+                                                        </Button>
                                                     </div>
                                                 </div>
                                             ) : (
