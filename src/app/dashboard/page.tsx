@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -852,22 +853,22 @@ function DashboardPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean }) {
                                                 const isDisabled = isStreakLocked || isFreeClaimed || (!canAfford && chest.cost > 0);
                                                 
                                                 return (
-                                                <Card key={chest.id} className={cn("transition-all", isDisabled && "opacity-50")}>
-                                                    <CardHeader className="flex flex-row items-center justify-between">
-                                                        <div className="flex items-center gap-4">
-                                                            <div className={cn("p-3 rounded-lg bg-muted")}>
-                                                                <Gift className="h-8 w-8 text-primary" />
+                                                    <Card key={chest.id} className={cn("transition-all", isDisabled && "opacity-50")}>
+                                                        <CardContent className="p-4 flex items-center justify-between">
+                                                            <div className="flex items-center gap-4">
+                                                                <div className="p-3 rounded-lg bg-muted">
+                                                                    <Gift className="h-8 w-8 text-primary" />
+                                                                </div>
+                                                                <div className="flex-1">
+                                                                    <p className="font-semibold">{chest.name}</p>
+                                                                    <p className="text-sm text-muted-foreground">{chest.description}</p>
+                                                                </div>
                                                             </div>
-                                                            <div>
-                                                                <CardTitle>{chest.name}</CardTitle>
-                                                                <CardDescription>{chest.description}</CardDescription>
-                                                            </div>
-                                                        </div>
-                                                        <Button size="sm" disabled={isDisabled} onClick={() => handleClaimChest(chest)}>
-                                                            {isStreakLocked ? `Unlock in ${'${chest.unlocksAt! - streak}'} days` : isFreeClaimed ? 'Claimed' : chest.cost > 0 ? <><Gem className="mr-2 h-4 w-4"/>{chest.cost}</> : 'Claim Free'}
-                                                        </Button>
-                                                    </CardHeader>
-                                                </Card>
+                                                            <Button size="sm" className="w-32" disabled={isDisabled} onClick={() => handleClaimChest(chest)}>
+                                                                {isStreakLocked ? `Unlock in ${chest.unlocksAt! - streak} days` : isFreeClaimed ? 'Claimed' : chest.cost > 0 ? <><Gem className="mr-2 h-4 w-4"/>{chest.cost}</> : 'Claim Free'}
+                                                            </Button>
+                                                        </CardContent>
+                                                    </Card>
                                                 )
                                             })}
 
