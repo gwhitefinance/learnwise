@@ -200,6 +200,7 @@ export default function PracticeQuizPage() {
                     userAnswer: selectedAnswer,
                     correctAnswer: currentQuestion.answer,
                     learnerType: (learnerType as 'Visual' | 'Auditory' | 'Kinesthetic' | 'Reading/Writing' | 'Unknown') ?? 'Unknown',
+                    provideFullExplanation: true,
                 });
                 setExplanation(explanationResult.explanation);
             } catch (error) {
