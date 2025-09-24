@@ -122,7 +122,7 @@ export default function BlockPuzzleClientPage() {
         setIsQuestionModalOpen(true);
         try {
             const result = await generateQuiz({ 
-                topics: course.name,
+                topics: `${course.name} ${Math.random()}`,
                 questionType: 'Multiple Choice',
                 difficulty: 'Easy',
                 numQuestions: 1,
@@ -294,7 +294,7 @@ export default function BlockPuzzleClientPage() {
         setScore(0);
         setGameOver(false);
         setGameStarted(false); // Go back to course selection
-        setSelectedCourseId(null);
+        setSelectedCourseId(courses.length > 0 ? courses[0].id : null);
     };
 
     const startGame = () => {
