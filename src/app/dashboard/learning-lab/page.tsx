@@ -196,7 +196,10 @@ export default function LearningLabPage() {
         }
         
         const courseRef = doc(db, 'courses', course.id);
-        await updateDoc(courseRef, { units: newUnits });
+        await updateDoc(courseRef, { 
+            units: newUnits,
+            userId: user.uid, // Ensure userId is included in the update
+        });
 
         setActiveCourse(prev => prev ? { ...prev, units: newUnits } : null);
         setCurrentModuleIndex(0);
@@ -551,3 +554,5 @@ const Loading = () => (
         </div>
     </div>
 );
+
+    
