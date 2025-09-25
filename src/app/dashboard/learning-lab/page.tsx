@@ -68,7 +68,7 @@ export default function LearningLabPage() {
   const [activeCourse, setActiveCourse] = useState<Course | null>(null);
   
   const [isLoading, setIsLoading] = useState(true);
-  const [isGenerating, setIsGenerating] = useState(isGenerating);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [isChapterContentLoading, setChapterContentLoading] = useState(false);
 
 
