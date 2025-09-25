@@ -185,7 +185,7 @@ export default function LearningLabClientPage() {
 
         const newUnits = result.modules.map(module => ({
             id: crypto.randomUUID(),
-            name: module.title,
+            title: module.title,
             chapters: module.chapters.map(chapter => ({ 
                 ...chapter, 
                 id: crypto.randomUUID(),
@@ -332,26 +332,26 @@ export default function LearningLabClientPage() {
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
 
-  const handleGenerateChapterContent = async () => {
-    if (!activeCourse || !currentModule || !currentChapter || !user) return;
+  const handleGenerateChapterContent = async (module: Module, chapter: Chapter) => {
+    if (!activeCourse || !user) return;
     
     setChapterContentLoading(true);
     try {
         const result = await generateChapterContent({
             courseName: activeCourse.name,
-            moduleTitle: currentModule.title,
-            chapterTitle: currentChapter.title,
+            moduleTitle: module.title,
+            chapterTitle: chapter.title,
             learnerType: (learnerType as any) ?? 'Reading/Writing',
         });
 
-        const updatedChapter = { ...currentChapter, ...result };
+        const updatedChapter = { ...chapter, ...result };
         
-        const updatedUnits = activeCourse.units?.map((unit, mIndex) => {
-            if (mIndex === currentModuleIndex) {
+        const updatedUnits = activeCourse.units?.map((unit) => {
+            if (unit.id === module.id) {
                 return {
                     ...unit,
-                    chapters: unit.chapters.map((chap, cIndex) => 
-                        cIndex === currentChapterIndex ? updatedChapter : chap
+                    chapters: unit.chapters.map((chap) => 
+                        chap.id === chapter.id ? updatedChapter : chap
                     ),
                 };
             }
@@ -489,7 +489,7 @@ export default function LearningLabClientPage() {
                 </div>
             </div>
 
-            {currentChapter ? (
+            {currentChapter && currentModule ? (
                  <div className="max-w-4xl mx-auto space-y-8">
                      <h1 className="text-4xl font-bold">{currentChapter.title}</h1>
                      
@@ -506,7 +506,7 @@ export default function LearningLabClientPage() {
                          <div className="text-center p-8 border-2 border-dashed rounded-lg">
                             <h3 className="text-lg font-semibold">This chapter is empty.</h3>
                             <p className="text-muted-foreground mt-1 mb-4">Let our AI generate the content for you.</p>
-                            <Button onClick={handleGenerateChapterContent}>
+                            <Button onClick={() => handleGenerateChapterContent(currentModule, currentChapter)}>
                                 <Wand2 className="mr-2 h-4 w-4" /> Generate Chapter Content
                             </Button>
                         </div>
