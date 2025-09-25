@@ -11,7 +11,7 @@ import { GenerateModuleFlashcardsInputSchema, GenerateModuleFlashcardsInput } fr
 
 const prompt = ai.definePrompt({
     name: 'moduleToFlashcardGenerationPrompt',
-    model: 'googleai/gemini-pro',
+    model: 'googleai/gemini-1.5-flash-latest',
     input: { schema: GenerateModuleFlashcardsInputSchema },
     output: { schema: GenerateFlashcardsOutputSchema },
     prompt: `You are an expert at creating study materials. 

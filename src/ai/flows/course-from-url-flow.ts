@@ -11,7 +11,7 @@ import { GenerateCourseFromUrlInput, GenerateCourseFromUrlInputSchema, GenerateC
 
 const prompt = ai.definePrompt({
     name: 'courseFromUrlPrompt',
-    model: 'googleai/gemini-pro',
+    model: 'googleai/gemini-1.5-flash-latest',
     input: { schema: GenerateCourseFromUrlInputSchema },
     output: { schema: GenerateCourseFromUrlOutputSchema },
     tools: [scrapeWebpageTool],

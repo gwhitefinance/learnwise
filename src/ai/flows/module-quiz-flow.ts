@@ -11,6 +11,7 @@ import { GenerateQuizOutput, GenerateQuizOutputSchema } from '@/ai/schemas/quiz-
 
 const prompt = ai.definePrompt({
     name: 'moduleToQuizGenerationPrompt',
+    model: 'googleai/gemini-1.5-flash-latest',
     input: { schema: GenerateModuleQuizInputSchema },
     output: { schema: GenerateQuizOutputSchema },
     prompt: `You are an expert educator. Generate a 3-question multiple-choice quiz based *only* on the provided course module content.

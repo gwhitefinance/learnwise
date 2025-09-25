@@ -10,7 +10,7 @@ import { GenerateOnboardingCourseInputSchema, GenerateOnboardingCourseOutputSche
 
 const prompt = ai.definePrompt({
     name: 'onboardingCourseGenerationPrompt',
-    model: 'googleai/gemini-pro',
+    model: 'googleai/gemini-1.5-flash-latest',
     input: { schema: GenerateOnboardingCourseInputSchema },
     output: { schema: GenerateOnboardingCourseOutputSchema },
     prompt: `You are an expert instructional designer who creates exciting, personalized starter courses for new users.

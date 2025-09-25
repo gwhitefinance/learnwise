@@ -11,7 +11,7 @@ import { GenerateQuizInput, GenerateQuizInputSchema, GenerateQuizOutput, Generat
 
 const prompt = ai.definePrompt({
     name: 'quizGenerationPrompt',
-    model: 'googleai/gemini-pro',
+    model: 'googleai/gemini-1.5-flash-latest',
     input: { schema: GenerateQuizInputSchema },
     output: { schema: GenerateQuizOutputSchema },
     prompt: `Generate a {{numQuestions}}-question quiz on the following topics: {{topics}}.

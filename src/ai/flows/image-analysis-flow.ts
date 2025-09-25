@@ -8,6 +8,7 @@ import { AnalyzeImageInput, AnalyzeImageInputSchema, AnalyzeImageOutput, Analyze
 
 const analysisPrompt = ai.definePrompt({
     name: 'imageAnalysisPrompt',
+    model: 'googleai/gemini-pro-vision',
     input: { schema: AnalyzeImageInputSchema },
     output: { schema: AnalyzeImageOutputSchema },
     prompt: `You are an expert AI assistant who analyzes images for students.
