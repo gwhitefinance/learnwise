@@ -21,14 +21,14 @@ const prompt = ai.definePrompt({
     - Course Name: {{courseName}}
     - Course Description: {{courseDescription}}
 
-    **CRITICAL INSTRUCTIONS - YOU MUST FOLLOW THESE:**
-    1.  **Generate 5-7 modules for the course.** Each module must represent a major, distinct topic.
+    **CRITICAL INSTRUCTIONS - YOU MUST FOLLOW THESE EXACTLY:**
+    1.  **Generate 7-10 modules for the course.** Each module must represent a major, distinct topic.
     2.  **For EACH of those modules, you must create 4-6 chapter titles.**
-    3.  **For EACH AND EVERY chapter, you must generate detailed content.** This content MUST be the length of a detailed essay, comprising at least 5 to 7 substantial paragraphs. It must be a comprehensive, word-heavy educational resource. DO NOT provide a short summary or a few sentences.
+    3.  **For EACH AND EVERY chapter, you must generate detailed content.** This content MUST be a long-form essay consisting of **5-8 substantial paragraphs**. It must be a comprehensive, word-heavy educational resource. DO NOT provide a short summary or a few sentences. This is the most important part of your task.
 
     For each chapter, you must do the following based on the critical instructions above:
     1.  **Generate Detailed Content**:
-        -   The content for each chapter MUST be a long-form, essay-length text.
+        -   The content for each chapter MUST be a long-form, essay-length text of 5-8 paragraphs.
         -   Tailor the content to the user's learning style, which is {{learnerType}}.
     2.  **Suggest an Activity**: Devise a creative, tailored activity that reinforces the chapter's content.
     3.  **Find an Interactive Tool (Optional)**:
