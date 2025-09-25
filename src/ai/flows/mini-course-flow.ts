@@ -24,7 +24,15 @@ const prompt = ai.definePrompt({
     Generate 5-7 modules for the course. Each module should represent a major topic.
     For each module, create 4-6 chapter titles.
 
-    **CRITICAL INSTRUCTION**: Do NOT generate the 'content' or 'activity' for each chapter. Only generate the course title, module titles, and chapter titles. The content will be generated in a separate step.
+    For each chapter, you must do the following:
+    1.  **Generate Detailed Content**:
+        -   **CRITICAL INSTRUCTION**: The content for each chapter MUST be the length of a detailed essay, comprising at least 5 to 7 substantial paragraphs. It must be a comprehensive, word-heavy educational resource. Do NOT provide a short summary.
+        -   Tailor the content to the user's learning style, which is {{learnerType}}.
+    2.  **Suggest an Activity**: Devise a creative, tailored activity that reinforces the chapter's content.
+    3.  **Find an Interactive Tool (Optional)**:
+        -   If the chapter covers a topic suitable for hands-on learning (e.g., circuit design, physics, coding), search for a relevant interactive simulation or tool.
+        -   A great source is PhET Interactive Simulations (https://phet.colorado.edu/). If you find a suitable simulation, provide the direct embed URL (e.g., 'https://phet.colorado.edu/sims/html/circuit-construction-kit-dc/latest/circuit-construction-kit-dc_en.html').
+        -   If no suitable tool is found, leave the 'interactiveTool' field empty.
     `,
 });
 
@@ -40,13 +48,6 @@ const generateMiniCourseFlow = ai.defineFlow(
     if (!output) {
         throw new Error('Failed to generate mini-course outline.');
     }
-    // Ensure content and activity are empty strings as the prompt might still generate them.
-    output.modules.forEach(module => {
-        module.chapters.forEach(chapter => {
-            chapter.content = '';
-            chapter.activity = '';
-        });
-    });
     return output;
   }
 );

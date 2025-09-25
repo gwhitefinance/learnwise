@@ -47,6 +47,7 @@ type Chapter = {
     title: string;
     content?: string;
     activity?: string;
+    interactiveTool?: string;
 };
 
 type Flashcard = {
@@ -172,19 +173,22 @@ export default function LearningLabPage() {
     }
 
     setIsGenerating(true);
-    toast({ title: 'Generating Course Outline...', description: `The AI is crafting a curriculum for "${course.name}".` });
+    toast({ title: 'Generating Course Outline...', description: `This might take a minute...` });
 
     try {
         const result = await generateMiniCourse({
             courseName: course.name,
-            courseDescription: course.description,
+            courseDescription: course.description || `An in-depth course on ${course.name}`,
             learnerType: (learnerType as any) ?? 'Reading/Writing'
         });
 
         const newUnits = result.modules.map(module => ({
             id: crypto.randomUUID(),
             name: module.title,
-            chapters: module.chapters.map(chapter => ({ ...chapter, id: crypto.randomUUID(), content: '', activity: '' }))
+            chapters: module.chapters.map(chapter => ({ 
+                ...chapter, 
+                id: crypto.randomUUID(),
+            }))
         }));
         
         if (newUnits.length === 0) {
@@ -326,50 +330,6 @@ export default function LearningLabPage() {
 
   const currentModule = activeCourse?.units?.[currentModuleIndex];
   const currentChapter = currentModule?.chapters[currentChapterIndex];
-
-  // Effect to generate chapter content if it's missing
-  useEffect(() => {
-    const fetchChapterContent = async () => {
-        if (currentChapter && (!currentChapter.content || currentChapter.content.trim() === '') && activeCourse && user) {
-            setChapterContentLoading(true);
-            try {
-                const { content, activity } = await generateChapterContent({
-                    courseName: activeCourse.name,
-                    moduleTitle: currentModule?.title || '',
-                    chapterTitle: currentChapter.title,
-                    learnerType: (learnerType as any) ?? 'Reading/Writing'
-                });
-
-                const updatedUnits = activeCourse.units?.map((unit, mIndex) => {
-                    if (mIndex === currentModuleIndex) {
-                        return {
-                            ...unit,
-                            chapters: unit.chapters.map((chap, cIndex) => {
-                                if (cIndex === currentChapterIndex) {
-                                    return { ...chap, content, activity };
-                                }
-                                return chap;
-                            })
-                        };
-                    }
-                    return unit;
-                });
-
-                if (updatedUnits) {
-                    const courseRef = doc(db, 'courses', activeCourse.id);
-                    await updateDoc(courseRef, { units: updatedUnits });
-                    setActiveCourse(prev => prev ? { ...prev, units: updatedUnits } : null);
-                }
-            } catch (error) {
-                console.error("Failed to generate chapter content:", error);
-                toast({ variant: 'destructive', title: 'Content Generation Failed' });
-            } finally {
-                setChapterContentLoading(false);
-            }
-        }
-    };
-    fetchChapterContent();
-  }, [currentChapter, activeCourse, user, currentModuleIndex, currentChapterIndex, learnerType, toast]);
   
   const chapterCount = activeCourse?.units?.reduce((acc, unit) => acc + (unit.chapters?.length ?? 0), 0) ?? 0;
   const progress = activeCourse ? (((currentModuleIndex * (currentModule?.chapters.length ?? 1)) + currentChapterIndex + 1) / chapterCount) * 100 : 0;
@@ -501,6 +461,23 @@ export default function LearningLabPage() {
                         <p className="text-muted-foreground text-lg whitespace-pre-wrap leading-relaxed">{currentChapter.content}</p>
                      )}
                      
+                    {currentChapter.interactiveTool && (
+                        <div className="p-6 bg-blue-500/10 rounded-lg border border-blue-500/20">
+                            <h5 className="font-semibold flex items-center gap-2 text-blue-700">
+                                <FlaskConical size={18} /> Interactive Tool
+                            </h5>
+                            <div className="mt-4 aspect-video">
+                                <iframe
+                                    src={currentChapter.interactiveTool}
+                                    className="w-full h-full border-0 rounded-md"
+                                    allowFullScreen
+                                    title={`Interactive tool for ${currentChapter.title}`}
+                                ></iframe>
+                            </div>
+                        </div>
+                    )}
+
+
                      <div className="p-6 bg-amber-500/10 rounded-lg border border-amber-500/20">
                         <h5 className="font-semibold flex items-center gap-2 text-amber-700"><Lightbulb size={18}/> Suggested Activity</h5>
                         <div className="text-muted-foreground mt-2">
