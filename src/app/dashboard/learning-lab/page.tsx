@@ -6,7 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Play, Pause, ChevronLeft, ChevronRight, Wand2, FlaskConical, Lightbulb, Copy, RefreshCw, Check, Star, CheckCircle, Send, Bot, User, GitMerge, PanelLeft, Minimize, Maximize } from 'lucide-react';
+import { Play, Pause, ChevronLeft, ChevronRight, Wand2, FlaskConical, Lightbulb, Copy, RefreshCw, Check, Star, CheckCircle, Send, Bot, User, GitMerge, PanelLeft, Minimize, Maximize, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
@@ -25,7 +25,6 @@ import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { addXp, generateMiniCourse, generateQuizFromModule, generateFlashcardsFromModule, generateTutorResponse } from '@/lib/actions';
 import { RewardContext } from '@/context/RewardContext';
-import { Roadmap, Milestone } from '@/app/dashboard/roadmaps/page';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 type Course = {
@@ -79,7 +78,7 @@ export default function LearningLabPage() {
   const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
   
   const [isQuizDialogOpen, setQuizDialogOpen] = useState(false);
-  const [isQuizLoading, setQuizLoading] = useState(isQuizLoading);
+  const [isQuizLoading, setQuizLoading] = useState(false);
   const [generatedQuiz, setGeneratedQuiz] = useState<GenerateQuizOutput | null>(null);
   
   const [isFlashcardDialogOpen, setFlashcardDialogOpen] = useState(false);
@@ -515,8 +514,8 @@ const Loading = () => (
             <Skeleton className="h-4 w-2/3 mx-auto mb-6" />
             <div className="flex justify-center gap-4">
                 <Skeleton className="h-10 w-48" />
-                <Skeleton className="h-10 w-32" />
             </div>
         </div>
     </div>
 );
+
