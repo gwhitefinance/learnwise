@@ -168,7 +168,7 @@ export default function LearningLabClientPage() {
   const currentChapter = currentModule?.chapters[currentChapterIndex];
 
   const handleGenerateCourse = async () => {
-    if (!selectedCourseId || !user) return;
+    if (!selectedCourseId || !user || !learnerType) return;
     
     const course = courses.find(c => c.id === selectedCourseId);
     if (!course) {
@@ -183,6 +183,7 @@ export default function LearningLabClientPage() {
         const result = await generateMiniCourse({
             courseName: course.name,
             courseDescription: course.description || `An in-depth course on ${course.name}`,
+            learnerType: learnerType as any,
         });
 
         const newUnits = result.modules.map(module => ({
@@ -335,7 +336,7 @@ export default function LearningLabClientPage() {
   }, []);
 
   const handleGenerateChapterContent = async (moduleIndex: number, chapterIndex: number) => {
-    if (!activeCourse || !user) return;
+    if (!activeCourse || !user || !learnerType) return;
     
     const module = activeCourse.units?.[moduleIndex];
     const chapter = module?.chapters?.[chapterIndex];
@@ -353,7 +354,7 @@ export default function LearningLabClientPage() {
             courseName: activeCourse.name,
             moduleTitle: module.title,
             chapterTitle: chapter.title,
-            learnerType: (learnerType as any) ?? 'Reading/Writing',
+            learnerType: learnerType as any,
         });
 
         const updatedChapter = { ...chapter, ...result };
