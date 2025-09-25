@@ -23,7 +23,9 @@ const prompt = ai.definePrompt({
 
     Generate a 5-7 module course. Each module should represent a major topic or unit within the course, suitable for a comprehensive study plan.
 
-    For each module, create 4-6 detailed chapters. The chapters within a module should be structured progressively, starting with foundational concepts and building upon them. Each chapter should contain detailed, long-form content that thoroughly explains the topic.
+    For each module, create 4-6 detailed chapters. The chapters within a module should be structured progressively, starting with foundational concepts and building upon them.
+
+    **CRITICAL INSTRUCTION**: Each chapter's "content" field MUST be extremely detailed and long-form. It should consist of at least 5-7 substantial paragraphs that thoroughly explain the topic. Do not provide short summaries. The goal is to create a rich, comprehensive, and word-heavy educational resource for the user to study.
     
     The user is a {{learnerType}} learner. Tailor the content and activities for each chapter accordingly, using encouraging and slightly gamified language:
     - For Visual learners, the content should be very descriptive, using metaphors and analogies to paint a picture. Activities should involve creating diagrams, mind maps, or finding and analyzing videos (suggest specific topics to search for).
