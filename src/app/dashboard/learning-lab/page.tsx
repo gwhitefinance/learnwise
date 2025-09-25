@@ -66,7 +66,7 @@ export default function LearningLabPage() {
   const [roadmap, setRoadmap] = useState<Roadmap | null>(null);
   const [courseContent, setCourseContent] = useState<Record<string, Module>>({}); // Maps milestone.id to Module
   
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [isCourseComplete, setIsCourseComplete] = useState(false);
   const { toast } = useToast();
   const [user, authLoading] = useAuthState(auth);
@@ -94,6 +94,7 @@ export default function LearningLabPage() {
   const [isTutorLoading, setIsTutorLoading] = useState(false);
 
 
+  // Load user's courses
   useEffect(() => {
     if (authLoading || !user) return;
 
@@ -101,24 +102,35 @@ export default function LearningLabPage() {
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const userCourses = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
         setCourses(userCourses);
-        const courseIdFromUrl = searchParams.get('courseId');
-        if (courseIdFromUrl && userCourses.some(c => c.id === courseIdFromUrl)) {
-            setSelectedCourseId(courseIdFromUrl);
-        }
     });
 
     const storedLearnerType = localStorage.getItem('learnerType');
     setLearnerType(storedLearnerType ?? 'Unknown');
+    
+    // Check for saved state on mount
+    const savedState = localStorage.getItem('learningLabState');
+    const courseIdFromUrl = searchParams.get('courseId');
+
+    if (courseIdFromUrl) {
+        setSelectedCourseId(courseIdFromUrl);
+    } else if (savedState) {
+        const { courseId, moduleIndex, chapterIndex } = JSON.parse(savedState);
+        setSelectedCourseId(courseId);
+        setCurrentModuleIndex(moduleIndex);
+        setCurrentChapterIndex(chapterIndex);
+    }
+
 
     return () => unsubscribe();
   }, [user, authLoading, searchParams]);
   
   // Effect to load roadmap and content when selectedCourseId changes
   useEffect(() => {
-    const loadRoadmap = async () => {
+    const loadData = async () => {
         if (!user || !selectedCourseId) {
             setRoadmap(null);
             setCourseContent({});
+            setIsLoading(false);
             return;
         };
 
@@ -130,7 +142,6 @@ export default function LearningLabPage() {
             const roadmapData = { id: roadmapsSnap.docs[0].id, ...roadmapsSnap.docs[0].data() } as Roadmap;
             setRoadmap(roadmapData);
 
-            // If a milestone title is in the URL, find its index and set the state
             const milestoneTitle = searchParams.get('milestone');
             if (milestoneTitle) {
                 const decodedTitle = decodeURIComponent(milestoneTitle);
@@ -145,18 +156,36 @@ export default function LearningLabPage() {
             setRoadmap(null);
         }
         
-        // Load existing course content from Firestore
         const courseRef = doc(db, 'courses', selectedCourseId);
         const courseSnap = await getDoc(courseRef);
         if (courseSnap.exists()) {
-            setCourseContent(courseSnap.data()?.content || {});
+            const courseData = courseSnap.data();
+            setCourseContent(courseData.units ? 
+                courseData.units.reduce((acc: Record<string, Module>, unit: Module) => {
+                    acc[unit.id] = unit;
+                    return acc;
+                }, {})
+                : {}
+            );
         }
-
         setIsLoading(false);
     }
-    loadRoadmap();
-  }, [selectedCourseId, user]);
+    loadData();
+  }, [selectedCourseId, user, searchParams]);
   
+  // Effect to save state to localStorage whenever it changes
+  useEffect(() => {
+      if (selectedCourseId) {
+          const stateToSave = {
+              courseId: selectedCourseId,
+              moduleIndex: currentModuleIndex,
+              chapterIndex: currentChapterIndex,
+          };
+          localStorage.setItem('learningLabState', JSON.stringify(stateToSave));
+      }
+  }, [selectedCourseId, currentModuleIndex, currentChapterIndex]);
+
+
   useEffect(() => {
     // Reset chat when chapter or module changes
     setChatHistory([]);
@@ -166,8 +195,11 @@ export default function LearningLabPage() {
   const handleGenerateModuleContent = async (milestone: Milestone) => {
     if (!milestone || !selectedCourseId || !user) return;
     
-    // Don't regenerate if content already exists
-    if (courseContent[milestone.id]) return;
+    // Don't regenerate if content already exists for this milestone ID
+    if (courseContent[milestone.id]) {
+        toast({ title: 'Content already exists for this module.' });
+        return;
+    }
 
     setIsLoading(true);
     toast({ title: 'Generating Module...', description: `The AI is crafting content for "${milestone.title}".` });
@@ -180,17 +212,14 @@ export default function LearningLabPage() {
     }
 
     try {
-        // Here we adapt generateMiniCourse to act like it's generating a single module.
-        // The prompt asks for an in-depth course, so we use the milestone as the course topic.
         const result = await generateMiniCourse({
             courseName: milestone.title,
             courseDescription: `An in-depth module about ${milestone.description} as part of the larger course on ${course.name}.`,
             learnerType: (learnerType as any) ?? 'Reading/Writing'
         });
 
-        // We take the first generated module as our new content.
         const newModule: Module = {
-            id: milestone.id,
+            id: milestone.id, // Use milestone ID to link content
             title: milestone.title,
             chapters: result.modules[0]?.chapters.map(c => ({...c, id: crypto.randomUUID()})) || []
         };
@@ -202,9 +231,13 @@ export default function LearningLabPage() {
         const updatedContent = { ...courseContent, [milestone.id]: newModule };
         setCourseContent(updatedContent);
 
-        // Save the new content to Firestore
+        // This assumes course documents have a `content` map field. Let's use `units` as per other files.
         const courseRef = doc(db, 'courses', selectedCourseId);
-        await updateDoc(courseRef, { content: updatedContent });
+        const courseSnap = await getDoc(courseRef);
+        const existingUnits = courseSnap.data()?.units || [];
+        const finalUnits = [...existingUnits, newModule];
+
+        await updateDoc(courseRef, { units: finalUnits });
 
         toast({ title: 'Module Ready!', description: 'Your new learning module has been generated.'});
     } catch (error) {
@@ -272,7 +305,6 @@ export default function LearningLabPage() {
     const milestone = roadmap.milestones[moduleIndex];
     if (milestone.completed) return;
     
-    // Optimistically update UI
     const updatedMilestones = roadmap.milestones.map((m, i) => i === moduleIndex ? {...m, completed: true} : m);
     setRoadmap({...roadmap, milestones: updatedMilestones});
 
@@ -294,7 +326,6 @@ export default function LearningLabPage() {
     } catch (error) {
       console.error("Error updating milestone/XP:", error);
       toast({ variant: 'destructive', title: 'Error', description: "Could not mark module as complete."})
-       // Revert optimistic update
        setRoadmap(roadmap);
     }
 
@@ -307,10 +338,13 @@ export default function LearningLabPage() {
   }
 
   const startNewCourse = () => {
+    localStorage.removeItem('learningLabState');
     setSelectedCourseId(null);
     setRoadmap(null);
     setCourseContent({});
     setIsCourseComplete(false);
+    setCurrentModuleIndex(0);
+    setCurrentChapterIndex(0);
   }
   
   const handleNextChapter = () => {
@@ -368,11 +402,14 @@ export default function LearningLabPage() {
   return (
     <>
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Learning Lab</h1>
-        <p className="text-muted-foreground">
-          Your personalized learning environment, generated by AI.
-        </p>
+      <div className="flex justify-between items-center">
+        <div>
+            <h1 className="text-3xl font-bold tracking-tight">Learning Lab</h1>
+            <p className="text-muted-foreground">
+            Your personalized learning environment, generated by AI.
+            </p>
+        </div>
+        {selectedCourseId && <Button variant="outline" onClick={startNewCourse}>Start New Course</Button>}
       </div>
 
        {!selectedCourseId && !isLoading && (
