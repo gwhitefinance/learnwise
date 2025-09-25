@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -8,7 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { ArrowRight, Loader2, BookOpen, Atom, Globe, History, Palette, Music, Code, BarChart2 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { generateOnboardingCourse } from '@/lib/actions';
+import { generateOnboardingCourse, generateMiniCourse } from '@/lib/actions';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { addDoc, collection } from 'firebase/firestore';
@@ -73,17 +74,29 @@ export default function InterestsPage() {
             generateOnboardingCourse({
                 gradeLevel: fullGrade ?? 'High School',
                 interest: interest,
-            }).then(async (result) => {
-                // Correctly structure the data to be saved to the 'courses' collection
+            }).then(async (concept) => {
+                 const learnerType = localStorage.getItem('learnerType') as any || 'Reading/Writing';
+
+                const fullCourseData = await generateMiniCourse({
+                    courseName: concept.courseTitle,
+                    courseDescription: concept.courseDescription,
+                    learnerType: learnerType,
+                });
+
                 const courseToAdd = {
-                    name: result.courseTitle,
-                    description: `A personalized course about ${interest} for a ${fullGrade} student.`,
+                    name: fullCourseData.courseTitle,
+                    description: concept.courseDescription,
                     instructor: "AI Assistant",
                     credits: 3,
                     url: '',
                     progress: 0,
                     files: 0,
                     userId: user.uid,
+                    units: fullCourseData.modules.map(module => ({
+                        id: crypto.randomUUID(),
+                        name: module.title,
+                        chapters: module.chapters.map(chapter => ({ ...chapter, id: crypto.randomUUID() }))
+                    })),
                 };
 
                 await addDoc(collection(db, "courses"), courseToAdd);
@@ -91,11 +104,9 @@ export default function InterestsPage() {
                 
             }).catch((error) => {
                 console.error(`Background course generation failed for ${interest}:`, error);
-                // Optionally, notify the user that one of the courses failed.
             });
         });
 
-        // Immediately navigate to the next page
         router.push('/learner-type');
     };
 

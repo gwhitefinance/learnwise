@@ -1,6 +1,8 @@
+
 'use client';
 
 import { useState, useEffect, useContext } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -17,7 +19,7 @@ import type { GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
 import { cn } from '@/lib/utils';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
-import { collection, query, where, onSnapshot, doc, updateDoc, increment } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, updateDoc, increment, getDoc } from 'firebase/firestore';
 import AudioPlayer from '@/components/audio-player';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -31,6 +33,7 @@ type Course = {
     description: string;
     url?: string;
     userId?: string;
+    units: Module[];
 };
 
 type Module = GenerateMiniCourseOutput['modules'][0];
@@ -56,6 +59,7 @@ export default function LearningLabPage() {
   const { toast } = useToast();
   const [user, authLoading] = useAuthState(auth);
   const { showReward } = useContext(RewardContext);
+  const searchParams = useSearchParams();
 
   const [currentModuleIndex, setCurrentModuleIndex] = useState(0);
   const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
@@ -85,13 +89,57 @@ export default function LearningLabPage() {
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const userCourses = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
         setCourses(userCourses);
+        // If a courseId is in the URL, select it
+        const courseIdFromUrl = searchParams.get('courseId');
+        if (courseIdFromUrl && userCourses.some(c => c.id === courseIdFromUrl)) {
+            setSelectedCourseId(courseIdFromUrl);
+        }
     });
 
     const storedLearnerType = localStorage.getItem('learnerType');
     setLearnerType(storedLearnerType ?? 'Unknown');
 
     return () => unsubscribe();
-  }, [user, authLoading]);
+  }, [user, authLoading, searchParams]);
+  
+  // Effect to load course content when selectedCourseId changes
+  useEffect(() => {
+    const loadCourseContent = async () => {
+        if (!selectedCourseId) {
+            setMiniCourse(null);
+            return;
+        };
+
+        setIsLoading(true);
+        const courseRef = doc(db, 'courses', selectedCourseId);
+        const courseSnap = await getDoc(courseRef);
+
+        if (courseSnap.exists()) {
+            const courseData = courseSnap.data() as Course;
+            if (courseData.units && courseData.units.length > 0) {
+                 setMiniCourse({
+                    courseTitle: courseData.name,
+                    modules: courseData.units.map(u => ({ title: u.name, chapters: u.chapters || [] }))
+                });
+
+                // Navigate to milestone if provided
+                const milestoneTitle = searchParams.get('milestone');
+                if (milestoneTitle) {
+                    const moduleIndex = courseData.units.findIndex(u => u.name === decodeURIComponent(milestoneTitle));
+                    if (moduleIndex !== -1) {
+                        setCurrentModuleIndex(moduleIndex);
+                        setCurrentChapterIndex(0);
+                    }
+                }
+
+            } else {
+                handleGenerateCourse(courseData); // Generate if no units exist
+            }
+        }
+        setIsLoading(false);
+    }
+    loadCourseContent();
+  }, [selectedCourseId]);
   
   useEffect(() => {
     // Reset chat when chapter changes
@@ -99,13 +147,11 @@ export default function LearningLabPage() {
     setChatInput('');
   }, [currentChapterIndex, currentModuleIndex]);
 
-  const handleGenerateCourse = async () => {
-    if (!selectedCourseId) {
+  const handleGenerateCourse = async (course: Course | null) => {
+    if (!course) {
         toast({ variant: 'destructive', title: 'Please select a course.'});
         return;
     }
-    const course = courses.find(c => c.id === selectedCourseId);
-    if (!course) return;
 
     setIsLoading(true);
     setMiniCourse(null);
@@ -122,6 +168,17 @@ export default function LearningLabPage() {
             learnerType: (learnerType as any) ?? 'Reading/Writing'
         });
         setMiniCourse(result);
+        
+        // Save the generated units to the course in Firestore
+        const courseRef = doc(db, 'courses', course.id);
+        await updateDoc(courseRef, {
+            units: result.modules.map(module => ({
+                id: crypto.randomUUID(),
+                name: module.title,
+                chapters: module.chapters.map(chapter => ({ ...chapter, id: crypto.randomUUID() }))
+            }))
+        });
+
         toast({ title: 'Ready to Learn!', description: 'Your new mini-course has been generated.'});
     } catch (error) {
         console.error("Failed to generate mini-course:", error);
@@ -182,8 +239,27 @@ export default function LearningLabPage() {
   };
 
   const handleMarkModuleComplete = async (moduleIndex: number) => {
-    if (completedModules.includes(moduleIndex) || !user) return;
+    if (completedModules.includes(moduleIndex) || !user || !miniCourse) return;
     
+    // Mark milestone in roadmap as complete
+    try {
+        const roadmapsQuery = query(collection(db, "roadmaps"), where("userId", "==", user.uid), where("courseId", "==", selectedCourseId));
+        const roadmapSnap = await getDocs(roadmapsQuery);
+        if (!roadmapSnap.empty) {
+            const roadmapDoc = roadmapSnap.docs[0];
+            const roadmapData = roadmapDoc.data();
+            const moduleTitle = miniCourse.modules[moduleIndex].title;
+            const milestoneIndex = roadmapData.milestones.findIndex((m: any) => m.title === moduleTitle);
+
+            if (milestoneIndex !== -1) {
+                roadmapData.milestones[milestoneIndex].completed = true;
+                await updateDoc(roadmapDoc.ref, { milestones: roadmapData.milestones });
+            }
+        }
+    } catch (error) {
+        console.error("Failed to update milestone: ", error);
+    }
+
     const newCompletedModules = [...completedModules, moduleIndex];
     setCompletedModules(newCompletedModules);
     
@@ -298,7 +374,7 @@ export default function LearningLabPage() {
            <FlaskConical className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
           <h2 className="text-xl font-semibold">Select a Course to Begin</h2>
           <p className="text-muted-foreground mt-2 mb-6 max-w-md mx-auto">
-            Choose one of your courses from the dropdown below, and the AI will generate a personalized mini-course tailored to your learning style.
+            Choose one of your courses from the dropdown below to load its learning lab, or generate a new one with AI.
           </p>
            <div className="flex justify-center gap-4">
                 <Select onValueChange={setSelectedCourseId} value={selectedCourseId ?? ''}>
@@ -311,7 +387,7 @@ export default function LearningLabPage() {
                         ))}
                     </SelectContent>
                 </Select>
-                <Button onClick={handleGenerateCourse} disabled={!selectedCourseId || isLoading}>
+                <Button onClick={() => handleGenerateCourse(courses.find(c => c.id === selectedCourseId) || null)} disabled={!selectedCourseId || isLoading}>
                     <Wand2 className="mr-2 h-4 w-4"/> Generate
                 </Button>
            </div>

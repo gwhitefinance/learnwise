@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -20,6 +21,7 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { collection, query, where, addDoc, doc, updateDoc, deleteDoc, onSnapshot } from 'firebase/firestore';
 import { generateRoadmap } from '@/lib/actions';
+import { useRouter } from 'next/navigation';
 
 export const dynamic = "force-dynamic";
 
@@ -68,6 +70,7 @@ export default function RoadmapsPage() {
     const [isLoading, setIsLoading] = useState<Record<string, boolean>>({});
     const { toast } = useToast();
     const [user, authLoading] = useAuthState(auth);
+    const router = useRouter();
     
     const [isItemDialogOpen, setIsItemDialogOpen] = useState(false);
     const [editingItem, setEditingItem] = useState<Goal | Milestone | null>(null);
@@ -264,6 +267,9 @@ export default function RoadmapsPage() {
         }
     };
 
+    const navigateToLearningLab = (courseId: string, milestone: Milestone) => {
+        router.push(`/dashboard/learning-lab?courseId=${courseId}&milestone=${encodeURIComponent(milestone.title)}`);
+    }
 
   return (
     <>
@@ -383,11 +389,9 @@ export default function RoadmapsPage() {
                                                 <p className={cn("text-muted-foreground text-sm", milestone.completed && "line-through")}>{milestone.description}</p>
                                                 
                                                 <div className="mt-2 flex gap-2 items-center">
-                                                    <Link href={`/dashboard/practice-quiz?topic=${encodeURIComponent(milestone.title)}`}>
-                                                        <Button variant="outline" size="sm" className="text-xs h-7">
-                                                            <Lightbulb className="mr-2 h-3 w-3"/> Checkpoint Quiz
-                                                        </Button>
-                                                    </Link>
+                                                    <Button variant="outline" size="sm" className="text-xs h-7" onClick={() => navigateToLearningLab(course.id, milestone)}>
+                                                        <Lightbulb className="mr-2 h-3 w-3"/> Start Learning
+                                                    </Button>
                                                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                                         <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openItemDialog('milestone', milestone)}><Edit className="h-4 w-4"/></Button>
                                                         <AlertDialog>
