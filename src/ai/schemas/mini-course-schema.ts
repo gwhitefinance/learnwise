@@ -15,7 +15,7 @@ const ChapterSchema = z.object({
   title: z.string().describe('The title of the chapter.'),
   content: z.string().describe("The educational content for this chapter. This should be a long, detailed, essay-length text."),
   activity: z.string().describe("A suggested activity or exercise based on the content."),
-  interactiveTool: z.string().url().optional().describe("An optional URL to an interactive tool or simulation (e.g., a PhET simulation embed URL)."),
+  interactiveTool: z.string().url().or(z.literal('')).optional().describe("An optional URL to an interactive tool or simulation (e.g., a PhET simulation embed URL)."),
 });
 
 const ModuleSchema = z.object({
