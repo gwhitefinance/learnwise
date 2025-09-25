@@ -163,6 +163,9 @@ export default function LearningLabClientPage() {
     setChatHistory([]);
     setChatInput('');
   }, [currentChapterIndex, currentModuleIndex]);
+  
+  const currentModule = activeCourse?.units?.[currentModuleIndex];
+  const currentChapter = currentModule?.chapters[currentChapterIndex];
 
   const handleGenerateCourse = async () => {
     if (!selectedCourseId || !user) return;
@@ -332,26 +335,26 @@ export default function LearningLabClientPage() {
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
 
-  const handleGenerateChapterContent = async (module: Module, chapter: Chapter) => {
-    if (!activeCourse || !user) return;
+  const handleGenerateChapterContent = async () => {
+    if (!activeCourse || !user || !currentModule || !currentChapter) return;
     
     setChapterContentLoading(true);
     try {
         const result = await generateChapterContent({
             courseName: activeCourse.name,
-            moduleTitle: module.title,
-            chapterTitle: chapter.title,
+            moduleTitle: currentModule.title,
+            chapterTitle: currentChapter.title,
             learnerType: (learnerType as any) ?? 'Reading/Writing',
         });
 
-        const updatedChapter = { ...chapter, ...result };
+        const updatedChapter = { ...currentChapter, ...result };
         
         const updatedUnits = activeCourse.units?.map((unit) => {
-            if (unit.id === module.id) {
+            if (unit.id === currentModule.id) {
                 return {
                     ...unit,
                     chapters: unit.chapters.map((chap) => 
-                        chap.id === chapter.id ? updatedChapter : chap
+                        chap.id === currentChapter.id ? updatedChapter : chap
                     ),
                 };
             }
@@ -370,9 +373,6 @@ export default function LearningLabClientPage() {
         setChapterContentLoading(false);
     }
   };
-
-  const currentModule = activeCourse?.units?.[currentModuleIndex];
-  const currentChapter = currentModule?.chapters[currentChapterIndex];
   
   const chapterCount = activeCourse?.units?.reduce((acc, unit) => acc + (unit.chapters?.length ?? 0), 0) ?? 0;
   const progress = activeCourse ? (((currentModuleIndex * (currentModule?.chapters.length ?? 1)) + currentChapterIndex + 1) / chapterCount) * 100 : 0;
@@ -506,7 +506,7 @@ export default function LearningLabClientPage() {
                          <div className="text-center p-8 border-2 border-dashed rounded-lg">
                             <h3 className="text-lg font-semibold">This chapter is empty.</h3>
                             <p className="text-muted-foreground mt-1 mb-4">Let our AI generate the content for you.</p>
-                            <Button onClick={() => handleGenerateChapterContent(currentModule, currentChapter)}>
+                            <Button onClick={handleGenerateChapterContent}>
                                 <Wand2 className="mr-2 h-4 w-4" /> Generate Chapter Content
                             </Button>
                         </div>
