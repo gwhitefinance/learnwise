@@ -13,27 +13,17 @@ const prompt = ai.definePrompt({
     model: 'googleai/gemini-1.5-flash-latest',
     input: { schema: GenerateMiniCourseInputSchema },
     output: { schema: GenerateMiniCourseOutputSchema },
-    prompt: `You are an expert instructional designer who creates engaging, personalized, and massively in-depth course outlines.
+    prompt: `You are an expert instructional designer who creates engaging, personalized course outlines.
 
-    Your main task is to generate a complete, multi-module course outline based on the user's details.
+    Your main task is to generate a course structure based on the user's details.
 
     - Course Name: {{courseName}}
     - Course Description: {{courseDescription}}
 
     **CRITICAL INSTRUCTIONS - YOU MUST FOLLOW THESE EXACTLY:**
-    1.  **Generate 20 modules for the course.** Each module must represent a major, distinct topic.
-    2.  **For EACH of those modules, you must create 15 chapter titles.**
-    3.  **For EACH AND EVERY chapter, you must write two distinct, long-form essays.** Each essay MUST be a long-form text consisting of **5-8 substantial paragraphs**. It must be a comprehensive, word-heavy educational resource. DO NOT provide a short summary or a few sentences. This is the most important part of your task. The final 'content' field for each chapter must contain both essays.
-
-    For each chapter, you must do the following based on the critical instructions above:
-    1.  **Generate Detailed Content (Two Essays)**:
-        -   The content for each chapter MUST contain two long-form, essay-length texts, each 5-8 paragraphs long.
-        -   Tailor the content to the user's learning style, which is {{learnerType}}.
-    2.  **Suggest an Activity**: Devise a creative, tailored activity that reinforces the chapter's content.
-    3.  **Find an Interactive Tool (Optional)**:
-        -   If the chapter covers a topic suitable for hands-on learning (e.g., circuit design, physics, coding), search for a relevant interactive simulation or tool.
-        -   A great source is PhET Interactive Simulations (https://phet.colorado.edu/). If you find a suitable simulation, provide the direct embed URL (e.g., 'https://phet.colorado.edu/sims/html/circuit-construction-kit-dc/latest/circuit-construction-kit-dc_en.html').
-        -   If no suitable tool is found, leave the 'interactiveTool' field as an empty string.
+    1.  **Generate 7-10 modules for the course.** Each module must represent a major, distinct topic.
+    2.  **For EACH of those modules, you must create 5-7 chapter titles.**
+    3.  **DO NOT** generate the content, activities, or interactive tools for the chapters. Your ONLY job is to create the course title, module titles, and chapter titles. The content will be generated later.
     `,
 });
 

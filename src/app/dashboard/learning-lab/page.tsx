@@ -331,6 +331,45 @@ export default function LearningLabPage() {
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
 
+  const handleGenerateChapterContent = async () => {
+    if (!activeCourse || !currentModule || !currentChapter || !user) return;
+    
+    setChapterContentLoading(true);
+    try {
+        const result = await generateChapterContent({
+            courseName: activeCourse.name,
+            moduleTitle: currentModule.title,
+            chapterTitle: currentChapter.title,
+            learnerType: (learnerType as any) ?? 'Reading/Writing',
+        });
+
+        const updatedChapter = { ...currentChapter, ...result };
+        
+        const updatedUnits = activeCourse.units?.map((unit, mIndex) => {
+            if (mIndex === currentModuleIndex) {
+                return {
+                    ...unit,
+                    chapters: unit.chapters.map((chap, cIndex) => 
+                        cIndex === currentChapterIndex ? updatedChapter : chap
+                    ),
+                };
+            }
+            return unit;
+        });
+
+        setActiveCourse(prev => prev ? { ...prev, units: updatedUnits } : null);
+
+        const courseRef = doc(db, 'courses', activeCourse.id);
+        await updateDoc(courseRef, { units: updatedUnits });
+
+    } catch (error) {
+        console.error("Failed to generate chapter content:", error);
+        toast({ variant: 'destructive', title: 'Content Generation Failed' });
+    } finally {
+        setChapterContentLoading(false);
+    }
+  };
+
   const currentModule = activeCourse?.units?.[currentModuleIndex];
   const currentChapter = currentModule?.chapters[currentChapterIndex];
   
@@ -453,7 +492,9 @@ export default function LearningLabPage() {
                  <div className="max-w-4xl mx-auto space-y-8">
                      <h1 className="text-4xl font-bold">{currentChapter.title}</h1>
                      
-                     {isChapterContentLoading ? (
+                     {currentChapter.content ? (
+                        <p className="text-muted-foreground text-lg whitespace-pre-wrap leading-relaxed">{currentChapter.content}</p>
+                     ) : isChapterContentLoading ? (
                         <div className="space-y-4">
                             <Skeleton className="h-6 w-3/4" />
                             <Skeleton className="h-4 w-full" />
@@ -461,7 +502,13 @@ export default function LearningLabPage() {
                             <Skeleton className="h-4 w-5/6" />
                         </div>
                      ) : (
-                        <p className="text-muted-foreground text-lg whitespace-pre-wrap leading-relaxed">{currentChapter.content}</p>
+                         <div className="text-center p-8 border-2 border-dashed rounded-lg">
+                            <h3 className="text-lg font-semibold">This chapter is empty.</h3>
+                            <p className="text-muted-foreground mt-1 mb-4">Let our AI generate the content for you.</p>
+                            <Button onClick={handleGenerateChapterContent}>
+                                <Wand2 className="mr-2 h-4 w-4" /> Generate Chapter Content
+                            </Button>
+                        </div>
                      )}
                      
                     {currentChapter.interactiveTool && (
@@ -484,7 +531,7 @@ export default function LearningLabPage() {
                      <div className="p-6 bg-amber-500/10 rounded-lg border border-amber-500/20">
                         <h5 className="font-semibold flex items-center gap-2 text-amber-700"><Lightbulb size={18}/> Suggested Activity</h5>
                         <div className="text-muted-foreground mt-2">
-                             {isChapterContentLoading ? <Skeleton className="h-4 w-1/2" /> : <p>{currentChapter.activity}</p>}
+                             {isChapterContentLoading && !currentChapter.activity ? <Skeleton className="h-4 w-1/2" /> : <p>{currentChapter.activity || 'Generate chapter content to see an activity.'}</p>}
                         </div>
                     </div>
                      
@@ -517,9 +564,9 @@ export default function LearningLabPage() {
                                     value={chatInput}
                                     onChange={(e) => setChatInput(e.target.value)}
                                     onKeyDown={(e) => e.key === 'Enter' && !isTutorLoading && handleSendTutorMessage()}
-                                    disabled={isTutorLoading || isChapterContentLoading}
+                                    disabled={isTutorLoading || !currentChapter.content}
                                 />
-                                <Button onClick={handleSendTutorMessage} disabled={isTutorLoading || isChapterContentLoading}>
+                                <Button onClick={handleSendTutorMessage} disabled={isTutorLoading || !currentChapter.content}>
                                     <Send size={16}/>
                                 </Button>
                             </div>
@@ -554,5 +601,3 @@ const Loading = () => (
         </div>
     </div>
 );
-
-    
