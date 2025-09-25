@@ -102,7 +102,6 @@ export default function LearningLabClientPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isFocusMode, setIsFocusMode] = useState(false);
   
-  // State for the new "start lab" dialog
   const [isStartLabDialogOpen, setStartLabDialogOpen] = useState(false);
   const [newLabCourseId, setNewLabCourseId] = useState<string | null>(null);
 
@@ -214,7 +213,7 @@ export default function LearningLabClientPage() {
         const courseRef = doc(db, 'courses', course.id);
         await updateDoc(courseRef, { 
             units: newUnits,
-            userId: user.uid, // Ensure userId is included in the update
+            userId: user.uid,
         });
         
         setSelectedCourseId(course.id);
@@ -317,7 +316,6 @@ export default function LearningLabClientPage() {
         });
         localStorage.removeItem(`learningLabState_${courseId}`);
         toast({ title: 'Learning Lab Deleted', description: 'The generated content for this course has been removed.' });
-        // The onSnapshot listener will update the UI automatically.
     } catch (error) {
         console.error("Error deleting lab:", error);
         toast({ variant: 'destructive', title: 'Deletion Failed' });
@@ -343,7 +341,7 @@ export default function LearningLabClientPage() {
     } catch (error) {
         console.error("Tutor chat error:", error);
         toast({ variant: 'destructive', title: 'AI Tutor Error', description: 'Could not get a response.'});
-        setChatHistory(chatHistory); // Revert on error
+        setChatHistory(chatHistory);
     } finally {
         setIsTutorLoading(false);
     }
@@ -723,3 +721,5 @@ export default function LearningLabClientPage() {
     </>
   );
 }
+
+    
