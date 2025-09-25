@@ -6,7 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Play, Pause, ChevronLeft, ChevronRight, Wand2, FlaskConical, Lightbulb, Copy, RefreshCw, Check, Star, CheckCircle, Send, Bot, User, GitMerge, PanelLeft, Minimize, Maximize, Loader2 } from 'lucide-react';
+import { Play, Pause, ChevronLeft, ChevronRight, Wand2, FlaskConical, Lightbulb, Copy, RefreshCw, Check, Star, CheckCircle, Send, Bot, User, GitMerge, PanelLeft, Minimize, Maximize, Loader2, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
@@ -97,6 +97,11 @@ export default function LearningLabClientPage() {
   
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isFocusMode, setIsFocusMode] = useState(false);
+  
+  // State for the new "start lab" dialog
+  const [isStartLabDialogOpen, setStartLabDialogOpen] = useState(false);
+  const [newLabCourseId, setNewLabCourseId] = useState<string | null>(null);
+
 
   useEffect(() => {
     if (authLoading || !user) return;
@@ -111,16 +116,18 @@ export default function LearningLabClientPage() {
     const storedLearnerType = localStorage.getItem('learnerType');
     setLearnerType(storedLearnerType ?? 'Unknown');
     
-    const savedState = localStorage.getItem('learningLabState');
     const courseIdFromUrl = searchParams.get('courseId');
 
     if (courseIdFromUrl) {
         setSelectedCourseId(courseIdFromUrl);
-    } else if (savedState) {
-        const { courseId, moduleIndex, chapterIndex } = JSON.parse(savedState);
-        setSelectedCourseId(courseId);
-        setCurrentModuleIndex(moduleIndex);
-        setCurrentChapterIndex(chapterIndex);
+         const savedState = localStorage.getItem(`learningLabState_${courseIdFromUrl}`);
+        if(savedState) {
+            const { moduleIndex, chapterIndex } = JSON.parse(savedState);
+            setCurrentModuleIndex(moduleIndex);
+            setCurrentChapterIndex(chapterIndex);
+        }
+    } else {
+        setSelectedCourseId(null);
     }
 
     return () => unsubscribe();
@@ -150,11 +157,10 @@ export default function LearningLabClientPage() {
   useEffect(() => {
       if (selectedCourseId) {
           const stateToSave = {
-              courseId: selectedCourseId,
               moduleIndex: currentModuleIndex,
               chapterIndex: currentChapterIndex,
           };
-          localStorage.setItem('learningLabState', JSON.stringify(stateToSave));
+          localStorage.setItem(`learningLabState_${selectedCourseId}`, JSON.stringify(stateToSave));
       }
   }, [selectedCourseId, currentModuleIndex, currentChapterIndex]);
 
@@ -168,22 +174,24 @@ export default function LearningLabClientPage() {
   const currentChapter = currentModule?.chapters[currentChapterIndex];
 
   const handleGenerateCourse = async () => {
-    if (!selectedCourseId || !user || !learnerType) return;
+    if (!newLabCourseId || !user || !learnerType) return;
     
-    const course = courses.find(c => c.id === selectedCourseId);
+    const course = courses.find(c => c.id === newLabCourseId);
     if (!course) {
         toast({ variant: 'destructive', title: 'Course not found.' });
         return;
     }
 
     setIsGenerating(true);
+    setStartLabDialogOpen(false);
     toast({ title: 'Generating Course Outline...', description: `This might take a minute...` });
 
     try {
+        const learnerType = localStorage.getItem('learnerType') as any || 'Reading/Writing';
         const result = await generateMiniCourse({
             courseName: course.name,
             courseDescription: course.description || `An in-depth course on ${course.name}`,
-            learnerType: learnerType as any,
+            learnerType: learnerType,
         });
 
         const newUnits = result.modules.map(module => ({
@@ -204,8 +212,8 @@ export default function LearningLabClientPage() {
             units: newUnits,
             userId: user.uid, // Ensure userId is included in the update
         });
-
-        setActiveCourse(prev => prev ? { ...prev, units: newUnits } : null);
+        
+        setSelectedCourseId(course.id);
         setCurrentModuleIndex(0);
         setCurrentChapterIndex(0);
 
@@ -215,6 +223,7 @@ export default function LearningLabClientPage() {
         toast({ variant: 'destructive', title: 'Generation Failed', description: 'Could not create content for this course.' });
     } finally {
         setIsGenerating(false);
+        setNewLabCourseId(null);
     }
   };
 
@@ -285,11 +294,14 @@ export default function LearningLabClientPage() {
   };
   
   const startNewCourse = () => {
-    localStorage.removeItem('learningLabState');
+    localStorage.removeItem(`learningLabState_${selectedCourseId}`);
     setSelectedCourseId(null);
     setActiveCourse(null);
     setCurrentModuleIndex(0);
     setCurrentChapterIndex(0);
+    const url = new URL(window.location.href);
+    url.searchParams.delete('courseId');
+    window.history.pushState({}, '', url.toString());
   }
   
   const handleSendTutorMessage = async () => {
@@ -385,35 +397,86 @@ export default function LearningLabClientPage() {
   };
   
   const chapterCount = activeCourse?.units?.reduce((acc, unit) => acc + (unit.chapters?.length ?? 0), 0) ?? 0;
-  const progress = activeCourse ? (((currentModuleIndex * (currentModule?.chapters.length ?? 1)) + currentChapterIndex + 1) / chapterCount) * 100 : 0;
+  const progress = activeCourse && chapterCount > 0 ? (((currentModuleIndex * (currentModule?.chapters.length ?? 1)) + currentChapterIndex + 1) / chapterCount) * 100 : 0;
   
   if (isLoading) {
     return <Loading />;
   }
 
-  if (!selectedCourseId) {
-    return (
+  if (!selectedCourseId || !activeCourse) {
+      const coursesWithLabs = courses.filter(c => c.units && c.units.length > 0);
+      return (
         <div className="space-y-6">
-            <h1 className="text-3xl font-bold tracking-tight">Learning Lab</h1>
-            <Card className="text-center p-12">
-               <FlaskConical className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-              <h2 className="text-xl font-semibold">Select a Course to Begin</h2>
-              <p className="text-muted-foreground mt-2 mb-6 max-w-md mx-auto">
-                Choose one of your courses to start your learning journey.
-              </p>
-               <div className="flex justify-center gap-4">
-                    <Select onValueChange={setSelectedCourseId} value={selectedCourseId ?? ''}>
-                        <SelectTrigger className="w-[280px]">
-                            <SelectValue placeholder="Select a course..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {courses.map(course => (
-                                <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-               </div>
-            </Card>
+            <div className="flex justify-between items-center">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight">Learning Lab</h1>
+                    <p className="text-muted-foreground">Hands-on, interactive learning sessions for your courses.</p>
+                </div>
+                 <Dialog open={isStartLabDialogOpen} onOpenChange={setStartLabDialogOpen}>
+                    <DialogTrigger asChild>
+                        <Button disabled={isGenerating}>
+                            <Plus className="mr-2 h-4 w-4"/> Start a New Learning Lab
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Start a New Learning Lab</DialogTitle>
+                            <DialogDescription>
+                                Select a course to generate a new interactive learning lab. This will create a structured set of modules and chapters for you to work through.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="py-4 space-y-4">
+                            <Label htmlFor="course-select">Select a Course</Label>
+                            <Select onValueChange={setNewLabCourseId}>
+                                <SelectTrigger id="course-select">
+                                    <SelectValue placeholder="Choose a course..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {courses.map(course => (
+                                        <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <DialogFooter>
+                            <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
+                            <Button onClick={handleGenerateCourse} disabled={!newLabCourseId || isGenerating}>
+                                {isGenerating ? 'Generating...' : 'Generate & Start Lab'}
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+            </div>
+            {coursesWithLabs.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {coursesWithLabs.map(course => {
+                        const totalChapters = course.units?.reduce((acc, unit) => acc + (unit.chapters?.length ?? 0), 0) ?? 0;
+                        return (
+                        <Card key={course.id} className="hover:shadow-md transition-shadow">
+                            <CardHeader>
+                                <CardTitle>{course.name}</CardTitle>
+                                <CardDescription>{totalChapters} chapters</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-sm text-muted-foreground line-clamp-2">{course.description}</p>
+                            </CardContent>
+                            <CardFooter>
+                                <Button className="w-full" onClick={() => setSelectedCourseId(course.id)}>
+                                    Continue Learning
+                                </Button>
+                            </CardFooter>
+                        </Card>
+                    )})}
+                </div>
+            ) : (
+                <Card className="text-center p-12">
+                   <FlaskConical className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                  <h2 className="text-xl font-semibold">No Learning Labs Created Yet</h2>
+                  <p className="text-muted-foreground mt-2 mb-6 max-w-md mx-auto">
+                    Click "Start a New Learning Lab" to generate your first interactive course.
+                  </p>
+                </Card>
+            )}
         </div>
     );
   }
@@ -478,7 +541,7 @@ export default function LearningLabClientPage() {
                     ))}
                  </Accordion>
                  <div className="mt-4 pt-4 border-t">
-                     <Button variant="outline" className="w-full" onClick={startNewCourse}>Start a New Course</Button>
+                     <Button variant="outline" className="w-full" onClick={startNewCourse}>Back to Labs Overview</Button>
                  </div>
              </div>
         </aside>
