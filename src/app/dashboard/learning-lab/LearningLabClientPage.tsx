@@ -70,7 +70,7 @@ export default function LearningLabClientPage() {
   
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isChapterContentLoading, setChapterContentLoading] = useState(false);
+  const [isChapterContentLoading, setChapterContentLoading] = useState<Record<string, boolean>>({});
 
 
   const { toast } = useToast();
@@ -183,7 +183,6 @@ export default function LearningLabClientPage() {
         const result = await generateMiniCourse({
             courseName: course.name,
             courseDescription: course.description || `An in-depth course on ${course.name}`,
-            learnerType: (learnerType as any) ?? 'Reading/Writing'
         });
 
         const newUnits = result.modules.map(module => ({
@@ -335,26 +334,36 @@ export default function LearningLabClientPage() {
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
 
-  const handleGenerateChapterContent = async () => {
-    if (!activeCourse || !user || !currentModule || !currentChapter) return;
+  const handleGenerateChapterContent = async (moduleIndex: number, chapterIndex: number) => {
+    if (!activeCourse || !user) return;
     
-    setChapterContentLoading(true);
+    const module = activeCourse.units?.[moduleIndex];
+    const chapter = module?.chapters?.[chapterIndex];
+
+    if(!module || !chapter) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not find chapter information.'});
+        return;
+    }
+
+    const chapterId = chapter.id;
+    setChapterContentLoading(prev => ({ ...prev, [chapterId]: true }));
+
     try {
         const result = await generateChapterContent({
             courseName: activeCourse.name,
-            moduleTitle: currentModule.title,
-            chapterTitle: currentChapter.title,
+            moduleTitle: module.title,
+            chapterTitle: chapter.title,
             learnerType: (learnerType as any) ?? 'Reading/Writing',
         });
 
-        const updatedChapter = { ...currentChapter, ...result };
+        const updatedChapter = { ...chapter, ...result };
         
-        const updatedUnits = activeCourse.units?.map((unit) => {
-            if (unit.id === currentModule.id) {
+        const updatedUnits = activeCourse.units?.map((unit, mIdx) => {
+            if (mIdx === moduleIndex) {
                 return {
                     ...unit,
-                    chapters: unit.chapters.map((chap) => 
-                        chap.id === currentChapter.id ? updatedChapter : chap
+                    chapters: unit.chapters.map((chap, cIdx) => 
+                        cIdx === chapterIndex ? updatedChapter : chap
                     ),
                 };
             }
@@ -370,7 +379,7 @@ export default function LearningLabClientPage() {
         console.error("Failed to generate chapter content:", error);
         toast({ variant: 'destructive', title: 'Content Generation Failed' });
     } finally {
-        setChapterContentLoading(false);
+        setChapterContentLoading(prev => ({ ...prev, [chapterId]: false }));
     }
   };
   
@@ -495,7 +504,7 @@ export default function LearningLabClientPage() {
                      
                      {currentChapter.content ? (
                         <p className="text-muted-foreground text-lg whitespace-pre-wrap leading-relaxed">{currentChapter.content}</p>
-                     ) : isChapterContentLoading ? (
+                     ) : isChapterContentLoading[currentChapter.id] ? (
                         <div className="space-y-4">
                             <Skeleton className="h-6 w-3/4" />
                             <Skeleton className="h-4 w-full" />
@@ -506,7 +515,7 @@ export default function LearningLabClientPage() {
                          <div className="text-center p-8 border-2 border-dashed rounded-lg">
                             <h3 className="text-lg font-semibold">This chapter is empty.</h3>
                             <p className="text-muted-foreground mt-1 mb-4">Let our AI generate the content for you.</p>
-                            <Button onClick={handleGenerateChapterContent}>
+                            <Button onClick={() => handleGenerateChapterContent(currentModuleIndex, currentChapterIndex)}>
                                 <Wand2 className="mr-2 h-4 w-4" /> Generate Chapter Content
                             </Button>
                         </div>
@@ -532,7 +541,7 @@ export default function LearningLabClientPage() {
                      <div className="p-6 bg-amber-500/10 rounded-lg border border-amber-500/20">
                         <h5 className="font-semibold flex items-center gap-2 text-amber-700"><Lightbulb size={18}/> Suggested Activity</h5>
                         <div className="text-muted-foreground mt-2">
-                             {isChapterContentLoading && !currentChapter.activity ? <Skeleton className="h-4 w-1/2" /> : <p>{currentChapter.activity || 'Generate chapter content to see an activity.'}</p>}
+                             {isChapterContentLoading[currentChapter.id] && !currentChapter.activity ? <Skeleton className="h-4 w-1/2" /> : <p>{currentChapter.activity || 'Generate chapter content to see an activity.'}</p>}
                         </div>
                     </div>
                      
