@@ -32,7 +32,7 @@ const prompt = ai.definePrompt({
     3.  **Find an Interactive Tool (Optional)**:
         -   If the chapter covers a topic suitable for hands-on learning (e.g., circuit design, physics, coding), search for a relevant interactive simulation or tool.
         -   A great source is PhET Interactive Simulations (https://phet.colorado.edu/). If you find a suitable simulation, provide the direct embed URL (e.g., 'https://phet.colorado.edu/sims/html/circuit-construction-kit-dc/latest/circuit-construction-kit-dc_en.html').
-        -   If no suitable tool is found, leave the 'interactiveTool' field empty.
+        -   If no suitable tool is found, leave the 'interactiveTool' field as an empty string.
     `,
 });
 
