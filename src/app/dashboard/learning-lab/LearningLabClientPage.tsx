@@ -11,7 +11,7 @@ import Link from 'next/link';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogClose, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
@@ -174,7 +174,7 @@ export default function LearningLabClientPage() {
   const currentChapter = currentModule?.chapters[currentChapterIndex];
 
   const handleGenerateCourse = async () => {
-    if (!newLabCourseId || !user || !learnerType) return;
+    if (!newLabCourseId || !user) return;
     
     const course = courses.find(c => c.id === newLabCourseId);
     if (!course) {
