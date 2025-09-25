@@ -11,6 +11,7 @@ import { GenerateQuizOutput, GenerateQuizOutputSchema } from '@/ai/schemas/quiz-
 
 const prompt = ai.definePrompt({
     name: 'noteToQuizGenerationPrompt',
+    model: 'googleai/gemini-pro',
     input: { schema: GenerateNoteQuizInputSchema },
     output: { schema: GenerateQuizOutputSchema },
     prompt: `You are an expert educator who creates personalized learning materials. 

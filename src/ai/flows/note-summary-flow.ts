@@ -9,6 +9,7 @@ import { GenerateSummaryInputSchema, GenerateSummaryOutputSchema, GenerateSummar
 
 const prompt = ai.definePrompt({
     name: 'noteSummaryPrompt',
+    model: 'googleai/gemini-pro',
     input: { schema: GenerateSummaryInputSchema },
     output: { schema: GenerateSummaryOutputSchema },
     prompt: `You are an expert at summarizing text. Please provide a concise summary of the following note content. 

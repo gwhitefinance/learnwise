@@ -22,6 +22,7 @@ export type TutorChatOutput = z.infer<typeof TutorChatOutputSchema>;
 
 const prompt = ai.definePrompt({
     name: 'tutorChatPrompt',
+    model: 'googleai/gemini-pro',
     input: { schema: TutorChatInputSchema },
     output: { schema: TutorChatOutputSchema },
     prompt: `You are an AI Tutor. Your student is currently reading a chapter and has a question. 
