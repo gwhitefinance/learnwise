@@ -13,22 +13,21 @@ const prompt = ai.definePrompt({
     model: 'googleai/gemini-1.5-flash-latest',
     input: { schema: GenerateMiniCourseInputSchema },
     output: { schema: GenerateMiniCourseOutputSchema },
-    prompt: `You are an expert instructional designer who creates engaging, personalized, and in-depth course outlines.
+    prompt: `You are an expert instructional designer who creates engaging, personalized, and massively in-depth course outlines.
 
     Your main task is to generate a complete, multi-module course outline based on the user's details.
 
-    The user has provided a specific course name and description. Use these directly.
     - Course Name: {{courseName}}
     - Course Description: {{courseDescription}}
 
     **CRITICAL INSTRUCTIONS - YOU MUST FOLLOW THESE EXACTLY:**
-    1.  **Generate AT LEAST 7 modules for the course.** Each module must represent a major, distinct topic.
-    2.  **For EACH of those modules, you must create AT LEAST 5 chapter titles.**
-    3.  **For EACH AND EVERY chapter, you must write an essay.** This content MUST be a long-form essay consisting of **5-8 substantial paragraphs**. It must be a comprehensive, word-heavy educational resource. DO NOT provide a short summary or a few sentences. This is the most important part of your task.
+    1.  **Generate 20 modules for the course.** Each module must represent a major, distinct topic.
+    2.  **For EACH of those modules, you must create 15 chapter titles.**
+    3.  **For EACH AND EVERY chapter, you must write two distinct, long-form essays.** Each essay MUST be a long-form text consisting of **5-8 substantial paragraphs**. It must be a comprehensive, word-heavy educational resource. DO NOT provide a short summary or a few sentences. This is the most important part of your task. The final 'content' field for each chapter must contain both essays.
 
     For each chapter, you must do the following based on the critical instructions above:
-    1.  **Generate Detailed Content (Essay)**:
-        -   The content for each chapter MUST be a long-form, essay-length text of 5-8 paragraphs.
+    1.  **Generate Detailed Content (Two Essays)**:
+        -   The content for each chapter MUST contain two long-form, essay-length texts, each 5-8 paragraphs long.
         -   Tailor the content to the user's learning style, which is {{learnerType}}.
     2.  **Suggest an Activity**: Devise a creative, tailored activity that reinforces the chapter's content.
     3.  **Find an Interactive Tool (Optional)**:
