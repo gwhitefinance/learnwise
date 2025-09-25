@@ -20,6 +20,7 @@ import { generateChatTitle } from '@/ai/flows/chat-title-flow';
 import { generateRoadmap } from '@/ai/flows/roadmap-flow';
 import { generateTutorResponse } from '@/ai/flows/tutor-chat-flow';
 import { generateOnboardingCourse } from '@/ai/flows/onboarding-course-flow';
+import { generateChapterContent } from '@/ai/flows/chapter-content-flow';
 
 // Re-exporting all AI functions as Server Actions
 export { 
@@ -38,7 +39,8 @@ export {
     generateChatTitle,
     generateRoadmap,
     generateTutorResponse,
-    generateOnboardingCourse
+    generateOnboardingCourse,
+    generateChapterContent
 };
 
 export async function addXp(userId: string, xp: number) {

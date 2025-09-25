@@ -23,7 +23,7 @@ import AudioPlayer from '@/components/audio-player';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { addXp, generateMiniCourse, generateQuizFromModule, generateFlashcardsFromModule, generateTutorResponse } from '@/lib/actions';
+import { addXp, generateMiniCourse, generateQuizFromModule, generateFlashcardsFromModule, generateTutorResponse, generateChapterContent } from '@/lib/actions';
 import { RewardContext } from '@/context/RewardContext';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
@@ -45,8 +45,8 @@ type Module = {
 type Chapter = {
     id: string;
     title: string;
-    content: string;
-    activity: string;
+    content?: string;
+    activity?: string;
 };
 
 type Flashcard = {
@@ -68,6 +68,8 @@ export default function LearningLabPage() {
   
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isChapterContentLoading, setChapterContentLoading] = useState(false);
+
 
   const { toast } = useToast();
   const [user, authLoading] = useAuthState(auth);
@@ -170,7 +172,7 @@ export default function LearningLabPage() {
     }
 
     setIsGenerating(true);
-    toast({ title: 'Generating Full Course...', description: `The AI is crafting a comprehensive course for "${course.name}". This may take a minute.` });
+    toast({ title: 'Generating Course Outline...', description: `The AI is crafting a curriculum for "${course.name}".` });
 
     try {
         const result = await generateMiniCourse({
@@ -182,7 +184,7 @@ export default function LearningLabPage() {
         const newUnits = result.modules.map(module => ({
             id: crypto.randomUUID(),
             name: module.title,
-            chapters: module.chapters.map(chapter => ({ ...chapter, id: crypto.randomUUID() }))
+            chapters: module.chapters.map(chapter => ({ ...chapter, id: crypto.randomUUID(), content: '', activity: '' }))
         }));
         
         if (newUnits.length === 0) {
@@ -196,7 +198,7 @@ export default function LearningLabPage() {
         setCurrentModuleIndex(0);
         setCurrentChapterIndex(0);
 
-        toast({ title: 'Course Ready!', description: 'Your new learning lab has been generated.'});
+        toast({ title: 'Course Outline Ready!', description: 'Your new learning lab structure has been generated.'});
     } catch (error) {
         console.error("Failed to generate course content:", error);
         toast({ variant: 'destructive', title: 'Generation Failed', description: 'Could not create content for this course.' });
@@ -280,7 +282,7 @@ export default function LearningLabPage() {
   }
   
   const handleSendTutorMessage = async () => {
-    if (!chatInput.trim() || !currentChapter) return;
+    if (!chatInput.trim() || !currentChapter || !currentChapter.content) return;
 
     const userMessage: ChatMessage = { role: 'user', content: chatInput };
     const newHistory = [...chatHistory, userMessage];
@@ -324,6 +326,50 @@ export default function LearningLabPage() {
 
   const currentModule = activeCourse?.units?.[currentModuleIndex];
   const currentChapter = currentModule?.chapters[currentChapterIndex];
+
+  // Effect to generate chapter content if it's missing
+  useEffect(() => {
+    const fetchChapterContent = async () => {
+        if (currentChapter && (!currentChapter.content || currentChapter.content.trim() === '') && activeCourse && user) {
+            setChapterContentLoading(true);
+            try {
+                const { content, activity } = await generateChapterContent({
+                    courseName: activeCourse.name,
+                    moduleTitle: currentModule?.title || '',
+                    chapterTitle: currentChapter.title,
+                    learnerType: (learnerType as any) ?? 'Reading/Writing'
+                });
+
+                const updatedUnits = activeCourse.units?.map((unit, mIndex) => {
+                    if (mIndex === currentModuleIndex) {
+                        return {
+                            ...unit,
+                            chapters: unit.chapters.map((chap, cIndex) => {
+                                if (cIndex === currentChapterIndex) {
+                                    return { ...chap, content, activity };
+                                }
+                                return chap;
+                            })
+                        };
+                    }
+                    return unit;
+                });
+
+                if (updatedUnits) {
+                    const courseRef = doc(db, 'courses', activeCourse.id);
+                    await updateDoc(courseRef, { units: updatedUnits });
+                    setActiveCourse(prev => prev ? { ...prev, units: updatedUnits } : null);
+                }
+            } catch (error) {
+                console.error("Failed to generate chapter content:", error);
+                toast({ variant: 'destructive', title: 'Content Generation Failed' });
+            } finally {
+                setChapterContentLoading(false);
+            }
+        }
+    };
+    fetchChapterContent();
+  }, [currentChapter, activeCourse, user, currentModuleIndex, currentChapterIndex, learnerType, toast]);
   
   const chapterCount = activeCourse?.units?.reduce((acc, unit) => acc + (unit.chapters?.length ?? 0), 0) ?? 0;
   const progress = activeCourse ? (((currentModuleIndex * (currentModule?.chapters.length ?? 1)) + currentChapterIndex + 1) / chapterCount) * 100 : 0;
@@ -443,12 +489,22 @@ export default function LearningLabPage() {
             {currentChapter ? (
                  <div className="max-w-4xl mx-auto space-y-8">
                      <h1 className="text-4xl font-bold">{currentChapter.title}</h1>
-                     <p className="text-muted-foreground text-lg whitespace-pre-wrap leading-relaxed">{currentChapter.content}</p>
+                     
+                     {isChapterContentLoading ? (
+                        <div className="space-y-4">
+                            <Skeleton className="h-6 w-3/4" />
+                            <Skeleton className="h-4 w-full" />
+                            <Skeleton className="h-4 w-full" />
+                            <Skeleton className="h-4 w-5/6" />
+                        </div>
+                     ) : (
+                        <p className="text-muted-foreground text-lg whitespace-pre-wrap leading-relaxed">{currentChapter.content}</p>
+                     )}
                      
                      <div className="p-6 bg-amber-500/10 rounded-lg border border-amber-500/20">
                         <h5 className="font-semibold flex items-center gap-2 text-amber-700"><Lightbulb size={18}/> Suggested Activity</h5>
                         <div className="text-muted-foreground mt-2">
-                            <p>{currentChapter.activity}</p>
+                             {isChapterContentLoading ? <Skeleton className="h-4 w-1/2" /> : <p>{currentChapter.activity}</p>}
                         </div>
                     </div>
                      
@@ -481,9 +537,9 @@ export default function LearningLabPage() {
                                     value={chatInput}
                                     onChange={(e) => setChatInput(e.target.value)}
                                     onKeyDown={(e) => e.key === 'Enter' && !isTutorLoading && handleSendTutorMessage()}
-                                    disabled={isTutorLoading}
+                                    disabled={isTutorLoading || isChapterContentLoading}
                                 />
-                                <Button onClick={handleSendTutorMessage} disabled={isTutorLoading}>
+                                <Button onClick={handleSendTutorMessage} disabled={isTutorLoading || isChapterContentLoading}>
                                     <Send size={16}/>
                                 </Button>
                             </div>
@@ -518,4 +574,3 @@ const Loading = () => (
         </div>
     </div>
 );
-

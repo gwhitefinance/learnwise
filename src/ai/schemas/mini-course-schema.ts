@@ -13,8 +13,8 @@ export type GenerateMiniCourseInput = z.infer<typeof GenerateMiniCourseInputSche
 
 const ChapterSchema = z.object({
   title: z.string().describe('The title of the chapter.'),
-  content: z.string().describe('The educational content for this chapter, explained clearly and in detail.'),
-  activity: z.string().describe('A suggested activity or exercise based on the content, tailored to the user\'s learning style.'),
+  content: z.string().describe("The educational content for this chapter. This will be generated separately, so it can be an empty string initially.").optional(),
+  activity: z.string().describe("A suggested activity or exercise based on the content. This will be generated separately, so it can be an empty string initially.").optional(),
 });
 
 const ModuleSchema = z.object({

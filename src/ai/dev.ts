@@ -16,6 +16,7 @@ import './flows/text-to-speech-flow';
 import './flows/onboarding-course-flow';
 import './flows/tutor-chat-flow';
 import './flows/course-from-url-flow';
+import './flows/chapter-content-flow';
 import './tools/course-tool';
 import './tools/web-scraper-tool';
 
@@ -31,6 +32,7 @@ import './tools/web-scraper-tool';
     
 
     
+
 
 
 
