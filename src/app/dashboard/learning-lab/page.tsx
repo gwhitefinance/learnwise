@@ -68,7 +68,7 @@ export default function LearningLabPage() {
   const [activeCourse, setActiveCourse] = useState<Course | null>(null);
   
   const [isLoading, setIsLoading] = useState(true);
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(isGenerating);
   const [isChapterContentLoading, setChapterContentLoading] = useState(false);
 
 
@@ -601,3 +601,5 @@ const Loading = () => (
         </div>
     </div>
 );
+
+    
