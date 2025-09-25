@@ -6,7 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Play, Pause, ChevronLeft, ChevronRight, Wand2, FlaskConical, Lightbulb, Copy, RefreshCw, Check, Star, CheckCircle, Send, Bot, User, GitMerge } from 'lucide-react';
+import { Play, Pause, ChevronLeft, ChevronRight, Wand2, FlaskConical, Lightbulb, Copy, RefreshCw, Check, Star, CheckCircle, Send, Bot, User, GitMerge, PanelLeft, Minimize, Maximize } from 'lucide-react';
 import Link from 'next/link';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
@@ -26,6 +26,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { addXp, generateMiniCourse, generateQuizFromModule, generateFlashcardsFromModule, generateTutorResponse } from '@/lib/actions';
 import { RewardContext } from '@/context/RewardContext';
 import { Roadmap, Milestone } from '@/app/dashboard/roadmaps/page';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 type Course = {
     id: string;
@@ -33,10 +34,11 @@ type Course = {
     description: string;
     url?: string;
     userId?: string;
+    units?: Module[];
 };
 
 type Module = {
-    id: string; // Corresponds to milestone.id
+    id: string;
     title: string;
     chapters: Chapter[];
 };
@@ -63,11 +65,11 @@ export default function LearningLabPage() {
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
   const [learnerType, setLearnerType] = useState<string | null>(null);
   
-  const [roadmap, setRoadmap] = useState<Roadmap | null>(null);
-  const [courseContent, setCourseContent] = useState<Record<string, Module>>({}); // Maps milestone.id to Module
+  const [activeCourse, setActiveCourse] = useState<Course | null>(null);
   
   const [isLoading, setIsLoading] = useState(true);
-  const [isCourseComplete, setIsCourseComplete] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+
   const { toast } = useToast();
   const [user, authLoading] = useAuthState(auth);
   const { showReward } = useContext(RewardContext);
@@ -76,25 +78,23 @@ export default function LearningLabPage() {
   const [currentModuleIndex, setCurrentModuleIndex] = useState(0);
   const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
   
-  // Quiz states
   const [isQuizDialogOpen, setQuizDialogOpen] = useState(false);
-  const [isQuizLoading, setQuizLoading] = useState(false);
+  const [isQuizLoading, setQuizLoading] = useState(isQuizLoading);
   const [generatedQuiz, setGeneratedQuiz] = useState<GenerateQuizOutput | null>(null);
   
-  // Flashcard states
   const [isFlashcardDialogOpen, setFlashcardDialogOpen] = useState(false);
   const [isFlashcardLoading, setFlashcardLoading] = useState(false);
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [currentFlashcardIndex, setCurrentFlashcardIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
 
-  // Tutor Chat states
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState('');
   const [isTutorLoading, setIsTutorLoading] = useState(false);
+  
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isFocusMode, setIsFocusMode] = useState(false);
 
-
-  // Load user's courses
   useEffect(() => {
     if (authLoading || !user) return;
 
@@ -102,12 +102,12 @@ export default function LearningLabPage() {
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const userCourses = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
         setCourses(userCourses);
+        setIsLoading(false);
     });
 
     const storedLearnerType = localStorage.getItem('learnerType');
     setLearnerType(storedLearnerType ?? 'Unknown');
     
-    // Check for saved state on mount
     const savedState = localStorage.getItem('learningLabState');
     const courseIdFromUrl = searchParams.get('courseId');
 
@@ -120,60 +120,30 @@ export default function LearningLabPage() {
         setCurrentChapterIndex(chapterIndex);
     }
 
-
     return () => unsubscribe();
   }, [user, authLoading, searchParams]);
   
-  // Effect to load roadmap and content when selectedCourseId changes
   useEffect(() => {
-    const loadData = async () => {
+    const loadCourseData = async () => {
         if (!user || !selectedCourseId) {
-            setRoadmap(null);
-            setCourseContent({});
-            setIsLoading(false);
+            setActiveCourse(null);
             return;
         };
 
         setIsLoading(true);
-        const roadmapsQuery = query(collection(db, 'roadmaps'), where('userId', '==', user.uid), where('courseId', '==', selectedCourseId));
-        const roadmapsSnap = await getDocs(roadmapsQuery);
-
-        if (!roadmapsSnap.empty) {
-            const roadmapData = { id: roadmapsSnap.docs[0].id, ...roadmapsSnap.docs[0].data() } as Roadmap;
-            setRoadmap(roadmapData);
-
-            const milestoneTitle = searchParams.get('milestone');
-            if (milestoneTitle) {
-                const decodedTitle = decodeURIComponent(milestoneTitle);
-                const moduleIndex = roadmapData.milestones.findIndex(m => m.title === decodedTitle);
-                if (moduleIndex !== -1) {
-                    setCurrentModuleIndex(moduleIndex);
-                    setCurrentChapterIndex(0);
-                }
-            }
-
-        } else {
-            setRoadmap(null);
-        }
-        
         const courseRef = doc(db, 'courses', selectedCourseId);
         const courseSnap = await getDoc(courseRef);
         if (courseSnap.exists()) {
-            const courseData = courseSnap.data();
-            setCourseContent(courseData.units ? 
-                courseData.units.reduce((acc: Record<string, Module>, unit: Module) => {
-                    acc[unit.id] = unit;
-                    return acc;
-                }, {})
-                : {}
-            );
+            setActiveCourse({ id: courseSnap.id, ...courseSnap.data() } as Course);
+        } else {
+             setActiveCourse(null);
+             toast({ variant: 'destructive', title: 'Course not found.' });
         }
         setIsLoading(false);
     }
-    loadData();
-  }, [selectedCourseId, user, searchParams]);
+    loadCourseData();
+  }, [selectedCourseId, user, toast]);
   
-  // Effect to save state to localStorage whenever it changes
   useEffect(() => {
       if (selectedCourseId) {
           const stateToSave = {
@@ -187,64 +157,52 @@ export default function LearningLabPage() {
 
 
   useEffect(() => {
-    // Reset chat when chapter or module changes
     setChatHistory([]);
     setChatInput('');
   }, [currentChapterIndex, currentModuleIndex]);
 
-  const handleGenerateModuleContent = async (milestone: Milestone) => {
-    if (!milestone || !selectedCourseId || !user) return;
+  const handleGenerateCourse = async () => {
+    if (!selectedCourseId || !user) return;
     
-    // Don't regenerate if content already exists for this milestone ID
-    if (courseContent[milestone.id]) {
-        toast({ title: 'Content already exists for this module.' });
-        return;
-    }
-
-    setIsLoading(true);
-    toast({ title: 'Generating Module...', description: `The AI is crafting content for "${milestone.title}".` });
-
     const course = courses.find(c => c.id === selectedCourseId);
     if (!course) {
-        toast({ variant: 'destructive', title: 'Course not found.'});
-        setIsLoading(false);
+        toast({ variant: 'destructive', title: 'Course not found.' });
         return;
     }
+
+    setIsGenerating(true);
+    toast({ title: 'Generating Full Course...', description: `The AI is crafting a comprehensive course for "${course.name}". This may take a minute.` });
 
     try {
         const result = await generateMiniCourse({
-            courseName: milestone.title,
-            courseDescription: `An in-depth module about ${milestone.description} as part of the larger course on ${course.name}.`,
+            courseName: course.name,
+            courseDescription: course.description,
             learnerType: (learnerType as any) ?? 'Reading/Writing'
         });
 
-        const newModule: Module = {
-            id: milestone.id, // Use milestone ID to link content
-            title: milestone.title,
-            chapters: result.modules[0]?.chapters.map(c => ({...c, id: crypto.randomUUID()})) || []
-        };
+        const newUnits = result.modules.map(module => ({
+            id: crypto.randomUUID(),
+            name: module.title,
+            chapters: module.chapters.map(chapter => ({ ...chapter, id: crypto.randomUUID() }))
+        }));
         
-        if (newModule.chapters.length === 0) {
-            throw new Error("AI did not generate any chapters for this module.");
+        if (newUnits.length === 0) {
+            throw new Error("AI did not generate any modules.");
         }
         
-        const updatedContent = { ...courseContent, [milestone.id]: newModule };
-        setCourseContent(updatedContent);
+        const courseRef = doc(db, 'courses', course.id);
+        await updateDoc(courseRef, { units: newUnits });
 
-        // This assumes course documents have a `content` map field. Let's use `units` as per other files.
-        const courseRef = doc(db, 'courses', selectedCourseId);
-        const courseSnap = await getDoc(courseRef);
-        const existingUnits = courseSnap.data()?.units || [];
-        const finalUnits = [...existingUnits, newModule];
+        setActiveCourse(prev => prev ? { ...prev, units: newUnits } : null);
+        setCurrentModuleIndex(0);
+        setCurrentChapterIndex(0);
 
-        await updateDoc(courseRef, { units: finalUnits });
-
-        toast({ title: 'Module Ready!', description: 'Your new learning module has been generated.'});
+        toast({ title: 'Course Ready!', description: 'Your new learning lab has been generated.'});
     } catch (error) {
-        console.error("Failed to generate module content:", error);
-        toast({ variant: 'destructive', title: 'Generation Failed', description: 'Could not create content for this module.' });
+        console.error("Failed to generate course content:", error);
+        toast({ variant: 'destructive', title: 'Generation Failed', description: 'Could not create content for this course.' });
     } finally {
-        setIsLoading(false);
+        setIsGenerating(false);
     }
   };
 
@@ -299,73 +257,28 @@ export default function LearningLabPage() {
     }
   };
 
-  const handleMarkModuleComplete = async (moduleIndex: number) => {
-    if (!roadmap || !user) return;
+  const handleCompleteAndContinue = async () => {
+    const module = activeCourse?.units?.[currentModuleIndex];
+    if (!module) return;
 
-    const milestone = roadmap.milestones[moduleIndex];
-    if (milestone.completed) return;
-    
-    const updatedMilestones = roadmap.milestones.map((m, i) => i === moduleIndex ? {...m, completed: true} : m);
-    setRoadmap({...roadmap, milestones: updatedMilestones});
-
-    try {
-      const roadmapRef = doc(db, 'roadmaps', roadmap.id);
-      await updateDoc(roadmapRef, { milestones: updatedMilestones });
-      
-      const xpToAward = 50;
-      const { levelUp, newLevel, newCoins } = await addXp(user.uid, xpToAward);
-      
-      if (levelUp) {
-        showReward({ type: 'levelUp', level: newLevel, coins: newCoins });
-      } else {
-        showReward({ type: 'xp', amount: xpToAward });
-      }
-
-      toast({ title: 'Milestone Complete!', description: "Great job! Keep up the momentum." });
-
-    } catch (error) {
-      console.error("Error updating milestone/XP:", error);
-      toast({ variant: 'destructive', title: 'Error', description: "Could not mark module as complete."})
-       setRoadmap(roadmap);
-    }
-
-    if (updatedMilestones.every(m => m.completed)) {
-        setIsCourseComplete(true);
-    } else if (moduleIndex < roadmap.milestones.length - 1) {
-        setCurrentModuleIndex(moduleIndex + 1);
+    if (currentChapterIndex < module.chapters.length - 1) {
+        setCurrentChapterIndex(prev => prev + 1);
+    } else if (currentModuleIndex < (activeCourse?.units?.length ?? 0) - 1) {
+        setCurrentModuleIndex(prev => prev + 1);
         setCurrentChapterIndex(0);
+        toast({ title: "Module Complete!", description: "Moving to the next module." });
+    } else {
+        toast({ title: "Course Complete!", description: "Congratulations, you've finished the course!" });
     }
-  }
-
+  };
+  
   const startNewCourse = () => {
     localStorage.removeItem('learningLabState');
     setSelectedCourseId(null);
-    setRoadmap(null);
-    setCourseContent({});
-    setIsCourseComplete(false);
+    setActiveCourse(null);
     setCurrentModuleIndex(0);
     setCurrentChapterIndex(0);
   }
-  
-  const handleNextChapter = () => {
-    if (!currentModule) return;
-    if (currentChapterIndex < currentModule.chapters.length - 1) {
-        setCurrentChapterIndex(prev => prev + 1);
-    }
-  };
-  
-  const handlePrevChapter = () => {
-    if (currentChapterIndex > 0) {
-        setCurrentChapterIndex(prev => prev - 1);
-    } else if (currentModuleIndex > 0) {
-        const prevModuleIndex = currentModuleIndex - 1;
-        setCurrentModuleIndex(prevModuleIndex);
-        
-        const prevModuleMilestone = roadmap?.milestones[prevModuleIndex];
-        const prevModuleContent = prevModuleMilestone ? courseContent[prevModuleMilestone.id] : undefined;
-        setCurrentChapterIndex(prevModuleContent ? prevModuleContent.chapters.length - 1 : 0);
-    }
-  };
   
   const handleSendTutorMessage = async () => {
     if (!chatInput.trim() || !currentChapter) return;
@@ -392,337 +305,218 @@ export default function LearningLabPage() {
     }
   }
 
-  const currentMilestone = roadmap?.milestones[currentModuleIndex];
-  const currentModule = currentMilestone ? courseContent[currentMilestone.id] : null;
+  const toggleFocusMode = () => {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+            alert(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+        });
+    } else {
+        document.exitFullscreen();
+    }
+  };
+  
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+        setIsFocusMode(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+  const currentModule = activeCourse?.units?.[currentModuleIndex];
   const currentChapter = currentModule?.chapters[currentChapterIndex];
-  const isLastChapterInModule = currentModule ? currentChapterIndex === currentModule.chapters.length - 1 : false;
   
-  const progress = roadmap ? (roadmap.milestones.filter(m => m.completed).length / roadmap.milestones.length) * 100 : 0;
+  const chapterCount = activeCourse?.units?.reduce((acc, unit) => acc + (unit.chapters?.length ?? 0), 0) ?? 0;
+  const progress = activeCourse ? (((currentModuleIndex * (currentModule?.chapters.length ?? 1)) + currentChapterIndex + 1) / chapterCount) * 100 : 0;
   
+  if (isLoading) {
+    return <Loading />;
+  }
+
+  if (!selectedCourseId) {
+    return (
+        <div className="space-y-6">
+            <h1 className="text-3xl font-bold tracking-tight">Learning Lab</h1>
+            <Card className="text-center p-12">
+               <FlaskConical className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+              <h2 className="text-xl font-semibold">Select a Course to Begin</h2>
+              <p className="text-muted-foreground mt-2 mb-6 max-w-md mx-auto">
+                Choose one of your courses to start your learning journey.
+              </p>
+               <div className="flex justify-center gap-4">
+                    <Select onValueChange={setSelectedCourseId} value={selectedCourseId ?? ''}>
+                        <SelectTrigger className="w-[280px]">
+                            <SelectValue placeholder="Select a course..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {courses.map(course => (
+                                <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+               </div>
+            </Card>
+        </div>
+    );
+  }
+
+  if (!activeCourse?.units || activeCourse.units.length === 0) {
+      return (
+          <div className="space-y-6">
+              <h1 className="text-3xl font-bold tracking-tight">Learning Lab: {activeCourse?.name}</h1>
+              <Card className="text-center p-12">
+                  <Wand2 className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                  <h2 className="text-xl font-semibold">Generate Your Course Curriculum</h2>
+                  <p className="text-muted-foreground mt-2 mb-6 max-w-md mx-auto">
+                      Click the button below to have AI create a full, in-depth course structure with modules and chapters.
+                  </p>
+                  <Button onClick={handleGenerateCourse} disabled={isGenerating}>
+                      {isGenerating ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/> Generating...</> : <><Wand2 className="mr-2 h-4 w-4"/> Generate with AI</>}
+                  </Button>
+                   <div className="mt-8">
+                     <Button variant="link" onClick={startNewCourse}>Or select a different course</Button>
+                   </div>
+              </Card>
+          </div>
+      )
+  }
+
   return (
     <>
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-            <h1 className="text-3xl font-bold tracking-tight">Learning Lab</h1>
-            <p className="text-muted-foreground">
-            Your personalized learning environment, generated by AI.
-            </p>
-        </div>
-        {selectedCourseId && <Button variant="outline" onClick={startNewCourse}>Start New Course</Button>}
-      </div>
-
-       {!selectedCourseId && !isLoading && (
-        <Card className="text-center p-12">
-           <FlaskConical className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-          <h2 className="text-xl font-semibold">Select a Course to Begin</h2>
-          <p className="text-muted-foreground mt-2 mb-6 max-w-md mx-auto">
-            Choose one of your courses to start your learning journey.
-          </p>
-           <div className="flex justify-center gap-4">
-                <Select onValueChange={setSelectedCourseId} value={selectedCourseId ?? ''}>
-                    <SelectTrigger className="w-[280px]">
-                        <SelectValue placeholder="Select a course..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {courses.map(course => (
-                            <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-           </div>
-        </Card>
-      )}
-      
-      {selectedCourseId && !roadmap && !isLoading && (
-         <Card className="text-center p-12">
-           <GitMerge className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-          <h2 className="text-xl font-semibold">No Roadmap Found</h2>
-          <p className="text-muted-foreground mt-2 mb-6 max-w-md mx-auto">
-            This course doesn't have a study roadmap yet. Generate one to create your learning lab.
-          </p>
-          <Link href="/dashboard/roadmaps">
-            <Button><GitMerge className="mr-2 h-4 w-4"/> Go to Roadmaps</Button>
-          </Link>
-        </Card>
-      )}
-
-      {(isLoading || roadmap) && (
-          <>
-            <Card>
-                <CardHeader>
-                <CardTitle>Now Learning: {courses.find(c => c.id === selectedCourseId)?.name ?? <Skeleton className="h-6 w-2/3"/>}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="flex items-center justify-between text-sm font-medium">
-                        <span>Overall Progress ({roadmap?.milestones.filter(m => m.completed).length ?? 0} / {roadmap?.milestones.length ?? 0})</span>
-                        <span>{progress.toFixed(0)}%</span>
-                    </div>
-                    <Progress value={progress} />
-                </CardContent>
-            </Card>
-            
-            {isCourseComplete ? (
-                 <Card className="text-center p-12">
-                    <Star className="mx-auto h-12 w-12 text-yellow-400 mb-4" />
-                    <h2 className="text-xl font-semibold">Course Complete!</h2>
-                    <p className="text-muted-foreground mt-2 mb-6 max-w-md mx-auto">
-                        Fantastic work! You've successfully completed this course.
-                    </p>
-                    <Button onClick={startNewCourse}>
-                        Start a New Course
-                    </Button>
-                </Card>
-            ) : isLoading ? (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-                    <div className="md:col-span-2"> <Skeleton className="h-96 w-full" /> </div>
-                    <div className="space-y-4"> <Skeleton className="h-64 w-full" /> </div>
+      <div className={cn("flex h-full", isFocusMode && "bg-background")}>
+        <aside className={cn(
+            "h-full bg-card border-r transition-all duration-300",
+            isSidebarOpen ? "w-80 p-4" : "w-0 p-0 overflow-hidden"
+        )}>
+             <div className="flex flex-col h-full">
+                <div className="mb-4">
+                    <h2 className="text-lg font-bold">{activeCourse?.name}</h2>
+                    <p className="text-sm text-muted-foreground">{chapterCount} Chapters</p>
+                    <Progress value={progress} className="mt-2 h-2" />
                 </div>
-            ) : roadmap && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-                <div className="md:col-span-2 space-y-6">
-                    {currentModule ? (
-                        currentChapter ? (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle> Chapter {currentChapterIndex + 1}: {currentChapter.title} </CardTitle>
-                                <CardDescription> Module {currentModuleIndex + 1}: {currentModule?.title} </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="space-y-6">
-                                     <div className="text-muted-foreground whitespace-pre-wrap leading-relaxed">
-                                        <AudioPlayer textToPlay={currentChapter.content} />
-                                        <p>{currentChapter.content}</p>
-                                     </div>
-                                    <div className="p-4 bg-amber-500/10 rounded-lg border border-amber-500/20">
-                                        <h5 className="font-semibold flex items-center gap-2 text-amber-700 text-sm"><Lightbulb size={16}/> Suggested Activity</h5>
-                                        <div className="text-muted-foreground mt-1 text-sm">
-                                            <AudioPlayer textToPlay={currentChapter.activity} />
-                                            <p>{currentChapter.activity}</p>
-                                        </div>
-                                    </div>
-                                     {isLastChapterInModule && (
-                                         <div className="mt-6 pt-6 border-t-2 border-dashed">
-                                            <h4 className="font-semibold mb-4 text-lg text-center">Module {currentModuleIndex + 1} Review</h4>
-                                            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                                                <Button variant="outline" onClick={() => handleGenerateQuiz(currentModule)}>
-                                                    <Lightbulb className="mr-2 h-4 w-4"/> Module Test
-                                                </Button>
-                                                <Button variant="outline" onClick={() => handleGenerateFlashcards(currentModule)}>
-                                                    <Copy className="mr-2 h-4 w-4"/> Review Flashcards
-                                                </Button>
-                                                 {!currentMilestone?.completed && (
-                                                    <Button className="bg-green-600 hover:bg-green-700" onClick={() => handleMarkModuleComplete(currentModuleIndex)}>
-                                                        <Check className="mr-2 h-4 w-4"/> Mark Module Complete
-                                                    </Button>
+                 <Accordion type="multiple" defaultValue={activeCourse?.units?.map(u => u.id)} className="w-full flex-1 overflow-y-auto">
+                    {activeCourse?.units?.map((unit, mIndex) => (
+                        <AccordionItem key={unit.id} value={unit.id}>
+                            <AccordionTrigger className="text-md font-semibold">{unit.title}</AccordionTrigger>
+                            <AccordionContent>
+                                <ul className="space-y-1 pl-4">
+                                    {unit.chapters.map((chapter, cIndex) => (
+                                        <li key={chapter.id}>
+                                            <button 
+                                                onClick={() => { setCurrentModuleIndex(mIndex); setCurrentChapterIndex(cIndex); }}
+                                                className={cn(
+                                                    "w-full text-left p-2 rounded-md text-sm flex items-center gap-2",
+                                                    currentModuleIndex === mIndex && currentChapterIndex === cIndex ? "bg-primary/10 text-primary font-semibold" : "hover:bg-muted"
                                                 )}
-                                            </div>
-                                        </div>
-                                     )}
-                                </div>
-                            </CardContent>
-                        </Card>
-                     ) : <p>No chapter data found.</p>
-                     ) : (
-                        <Card className="text-center p-12">
-                             <h2 className="text-xl font-semibold">Generate Module Content</h2>
-                             <p className="text-muted-foreground mt-2 mb-6 max-w-md mx-auto">Click the button below to generate an in-depth learning module for this milestone.</p>
-                             <Button onClick={() => handleGenerateModuleContent(currentMilestone!)} disabled={isLoading}>
-                                <Wand2 className="mr-2 h-4 w-4" /> Generate with AI
-                            </Button>
-                        </Card>
-                     )}
-
-                     {currentChapter && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>AI Tutor</CardTitle>
-                                <CardDescription>Have a question about this chapter? Ask away!</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="space-y-4">
-                                    {chatHistory.map((msg, index) => (
-                                        <div key={index} className={`flex items-start gap-3 ${msg.role === 'user' ? 'justify-end' : ''}`}>
-                                             {msg.role === 'ai' && <Avatar><AvatarFallback><Bot size={20}/></AvatarFallback></Avatar>}
-                                             <div className={cn("rounded-lg p-3 max-w-lg", msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
-                                                <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
-                                             </div>
-                                             {msg.role === 'user' && <Avatar><AvatarFallback><User size={20}/></AvatarFallback></Avatar>}
-                                        </div>
+                                            >
+                                                <CheckCircle size={14} className={cn(currentModuleIndex > mIndex || (currentModuleIndex === mIndex && currentChapterIndex > cIndex) ? "text-green-500" : "text-muted-foreground/50")} />
+                                                {chapter.title}
+                                            </button>
+                                        </li>
                                     ))}
-                                    {isTutorLoading && (
-                                         <div className="flex items-start gap-3">
-                                            <Avatar><AvatarFallback><Bot size={20}/></AvatarFallback></Avatar>
-                                            <div className="rounded-lg p-3 bg-muted animate-pulse">Thinking...</div>
-                                         </div>
-                                    )}
-                                </div>
-                                <div className="mt-4 flex gap-2">
-                                    <Input 
-                                        placeholder="Ask a question about this chapter..."
-                                        value={chatInput}
-                                        onChange={(e) => setChatInput(e.target.value)}
-                                        onKeyDown={(e) => e.key === 'Enter' && !isTutorLoading && handleSendTutorMessage()}
-                                        disabled={isTutorLoading}
-                                    />
-                                    <Button onClick={handleSendTutorMessage} disabled={isTutorLoading}>
-                                        <Send size={16}/>
-                                    </Button>
-                                </div>
-                            </CardContent>
-                        </Card>
-                     )}
-
-                     <div className="mt-4 flex justify-between">
-                          <Button variant="outline" onClick={handlePrevChapter} disabled={(currentModuleIndex === 0 && currentChapterIndex === 0) || !currentModule}>
-                            <ChevronLeft className="mr-2 h-4 w-4"/> Previous
-                          </Button>
-                          <Button onClick={handleNextChapter} disabled={isLastChapterInModule || !currentModule}>
-                            Next <ChevronRight className="ml-2 h-4 w-4"/>
-                          </Button>
-                     </div>
+                                </ul>
+                            </AccordionContent>
+                        </AccordionItem>
+                    ))}
+                 </Accordion>
+                 <div className="mt-4 pt-4 border-t">
+                     <Button variant="outline" className="w-full" onClick={startNewCourse}>Start a New Course</Button>
+                 </div>
+             </div>
+        </aside>
+        
+        <main className="flex-1 p-6 overflow-y-auto">
+             <div className="flex items-center justify-between mb-4">
+                <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
+                    <PanelLeft className="h-5 w-5" />
+                </Button>
+                <div className="flex items-center gap-2">
+                    <Button variant="outline" onClick={toggleFocusMode}>
+                        {isFocusMode ? <Minimize className="mr-2 h-4 w-4"/> : <Maximize className="mr-2 h-4 w-4"/>}
+                        {isFocusMode ? "Exit Focus Mode" : "Focus Mode"}
+                    </Button>
+                    <Button onClick={handleCompleteAndContinue}>
+                        Complete and Continue <ChevronRight className="ml-2 h-4 w-4"/>
+                    </Button>
                 </div>
-                <div className="space-y-4">
-                     <Card>
+            </div>
+
+            {currentChapter ? (
+                 <div className="max-w-4xl mx-auto space-y-8">
+                     <h1 className="text-4xl font-bold">{currentChapter.title}</h1>
+                     <p className="text-muted-foreground text-lg whitespace-pre-wrap leading-relaxed">{currentChapter.content}</p>
+                     
+                     <div className="p-6 bg-amber-500/10 rounded-lg border border-amber-500/20">
+                        <h5 className="font-semibold flex items-center gap-2 text-amber-700"><Lightbulb size={18}/> Suggested Activity</h5>
+                        <div className="text-muted-foreground mt-2">
+                            <p>{currentChapter.activity}</p>
+                        </div>
+                    </div>
+                     
+                    <Card>
                         <CardHeader>
-                            <CardTitle>Course Outline</CardTitle>
+                            <CardTitle>AI Tutor</CardTitle>
+                            <CardDescription>Have a question about this chapter? Ask away!</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <ul className="space-y-4">
-                                {roadmap?.milestones.map((milestone, mIndex) => (
-                                    <li key={mIndex}>
-                                        <button
-                                            className={cn(
-                                                "w-full text-left p-2 rounded-md font-semibold flex items-center gap-3",
-                                                mIndex === currentModuleIndex ? "bg-primary/10 text-primary" : "hover:bg-muted"
-                                            )}
-                                            onClick={() => {setCurrentModuleIndex(mIndex); setCurrentChapterIndex(0);}}
-                                        >
-                                           {milestone.completed ? <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" /> : <div className="h-5 w-5 rounded-full border-2 border-primary flex-shrink-0" />}
-                                           <span>{milestone.title}</span>
-                                        </button>
-                                    </li>
+                            <div className="space-y-4 h-64 overflow-y-auto p-4 bg-muted rounded-md mb-4">
+                                {chatHistory.map((msg, index) => (
+                                    <div key={index} className={`flex items-start gap-3 ${msg.role === 'user' ? 'justify-end' : ''}`}>
+                                         {msg.role === 'ai' && <Avatar><AvatarFallback><Bot size={20}/></AvatarFallback></Avatar>}
+                                         <div className={cn("rounded-lg p-3 max-w-lg", msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-background border')}>
+                                            <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                                         </div>
+                                         {msg.role === 'user' && <Avatar><AvatarFallback><User size={20}/></AvatarFallback></Avatar>}
+                                    </div>
                                 ))}
-                            </ul>
+                                {isTutorLoading && (
+                                     <div className="flex items-start gap-3">
+                                        <Avatar><AvatarFallback><Bot size={20}/></AvatarFallback></Avatar>
+                                        <div className="rounded-lg p-3 bg-background border animate-pulse">Thinking...</div>
+                                     </div>
+                                )}
+                            </div>
+                            <div className="mt-4 flex gap-2">
+                                <Input 
+                                    placeholder="Ask a question about this chapter..."
+                                    value={chatInput}
+                                    onChange={(e) => setChatInput(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && !isTutorLoading && handleSendTutorMessage()}
+                                    disabled={isTutorLoading}
+                                />
+                                <Button onClick={handleSendTutorMessage} disabled={isTutorLoading}>
+                                    <Send size={16}/>
+                                </Button>
+                            </div>
                         </CardContent>
                     </Card>
+                 </div>
+            ) : (
+                <div className="text-center py-20">
+                    <p className="text-muted-foreground">Select a chapter to begin.</p>
                 </div>
-            </div>
             )}
-         </>
-      )}
-
-    </div>
-    
-    <Dialog open={isQuizDialogOpen} onOpenChange={setQuizDialogOpen}>
-        <DialogContent className="max-w-2xl">
-            <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                    <Lightbulb className="text-yellow-500" />
-                    Module Test
-                </DialogTitle>
-            </DialogHeader>
-            <div className="py-4 max-h-[60vh] overflow-y-auto">
-                {isQuizLoading ? (
-                     <div className="space-y-4 p-4">
-                        <Skeleton className="h-6 w-3/4"/>
-                        <div className="space-y-2 pt-2">
-                            <Skeleton className="h-4 w-full"/>
-                            <Skeleton className="h-4 w-full"/>
-                            <Skeleton className="h-4 w-full"/>
-                        </div>
-                    </div>
-                ) : (
-                   generatedQuiz && (
-                       <div className="space-y-6">
-                           {generatedQuiz.questions.map((q, index) => (
-                               <div key={index}>
-                                   <p className="font-semibold">{index + 1}. {q.question}</p>
-                                   <RadioGroup className="mt-2 space-y-2">
-                                       {q.options?.map((opt, i) => (
-                                           <div key={i} className="flex items-center space-x-2">
-                                                <RadioGroupItem value={opt} id={`q${index}-opt${i}`} />
-                                                <Label htmlFor={`q${index}-opt${i}`}>{opt}</Label>
-                                           </div>
-                                       ))}
-                                   </RadioGroup>
-                               </div>
-                           ))}
-                       </div>
-                   )
-                )}
-            </div>
-            <DialogFooter>
-                <DialogClose asChild><Button>Close</Button></DialogClose>
-            </DialogFooter>
-        </DialogContent>
-    </Dialog>
-
-    <Dialog open={isFlashcardDialogOpen} onOpenChange={setFlashcardDialogOpen}>
-        <DialogContent className="max-w-xl">
-             <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                    <Copy className="text-blue-500" />
-                    Flashcards
-                </DialogTitle>
-            </DialogHeader>
-            <div className="py-4">
-                {isFlashcardLoading ? (
-                    <div className="flex items-center justify-center h-52">
-                        <p className="animate-pulse">Generating your flashcards...</p>
-                    </div>
-                ) : flashcards.length > 0 ? (
-                    <div className="space-y-4">
-                         <div className="text-center text-sm text-muted-foreground">
-                            Card {currentFlashcardIndex + 1} of {flashcards.length}
-                        </div>
-                        <div
-                            className="relative w-full h-64 cursor-pointer"
-                            onClick={() => setIsFlipped(!isFlipped)}
-                        >
-                            <AnimatePresence>
-                                <motion.div
-                                    key={isFlipped ? 'back' : 'front'}
-                                    initial={{ rotateY: isFlipped ? 180 : 0 }}
-                                    animate={{ rotateY: 0 }}
-                                    exit={{ rotateY: isFlipped ? 0 : -180 }}
-                                    transition={{ duration: 0.5 }}
-                                    className="absolute w-full h-full p-6 flex items-center justify-center text-center rounded-lg border bg-card text-card-foreground shadow-sm"
-                                    style={{ backfaceVisibility: 'hidden' }}
-                                >
-                                  <div>
-                                    <AudioPlayer textToPlay={isFlipped ? flashcards[currentFlashcardIndex].back : flashcards[currentFlashcardIndex].front} />
-                                    <p className="text-xl font-semibold">
-                                        {isFlipped ? flashcards[currentFlashcardIndex].back : flashcards[currentFlashcardIndex].front}
-                                    </p>
-                                  </div>
-                                </motion.div>
-                            </AnimatePresence>
-                        </div>
-                        <div className="flex justify-center items-center gap-4">
-                            <Button variant="outline" size="icon" onClick={() => { setIsFlipped(false); setCurrentFlashcardIndex(prev => Math.max(0, prev - 1))}} disabled={currentFlashcardIndex === 0}>
-                                <ChevronLeft className="h-4 w-4" />
-                            </Button>
-                            <Button onClick={() => setIsFlipped(!isFlipped)}>
-                                <RefreshCw className="mr-2 h-4 w-4"/> Flip Card
-                            </Button>
-                            <Button variant="outline" size="icon" onClick={() => { setIsFlipped(false); setCurrentFlashcardIndex(prev => Math.min(flashcards.length - 1, prev + 1))}} disabled={currentFlashcardIndex === flashcards.length - 1}>
-                                <ChevronRight className="h-4 w-4" />
-                            </Button>
-                        </div>
-                    </div>
-                ) : (
-                    <div className="flex items-center justify-center h-52">
-                        <p>No flashcards were generated.</p>
-                    </div>
-                )}
-            </div>
-            <DialogFooter>
-                <DialogClose asChild><Button>Close</Button></DialogClose>
-            </DialogFooter>
-        </DialogContent>
-    </Dialog>
-
+        </main>
+      </div>
     </>
   );
 }
+
+const Loading = () => (
+    <div className="space-y-6">
+        <div>
+            <Skeleton className="h-8 w-1/2 mb-2" />
+            <Skeleton className="h-4 w-3/4" />
+        </div>
+        
+        <div className="text-center p-12">
+            <Skeleton className="mx-auto h-12 w-12 rounded-full mb-4" />
+            <Skeleton className="h-6 w-1/2 mx-auto mb-2" />
+            <Skeleton className="h-4 w-2/3 mx-auto mb-6" />
+            <div className="flex justify-center gap-4">
+                <Skeleton className="h-10 w-48" />
+                <Skeleton className="h-10 w-32" />
+            </div>
+        </div>
+    </div>
+);
