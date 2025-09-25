@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useContext } from 'react';
@@ -6,7 +7,7 @@ import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Play, Pause, ChevronLeft, ChevronRight, Wand2, FlaskConical, Lightbulb, Copy, RefreshCw, Check, Star, CheckCircle, Send, Bot, User, GitMerge, PanelLeft, Minimize, Maximize, Loader2, Plus } from 'lucide-react';
+import { Play, Pause, ChevronLeft, ChevronRight, Wand2, FlaskConical, Lightbulb, Copy, RefreshCw, Check, Star, CheckCircle, Send, Bot, User, GitMerge, PanelLeft, Minimize, Maximize, Loader2, Plus, Trash2, MoreVertical } from 'lucide-react';
 import Link from 'next/link';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
@@ -27,6 +28,9 @@ import { addXp, generateMiniCourse, generateQuizFromModule, generateFlashcardsFr
 import { RewardContext } from '@/context/RewardContext';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import Loading from './loading';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+
 
 type Course = {
     id: string;
@@ -191,7 +195,7 @@ export default function LearningLabClientPage() {
         const result = await generateMiniCourse({
             courseName: course.name,
             courseDescription: course.description || `An in-depth course on ${course.name}`,
-            learnerType: learnerType,
+            learnerType,
         });
 
         const newUnits = result.modules.map(module => ({
@@ -303,6 +307,22 @@ export default function LearningLabClientPage() {
     url.searchParams.delete('courseId');
     window.history.pushState({}, '', url.toString());
   }
+
+  const handleDeleteLab = async (courseId: string) => {
+    if (!user) return;
+    try {
+        const courseRef = doc(db, 'courses', courseId);
+        await updateDoc(courseRef, {
+            units: [] // Set units to an empty array
+        });
+        localStorage.removeItem(`learningLabState_${courseId}`);
+        toast({ title: 'Learning Lab Deleted', description: 'The generated content for this course has been removed.' });
+        // The onSnapshot listener will update the UI automatically.
+    } catch (error) {
+        console.error("Error deleting lab:", error);
+        toast({ variant: 'destructive', title: 'Deletion Failed' });
+    }
+  };
   
   const handleSendTutorMessage = async () => {
     if (!chatInput.trim() || !currentChapter || !currentChapter.content) return;
@@ -451,14 +471,60 @@ export default function LearningLabClientPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {coursesWithLabs.map(course => {
                         const totalChapters = course.units?.reduce((acc, unit) => acc + (unit.chapters?.length ?? 0), 0) ?? 0;
+                        const savedState = typeof window !== 'undefined' ? localStorage.getItem(`learningLabState_${course.id}`) : null;
+                        let completedChapters = 0;
+                        if(savedState){
+                            const { moduleIndex, chapterIndex } = JSON.parse(savedState);
+                            let chaptersCounted = 0;
+                            for(let i=0; i<moduleIndex; i++) {
+                                chaptersCounted += course.units?.[i].chapters.length ?? 0;
+                            }
+                            completedChapters = chaptersCounted + chapterIndex;
+                        }
+                        const courseProgress = totalChapters > 0 ? (completedChapters / totalChapters) * 100 : 0;
+                        
                         return (
-                        <Card key={course.id} className="hover:shadow-md transition-shadow">
+                        <Card key={course.id} className="hover:shadow-md transition-shadow flex flex-col">
                             <CardHeader>
-                                <CardTitle>{course.name}</CardTitle>
+                                <div className="flex justify-between items-start">
+                                    <CardTitle>{course.name}</CardTitle>
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost" size="icon" className="h-8 w-8 -mt-2 -mr-2">
+                                                <MoreVertical className="h-4 w-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                            <AlertDialog>
+                                                <AlertDialogTrigger asChild>
+                                                     <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
+                                                        <Trash2 className="mr-2 h-4 w-4"/> Delete Lab
+                                                    </DropdownMenuItem>
+                                                </AlertDialogTrigger>
+                                                <AlertDialogContent>
+                                                    <AlertDialogHeader>
+                                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                        <AlertDialogDescription>
+                                                            This will delete all generated modules and chapters for this lab. Your original course will not be affected.
+                                                        </AlertDialogDescription>
+                                                    </AlertDialogHeader>
+                                                    <AlertDialogFooter>
+                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                        <AlertDialogAction onClick={() => handleDeleteLab(course.id)}>Delete</AlertDialogAction>
+                                                    </AlertDialogFooter>
+                                                </AlertDialogContent>
+                                            </AlertDialog>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </div>
                                 <CardDescription>{totalChapters} chapters</CardDescription>
                             </CardHeader>
-                            <CardContent>
-                                <p className="text-sm text-muted-foreground line-clamp-2">{course.description}</p>
+                            <CardContent className="flex-grow">
+                                <p className="text-sm text-muted-foreground line-clamp-2 mb-4">{course.description}</p>
+                                <div className="space-y-1">
+                                    <p className="text-xs text-muted-foreground">{Math.round(courseProgress)}% Complete</p>
+                                    <Progress value={courseProgress} className="h-2" />
+                                </div>
                             </CardContent>
                             <CardFooter>
                                 <Button className="w-full" onClick={() => setSelectedCourseId(course.id)}>
