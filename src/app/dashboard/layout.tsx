@@ -102,12 +102,6 @@ const sidebarItems = [
       id: "dashboard-link",
     },
     {
-      title: "Profile",
-      icon: <User />,
-      href: "/dashboard/profile",
-      id: "profile-link",
-    },
-    {
       title: "Workspace",
       icon: <LayoutGrid />,
       id: "workspace-section",
@@ -193,12 +187,6 @@ const sidebarItems = [
             id: "analysis-link",
         },
       ]
-    },
-    {
-        title: "Shop",
-        icon: <ShoppingBag />,
-        href: "/dashboard/shop",
-        id: "shop-link",
     }
   ];
 
@@ -730,3 +718,5 @@ export default function DashboardLayout({
     </RewardProvider>
   );
 }
+
+    
