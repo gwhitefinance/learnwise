@@ -113,6 +113,18 @@ const sidebarItems = [
             id: "courses-link",
           },
           {
+            title: "Roadmaps",
+            icon: <GitMerge />,
+            href: "/dashboard/roadmaps",
+            id: "roadmaps-link",
+          },
+          {
+            title: "Learning Lab",
+            icon: <FlaskConical />,
+            href: "/dashboard/learning-lab",
+            id: "learning-lab-link",
+          },
+          {
             title: "Calendar",
             icon: <Calendar />,
             href: "/dashboard/calendar",
@@ -124,12 +136,6 @@ const sidebarItems = [
             href: "/dashboard/notes",
             id: "notes-link",
           },
-          {
-            title: "Upload",
-            icon: <UploadCloud />,
-            href: "/dashboard/upload",
-            id: "upload-link",
-          },
       ]
     },
     {
@@ -138,22 +144,16 @@ const sidebarItems = [
       id: "study-tools-section",
       children: [
         {
-            title: "Roadmaps",
-            icon: <GitMerge />,
-            href: "/dashboard/roadmaps",
-            id: "roadmaps-link",
-        },
-        {
             title: "Practice Quiz",
             icon: <Lightbulb />,
             href: "/dashboard/practice-quiz",
             id: "practice-quiz-link",
         },
         {
-            title: "Learning Lab",
-            icon: <FlaskConical />,
-            href: "/dashboard/learning-lab",
-            id: "learning-lab-link",
+            title: "Upload",
+            icon: <UploadCloud />,
+            href: "/dashboard/upload",
+            id: "upload-link",
         },
         {
             title: "Whiteboard",
@@ -718,5 +718,3 @@ export default function DashboardLayout({
     </RewardProvider>
   );
 }
-
-    
