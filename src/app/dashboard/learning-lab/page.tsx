@@ -138,7 +138,9 @@ export default function LearningLabPage() {
         }
         setIsLoading(false);
     }
-    loadCourseContent();
+    if (selectedCourseId) {
+        loadCourseContent();
+    }
   }, [selectedCourseId]);
   
   useEffect(() => {
@@ -148,7 +150,7 @@ export default function LearningLabPage() {
   }, [currentChapterIndex, currentModuleIndex]);
 
   const handleGenerateCourse = async (course: Course | null) => {
-    if (!course) {
+    if (!course || !course.id) {
         toast({ variant: 'destructive', title: 'Please select a course.'});
         return;
     }
@@ -243,6 +245,7 @@ export default function LearningLabPage() {
     
     // Mark milestone in roadmap as complete
     try {
+        if (!selectedCourseId) return;
         const roadmapsQuery = query(collection(db, "roadmaps"), where("userId", "==", user.uid), where("courseId", "==", selectedCourseId));
         const roadmapSnap = await getDocs(roadmapsQuery);
         if (!roadmapSnap.empty) {
