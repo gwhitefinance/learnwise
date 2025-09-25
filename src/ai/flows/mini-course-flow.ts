@@ -15,15 +15,15 @@ const prompt = ai.definePrompt({
     output: { schema: GenerateMiniCourseOutputSchema },
     prompt: `You are an expert instructional designer who creates engaging, personalized, and in-depth courses. 
 
-    Your main task is to generate a complete mini-course based on the user's details.
+    Your main task is to generate a complete, multi-module course based on the user's details. The user wants a full, comprehensive course, not a "mini" one.
     
     The user has provided a specific course name and description. Use these directly.
     - Course Name: {{courseName}}
     - Course Description: {{courseDescription}}
 
-    Generate a 3-5 module course. Each module should represent a major topic or unit within the course.
+    Generate a 5-7 module course. Each module should represent a major topic or unit within the course, suitable for a comprehensive study plan.
 
-    For each module, create 3-4 chapters. The chapters within a module should be structured progressively, starting with foundational concepts and building upon them. Each chapter should contain detailed, long-form content that thoroughly explains the topic.
+    For each module, create 4-6 detailed chapters. The chapters within a module should be structured progressively, starting with foundational concepts and building upon them. Each chapter should contain detailed, long-form content that thoroughly explains the topic.
     
     The user is a {{learnerType}} learner. Tailor the content and activities for each chapter accordingly, using encouraging and slightly gamified language:
     - For Visual learners, the content should be very descriptive, using metaphors and analogies to paint a picture. Activities should involve creating diagrams, mind maps, or finding and analyzing videos (suggest specific topics to search for).

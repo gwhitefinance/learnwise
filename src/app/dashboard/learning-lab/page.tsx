@@ -6,11 +6,10 @@ import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { UploadCloud, Play, Pause, ChevronLeft, ChevronRight, Wand2, FlaskConical, Lightbulb, Copy, RefreshCw, Check, Star, CheckCircle, Send, Bot, User } from 'lucide-react';
+import { Play, Pause, ChevronLeft, ChevronRight, Wand2, FlaskConical, Lightbulb, Copy, RefreshCw, Check, Star, CheckCircle, Send, Bot, User, GitMerge } from 'lucide-react';
 import Link from 'next/link';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import type { GenerateMiniCourseOutput } from '@/ai/schemas/mini-course-schema';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -19,13 +18,14 @@ import type { GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
 import { cn } from '@/lib/utils';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
-import { collection, query, where, onSnapshot, doc, updateDoc, increment, getDoc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, updateDoc, getDoc, getDocs } from 'firebase/firestore';
 import AudioPlayer from '@/components/audio-player';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { addXp, generateMiniCourse, generateQuizFromModule, generateFlashcardsFromModule, generateTutorResponse } from '@/lib/actions';
 import { RewardContext } from '@/context/RewardContext';
+import { Roadmap, Milestone } from '@/app/dashboard/roadmaps/page';
 
 type Course = {
     id: string;
@@ -33,10 +33,20 @@ type Course = {
     description: string;
     url?: string;
     userId?: string;
-    units: Module[];
 };
 
-type Module = GenerateMiniCourseOutput['modules'][0];
+type Module = {
+    id: string; // Corresponds to milestone.id
+    title: string;
+    chapters: Chapter[];
+};
+
+type Chapter = {
+    id: string;
+    title: string;
+    content: string;
+    activity: string;
+};
 
 type Flashcard = {
     front: string;
@@ -52,9 +62,11 @@ export default function LearningLabPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
   const [learnerType, setLearnerType] = useState<string | null>(null);
-  const [miniCourse, setMiniCourse] = useState<GenerateMiniCourseOutput | null>(null);
+  
+  const [roadmap, setRoadmap] = useState<Roadmap | null>(null);
+  const [courseContent, setCourseContent] = useState<Record<string, Module>>({}); // Maps milestone.id to Module
+  
   const [isLoading, setIsLoading] = useState(false);
-  const [completedModules, setCompletedModules] = useState<number[]>([]);
   const [isCourseComplete, setIsCourseComplete] = useState(false);
   const { toast } = useToast();
   const [user, authLoading] = useAuthState(auth);
@@ -63,7 +75,7 @@ export default function LearningLabPage() {
 
   const [currentModuleIndex, setCurrentModuleIndex] = useState(0);
   const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
-
+  
   // Quiz states
   const [isQuizDialogOpen, setQuizDialogOpen] = useState(false);
   const [isQuizLoading, setQuizLoading] = useState(false);
@@ -89,7 +101,6 @@ export default function LearningLabPage() {
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const userCourses = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
         setCourses(userCourses);
-        // If a courseId is in the URL, select it
         const courseIdFromUrl = searchParams.get('courseId');
         if (courseIdFromUrl && userCourses.some(c => c.id === courseIdFromUrl)) {
             setSelectedCourseId(courseIdFromUrl);
@@ -102,93 +113,108 @@ export default function LearningLabPage() {
     return () => unsubscribe();
   }, [user, authLoading, searchParams]);
   
-  // Effect to load course content when selectedCourseId changes
+  // Effect to load roadmap and content when selectedCourseId changes
   useEffect(() => {
-    const loadCourseContent = async () => {
-        if (!selectedCourseId) {
-            setMiniCourse(null);
+    const loadRoadmap = async () => {
+        if (!user || !selectedCourseId) {
+            setRoadmap(null);
+            setCourseContent({});
             return;
         };
 
         setIsLoading(true);
+        const roadmapsQuery = query(collection(db, 'roadmaps'), where('userId', '==', user.uid), where('courseId', '==', selectedCourseId));
+        const roadmapsSnap = await getDocs(roadmapsQuery);
+
+        if (!roadmapsSnap.empty) {
+            const roadmapData = { id: roadmapsSnap.docs[0].id, ...roadmapsSnap.docs[0].data() } as Roadmap;
+            setRoadmap(roadmapData);
+
+            // If a milestone title is in the URL, find its index and set the state
+            const milestoneTitle = searchParams.get('milestone');
+            if (milestoneTitle) {
+                const decodedTitle = decodeURIComponent(milestoneTitle);
+                const moduleIndex = roadmapData.milestones.findIndex(m => m.title === decodedTitle);
+                if (moduleIndex !== -1) {
+                    setCurrentModuleIndex(moduleIndex);
+                    setCurrentChapterIndex(0);
+                }
+            }
+
+        } else {
+            setRoadmap(null);
+        }
+        
+        // Load existing course content from Firestore
         const courseRef = doc(db, 'courses', selectedCourseId);
         const courseSnap = await getDoc(courseRef);
-
         if (courseSnap.exists()) {
-            const courseData = courseSnap.data() as Course;
-            if (courseData.units && courseData.units.length > 0) {
-                 setMiniCourse({
-                    courseTitle: courseData.name,
-                    modules: courseData.units.map(u => ({ title: u.name, chapters: u.chapters || [] }))
-                });
-
-                // Navigate to milestone if provided
-                const milestoneTitle = searchParams.get('milestone');
-                if (milestoneTitle) {
-                    const moduleIndex = courseData.units.findIndex(u => u.name === decodeURIComponent(milestoneTitle));
-                    if (moduleIndex !== -1) {
-                        setCurrentModuleIndex(moduleIndex);
-                        setCurrentChapterIndex(0);
-                    }
-                }
-
-            } else {
-                handleGenerateCourse(courseData); // Generate if no units exist
-            }
+            setCourseContent(courseSnap.data()?.content || {});
         }
+
         setIsLoading(false);
     }
-    if (selectedCourseId) {
-        loadCourseContent();
-    }
-  }, [selectedCourseId]);
+    loadRoadmap();
+  }, [selectedCourseId, user]);
   
   useEffect(() => {
-    // Reset chat when chapter changes
+    // Reset chat when chapter or module changes
     setChatHistory([]);
     setChatInput('');
   }, [currentChapterIndex, currentModuleIndex]);
 
-  const handleGenerateCourse = async (course: Course | null) => {
-    if (!course || !course.id) {
-        toast({ variant: 'destructive', title: 'Please select a course.'});
+  const handleGenerateModuleContent = async (milestone: Milestone) => {
+    if (!milestone || !selectedCourseId || !user) return;
+    
+    // Don't regenerate if content already exists
+    if (courseContent[milestone.id]) return;
+
+    setIsLoading(true);
+    toast({ title: 'Generating Module...', description: `The AI is crafting content for "${milestone.title}".` });
+
+    const course = courses.find(c => c.id === selectedCourseId);
+    if (!course) {
+        toast({ variant: 'destructive', title: 'Course not found.'});
+        setIsLoading(false);
         return;
     }
 
-    setIsLoading(true);
-    setMiniCourse(null);
-    setCompletedModules([]);
-    setIsCourseComplete(false);
-    setCurrentModuleIndex(0);
-    setCurrentChapterIndex(0);
-    toast({ title: 'Generating Your Learning Lab...', description: 'The AI is crafting a personalized course for you.' });
-
     try {
+        // Here we adapt generateMiniCourse to act like it's generating a single module.
+        // The prompt asks for an in-depth course, so we use the milestone as the course topic.
         const result = await generateMiniCourse({
-            courseName: course.name,
-            courseDescription: course.description,
+            courseName: milestone.title,
+            courseDescription: `An in-depth module about ${milestone.description} as part of the larger course on ${course.name}.`,
             learnerType: (learnerType as any) ?? 'Reading/Writing'
         });
-        setMiniCourse(result);
-        
-        // Save the generated units to the course in Firestore
-        const courseRef = doc(db, 'courses', course.id);
-        await updateDoc(courseRef, {
-            units: result.modules.map(module => ({
-                id: crypto.randomUUID(),
-                name: module.title,
-                chapters: module.chapters.map(chapter => ({ ...chapter, id: crypto.randomUUID() }))
-            }))
-        });
 
-        toast({ title: 'Ready to Learn!', description: 'Your new mini-course has been generated.'});
+        // We take the first generated module as our new content.
+        const newModule: Module = {
+            id: milestone.id,
+            title: milestone.title,
+            chapters: result.modules[0]?.chapters.map(c => ({...c, id: crypto.randomUUID()})) || []
+        };
+        
+        if (newModule.chapters.length === 0) {
+            throw new Error("AI did not generate any chapters for this module.");
+        }
+        
+        const updatedContent = { ...courseContent, [milestone.id]: newModule };
+        setCourseContent(updatedContent);
+
+        // Save the new content to Firestore
+        const courseRef = doc(db, 'courses', selectedCourseId);
+        await updateDoc(courseRef, { content: updatedContent });
+
+        toast({ title: 'Module Ready!', description: 'Your new learning module has been generated.'});
     } catch (error) {
-        console.error("Failed to generate mini-course:", error);
-        toast({ variant: 'destructive', title: 'Generation Failed', description: 'Could not create a course at this time.' });
+        console.error("Failed to generate module content:", error);
+        toast({ variant: 'destructive', title: 'Generation Failed', description: 'Could not create content for this module.' });
     } finally {
         setIsLoading(false);
     }
   };
+
 
   const handleGenerateQuiz = async (module: Module) => {
     const moduleContent = module.chapters.map(c => `Chapter: ${c.title}\n${c.content}`).join('\n\n');
@@ -241,78 +267,54 @@ export default function LearningLabPage() {
   };
 
   const handleMarkModuleComplete = async (moduleIndex: number) => {
-    if (completedModules.includes(moduleIndex) || !user || !miniCourse) return;
-    
-    // Mark milestone in roadmap as complete
-    try {
-        if (!selectedCourseId) return;
-        const roadmapsQuery = query(collection(db, "roadmaps"), where("userId", "==", user.uid), where("courseId", "==", selectedCourseId));
-        const roadmapSnap = await getDocs(roadmapsQuery);
-        if (!roadmapSnap.empty) {
-            const roadmapDoc = roadmapSnap.docs[0];
-            const roadmapData = roadmapDoc.data();
-            const moduleTitle = miniCourse.modules[moduleIndex].title;
-            const milestoneIndex = roadmapData.milestones.findIndex((m: any) => m.title === moduleTitle);
+    if (!roadmap || !user) return;
 
-            if (milestoneIndex !== -1) {
-                roadmapData.milestones[milestoneIndex].completed = true;
-                await updateDoc(roadmapDoc.ref, { milestones: roadmapData.milestones });
-            }
-        }
-    } catch (error) {
-        console.error("Failed to update milestone: ", error);
-    }
-
-    const newCompletedModules = [...completedModules, moduleIndex];
-    setCompletedModules(newCompletedModules);
+    const milestone = roadmap.milestones[moduleIndex];
+    if (milestone.completed) return;
     
+    // Optimistically update UI
+    const updatedMilestones = roadmap.milestones.map((m, i) => i === moduleIndex ? {...m, completed: true} : m);
+    setRoadmap({...roadmap, milestones: updatedMilestones});
+
     try {
+      const roadmapRef = doc(db, 'roadmaps', roadmap.id);
+      await updateDoc(roadmapRef, { milestones: updatedMilestones });
+      
       const xpToAward = 50;
       const { levelUp, newLevel, newCoins } = await addXp(user.uid, xpToAward);
       
       if (levelUp) {
-        showReward({
-          type: 'levelUp',
-          level: newLevel,
-          coins: newCoins,
-        });
+        showReward({ type: 'levelUp', level: newLevel, coins: newCoins });
       } else {
-        showReward({
-          type: 'xp',
-          amount: xpToAward
-        });
+        showReward({ type: 'xp', amount: xpToAward });
       }
+
+      toast({ title: 'Milestone Complete!', description: "Great job! Keep up the momentum." });
+
     } catch (error) {
-      console.error("Error awarding XP:", error);
-      toast({ variant: 'destructive', title: 'Error', description: "Could not award XP for module completion."})
+      console.error("Error updating milestone/XP:", error);
+      toast({ variant: 'destructive', title: 'Error', description: "Could not mark module as complete."})
+       // Revert optimistic update
+       setRoadmap(roadmap);
     }
 
-
-    if (newCompletedModules.length === miniCourse?.modules.length) {
+    if (updatedMilestones.every(m => m.completed)) {
         setIsCourseComplete(true);
-         toast({
-            title: "🎉 Congratulations! 🎉",
-            description: "You've completed the entire course! Great job!",
-        })
-    } else {
-        // Move to the next module
-        if (miniCourse && moduleIndex < miniCourse.modules.length - 1) {
-            setCurrentModuleIndex(moduleIndex + 1);
-            setCurrentChapterIndex(0);
-        }
+    } else if (moduleIndex < roadmap.milestones.length - 1) {
+        setCurrentModuleIndex(moduleIndex + 1);
+        setCurrentChapterIndex(0);
     }
   }
 
   const startNewCourse = () => {
-    setMiniCourse(null);
     setSelectedCourseId(null);
+    setRoadmap(null);
+    setCourseContent({});
     setIsCourseComplete(false);
-    setCompletedModules([]);
   }
   
   const handleNextChapter = () => {
-    if (!miniCourse) return;
-    const currentModule = miniCourse.modules[currentModuleIndex];
+    if (!currentModule) return;
     if (currentChapterIndex < currentModule.chapters.length - 1) {
         setCurrentChapterIndex(prev => prev + 1);
     }
@@ -323,11 +325,11 @@ export default function LearningLabPage() {
         setCurrentChapterIndex(prev => prev - 1);
     } else if (currentModuleIndex > 0) {
         const prevModuleIndex = currentModuleIndex - 1;
-        const prevModule = miniCourse?.modules[prevModuleIndex];
-        if (prevModule) {
-            setCurrentModuleIndex(prevModuleIndex);
-            setCurrentChapterIndex(prevModule.chapters.length - 1);
-        }
+        setCurrentModuleIndex(prevModuleIndex);
+        
+        const prevModuleMilestone = roadmap?.milestones[prevModuleIndex];
+        const prevModuleContent = prevModuleMilestone ? courseContent[prevModuleMilestone.id] : undefined;
+        setCurrentChapterIndex(prevModuleContent ? prevModuleContent.chapters.length - 1 : 0);
     }
   };
   
@@ -356,12 +358,13 @@ export default function LearningLabPage() {
     }
   }
 
-
-  const progress = miniCourse ? (completedModules.length / miniCourse.modules.length) * 100 : 0;
-  const currentModule = miniCourse?.modules[currentModuleIndex];
+  const currentMilestone = roadmap?.milestones[currentModuleIndex];
+  const currentModule = currentMilestone ? courseContent[currentMilestone.id] : null;
   const currentChapter = currentModule?.chapters[currentChapterIndex];
   const isLastChapterInModule = currentModule ? currentChapterIndex === currentModule.chapters.length - 1 : false;
-
+  
+  const progress = roadmap ? (roadmap.milestones.filter(m => m.completed).length / roadmap.milestones.length) * 100 : 0;
+  
   return (
     <>
     <div className="space-y-6">
@@ -372,12 +375,12 @@ export default function LearningLabPage() {
         </p>
       </div>
 
-       {!miniCourse && !isLoading && (
+       {!selectedCourseId && !isLoading && (
         <Card className="text-center p-12">
            <FlaskConical className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
           <h2 className="text-xl font-semibold">Select a Course to Begin</h2>
           <p className="text-muted-foreground mt-2 mb-6 max-w-md mx-auto">
-            Choose one of your courses from the dropdown below to load its learning lab, or generate a new one with AI.
+            Choose one of your courses to start your learning journey.
           </p>
            <div className="flex justify-center gap-4">
                 <Select onValueChange={setSelectedCourseId} value={selectedCourseId ?? ''}>
@@ -390,22 +393,32 @@ export default function LearningLabPage() {
                         ))}
                     </SelectContent>
                 </Select>
-                <Button onClick={() => handleGenerateCourse(courses.find(c => c.id === selectedCourseId) || null)} disabled={!selectedCourseId || isLoading}>
-                    <Wand2 className="mr-2 h-4 w-4"/> Generate
-                </Button>
            </div>
         </Card>
       )}
+      
+      {selectedCourseId && !roadmap && !isLoading && (
+         <Card className="text-center p-12">
+           <GitMerge className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+          <h2 className="text-xl font-semibold">No Roadmap Found</h2>
+          <p className="text-muted-foreground mt-2 mb-6 max-w-md mx-auto">
+            This course doesn't have a study roadmap yet. Generate one to create your learning lab.
+          </p>
+          <Link href="/dashboard/roadmaps">
+            <Button><GitMerge className="mr-2 h-4 w-4"/> Go to Roadmaps</Button>
+          </Link>
+        </Card>
+      )}
 
-      {(isLoading || miniCourse) && (
+      {(isLoading || roadmap) && (
           <>
             <Card>
                 <CardHeader>
-                <CardTitle>Now Learning: {miniCourse?.courseTitle ?? <Skeleton className="h-6 w-2/3"/>}</CardTitle>
+                <CardTitle>Now Learning: {courses.find(c => c.id === selectedCourseId)?.name ?? <Skeleton className="h-6 w-2/3"/>}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="flex items-center justify-between text-sm font-medium">
-                        <span>Overall Progress ({completedModules.length} / {miniCourse?.modules.length ?? 0})</span>
+                        <span>Overall Progress ({roadmap?.milestones.filter(m => m.completed).length ?? 0} / {roadmap?.milestones.length ?? 0})</span>
                         <span>{progress.toFixed(0)}%</span>
                     </div>
                     <Progress value={progress} />
@@ -425,35 +438,18 @@ export default function LearningLabPage() {
                 </Card>
             ) : isLoading ? (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-                    <div className="md:col-span-2">
-                        <Card>
-                            <CardHeader><Skeleton className="h-6 w-3/4 mb-2"/></CardHeader>
-                            <CardContent><Skeleton className="h-48 w-full" /></CardContent>
-                        </Card>
-                    </div>
-                    <div className="space-y-4">
-                        <Card>
-                            <CardHeader><Skeleton className="h-6 w-1/2"/></CardHeader>
-                            <CardContent className="space-y-4">
-                                <Skeleton className="h-8 w-full" />
-                                <Skeleton className="h-8 w-full" />
-                                <Skeleton className="h-8 w-full" />
-                            </CardContent>
-                        </Card>
-                    </div>
+                    <div className="md:col-span-2"> <Skeleton className="h-96 w-full" /> </div>
+                    <div className="space-y-4"> <Skeleton className="h-64 w-full" /> </div>
                 </div>
-            ) : miniCourse && (
+            ) : roadmap && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
                 <div className="md:col-span-2 space-y-6">
-                    {currentChapter ? (
+                    {currentModule ? (
+                        currentChapter ? (
                         <Card>
                             <CardHeader>
-                                <CardTitle>
-                                    Chapter {currentChapterIndex + 1}: {currentChapter.title}
-                                </CardTitle>
-                                <CardDescription>
-                                    Module {currentModuleIndex + 1}: {currentModule?.title}
-                                </CardDescription>
+                                <CardTitle> Chapter {currentChapterIndex + 1}: {currentChapter.title} </CardTitle>
+                                <CardDescription> Module {currentModuleIndex + 1}: {currentModule?.title} </CardDescription>
                             </CardHeader>
                             <CardContent>
                                 <div className="space-y-6">
@@ -468,7 +464,6 @@ export default function LearningLabPage() {
                                             <p>{currentChapter.activity}</p>
                                         </div>
                                     </div>
-                                    
                                      {isLastChapterInModule && (
                                          <div className="mt-6 pt-6 border-t-2 border-dashed">
                                             <h4 className="font-semibold mb-4 text-lg text-center">Module {currentModuleIndex + 1} Review</h4>
@@ -479,7 +474,7 @@ export default function LearningLabPage() {
                                                 <Button variant="outline" onClick={() => handleGenerateFlashcards(currentModule)}>
                                                     <Copy className="mr-2 h-4 w-4"/> Review Flashcards
                                                 </Button>
-                                                 {!completedModules.includes(currentModuleIndex) && (
+                                                 {!currentMilestone?.completed && (
                                                     <Button className="bg-green-600 hover:bg-green-700" onClick={() => handleMarkModuleComplete(currentModuleIndex)}>
                                                         <Check className="mr-2 h-4 w-4"/> Mark Module Complete
                                                     </Button>
@@ -490,7 +485,16 @@ export default function LearningLabPage() {
                                 </div>
                             </CardContent>
                         </Card>
-                     ) : <p>No chapter data found.</p>}
+                     ) : <p>No chapter data found.</p>
+                     ) : (
+                        <Card className="text-center p-12">
+                             <h2 className="text-xl font-semibold">Generate Module Content</h2>
+                             <p className="text-muted-foreground mt-2 mb-6 max-w-md mx-auto">Click the button below to generate an in-depth learning module for this milestone.</p>
+                             <Button onClick={() => handleGenerateModuleContent(currentMilestone!)} disabled={isLoading}>
+                                <Wand2 className="mr-2 h-4 w-4" /> Generate with AI
+                            </Button>
+                        </Card>
+                     )}
 
                      {currentChapter && (
                         <Card>
@@ -533,10 +537,10 @@ export default function LearningLabPage() {
                      )}
 
                      <div className="mt-4 flex justify-between">
-                          <Button variant="outline" onClick={handlePrevChapter} disabled={currentModuleIndex === 0 && currentChapterIndex === 0}>
+                          <Button variant="outline" onClick={handlePrevChapter} disabled={(currentModuleIndex === 0 && currentChapterIndex === 0) || !currentModule}>
                             <ChevronLeft className="mr-2 h-4 w-4"/> Previous
                           </Button>
-                          <Button onClick={handleNextChapter} disabled={isLastChapterInModule}>
+                          <Button onClick={handleNextChapter} disabled={isLastChapterInModule || !currentModule}>
                             Next <ChevronRight className="ml-2 h-4 w-4"/>
                           </Button>
                      </div>
@@ -548,7 +552,7 @@ export default function LearningLabPage() {
                         </CardHeader>
                         <CardContent>
                             <ul className="space-y-4">
-                                {miniCourse?.modules.map((module, mIndex) => (
+                                {roadmap?.milestones.map((milestone, mIndex) => (
                                     <li key={mIndex}>
                                         <button
                                             className={cn(
@@ -557,22 +561,12 @@ export default function LearningLabPage() {
                                             )}
                                             onClick={() => {setCurrentModuleIndex(mIndex); setCurrentChapterIndex(0);}}
                                         >
-                                           {completedModules.includes(mIndex) ? <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" /> : <div className="h-5 w-5 rounded-full border-2 border-primary flex-shrink-0" />}
-                                           <span>Module {mIndex + 1}: {module.title}</span>
+                                           {milestone.completed ? <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" /> : <div className="h-5 w-5 rounded-full border-2 border-primary flex-shrink-0" />}
+                                           <span>{milestone.title}</span>
                                         </button>
                                     </li>
                                 ))}
                             </ul>
-                        </CardContent>
-                    </Card>
-                     <Card>
-                        <CardHeader>
-                            <CardTitle>Start Over</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                             <Button className="w-full" variant="secondary" onClick={startNewCourse}>
-                                Choose a Different Course
-                            </Button>
                         </CardContent>
                     </Card>
                 </div>
