@@ -3,14 +3,14 @@
 /**
  * @fileOverview A flow for providing an AI-powered tutoring session based on an image.
  */
-import { ai } from '@/ai/genkit';
+import { ai, googleAI } from '@/ai/genkit';
 import { TutoringSessionInputSchema, TutoringSessionOutputSchema, TutoringSessionInput, TutoringSessionOutput } from '@/ai/schemas/image-tutoring-schema';
 import { generateFlashcardsFromNote } from './note-to-flashcard-flow';
 import { generateQuizFromNote } from './note-to-quiz-flow';
 
 const tutoringPrompt = ai.definePrompt({
     name: 'imageTutoringPrompt',
-    model: 'googleai/gemini-pro-vision',
+    model: googleAI.model('gemini-pro-vision'),
     input: { schema: TutoringSessionInputSchema },
     output: { schema: TutoringSessionOutputSchema },
     prompt: `You are a friendly, expert AI tutor. Your goal is to help a student understand the concepts in the provided image of their homework. You will break down the problems, explain the core concepts, and provide practice material.

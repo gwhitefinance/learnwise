@@ -5,12 +5,12 @@
  *
  * - generateFlashcardsFromNote - A function that generates flashcards based on note content.
  */
-import { ai } from '@/ai/genkit';
+import { ai, googleAI } from '@/ai/genkit';
 import { GenerateFlashcardsInputSchema, GenerateFlashcardsInput, GenerateFlashcardsOutputSchema, GenerateFlashcardsOutput } from '@/ai/schemas/note-to-flashcard-schema';
 
 const prompt = ai.definePrompt({
     name: 'noteToFlashcardGenerationPrompt',
-    model: 'googleai/gemini-1.5-flash-latest',
+    model: googleAI.model('gemini-1.5-flash-latest'),
     input: { schema: GenerateFlashcardsInputSchema },
     output: { schema: GenerateFlashcardsOutputSchema },
     prompt: `You are an expert at creating study materials. 

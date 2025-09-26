@@ -5,13 +5,13 @@
  *
  * - generateCourseFromUrl - A function that scrapes a URL and generates a course with modules and chapters.
  */
-import { ai } from '@/ai/genkit';
+import { ai, googleAI } from '@/ai/genkit';
 import { scrapeWebpageTool } from '@/ai/tools/web-scraper-tool';
 import { GenerateCourseFromUrlInput, GenerateCourseFromUrlInputSchema, GenerateCourseFromUrlOutput, GenerateCourseFromUrlOutputSchema } from '@/ai/schemas/course-from-url-schema';
 
 const prompt = ai.definePrompt({
     name: 'courseFromUrlPrompt',
-    model: 'googleai/gemini-1.5-flash-latest',
+    model: googleAI.model('gemini-1.5-flash-latest'),
     input: { schema: GenerateCourseFromUrlInputSchema },
     output: { schema: GenerateCourseFromUrlOutputSchema },
     tools: [scrapeWebpageTool],

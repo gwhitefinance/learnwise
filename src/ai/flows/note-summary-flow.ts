@@ -3,13 +3,13 @@
 /**
  * @fileOverview A flow for generating summaries of notes.
  */
-import { ai } from '@/ai/genkit';
+import { ai, googleAI } from '@/ai/genkit';
 import { z } from 'zod';
 import { GenerateSummaryInputSchema, GenerateSummaryOutputSchema, GenerateSummaryInput, GenerateSummaryOutput } from '@/ai/schemas/note-summary-schema';
 
 const prompt = ai.definePrompt({
     name: 'noteSummaryPrompt',
-    model: 'googleai/gemini-1.5-flash-latest',
+    model: googleAI.model('gemini-1.5-flash-latest'),
     input: { schema: GenerateSummaryInputSchema },
     output: { schema: GenerateSummaryOutputSchema },
     prompt: `You are an expert at summarizing text. Please provide a concise summary of the following note content. 

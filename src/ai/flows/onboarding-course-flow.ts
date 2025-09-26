@@ -5,12 +5,12 @@
  *
  * - generateOnboardingCourse - Generates a course with modules and chapters based on user interests.
  */
-import { ai } from '@/ai/genkit';
+import { ai, googleAI } from '@/ai/genkit';
 import { GenerateOnboardingCourseInputSchema, GenerateOnboardingCourseOutputSchema, GenerateOnboardingCourseInput, GenerateOnboardingCourseOutput } from '@/ai/schemas/onboarding-course-schema';
 
 const prompt = ai.definePrompt({
     name: 'onboardingCourseGenerationPrompt',
-    model: 'googleai/gemini-1.5-flash-latest',
+    model: googleAI.model('gemini-1.5-flash-latest'),
     input: { schema: GenerateOnboardingCourseInputSchema },
     output: { schema: GenerateOnboardingCourseOutputSchema },
     prompt: `You are an expert instructional designer who creates exciting, personalized starter courses for new users.

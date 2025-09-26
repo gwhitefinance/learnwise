@@ -5,13 +5,13 @@
  *
  * - generateRoadmap - A function that generates goals and milestones for a course.
  */
-import { ai } from '@/ai/genkit';
+import { ai, googleAI } from '@/ai/genkit';
 import { GenerateRoadmapInputSchema, GenerateRoadmapOutputSchema, GenerateRoadmapInput, GenerateRoadmapOutput } from '@/ai/schemas/roadmap-schema';
 import { scrapeWebpageTool } from '@/ai/tools/web-scraper-tool';
 
 const prompt = ai.definePrompt({
     name: 'roadmapGenerationPrompt',
-    model: 'googleai/gemini-1.5-flash-latest',
+    model: googleAI.model('gemini-1.5-flash-latest'),
     input: { schema: GenerateRoadmapInputSchema },
     output: { schema: GenerateRoadmapOutputSchema },
     tools: [scrapeWebpageTool],

@@ -5,7 +5,7 @@
  *
  * - generateTutorResponse - A function that generates an answer based on chapter content and a user's question.
  */
-import { ai } from '@/ai/genkit';
+import { ai, googleAI } from '@/ai/genkit';
 import { z } from 'zod';
 
 const TutorChatInputSchema = z.object({
@@ -22,7 +22,7 @@ export type TutorChatOutput = z.infer<typeof TutorChatOutputSchema>;
 
 const prompt = ai.definePrompt({
     name: 'tutorChatPrompt',
-    model: 'googleai/gemini-1.5-flash-latest',
+    model: googleAI.model('gemini-1.5-flash-latest'),
     input: { schema: TutorChatInputSchema },
     output: { schema: TutorChatOutputSchema },
     prompt: `You are an AI Tutor. Your student is currently reading a chapter and has a question. 

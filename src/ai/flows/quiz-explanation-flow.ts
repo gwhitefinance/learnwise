@@ -3,13 +3,13 @@
 /**
  * @fileOverview A flow for generating explanations for quiz questions.
  */
-import { ai } from '@/ai/genkit';
+import { ai, googleAI } from '@/ai/genkit';
 import { z } from 'zod';
 import { GenerateExplanationInputSchema, GenerateExplanationOutputSchema, GenerateExplanationInput, GenerateExplanationOutput, PracticeQuestionSchema } from '@/ai/schemas/quiz-explanation-schema';
 
 const prompt = ai.definePrompt({
     name: 'quizExplanationPrompt',
-    model: 'googleai/gemini-1.5-flash-latest',
+    model: googleAI.model('gemini-1.5-flash-latest'),
     input: { schema: GenerateExplanationInputSchema },
     output: { schema: GenerateExplanationOutputSchema },
     prompt: `You are an expert tutor. A student has answered a quiz question incorrectly. 

@@ -3,7 +3,7 @@
 /**
  * @fileOverview A flow for generating detailed content for a single course chapter.
  */
-import { ai } from '@/ai/genkit';
+import { ai, googleAI } from '@/ai/genkit';
 import { z } from 'zod';
 
 const GenerateChapterContentInputSchema = z.object({
@@ -24,7 +24,7 @@ export type GenerateChapterContentOutput = z.infer<typeof GenerateChapterContent
 
 const prompt = ai.definePrompt({
     name: 'generateChapterContentPrompt',
-    model: 'googleai/gemini-1.5-flash-latest',
+    model: googleAI.model('gemini-1.5-flash-latest'),
     input: { schema: GenerateChapterContentInputSchema },
     output: { schema: GenerateChapterContentOutputSchema },
     prompt: `You are an expert instructional designer who writes engaging, comprehensive, and in-depth educational content.

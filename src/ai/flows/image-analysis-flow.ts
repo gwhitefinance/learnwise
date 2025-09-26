@@ -3,12 +3,12 @@
 /**
  * @fileOverview A flow for analyzing and summarizing content from an image.
  */
-import { ai } from '@/ai/genkit';
+import { ai, googleAI } from '@/ai/genkit';
 import { AnalyzeImageInput, AnalyzeImageInputSchema, AnalyzeImageOutput, AnalyzeImageOutputSchema } from '@/ai/schemas/image-analysis-schema';
 
 const analysisPrompt = ai.definePrompt({
     name: 'imageAnalysisPrompt',
-    model: 'googleai/gemini-pro-vision',
+    model: googleAI.model('gemini-pro-vision'),
     input: { schema: AnalyzeImageInputSchema },
     output: { schema: AnalyzeImageOutputSchema },
     prompt: `You are an expert AI assistant who analyzes images for students.

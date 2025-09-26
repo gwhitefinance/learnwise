@@ -5,13 +5,13 @@
  *
  * - generateQuizFromNote - A function that generates a quiz based on note content and learner type.
  */
-import { ai } from '@/ai/genkit';
+import { ai, googleAI } from '@/ai/genkit';
 import { GenerateNoteQuizInputSchema, GenerateNoteQuizInput } from '@/ai/schemas/note-to-quiz-schema';
 import { GenerateQuizOutput, GenerateQuizOutputSchema } from '@/ai/schemas/quiz-schema';
 
 const prompt = ai.definePrompt({
     name: 'noteToQuizGenerationPrompt',
-    model: 'googleai/gemini-1.5-flash-latest',
+    model: googleAI.model('gemini-1.5-flash-latest'),
     input: { schema: GenerateNoteQuizInputSchema },
     output: { schema: GenerateQuizOutputSchema },
     prompt: `You are an expert educator who creates personalized learning materials. 

@@ -5,13 +5,13 @@
  *
  * - generateQuizFromModule - A function that generates a quiz based on module content.
  */
-import { ai } from '@/ai/genkit';
+import { ai, googleAI } from '@/ai/genkit';
 import { GenerateModuleQuizInputSchema, GenerateModuleQuizInput } from '@/ai/schemas/module-quiz-schema';
 import { GenerateQuizOutput, GenerateQuizOutputSchema } from '@/ai/schemas/quiz-schema';
 
 const prompt = ai.definePrompt({
     name: 'moduleToQuizGenerationPrompt',
-    model: 'googleai/gemini-1.5-flash-latest',
+    model: googleAI.model('gemini-1.5-flash-latest'),
     input: { schema: GenerateModuleQuizInputSchema },
     output: { schema: GenerateQuizOutputSchema },
     prompt: `You are an expert educator. Generate a 3-question multiple-choice quiz based *only* on the provided course module content.
