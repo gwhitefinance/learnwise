@@ -9,7 +9,7 @@ import { GenerateExplanationInputSchema, GenerateExplanationOutputSchema, Genera
 
 const prompt = ai.definePrompt({
     name: 'quizExplanationPrompt',
-    model: 'googleai/gemini-1.5-flash-latest',
+    model: 'googleai/gemini-1.5-flash',
     input: { schema: GenerateExplanationInputSchema },
     output: { schema: GenerateExplanationOutputSchema },
     prompt: `You are an expert tutor. A student has answered a quiz question incorrectly. 

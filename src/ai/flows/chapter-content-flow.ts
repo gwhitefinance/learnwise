@@ -24,7 +24,7 @@ export type GenerateChapterContentOutput = z.infer<typeof GenerateChapterContent
 
 const prompt = ai.definePrompt({
     name: 'generateChapterContentPrompt',
-    model: 'googleai/gemini-1.5-flash-latest',
+    model: 'googleai/gemini-1.5-flash',
     input: { schema: GenerateChapterContentInputSchema },
     output: { schema: GenerateChapterContentOutputSchema },
     prompt: `You are an expert instructional designer who writes engaging, comprehensive, and in-depth educational content.

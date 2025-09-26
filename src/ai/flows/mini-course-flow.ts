@@ -10,7 +10,7 @@ import { GenerateMiniCourseInputSchema, GenerateMiniCourseOutputSchema, Generate
 
 const prompt = ai.definePrompt({
     name: 'miniCourseGenerationPrompt',
-    model: 'googleai/gemini-1.5-flash-latest',
+    model: 'googleai/gemini-1.5-flash',
     input: { schema: GenerateMiniCourseInputSchema },
     output: { schema: GenerateMiniCourseOutputSchema },
     prompt: `You are an expert instructional designer who creates engaging, personalized course outlines.
