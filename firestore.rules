@@ -1,3 +1,4 @@
+
 rules_version = '2';
 
 service cloud.firestore {
@@ -15,8 +16,16 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
-    // Generic rule for user-owned content
-    match /{collection}/{docId} where collection in ['courses', 'projects', 'notes', 'recentFiles', 'calendarEvents', 'quizAttempts', 'roadmaps', 'chatSessions'] {
+    // Secure the chatSessions collection
+    match /chatSessions/{sessionId} {
+      allow create: if isOwner(request.resource.data.userId);
+      allow read, update, delete: if isOwner(resource.data.userId);
+      // Users can list their own chats, but not anyone else's
+      allow list: if request.auth != null && request.query.where.userId == request.auth.uid;
+    }
+
+    // Generic rule for other user-owned content
+    match /{collection}/{docId} where collection in ['courses', 'projects', 'notes', 'recentFiles', 'calendarEvents', 'quizAttempts', 'roadmaps'] {
       allow create: if isOwner(request.resource.data.userId);
       allow read, update, delete: if isOwner(resource.data.userId);
       allow list: if request.auth != null
