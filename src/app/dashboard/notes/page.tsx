@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -229,10 +230,23 @@ export default function NotesPage() {
     resetNewNoteForm();
     setIsSaving(false);
 
-
     try {
-        const docData: Omit<Note, 'id'> = { ...noteData };
-        delete (docData as any).id;
+        const docData: Partial<Note> = {
+            title: newNoteTitle,
+            content: newNoteContent,
+            date: Timestamp.fromDate(new Date()),
+            color: colors[Math.floor(Math.random() * colors.length)],
+            isImportant: false,
+            isCompleted: false,
+            userId: user.uid,
+        };
+
+        if (newNoteCourseId) {
+            docData.courseId = newNoteCourseId;
+        }
+        if (newNoteUnitId) {
+            docData.unitId = newNoteUnitId;
+        }
 
         const docRef = await addDoc(collection(db, "notes"), docData);
 
@@ -446,7 +460,7 @@ export default function NotesPage() {
                   ))}
               </SelectContent>
           </Select>
-          <Select value={filterUnitId || 'all'} onValueChange={val => setFilterUnitId(val)} disabled={!filterCourseId || filterCourseId === 'all'}>
+          <Select value={filterUnitId || 'all'} onValueChange={val => setFilterUnitId(val)} disabled={!filterCourseId || filterCourseId === 'all' || !selectedCourseForFilter?.units || selectedCourseForFilter.units.length === 0}>
               <SelectTrigger className="w-[220px]"><SelectValue placeholder="Filter by Unit" /></SelectTrigger>
               <SelectContent>
                   <SelectItem value="all">All Units</SelectItem>
