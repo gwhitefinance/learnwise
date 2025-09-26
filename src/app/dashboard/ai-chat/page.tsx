@@ -184,7 +184,7 @@ export default function AiChatPage() {
     try {
       const q = query(collection(db, "calendarEvents"), where("userId", "==", user.uid));
       const querySnapshot = await getDocs(q);
-      const calendarEvents = querySnapshot.docs.map(doc => doc.data() as CalendarEvent);
+      const calendarEvents = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as CalendarEvent));
 
       const response = await studyPlannerFlow({
         history: updatedMessages,
