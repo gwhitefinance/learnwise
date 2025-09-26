@@ -399,7 +399,7 @@ export default function NotesPage() {
               </div>
                <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
-                      <Label htmlFor="note-course">Course</Label>
+                      <Label htmlFor="note-course">Course (Optional)</Label>
                       <Select value={newNoteCourseId} onValueChange={setNewNoteCourseId}>
                           <SelectTrigger id="note-course"><SelectValue placeholder="Select Course" /></SelectTrigger>
                           <SelectContent>
@@ -410,8 +410,8 @@ export default function NotesPage() {
                       </Select>
                   </div>
                   <div className="grid gap-2">
-                      <Label htmlFor="note-unit">Unit</Label>
-                      <Select value={newNoteUnitId} onValueChange={setNewNoteUnitId} disabled={!newNoteCourseId || !selectedCourseForDialog?.units}>
+                      <Label htmlFor="note-unit">Unit (Optional)</Label>
+                      <Select value={newNoteUnitId} onValueChange={setNewNoteUnitId} disabled={!newNoteCourseId || !selectedCourseForDialog?.units || selectedCourseForDialog.units.length === 0}>
                           <SelectTrigger id="note-unit"><SelectValue placeholder="Select Unit" /></SelectTrigger>
                           <SelectContent>
                               {selectedCourseForDialog?.units?.map(unit => (
