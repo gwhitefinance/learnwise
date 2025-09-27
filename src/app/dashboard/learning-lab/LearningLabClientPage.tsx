@@ -322,7 +322,6 @@ export default function LearningLabClientPage() {
         isCorrect: isCorrect,
     };
     
-    // Just record the answer and move on
     const newQuizAnswers = [...quizAnswers, answerFeedback];
     setQuizAnswers(newQuizAnswers);
     setSelectedQuizAnswer(null);
@@ -330,10 +329,9 @@ export default function LearningLabClientPage() {
     if (currentQuizQuestionIndex < generatedQuiz.questions.length - 1) {
         setCurrentQuizQuestionIndex(prev => prev + 1);
     } else {
-        // This is the last question, process all answers now
+        setQuizState('results');
         const correctCount = newQuizAnswers.filter(a => a.isCorrect).length;
 
-        // Save incorrect answers
         for (const answer of newQuizAnswers) {
             if (!answer.isCorrect) {
                 try {
@@ -352,7 +350,6 @@ export default function LearningLabClientPage() {
             }
         }
         
-        // Award XP
         if (correctCount > 0) {
             const xpEarned = correctCount * 10;
             try {
@@ -366,7 +363,6 @@ export default function LearningLabClientPage() {
                 console.error("Error awarding XP:", e);
             }
         }
-        setQuizState('results');
     }
   };
   
@@ -717,7 +713,7 @@ export default function LearningLabClientPage() {
                     }
                 </p>
                 <Button className="mt-6" onClick={isMidtermModule ? handleStartMidtermExam : () => handleStartModuleQuiz(currentModule)} disabled={isQuizLoading}>
-                    {isQuizLoading ? 'Loading...' : `Start ${isMidtermModule ? 'Midterm' : 'Quiz'}`}
+                    {isQuizLoading ? 'Loading...' : `Start ${isMidtermModule ? 'Midterm Exam' : 'Quiz'}`}
                 </Button>
                 <div className="mt-8">
                     <Button variant="link" onClick={handleCompleteAndContinue}>Skip & Continue</Button>
@@ -767,13 +763,13 @@ export default function LearningLabClientPage() {
             <div className="flex flex-col items-center">
                  <div className="text-center mb-10">
                     <h1 className="text-4xl font-bold">Quiz Results</h1>
-                    <p className="text-muted-foreground mt-2">Here's how you did on the {currentModule.title} quiz.</p>
+                    <p className="text-muted-foreground mt-2">Here's how you did on the {isMidtermModule ? 'Midterm' : currentModule.title} quiz.</p>
                 </div>
                  <Card className="w-full max-w-3xl">
                     <CardContent className="p-8 text-center">
                         <h2 className="text-2xl font-semibold">Your Score</h2>
                         <p className="text-6xl font-bold text-primary my-4">{score} / {totalQuestions}</p>
-                        <p className="text-muted-foreground">You answered {((score / totalQuestions) * 100).toFixed(0)}% of the questions correctly.</p>
+                        <p className="text-muted-foreground">You answered {totalQuestions > 0 ? ((score / totalQuestions) * 100).toFixed(0) : 0}% of the questions correctly.</p>
 
                         <div className="mt-8 flex justify-center gap-4">
                             <Button onClick={() => setQuizState('configuring')}>
