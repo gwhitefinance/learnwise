@@ -22,7 +22,7 @@ import { generateChatTitle, generateNoteFromChat } from '@/lib/actions';
 import { analyzeImage } from '@/lib/actions';
 import AIBuddy from '@/components/ai-buddy';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { format } from 'date-fns';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -164,6 +164,8 @@ export default function AiChatPage() {
     }
   }, [sessions, activeSessionId]);
   
+  const activeSession = sessions.find(s => s.id === activeSessionId);
+
   useEffect(() => {
     if(activeSession?.courseId) {
         setNoteCourseId(activeSession.courseId);
@@ -171,8 +173,6 @@ export default function AiChatPage() {
         setNoteCourseId(undefined);
     }
   }, [activeSession]);
-
-  const activeSession = sessions.find(s => s.id === activeSessionId);
 
   const createNewSession = async () => {
     if (!user) return;
@@ -361,7 +361,7 @@ export default function AiChatPage() {
             if (!imageDataUri) {
                 throw new Error("Could not read file data.");
             }
-            const { analysis } = await analyzeImage({ imageDataUri, model: 'gemini-2.5-flash' });
+            const { analysis } = await analyzeImage({ imageDataUri });
 
             const aiMessage: Message = { role: 'ai', content: analysis };
             const finalMessages = [...updatedMessages, aiMessage];
@@ -766,3 +766,5 @@ export default function AiChatPage() {
     </div>
   );
 }
+
+    
