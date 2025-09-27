@@ -368,9 +368,9 @@ export default function AiChatPage() {
 
 
   return (
-    <div className="flex h-screen flex-col bg-background text-foreground">
+    <div className="flex h-screen bg-muted/40">
       {/* Sidebar */}
-      <aside className="w-72 bg-muted/40 p-2 flex-col border-r hidden md:flex">
+      <aside className="w-72 bg-background p-2 flex-col border-r hidden md:flex">
         <div className="p-2 flex justify-between items-center">
             <Link href="/dashboard">
                 <Button variant="ghost" size="icon"><Home className="h-5 w-5"/></Button>
@@ -424,7 +424,7 @@ export default function AiChatPage() {
 
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col h-screen">
-        <div className="flex items-center justify-between p-4 border-b">
+        <header className="flex items-center justify-between p-4 border-b bg-background">
             <div className="flex items-center gap-2">
                 <h2 className="text-lg font-semibold">{activeSession?.title || "LearnWise AI"}</h2>
             </div>
@@ -447,60 +447,60 @@ export default function AiChatPage() {
                         </AlertDialogFooter>
                     </AlertDialogContent>
                 </AlertDialog>
-                 <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DialogTrigger asChild>
-                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                <Info className="mr-2 h-4 w-4"/> View Info
-                            </DropdownMenuItem>
-                        </DialogTrigger>
-                        <DropdownMenuItem onSelect={() => activeSession && startRename(activeSession)}>
-                            <Edit className="mr-2 h-4 w-4"/> Rename Chat
-                        </DropdownMenuItem>
-                         <DropdownMenuSeparator />
-                         <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                                 <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                    <Sparkles className="mr-2 h-4 w-4"/> Clear Messages
-                                </DropdownMenuItem>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                                <AlertDialogHeader>
-                                    <AlertDialogTitle>Clear All Messages?</AlertDialogTitle>
-                                    <AlertDialogDescription>This will delete all messages in this chat, but the chat session will remain. This action cannot be undone.</AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction onClick={() => activeSession && handleClearMessages(activeSession.id)}>Clear Messages</AlertDialogAction>
-                                </AlertDialogFooter>
-                            </AlertDialogContent>
-                         </AlertDialog>
-                        <AlertDialog>
-                             <AlertDialogTrigger asChild>
-                                <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
-                                    <Trash2 className="mr-2 h-4 w-4"/> Delete Chat
-                                </DropdownMenuItem>
-                             </AlertDialogTrigger>
-                            <AlertDialogContent>
-                                <AlertDialogHeader>
-                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                    <AlertDialogDescription>This will permanently delete this chat session. This action cannot be undone.</AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction onClick={() => activeSession && handleDeleteSession(activeSession.id)}>Delete</AlertDialogAction>
-                                </AlertDialogFooter>
-                            </AlertDialogContent>
-                         </AlertDialog>
-                    </DropdownMenuContent>
-                 </DropdownMenu>
-
                  <Dialog>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DialogTrigger asChild>
+                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                    <Info className="mr-2 h-4 w-4"/> View Info
+                                </DropdownMenuItem>
+                            </DialogTrigger>
+                            <DropdownMenuItem onSelect={() => activeSession && startRename(activeSession)}>
+                                <Edit className="mr-2 h-4 w-4"/> Rename Chat
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                        <Sparkles className="mr-2 h-4 w-4"/> Clear Messages
+                                    </DropdownMenuItem>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Clear All Messages?</AlertDialogTitle>
+                                        <AlertDialogDescription>This will delete all messages in this chat, but the chat session will remain. This action cannot be undone.</AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction onClick={() => activeSession && handleClearMessages(activeSession.id)}>Clear Messages</AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                            <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
+                                        <Trash2 className="mr-2 h-4 w-4"/> Delete Chat
+                                    </DropdownMenuItem>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                        <AlertDialogDescription>This will permanently delete this chat session. This action cannot be undone.</AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction onClick={() => activeSession && handleDeleteSession(activeSession.id)}>Delete</AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+
                     <DialogContent>
                         <DialogHeader>
                             <DialogTitle>Chat Information</DialogTitle>
@@ -518,9 +518,8 @@ export default function AiChatPage() {
                         </DialogFooter>
                     </DialogContent>
                  </Dialog>
-
             </div>
-        </div>
+        </header>
         <ScrollArea className="flex-1" ref={scrollAreaRef}>
           <div className="max-w-3xl mx-auto p-4 md:p-8 space-y-8 pb-32">
             {activeSession?.messages.map((message, index) => (
@@ -567,7 +566,7 @@ export default function AiChatPage() {
           </div>
         </ScrollArea>
 
-        <div className="px-4 py-2 bg-transparent border-t">
+        <div className="px-4 py-2 bg-background border-t">
           <div className="relative max-w-3xl mx-auto">
             <Input
               placeholder="Ask anything..."
