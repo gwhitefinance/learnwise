@@ -8,7 +8,7 @@ import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Play, Pause, ChevronLeft, ChevronRight, Wand2, FlaskConical, Lightbulb, Copy, RefreshCw, Check, Star, CheckCircle, Send, Bot, User, GitMerge, PanelLeft, Minimize, Maximize, Loader2, Plus, Trash2, MoreVertical } from 'lucide-react';
+import { Play, Pause, ChevronLeft, ChevronRight, Wand2, FlaskConical, Lightbulb, Copy, RefreshCw, Check, Star, CheckCircle, Send, Bot, User, GitMerge, PanelLeft, Minimize, Maximize, Loader2, Plus, Trash2, MoreVertical, XCircle, ArrowRight, RotateCcw } from 'lucide-react';
 import Link from 'next/link';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
@@ -25,7 +25,7 @@ import AudioPlayer from '@/components/audio-player';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { addXp, generateMiniCourse, generateQuizFromModule, generateFlashcardsFromModule, generateTutorResponse, generateChapterContent } from '@/lib/actions';
+import { addXp, generateMiniCourse, generateQuizFromModule, generateFlashcardsFromModule, generateTutorResponse, generateChapterContent, generateExplanation } from '@/lib/actions';
 import { RewardContext } from '@/context/RewardContext';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import Loading from './loading';
@@ -66,7 +66,10 @@ interface ChatMessage {
   content: string;
 }
 
-type AnswerFeedback = { question: string; answer: string; correctAnswer: string; isCorrect: boolean; };
+type AnswerFeedback = { question: string; answer: string; correctAnswer: string; isCorrect: boolean; explanation?: string; };
+
+type QuizState = 'configuring' | 'in-progress' | 'results';
+type AnswerState = 'unanswered' | 'answered';
 
 export default function LearningLabClientPage() {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -91,8 +94,14 @@ export default function LearningLabClientPage() {
   const [isQuizDialogOpen, setQuizDialogOpen] = useState(false);
   const [isQuizLoading, setQuizLoading] = useState(false);
   const [generatedQuiz, setGeneratedQuiz] = useState<GenerateQuizOutput | null>(null);
-  const [quizAnswers, setQuizAnswers] = useState<Record<number, string>>({});
-  const [quizResults, setQuizResults] = useState<{ score: number; total: number; feedback: AnswerFeedback[] } | null>(null);
+  
+  const [quizState, setQuizState] = useState<QuizState>('configuring');
+  const [currentQuizQuestionIndex, setCurrentQuizQuestionIndex] = useState(0);
+  const [selectedQuizAnswer, setSelectedQuizAnswer] = useState<string | null>(null);
+  const [quizFeedback, setQuizFeedback] = useState<AnswerFeedback | null>(null);
+  const [quizAnswers, setQuizAnswers] = useState<AnswerFeedback[]>([]);
+  const [explanation, setExplanation] = useState<string | null>(null);
+  const [isExplanationLoading, setIsExplanationLoading] = useState(false);
 
   
   const [isFlashcardDialogOpen, setFlashcardDialogOpen] = useState(false);
@@ -242,8 +251,12 @@ export default function LearningLabClientPage() {
     setQuizDialogOpen(true);
     setQuizLoading(true);
     setGeneratedQuiz(null);
-    setQuizAnswers({});
-    setQuizResults(null);
+    setQuizAnswers([]);
+    setQuizState('in-progress');
+    setCurrentQuizQuestionIndex(0);
+    setSelectedQuizAnswer(null);
+    setQuizFeedback(null);
+    
     try {
         const result = await generateQuizFromModule({
             moduleContent,
@@ -263,52 +276,85 @@ export default function LearningLabClientPage() {
     }
   };
 
-  const handleQuizAnswerChange = (questionIndex: number, answer: string) => {
-    setQuizAnswers(prev => ({ ...prev, [questionIndex]: answer }));
-  };
+  const handleSubmitQuizAnswer = async () => {
+    if (!generatedQuiz || selectedQuizAnswer === null || !user || !currentModule) return;
+        
+    const currentQuestion = generatedQuiz.questions[currentQuizQuestionIndex];
+    const isCorrect = selectedQuizAnswer.toLowerCase() === currentQuestion.answer.toLowerCase();
 
-  const handleSubmitQuiz = async () => {
-    if (!generatedQuiz || !user || !selectedCourseId || !currentModule) return;
-
-    const feedback: AnswerFeedback[] = [];
-    let score = 0;
-    const incorrectAnswersPromises: Promise<any>[] = [];
-
-    generatedQuiz.questions.forEach((q, index) => {
-      const userAnswer = quizAnswers[index];
-      const isCorrect = userAnswer?.toLowerCase() === q.answer.toLowerCase();
-      if (isCorrect) {
-        score++;
-      } else {
-        // Save incorrect answer to Firestore for the "Weakest Link" feature
-         incorrectAnswersPromises.push(addDoc(collection(db, 'quizAttempts'), {
-            userId: user.uid,
-            courseId: selectedCourseId,
-            topic: currentModule.title,
-            question: q.question,
-            userAnswer: userAnswer || "Not answered",
-            correctAnswer: q.answer,
-            timestamp: serverTimestamp()
-        }));
-      }
-      feedback.push({ question: q.question, answer: userAnswer, correctAnswer: q.answer, isCorrect });
-    });
-
-    try {
-        await Promise.all(incorrectAnswersPromises);
-    } catch (error) {
-        console.error("Failed to save some incorrect answers:", error);
-    }
+    const answerFeedback: AnswerFeedback = {
+        question: currentQuestion.question,
+        answer: selectedQuizAnswer,
+        correctAnswer: currentQuestion.answer,
+        isCorrect: isCorrect,
+    };
     
-    const xpEarned = score * 10;
-    try {
-        await addXp(user.uid, xpEarned);
-    } catch (error) {
-        console.error("Failed to add XP", error);
+    setQuizFeedback(answerFeedback);
+    setQuizAnswers(prev => [...prev, answerFeedback]);
+    
+    if (!isCorrect) {
+        try {
+            await addDoc(collection(db, 'quizAttempts'), {
+                userId: user.uid,
+                courseId: selectedCourseId,
+                topic: currentModule.title,
+                question: currentQuestion.question,
+                userAnswer: selectedQuizAnswer,
+                correctAnswer: currentQuestion.answer,
+                timestamp: serverTimestamp()
+            });
+        } catch (error) {
+            console.error("Error saving incorrect answer:", error);
+        }
+        
+        setIsExplanationLoading(true);
+        setExplanation(null);
+        try {
+            const explanationResult = await generateExplanation({
+                question: currentQuestion.question,
+                userAnswer: selectedQuizAnswer,
+                correctAnswer: currentQuestion.answer,
+                learnerType: (learnerType as any) ?? 'Unknown',
+                provideFullExplanation: true,
+            });
+            setExplanation(explanationResult.explanation);
+        } catch (error) {
+            console.error(error);
+            setExplanation("Sorry, I couldn't generate an explanation for this question.");
+        } finally {
+            setIsExplanationLoading(false);
+        }
     }
-
-    setQuizResults({ score, total: generatedQuiz.questions.length, feedback });
   };
+
+  const handleNextQuizQuestion = async () => {
+    if (!generatedQuiz || !user) return;
+    
+    setQuizFeedback(null);
+    setExplanation(null);
+    setSelectedQuizAnswer(null);
+
+    if (currentQuizQuestionIndex < generatedQuiz.questions.length - 1) {
+        setCurrentQuizQuestionIndex(prev => prev + 1);
+    } else {
+        const correctAnswers = quizAnswers.filter(a => a.isCorrect).length;
+        if (correctAnswers > 0) {
+            const xpEarned = correctAnswers * 10;
+            try {
+                const { levelUp, newLevel, newCoins } = await addXp(user.uid, xpEarned);
+                if (levelUp) {
+                    showReward({ type: 'levelUp', level: newLevel, coins: newCoins });
+                } else {
+                    showReward({ type: 'xp', amount: xpEarned });
+                }
+            } catch(e) {
+                console.error("Error awarding XP:", e);
+            }
+        }
+        setQuizState('results');
+    }
+  };
+
   
   const handleGenerateFlashcards = async (module: Module) => {
     const moduleContent = module.chapters.map(c => `Chapter: ${c.title}\n${c.content}`).join('\n\n');
@@ -638,58 +684,134 @@ export default function LearningLabClientPage() {
   }
 
   if (currentChapter?.title === 'Module Quiz' && currentModule) {
+    const score = quizAnswers.filter(a => a.isCorrect).length;
+    const totalQuestions = generatedQuiz?.questions.length ?? 0;
+    const currentQuizQuestion = generatedQuiz?.questions[currentQuizQuestionIndex];
+    const quizProgress = totalQuestions > 0 ? ((currentQuizQuestionIndex + 1) / totalQuestions) * 100 : 0;
+    
     return (
-        <div className="flex h-full flex-col items-center justify-center text-center p-6">
-            <h2 className="text-2xl font-bold">Module Quiz: {currentModule.title}</h2>
-            <p className="text-muted-foreground mt-2">Test your knowledge on the chapters you've just completed.</p>
-            <Button className="mt-6" onClick={() => handleStartModuleQuiz(currentModule)}>Start Quiz</Button>
-             <div className="mt-8">
-                <Button variant="link" onClick={handleCompleteAndContinue}>Skip Quiz & Continue</Button>
+      <>
+        {quizState === 'configuring' && (
+            <div className="flex h-full flex-col items-center justify-center text-center p-6">
+                <h2 className="text-2xl font-bold">Module Quiz: {currentModule.title}</h2>
+                <p className="text-muted-foreground mt-2">Test your knowledge on the chapters you've just completed.</p>
+                <Button className="mt-6" onClick={() => handleStartModuleQuiz(currentModule)} disabled={isQuizLoading}>
+                    {isQuizLoading ? 'Loading...' : 'Start Quiz'}
+                </Button>
+                <div className="mt-8">
+                    <Button variant="link" onClick={handleCompleteAndContinue}>Skip Quiz & Continue</Button>
+                </div>
             </div>
-             <Dialog open={isQuizDialogOpen} onOpenChange={setQuizDialogOpen}>
-                <DialogContent className="h-screen w-screen max-w-full max-h-full flex flex-col">
-                    <DialogHeader>
-                        <DialogTitle>{currentModule.title}: Quiz</DialogTitle>
-                    </DialogHeader>
-                    <div className="flex-1 overflow-y-auto p-4">
-                        {isQuizLoading ? (
-                            <div className="flex items-center justify-center h-full"><Loader2 className="h-8 w-8 animate-spin" /></div>
-                        ) : quizResults ? (
-                            <div className="max-w-2xl mx-auto text-center">
-                                <h2 className="text-3xl font-bold">Quiz Complete!</h2>
-                                <p className="text-5xl font-bold my-4">{quizResults.score} / {quizResults.total}</p>
-                                <p className="text-muted-foreground">You earned {quizResults.score * 10} XP!</p>
-                                <Button className="mt-6" onClick={() => { setQuizDialogOpen(false); handleCompleteAndContinue(); }}>Continue to Next Section</Button>
+        )}
+
+        {quizState === 'in-progress' && isQuizLoading && (
+           <div className="flex items-center justify-center h-full"><Loader2 className="h-8 w-8 animate-spin" /></div>
+        )}
+        
+        {quizState === 'in-progress' && !isQuizLoading && currentQuizQuestion && (
+            <div className="flex flex-col items-center">
+                 <div className="text-center mb-10 w-full max-w-3xl">
+                    <p className="text-muted-foreground mb-2">Question {currentQuizQuestionIndex + 1} of {totalQuestions}</p>
+                    <Progress value={quizProgress} className="mb-4 h-2"/>
+                    <h1 className="text-3xl font-bold mt-8">{currentQuizQuestion.question}</h1>
+                </div>
+                 <Card className="w-full max-w-3xl">
+                    <CardContent className="p-8">
+                         <RadioGroup value={selectedQuizAnswer ?? ''} onValueChange={setSelectedQuizAnswer} disabled={!!quizFeedback}>
+                            <div className="space-y-4">
+                            {currentQuizQuestion.options?.map((option, index) => (
+                                <Label key={index} htmlFor={`option-${index}`} className={cn(
+                                    "flex items-center gap-4 p-4 rounded-lg border transition-all cursor-pointer",
+                                    !quizFeedback && (selectedQuizAnswer === option ? "border-primary bg-primary/10" : "border-border hover:bg-muted"),
+                                    quizFeedback && option === currentQuizQuestion.answer && "border-green-500 bg-green-500/10",
+                                    quizFeedback && selectedQuizAnswer === option && option !== currentQuizQuestion.answer && "border-red-500 bg-red-500/10",
+                                )}>
+                                    <RadioGroupItem value={option} id={`option-${index}`} />
+                                    <span>{option}</span>
+                                </Label>
+                            ))}
                             </div>
-                        ) : generatedQuiz ? (
-                             <div className="max-w-2xl mx-auto">
-                                <h3 className="text-xl font-bold mb-4">{generatedQuiz.questions.length}-Question Quiz</h3>
-                                <div className="space-y-6">
-                                {generatedQuiz.questions.map((q, index) => (
-                                    <div key={index}>
-                                        <p className="font-semibold">{index + 1}. {q.question}</p>
-                                        <RadioGroup className="mt-2 space-y-2" onValueChange={(val) => handleQuizAnswerChange(index, val)}>
-                                            {q.options?.map((opt, i) => (
-                                                <div key={i} className="flex items-center space-x-2">
-                                                        <RadioGroupItem value={opt} id={`q${index}-opt${i}`} />
-                                                        <Label htmlFor={`q${index}-opt${i}`}>{opt}</Label>
-                                                </div>
-                                            ))}
-                                        </RadioGroup>
-                                    </div>
-                                ))}
-                                </div>
-                            </div>
-                        ) : null}
+                        </RadioGroup>
+                         <div className="mt-8 flex justify-end">
+                            {!quizFeedback ? (
+                                <Button onClick={handleSubmitQuizAnswer} disabled={!selectedQuizAnswer}>
+                                    Submit
+                                </Button>
+                            ) : (
+                                <Button onClick={handleNextQuizQuestion}>
+                                    {currentQuizQuestionIndex < totalQuestions - 1 ? 'Next Question' : 'Finish Quiz'}
+                                    <ArrowRight className="ml-2 h-4 w-4" />
+                                </Button>
+                            )}
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+        )}
+
+        {quizState === 'results' && (
+            <div className="flex flex-col items-center">
+                 <div className="text-center mb-10">
+                    <h1 className="text-4xl font-bold">Quiz Results</h1>
+                    <p className="text-muted-foreground mt-2">Here's how you did on the {currentModule.title} quiz.</p>
+                </div>
+                 <Card className="w-full max-w-3xl">
+                    <CardContent className="p-8 text-center">
+                        <h2 className="text-2xl font-semibold">Your Score</h2>
+                        <p className="text-6xl font-bold text-primary my-4">{score} / {totalQuestions}</p>
+                        <p className="text-muted-foreground">You answered {((score / totalQuestions) * 100).toFixed(0)}% of the questions correctly.</p>
+
+                        <div className="mt-8 flex justify-center gap-4">
+                            <Button onClick={() => setQuizState('configuring')}>
+                                <RotateCcw className="mr-2 h-4 w-4" /> Take Again
+                            </Button>
+                            <Button variant="outline" onClick={() => { setQuizDialogOpen(false); handleCompleteAndContinue(); }}>
+                                Continue to Next Section <ArrowRight className="ml-2 h-4 w-4"/>
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+        )}
+        
+        <Dialog open={!!quizFeedback && !quizFeedback.isCorrect} onOpenChange={(open) => !open && handleNextQuizQuestion()}>
+            <DialogContent>
+                <DialogHeader>
+                        <div className="flex items-center gap-2 text-red-600">
+                        <XCircle className="h-8 w-8"/>
+                        <DialogTitle className="text-2xl">Not Quite...</DialogTitle>
                     </div>
-                    {!quizResults && (
-                        <DialogFooter>
-                            <Button onClick={handleSubmitQuiz} disabled={Object.keys(quizAnswers).length !== (generatedQuiz?.questions.length ?? 0)}>Submit Quiz</Button>
-                        </DialogFooter>
-                    )}
-                </DialogContent>
-            </Dialog>
-        </div>
+                </DialogHeader>
+                <div className="mt-4 space-y-4">
+                    <div>
+                        <h4 className="font-semibold">Your Answer:</h4>
+                        <p className="text-muted-foreground">{quizFeedback?.answer}</p>
+                    </div>
+                        <div>
+                        <h4 className="font-semibold">Correct Answer:</h4>
+                        <p className="text-muted-foreground">{quizFeedback?.correctAnswer}</p>
+                    </div>
+                    <div className="p-4 bg-amber-500/10 rounded-lg border border-amber-500/20">
+                        <h4 className="font-semibold flex items-center gap-2 text-amber-700"><Lightbulb/> Explanation</h4>
+                        {isExplanationLoading ? (
+                            <p className="animate-pulse text-muted-foreground mt-2">Generating personalized feedback...</p>
+                        ) : (
+                            <div className="text-muted-foreground mt-2">
+                                {explanation && <AudioPlayer textToPlay={explanation} />}
+                                <p>{explanation}</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+                <DialogFooter>
+                        <Button onClick={handleNextQuizQuestion} disabled={isExplanationLoading}>
+                        {currentQuizQuestionIndex < (generatedQuiz?.questions.length ?? 0) - 1 ? 'Next Question' : 'Finish Quiz'}
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+      </>
     )
   }
 
@@ -848,5 +970,3 @@ export default function LearningLabClientPage() {
     </>
   );
 }
-
-    

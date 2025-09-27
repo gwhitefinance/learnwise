@@ -14,7 +14,7 @@ const prompt = ai.definePrompt({
     model: googleAI.model('gemini-2.5-flash'),
     input: { schema: GenerateModuleQuizInputSchema },
     output: { schema: GenerateQuizOutputSchema },
-    prompt: `You are an expert educator. Generate a 5-question multiple-choice quiz based *only* on the provided course module content.
+    prompt: `You are an expert educator. Generate a 15-question multiple-choice quiz based *only* on the provided course module content.
 
     The user is a {{learnerType}} learner. Tailor the questions accordingly:
     - For Visual learners, ask questions that require them to visualize or describe concepts.
