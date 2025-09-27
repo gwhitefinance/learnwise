@@ -192,7 +192,9 @@ export default function AiChatPage() {
     try {
       const q = query(collection(db, "calendarEvents"), where("userId", "==", user.uid));
       const querySnapshot = await getDocs(q);
-      const calendarEvents = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as CalendarEvent));
+      const calendarEvents = querySnapshot.docs.map(doc => {
+          return { id: doc.id, ...doc.data() } as CalendarEvent;
+      });
 
       const response = await studyPlannerFlow({
         history: updatedMessages,
@@ -346,7 +348,7 @@ export default function AiChatPage() {
                     <div key={index} className={`flex items-start gap-4 ${message.role === 'user' ? 'justify-end' : ''}`}>
                         {message.role === 'ai' && (
                            <AIBuddy 
-                                className="w-8 h-8"
+                                className="w-4 h-4"
                                 color={customizations.color}
                                 hat={customizations.hat}
                                 shirt={customizations.shirt}
@@ -374,7 +376,7 @@ export default function AiChatPage() {
                     {isLoading && (
                         <div className="flex items-start gap-4">
                              <AIBuddy 
-                                className="w-8 h-8"
+                                className="w-4 h-4"
                                 color={customizations.color}
                                 hat={customizations.hat}
                                 shirt={customizations.shirt}
