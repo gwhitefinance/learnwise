@@ -135,9 +135,9 @@ export default function FloatingChat() {
                             {messages.map((msg, index) => (
                                 <div key={index} className={cn("flex items-end gap-2", msg.role === 'user' ? 'justify-end' : '')}>
                                      {msg.role === 'ai' && (
-                                        <Avatar className="h-8 w-8">
+                                        <Avatar className="h-16 w-16">
                                             <div className="w-full h-full flex items-center justify-center bg-primary/10 rounded-full">
-                                                <AIBuddy className="w-10 h-10" {...customizations}/>
+                                                <AIBuddy className="w-20 h-20" {...customizations}/>
                                             </div>
                                         </Avatar>
                                      )}
