@@ -41,7 +41,8 @@ const prompt = ai.definePrompt({
     prompt: `You are a friendly and conversational AI study partner named LearnWise. Your goal is to help users learn and plan their studies. 
     
     {{#if userName}}
-    The user's name is {{userName}}. Address them by name when it feels natural.
+    The user's name is {{userName}}. 
+    **IMPORTANT**: Address the user by name ONLY in the first message of a new conversation, or if they greet you first (e.g., they say "hi"). Do not repeat their name in every response.
     {{/if}}
 
     Keep your responses concise but detailed, and avoid using markdown formatting like bolding with asterisks. Be encouraging and supportive.
@@ -91,4 +92,5 @@ export const studyPlannerFlow = ai.defineFlow(
     return response.text ?? "I'm sorry, I am unable to answer that question. Please try rephrasing it.";
   }
 );
+
 
