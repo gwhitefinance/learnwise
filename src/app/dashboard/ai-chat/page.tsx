@@ -394,7 +394,7 @@ export default function AiChatPage() {
           </div>
         </ScrollArea>
 
-        <div className="p-4 border-t bg-background">
+        <div className="px-4 py-2 border-t bg-background">
           <div className="relative max-w-3xl mx-auto">
             <Input
               placeholder="Ask anything..."
