@@ -349,7 +349,7 @@ export default function AiChatPage() {
             </div>
         </div>
         <ScrollArea className="flex-grow" ref={scrollAreaRef}>
-          <div className="max-w-3xl p-4 md:p-8 space-y-8 pb-24">
+          <div className="max-w-3xl mx-auto p-4 md:p-8 space-y-8 pb-24">
             {activeSession?.messages.map((message, index) => (
               <div key={index} className={cn("flex items-start gap-4", message.role === 'user' ? "justify-end" : "")}>
                 {message.role === 'ai' && (
