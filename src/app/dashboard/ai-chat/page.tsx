@@ -141,7 +141,7 @@ export default function AiChatPage() {
     if (!user) return;
     
     const courseIdParam = searchParams.get('courseId');
-    let initialMessage = `Hey ${user.displayName?.split(' ')[0] || 'there'} - what's good?`;
+    let initialMessage = `Hey ${user.displayName?.split(' ')[0] || 'there'}! How can I help you today?`;
     let courseContext: string | undefined = undefined;
     let title = "New Chat";
 
@@ -278,7 +278,7 @@ export default function AiChatPage() {
   };
   
   return (
-    <div className="flex h-[calc(100vh_-_80px)] bg-background text-foreground">
+    <div className="flex h-screen bg-background text-foreground">
       {/* Sidebar */}
       <aside className="w-72 bg-muted/40 p-2 flex-col border-r hidden md:flex">
         <div className="p-2 flex justify-between items-center">
@@ -349,7 +349,7 @@ export default function AiChatPage() {
             </div>
         </div>
         <ScrollArea className="flex-grow" ref={scrollAreaRef}>
-          <div className="max-w-3xl mx-auto p-4 md:p-8 space-y-8 pb-24">
+          <div className="max-w-3xl p-4 md:p-8 space-y-8 pb-24">
             {activeSession?.messages.map((message, index) => (
               <div key={index} className={cn("flex items-start gap-4", message.role === 'user' ? "justify-end" : "")}>
                 {message.role === 'ai' && (
