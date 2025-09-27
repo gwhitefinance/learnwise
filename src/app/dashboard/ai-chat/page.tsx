@@ -18,7 +18,7 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { collection, addDoc, query, where, getDocs, deleteDoc, doc, updateDoc, onSnapshot, orderBy, Timestamp, getDoc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
-import { studyPlannerFlow, generateChatTitle } from '@/lib/actions';
+import { studyPlannerFlow, generateChatTitle, analyzeImage } from '@/lib/actions';
 import AIBuddy from '@/components/ai-buddy';
 
 interface Message {
@@ -83,7 +83,7 @@ export default function AiChatPage() {
   // State for upload dialog
   const [isUploadOpen, setUploadOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  const [files, setFiles] = useState<FileList | null>(null);
+  const [fileToUpload, setFileToUpload] = useState<File | null>(null);
 
 
   useEffect(() => {
@@ -283,35 +283,54 @@ export default function AiChatPage() {
   };
   
   const handleFileChange = (selectedFiles: FileList | null) => {
-    if (selectedFiles) {
-      setFiles(selectedFiles);
+    if (selectedFiles && selectedFiles[0]) {
+      setFileToUpload(selectedFiles[0]);
     }
   };
 
   const handleUpload = async () => {
-    if (!files || files.length === 0 || !user || !activeSessionId) {
-      toast({
-        variant: 'destructive',
-        title: 'No files selected',
-        description: 'Please select at least one file to upload.',
-      });
+    if (!fileToUpload || !activeSessionId) {
+      toast({ variant: 'destructive', title: 'No file selected' });
       return;
     }
     
-    // For now, just add a message to the chat.
-    const fileNames = Array.from(files).map(f => f.name).join(', ');
-    const messageContent = `I've uploaded the following file(s): ${fileNames}. Can you help me with this?`;
-    setInput(messageContent);
-    // You might want to call handleSendMessage() here automatically, or let the user edit.
-    
-    // In a real app, you would upload the file to storage and pass a reference to the AI.
-    toast({
-        title: 'Files Ready!',
-        description: `The file names have been added to your message. You can now ask the AI about them.`,
-    });
-
-    setFiles(null);
+    setIsLoading(true);
     setUploadOpen(false);
+
+    const userMessageContent = `I've uploaded an image: ${fileToUpload.name}. Can you help me with this?`;
+    const userMessage: Message = { role: 'user', content: userMessageContent };
+    const updatedMessages = activeSession ? [...activeSession.messages, userMessage] : [userMessage];
+    setSessions(sessions.map(s => s.id === activeSessionId ? { ...s, messages: updatedMessages } : s));
+
+    try {
+        const reader = new FileReader();
+        reader.readAsDataURL(fileToUpload);
+        reader.onload = async (e) => {
+            const imageDataUri = e.target?.result as string;
+            if (!imageDataUri) {
+                throw new Error("Could not read file data.");
+            }
+            const { analysis } = await analyzeImage({ imageDataUri });
+
+            const aiMessage: Message = { role: 'ai', content: analysis };
+            const finalMessages = [...updatedMessages, aiMessage];
+            
+            setIsLoading(false);
+            const sessionRef = doc(db, "chatSessions", activeSessionId);
+            await updateDoc(sessionRef, { messages: finalMessages });
+        }
+        reader.onerror = (error) => {
+            throw error;
+        }
+
+    } catch (error) {
+        console.error(error);
+        setIsLoading(false);
+        toast({ variant: 'destructive', title: 'Analysis Failed', description: 'Could not analyze the uploaded image.' });
+        setSessions(sessions.map(s => s.id === activeSessionId ? activeSession! : s)); // Revert
+    } finally {
+        setFileToUpload(null);
+    }
   };
     
   const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); };
@@ -471,7 +490,7 @@ export default function AiChatPage() {
                         <DialogHeader>
                             <DialogTitle>Upload File</DialogTitle>
                             <DialogDescription>
-                                Upload a file to discuss it with the AI.
+                                Upload an image file to discuss it with the AI.
                             </DialogDescription>
                         </DialogHeader>
                         <div 
@@ -483,10 +502,10 @@ export default function AiChatPage() {
                         >
                             <input 
                                 id="chat-file-upload"
-                                type="file" 
-                                multiple 
+                                type="file"
                                 className="hidden"
                                 onChange={(e) => handleFileChange(e.target.files)}
+                                accept="image/*"
                             />
                             <div className="flex flex-col items-center justify-center pt-5 pb-6">
                               <UploadCloud className="w-10 h-10 mb-4 text-muted-foreground" />
@@ -498,19 +517,17 @@ export default function AiChatPage() {
                               </p>
                             </div>
                         </div>
-                        {files && files.length > 0 && (
+                        {fileToUpload && (
                           <div className="mt-4">
-                              <h3 className="text-lg font-semibold">Selected files:</h3>
+                              <h3 className="text-lg font-semibold">Selected file:</h3>
                               <ul className="list-disc list-inside mt-2 text-sm text-muted-foreground">
-                                  {Array.from(files).map((file, index) => (
-                                      <li key={index}>{file.name}</li>
-                                  ))}
+                                  <li>{fileToUpload.name}</li>
                               </ul>
                           </div>
                         )}
                         <DialogFooter>
                             <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
-                            <Button onClick={handleUpload} disabled={!files}>Upload</Button>
+                            <Button onClick={handleUpload} disabled={!fileToUpload}>Upload & Analyze</Button>
                         </DialogFooter>
                     </DialogContent>
                  </Dialog>

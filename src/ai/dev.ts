@@ -19,6 +19,7 @@ import './flows/course-from-url-flow';
 import './flows/chapter-content-flow';
 import './tools/course-tool';
 import './tools/web-scraper-tool';
+import './flows/image-analysis-flow';
 
 
 
@@ -32,6 +33,7 @@ import './tools/web-scraper-tool';
     
 
     
+
 
 
 
