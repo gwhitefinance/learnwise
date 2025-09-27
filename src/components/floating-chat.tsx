@@ -135,8 +135,8 @@ export default function FloatingChat() {
                             {messages.map((msg, index) => (
                                 <div key={index} className={cn("flex items-end gap-2", msg.role === 'user' ? 'justify-end' : '')}>
                                      {msg.role === 'ai' && (
-                                        <Avatar className="h-28 w-28">
-                                            <div className="w-full h-full flex items-center justify-center bg-primary/10 rounded-full">
+                                        <Avatar className="h-40 w-40">
+                                            <div className="w-full h-full flex items-center justify-center rounded-full">
                                                 <AIBuddy className="w-40 h-40" {...customizations}/>
                                             </div>
                                         </Avatar>
@@ -151,8 +151,8 @@ export default function FloatingChat() {
                             ))}
                             {isLoading && (
                                 <div className="flex items-end gap-2">
-                                    <Avatar className="h-28 w-28">
-                                        <div className="w-full h-full flex items-center justify-center bg-primary/10 rounded-full">
+                                    <Avatar className="h-40 w-40">
+                                        <div className="w-full h-full flex items-center justify-center rounded-full">
                                             <AIBuddy className="w-40 h-40" {...customizations}/>
                                         </div>
                                     </Avatar>
@@ -202,7 +202,7 @@ export default function FloatingChat() {
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={() => setIsOpen(true)}
-                className="w-32 h-32 rounded-full flex items-center justify-center shadow-2xl relative"
+                className="w-32 h-32 flex items-center justify-center relative"
                 aria-label="Open Chat"
             >
                 <AnimatePresence>
