@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Send, User, Bot, Plus, MessageSquare, Trash2, Edit, Home, Upload } from "lucide-react";
+import { Send, User, Bot, Plus, MessageSquare, Trash2, Edit, Home, Upload, Share2, MoreHorizontal, ChevronDown } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -334,10 +334,24 @@ export default function AiChatPage() {
 
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col">
+         <div className="flex items-center justify-between p-4 border-b">
+            <div className="flex items-center gap-2">
+                <h2 className="text-lg font-semibold">LearnWise AI</h2>
+                <ChevronDown className="h-5 w-5 text-muted-foreground" />
+            </div>
+            <div className="flex items-center gap-2">
+                <Button variant="ghost" size="sm">
+                    <Share2 className="h-4 w-4 mr-2" /> Share
+                </Button>
+                 <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <MoreHorizontal className="h-4 w-4" />
+                </Button>
+            </div>
+        </div>
         <ScrollArea className="flex-1" ref={scrollAreaRef}>
           <div className="max-w-3xl mx-auto p-4 md:p-8 space-y-8">
             {activeSession?.messages.map((message, index) => (
-              <div key={index} className={cn("flex items-start gap-4", message.role === 'user' ? "ml-auto" : "justify-start")}>
+              <div key={index} className={cn("flex items-start gap-4", message.role === 'user' ? "ml-auto justify-end" : "justify-start")}>
                 {message.role === 'ai' && (
                     <Avatar className="h-12 w-12">
                         <div className="w-full h-full flex items-center justify-center bg-primary/10 rounded-full">
