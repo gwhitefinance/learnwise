@@ -199,6 +199,7 @@ export default function AiChatPage() {
       });
 
       const response = await studyPlannerFlow({
+        userName: user.displayName?.split(' ')[0],
         history: updatedMessages,
         learnerType: learnerType || undefined,
         courseContext: activeSession.courseContext || undefined,
@@ -277,57 +278,128 @@ export default function AiChatPage() {
   };
   
   return (
-    <div className="flex flex-col h-[calc(100vh_-_80px)] bg-background text-foreground">
-      <header className="p-4 border-b flex justify-between items-center">
-        <h2 className="text-lg font-semibold">LearnWise AI</h2>
-        <Button variant="outline"><Upload className="mr-2 h-4 w-4"/> Upload File</Button>
-      </header>
-
-      <ScrollArea className="flex-1" ref={scrollAreaRef}>
-        <div className="max-w-3xl mx-auto p-4 md:p-8 space-y-8">
-          {activeSession?.messages.map((message, index) => (
-            <div key={index} className={cn("flex items-start gap-4", message.role === 'user' ? "justify-end" : "justify-start")}>
-              {message.role === 'ai' && (
-                  <div className='p-1 rounded-full bg-primary'>
-                    <Bot className="h-6 w-6 text-primary-foreground" />
-                  </div>
-              )}
-              <div className={cn(
-                  "p-3 rounded-lg max-w-xl",
-                   message.role === 'user' ? "" : "bg-muted"
-                )}>
-                <p className="whitespace-pre-wrap">{message.content}</p>
-              </div>
-            </div>
-          ))}
-          {isLoading && (
-            <div className="flex items-start gap-4">
-              <div className='p-1 rounded-full bg-primary'>
-                <Bot className="h-6 w-6 text-primary-foreground" />
-              </div>
-              <div className="bg-muted rounded-lg p-3">
-                <p className="animate-pulse">Thinking...</p>
-              </div>
-            </div>
-          )}
+    <div className="flex h-[calc(100vh_-_80px)] bg-background text-foreground">
+      {/* Sidebar */}
+      <aside className="w-72 bg-muted/40 p-2 flex-col border-r hidden md:flex">
+        <div className="p-2 flex justify-between items-center">
+            <Link href="/dashboard">
+                <Button variant="ghost" size="icon"><Home className="h-5 w-5"/></Button>
+            </Link>
+            <h2 className="text-lg font-semibold">Chats</h2>
+            <Button variant="ghost" size="icon" onClick={createNewSession}><Plus className="h-5 w-5"/></Button>
         </div>
-      </ScrollArea>
+        <ScrollArea className="flex-1">
+            <div className="space-y-1">
+                {sessions.map(session => (
+                    <div key={session.id} className="group relative">
+                        {editingSessionId === session.id ? (
+                            <Input 
+                                value={renameInput} 
+                                onChange={(e) => setRenameInput(e.target.value)} 
+                                onBlur={handleRename}
+                                onKeyDown={(e) => e.key === 'Enter' && handleRename()}
+                                autoFocus
+                                className="h-10"
+                            />
+                        ) : (
+                            <Button 
+                                variant={activeSessionId === session.id ? "secondary" : "ghost"}
+                                className="w-full justify-start h-10 truncate"
+                                onClick={() => setActiveSessionId(session.id)}
+                            >
+                                <MessageSquare className="h-4 w-4 mr-2"/>
+                                {session.title}
+                            </Button>
+                        )}
+                        <div className="absolute right-1 top-1/2 -translate-y-1/2 flex opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => startRename(session)}><Edit className="h-4 w-4"/></Button>
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive"><Trash2 className="h-4 w-4"/></Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader><DialogTitle>Delete Chat?</DialogTitle><DialogDescription>This action cannot be undone.</DialogDescription></DialogHeader>
+                                    <DialogFooter>
+                                        <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
+                                        <Button variant="destructive" onClick={() => handleDeleteSession(session.id)}>Delete</Button>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </ScrollArea>
+      </aside>
 
-      <div className="p-4 border-t bg-background">
-        <div className="relative max-w-3xl mx-auto">
-          <Input
-            placeholder="Ask anything..."
-            className="pr-24 rounded-full h-12 text-base"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && !isLoading && handleSendMessage()}
-            disabled={isLoading}
-          />
-          <Button className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full h-9 w-9 p-0" onClick={handleSendMessage} disabled={isLoading || !activeSessionId}>
-            <Send className="h-4 w-4" />
-          </Button>
+      {/* Main Chat Area */}
+      <div className="flex-1 flex flex-col">
+        <ScrollArea className="flex-1" ref={scrollAreaRef}>
+          <div className="max-w-3xl mx-auto p-4 md:p-8 space-y-8">
+            {activeSession?.messages.map((message, index) => (
+              <div key={index} className={cn("flex items-start gap-4", message.role === 'user' ? "ml-auto" : "justify-start")}>
+                {message.role === 'ai' && (
+                    <Avatar className="h-12 w-12">
+                        <div className="w-full h-full flex items-center justify-center bg-primary/10 rounded-full">
+                             <AIBuddy
+                                className="w-16 h-16"
+                                color={customizations.color}
+                                hat={customizations.hat}
+                                shirt={customizations.shirt}
+                                shoes={customizations.shoes}
+                            />
+                        </div>
+                    </Avatar>
+                )}
+                <div className={cn(
+                    "p-4 rounded-lg max-w-xl",
+                    message.role === 'user' ? "bg-primary text-primary-foreground" : "bg-muted"
+                  )}>
+                  <p className="whitespace-pre-wrap">{message.content}</p>
+                </div>
+              </div>
+            ))}
+            {isLoading && (
+              <div className="flex items-start gap-4">
+                <Avatar className="h-12 w-12">
+                     <div className="w-full h-full flex items-center justify-center bg-primary/10 rounded-full">
+                         <AIBuddy
+                            className="w-16 h-16"
+                            color={customizations.color}
+                            hat={customizations.hat}
+                            shirt={customizations.shirt}
+                            shoes={customizations.shoes}
+                        />
+                    </div>
+                </Avatar>
+                <div className="bg-muted rounded-lg p-4">
+                  <p className="animate-pulse">Thinking...</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </ScrollArea>
+
+        <div className="p-4 border-t bg-background">
+          <div className="relative max-w-3xl mx-auto">
+            <Input
+              placeholder="Ask anything..."
+              className="pr-24 rounded-full h-12 text-base"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && !isLoading && handleSendMessage()}
+              disabled={isLoading}
+            />
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-2">
+                 <Button variant="outline" size="icon" className="rounded-full h-9 w-9 p-0"><Upload className="h-4 w-4"/></Button>
+                <Button className="rounded-full h-9 w-9 p-0" onClick={handleSendMessage} disabled={isLoading || !activeSessionId}>
+                    <Send className="h-4 w-4" />
+                </Button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   );
 }
+
