@@ -25,6 +25,7 @@ const EventSchema = z.object({
 
 
 const StudyPlannerInputSchema = z.object({
+    userName: z.string().optional().describe("The user's first name."),
     history: z.array(MessageSchema),
     learnerType: z.string().optional(),
     courseContext: z.string().optional().describe('The name and description of the course the user is asking about.'),
@@ -36,7 +37,13 @@ const prompt = ai.definePrompt({
     model: googleAI.model('gemini-2.5-flash'),
     input: { schema: StudyPlannerInputSchema },
     tools: [getCoursesTool],
-    prompt: `You are a friendly and conversational AI study partner. Your goal is to help users learn and plan their studies. Keep your responses concise but detailed, and avoid using markdown formatting like bolding with asterisks. Be encouraging and supportive.
+    prompt: `You are a friendly and conversational AI study partner named LearnWise. Your goal is to help users learn and plan their studies. 
+    
+    {{#if userName}}
+    The user's name is {{userName}}. Address them by name when it feels natural.
+    {{/if}}
+
+    Keep your responses concise but detailed, and avoid using markdown formatting like bolding with asterisks. Be encouraging and supportive.
 
     If the user asks about their courses, use the getCoursesTool to retrieve the information and provide it to them. You can provide the links to the courses if they ask for it.
 
