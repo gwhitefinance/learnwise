@@ -31,9 +31,9 @@ type CalendarEvent = {
 export default function FloatingChat() {
   const [isOpen, setIsOpen] = useState(false);
   const [showWelcome, setShowWelcome] =useState(true);
-  const [messages, setMessages] = useState<Message[]>([
-    { role: 'ai', content: "Hey there! How can I help you study today?" }
-  ]);
+  const [messages, setMessages] = useState<Message[]>(
+    []
+  );
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [user] = useAuthState(auth);
@@ -46,6 +46,9 @@ export default function FloatingChat() {
         if(savedCustomizations) {
             setCustomizations(JSON.parse(savedCustomizations));
         }
+        setMessages([
+          { role: 'ai', content: `Hey ${user.displayName?.split(' ')[0] || 'there'}! I am your AI buddy. Chat with me at any time.` }
+        ]);
     }
 
     const welcomeTimer = setTimeout(() => {
