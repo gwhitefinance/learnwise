@@ -1,24 +1,25 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { UploadCloud, Wand2, Link, Image as ImageIcon, Copy, Lightbulb, RefreshCw, ChevronLeft, ChevronRight, CheckCircle, XCircle } from 'lucide-react';
+import { UploadCloud, Wand2, Link, Image as ImageIcon, Copy, Lightbulb, RefreshCw, ChevronLeft, ChevronRight, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import type { TutoringSessionOutput } from '@/ai/schemas/image-tutoring-schema';
+import type { TutoringSessionOutput, PracticeQuestion } from '@/ai/schemas/image-tutoring-schema';
 import { scrapeWebpageTool } from '@/ai/tools/web-scraper-tool';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import Image from 'next/image';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { motion, AnimatePresence } from 'framer-motion';
 import AudioPlayer from '@/components/audio-player';
-import { generateSummary, generateTutoringSession, generateFlashcardsFromNote } from '@/lib/actions';
+import { generateSummary, generateTutoringSession, generateFlashcardsFromNote, generateExplanation } from '@/lib/actions';
 
 type Flashcard = {
     front: string;
@@ -49,6 +50,9 @@ export default function UploadPage() {
   // Practice question state
   const [selectedPracticeAnswer, setSelectedPracticeAnswer] = useState<string | null>(null);
   const [practiceAnswerFeedback, setPracticeAnswerFeedback] = useState<'correct' | 'incorrect' | null>(null);
+  const [isExplanationDialogOpen, setIsExplanationDialogOpen] = useState(false);
+  const [explanation, setExplanation] = useState<string | null>(null);
+  const [isExplanationLoading, setIsExplanationLoading] = useState(false);
 
 
   // Flashcard states
@@ -174,11 +178,61 @@ export default function UploadPage() {
     }
   };
 
-  const handleCheckPracticeAnswer = () => {
+  const handleCheckPracticeAnswer = async () => {
       if (!selectedPracticeAnswer || !tutoringSession) return;
       const isCorrect = selectedPracticeAnswer === tutoringSession.practiceQuestion.answer;
       setPracticeAnswerFeedback(isCorrect ? 'correct' : 'incorrect');
+
+      if (!isCorrect) {
+          setIsExplanationDialogOpen(true);
+          setIsExplanationLoading(true);
+          setExplanation(null);
+          try {
+              const result = await generateExplanation({
+                  question: tutoringSession.practiceQuestion.question,
+                  userAnswer: selectedPracticeAnswer,
+                  correctAnswer: tutoringSession.practiceQuestion.answer,
+                  learnerType: (learnerType as any) ?? 'Reading/Writing',
+                  provideFullExplanation: true,
+              });
+              setExplanation(result.explanation);
+          } catch (error) {
+              console.error("Error generating explanation:", error);
+              setExplanation("Sorry, I was unable to generate an explanation.");
+          } finally {
+              setIsExplanationLoading(false);
+          }
+      }
   }
+
+  const handleGenerateNewQuestion = async () => {
+      if (!tutoringSession) return;
+      
+      setIsLoading(true);
+      
+      const lastAnswer = selectedPracticeAnswer || tutoringSession.practiceQuestion.options[0];
+      
+      try {
+          const result = await generateExplanation({
+              question: tutoringSession.practiceQuestion.question,
+              userAnswer: lastAnswer,
+              correctAnswer: tutoringSession.practiceQuestion.answer,
+              learnerType: (learnerType as any) ?? 'Reading/Writing',
+              provideFullExplanation: false,
+          });
+
+          setTutoringSession(prev => prev ? ({ ...prev, practiceQuestion: result.practiceQuestion }) : null);
+          setSelectedPracticeAnswer(null);
+          setPracticeAnswerFeedback(null);
+          setExplanation(null);
+          setIsExplanationDialogOpen(false);
+      } catch (error) {
+          console.error("Error generating new question:", error);
+          toast({ variant: 'destructive', title: 'Failed to generate new question.' });
+      } finally {
+          setIsLoading(false);
+      }
+  };
 
   const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); };
   const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); };
@@ -373,8 +427,13 @@ export default function UploadPage() {
                             })}
                             </div>
                         </RadioGroup>
-                         {practiceAnswerFeedback === null && (
+                         {practiceAnswerFeedback === null ? (
                             <Button className="w-full mt-4" onClick={handleCheckPracticeAnswer} disabled={!selectedPracticeAnswer}>Check Answer</Button>
+                         ) : (
+                            <Button className="w-full mt-4" onClick={handleGenerateNewQuestion} disabled={isLoading}>
+                               {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <RefreshCw className="mr-2 h-4 w-4"/>}
+                               Generate Another Question
+                            </Button>
                          )}
                     </CardContent>
                 </Card>
@@ -453,6 +512,33 @@ export default function UploadPage() {
             </div>
             <DialogFooter>
                 <DialogClose asChild><Button>Close</Button></DialogClose>
+            </DialogFooter>
+        </DialogContent>
+    </Dialog>
+     <Dialog open={isExplanationDialogOpen} onOpenChange={setIsExplanationDialogOpen}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle className="flex items-center gap-2 text-red-500"><XCircle /> Explanation</DialogTitle>
+                <DialogDescription>
+                    Let's break down why that answer was incorrect.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+                 {isExplanationLoading ? (
+                    <div className="space-y-2">
+                        <Skeleton className="h-4 w-3/4" />
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-5/6" />
+                    </div>
+                ) : (
+                    <p className="text-muted-foreground">{explanation}</p>
+                )}
+            </div>
+            <DialogFooter>
+                <Button onClick={handleGenerateNewQuestion} disabled={isExplanationLoading}>
+                    {isExplanationLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <RefreshCw className="mr-2 h-4 w-4"/>}
+                    Give me another question
+                </Button>
             </DialogFooter>
         </DialogContent>
     </Dialog>

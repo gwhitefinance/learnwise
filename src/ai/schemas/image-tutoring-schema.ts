@@ -17,11 +17,12 @@ export const TutoringSessionInputSchema = z.object({
 });
 export type TutoringSessionInput = z.infer<typeof TutoringSessionInputSchema>;
 
-const PracticeQuestionSchema = z.object({
+export const PracticeQuestionSchema = z.object({
     question: z.string(),
     options: z.array(z.string()),
     answer: z.string(),
 });
+export type PracticeQuestion = z.infer<typeof PracticeQuestionSchema>;
 
 export const TutoringSessionOutputSchema = z.object({
   conceptualExplanation: z.string().describe("A clear explanation of the main concepts, tailored to the user's learning style."),
