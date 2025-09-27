@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Send, User, Bot, Plus, MessageSquare, Trash2, Edit, Home, Upload, Share2, MoreHorizontal, Info, Sparkles } from "lucide-react";
+import { Send, User, Bot, Plus, MessageSquare, Trash2, Edit, Home, Upload, Share2, MoreHorizontal, Info, Sparkles, Copy, Check } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -20,7 +20,7 @@ import { useRouter } from 'next/navigation';
 import { studyPlannerFlow, generateChatTitle, analyzeImage } from '@/lib/actions';
 import AIBuddy from '@/components/ai-buddy';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { format } from 'date-fns';
 
 interface Message {
@@ -36,6 +36,7 @@ interface ChatSession {
     courseContext?: string;
     titleGenerated?: boolean;
     userId?: string;
+    isPublic?: boolean;
 }
 
 interface FirestoreChatSession {
@@ -46,6 +47,7 @@ interface FirestoreChatSession {
     courseContext?: string;
     titleGenerated?: boolean;
     userId?: string;
+    isPublic?: boolean;
 }
 
 type Course = {
@@ -86,6 +88,7 @@ export default function AiChatPage() {
   const [isUploadOpen, setUploadOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [fileToUpload, setFileToUpload] = useState<File | null>(null);
+  const [isCopied, setIsCopied] = useState(false);
 
 
   useEffect(() => {
@@ -170,6 +173,7 @@ export default function AiChatPage() {
         timestamp: Timestamp.now(),
         titleGenerated: !!courseIdParam,
         userId: user.uid,
+        isPublic: false,
     };
 
     if (courseContext) {
@@ -365,6 +369,25 @@ export default function AiChatPage() {
     }
   };
 
+  const handleShare = async () => {
+    if (!activeSession) return;
+    try {
+      const sessionRef = doc(db, "chatSessions", activeSession.id);
+      await updateDoc(sessionRef, { isPublic: true });
+      // The local state will be updated by the onSnapshot listener
+      toast({ title: "Chat is now public!", description: "Anyone with the link can view it."});
+    } catch(e) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Could not share chat.'});
+    }
+  };
+  
+  const handleCopyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 2000);
+    });
+  };
+
 
   return (
     <div className="flex h-screen bg-muted/40">
@@ -428,24 +451,34 @@ export default function AiChatPage() {
                 <h2 className="text-lg font-semibold">{activeSession?.title || "LearnWise AI"}</h2>
             </div>
             <div className="flex items-center gap-2">
-                 <AlertDialog>
-                    <AlertDialogTrigger asChild>
+                 <Dialog>
+                    <DialogTrigger asChild>
                         <Button variant="ghost" size="sm">
                             <Share2 className="h-4 w-4 mr-2" /> Share
                         </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>Coming Soon!</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                The ability to share chats via a public link is under development. Stay tuned!
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                            <AlertDialogAction>Got it</AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
+                    </DialogTrigger>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Share Chat</DialogTitle>
+                            <DialogDescription>
+                                {activeSession?.isPublic ? "This chat is public. Anyone with the link can view it." : "Make this chat public to share it with a link."}
+                            </DialogDescription>
+                        </DialogHeader>
+                        {activeSession?.isPublic ? (
+                            <div className="flex items-center space-x-2">
+                                <Input value={`${window.location.origin}/share/chat/${activeSessionId}`} readOnly />
+                                <Button onClick={() => handleCopyToClipboard(`${window.location.origin}/share/chat/${activeSessionId}`)} size="sm" className="px-3">
+                                    <span className="sr-only">Copy</span>
+                                    {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                                </Button>
+                            </div>
+                        ) : (
+                           <DialogFooter>
+                                <Button onClick={handleShare}>Make public & get link</Button>
+                           </DialogFooter>
+                        )}
+                    </DialogContent>
+                </Dialog>
                  <Dialog>
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
