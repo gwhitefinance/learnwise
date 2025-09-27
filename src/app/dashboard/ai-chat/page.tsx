@@ -403,11 +403,10 @@ export default function AiChatPage() {
       </aside>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col h-screen">
         <div className="flex items-center justify-between p-4 border-b">
             <div className="flex items-center gap-2">
                 <h2 className="text-lg font-semibold">LearnWise AI</h2>
-                <ChevronDown className="h-5 w-5 text-muted-foreground" />
             </div>
             <div className="flex items-center gap-2">
                 <Button variant="ghost" size="sm">
