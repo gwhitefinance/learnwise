@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -126,9 +125,6 @@ export default function FloatingChat() {
                                 <p className="text-xs text-muted-foreground">Online</p>
                             </div>
                         </div>
-                        <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)}>
-                            <X className="h-5 w-5"/>
-                        </Button>
                     </header>
                     <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
                         <div className="space-y-4">
@@ -205,7 +201,26 @@ export default function FloatingChat() {
                 className="w-32 h-32 flex items-center justify-center relative"
                 aria-label="Toggle Chat"
             >
-                <AIBuddy className="w-40 h-40" {...customizations} />
+                <AnimatePresence>
+                {isOpen ? (
+                    <motion.div
+                        initial={{ scale: 0, rotate: -45 }}
+                        animate={{ scale: 1, rotate: 0 }}
+                        exit={{ scale: 0, rotate: 45 }}
+                        className="w-16 h-16 bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-lg"
+                    >
+                        <X className="w-8 h-8" />
+                    </motion.div>
+                ) : (
+                    <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        exit={{ scale: 0 }}
+                    >
+                        <AIBuddy className="w-40 h-40" {...customizations} />
+                    </motion.div>
+                )}
+                </AnimatePresence>
             </motion.button>
         </div>
     </div>
