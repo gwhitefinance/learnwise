@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useEffect, useState, useRef } from 'react';
@@ -91,6 +92,7 @@ import { doc, onSnapshot, getDoc, setDoc, serverTimestamp } from 'firebase/fires
 import { Progress } from '@/components/ui/progress';
 import { RewardProvider } from '@/context/RewardContext';
 import RewardPopup from '@/components/RewardPopup';
+import FloatingChat from '@/components/floating-chat';
 
 
 // Sample data for sidebar navigation
@@ -708,11 +710,12 @@ export default function DashboardLayout({
             </header>
           )}
 
-          <main className={cn("flex-1 flex flex-col", !isChatPage && "p-4 md:p-6")}>
+          <main className={cn("flex-1 flex flex-col relative", !isChatPage && "p-4 md:p-6")}>
               {React.cloneElement(children as React.ReactElement, { isHalloweenTheme })}
           </main>
         </div>
       </div>
+      <FloatingChat />
       <RewardPopup />
       <Toaster />
     </RewardProvider>
