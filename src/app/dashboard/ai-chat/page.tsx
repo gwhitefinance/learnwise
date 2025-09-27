@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Send, User, Bot, Plus, MessageSquare, Trash2, Edit, Home, Upload, Share2, MoreHorizontal, ChevronDown, UploadCloud } from "lucide-react";
+import { Send, User, Bot, Plus, MessageSquare, Trash2, Edit, Home, Upload, Share2, MoreHorizontal, Info, Sparkles } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -20,6 +20,9 @@ import { collection, addDoc, query, where, getDocs, deleteDoc, doc, updateDoc, o
 import { useRouter } from 'next/navigation';
 import { studyPlannerFlow, generateChatTitle, analyzeImage } from '@/lib/actions';
 import AIBuddy from '@/components/ai-buddy';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { format } from 'date-fns';
 
 interface Message {
   role: 'user' | 'ai';
@@ -108,10 +111,9 @@ export default function AiChatPage() {
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const userSessions = querySnapshot.docs.map(doc => {
             const data = doc.data() as FirestoreChatSession;
-            const { id, ...rest } = data as any;  // <-- Remove id from data to prevent duplicate key
             return {
                 id: doc.id,
-                ...rest,
+                ...data,
                 timestamp: data.timestamp.toMillis()
             } as ChatSession;
         });
@@ -131,7 +133,7 @@ export default function AiChatPage() {
 
     return () => unsubscribe();
 
-  }, [user, authLoading, router]);
+  }, [user, authLoading, router, activeSessionId]);
 
   
   useEffect(() => {
@@ -166,7 +168,7 @@ export default function AiChatPage() {
     const newSessionData: any = {
         title: title,
         messages: [{ role: 'ai', content: initialMessage }],
-        timestamp: new Date(),
+        timestamp: Timestamp.now(),
         titleGenerated: !!courseIdParam,
         userId: user.uid,
     };
@@ -223,14 +225,12 @@ export default function AiChatPage() {
       const aiMessage: Message = { role: 'ai', content: response };
       const finalMessages = [...updatedMessages, aiMessage];
       
-      // The real-time listener will handle updating the UI, so we just update Firestore.
-      // We set isLoading to false *before* the update to prevent a race condition.
       setIsLoading(false);
 
       const sessionRef = doc(db, "chatSessions", activeSession.id);
-      await updateDoc(sessionRef, { messages: finalMessages });
+      await updateDoc(sessionRef, { messages: finalMessages, timestamp: Timestamp.now() });
 
-      if (!activeSession.titleGenerated && activeSession.messages.length <= 2) {
+      if (!activeSession.titleGenerated && activeSession.messages.length <= 3) {
           const { title } = await generateChatTitle({ messages: finalMessages });
           await updateDoc(sessionRef, { title, titleGenerated: true });
       }
@@ -271,14 +271,34 @@ export default function AiChatPage() {
   };
   
   const handleDeleteSession = async (sessionId: string) => {
+    if (sessions.length <= 1) {
+        toast({ variant: 'destructive', title: 'Cannot delete last chat.'});
+        return;
+    }
     try {
         await deleteDoc(doc(db, "chatSessions", sessionId));
         toast({ title: 'Chat deleted.' });
         if (activeSessionId === sessionId) {
-          setActiveSessionId(null);
+            // Find a new session to make active
+            const newActiveSession = sessions.find(s => s.id !== sessionId);
+            setActiveSessionId(newActiveSession ? newActiveSession.id : null);
         }
     } catch (error) {
         toast({ variant: 'destructive', title: 'Error', description: 'Could not delete chat.'});
+    }
+  };
+
+  const handleClearMessages = async (sessionId: string) => {
+    if (!user) return;
+    try {
+        const sessionRef = doc(db, 'chatSessions', sessionId);
+        await updateDoc(sessionRef, {
+            messages: [{ role: 'ai', content: `Hey ${user.displayName?.split(' ')[0] || 'there'}! Let's start over. What's on your mind?` }]
+        });
+        toast({ title: 'Chat Cleared' });
+    } catch (error) {
+        console.error("Error clearing messages:", error);
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not clear chat messages.' });
     }
   };
   
@@ -348,7 +368,7 @@ export default function AiChatPage() {
 
 
   return (
-    <div className="flex h-screen bg-background text-foreground">
+    <div className="flex h-screen flex-col bg-background text-foreground">
       {/* Sidebar */}
       <aside className="w-72 bg-muted/40 p-2 flex-col border-r hidden md:flex">
         <div className="p-2 flex justify-between items-center">
@@ -383,18 +403,18 @@ export default function AiChatPage() {
                         )}
                         <div className="absolute right-1 top-1/2 -translate-y-1/2 flex opacity-0 group-hover:opacity-100 transition-opacity">
                             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => startRename(session)}><Edit className="h-4 w-4"/></Button>
-                            <Dialog>
-                                <DialogTrigger asChild>
+                             <AlertDialog>
+                                <AlertDialogTrigger asChild>
                                     <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive"><Trash2 className="h-4 w-4"/></Button>
-                                </DialogTrigger>
-                                <DialogContent>
-                                    <DialogHeader><DialogTitle>Delete Chat?</DialogTitle><DialogDescription>This action cannot be undone.</DialogDescription></DialogHeader>
-                                    <DialogFooter>
-                                        <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
-                                        <Button variant="destructive" onClick={() => handleDeleteSession(session.id)}>Delete</Button>
-                                    </DialogFooter>
-                                </DialogContent>
-                            </Dialog>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader><AlertDialogTitle>Delete Chat?</AlertDialogTitle><AlertDialogDescription>This action cannot be undone.</AlertDialogDescription></AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction onClick={() => handleDeleteSession(session.id)}>Delete</AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
                         </div>
                     </div>
                 ))}
@@ -406,47 +426,108 @@ export default function AiChatPage() {
       <div className="flex-1 flex flex-col h-screen">
         <div className="flex items-center justify-between p-4 border-b">
             <div className="flex items-center gap-2">
-                <h2 className="text-lg font-semibold">LearnWise AI</h2>
+                <h2 className="text-lg font-semibold">{activeSession?.title || "LearnWise AI"}</h2>
             </div>
             <div className="flex items-center gap-2">
-                <Button variant="ghost" size="sm">
-                    <Share2 className="h-4 w-4 mr-2" /> Share
-                </Button>
-                 <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <MoreHorizontal className="h-4 w-4" />
-                </Button>
+                 <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                            <Share2 className="h-4 w-4 mr-2" /> Share
+                        </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Coming Soon!</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                The ability to share chats via a public link is under development. Stay tuned!
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogAction>Got it</AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+                 <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DialogTrigger asChild>
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                <Info className="mr-2 h-4 w-4"/> View Info
+                            </DropdownMenuItem>
+                        </DialogTrigger>
+                        <DropdownMenuItem onSelect={() => activeSession && startRename(activeSession)}>
+                            <Edit className="mr-2 h-4 w-4"/> Rename Chat
+                        </DropdownMenuItem>
+                         <DropdownMenuSeparator />
+                         <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                 <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                    <Sparkles className="mr-2 h-4 w-4"/> Clear Messages
+                                </DropdownMenuItem>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>Clear All Messages?</AlertDialogTitle>
+                                    <AlertDialogDescription>This will delete all messages in this chat, but the chat session will remain. This action cannot be undone.</AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => activeSession && handleClearMessages(activeSession.id)}>Clear Messages</AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                         </AlertDialog>
+                        <AlertDialog>
+                             <AlertDialogTrigger asChild>
+                                <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
+                                    <Trash2 className="mr-2 h-4 w-4"/> Delete Chat
+                                </DropdownMenuItem>
+                             </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                    <AlertDialogDescription>This will permanently delete this chat session. This action cannot be undone.</AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => activeSession && handleDeleteSession(activeSession.id)}>Delete</AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                         </AlertDialog>
+                    </DropdownMenuContent>
+                 </DropdownMenu>
+
+                 <Dialog>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Chat Information</DialogTitle>
+                        </DialogHeader>
+                        <div className="py-4 space-y-2">
+                            <p><strong>Title:</strong> {activeSession?.title}</p>
+                            <p><strong>Created:</strong> {activeSession ? format(activeSession.timestamp, 'PPP p') : 'N/A'}</p>
+                            <p><strong>Messages:</strong> {activeSession?.messages.length}</p>
+                            <p><strong>Course Context:</strong> {activeSession?.courseContext || 'General Chat'}</p>
+                        </div>
+                        <DialogFooter>
+                            <DialogClose asChild>
+                                <Button>Close</Button>
+                            </DialogClose>
+                        </DialogFooter>
+                    </DialogContent>
+                 </Dialog>
+
             </div>
         </div>
-        <div className="flex-grow overflow-y-auto">
-            <ScrollArea className="h-full" ref={scrollAreaRef}>
-              <div className="max-w-3xl mx-auto p-4 md:p-8 space-y-8 pb-32">
-                {activeSession?.messages.map((message, index) => (
-                  <div key={index} className={cn("flex items-start gap-4", message.role === 'user' ? "justify-end" : "")}>
-                    {message.role === 'ai' && (
-                         <Avatar className="h-10 w-10">
-                            <div className="w-full h-full flex items-center justify-center bg-primary/10 rounded-full">
-                                 <AIBuddy
-                                    className="w-16 h-16"
-                                    color={customizations.color}
-                                    hat={customizations.hat}
-                                    shirt={customizations.shirt}
-                                    shoes={customizations.shoes}
-                                />
-                            </div>
-                        </Avatar>
-                    )}
-                    <div className={cn(
-                        "p-4 rounded-lg max-w-xl",
-                        message.role === 'user' ? "bg-primary text-primary-foreground ml-auto" : "bg-muted"
-                      )}>
-                      <p className="whitespace-pre-wrap">{message.content}</p>
-                    </div>
-                  </div>
-                ))}
-                {isLoading && (
-                  <div className="flex items-start gap-4">
-                    <Avatar className="h-10 w-10">
-                         <div className="w-full h-full flex items-center justify-center bg-primary/10 rounded-full">
+        <ScrollArea className="flex-1" ref={scrollAreaRef}>
+          <div className="max-w-3xl mx-auto p-4 md:p-8 space-y-8 pb-32">
+            {activeSession?.messages.map((message, index) => (
+              <div key={index} className={cn("flex items-start gap-4", message.role === 'user' ? "justify-end" : "")}>
+                {message.role === 'ai' && (
+                     <Avatar className="h-10 w-10">
+                        <div className="w-full h-full flex items-center justify-center bg-primary/10 rounded-full">
                              <AIBuddy
                                 className="w-16 h-16"
                                 color={customizations.color}
@@ -456,14 +537,35 @@ export default function AiChatPage() {
                             />
                         </div>
                     </Avatar>
-                    <div className="bg-muted rounded-lg p-4">
-                      <p className="animate-pulse">Thinking...</p>
-                    </div>
-                  </div>
                 )}
+                <div className={cn(
+                    "p-4 rounded-lg max-w-xl",
+                    message.role === 'user' ? "bg-primary text-primary-foreground ml-auto" : "bg-muted"
+                  )}>
+                  <p className="whitespace-pre-wrap">{message.content}</p>
+                </div>
               </div>
-            </ScrollArea>
-        </div>
+            ))}
+            {isLoading && (
+              <div className="flex items-start gap-4">
+                <Avatar className="h-10 w-10">
+                     <div className="w-full h-full flex items-center justify-center bg-primary/10 rounded-full">
+                         <AIBuddy
+                            className="w-16 h-16"
+                            color={customizations.color}
+                            hat={customizations.hat}
+                            shirt={customizations.shirt}
+                            shoes={customizations.shoes}
+                        />
+                    </div>
+                </Avatar>
+                <div className="bg-muted rounded-lg p-4">
+                  <p className="animate-pulse">Thinking...</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </ScrollArea>
 
         <div className="px-4 py-2 bg-transparent border-t">
           <div className="relative max-w-3xl mx-auto">
@@ -507,7 +609,7 @@ export default function AiChatPage() {
                                 accept="image/*"
                             />
                             <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                              <UploadCloud className="w-10 h-10 mb-4 text-muted-foreground" />
+                              <Upload className="w-10 h-10 mb-4 text-muted-foreground" />
                               <p className="mb-2 text-lg font-semibold">
                                 Drag and drop your file here
                               </p>
