@@ -333,7 +333,7 @@ export default function AiChatPage() {
       </aside>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col h-full relative">
+      <div className="flex-1 flex flex-col h-screen relative">
          <div className="flex items-center justify-between p-4 border-b">
             <div className="flex items-center gap-2">
                 <h2 className="text-lg font-semibold">LearnWise AI</h2>
@@ -349,11 +349,11 @@ export default function AiChatPage() {
             </div>
         </div>
         <ScrollArea className="flex-grow" ref={scrollAreaRef}>
-          <div className="max-w-3xl mx-auto p-4 md:p-8 space-y-8 pb-24">
+          <div className="max-w-3xl mx-auto p-4 md:p-8 space-y-8 pb-32">
             {activeSession?.messages.map((message, index) => (
               <div key={index} className={cn("flex items-start gap-4", message.role === 'user' ? "justify-end" : "")}>
                 {message.role === 'ai' && (
-                     <Avatar className="h-12 w-12">
+                     <Avatar className="h-10 w-10">
                         <div className="w-full h-full flex items-center justify-center bg-primary/10 rounded-full">
                              <AIBuddy
                                 className="w-16 h-16"
@@ -375,7 +375,7 @@ export default function AiChatPage() {
             ))}
             {isLoading && (
               <div className="flex items-start gap-4">
-                <Avatar className="h-12 w-12">
+                <Avatar className="h-10 w-10">
                      <div className="w-full h-full flex items-center justify-center bg-primary/10 rounded-full">
                          <AIBuddy
                             className="w-16 h-16"
