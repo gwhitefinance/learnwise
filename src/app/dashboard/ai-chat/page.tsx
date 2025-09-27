@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Send, User, Bot, Plus, MessageSquare, Trash2, Edit, Home, Upload, Share2, MoreHorizontal, ChevronDown } from "lucide-react";
+import { Send, User, Bot, Plus, MessageSquare, Trash2, Edit, Home, Upload, Share2, MoreHorizontal, ChevronDown, UploadCloud } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -79,6 +79,11 @@ export default function AiChatPage() {
   const [user, authLoading] = useAuthState(auth);
   const router = useRouter();
   const [customizations, setCustomizations] = useState<Record<string, string>>({});
+  
+  // State for upload dialog
+  const [isUploadOpen, setUploadOpen] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [files, setFiles] = useState<FileList | null>(null);
 
 
   useEffect(() => {
@@ -277,6 +282,52 @@ export default function AiChatPage() {
     }
   };
   
+  const handleFileChange = (selectedFiles: FileList | null) => {
+    if (selectedFiles) {
+      setFiles(selectedFiles);
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!files || files.length === 0 || !user || !activeSessionId) {
+      toast({
+        variant: 'destructive',
+        title: 'No files selected',
+        description: 'Please select at least one file to upload.',
+      });
+      return;
+    }
+    
+    // For now, just add a message to the chat.
+    const fileNames = Array.from(files).map(f => f.name).join(', ');
+    const messageContent = `I've uploaded the following file(s): ${fileNames}. Can you help me with this?`;
+    setInput(messageContent);
+    // You might want to call handleSendMessage() here automatically, or let the user edit.
+    
+    // In a real app, you would upload the file to storage and pass a reference to the AI.
+    toast({
+        title: 'Files Ready!',
+        description: `The file names have been added to your message. You can now ask the AI about them.`,
+    });
+
+    setFiles(null);
+    setUploadOpen(false);
+  };
+    
+  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); };
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); };
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); if (!isDragging) setIsDragging(true); };
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    const droppedFiles = e.dataTransfer.files;
+    if (droppedFiles && droppedFiles.length > 0) {
+      handleFileChange(droppedFiles);
+    }
+  };
+
+
   return (
     <div className="flex h-screen bg-background text-foreground">
       {/* Sidebar */}
@@ -407,7 +458,62 @@ export default function AiChatPage() {
               disabled={isLoading}
             />
             <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-2">
-                 <Button variant="outline" size="icon" className="rounded-full h-9 w-9 p-0"><Upload className="h-4 w-4"/></Button>
+                 <Dialog open={isUploadOpen} onOpenChange={setUploadOpen}>
+                    <DialogTrigger asChild>
+                        <Button variant="outline" size="icon" className="rounded-full h-9 w-9 p-0"><Upload className="h-4 w-4"/></Button>
+                    </DialogTrigger>
+                    <DialogContent
+                        onDragEnter={handleDragEnter}
+                        onDragLeave={handleDragLeave}
+                        onDragOver={handleDragOver}
+                        onDrop={handleDrop}
+                    >
+                        <DialogHeader>
+                            <DialogTitle>Upload File</DialogTitle>
+                            <DialogDescription>
+                                Upload a file to discuss it with the AI.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div 
+                            className={cn(
+                                "relative flex flex-col items-center justify-center w-full p-12 border-2 border-dashed rounded-lg cursor-pointer transition-colors",
+                                isDragging ? "border-primary bg-primary/10" : "border-border hover:border-primary/50"
+                            )}
+                            onClick={() => document.getElementById('chat-file-upload')?.click()}
+                        >
+                            <input 
+                                id="chat-file-upload"
+                                type="file" 
+                                multiple 
+                                className="hidden"
+                                onChange={(e) => handleFileChange(e.target.files)}
+                            />
+                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                              <UploadCloud className="w-10 h-10 mb-4 text-muted-foreground" />
+                              <p className="mb-2 text-lg font-semibold">
+                                Drag and drop your file here
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                Or click to browse
+                              </p>
+                            </div>
+                        </div>
+                        {files && files.length > 0 && (
+                          <div className="mt-4">
+                              <h3 className="text-lg font-semibold">Selected files:</h3>
+                              <ul className="list-disc list-inside mt-2 text-sm text-muted-foreground">
+                                  {Array.from(files).map((file, index) => (
+                                      <li key={index}>{file.name}</li>
+                                  ))}
+                              </ul>
+                          </div>
+                        )}
+                        <DialogFooter>
+                            <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
+                            <Button onClick={handleUpload} disabled={!files}>Upload</Button>
+                        </DialogFooter>
+                    </DialogContent>
+                 </Dialog>
                 <Button className="rounded-full h-9 w-9 p-0" onClick={handleSendMessage} disabled={isLoading || !activeSessionId}>
                     <Send className="h-4 w-4" />
                 </Button>
