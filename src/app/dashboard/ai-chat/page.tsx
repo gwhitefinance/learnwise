@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
@@ -347,13 +348,17 @@ export default function AiChatPage() {
                     {activeSession?.messages.map((message, index) => (
                     <div key={index} className={`flex items-start gap-4 ${message.role === 'user' ? 'justify-end' : ''}`}>
                         {message.role === 'ai' && (
-                           <AIBuddy 
-                                className="w-4 h-4"
-                                color={customizations.color}
-                                hat={customizations.hat}
-                                shirt={customizations.shirt}
-                                shoes={customizations.shoes}
-                            />
+                            <Avatar className="h-8 w-8">
+                                <AvatarFallback className="bg-transparent">
+                                    <AIBuddy
+                                        className="w-full h-full"
+                                        color={customizations.color}
+                                        hat={customizations.hat}
+                                        shirt={customizations.shirt}
+                                        shoes={customizations.shoes}
+                                    />
+                                </AvatarFallback>
+                            </Avatar>
                         )}
                         <div className="max-w-md">
                             <div className={`text-xs font-semibold mb-1 ${message.role === 'user' ? 'text-right' : 'text-left'}`}>
@@ -375,13 +380,17 @@ export default function AiChatPage() {
                     ))}
                     {isLoading && (
                         <div className="flex items-start gap-4">
-                             <AIBuddy 
-                                className="w-4 h-4"
-                                color={customizations.color}
-                                hat={customizations.hat}
-                                shirt={customizations.shirt}
-                                shoes={customizations.shoes}
-                            />
+                             <Avatar className="h-8 w-8">
+                                <AvatarFallback className="bg-transparent">
+                                    <AIBuddy
+                                        className="w-full h-full"
+                                        color={customizations.color}
+                                        hat={customizations.hat}
+                                        shirt={customizations.shirt}
+                                        shoes={customizations.shoes}
+                                    />
+                                </AvatarFallback>
+                            </Avatar>
                             <div className="max-w-md">
                                 <div className="text-xs font-semibold mb-1">AI Assistant</div>
                                 <div className="bg-background border rounded-lg p-3">
