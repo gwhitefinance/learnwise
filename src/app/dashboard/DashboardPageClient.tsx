@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useContext } from 'react';
@@ -798,9 +799,9 @@ function DashboardPageClient({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                 This is your central hub for all your learning activities. Let's make today a productive one!
                             </p>
                              <div className="mt-4">
-                                <Link href="/dashboard/ai-chat">
+                                <Link href="/dashboard/courses">
                                     <Button variant="outline" className="bg-white/20 text-white hover:bg-white/30 rounded-xl">
-                                        Start Chat
+                                        Go to courses
                                         <ArrowRight className="ml-2 h-4 w-4" />
                                     </Button>
                                 </Link>
