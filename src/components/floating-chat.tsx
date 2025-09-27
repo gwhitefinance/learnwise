@@ -151,9 +151,9 @@ export default function FloatingChat() {
                             ))}
                             {isLoading && (
                                 <div className="flex items-end gap-2">
-                                    <Avatar className="h-8 w-8">
+                                    <Avatar className="h-16 w-16">
                                         <div className="w-full h-full flex items-center justify-center bg-primary/10 rounded-full">
-                                            <AIBuddy className="w-10 h-10" {...customizations}/>
+                                            <AIBuddy className="w-20 h-20" {...customizations}/>
                                         </div>
                                     </Avatar>
                                     <div className="p-3 rounded-2xl max-w-[80%] text-sm bg-muted rounded-bl-none">
@@ -189,7 +189,7 @@ export default function FloatingChat() {
                         initial={{ opacity: 0, y: 10, scale: 0.9 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, x: 20, transition: { duration: 0.2 } }}
-                        className="bg-card border p-4 rounded-xl shadow-lg mb-2 mr-20"
+                        className="bg-card border p-4 rounded-xl shadow-lg mb-2 -mr-12"
                     >
                         <p className="font-semibold">Hello {user?.displayName?.split(' ')[0] || 'there'}!</p>
                         <p className="text-sm text-muted-foreground">I am your AI buddy. Chat with me at any time.</p>
