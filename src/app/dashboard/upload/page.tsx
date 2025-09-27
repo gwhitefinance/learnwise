@@ -210,18 +210,22 @@ export default function UploadPage() {
       
       setIsLoading(true);
       
+      // Use the last answer or a placeholder if none was selected
       const lastAnswer = selectedPracticeAnswer || tutoringSession.practiceQuestion.options[0];
       
       try {
           const result = await generateExplanation({
               question: tutoringSession.practiceQuestion.question,
-              userAnswer: lastAnswer,
+              userAnswer: lastAnswer, // Provide context for the type of question needed
               correctAnswer: tutoringSession.practiceQuestion.answer,
               learnerType: (learnerType as any) ?? 'Reading/Writing',
-              provideFullExplanation: false,
+              provideFullExplanation: false, // This is the key change
           });
 
+          // Only update the practice question part of the session
           setTutoringSession(prev => prev ? ({ ...prev, practiceQuestion: result.practiceQuestion }) : null);
+          
+          // Reset the state for the new question
           setSelectedPracticeAnswer(null);
           setPracticeAnswerFeedback(null);
           setExplanation(null);
