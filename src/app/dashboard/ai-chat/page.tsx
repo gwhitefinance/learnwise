@@ -360,7 +360,7 @@ export default function AiChatPage() {
                                 </AvatarFallback>
                             </Avatar>
                         )}
-                        <div className="max-w-md">
+                        <div className={`max-w-md ${message.role === 'user' ? 'order-last' : ''}`}>
                             <div className={`text-xs font-semibold mb-1 ${message.role === 'user' ? 'text-right' : 'text-left'}`}>
                             {message.role === 'ai' ? 'AI Assistant' : 'You'}
                             </div>
