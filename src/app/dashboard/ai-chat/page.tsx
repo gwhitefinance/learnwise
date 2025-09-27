@@ -333,7 +333,7 @@ export default function AiChatPage() {
       </aside>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col h-full">
          <div className="flex items-center justify-between p-4 border-b">
             <div className="flex items-center gap-2">
                 <h2 className="text-lg font-semibold">LearnWise AI</h2>
@@ -348,10 +348,10 @@ export default function AiChatPage() {
                 </Button>
             </div>
         </div>
-        <ScrollArea className="flex-1" ref={scrollAreaRef}>
+        <ScrollArea className="flex-grow" ref={scrollAreaRef}>
           <div className="max-w-3xl mx-auto p-4 md:p-8 space-y-8">
             {activeSession?.messages.map((message, index) => (
-              <div key={index} className={cn("flex items-start gap-4", message.role === 'user' ? "ml-auto justify-end" : "justify-start")}>
+              <div key={index} className={cn("flex items-start gap-4", message.role === 'user' ? "justify-end" : "justify-start")}>
                 {message.role === 'ai' && (
                     <Avatar className="h-12 w-12">
                         <div className="w-full h-full flex items-center justify-center bg-primary/10 rounded-full">
@@ -416,4 +416,3 @@ export default function AiChatPage() {
     </div>
   );
 }
-
