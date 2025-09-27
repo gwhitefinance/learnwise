@@ -3,33 +3,50 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Helper function to check ownership
-    function isOwner(userId) {
-      return request.auth != null && request.auth.uid == userId;
+  
+    // Default: Deny all reads and writes
+    match /{document=**} {
+      allow read, write: if false;
     }
 
-    // Users can read their own profile, but can only create one for themselves.
-    // No one can update or delete user profiles from the client.
+    // Allow users to read and write their own data in most collections
+    // This is a common pattern for user-owned data.
     match /users/{userId} {
-      allow read, create: if isOwner(userId);
-      allow update, delete: if false;
+      allow read, update: if request.auth.uid == userId;
+    }
+    
+    match /courses/{courseId} {
+      allow read, write: if request.auth.uid == request.resource.data.userId;
+    }
+    
+    match /notes/{noteId} {
+      allow read, write: if request.auth.uid == request.resource.data.userId;
+    }
+    
+    match /projects/{projectId} {
+       allow read, write: if request.auth.uid == request.resource.data.userId;
+    }
+    
+    match /recentFiles/{fileId} {
+        allow read, write: if request.auth.uid == request.resource.data.userId;
+    }
+    
+    match /calendarEvents/{eventId} {
+        allow read, write: if request.auth.uid == request.resource.data.userId;
     }
 
-    // Secure the chatSessions collection
+    match /quizAttempts/{attemptId} {
+        allow read, write: if request.auth.uid == request.resource.data.userId;
+    }
+
+    // Chat sessions are special.
+    // A user can read/write their OWN chat sessions.
     match /chatSessions/{sessionId} {
-      allow create: if isOwner(request.resource.data.userId);
-      allow read, update, delete: if isOwner(resource.data.userId);
-      // Users can list their own chats, but not anyone else's
-      allow list: if request.auth != null && request.query.where.userId == request.auth.uid;
-    }
+      allow read, write: if request.auth.uid == resource.data.userId;
 
-    // Generic rule for other user-owned content
-    match /{collection}/{docId} where collection in ['courses', 'projects', 'notes', 'recentFiles', 'calendarEvents', 'quizAttempts', 'roadmaps'] {
-      allow create: if isOwner(request.resource.data.userId);
-      allow read, update, delete: if isOwner(resource.data.userId);
-      allow list: if request.auth != null
-                  && request.query.where('userId', '==', request.auth.uid).exists();
+      // Anyone can read a chat session IF it is marked as public.
+      // This rule is additive to the one above it.
+      allow get: if resource.data.isPublic == true;
     }
   }
 }
