@@ -345,9 +345,9 @@ export default function AiChatPage() {
         
         <div className="flex flex-col flex-1 h-screen">
             <div className="flex-1 overflow-y-auto p-4" ref={scrollAreaRef}>
-                <div className="flex flex-col gap-4 max-w-4xl mx-auto">
+                <div className="flex flex-col gap-4 max-w-4xl">
                     {activeSession?.messages.map((message, index) => (
-                    <div key={index} className={`flex items-start gap-4 ${message.role === 'user' ? '' : ''}`}>
+                    <div key={index} className={`flex items-start gap-4 ${message.role === 'user' ? 'ml-auto' : ''}`}>
                         {message.role === 'ai' && (
                             <Avatar className="h-12 w-12">
                                 <AvatarFallback className="bg-transparent">
@@ -361,7 +361,7 @@ export default function AiChatPage() {
                                 </AvatarFallback>
                             </Avatar>
                         )}
-                        <div className={`max-w-md ${message.role === 'user' ? 'order-last ml-auto' : ''}`}>
+                        <div className={`max-w-md ${message.role === 'user' ? 'order-last' : ''}`}>
                             <div className={`text-xs font-semibold mb-1 ${message.role === 'user' ? 'text-right' : 'text-left'}`}>
                             {message.role === 'ai' ? 'AI Assistant' : 'You'}
                             </div>
