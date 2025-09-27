@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useRef, useContext } from 'react';
@@ -21,13 +22,17 @@ import { Slider } from '@/components/ui/slider';
 import AudioPlayer from '@/components/audio-player';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
-import { doc, updateDoc, increment, collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, updateDoc, increment, collection, addDoc, serverTimestamp, onSnapshot, query, where } from 'firebase/firestore';
 import { addXp as addXpAction, generateQuizAction } from '@/lib/actions';
 import { RewardContext } from '@/context/RewardContext';
 
 export const dynamic = "force-dynamic";
 
-const suggestedTopics = ["Mathematics", "Science", "History", "Literature", "Computer Science"];
+type Course = {
+    id: string;
+    name: string;
+    description: string;
+};
 
 type QuizState = 'configuring' | 'in-progress' | 'results';
 type AnswerState = 'unanswered' | 'answered';
@@ -37,6 +42,8 @@ export default function PracticeQuizPage() {
     const searchParams = useSearchParams();
     const initialTopic = searchParams.get('topic');
 
+    const [courses, setCourses] = useState<Course[]>([]);
+    const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
     const [topics, setTopics] = useState(initialTopic || '');
     const [questionType, setQuestionType] = useState('Multiple Choice');
     const [difficulty, setDifficulty] = useState('Medium');
@@ -55,7 +62,7 @@ export default function PracticeQuizPage() {
     const [learnerType, setLearnerType] = useState<string | null>(null);
     
     const { toast } = useToast();
-    const [user] = useAuthState(auth);
+    const [user, authLoading] = useAuthState(auth);
     const { showReward } = useContext(RewardContext);
 
     const [isFocusMode, setIsFocusMode] = useState(false);
@@ -75,30 +82,26 @@ export default function PracticeQuizPage() {
     }, [searchParams]);
 
     useEffect(() => {
-        const storedLearnerType = localStorage.getItem('learnerType');
-        setLearnerType(storedLearnerType ?? 'Unknown');
-    }, []);
-
-    const enterFocusMode = () => {
-        document.documentElement.requestFullscreen().then(() => {
-            setIsFocusMode(true);
-            startQuiz(); // Start the quiz right after entering fullscreen
-        }).catch(err => {
-            console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
-            // If fullscreen fails, still start the quiz.
-            setIsFocusMode(false);
-            startQuiz();
-        });
-    };
-
-    const exitFocusMode = () => {
-        if (document.fullscreenElement) {
-            document.exitFullscreen();
+        if (!authLoading && user) {
+            const q = query(collection(db, "courses"), where("userId", "==", user.uid));
+            const unsubscribe = onSnapshot(q, (querySnapshot) => {
+                const userCourses = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
+                setCourses(userCourses);
+                // Pre-select course if topic matches
+                const matchingCourse = userCourses.find(c => c.name.toLowerCase() === (initialTopic || '').toLowerCase());
+                if (matchingCourse) {
+                    setSelectedCourseId(matchingCourse.id);
+                }
+            });
+            return () => unsubscribe();
         }
-        setIsFocusMode(false);
-    };
+    }, [user, authLoading, initialTopic]);
+
 
     useEffect(() => {
+        const storedLearnerType = localStorage.getItem('learnerType');
+        setLearnerType(storedLearnerType ?? 'Unknown');
+
         const handleFullscreenChange = () => {
             if (!document.fullscreenElement) {
                 setIsFocusMode(false);
@@ -112,12 +115,30 @@ export default function PracticeQuizPage() {
         };
     }, []);
 
+    const enterFocusMode = () => {
+        document.documentElement.requestFullscreen().then(() => {
+            setIsFocusMode(true);
+            startQuiz(); // Start the quiz right after entering fullscreen
+        }).catch(err => {
+            console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+            setIsFocusMode(false);
+            startQuiz();
+        });
+    };
+
+    const exitFocusMode = () => {
+        if (document.fullscreenElement) {
+            document.exitFullscreen();
+        }
+        setIsFocusMode(false);
+    };
+
     const handleGenerateQuiz = async () => {
         if (!topics.trim()) {
             toast({
                 variant: 'destructive',
-                title: 'Topics are required',
-                description: 'Please enter some topics or keywords for your quiz.',
+                title: 'Course or Topics are required',
+                description: 'Please select a course or enter some topics for your quiz.',
             });
             return;
         }
@@ -132,7 +153,7 @@ export default function PracticeQuizPage() {
             };
             const generatedQuiz = await generateQuizAction(input);
             setQuiz(generatedQuiz);
-            setShowFocusModeDialog(true); // Show focus mode dialog
+            setShowFocusModeDialog(true);
              toast({
                 title: 'Quiz Generated!',
                 description: 'Your quiz is ready.',
@@ -176,23 +197,22 @@ export default function PracticeQuizPage() {
         setAnswers(prev => [...prev, answerFeedback]);
         
         if (!isCorrect) {
-            // Save incorrect answer to Firestore
             try {
                 await addDoc(collection(db, 'quizAttempts'), {
                     userId: user.uid,
                     question: currentQuestion.question,
                     userAnswer: selectedAnswer,
                     correctAnswer: currentQuestion.answer,
-                    topic: topics, // Store the general topic for context
+                    topic: topics,
+                    courseId: selectedCourseId, // Save courseId with the attempt
                     timestamp: serverTimestamp()
                 });
             } catch (error) {
                 console.error("Error saving incorrect answer:", error);
             }
             
-            // Generate explanation
             setIsExplanationLoading(true);
-            setExplanation(null); // Clear previous explanation
+            setExplanation(null);
             try {
                 const explanationResult = await generateExplanation({
                     question: currentQuestion.question,
@@ -221,10 +241,9 @@ export default function PracticeQuizPage() {
         if (currentQuestionIndex < quiz.questions.length - 1) {
             setCurrentQuestionIndex(prev => prev + 1);
         } else {
-            // Quiz finished, award coins and XP
             const correctAnswers = answers.filter(a => a.isCorrect).length;
             if (correctAnswers > 0) {
-                const xpEarned = correctAnswers * 10; // 10 XP per correct answer
+                const xpEarned = correctAnswers * 10;
                 try {
                     const { levelUp, newLevel, newCoins } = await addXpAction(user.uid, xpEarned);
                     if (levelUp) {
@@ -260,8 +279,17 @@ export default function PracticeQuizPage() {
         setCurrentQuestionIndex(0);
         setAnswers([]);
         setTopics('');
+        setSelectedCourseId(null);
         setFeedback(null);
         setAnswerState('unanswered');
+    }
+
+    const handleCourseSelection = (courseId: string) => {
+        setSelectedCourseId(courseId);
+        const selected = courses.find(c => c.id === courseId);
+        if (selected) {
+            setTopics(selected.name);
+        }
     }
 
     // Whiteboard functions
@@ -325,7 +353,6 @@ export default function PracticeQuizPage() {
     };
 
     const whiteboardColors = ['#000000', '#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6'];
-
 
     const score = answers.filter(a => a.isCorrect).length;
     const totalQuestions = quiz?.questions.length ?? 0;
@@ -528,26 +555,32 @@ export default function PracticeQuizPage() {
 
             <Card className="w-full max-w-3xl">
                 <CardContent className="p-8">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
                         <div>
-                            <Label htmlFor="topics" className="text-sm font-medium">Enter Topics or Keywords</Label>
+                            <Label htmlFor="course">Select a Course</Label>
+                            <Select value={selectedCourseId ?? ''} onValueChange={handleCourseSelection}>
+                                <SelectTrigger id="course" className="mt-2">
+                                    <SelectValue placeholder="Select one of your courses..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {courses.map(course => (
+                                        <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div>
+                            <Label htmlFor="topics">Or Enter Custom Topics</Label>
                             <Input 
                                 id="topics" 
                                 placeholder="e.g., Photosynthesis, World War II" 
                                 className="mt-2"
                                 value={topics}
-                                onChange={(e) => setTopics(e.target.value)}
+                                onChange={(e) => {
+                                    setTopics(e.target.value);
+                                    if (selectedCourseId) setSelectedCourseId(null);
+                                }}
                             />
-                        </div>
-                        <div>
-                             <Label className="text-sm font-medium">Or Select a Suggested Area</Label>
-                             <div className="flex flex-wrap gap-2 mt-2">
-                                {suggestedTopics.map(topic => (
-                                    <Button key={topic} variant="outline" size="sm" onClick={() => setTopics(prev => prev ? `${prev}, ${topic}` : topic)}>
-                                        {topic}
-                                    </Button>
-                                ))}
-                             </div>
                         </div>
                     </div>
 
