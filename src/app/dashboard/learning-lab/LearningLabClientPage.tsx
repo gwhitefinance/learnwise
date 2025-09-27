@@ -1,6 +1,5 @@
 
 
-
 'use client';
 
 import { useState, useEffect, useContext } from 'react';
@@ -98,10 +97,7 @@ export default function LearningLabClientPage() {
   const [quizState, setQuizState] = useState<QuizState>('configuring');
   const [currentQuizQuestionIndex, setCurrentQuizQuestionIndex] = useState(0);
   const [selectedQuizAnswer, setSelectedQuizAnswer] = useState<string | null>(null);
-  const [quizFeedback, setQuizFeedback] = useState<AnswerFeedback | null>(null);
   const [quizAnswers, setQuizAnswers] = useState<AnswerFeedback[]>([]);
-  const [explanation, setExplanation] = useState<string | null>(null);
-  const [isExplanationLoading, setIsExplanationLoading] = useState(false);
 
   
   const [isFlashcardDialogOpen, setFlashcardDialogOpen] = useState(false);
@@ -255,7 +251,6 @@ export default function LearningLabClientPage() {
     setQuizState('in-progress');
     setCurrentQuizQuestionIndex(0);
     setSelectedQuizAnswer(null);
-    setQuizFeedback(null);
     
     try {
         const result = await generateQuizFromModule({
@@ -289,57 +284,38 @@ export default function LearningLabClientPage() {
         isCorrect: isCorrect,
     };
     
-    setQuizFeedback(answerFeedback);
     setQuizAnswers(prev => [...prev, answerFeedback]);
-    
-    if (!isCorrect) {
-        try {
-            await addDoc(collection(db, 'quizAttempts'), {
-                userId: user.uid,
-                courseId: selectedCourseId,
-                topic: currentModule.title,
-                question: currentQuestion.question,
-                userAnswer: selectedQuizAnswer,
-                correctAnswer: currentQuestion.answer,
-                timestamp: serverTimestamp()
-            });
-        } catch (error) {
-            console.error("Error saving incorrect answer:", error);
-        }
-        
-        setIsExplanationLoading(true);
-        setExplanation(null);
-        try {
-            const explanationResult = await generateExplanation({
-                question: currentQuestion.question,
-                userAnswer: selectedQuizAnswer,
-                correctAnswer: currentQuestion.answer,
-                learnerType: (learnerType as any) ?? 'Unknown',
-                provideFullExplanation: true,
-            });
-            setExplanation(explanationResult.explanation);
-        } catch (error) {
-            console.error(error);
-            setExplanation("Sorry, I couldn't generate an explanation for this question.");
-        } finally {
-            setIsExplanationLoading(false);
-        }
-    }
-  };
-
-  const handleNextQuizQuestion = async () => {
-    if (!generatedQuiz || !user) return;
-    
-    setQuizFeedback(null);
-    setExplanation(null);
     setSelectedQuizAnswer(null);
 
     if (currentQuizQuestionIndex < generatedQuiz.questions.length - 1) {
         setCurrentQuizQuestionIndex(prev => prev + 1);
     } else {
-        const correctAnswers = quizAnswers.filter(a => a.isCorrect).length;
-        if (correctAnswers > 0) {
-            const xpEarned = correctAnswers * 10;
+        // This is the last question, process all answers now
+        const allAnswers = [...quizAnswers, answerFeedback];
+        const correctCount = allAnswers.filter(a => a.isCorrect).length;
+
+        // Save incorrect answers
+        for (const answer of allAnswers) {
+            if (!answer.isCorrect) {
+                try {
+                    await addDoc(collection(db, 'quizAttempts'), {
+                        userId: user.uid,
+                        courseId: selectedCourseId,
+                        topic: currentModule.title,
+                        question: answer.question,
+                        userAnswer: answer.answer,
+                        correctAnswer: answer.correctAnswer,
+                        timestamp: serverTimestamp()
+                    });
+                } catch (error) {
+                    console.error("Error saving incorrect answer:", error);
+                }
+            }
+        }
+        
+        // Award XP
+        if (correctCount > 0) {
+            const xpEarned = correctCount * 10;
             try {
                 const { levelUp, newLevel, newCoins } = await addXp(user.uid, xpEarned);
                 if (levelUp) {
@@ -354,7 +330,6 @@ export default function LearningLabClientPage() {
         setQuizState('results');
     }
   };
-
   
   const handleGenerateFlashcards = async (module: Module) => {
     const moduleContent = module.chapters.map(c => `Chapter: ${c.title}\n${c.content}`).join('\n\n');
@@ -717,14 +692,13 @@ export default function LearningLabClientPage() {
                 </div>
                  <Card className="w-full max-w-3xl">
                     <CardContent className="p-8">
-                         <RadioGroup value={selectedQuizAnswer ?? ''} onValueChange={setSelectedQuizAnswer} disabled={!!quizFeedback}>
+                         <RadioGroup value={selectedQuizAnswer ?? ''} onValueChange={setSelectedQuizAnswer}>
                             <div className="space-y-4">
                             {currentQuizQuestion.options?.map((option, index) => (
                                 <Label key={index} htmlFor={`option-${index}`} className={cn(
                                     "flex items-center gap-4 p-4 rounded-lg border transition-all cursor-pointer",
-                                    !quizFeedback && (selectedQuizAnswer === option ? "border-primary bg-primary/10" : "border-border hover:bg-muted"),
-                                    quizFeedback && option === currentQuizQuestion.answer && "border-green-500 bg-green-500/10",
-                                    quizFeedback && selectedQuizAnswer === option && option !== currentQuizQuestion.answer && "border-red-500 bg-red-500/10",
+                                    "border-border hover:bg-muted",
+                                    selectedQuizAnswer === option && "border-primary bg-primary/10"
                                 )}>
                                     <RadioGroupItem value={option} id={`option-${index}`} />
                                     <span>{option}</span>
@@ -733,16 +707,10 @@ export default function LearningLabClientPage() {
                             </div>
                         </RadioGroup>
                          <div className="mt-8 flex justify-end">
-                            {!quizFeedback ? (
-                                <Button onClick={handleSubmitQuizAnswer} disabled={!selectedQuizAnswer}>
-                                    Submit
-                                </Button>
-                            ) : (
-                                <Button onClick={handleNextQuizQuestion}>
-                                    {currentQuizQuestionIndex < totalQuestions - 1 ? 'Next Question' : 'Finish Quiz'}
-                                    <ArrowRight className="ml-2 h-4 w-4" />
-                                </Button>
-                            )}
+                            <Button onClick={handleSubmitQuizAnswer} disabled={!selectedQuizAnswer}>
+                                {currentQuizQuestionIndex < totalQuestions - 1 ? 'Next Question' : 'Finish Quiz'}
+                                <ArrowRight className="ml-2 h-4 w-4" />
+                            </Button>
                         </div>
                     </CardContent>
                 </Card>
@@ -773,44 +741,6 @@ export default function LearningLabClientPage() {
                 </Card>
             </div>
         )}
-        
-        <Dialog open={!!quizFeedback && !quizFeedback.isCorrect} onOpenChange={(open) => !open && handleNextQuizQuestion()}>
-            <DialogContent>
-                <DialogHeader>
-                        <div className="flex items-center gap-2 text-red-600">
-                        <XCircle className="h-8 w-8"/>
-                        <DialogTitle className="text-2xl">Not Quite...</DialogTitle>
-                    </div>
-                </DialogHeader>
-                <div className="mt-4 space-y-4">
-                    <div>
-                        <h4 className="font-semibold">Your Answer:</h4>
-                        <p className="text-muted-foreground">{quizFeedback?.answer}</p>
-                    </div>
-                        <div>
-                        <h4 className="font-semibold">Correct Answer:</h4>
-                        <p className="text-muted-foreground">{quizFeedback?.correctAnswer}</p>
-                    </div>
-                    <div className="p-4 bg-amber-500/10 rounded-lg border border-amber-500/20">
-                        <h4 className="font-semibold flex items-center gap-2 text-amber-700"><Lightbulb/> Explanation</h4>
-                        {isExplanationLoading ? (
-                            <p className="animate-pulse text-muted-foreground mt-2">Generating personalized feedback...</p>
-                        ) : (
-                            <div className="text-muted-foreground mt-2">
-                                {explanation && <AudioPlayer textToPlay={explanation} />}
-                                <p>{explanation}</p>
-                            </div>
-                        )}
-                    </div>
-                </div>
-                <DialogFooter>
-                        <Button onClick={handleNextQuizQuestion} disabled={isExplanationLoading}>
-                        {currentQuizQuestionIndex < (generatedQuiz?.questions.length ?? 0) - 1 ? 'Next Question' : 'Finish Quiz'}
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
       </>
     )
   }
