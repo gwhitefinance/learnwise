@@ -194,7 +194,8 @@ export default function AiChatPage() {
       const q = query(collection(db, "calendarEvents"), where("userId", "==", user.uid));
       const querySnapshot = await getDocs(q);
       const calendarEvents = querySnapshot.docs.map(doc => {
-          return { id: doc.id, ...doc.data() } as CalendarEvent;
+          const data = doc.data() as CalendarEvent;
+          return { id: doc.id, ...data };
       });
 
       const response = await studyPlannerFlow({
@@ -346,9 +347,9 @@ export default function AiChatPage() {
             <div className="flex-1 overflow-y-auto p-4" ref={scrollAreaRef}>
                 <div className="flex flex-col gap-4 max-w-4xl mx-auto">
                     {activeSession?.messages.map((message, index) => (
-                    <div key={index} className={`flex items-start gap-4 ${message.role === 'user' ? 'justify-end' : ''}`}>
+                    <div key={index} className={`flex items-start gap-4 ${message.role === 'user' ? '' : ''}`}>
                         {message.role === 'ai' && (
-                            <Avatar className="h-10 w-10">
+                            <Avatar className="h-12 w-12">
                                 <AvatarFallback className="bg-transparent">
                                     <AIBuddy
                                         className="w-full h-full"
@@ -360,7 +361,7 @@ export default function AiChatPage() {
                                 </AvatarFallback>
                             </Avatar>
                         )}
-                        <div className={`max-w-md ${message.role === 'user' ? 'order-last' : ''}`}>
+                        <div className={`max-w-md ${message.role === 'user' ? 'order-last ml-auto' : ''}`}>
                             <div className={`text-xs font-semibold mb-1 ${message.role === 'user' ? 'text-right' : 'text-left'}`}>
                             {message.role === 'ai' ? 'AI Assistant' : 'You'}
                             </div>
@@ -372,7 +373,7 @@ export default function AiChatPage() {
                     ))}
                     {isLoading && (
                         <div className="flex items-start gap-4">
-                             <Avatar className="h-10 w-10">
+                             <Avatar className="h-12 w-12">
                                 <AvatarFallback className="bg-transparent">
                                     <AIBuddy
                                         className="w-full h-full"
