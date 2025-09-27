@@ -202,7 +202,7 @@ export default function FloatingChat() {
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={() => setIsOpen(true)}
-                className="w-32 h-32 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-2xl relative"
+                className="w-32 h-32 rounded-full flex items-center justify-center shadow-2xl relative"
                 aria-label="Open Chat"
             >
                 <AnimatePresence>
