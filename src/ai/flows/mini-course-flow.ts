@@ -23,7 +23,8 @@ const prompt = ai.definePrompt({
     **CRITICAL INSTRUCTIONS - YOU MUST FOLLOW THESE EXACTLY:**
     1.  **Generate 7-10 modules for the course.** Each module must represent a major, distinct topic.
     2.  **For EACH of those modules, you must create 5-7 chapter titles.**
-    3.  **DO NOT** generate the content, activities, or interactive tools for the chapters. Your ONLY job is to create the course title, module titles, and chapter titles. The content will be generated later.
+    3.  **Add a "Module Quiz" chapter to the end of EACH module's chapter list.**
+    4.  **DO NOT** generate the content, activities, or interactive tools for the chapters. Your ONLY job is to create the course title, module titles, and chapter titles. The content will be generated later.
     `,
 });
 

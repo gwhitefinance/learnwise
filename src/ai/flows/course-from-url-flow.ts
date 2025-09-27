@@ -38,6 +38,7 @@ const prompt = ai.definePrompt({
         -   **Kinesthetic**: Include hands-on activities, real-world examples, or simple practical exercises.
         -   **Reading/Writing**: Provide clear, well-structured text and suggest summarizing or outlining.
     5.  **Create Activities**: For each chapter, devise a simple, interactive activity that reinforces the chapter's content and is tailored to the learner's style.
+    6.  **Add Module Quiz**: At the end of each module's chapter list, add a final chapter titled "Module Quiz". Do NOT generate content or an activity for this quiz chapter.
 
     Generate the complete course structure with a course title, modules, and for each module, a list of chapters containing detailed content and a relevant activity.
     `,

@@ -1,5 +1,6 @@
 
 
+
 'use client';
 
 import { useState, useEffect, useContext } from 'react';
@@ -19,7 +20,7 @@ import type { GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
 import { cn } from '@/lib/utils';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
-import { collection, query, where, onSnapshot, doc, updateDoc, getDoc, getDocs } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, updateDoc, getDoc, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
 import AudioPlayer from '@/components/audio-player';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -65,6 +66,8 @@ interface ChatMessage {
   content: string;
 }
 
+type AnswerFeedback = { question: string; answer: string; correctAnswer: string; isCorrect: boolean; };
+
 export default function LearningLabClientPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
@@ -88,6 +91,9 @@ export default function LearningLabClientPage() {
   const [isQuizDialogOpen, setQuizDialogOpen] = useState(false);
   const [isQuizLoading, setQuizLoading] = useState(false);
   const [generatedQuiz, setGeneratedQuiz] = useState<GenerateQuizOutput | null>(null);
+  const [quizAnswers, setQuizAnswers] = useState<Record<number, string>>({});
+  const [quizResults, setQuizResults] = useState<{ score: number; total: number; feedback: AnswerFeedback[] } | null>(null);
+
   
   const [isFlashcardDialogOpen, setFlashcardDialogOpen] = useState(false);
   const [isFlashcardLoading, setFlashcardLoading] = useState(false);
@@ -231,11 +237,13 @@ export default function LearningLabClientPage() {
   };
 
 
-  const handleGenerateQuiz = async (module: Module) => {
+  const handleStartModuleQuiz = async (module: Module) => {
     const moduleContent = module.chapters.map(c => `Chapter: ${c.title}\n${c.content}`).join('\n\n');
     setQuizDialogOpen(true);
     setQuizLoading(true);
     setGeneratedQuiz(null);
+    setQuizAnswers({});
+    setQuizResults(null);
     try {
         const result = await generateQuizFromModule({
             moduleContent,
@@ -253,6 +261,53 @@ export default function LearningLabClientPage() {
     } finally {
         setQuizLoading(false);
     }
+  };
+
+  const handleQuizAnswerChange = (questionIndex: number, answer: string) => {
+    setQuizAnswers(prev => ({ ...prev, [questionIndex]: answer }));
+  };
+
+  const handleSubmitQuiz = async () => {
+    if (!generatedQuiz || !user || !selectedCourseId || !currentModule) return;
+
+    const feedback: AnswerFeedback[] = [];
+    let score = 0;
+    const incorrectAnswersPromises: Promise<any>[] = [];
+
+    generatedQuiz.questions.forEach((q, index) => {
+      const userAnswer = quizAnswers[index];
+      const isCorrect = userAnswer?.toLowerCase() === q.answer.toLowerCase();
+      if (isCorrect) {
+        score++;
+      } else {
+        // Save incorrect answer to Firestore for the "Weakest Link" feature
+         incorrectAnswersPromises.push(addDoc(collection(db, 'quizAttempts'), {
+            userId: user.uid,
+            courseId: selectedCourseId,
+            topic: currentModule.title,
+            question: q.question,
+            userAnswer: userAnswer || "Not answered",
+            correctAnswer: q.answer,
+            timestamp: serverTimestamp()
+        }));
+      }
+      feedback.push({ question: q.question, answer: userAnswer, correctAnswer: q.answer, isCorrect });
+    });
+
+    try {
+        await Promise.all(incorrectAnswersPromises);
+    } catch (error) {
+        console.error("Failed to save some incorrect answers:", error);
+    }
+    
+    const xpEarned = score * 10;
+    try {
+        await addXp(user.uid, xpEarned);
+    } catch (error) {
+        console.error("Failed to add XP", error);
+    }
+
+    setQuizResults({ score, total: generatedQuiz.questions.length, feedback });
   };
   
   const handleGenerateFlashcards = async (module: Module) => {
@@ -580,6 +635,62 @@ export default function LearningLabClientPage() {
               </Card>
           </div>
       )
+  }
+
+  if (currentChapter?.title === 'Module Quiz' && currentModule) {
+    return (
+        <div className="flex h-full flex-col items-center justify-center text-center p-6">
+            <h2 className="text-2xl font-bold">Module Quiz: {currentModule.title}</h2>
+            <p className="text-muted-foreground mt-2">Test your knowledge on the chapters you've just completed.</p>
+            <Button className="mt-6" onClick={() => handleStartModuleQuiz(currentModule)}>Start Quiz</Button>
+             <div className="mt-8">
+                <Button variant="link" onClick={handleCompleteAndContinue}>Skip Quiz & Continue</Button>
+            </div>
+             <Dialog open={isQuizDialogOpen} onOpenChange={setQuizDialogOpen}>
+                <DialogContent className="h-screen w-screen max-w-full max-h-full flex flex-col">
+                    <DialogHeader>
+                        <DialogTitle>{currentModule.title}: Quiz</DialogTitle>
+                    </DialogHeader>
+                    <div className="flex-1 overflow-y-auto p-4">
+                        {isQuizLoading ? (
+                            <div className="flex items-center justify-center h-full"><Loader2 className="h-8 w-8 animate-spin" /></div>
+                        ) : quizResults ? (
+                            <div className="max-w-2xl mx-auto text-center">
+                                <h2 className="text-3xl font-bold">Quiz Complete!</h2>
+                                <p className="text-5xl font-bold my-4">{quizResults.score} / {quizResults.total}</p>
+                                <p className="text-muted-foreground">You earned {quizResults.score * 10} XP!</p>
+                                <Button className="mt-6" onClick={() => { setQuizDialogOpen(false); handleCompleteAndContinue(); }}>Continue to Next Section</Button>
+                            </div>
+                        ) : generatedQuiz ? (
+                             <div className="max-w-2xl mx-auto">
+                                <h3 className="text-xl font-bold mb-4">{generatedQuiz.questions.length}-Question Quiz</h3>
+                                <div className="space-y-6">
+                                {generatedQuiz.questions.map((q, index) => (
+                                    <div key={index}>
+                                        <p className="font-semibold">{index + 1}. {q.question}</p>
+                                        <RadioGroup className="mt-2 space-y-2" onValueChange={(val) => handleQuizAnswerChange(index, val)}>
+                                            {q.options?.map((opt, i) => (
+                                                <div key={i} className="flex items-center space-x-2">
+                                                        <RadioGroupItem value={opt} id={`q${index}-opt${i}`} />
+                                                        <Label htmlFor={`q${index}-opt${i}`}>{opt}</Label>
+                                                </div>
+                                            ))}
+                                        </RadioGroup>
+                                    </div>
+                                ))}
+                                </div>
+                            </div>
+                        ) : null}
+                    </div>
+                    {!quizResults && (
+                        <DialogFooter>
+                            <Button onClick={handleSubmitQuiz} disabled={Object.keys(quizAnswers).length !== (generatedQuiz?.questions.length ?? 0)}>Submit Quiz</Button>
+                        </DialogFooter>
+                    )}
+                </DialogContent>
+            </Dialog>
+        </div>
+    )
   }
 
   return (
