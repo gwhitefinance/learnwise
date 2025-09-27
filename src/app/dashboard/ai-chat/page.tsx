@@ -333,8 +333,8 @@ export default function AiChatPage() {
       </aside>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col h-screen relative">
-         <div className="flex items-center justify-between p-4 border-b">
+      <div className="flex-1 flex flex-col">
+        <div className="flex items-center justify-between p-4 border-b">
             <div className="flex items-center gap-2">
                 <h2 className="text-lg font-semibold">LearnWise AI</h2>
                 <ChevronDown className="h-5 w-5 text-muted-foreground" />
@@ -348,13 +348,36 @@ export default function AiChatPage() {
                 </Button>
             </div>
         </div>
-        <ScrollArea className="flex-grow" ref={scrollAreaRef}>
-          <div className="max-w-3xl mx-auto p-4 md:p-8 space-y-8 pb-32">
-            {activeSession?.messages.map((message, index) => (
-              <div key={index} className={cn("flex items-start gap-4", message.role === 'user' ? "justify-end" : "")}>
-                {message.role === 'ai' && (
-                     <Avatar className="h-10 w-10">
-                        <div className="w-full h-full flex items-center justify-center bg-primary/10 rounded-full">
+        <div className="flex-grow overflow-y-auto">
+            <ScrollArea className="h-full" ref={scrollAreaRef}>
+              <div className="max-w-3xl mx-auto p-4 md:p-8 space-y-8 pb-32">
+                {activeSession?.messages.map((message, index) => (
+                  <div key={index} className={cn("flex items-start gap-4", message.role === 'user' ? "justify-end" : "")}>
+                    {message.role === 'ai' && (
+                         <Avatar className="h-10 w-10">
+                            <div className="w-full h-full flex items-center justify-center bg-primary/10 rounded-full">
+                                 <AIBuddy
+                                    className="w-16 h-16"
+                                    color={customizations.color}
+                                    hat={customizations.hat}
+                                    shirt={customizations.shirt}
+                                    shoes={customizations.shoes}
+                                />
+                            </div>
+                        </Avatar>
+                    )}
+                    <div className={cn(
+                        "p-4 rounded-lg max-w-xl",
+                        message.role === 'user' ? "bg-primary text-primary-foreground ml-auto" : "bg-muted"
+                      )}>
+                      <p className="whitespace-pre-wrap">{message.content}</p>
+                    </div>
+                  </div>
+                ))}
+                {isLoading && (
+                  <div className="flex items-start gap-4">
+                    <Avatar className="h-10 w-10">
+                         <div className="w-full h-full flex items-center justify-center bg-primary/10 rounded-full">
                              <AIBuddy
                                 className="w-16 h-16"
                                 color={customizations.color}
@@ -364,38 +387,17 @@ export default function AiChatPage() {
                             />
                         </div>
                     </Avatar>
-                )}
-                <div className={cn(
-                    "p-4 rounded-lg max-w-xl",
-                    message.role === 'user' ? "bg-primary text-primary-foreground ml-auto" : "bg-muted"
-                  )}>
-                  <p className="whitespace-pre-wrap">{message.content}</p>
-                </div>
-              </div>
-            ))}
-            {isLoading && (
-              <div className="flex items-start gap-4">
-                <Avatar className="h-10 w-10">
-                     <div className="w-full h-full flex items-center justify-center bg-primary/10 rounded-full">
-                         <AIBuddy
-                            className="w-16 h-16"
-                            color={customizations.color}
-                            hat={customizations.hat}
-                            shirt={customizations.shirt}
-                            shoes={customizations.shoes}
-                        />
+                    <div className="bg-muted rounded-lg p-4">
+                      <p className="animate-pulse">Thinking...</p>
                     </div>
-                </Avatar>
-                <div className="bg-muted rounded-lg p-4">
-                  <p className="animate-pulse">Thinking...</p>
-                </div>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        </ScrollArea>
+            </ScrollArea>
+        </div>
 
-        <div className="absolute bottom-0 left-0 right-0 p-4 bg-transparent pointer-events-none">
-          <div className="relative max-w-3xl mx-auto pointer-events-auto">
+        <div className="px-4 py-2 bg-transparent border-t">
+          <div className="relative max-w-3xl mx-auto">
             <Input
               placeholder="Ask anything..."
               className="pr-24 rounded-full h-12 text-base shadow-lg"
