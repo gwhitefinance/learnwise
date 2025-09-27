@@ -598,7 +598,7 @@ export default function DashboardLayout({
 
         {/* Main Content */}
         <div className={cn(
-            "min-h-screen transition-all duration-300 ease-in-out", 
+            "flex flex-col min-h-screen transition-all duration-300 ease-in-out", 
             sidebarOpen && !isChatPage ? "md:pl-64" : "md:pl-0",
             isChatPage && "md:pl-0"
           )}>
@@ -708,7 +708,7 @@ export default function DashboardLayout({
             </header>
           )}
 
-          <main className={cn("flex-1", !isChatPage && "p-4 md:p-6")}>
+          <main className={cn("flex-1 flex flex-col", !isChatPage && "p-4 md:p-6")}>
               {React.cloneElement(children as React.ReactElement, { isHalloweenTheme })}
           </main>
         </div>
