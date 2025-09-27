@@ -131,9 +131,9 @@ export default function FloatingChat() {
                             {messages.map((msg, index) => (
                                 <div key={index} className={cn("flex items-end gap-2", msg.role === 'user' ? 'justify-end' : '')}>
                                      {msg.role === 'ai' && (
-                                        <Avatar className="h-40 w-40">
+                                        <Avatar className="h-10 w-10">
                                             <div className="w-full h-full flex items-center justify-center rounded-full">
-                                                <AIBuddy className="w-40 h-40" {...customizations}/>
+                                                <AIBuddy className="w-10 h-10" {...customizations}/>
                                             </div>
                                         </Avatar>
                                      )}
@@ -147,9 +147,9 @@ export default function FloatingChat() {
                             ))}
                             {isLoading && (
                                 <div className="flex items-end gap-2">
-                                    <Avatar className="h-40 w-40">
+                                    <Avatar className="h-10 w-10">
                                         <div className="w-full h-full flex items-center justify-center rounded-full">
-                                            <AIBuddy className="w-40 h-40" {...customizations}/>
+                                            <AIBuddy className="w-10 h-10" {...customizations}/>
                                         </div>
                                     </Avatar>
                                     <div className="p-3 rounded-2xl max-w-[80%] text-sm bg-muted rounded-bl-none">
@@ -217,7 +217,7 @@ export default function FloatingChat() {
                         animate={{ scale: 1 }}
                         exit={{ scale: 0 }}
                     >
-                        <AIBuddy className="w-40 h-40" {...customizations} />
+                        <AIBuddy className="w-32 h-32" {...customizations} />
                     </motion.div>
                 )}
                 </AnimatePresence>
