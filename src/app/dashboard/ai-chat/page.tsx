@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
@@ -17,6 +18,7 @@ import { auth, db } from '@/lib/firebase';
 import { collection, addDoc, query, where, getDocs, deleteDoc, doc, updateDoc, onSnapshot, orderBy, Timestamp, getDoc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { studyPlannerFlow, generateChatTitle } from '@/lib/actions';
+import AIBuddy from '@/components/ai-buddy';
 
 interface Message {
   role: 'user' | 'ai';
@@ -75,6 +77,7 @@ export default function AiChatPage() {
   
   const [user, authLoading] = useAuthState(auth);
   const router = useRouter();
+  const [customizations, setCustomizations] = useState<Record<string, string>>({});
 
 
   useEffect(() => {
@@ -82,6 +85,11 @@ export default function AiChatPage() {
     if (!user) {
         router.push('/signup');
         return;
+    }
+
+    const savedCustomizations = localStorage.getItem(`robotCustomizations_${user.uid}`);
+    if(savedCustomizations) {
+        setCustomizations(JSON.parse(savedCustomizations));
     }
 
     const storedLearnerType = localStorage.getItem('learnerType');
@@ -337,10 +345,13 @@ export default function AiChatPage() {
                     {activeSession?.messages.map((message, index) => (
                     <div key={index} className={`flex items-start gap-4 ${message.role === 'user' ? 'justify-end' : ''}`}>
                         {message.role === 'ai' && (
-                            <Avatar className="h-8 w-8">
-                                <AvatarImage src="https://picsum.photos/150/150" data-ai-hint="robot assistant" />
-                                <AvatarFallback><Bot className="h-4 w-4" /></AvatarFallback>
-                            </Avatar>
+                           <AIBuddy 
+                                className="w-8 h-8"
+                                color={customizations.color}
+                                hat={customizations.hat}
+                                shirt={customizations.shirt}
+                                shoes={customizations.shoes}
+                            />
                         )}
                         <div className="max-w-md">
                             <div className={`text-xs font-semibold mb-1 ${message.role === 'user' ? 'text-right' : 'text-left'}`}>
@@ -352,9 +363,9 @@ export default function AiChatPage() {
                         </div>
                         {message.role === 'user' && (
                             <Avatar className="h-8 w-8">
-                            <AvatarImage src="https://i.pravatar.cc/150?u=a042581f4e29026704d" />
+                            <AvatarImage src={user?.photoURL ?? `https://i.pravatar.cc/150?u=${user?.uid}`} />
                             <AvatarFallback>
-                                <User />
+                                {user?.displayName?.charAt(0) || <User />}
                             </AvatarFallback>
                             </Avatar>
                         )}
@@ -362,10 +373,13 @@ export default function AiChatPage() {
                     ))}
                     {isLoading && (
                         <div className="flex items-start gap-4">
-                            <Avatar className="h-8 w-8">
-                                <AvatarImage src="https://picsum.photos/150/150" data-ai-hint="robot assistant" />
-                                <AvatarFallback><Bot className="h-4 w-4" /></AvatarFallback>
-                            </Avatar>
+                             <AIBuddy 
+                                className="w-8 h-8"
+                                color={customizations.color}
+                                hat={customizations.hat}
+                                shirt={customizations.shirt}
+                                shoes={customizations.shoes}
+                            />
                             <div className="max-w-md">
                                 <div className="text-xs font-semibold mb-1">AI Assistant</div>
                                 <div className="bg-background border rounded-lg p-3">
