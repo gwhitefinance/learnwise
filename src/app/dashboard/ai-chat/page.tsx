@@ -22,8 +22,10 @@ import { generateChatTitle, generateNoteFromChat } from '@/lib/actions';
 import { analyzeImage } from '@/lib/actions';
 import AIBuddy from '@/components/ai-buddy';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { format } from 'date-fns';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface Message {
   role: 'user' | 'ai';
@@ -78,7 +80,6 @@ export default function AiChatPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [learnerType, setLearnerType] = useState<string | null>(null);
   const { toast } = useToast();
-  const searchParams = useSearchParams();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
@@ -86,6 +87,7 @@ export default function AiChatPage() {
   
   const [user, authLoading] = useAuthState(auth);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [customizations, setCustomizations] = useState<Record<string, string>>({});
   
   // State for upload dialog
@@ -93,6 +95,10 @@ export default function AiChatPage() {
   const [isDragging, setIsDragging] = useState(false);
   const [fileToUpload, setFileToUpload] = useState<File | null>(null);
   const [isCopied, setIsCopied] = useState(false);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [isSavingNote, setIsSavingNote] = useState(false);
+  const [saveNoteDialogOpen, setSaveNoteDialogOpen] = useState(false);
+  const [noteCourseId, setNoteCourseId] = useState<string | undefined>(undefined);
 
 
   useEffect(() => {
@@ -112,6 +118,13 @@ export default function AiChatPage() {
       setLearnerType(storedLearnerType);
     }
     
+    // Fetch courses
+    const coursesQuery = query(collection(db, "courses"), where("userId", "==", user.uid));
+    const unsubscribeCourses = onSnapshot(coursesQuery, (snapshot) => {
+        const userCourses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
+        setCourses(userCourses);
+    });
+
     // Set up a real-time listener for chat sessions
     const q = query(collection(db, "chatSessions"), where("userId", "==", user.uid));
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
@@ -137,7 +150,10 @@ export default function AiChatPage() {
         }
     });
 
-    return () => unsubscribe();
+    return () => {
+        unsubscribe();
+        unsubscribeCourses();
+    }
 
   }, [user, authLoading, router, activeSessionId]);
 
@@ -147,6 +163,14 @@ export default function AiChatPage() {
         scrollAreaRef.current.scrollTo({ top: scrollAreaRef.current.scrollHeight, behavior: 'smooth' });
     }
   }, [sessions, activeSessionId]);
+  
+  useEffect(() => {
+    if(activeSession?.courseId) {
+        setNoteCourseId(activeSession.courseId);
+    } else {
+        setNoteCourseId(undefined);
+    }
+  }, [activeSession]);
 
   const activeSession = sessions.find(s => s.id === activeSessionId);
 
@@ -337,7 +361,7 @@ export default function AiChatPage() {
             if (!imageDataUri) {
                 throw new Error("Could not read file data.");
             }
-            const { analysis } = await analyzeImage({ imageDataUri });
+            const { analysis } = await analyzeImage({ imageDataUri, model: 'gemini-2.5-flash' });
 
             const aiMessage: Message = { role: 'ai', content: analysis };
             const finalMessages = [...updatedMessages, aiMessage];
@@ -395,7 +419,7 @@ export default function AiChatPage() {
    const handleSaveAsNote = async () => {
     if (!activeSession || !user) return;
 
-    toast({ title: "Creating Note...", description: "The AI is summarizing your chat into a note." });
+    setIsSavingNote(true);
     
     try {
       const result = await generateNoteFromChat({ messages: activeSession.messages });
@@ -408,7 +432,7 @@ export default function AiChatPage() {
         isImportant: false,
         isCompleted: false,
         userId: user.uid,
-        courseId: activeSession.courseId || null,
+        courseId: noteCourseId || null,
       };
 
       await addDoc(collection(db, "notes"), noteData);
@@ -418,6 +442,9 @@ export default function AiChatPage() {
     } catch (error) {
       console.error("Failed to save note:", error);
       toast({ variant: 'destructive', title: 'Error', description: 'Could not save the chat as a note.' });
+    } finally {
+        setIsSavingNote(false);
+        setSaveNoteDialogOpen(false);
     }
   };
 
@@ -512,7 +539,7 @@ export default function AiChatPage() {
                         )}
                     </DialogContent>
                 </Dialog>
-                 <Dialog>
+                <Dialog>
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -525,9 +552,39 @@ export default function AiChatPage() {
                                     <Info className="mr-2 h-4 w-4"/> View Info
                                 </DropdownMenuItem>
                             </DialogTrigger>
-                             <DropdownMenuItem onSelect={handleSaveAsNote}>
-                                <FileText className="mr-2 h-4 w-4"/> Save as Note
-                            </DropdownMenuItem>
+                             <Dialog open={saveNoteDialogOpen} onOpenChange={setSaveNoteDialogOpen}>
+                                <DialogTrigger asChild>
+                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                        <FileText className="mr-2 h-4 w-4"/> Save as Note
+                                    </DropdownMenuItem>
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>Save Chat as Note</DialogTitle>
+                                        <DialogDescription>Select a course to associate this note with.</DialogDescription>
+                                    </DialogHeader>
+                                    <div className="py-4">
+                                        <Label htmlFor="note-course">Course</Label>
+                                        <Select value={noteCourseId} onValueChange={setNoteCourseId}>
+                                            <SelectTrigger id="note-course">
+                                                <SelectValue placeholder="Select a course..." />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="none">No Course</SelectItem>
+                                                {courses.map(course => (
+                                                    <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <DialogFooter>
+                                        <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
+                                        <Button onClick={handleSaveAsNote} disabled={isSavingNote}>
+                                            {isSavingNote ? "Saving..." : "Save Note"}
+                                        </Button>
+                                    </DialogFooter>
+                                </DialogContent>
+                             </Dialog>
                             <DropdownMenuItem onSelect={() => activeSession && startRename(activeSession)}>
                                 <Edit className="mr-2 h-4 w-4"/> Rename Chat
                             </DropdownMenuItem>

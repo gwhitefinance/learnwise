@@ -19,7 +19,7 @@ const prompt = ai.definePrompt({
 
     The note should have:
     1.  A short, descriptive **title** (4-6 words) that captures the main topic.
-    2.  A structured **note** body with the main points, questions, and answers from the conversation. Use bullet points or numbered lists for clarity.
+    2.  A structured **note** body with the main points, questions, and answers from the conversation. Use bullet points (using a '-' dash) or numbered lists for clarity. DO NOT use markdown formatting like '*' or '#'.
 
     Conversation History:
     {{#each messages}}
