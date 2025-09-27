@@ -24,7 +24,7 @@ import AudioPlayer from '@/components/audio-player';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { addXp, generateMiniCourse, generateQuizFromModule, generateFlashcardsFromModule, generateTutorResponse, generateChapterContent, generateExplanation } from '@/lib/actions';
+import { addXp, generateMiniCourse, generateQuizFromModule, generateFlashcardsFromModule, generateTutorResponse, generateChapterContent, generateExplanation, generateMidtermExam } from '@/lib/actions';
 import { RewardContext } from '@/context/RewardContext';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import Loading from './loading';
@@ -271,6 +271,44 @@ export default function LearningLabClientPage() {
     }
   };
 
+  const handleStartMidtermExam = async () => {
+    if (!activeCourse || !activeCourse.units) return;
+
+    const middleModuleIndex = Math.floor(activeCourse.units.length / 2);
+    const firstHalfContent = activeCourse.units
+        .slice(0, middleModuleIndex)
+        .flatMap(unit => unit.chapters)
+        .map(c => `Chapter: ${c.title}\n${c.content}`)
+        .join('\n\n');
+
+    setQuizDialogOpen(true);
+    setQuizLoading(true);
+    setGeneratedQuiz(null);
+    setQuizAnswers([]);
+    setQuizState('in-progress');
+    setCurrentQuizQuestionIndex(0);
+    setSelectedQuizAnswer(null);
+    
+    try {
+        const result = await generateMidtermExam({
+            courseContent: firstHalfContent,
+            learnerType: (learnerType as any) ?? 'Reading/Writing'
+        });
+        setGeneratedQuiz(result);
+    } catch(error) {
+        console.error("Failed to generate midterm:", error);
+        toast({
+            variant: 'destructive',
+            title: 'Midterm Generation Failed',
+            description: 'Could not generate a midterm for this course.',
+        });
+        setQuizDialogOpen(false);
+    } finally {
+        setQuizLoading(false);
+    }
+  };
+
+
   const handleSubmitQuizAnswer = async () => {
     if (!generatedQuiz || selectedQuizAnswer === null || !user || !currentModule) return;
         
@@ -284,18 +322,19 @@ export default function LearningLabClientPage() {
         isCorrect: isCorrect,
     };
     
-    setQuizAnswers(prev => [...prev, answerFeedback]);
+    // Just record the answer and move on
+    const newQuizAnswers = [...quizAnswers, answerFeedback];
+    setQuizAnswers(newQuizAnswers);
     setSelectedQuizAnswer(null);
 
     if (currentQuizQuestionIndex < generatedQuiz.questions.length - 1) {
         setCurrentQuizQuestionIndex(prev => prev + 1);
     } else {
         // This is the last question, process all answers now
-        const allAnswers = [...quizAnswers, answerFeedback];
-        const correctCount = allAnswers.filter(a => a.isCorrect).length;
+        const correctCount = newQuizAnswers.filter(a => a.isCorrect).length;
 
         // Save incorrect answers
-        for (const answer of allAnswers) {
+        for (const answer of newQuizAnswers) {
             if (!answer.isCorrect) {
                 try {
                     await addDoc(collection(db, 'quizAttempts'), {
@@ -657,24 +696,31 @@ export default function LearningLabClientPage() {
           </div>
       )
   }
+  
+  const isMidtermModule = activeCourse.units && currentModuleIndex === Math.floor(activeCourse.units.length / 2);
 
   if (currentChapter?.title === 'Module Quiz' && currentModule) {
     const score = quizAnswers.filter(a => a.isCorrect).length;
     const totalQuestions = generatedQuiz?.questions.length ?? 0;
     const currentQuizQuestion = generatedQuiz?.questions[currentQuizQuestionIndex];
-    const quizProgress = totalQuestions > 0 ? ((currentQuizQuestionIndex + 1) / totalQuestions) * 100 : 0;
+    const quizProgress = totalQuestions > 0 ? ((currentQuizQuestionIndex) / totalQuestions) * 100 : 0;
     
     return (
       <>
         {quizState === 'configuring' && (
             <div className="flex h-full flex-col items-center justify-center text-center p-6">
-                <h2 className="text-2xl font-bold">Module Quiz: {currentModule.title}</h2>
-                <p className="text-muted-foreground mt-2">Test your knowledge on the chapters you've just completed.</p>
-                <Button className="mt-6" onClick={() => handleStartModuleQuiz(currentModule)} disabled={isQuizLoading}>
-                    {isQuizLoading ? 'Loading...' : 'Start Quiz'}
+                <h2 className="text-2xl font-bold">{isMidtermModule ? 'Midterm Exam' : `Module Quiz: ${currentModule.title}`}</h2>
+                <p className="text-muted-foreground mt-2 max-w-md">
+                    {isMidtermModule 
+                        ? "This is a 35-question exam covering all material from the first half of the course." 
+                        : "Test your knowledge on the chapters you've just completed."
+                    }
+                </p>
+                <Button className="mt-6" onClick={isMidtermModule ? handleStartMidtermExam : () => handleStartModuleQuiz(currentModule)} disabled={isQuizLoading}>
+                    {isQuizLoading ? 'Loading...' : `Start ${isMidtermModule ? 'Midterm' : 'Quiz'}`}
                 </Button>
                 <div className="mt-8">
-                    <Button variant="link" onClick={handleCompleteAndContinue}>Skip Quiz & Continue</Button>
+                    <Button variant="link" onClick={handleCompleteAndContinue}>Skip & Continue</Button>
                 </div>
             </div>
         )}

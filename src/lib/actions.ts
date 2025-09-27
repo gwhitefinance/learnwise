@@ -23,6 +23,7 @@ import { generateOnboardingCourse } from '@/ai/flows/onboarding-course-flow';
 import { generateChapterContent } from '@/ai/flows/chapter-content-flow';
 import { analyzeImage } from '@/ai/flows/image-analysis-flow';
 import { generateNoteFromChat } from '@/ai/flows/chat-to-note-flow';
+import { generateMidtermExam } from '@/ai/flows/midterm-exam-flow';
 
 
 // Re-exporting all AI functions as Server Actions
@@ -45,7 +46,8 @@ export {
     generateOnboardingCourse,
     generateChapterContent,
     analyzeImage,
-    generateNoteFromChat
+    generateNoteFromChat,
+    generateMidtermExam
 };
 
 export async function addXp(userId: string, xp: number) {
