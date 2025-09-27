@@ -135,9 +135,9 @@ export default function FloatingChat() {
                             {messages.map((msg, index) => (
                                 <div key={index} className={cn("flex items-end gap-2", msg.role === 'user' ? 'justify-end' : '')}>
                                      {msg.role === 'ai' && (
-                                        <Avatar className="h-16 w-16">
+                                        <Avatar className="h-24 w-24">
                                             <div className="w-full h-full flex items-center justify-center bg-primary/10 rounded-full">
-                                                <AIBuddy className="w-20 h-20" {...customizations}/>
+                                                <AIBuddy className="w-28 h-28" {...customizations}/>
                                             </div>
                                         </Avatar>
                                      )}
@@ -151,9 +151,9 @@ export default function FloatingChat() {
                             ))}
                             {isLoading && (
                                 <div className="flex items-end gap-2">
-                                    <Avatar className="h-16 w-16">
+                                    <Avatar className="h-24 w-24">
                                         <div className="w-full h-full flex items-center justify-center bg-primary/10 rounded-full">
-                                            <AIBuddy className="w-20 h-20" {...customizations}/>
+                                            <AIBuddy className="w-28 h-28" {...customizations}/>
                                         </div>
                                     </Avatar>
                                     <div className="p-3 rounded-2xl max-w-[80%] text-sm bg-muted rounded-bl-none">
