@@ -348,7 +348,7 @@ export default function AiChatPage() {
                     {activeSession?.messages.map((message, index) => (
                     <div key={index} className={`flex items-start gap-4 ${message.role === 'user' ? 'justify-end' : ''}`}>
                         {message.role === 'ai' && (
-                            <Avatar className="h-8 w-8">
+                            <Avatar className="h-10 w-10">
                                 <AvatarFallback className="bg-transparent">
                                     <AIBuddy
                                         className="w-full h-full"
@@ -372,7 +372,7 @@ export default function AiChatPage() {
                     ))}
                     {isLoading && (
                         <div className="flex items-start gap-4">
-                             <Avatar className="h-8 w-8">
+                             <Avatar className="h-10 w-10">
                                 <AvatarFallback className="bg-transparent">
                                     <AIBuddy
                                         className="w-full h-full"
