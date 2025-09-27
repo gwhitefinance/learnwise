@@ -105,7 +105,7 @@ export default function FloatingChat() {
 
 
   return (
-    <div className="fixed bottom-6 left-6 z-50">
+    <div className="fixed bottom-6 right-6 z-50">
         <AnimatePresence>
             {isOpen && (
                  <motion.div
@@ -113,7 +113,7 @@ export default function FloatingChat() {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 20, scale: 0.95 }}
                     transition={{ duration: 0.2 }}
-                    className="w-96 h-[600px] bg-card rounded-2xl shadow-2xl border flex flex-col origin-bottom-left"
+                    className="w-96 h-[600px] bg-card rounded-2xl shadow-2xl border flex flex-col origin-bottom-right"
                 >
                     <header className="p-4 border-b flex items-center justify-between">
                         <div className="flex items-center gap-3">
@@ -182,18 +182,18 @@ export default function FloatingChat() {
             )}
         </AnimatePresence>
 
-        <div className="relative mt-4 flex items-end justify-start">
+        <div className="relative mt-4 flex items-end justify-end">
              <AnimatePresence>
                 {showWelcome && !isOpen && (
                     <motion.div
                         initial={{ opacity: 0, y: 10, scale: 0.9 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, x: 20, transition: { duration: 0.2 } }}
-                        className="bg-card border p-4 rounded-xl shadow-lg mb-2 ml-20"
+                        className="bg-card border p-4 rounded-xl shadow-lg mb-2 mr-20"
                     >
                         <p className="font-semibold">We're Online!</p>
                         <p className="text-sm text-muted-foreground">How may I help you today?</p>
-                        <div className="absolute left-[-9px] bottom-4 w-3 h-3 bg-card border-b border-l transform rotate-45"></div>
+                        <div className="absolute right-[-9px] bottom-4 w-3 h-3 bg-card border-b border-r transform rotate-45"></div>
                     </motion.div>
                 )}
             </AnimatePresence>
