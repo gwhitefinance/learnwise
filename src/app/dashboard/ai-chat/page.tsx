@@ -368,14 +368,6 @@ export default function AiChatPage() {
                                 <p className="whitespace-pre-wrap">{message.content}</p>
                             </div>
                         </div>
-                        {message.role === 'user' && (
-                            <Avatar className="h-8 w-8">
-                            <AvatarImage src={user?.photoURL ?? `https://i.pravatar.cc/150?u=${user?.uid}`} />
-                            <AvatarFallback>
-                                {user?.displayName?.charAt(0) || <User />}
-                            </AvatarFallback>
-                            </Avatar>
-                        )}
                     </div>
                     ))}
                     {isLoading && (
