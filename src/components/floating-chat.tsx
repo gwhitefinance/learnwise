@@ -80,7 +80,7 @@ export default function FloatingChat() {
       const learnerType = localStorage.getItem('learnerType');
 
       const response = await studyPlannerFlow({
-        userName: user.displayName?.split(' ')[0],
+        userName: user?.displayName?.split(' ')[0],
         history: [...messages, userMessage],
         learnerType: learnerType || undefined,
         calendarEvents: calendarEvents.map(e => ({
@@ -201,21 +201,11 @@ export default function FloatingChat() {
             <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
-                onClick={() => setIsOpen(true)}
+                onClick={() => setIsOpen(!isOpen)}
                 className="w-32 h-32 flex items-center justify-center relative"
-                aria-label="Open Chat"
+                aria-label="Toggle Chat"
             >
-                <AnimatePresence>
-                    {isOpen ? (
-                         <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}>
-                            <X className="w-8 h-8" />
-                         </motion.div>
-                    ) : (
-                         <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}>
-                             <AIBuddy className="w-40 h-40" {...customizations} />
-                         </motion.div>
-                    )}
-                </AnimatePresence>
+                <AIBuddy className="w-40 h-40" {...customizations} />
             </motion.button>
         </div>
     </div>
