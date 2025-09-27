@@ -10,7 +10,7 @@ import { generateQuizFromNote } from './note-to-quiz-flow';
 
 const tutoringPrompt = ai.definePrompt({
     name: 'imageTutoringPrompt',
-    model: googleAI.model('gemini-pro-vision'),
+    model: googleAI.model('gemini-2.5-flash'),
     input: { schema: TutoringSessionInputSchema },
     output: { schema: TutoringSessionOutputSchema },
     prompt: `You are a friendly, expert AI tutor. Your goal is to help a student understand the concepts in the provided image of their homework. You will break down the problems, explain the core concepts, and provide practice material.
