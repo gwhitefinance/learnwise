@@ -191,8 +191,8 @@ export default function FloatingChat() {
                         exit={{ opacity: 0, x: 20, transition: { duration: 0.2 } }}
                         className="bg-card border p-4 rounded-xl shadow-lg mb-2 mr-20"
                     >
-                        <p className="font-semibold">We're Online!</p>
-                        <p className="text-sm text-muted-foreground">How may I help you today?</p>
+                        <p className="font-semibold">Hello {user?.displayName?.split(' ')[0] || 'there'}!</p>
+                        <p className="text-sm text-muted-foreground">I am your AI buddy. Chat with me at any time.</p>
                         <div className="absolute right-[-9px] bottom-4 w-3 h-3 bg-card border-b border-r transform rotate-45"></div>
                     </motion.div>
                 )}
