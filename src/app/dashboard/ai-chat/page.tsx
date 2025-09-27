@@ -333,7 +333,7 @@ export default function AiChatPage() {
       </aside>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col h-full">
+      <div className="flex-1 flex flex-col h-full relative">
          <div className="flex items-center justify-between p-4 border-b">
             <div className="flex items-center gap-2">
                 <h2 className="text-lg font-semibold">LearnWise AI</h2>
@@ -349,11 +349,11 @@ export default function AiChatPage() {
             </div>
         </div>
         <ScrollArea className="flex-grow" ref={scrollAreaRef}>
-          <div className="max-w-3xl mx-auto p-4 md:p-8 space-y-8">
+          <div className="max-w-3xl mx-auto p-4 md:p-8 space-y-8 pb-24">
             {activeSession?.messages.map((message, index) => (
-              <div key={index} className={cn("flex items-start gap-4", message.role === 'user' ? "justify-end" : "justify-start")}>
+              <div key={index} className={cn("flex items-start gap-4", message.role === 'user' ? "justify-end" : "")}>
                 {message.role === 'ai' && (
-                    <Avatar className="h-12 w-12">
+                     <Avatar className="h-12 w-12">
                         <div className="w-full h-full flex items-center justify-center bg-primary/10 rounded-full">
                              <AIBuddy
                                 className="w-16 h-16"
@@ -367,7 +367,7 @@ export default function AiChatPage() {
                 )}
                 <div className={cn(
                     "p-4 rounded-lg max-w-xl",
-                    message.role === 'user' ? "bg-primary text-primary-foreground" : "bg-muted"
+                    message.role === 'user' ? "bg-primary text-primary-foreground ml-auto" : "bg-muted"
                   )}>
                   <p className="whitespace-pre-wrap">{message.content}</p>
                 </div>
@@ -394,11 +394,11 @@ export default function AiChatPage() {
           </div>
         </ScrollArea>
 
-        <div className="px-4 py-2 border-t bg-background">
-          <div className="relative max-w-3xl mx-auto">
+        <div className="absolute bottom-0 left-0 right-0 p-4 bg-transparent pointer-events-none">
+          <div className="relative max-w-3xl mx-auto pointer-events-auto">
             <Input
               placeholder="Ask anything..."
-              className="pr-24 rounded-full h-12 text-base"
+              className="pr-24 rounded-full h-12 text-base shadow-lg"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && !isLoading && handleSendMessage()}
