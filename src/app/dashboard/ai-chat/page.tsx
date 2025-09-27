@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Send, User, Bot, Plus, MessageSquare, Trash2, Edit, Home, Upload, Share2, MoreHorizontal, Info, Sparkles, Copy, Check } from "lucide-react";
+import { Send, User, Bot, Plus, MessageSquare, Trash2, Edit, Home, Upload, Share2, MoreHorizontal, Info, Sparkles, Copy, Check, FileText } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -18,7 +18,7 @@ import { auth, db } from '@/lib/firebase';
 import { collection, addDoc, query, where, getDocs, deleteDoc, doc, updateDoc, onSnapshot, orderBy, Timestamp, getDoc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { studyPlannerFlow } from '@/lib/actions';
-import { generateChatTitle } from '@/lib/actions';
+import { generateChatTitle, generateNoteFromChat } from '@/lib/actions';
 import { analyzeImage } from '@/lib/actions';
 import AIBuddy from '@/components/ai-buddy';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -35,6 +35,7 @@ interface ChatSession {
     title: string;
     messages: Message[];
     timestamp: number;
+    courseId?: string;
     courseContext?: string;
     titleGenerated?: boolean;
     userId?: string;
@@ -46,6 +47,7 @@ interface FirestoreChatSession {
     title: string;
     messages: Message[];
     timestamp: Timestamp;
+    courseId?: string;
     courseContext?: string;
     titleGenerated?: boolean;
     userId?: string;
@@ -156,19 +158,6 @@ export default function AiChatPage() {
     let courseContext: string | undefined = undefined;
     let title = "New Chat";
 
-    if (courseIdParam) {
-        const docRef = doc(db, "courses", courseIdParam);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-            const currentCourse = docSnap.data() as Course;
-            if(currentCourse) {
-                 courseContext = `Course: ${currentCourse.name}. Description: ${currentCourse.description || 'No description available.'}`;
-                initialMessage = `Hello! I see you're working on ${currentCourse.name}. How can I help you with this course?`;
-                title = `${currentCourse.name} Chat`;
-            }
-        }
-    }
-
     const newSessionData: any = {
         title: title,
         messages: [{ role: 'ai', content: initialMessage }],
@@ -178,8 +167,21 @@ export default function AiChatPage() {
         isPublic: false,
     };
 
-    if (courseContext) {
-      newSessionData.courseContext = courseContext;
+    if (courseIdParam) {
+        const docRef = doc(db, "courses", courseIdParam);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+            const currentCourse = docSnap.data() as Course;
+            if(currentCourse) {
+                 courseContext = `Course: ${currentCourse.name}. Description: ${currentCourse.description || 'No description available.'}`;
+                initialMessage = `Hello! I see you're working on ${currentCourse.name}. How can I help you with this course?`;
+                title = `${currentCourse.name} Chat`;
+                newSessionData.courseId = courseIdParam;
+                newSessionData.courseContext = courseContext;
+                newSessionData.title = title;
+                newSessionData.messages = [{ role: 'ai', content: initialMessage }];
+            }
+        }
     }
     
     try {
@@ -390,6 +392,35 @@ export default function AiChatPage() {
     });
   };
 
+   const handleSaveAsNote = async () => {
+    if (!activeSession || !user) return;
+
+    toast({ title: "Creating Note...", description: "The AI is summarizing your chat into a note." });
+    
+    try {
+      const result = await generateNoteFromChat({ messages: activeSession.messages });
+      
+      const noteData = {
+        title: result.title,
+        content: result.note,
+        date: Timestamp.now(),
+        color: 'bg-indigo-100 dark:bg-indigo-900/20',
+        isImportant: false,
+        isCompleted: false,
+        userId: user.uid,
+        courseId: activeSession.courseId || null,
+      };
+
+      await addDoc(collection(db, "notes"), noteData);
+      
+      toast({ title: "Note Saved!", description: "Your chat has been saved as a note on the Notes page." });
+
+    } catch (error) {
+      console.error("Failed to save note:", error);
+      toast({ variant: 'destructive', title: 'Error', description: 'Could not save the chat as a note.' });
+    }
+  };
+
 
   return (
     <div className="flex h-screen bg-muted/40">
@@ -494,6 +525,9 @@ export default function AiChatPage() {
                                     <Info className="mr-2 h-4 w-4"/> View Info
                                 </DropdownMenuItem>
                             </DialogTrigger>
+                             <DropdownMenuItem onSelect={handleSaveAsNote}>
+                                <FileText className="mr-2 h-4 w-4"/> Save as Note
+                            </DropdownMenuItem>
                             <DropdownMenuItem onSelect={() => activeSession && startRename(activeSession)}>
                                 <Edit className="mr-2 h-4 w-4"/> Rename Chat
                             </DropdownMenuItem>

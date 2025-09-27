@@ -20,6 +20,7 @@ import './flows/chapter-content-flow';
 import './tools/course-tool';
 import './tools/web-scraper-tool';
 import './flows/image-analysis-flow';
+import './flows/chat-to-note-flow';
 
 
 
@@ -33,6 +34,7 @@ import './flows/image-analysis-flow';
     
 
     
+
 
 
 
