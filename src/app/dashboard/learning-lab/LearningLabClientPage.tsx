@@ -282,17 +282,33 @@ export default function LearningLabClientPage() {
   };
 
   const handleCompleteAndContinue = async () => {
-    const module = activeCourse?.units?.[currentModuleIndex];
+    if (!activeCourse || !user) return;
+    const module = activeCourse.units?.[currentModuleIndex];
     if (!module) return;
 
     if (currentChapterIndex < module.chapters.length - 1) {
         setCurrentChapterIndex(prev => prev + 1);
-    } else if (currentModuleIndex < (activeCourse?.units?.length ?? 0) - 1) {
+    } else if (currentModuleIndex < (activeCourse.units?.length ?? 0) - 1) {
         setCurrentModuleIndex(prev => prev + 1);
         setCurrentChapterIndex(0);
         toast({ title: "Module Complete!", description: "Moving to the next module." });
     } else {
         toast({ title: "Course Complete!", description: "Congratulations, you've finished the course!" });
+        try {
+            const courseRef = doc(db, 'courses', activeCourse.id);
+            await updateDoc(courseRef, {
+                labCompleted: true
+            });
+            const { levelUp, newLevel, newCoins } = await addXp(user.uid, 500); // Award 500 XP for course completion
+            if (levelUp) {
+                showReward({ type: 'levelUp', level: newLevel, coins: newCoins });
+            } else {
+                showReward({ type: 'xp', amount: 500 });
+            }
+        } catch (error) {
+            console.error("Error completing course:", error);
+            toast({ variant: 'destructive', title: 'Error', description: 'Could not save course completion status.' });
+        }
     }
   };
   

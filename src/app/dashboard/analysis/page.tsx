@@ -16,6 +16,7 @@ import { PieChart, Pie, Cell } from 'recharts';
 type Course = {
     id: string;
     name: string;
+    labCompleted?: boolean;
 }
 
 type QuizAttempt = {
@@ -29,7 +30,6 @@ function AnalysisPage() {
   const [learnerType, setLearnerType] = useState('Visual');
   const [loading, setLoading] = useState(true);
   const [weakestCourse, setWeakestCourse] = useState<Course | null>(null);
-  const [courseStats, setCourseStats] = useState<Record<string, { incorrect: number }>>({});
   const [courses, setCourses] = useState<Course[]>([]);
   
   const [user, authLoading] = useAuthState(auth);
@@ -45,65 +45,61 @@ function AnalysisPage() {
     // Fetch courses
     const coursesQuery = query(collection(db, 'courses'), where('userId', '==', user.uid));
     const unsubscribeCourses = onSnapshot(coursesQuery, (snapshot) => {
-        const userCourses = snapshot.docs.map(doc => ({ id: doc.id, name: doc.data().name } as Course));
+        const userCourses = snapshot.docs.map(doc => ({ id: doc.id, name: doc.data().name, labCompleted: doc.data().labCompleted } as Course));
         setCourses(userCourses);
-    });
 
-    // Fetch quiz attempts
-    const attemptsQuery = query(collection(db, 'quizAttempts'), where('userId', '==', user.uid));
-    const unsubscribeAttempts = onSnapshot(attemptsQuery, (snapshot) => {
-        const attempts = snapshot.docs.map(doc => doc.data() as QuizAttempt);
-        
-        const stats: Record<string, { incorrect: number }> = {};
-        attempts.forEach(attempt => {
-            if (attempt.courseId) {
-                if (!stats[attempt.courseId]) {
-                    stats[attempt.courseId] = { incorrect: 0 };
+        // This logic depends on courses, so it's nested or chained
+        const attemptsQuery = query(collection(db, 'quizAttempts'), where('userId', '==', user.uid));
+        const unsubscribeAttempts = onSnapshot(attemptsQuery, (snapshot) => {
+            const attempts = snapshot.docs.map(doc => doc.data() as QuizAttempt);
+            
+            const stats: Record<string, { incorrect: number }> = {};
+            attempts.forEach(attempt => {
+                if (attempt.courseId) {
+                    if (!stats[attempt.courseId]) {
+                        stats[attempt.courseId] = { incorrect: 0 };
+                    }
+                    stats[attempt.courseId].incorrect++;
                 }
-                stats[attempt.courseId].incorrect++;
-            }
-        });
-        
-        setCourseStats(stats);
-        
-        let weakestId: string | null = null;
-        let maxIncorrect = -1;
+            });
+            
+            let weakestId: string | null = null;
+            let maxIncorrect = -1;
 
-        for (const courseId in stats) {
-            if (stats[courseId].incorrect > maxIncorrect) {
-                maxIncorrect = stats[courseId].incorrect;
-                weakestId = courseId;
+            for (const courseId in stats) {
+                if (stats[courseId].incorrect > maxIncorrect) {
+                    maxIncorrect = stats[courseId].incorrect;
+                    weakestId = courseId;
+                }
             }
-        }
-        
-        if (weakestId) {
-             const foundCourse = courses.find(c => c.id === weakestId) ?? {id: weakestId, name: 'A course you\'re struggling with'};
-             setWeakestCourse(foundCourse);
-        } else {
-            setWeakestCourse(null);
-        }
-        
-        setLoading(false);
+            
+            if (weakestId) {
+                 const foundCourse = userCourses.find(c => c.id === weakestId) ?? {id: weakestId, name: 'A course you\'re struggling with'};
+                 setWeakestCourse(foundCourse);
+            } else {
+                setWeakestCourse(null);
+            }
+            
+            setLoading(false);
+        });
+
+        // Return a cleanup function for the attempts listener
+        return () => unsubscribeAttempts();
     });
 
-    return () => {
-        unsubscribeCourses();
-        unsubscribeAttempts();
-    };
-  }, [user, authLoading, courses]);
+    // Return a cleanup function for the courses listener
+    return () => unsubscribeCourses();
+  }, [user, authLoading]);
   
   const chartData = useMemo(() => {
-      const allCourseIds = new Set(courses.map(c => c.id));
-      const strugglingCourseIds = new Set(Object.keys(courseStats));
-      
-      const masteredCount = Array.from(allCourseIds).filter(id => !strugglingCourseIds.has(id)).length;
-      const needsWorkCount = strugglingCourseIds.size;
+      const masteredCount = courses.filter(c => c.labCompleted).length;
+      const needsWorkCount = courses.length - masteredCount;
 
       return [
         { topic: 'Mastered', count: masteredCount, fill: 'hsl(var(--primary))' },
         { topic: 'Needs Work', count: needsWorkCount, fill: 'hsl(var(--muted))' }
       ];
-  }, [courseStats, courses]);
+  }, [courses]);
 
   if (loading || authLoading) {
       return (
