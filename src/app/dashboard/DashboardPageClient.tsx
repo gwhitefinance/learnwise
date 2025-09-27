@@ -261,7 +261,7 @@ function DashboardPageClient({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
             setCustomizations(JSON.parse(savedCustomizations));
         }
 
-        const freeChestClaimed = localStorage.getItem(`freeChestClaimed_${user.uid}`);
+        const freeChestClaimed = localStorage.getItem(`freeChestClaimed_${user.uid}_${new Date().toDateString()}`);
         if (freeChestClaimed === 'true') {
             setHasClaimedFreeChest(true);
         }
@@ -523,12 +523,13 @@ function DashboardPageClient({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
 
     const handleClaimChest = async (chest: Chest) => {
         if (!user) return;
-        if (chest.cost > 0 && userCoins < chest.cost) {
-            toast({ variant: 'destructive', title: 'Not enough coins!' });
-            return;
+        
+        const hasClaimedStreak = localStorage.getItem(`streakChestClaimed_${chest.id}_${user.uid}`);
+        if(hasClaimedStreak === 'true') {
+             toast({ variant: 'destructive', title: 'Already claimed!' });
+             return;
         }
 
-        // Deduct cost and give coins
         const coinsWon = Math.floor(Math.random() * (chest.coinRange[1] - chest.coinRange[0] + 1)) + chest.coinRange[0];
         setClaimedCoins(coinsWon);
         setRewardState('opening');
@@ -538,12 +539,14 @@ function DashboardPageClient({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
             try {
                 const userRef = doc(db, 'users', user.uid);
                 await updateDoc(userRef, {
-                    coins: increment(coinsWon - (chest.cost > 0 ? chest.cost : 0)),
+                    coins: increment(coinsWon),
                 });
 
                 if (chest.id === 'daily_free') {
                     setHasClaimedFreeChest(true);
-                    localStorage.setItem(`freeChestClaimed_${user.uid}`, 'true');
+                    localStorage.setItem(`freeChestClaimed_${user.uid}_${new Date().toDateString()}`, 'true');
+                } else if (chest.unlocksAt) {
+                    localStorage.setItem(`streakChestClaimed_${chest.id}_${user.uid}`, 'true');
                 }
             } catch (e) {
                 console.error("Failed to update coins: ", e);
@@ -843,25 +846,26 @@ function DashboardPageClient({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                         <DialogHeader>
                                             <DialogTitle className="flex items-center gap-2"><Trophy className="text-yellow-500" /> Your Reward Chests</DialogTitle>
                                             <CardDescription>
-                                                Claim chests with your coins or by completing challenges.
+                                                Claim chests by completing challenges.
                                             </CardDescription>
                                         </DialogHeader>
                                         <div className="py-4 space-y-4">
                                             {rewardState === 'idle' && chests.map(chest => {
-                                                const canAfford = userCoins >= chest.cost;
+                                                const hasClaimedStreak = chest.unlocksAt && localStorage.getItem(`streakChestClaimed_${chest.id}_${user?.uid}`) === 'true';
                                                 const isStreakLocked = chest.unlocksAt && streak < chest.unlocksAt;
                                                 const isFreeClaimed = chest.id === 'daily_free' && hasClaimedFreeChest;
-                                                const isDisabled = isStreakLocked || isFreeClaimed || (!canAfford && chest.cost > 0);
+                                                const isDisabled = isStreakLocked || isFreeClaimed || hasClaimedStreak;
                                                 
-                                                let buttonText: React.ReactNode = <><Gem className="mr-2 h-4 w-4"/>{chest.cost}</>;
-                                                if (isStreakLocked) {
+                                                let buttonText: React.ReactNode = "Claim Free";
+                                                if(isFreeClaimed && chest.id === 'daily_free') {
+                                                    buttonText = 'Claimed Today';
+                                                } else if (hasClaimedStreak) {
+                                                    buttonText = 'Claimed';
+                                                } else if (isStreakLocked) {
                                                     const daysLeft = chest.unlocksAt! - streak;
                                                     buttonText = `Unlock in ${daysLeft} day${daysLeft > 1 ? 's' : ''}`;
-                                                } else if (isFreeClaimed) {
-                                                    buttonText = 'Claimed';
-                                                } else if (chest.cost === 0) {
-                                                    buttonText = 'Claim Free';
                                                 }
+
 
                                                 return (
                                                     <Card key={chest.id} className={cn("transition-all", isDisabled && "opacity-50")}>

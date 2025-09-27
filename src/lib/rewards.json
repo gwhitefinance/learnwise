@@ -10,29 +10,40 @@
             "rarity": "Common"
         },
         {
-            "id": "weekly_streak",
-            "name": "Weekly Streak Chest",
-            "description": "Keep your streak alive for 7 days to unlock this special reward.",
+            "id": "streak_7_day",
+            "name": "7-Day Streak Chest",
+            "description": "You've kept your streak alive for a full week! Great job!",
             "cost": 0,
             "unlocksAt": 7,
             "coinRange": [100, 250],
-            "rarity": "Rare"
-        },
-        {
-            "id": "small_coin_chest",
-            "name": "Small Coin Chest",
-            "description": "A small token of appreciation for your hard work.",
-            "cost": 100,
-            "coinRange": [120, 200],
             "rarity": "Uncommon"
         },
         {
-            "id": "epic_study_chest",
-            "name": "Epic Study Chest",
-            "description": "A massive reward for dedicated learners. Contains a large sum of coins!",
-            "cost": 500,
-            "coinRange": [600, 1000],
+            "id": "streak_14_day",
+            "name": "14-Day Streak Chest",
+            "description": "Two weeks of consistent learning! You're building a strong habit.",
+            "cost": 0,
+            "unlocksAt": 14,
+            "coinRange": [200, 400],
+            "rarity": "Rare"
+        },
+        {
+            "id": "streak_1_month",
+            "name": "1-Month Streak Chest",
+            "description": "An entire month of dedication! Your commitment is impressive.",
+            "cost": 0,
+            "unlocksAt": 30,
+            "coinRange": [500, 1000],
             "rarity": "Epic"
+        },
+        {
+            "id": "streak_2_month",
+            "name": "2-Month Streak Chest",
+            "description": "Two months straight! You are a learning machine.",
+            "cost": 0,
+            "unlocksAt": 60,
+            "coinRange": [1000, 2000],
+            "rarity": "Legendary"
         }
     ]
 }
