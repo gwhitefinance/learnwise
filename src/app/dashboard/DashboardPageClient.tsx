@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useContext } from 'react';
@@ -248,6 +249,7 @@ function DashboardPageClient({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
     const [weakestLinks, setWeakestLinks] = useState<Record<string, WeakestLinkState[]>>({});
     const [weakestLinkLoading, setWeakestLinkLoading] = useState(true);
     const [learnerType, setLearnerType] = useState<string | null>(null);
+    const [gradeLevel, setGradeLevel] = useState<string | null>(null);
     const { showReward } = useContext(RewardContext);
 
 
@@ -268,6 +270,8 @@ function DashboardPageClient({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
 
         const storedLearnerType = localStorage.getItem('learnerType');
         setLearnerType(storedLearnerType ?? 'Unknown');
+        const storedGradeLevel = localStorage.getItem('onboardingGradeLevel');
+        setGradeLevel(storedGradeLevel);
 
         const unsubscribes: (() => void)[] = [];
 
@@ -409,11 +413,11 @@ function DashboardPageClient({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
     };
 
     const handleAddCourse = async () => {
-        if (!newCourse.name || !newCourse.instructor || !newCourse.credits) {
+        if (!newCourse.name) {
             toast({
                 variant: 'destructive',
                 title: 'Missing Fields',
-                description: 'Please fill out all required fields.'
+                description: 'Please enter a course name.'
             });
             return;
         }
@@ -424,11 +428,11 @@ function DashboardPageClient({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
 
         const courseToAdd = {
             name: newCourse.name,
-            instructor: newCourse.instructor,
-            credits: parseInt(newCourse.credits, 10),
+            instructor: newCourse.instructor || 'N/A',
+            credits: parseInt(newCourse.credits, 10) || 0,
             url: newCourse.url,
             userId: user.uid,
-            description: `A comprehensive course on ${newCourse.name} taught by ${newCourse.instructor}.`,
+            description: `A course on ${newCourse.name}.`,
             progress: 0,
             files: 0,
         };
@@ -524,7 +528,7 @@ function DashboardPageClient({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
     const handleClaimChest = async (chest: Chest) => {
         if (!user) return;
         
-        const hasClaimedStreak = localStorage.getItem(`streakChestClaimed_${chest.id}_${user.uid}`);
+        const hasClaimedStreak = chest.unlocksAt && localStorage.getItem(`streakChestClaimed_${chest.id}_${user.uid}`);
         if(hasClaimedStreak === 'true') {
              toast({ variant: 'destructive', title: 'Already claimed!' });
              return;
@@ -752,14 +756,18 @@ function DashboardPageClient({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                 <Label htmlFor="name">Course Name</Label>
                                 <Input id="name" name="name" value={newCourse.name} onChange={handleInputChange} placeholder="e.g., Introduction to AI"/>
                             </div>
-                             <div className="grid gap-2">
-                                <Label htmlFor="instructor">Instructor</Label>
-                                <Input id="instructor" name="instructor" value={newCourse.instructor} onChange={handleInputChange} placeholder="e.g., Dr. Alan Turing"/>
-                            </div>
-                             <div className="grid gap-2">
-                                <Label htmlFor="credits">Credits</Label>
-                                <Input id="credits" name="credits" type="number" value={newCourse.credits} onChange={handleInputChange} placeholder="e.g., 3"/>
-                            </div>
+                            {gradeLevel !== 'Other' && (
+                                <>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="instructor">Instructor</Label>
+                                        <Input id="instructor" name="instructor" value={newCourse.instructor} onChange={handleInputChange} placeholder="e.g., Dr. Alan Turing"/>
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="credits">Credits</Label>
+                                        <Input id="credits" name="credits" type="number" value={newCourse.credits} onChange={handleInputChange} placeholder="e.g., 3"/>
+                                    </div>
+                                </>
+                            )}
                             <div className="grid gap-2">
                                 <Label htmlFor="url">Course URL (Optional)</Label>
                                 <Input id="url" name="url" value={newCourse.url} onChange={handleInputChange} placeholder="https://example.com/course-link"/>
@@ -846,17 +854,17 @@ function DashboardPageClient({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                         <DialogHeader>
                                             <DialogTitle className="flex items-center gap-2"><Trophy className="text-yellow-500" /> Your Reward Chests</DialogTitle>
                                             <CardDescription>
-                                                Claim chests by completing challenges.
+                                                Claim chests by maintaining your study streak.
                                             </CardDescription>
                                         </DialogHeader>
                                         <div className="py-4 space-y-4">
                                             {rewardState === 'idle' && chests.map(chest => {
-                                                const hasClaimedStreak = chest.unlocksAt && localStorage.getItem(`streakChestClaimed_${chest.id}_${user?.uid}`) === 'true';
+                                                const hasClaimedStreak = chest.unlocksAt && localStorage.getItem(`streakChestClaimed_${chest.id}_${user?.uid}`);
                                                 const isStreakLocked = chest.unlocksAt && streak < chest.unlocksAt;
                                                 const isFreeClaimed = chest.id === 'daily_free' && hasClaimedFreeChest;
-                                                const isDisabled = isStreakLocked || isFreeClaimed || hasClaimedStreak;
+                                                const isDisabled = isStreakLocked || (isFreeClaimed && chest.id === 'daily_free') || !!hasClaimedStreak;
                                                 
-                                                let buttonText: React.ReactNode = "Claim Free";
+                                                let buttonText: React.ReactNode = "Claim Reward";
                                                 if(isFreeClaimed && chest.id === 'daily_free') {
                                                     buttonText = 'Claimed Today';
                                                 } else if (hasClaimedStreak) {
