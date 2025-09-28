@@ -1106,7 +1106,7 @@ function DashboardPageClient({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                         <CardHeader>
                             <div className="flex justify-between items-center">
                                 <div>
-                                    <CardTitle>Projects & Assignments</CardTitle>
+                                    <CardTitle>Projects &amp; Assignments</CardTitle>
                                     <CardDescription>Keep track of your larger tasks and their deadlines.</CardDescription>
                                 </div>
                                 <Dialog open={isAddProjectOpen} onOpenChange={setAddProjectOpen}>
@@ -1300,7 +1300,7 @@ function DashboardPageClient({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                                 </div>
                                             ) : (
                                                 <Button size="sm" className="mt-4" onClick={() => handleGetExplanation(topic, state.attempt.id)} disabled={state.isExplanationLoading}>
-                                                    {state.isExplanationLoading ? "Thinking..." : "Explain with AI & Give Me a New Question"}
+                                                    {state.isExplanationLoading ? "Thinking..." : "Explain with AI &amp; Give Me a New Question"}
                                                 </Button>
                                             )}
                                         </div>
