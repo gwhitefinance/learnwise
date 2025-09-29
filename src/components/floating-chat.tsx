@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -484,9 +485,9 @@ export default function FloatingChat() {
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
                             exit={{ scale: 0 }}
-                            className="text-primary-foreground"
+                            className="text-primary-foreground w-12 h-12"
                         >
-                            <MessageSquare className="w-8 h-8" />
+                            <AIBuddy {...customizations} />
                         </motion.div>
                     )}
                 </AnimatePresence>
