@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -7,14 +6,14 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { ArrowRight, Loader2, BookOpen, Atom, Globe, History, Palette, Music, Code, BarChart2 } from 'lucide-react';
+import { ArrowRight, Loader2, BookOpen, Atom, Globe, History, Palette, Music, Code, BarChart2, Briefcase, BrainCircuit, HeartPulse, AreaChart, Target, Brush, FolderKanban } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { generateOnboardingCourse, generateMiniCourse } from '@/lib/actions';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { addDoc, collection } from 'firebase/firestore';
 
-const interestsList = [
+const academicInterests = [
     { name: "Literature", icon: <BookOpen /> },
     { name: "Science", icon: <Atom /> },
     { name: "Geography", icon: <Globe /> },
@@ -25,12 +24,33 @@ const interestsList = [
     { name: "Math", icon: <BarChart2 /> },
 ];
 
+const professionalInterests = [
+    { name: "Business", icon: <Briefcase /> },
+    { name: "Technology", icon: <BrainCircuit /> },
+    { name: "Health & Wellness", icon: <HeartPulse /> },
+    { name: "Finance", icon: <AreaChart /> },
+    { name: "Marketing", icon: <Target /> },
+    { name: "Creative Arts", icon: <Brush /> },
+    { name: "Programming", icon: <Code /> },
+    { name: "Project Management", icon: <FolderKanban /> },
+]
+
 export default function InterestsPage() {
     const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const router = useRouter();
     const { toast } = useToast();
     const [user] = useAuthState(auth);
+    const [interestsList, setInterestsList] = useState(academicInterests);
+
+    useEffect(() => {
+        const gradeLevel = localStorage.getItem('onboardingGradeLevel');
+        if (gradeLevel === 'Other') {
+            setInterestsList(professionalInterests);
+        } else {
+            setInterestsList(academicInterests);
+        }
+    }, []);
 
     const toggleInterest = (interest: string) => {
         setSelectedInterests(prev => 
