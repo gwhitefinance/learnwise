@@ -465,7 +465,7 @@ export default function FloatingChat() {
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-16 h-16 rounded-full flex items-center justify-center relative bg-primary shadow-lg"
+                className="w-24 h-24 rounded-full flex items-center justify-center relative bg-transparent"
                 aria-label="Toggle Chat"
             >
                  <AnimatePresence>
@@ -475,7 +475,7 @@ export default function FloatingChat() {
                             initial={{ scale: 0, rotate: -45 }}
                             animate={{ scale: 1, rotate: 0 }}
                             exit={{ scale: 0, rotate: 45 }}
-                            className="text-primary-foreground"
+                            className="text-white bg-primary rounded-full p-4"
                         >
                             <X className="w-8 h-8" />
                         </motion.div>
@@ -485,7 +485,7 @@ export default function FloatingChat() {
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
                             exit={{ scale: 0 }}
-                            className="text-primary-foreground w-12 h-12"
+                            className="text-primary-foreground w-24 h-24"
                         >
                             <AIBuddy {...customizations} />
                         </motion.div>
