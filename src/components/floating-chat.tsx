@@ -170,8 +170,12 @@ export default function FloatingChat() {
   useEffect(() => {
     if(user) {
         const savedCustomizations = localStorage.getItem(`robotCustomizations_${user.uid}`);
-        if(savedCustomizations) {
-            setCustomizations(JSON.parse(savedCustomizations));
+        if(savedCustomizations && savedCustomizations.trim() !== '') {
+            try {
+                setCustomizations(JSON.parse(savedCustomizations));
+            } catch (e) {
+                console.error("Failed to parse customizations from localStorage", e);
+            }
         }
     }
 

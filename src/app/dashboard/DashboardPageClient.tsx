@@ -259,8 +259,12 @@ function DashboardPageClient({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
         setIsDataLoading(true);
 
         const savedCustomizations = localStorage.getItem(`robotCustomizations_${user.uid}`);
-        if(savedCustomizations) {
-            setCustomizations(JSON.parse(savedCustomizations));
+        if(savedCustomizations && savedCustomizations.trim() !== '') {
+            try {
+                setCustomizations(JSON.parse(savedCustomizations));
+            } catch (e) {
+                 console.error("Failed to parse customizations from localStorage", e);
+            }
         }
 
         const freeChestClaimed = localStorage.getItem(`freeChestClaimed_${user.uid}_${new Date().toDateString()}`);
