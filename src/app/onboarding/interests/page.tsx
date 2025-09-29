@@ -77,7 +77,7 @@ export default function InterestsPage() {
         }
 
         setIsSubmitting(true);
-        toast({ title: "Building your starter courses...", description: "This may take a moment. Please wait."});
+        toast({ title: "Building your course outlines...", description: "This will only take a moment."});
         
         try {
             const learnerType = localStorage.getItem('learnerType') as any || 'Reading/Writing';
@@ -99,7 +99,7 @@ export default function InterestsPage() {
                         userId: user.uid,
                         units: courseOutline.modules.map(module => ({
                             id: crypto.randomUUID(),
-                            name: module.title,
+                            title: module.title,
                             chapters: module.chapters.map(chapter => ({ ...chapter, id: crypto.randomUUID() }))
                         })),
                     };
@@ -109,13 +109,13 @@ export default function InterestsPage() {
 
             await Promise.all(courseGenerationPromises);
             
-            toast({ title: 'Courses Created!', description: 'Next, let\'s set your learning pace.'});
+            toast({ title: 'Course Outlines Created!', description: 'Next, let\'s find out your learning style.'});
             
-            router.push('/onboarding/pace');
+            router.push('/learner-type');
 
         } catch (error) {
             console.error("Course generation failed:", error);
-            toast({ variant: 'destructive', title: 'Course Generation Failed', description: 'There was an error creating your courses. Please try again.' });
+            toast({ variant: 'destructive', title: 'Course Generation Failed', description: 'There was an error creating your course outlines. Please try again.' });
             setIsSubmitting(false);
         }
     };
@@ -164,7 +164,7 @@ export default function InterestsPage() {
                         {isSubmitting ? (
                             <>
                                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                                Generating Courses...
+                                Generating Outlines...
                             </>
                         ) : (
                              <>
