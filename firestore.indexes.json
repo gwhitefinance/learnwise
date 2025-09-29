@@ -87,7 +87,7 @@
     },
     {
       "collectionGroup": "quizAttempts",
-      "queryScope": "COLLECTION",
+      "queryScope": "COLLECTION_GROUP",
       "fields": [
         {
           "fieldPath": "userId",
