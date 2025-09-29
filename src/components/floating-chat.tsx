@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, X, MessageSquare, Loader2, PanelLeft, Plus, Edit, Trash2, FileText, Home, Phone, ChevronRight, HelpCircle } from 'lucide-react';
+import { Send, X, MessageSquare, Loader2, PanelLeft, Plus, Edit, Trash2, FileText, Home, Phone, ChevronRight, HelpCircle, Search, Calendar, Lightbulb, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 import AIBuddy from './ai-buddy';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { format, formatDistanceToNow } from 'date-fns';
 
 
 interface Message {
@@ -56,42 +57,72 @@ type CalendarEvent = {
   description: string;
 };
 
-const ChatHomeScreen = ({ onNavigate }: { onNavigate: (tab: string) => void }) => (
-    <div className="flex flex-col h-full">
-        <div className="bg-primary text-primary-foreground p-6 rounded-t-2xl">
-             <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
-                    <Home className="w-7 h-7 text-white" />
+const conversationStarters = [
+    "Explain photosynthesis like I'm five",
+    "Help me study for my history test",
+    "Quiz me on Chapter 2 of my Biology course",
+    "Give me a 5-step study plan for my exam"
+];
+
+
+const ChatHomeScreen = ({ onNavigate, onStartChatWithPrompt }: { onNavigate: (tab: string) => void, onStartChatWithPrompt: (prompt: string) => void }) => {
+    const [user] = useAuthState(auth);
+    const [topPriority, setTopPriority] = useState<CalendarEvent | null>(null);
+
+    useEffect(() => {
+        if (!user) return;
+        const q = query(
+            collection(db, "calendarEvents"),
+            where("userId", "==", user.uid),
+            orderBy("date", "asc")
+        );
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const events = snapshot.docs
+                .map(doc => doc.data() as CalendarEvent)
+                .filter(event => new Date(event.date) >= new Date()); // Only future events
+            setTopPriority(events[0] || null);
+        });
+        return () => unsubscribe();
+    }, [user]);
+
+    return (
+        <div className="flex flex-col h-full">
+            <div className="bg-primary text-primary-foreground p-6 rounded-t-2xl">
+                <h2 className="text-3xl font-bold">Hello {user?.displayName?.split(' ')[0] || 'there'}!</h2>
+                <p className="opacity-80">How can I help you today?</p>
+                <div className="relative mt-4">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary-foreground/60" />
+                    <Input placeholder="Search notes and docs..." className="bg-white/20 placeholder:text-primary-foreground/60 border-0 text-white pl-9" />
                 </div>
             </div>
-            <h2 className="text-3xl font-bold">LearnWise</h2>
-            <p className="opacity-80">We are here to help you!</p>
-        </div>
-        <div className="p-6 space-y-4 flex-1 bg-muted/30">
-            <button 
-                onClick={() => onNavigate('conversation')}
-                className="w-full bg-card p-4 rounded-lg flex items-center justify-between text-left hover:bg-muted transition-colors"
-            >
-                <div className="flex items-center gap-4">
-                    <div className="p-3 bg-primary/10 rounded-full">
-                        <MessageSquare className="w-5 h-5 text-primary" />
+            <ScrollArea className="p-6 space-y-4 flex-1 bg-muted/30">
+                 {topPriority && (
+                    <div className="bg-card p-4 rounded-lg border">
+                        <h3 className="text-sm font-semibold mb-2 flex items-center gap-2"><Calendar className="w-4 h-4 text-primary" /> Today's Top Priority</h3>
+                        <p className="font-bold">{topPriority.title}</p>
+                        <p className="text-sm text-muted-foreground">
+                            {format(new Date(topPriority.date), "EEE, MMM d")} at {topPriority.startTime}
+                        </p>
                     </div>
-                    <span className="font-semibold">Chat with us now</span>
+                )}
+                
+                <div className="space-y-2">
+                    <h3 className="text-sm font-semibold flex items-center gap-2"><Lightbulb className="w-4 h-4 text-primary" /> Conversation Starters</h3>
+                    {conversationStarters.map(prompt => (
+                        <button
+                            key={prompt}
+                            onClick={() => onStartChatWithPrompt(prompt)}
+                            className="w-full text-left bg-card p-3 rounded-lg flex items-center justify-between hover:bg-muted transition-colors"
+                        >
+                            <p className="text-sm">{prompt}</p>
+                            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                        </button>
+                    ))}
                 </div>
-                <ChevronRight className="w-5 h-5 text-muted-foreground" />
-            </button>
-            <button className="w-full bg-card p-4 rounded-lg flex items-center justify-between text-left hover:bg-muted transition-colors">
-                <div className="flex items-center gap-4">
-                     <div className="p-3 bg-primary/10 rounded-full">
-                        <Phone className="w-5 h-5 text-primary" />
-                    </div>
-                    <span className="font-semibold">Leave a voice message</span>
-                </div>
-                <ChevronRight className="w-5 h-5 text-muted-foreground" />
-            </button>
+            </ScrollArea>
         </div>
-    </div>
-);
+    );
+};
 
 
 export default function FloatingChat() {
@@ -180,10 +211,11 @@ export default function FloatingChat() {
     }
   }
 
-  const handleSendMessage = async () => {
-    if (!input.trim() || !user || !activeSession) return;
+  const handleSendMessage = async (prompt?: string) => {
+    const messageContent = prompt || input;
+    if (!messageContent.trim() || !user || !activeSession) return;
 
-    const userMessage: Message = { role: 'user', content: input };
+    const userMessage: Message = { role: 'user', content: messageContent };
     const updatedMessages = [...activeSession.messages, userMessage];
     
     setSessions(sessions.map(s => s.id === activeSessionId ? { ...s, messages: updatedMessages } : s));
@@ -230,6 +262,19 @@ export default function FloatingChat() {
        setSessions(sessions.map(s => s.id === activeSessionId ? activeSession : s));
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleStartChatWithPrompt = (prompt: string) => {
+    setActiveTab('conversation');
+    if (activeSession) {
+        handleSendMessage(prompt);
+    } else {
+        // This case should be rare, but as a fallback, create a session then send
+        createNewSession().then(() => {
+            // Need to wait for state to update, a timeout is a simple way
+            setTimeout(() => handleSendMessage(prompt), 500);
+        });
     }
   };
 
@@ -314,8 +359,8 @@ export default function FloatingChat() {
                     transition={{ duration: 0.2 }}
                     className="w-96 h-[600px] bg-card rounded-2xl shadow-2xl border flex flex-col origin-bottom-right"
                 >
-                    <div className="flex-1 overflow-hidden">
-                        {activeTab === 'home' && <ChatHomeScreen onNavigate={setActiveTab} />}
+                    <div className="flex-1 overflow-hidden flex">
+                        {activeTab === 'home' && <ChatHomeScreen onNavigate={setActiveTab} onStartChatWithPrompt={handleStartChatWithPrompt} />}
                         {activeTab === 'conversation' && (
                             <div className="flex-1 flex flex-col h-full">
                                  <AnimatePresence>
@@ -424,7 +469,7 @@ export default function FloatingChat() {
                                                 onKeyDown={e => e.key === 'Enter' && handleSendMessage()}
                                                 disabled={isLoading}
                                             />
-                                            <Button size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full" onClick={handleSendMessage} disabled={isLoading}>
+                                            <Button size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full" onClick={() => handleSendMessage()} disabled={isLoading}>
                                                 <Send className="h-4 w-4"/>
                                             </Button>
                                         </div>
