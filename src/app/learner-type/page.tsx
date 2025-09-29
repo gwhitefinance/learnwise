@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -9,7 +8,11 @@ import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Loader2 } from 'lucide-react';
+import { generateRoadmap } from '@/lib/actions';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { auth, db } from '@/lib/firebase';
+import { collection, query, where, getDocs, addDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
 
 const questions = [
   {
@@ -69,8 +72,10 @@ export default function LearnerTypeQuizPage() {
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [answers, setAnswers] = useState<Record<number, string>>({});
     const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const router = useRouter();
     const { toast } = useToast();
+    const [user] = useAuthState(auth);
 
     const handleNext = () => {
         if (selectedAnswer === null) {
@@ -94,7 +99,8 @@ export default function LearnerTypeQuizPage() {
         }
     };
 
-    const calculateResult = (finalAnswers: Record<number, string>) => {
+    const calculateResult = async (finalAnswers: Record<number, string>) => {
+        setIsSubmitting(true);
         const counts = { Visual: 0, Auditory: 0, Kinesthetic: 0, "Reading/Writing": 0 };
         questions.forEach((q, i) => {
             const answer = finalAnswers[i];
@@ -110,12 +116,66 @@ export default function LearnerTypeQuizPage() {
 
         localStorage.setItem('learnerType', dominantStyle);
         toast({
-            title: 'Quiz Complete!',
-            description: `You are a ${dominantStyle} learner. Redirecting you to your personalized dashboard...`,
+            title: 'Finalizing your setup...',
+            description: `You are a ${dominantStyle} learner. Generating your roadmaps and calendar...`,
         });
 
-        // Redirect to dashboard, which will then be customized
-        router.push('/dashboard');
+        if (!user) {
+            toast({ variant: 'destructive', title: 'User not found!'});
+            router.push('/login');
+            return;
+        }
+
+        try {
+            // Fetch the newly created courses
+            const coursesQuery = query(collection(db, 'courses'), where('userId', '==', user.uid));
+            const querySnapshot = await getDocs(coursesQuery);
+            const userCourses = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
+            
+            const learningPace = parseInt(localStorage.getItem('learningPace') || '3', 10);
+            
+            // Generate roadmaps and calendar events for each course
+            for (const course of userCourses) {
+                const roadmapResponse = await generateRoadmap({
+                    courseName: course.name,
+                    courseDescription: course.description,
+                    courseUrl: course.url,
+                    // The prompt will calculate dates over `learningPace` months
+                });
+
+                const roadmapData = {
+                    courseId: course.id,
+                    userId: user.uid,
+                    goals: roadmapResponse.goals.map(g => ({ ...g, id: crypto.randomUUID() })),
+                    milestones: roadmapResponse.milestones.map(m => ({ ...m, id: crypto.randomUUID(), completed: false }))
+                };
+                await addDoc(collection(db, 'roadmaps'), roadmapData);
+
+                // Add milestones to calendar
+                for (const milestone of roadmapData.milestones) {
+                    await addDoc(collection(db, 'calendarEvents'), {
+                        title: milestone.title,
+                        description: milestone.description,
+                        date: milestone.date,
+                        startTime: '09:00', // Default time
+                        endTime: '10:00',
+                        type: 'Homework', // Default type
+                        color: 'bg-blue-500',
+                        userId: user.uid,
+                    });
+                }
+            }
+            
+            toast({ title: 'All set!', description: 'Redirecting to your personalized dashboard.' });
+            router.push('/dashboard');
+
+        } catch (error) {
+            console.error("Final setup failed:", error);
+            toast({ variant: 'destructive', title: 'Setup Failed', description: 'Could not generate roadmaps. You can generate them later from the dashboard.'});
+            router.push('/dashboard'); // Still go to dashboard
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
@@ -146,9 +206,18 @@ export default function LearnerTypeQuizPage() {
                 </RadioGroup>
 
                 <div className="mt-12 flex justify-end">
-                    <Button size="lg" onClick={handleNext}>
-                        {currentQuestionIndex < questions.length - 1 ? 'Next' : 'Finish & Go to Dashboard'}
-                       <ArrowRight className="ml-2 h-5 w-5" />
+                    <Button size="lg" onClick={handleNext} disabled={isSubmitting}>
+                         {isSubmitting ? (
+                            <>
+                                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                                Setting up your account...
+                            </>
+                        ) : (
+                             <>
+                                {currentQuestionIndex < questions.length - 1 ? 'Next' : 'Finish & Go to Dashboard'}
+                                <ArrowRight className="ml-2 h-5 w-5" />
+                            </>
+                        )}
                     </Button>
                 </div>
             </div>

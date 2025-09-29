@@ -8,7 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { ArrowRight, Loader2, BookOpen, Atom, Globe, History, Palette, Music, Code, BarChart2, Briefcase, BrainCircuit, HeartPulse, AreaChart, Target, Brush, FolderKanban } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { generateOnboardingCourse, generateMiniCourse } from '@/lib/actions';
+import { generateMiniCourse } from '@/lib/actions';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { addDoc, collection } from 'firebase/firestore';
@@ -76,58 +76,48 @@ export default function InterestsPage() {
             return;
         }
 
-        const gradeLevel = localStorage.getItem('onboardingGradeLevel');
-        const specificGrade = localStorage.getItem('onboardingSpecificGrade');
-        const fullGrade = specificGrade ? `${gradeLevel} (Grade ${specificGrade})` : gradeLevel;
-        
-        if (!gradeLevel) {
-            toast({ variant: 'destructive', title: 'Grade level not found.'});
-            router.push('/onboarding/grade-level');
-            return;
-        }
-
         setIsSubmitting(true);
-        toast({ title: "Building your starter courses...", description: "You can continue to the next step. Your new courses will appear on your dashboard shortly!"});
-
-        // Trigger all course generations in the background
-        selectedInterests.forEach(interest => {
-            generateOnboardingCourse({
-                gradeLevel: fullGrade ?? 'High School',
-                interest: interest,
-            }).then(async (concept) => {
-                 const learnerType = localStorage.getItem('learnerType') as any || 'Reading/Writing';
-
-                const fullCourseData = await generateMiniCourse({
-                    courseName: concept.courseTitle,
-                    courseDescription: concept.courseDescription,
+        toast({ title: "Building your starter courses...", description: "This may take a moment. Please wait."});
+        
+        try {
+            const learnerType = localStorage.getItem('learnerType') as any || 'Reading/Writing';
+            
+            const courseGenerationPromises = selectedInterests.map(interest => 
+                generateMiniCourse({
+                    courseName: interest,
+                    courseDescription: `A course about ${interest}.`,
                     learnerType: learnerType,
-                });
+                }).then(courseOutline => {
+                    const courseToAdd = {
+                        name: courseOutline.courseTitle,
+                        description: `A comprehensive course on ${courseOutline.courseTitle}.`,
+                        instructor: "AI Assistant",
+                        credits: 3,
+                        url: '',
+                        progress: 0,
+                        files: 0,
+                        userId: user.uid,
+                        units: courseOutline.modules.map(module => ({
+                            id: crypto.randomUUID(),
+                            name: module.title,
+                            chapters: module.chapters.map(chapter => ({ ...chapter, id: crypto.randomUUID() }))
+                        })),
+                    };
+                    return addDoc(collection(db, "courses"), courseToAdd);
+                })
+            );
 
-                const courseToAdd = {
-                    name: fullCourseData.courseTitle,
-                    description: concept.courseDescription,
-                    instructor: "AI Assistant",
-                    credits: 3,
-                    url: '',
-                    progress: 0,
-                    files: 0,
-                    userId: user.uid,
-                    units: fullCourseData.modules.map(module => ({
-                        id: crypto.randomUUID(),
-                        name: module.title,
-                        chapters: module.chapters.map(chapter => ({ ...chapter, id: crypto.randomUUID() }))
-                    })),
-                };
+            await Promise.all(courseGenerationPromises);
+            
+            toast({ title: 'Courses Created!', description: 'Next, let\'s set your learning pace.'});
+            
+            router.push('/onboarding/pace');
 
-                await addDoc(collection(db, "courses"), courseToAdd);
-                console.log(`Successfully generated and saved course for: ${interest}`);
-                
-            }).catch((error) => {
-                console.error(`Background course generation failed for ${interest}:`, error);
-            });
-        });
-
-        router.push('/learner-type');
+        } catch (error) {
+            console.error("Course generation failed:", error);
+            toast({ variant: 'destructive', title: 'Course Generation Failed', description: 'There was an error creating your courses. Please try again.' });
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -174,7 +164,7 @@ export default function InterestsPage() {
                         {isSubmitting ? (
                             <>
                                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                                Proceeding...
+                                Generating Courses...
                             </>
                         ) : (
                              <>
