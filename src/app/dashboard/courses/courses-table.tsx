@@ -40,12 +40,15 @@ function CoursesTable({ initialCourses }: { initialCourses: Course[] }) {
     const router = useRouter();
     const [isDataLoading, setIsDataLoading] = useState(true);
     const [showInfoAlert, setShowInfoAlert] = useState(false);
+    const [gradeLevel, setGradeLevel] = useState<string | null>(null);
 
     useEffect(() => {
         const hideAlert = localStorage.getItem('hideCoursesInfoAlert');
         if (hideAlert !== 'true') {
             setShowInfoAlert(true);
         }
+        const storedGradeLevel = localStorage.getItem('onboardingGradeLevel');
+        setGradeLevel(storedGradeLevel);
     }, []);
     
     useEffect(() => {
@@ -76,7 +79,7 @@ function CoursesTable({ initialCourses }: { initialCourses: Course[] }) {
     };
 
     const handleAddCourse = async () => {
-        if (!newCourse.name || !newCourse.instructor || !newCourse.credits) {
+        if (!newCourse.name) {
             toast({
                 variant: 'destructive',
                 title: 'Missing Fields',
@@ -91,8 +94,8 @@ function CoursesTable({ initialCourses }: { initialCourses: Course[] }) {
 
         const courseToAdd = {
             name: newCourse.name,
-            instructor: newCourse.instructor,
-            credits: parseInt(newCourse.credits, 10),
+            instructor: newCourse.instructor || 'N/A',
+            credits: parseInt(newCourse.credits, 10) || 0,
             url: newCourse.url,
             description: newCourse.description,
             userId: user.uid,
@@ -203,14 +206,18 @@ function CoursesTable({ initialCourses }: { initialCourses: Course[] }) {
                         <Label htmlFor="name">Course Name</Label>
                         <Input id="name" name="name" value={newCourse.name} onChange={handleInputChange} placeholder="e.g., Introduction to AI"/>
                     </div>
-                     <div className="grid gap-2">
-                        <Label htmlFor="instructor">Instructor</Label>
-                        <Input id="instructor" name="instructor" value={newCourse.instructor} onChange={handleInputChange} placeholder="e.g., Dr. Alan Turing"/>
-                    </div>
-                     <div className="grid gap-2">
-                        <Label htmlFor="credits">Credits</Label>
-                        <Input id="credits" name="credits" type="number" value={newCourse.credits} onChange={handleInputChange} placeholder="e.g., 3"/>
-                    </div>
+                     {gradeLevel !== 'Other' && (
+                        <>
+                            <div className="grid gap-2">
+                                <Label htmlFor="instructor">Instructor</Label>
+                                <Input id="instructor" name="instructor" value={newCourse.instructor} onChange={handleInputChange} placeholder="e.g., Dr. Alan Turing"/>
+                            </div>
+                             <div className="grid gap-2">
+                                <Label htmlFor="credits">Credits</Label>
+                                <Input id="credits" name="credits" type="number" value={newCourse.credits} onChange={handleInputChange} placeholder="e.g., 3"/>
+                            </div>
+                        </>
+                     )}
                     <div className="grid gap-2">
                         <Label htmlFor="url">Course URL (Optional)</Label>
                         <Input id="url" name="url" value={newCourse.url} onChange={handleInputChange} placeholder="https://example.com/course-link"/>
