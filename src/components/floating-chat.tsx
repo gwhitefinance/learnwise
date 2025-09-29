@@ -48,26 +48,27 @@ interface FirestoreChatSession {
     isPublic?: boolean;
 }
 
+type Course = {
+    id: string;
+    name: string;
+    description: string;
+};
+
+
 type CalendarEvent = {
   id: string;
   date: string;
   title: string;
   startTime: string;
-  type: 'Test' | 'Homework' | 'Quiz' | 'Event';
+  type: 'Test' | 'Homework' | 'Quiz' | 'Event' | 'Project';
   description: string;
 };
-
-const conversationStarters = [
-    "Explain photosynthesis like I'm five",
-    "Help me study for my history test",
-    "Quiz me on Chapter 2 of my Biology course",
-    "Give me a 5-step study plan for my exam"
-];
-
 
 const ChatHomeScreen = ({ onNavigate, onStartChatWithPrompt }: { onNavigate: (tab: string) => void, onStartChatWithPrompt: (prompt: string) => void }) => {
     const [user] = useAuthState(auth);
     const [topPriority, setTopPriority] = useState<CalendarEvent | null>(null);
+    const [courses, setCourses] = useState<Course[]>([]);
+    const [conversationStarters, setConversationStarters] = useState<string[]>([]);
 
     useEffect(() => {
         if (!user) return;
@@ -78,12 +79,32 @@ const ChatHomeScreen = ({ onNavigate, onStartChatWithPrompt }: { onNavigate: (ta
         );
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const events = snapshot.docs
-                .map(doc => doc.data() as CalendarEvent)
+                .map(doc => ({id: doc.id, ...doc.data()} as CalendarEvent))
                 .filter(event => new Date(event.date) >= new Date()); // Only future events
             setTopPriority(events[0] || null);
         });
-        return () => unsubscribe();
+        
+        const coursesQuery = query(collection(db, "courses"), where("userId", "==", user.uid));
+        const unsubscribeCourses = onSnapshot(coursesQuery, (snapshot) => {
+            const userCourses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
+            setCourses(userCourses);
+        });
+
+
+        return () => {
+            unsubscribe();
+            unsubscribeCourses();
+        };
     }, [user]);
+
+    useEffect(() => {
+        const staticStarters = [
+            "Explain photosynthesis like I'm five",
+            "Give me a 5-step study plan for my exam"
+        ];
+        const dynamicStarters = courses.slice(0, 2).map(course => `Help me study for ${course.name}`);
+        setConversationStarters([...dynamicStarters, ...staticStarters].slice(0, 4));
+    }, [courses]);
 
     return (
         <div className="flex flex-col h-full">
@@ -190,14 +211,14 @@ export default function FloatingChat() {
     }
   }, [activeSession?.messages, isOpen]);
 
-  const createNewSession = async () => {
-    if (!user) return;
+  const createNewSession = async (prompt?: string): Promise<string> => {
+    if (!user) return '';
     
     const newSessionData = {
-        title: "New Chat",
+        title: prompt ? "New Chat" : "New Chat",
         messages: [{ role: 'ai', content: `Hey ${user.displayName?.split(' ')[0] || 'there'}! How can I help?` }],
         timestamp: Timestamp.now(),
-        titleGenerated: false,
+        titleGenerated: !!prompt,
         userId: user.uid,
         isPublic: false,
     };
@@ -206,19 +227,38 @@ export default function FloatingChat() {
         const docRef = await addDoc(collection(db, "chatSessions"), newSessionData);
         setActiveSessionId(docRef.id);
         setActiveTab('conversation');
+        return docRef.id;
     } catch(e) {
         toast({ variant: 'destructive', title: 'Error', description: 'Could not start a new chat.'})
+        return '';
     }
   }
 
   const handleSendMessage = async (prompt?: string) => {
     const messageContent = prompt || input;
-    if (!messageContent.trim() || !user || !activeSession) return;
+    if (!messageContent.trim() || !user) return;
+    
+    let currentSessionId = activeSessionId;
+    let currentMessages: Message[] = [];
+
+    // If there is no active session, create one first.
+    if (!activeSession) {
+        const newId = await createNewSession(messageContent);
+        if (!newId) return; // Stop if session creation failed
+        currentSessionId = newId;
+        // The messages array will be the default one from createNewSession
+        const newSession = sessions.find(s => s.id === newId);
+        currentMessages = newSession ? newSession.messages : [{ role: 'ai', content: `Hey ${user.displayName?.split(' ')[0] || 'there'}! How can I help?` }];
+    } else {
+        currentMessages = activeSession.messages;
+    }
+    
+    if (!currentSessionId) return;
 
     const userMessage: Message = { role: 'user', content: messageContent };
-    const updatedMessages = [...activeSession.messages, userMessage];
+    const updatedMessages = [...currentMessages, userMessage];
     
-    setSessions(sessions.map(s => s.id === activeSessionId ? { ...s, messages: updatedMessages } : s));
+    setSessions(sessions.map(s => s.id === currentSessionId ? { ...s, messages: updatedMessages } : s));
     setInput('');
     setIsLoading(true);
 
@@ -235,7 +275,7 @@ export default function FloatingChat() {
         userName: user?.displayName?.split(' ')[0],
         history: updatedMessages,
         learnerType: learnerType || undefined,
-        courseContext: activeSession.courseContext || undefined,
+        courseContext: activeSession?.courseContext || undefined,
         calendarEvents: calendarEvents.map(e => ({
             id: e.id,
             date: e.date,
@@ -249,34 +289,29 @@ export default function FloatingChat() {
       const aiMessage: Message = { role: 'ai', content: response };
       const finalMessages = [...updatedMessages, aiMessage];
       
-      const sessionRef = doc(db, "chatSessions", activeSession.id);
+      const sessionRef = doc(db, "chatSessions", currentSessionId);
       await updateDoc(sessionRef, { messages: finalMessages, timestamp: Timestamp.now() });
 
-       if (!activeSession.titleGenerated && activeSession.messages.length <= 3) {
+       if (!activeSession?.titleGenerated && updatedMessages.length <= 2) {
           const { title } = await generateChatTitle({ messages: finalMessages });
           await updateDoc(sessionRef, { title, titleGenerated: true });
       }
 
     } catch (error) {
       console.error(error);
-       setSessions(sessions.map(s => s.id === activeSessionId ? activeSession : s));
+       setSessions(sessions.map(s => s.id === currentSessionId ? activeSession! : s));
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleStartChatWithPrompt = (prompt: string) => {
+  const handleStartChatWithPrompt = async (prompt: string) => {
     setActiveTab('conversation');
-    if (activeSession) {
-        handleSendMessage(prompt);
-    } else {
-        // This case should be rare, but as a fallback, create a session then send
-        createNewSession().then(() => {
-            // Need to wait for state to update, a timeout is a simple way
-            setTimeout(() => handleSendMessage(prompt), 500);
-        });
-    }
+    await createNewSession(prompt);
+    // Use a short delay to ensure state updates before sending message
+    setTimeout(() => handleSendMessage(prompt), 100);
   };
+
 
   const startRename = (session: ChatSession) => {
     setEditingSessionId(session.id);
@@ -374,7 +409,7 @@ export default function FloatingChat() {
                                         >
                                             <div className="p-1 flex justify-between items-center border-b">
                                                 <h2 className="text-xs font-semibold pl-2">Chats</h2>
-                                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={createNewSession}><Plus className="h-3 w-3"/></Button>
+                                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => createNewSession()}><Plus className="h-3 w-3"/></Button>
                                             </div>
                                             <ScrollArea className="flex-1">
                                                 <div className="p-1 space-y-1">
