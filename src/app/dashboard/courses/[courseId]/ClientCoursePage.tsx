@@ -6,7 +6,7 @@ import { notFound, useRouter, useParams } from 'next/navigation';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, BrainCircuit, Lightbulb, Link as LinkIcon, Plus, UploadCloud, FileText, Trash2 } from 'lucide-react';
+import { ArrowLeft, BrainCircuit, Lightbulb, Link as LinkIcon, Plus, UploadCloud, FileText, Trash2, Wand2 } from 'lucide-react';
 import Link from 'next/link';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
@@ -17,6 +17,7 @@ import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, Di
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { generateChapterContent } from '@/lib/actions';
 
 type CourseFile = {
     id: string;
@@ -28,8 +29,8 @@ type CourseFile = {
 type Chapter = {
     id: string;
     title: string;
-    content: string;
-    activity: string;
+    content?: string;
+    activity?: string;
 };
 
 type Unit = {
@@ -59,6 +60,8 @@ export default function ClientCoursePage() {
   const params = useParams();
   const courseId = params.courseId as string;
   const { toast } = useToast();
+  const [learnerType, setLearnerType] = useState<string | null>(null);
+
 
   // State for dialogs
   const [isUnitDialogOpen, setUnitDialogOpen] = useState(false);
@@ -66,6 +69,8 @@ export default function ClientCoursePage() {
   const [isUploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
   const [filesToUpload, setFilesToUpload] = useState<FileList | null>(null);
+  const [isChapterContentLoading, setChapterContentLoading] = useState<Record<string, boolean>>({});
+
   
   const fetchCourse = useCallback(async () => {
       if (!user || !courseId) return;
@@ -90,6 +95,9 @@ export default function ClientCoursePage() {
     }, [user, courseId]);
 
   useEffect(() => {
+    const storedLearnerType = localStorage.getItem('learnerType');
+    setLearnerType(storedLearnerType ?? 'Unknown');
+
     if (authLoading) return;
     if (!user) {
       router.push('/login');
@@ -174,6 +182,43 @@ export default function ClientCoursePage() {
     setSelectedUnitId(unitId);
     setUploadDialogOpen(true);
   }
+
+  const handleGenerateChapterContent = async (unitId: string, chapterId: string) => {
+    if (!course || !learnerType) return;
+    const unit = course.units?.find(u => u.id === unitId);
+    const chapter = unit?.chapters.find(c => c.id === chapterId);
+
+    if (!unit || !chapter) return;
+
+    setChapterContentLoading(prev => ({...prev, [chapterId]: true }));
+    try {
+      const result = await generateChapterContent({
+        courseName: course.name,
+        moduleTitle: unit.name,
+        chapterTitle: chapter.title,
+        learnerType: learnerType as any,
+      });
+
+      const updatedUnits = course.units?.map(u => {
+        if (u.id === unitId) {
+          return {
+            ...u,
+            chapters: u.chapters.map(c => c.id === chapterId ? { ...c, ...result } : c),
+          };
+        }
+        return u;
+      });
+
+      const courseRef = doc(db, 'courses', course.id);
+      await updateDoc(courseRef, { units: updatedUnits });
+      setCourse(prev => prev ? { ...prev, units: updatedUnits } : null);
+    } catch (error) {
+      console.error('Failed to generate chapter content', error);
+      toast({ variant: 'destructive', title: 'Failed to generate content.' });
+    } finally {
+      setChapterContentLoading(prev => ({ ...prev, [chapterId]: false }));
+    }
+  };
 
 
   if (loading || authLoading) {
@@ -286,11 +331,19 @@ export default function ClientCoursePage() {
                                     {unit.chapters.map(chapter => (
                                         <div key={chapter.id}>
                                             <h4 className="font-semibold text-md">{chapter.title}</h4>
-                                            <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">{chapter.content}</p>
-                                            <div className="mt-2 p-3 bg-amber-500/10 rounded-md border border-amber-500/20 text-sm">
-                                                <p className="font-semibold text-amber-700">Activity:</p>
-                                                <p className="text-muted-foreground">{chapter.activity}</p>
-                                            </div>
+                                            {chapter.content ? (
+                                                <>
+                                                    <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">{chapter.content}</p>
+                                                    <div className="mt-2 p-3 bg-amber-500/10 rounded-md border border-amber-500/20 text-sm">
+                                                        <p className="font-semibold text-amber-700">Activity:</p>
+                                                        <p className="text-muted-foreground">{chapter.activity}</p>
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <Button size="sm" variant="secondary" className="mt-2" onClick={() => handleGenerateChapterContent(unit.id, chapter.id)} disabled={isChapterContentLoading[chapter.id]}>
+                                                    <Wand2 className="mr-2 h-4 w-4"/> {isChapterContentLoading[chapter.id] ? 'Generating...' : 'Generate Content with AI'}
+                                                </Button>
+                                            )}
                                         </div>
                                     ))}
                                 </div>
