@@ -4,7 +4,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, X, MessageSquare, Loader2, PanelLeft, Plus, Edit, Trash2, FileText, Home, Phone, ChevronRight, HelpCircle, Search, Calendar, Lightbulb, Sparkles, Upload, User, Award, Gem, Copy, RefreshCw, ChevronLeft, CheckCircle, XCircle, ArrowRight, BrainCircuit } from 'lucide-react';
+import { Send, X, MessageSquare, Loader2, PanelLeft, Plus, Edit, Trash2, FileText, Home, Phone, ChevronRight, HelpCircle, Search, Calendar, Lightbulb, Sparkles, Upload, User, Award, Gem, Copy, RefreshCw, ChevronLeft, CheckCircle, XCircle, ArrowRight, BrainCircuit, Bot } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -164,7 +164,7 @@ const ChatHomeScreen = ({ onNavigate, onStartChatWithPrompt }: { onNavigate: (ta
     );
 };
 
-const AIToolsTab = () => {
+const AIToolsTab = ({ onStartChatWithPrompt }: { onStartChatWithPrompt: (prompt: string) => void }) => {
     const [quizTopic, setQuizTopic] = useState('');
     const [numQuestions, setNumQuestions] = useState('3');
     const [flashcardContent, setFlashcardContent] = useState('');
@@ -331,6 +331,11 @@ const AIToolsTab = () => {
                     <h3 className="font-semibold flex items-center gap-2"><FileText className="text-blue-500"/> Flashcard Factory</h3>
                     <Textarea placeholder="Paste notes or concepts here..." value={flashcardContent} onChange={(e) => setFlashcardContent(e.target.value)} />
                     <Button className="w-full" onClick={handleGenerateFlashcards}>Create Flashcards</Button>
+                </div>
+                 <div className="space-y-4 p-4 border rounded-lg bg-card">
+                    <h3 className="font-semibold flex items-center gap-2"><BrainCircuit className="text-purple-500"/> AI Tutor</h3>
+                    <p className="text-sm text-muted-foreground">Upload an image of your homework to get a step-by-step walkthrough.</p>
+                    <Button className="w-full" variant="outline" onClick={() => onStartChatWithPrompt("I need help with my homework, I'm uploading an image.")}>Start AI Tutor</Button>
                 </div>
             </ScrollArea>
         </div>
@@ -861,7 +866,7 @@ export default function FloatingChat() {
                 >
                     <div className="flex-1 overflow-hidden flex flex-col">
                         {activeTab === 'home' && <ChatHomeScreen onNavigate={setActiveTab} onStartChatWithPrompt={handleStartChatWithPrompt} />}
-                        {activeTab === 'ai tools' && <AIToolsTab />}
+                        {activeTab === 'ai tools' && <AIToolsTab onStartChatWithPrompt={handleStartChatWithPrompt} />}
                         {activeTab === 'my stats' && <MyStatsTab />}
                         {activeTab === 'conversation' && (
                             <div className="flex-1 flex flex-row h-full overflow-hidden">
@@ -932,7 +937,7 @@ export default function FloatingChat() {
                                             {activeSession?.messages.map((msg, index) => (
                                                 <div key={index} className={cn("flex items-end gap-2", msg.role === 'user' ? 'justify-end' : '')}>
                                                     {msg.role === 'ai' && (
-                                                        <AIBuddy className="w-0 h-0" {...customizations} />
+                                                        <Avatar className="h-7 w-7"><AvatarFallback><Bot/></AvatarFallback></Avatar>
                                                     )}
                                                     <div className={cn(
                                                         "p-3 rounded-2xl max-w-[80%] text-sm",
@@ -944,7 +949,7 @@ export default function FloatingChat() {
                                             ))}
                                             {isLoading && (
                                                 <div className="flex items-end gap-2">
-                                                    <AIBuddy className="w-7 h-7" {...customizations} />
+                                                    <Avatar className="h-7 w-7"><AvatarFallback><Bot/></AvatarFallback></Avatar>
                                                     <div className="p-3 rounded-2xl max-w-[80%] text-sm bg-muted rounded-bl-none animate-pulse">
                                                         Thinking...
                                                     </div>
