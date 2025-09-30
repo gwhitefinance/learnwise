@@ -912,18 +912,21 @@ export default function FloatingChat() {
                                     )}
                                 </AnimatePresence>
                                 <div className="flex-1 flex flex-col min-w-0">
-                                    <header className="p-2 border-b flex items-center justify-between">
+                                    <header className="p-2 border-b flex items-center justify-between gap-2">
                                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsSidebarVisible(!isSidebarVisible)}>
                                             <PanelLeft className="h-4 w-4" />
                                         </Button>
-                                        <div className="flex items-center gap-2">
-                                            <div className="relative">
-                                                <AIBuddy className="w-6 h-6" {...customizations} />
+                                        <div className="flex-1 flex items-center gap-2 overflow-hidden">
+                                            <div className="relative flex-shrink-0">
+                                                <AIBuddy className="w-7 h-7" {...customizations} />
                                                 <span className="absolute bottom-0 right-0 w-2 h-2 bg-green-500 border border-card rounded-full"/>
                                             </div>
-                                            <h3 className="font-semibold text-sm truncate max-w-28">{activeSession?.title || 'AI Buddy'}</h3>
+                                            <div className="flex-1 truncate">
+                                                <h3 className="font-semibold text-sm truncate">{activeSession?.title || 'AI Buddy'}</h3>
+                                                {activeSession?.courseContext && <p className="text-xs text-muted-foreground truncate">Focus: {activeSession.courseContext}</p>}
+                                            </div>
                                         </div>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleSaveAsNote}>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" onClick={handleSaveAsNote}>
                                             <FileText className="h-4 w-4" />
                                         </Button>
                                     </header>
@@ -1066,3 +1069,5 @@ export default function FloatingChat() {
     </div>
   );
 }
+
+    
