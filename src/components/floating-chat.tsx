@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, X, MessageSquare, Loader2, PanelLeft, Plus, Edit, Trash2, FileText, Home, Phone, ChevronRight, HelpCircle, Search, Calendar, Lightbulb, Sparkles, Upload, User, Award, Gem, Copy, RefreshCw, ChevronLeft } from 'lucide-react';
+import { Send, X, MessageSquare, Loader2, PanelLeft, Plus, Edit, Trash2, FileText, Home, Phone, ChevronRight, HelpCircle, Search, Calendar, Lightbulb, Sparkles, Upload, User, Award, Gem, Copy, RefreshCw, ChevronLeft, CheckCircle, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { collection, query, where, getDocs, onSnapshot, addDoc, doc, updateDoc, Timestamp, deleteDoc, orderBy } from 'firebase/firestore';
-import { studyPlannerFlow, generateChatTitle, generateNoteFromChat, analyzeImage, generateQuizAction, generateFlashcardsFromNote } from '@/lib/actions';
+import { studyPlannerFlow, generateChatTitle, generateNoteFromChat, analyzeImage, generateQuizAction, generateFlashcardsFromNote, generateExplanation } from '@/lib/actions';
 import { cn } from '@/lib/utils';
 import AIBuddy from './ai-buddy';
 import { useToast } from '@/hooks/use-toast';
@@ -76,6 +76,11 @@ type Flashcard = {
     front: string;
     back: string;
 };
+
+type QuizState = 'configuring' | 'in-progress' | 'results';
+type AnswerState = 'unanswered' | 'answered';
+type AnswerFeedback = { question: string; answer: string; correctAnswer: string; isCorrect: boolean; explanation?: string; };
+
 
 const ChatHomeScreen = ({ onNavigate, onStartChatWithPrompt }: { onNavigate: (tab: string) => void, onStartChatWithPrompt: (prompt: string) => void }) => {
     const [user] = useAuthState(auth);
@@ -165,12 +170,21 @@ const AIToolsTab = () => {
     const { toast } = useToast();
     const [learnerType, setLearnerType] = useState<string | null>(null);
 
-    // State for quiz dialog
+    // Quiz state
     const [isQuizDialogOpen, setQuizDialogOpen] = useState(false);
     const [isQuizLoading, setQuizLoading] = useState(false);
     const [generatedQuiz, setGeneratedQuiz] = useState<GenerateQuizOutput | null>(null);
+    const [quickQuizState, setQuickQuizState] = useState<QuizState>('configuring');
+    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+    const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+    const [answerState, setAnswerState] = useState<AnswerState>('unanswered');
+    const [feedback, setFeedback] = useState<AnswerFeedback | null>(null);
+    const [explanation, setExplanation] = useState<string | null>(null);
+    const [isExplanationLoading, setIsExplanationLoading] = useState(false);
+    const [answers, setAnswers] = useState<AnswerFeedback[]>([]);
 
-    // State for flashcard dialog
+
+    // Flashcard dialog state
     const [isFlashcardDialogOpen, setFlashcardDialogOpen] = useState(false);
     const [isFlashcardLoading, setFlashcardLoading] = useState(false);
     const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
@@ -182,6 +196,17 @@ const AIToolsTab = () => {
         setLearnerType(type);
     }, []);
 
+    const resetQuiz = () => {
+        setGeneratedQuiz(null);
+        setQuickQuizState('configuring');
+        setCurrentQuestionIndex(0);
+        setSelectedAnswer(null);
+        setAnswerState('unanswered');
+        setFeedback(null);
+        setExplanation(null);
+        setAnswers([]);
+    }
+
     const handleGenerateQuiz = async () => {
         if (!quizTopic) {
             toast({ variant: 'destructive', title: 'Topic is required.'});
@@ -189,7 +214,7 @@ const AIToolsTab = () => {
         }
         setQuizDialogOpen(true);
         setQuizLoading(true);
-        setGeneratedQuiz(null);
+        resetQuiz();
         try {
             const result = await generateQuizAction({
                 topics: quizTopic,
@@ -198,6 +223,7 @@ const AIToolsTab = () => {
                 numQuestions: parseInt(numQuestions),
             });
             setGeneratedQuiz(result);
+            setQuickQuizState('in-progress');
         } catch (error) {
             console.error("Quiz generation failed:", error);
             toast({ variant: 'destructive', title: 'Failed to generate quiz.' });
@@ -207,6 +233,56 @@ const AIToolsTab = () => {
         }
     };
     
+    const handleSubmitAnswer = async () => {
+        if (!generatedQuiz || selectedAnswer === null) return;
+        
+        const currentQuestion = generatedQuiz.questions[currentQuestionIndex];
+        const isCorrect = selectedAnswer.toLowerCase() === currentQuestion.answer.toLowerCase();
+
+        const answerFeedback: AnswerFeedback = {
+            question: currentQuestion.question,
+            answer: selectedAnswer,
+            correctAnswer: currentQuestion.answer,
+            isCorrect: isCorrect,
+        };
+        
+        setAnswerState('answered');
+        setFeedback(answerFeedback);
+        setAnswers(prev => [...prev, answerFeedback]);
+        
+        if (!isCorrect) {
+            setIsExplanationLoading(true);
+            setExplanation(null);
+            try {
+                const explanationResult = await generateExplanation({
+                    question: currentQuestion.question,
+                    userAnswer: selectedAnswer,
+                    correctAnswer: currentQuestion.answer,
+                    learnerType: (learnerType as any) ?? 'Unknown',
+                    provideFullExplanation: true,
+                });
+                setExplanation(explanationResult.explanation);
+            } catch (error) {
+                console.error(error);
+            } finally {
+                setIsExplanationLoading(false);
+            }
+        }
+    }
+
+    const handleNextQuestion = async () => {
+        setFeedback(null);
+        setExplanation(null);
+        setSelectedAnswer(null);
+        setAnswerState('unanswered');
+        
+        if (currentQuestionIndex < (generatedQuiz?.questions.length ?? 0) - 1) {
+            setCurrentQuestionIndex(prev => prev + 1);
+        } else {
+            setQuickQuizState('results');
+        }
+    };
+
     const handleGenerateFlashcards = async () => {
         if (!flashcardContent) {
             toast({ variant: 'destructive', title: 'Content is required.'});
@@ -258,7 +334,7 @@ const AIToolsTab = () => {
             </ScrollArea>
         </div>
 
-        <Dialog open={isQuizDialogOpen} onOpenChange={setQuizDialogOpen}>
+        <Dialog open={isQuizDialogOpen} onOpenChange={(open) => { if(!open) { setQuizTopic(''); resetQuiz(); } setQuizDialogOpen(open); }}>
             <DialogContent className="max-w-2xl">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
@@ -266,33 +342,75 @@ const AIToolsTab = () => {
                         Quick Quiz on "{quizTopic}"
                     </DialogTitle>
                 </DialogHeader>
-                <div className="py-4 max-h-[60vh] overflow-y-auto">
+                <div className="py-4 max-h-[70vh] overflow-y-auto">
                     {isQuizLoading ? (
                         <div className="flex justify-center items-center h-40">
                             <Loader2 className="w-8 h-8 animate-spin" />
                         </div>
                     ) : (
-                       generatedQuiz && (
+                       generatedQuiz && quickQuizState === 'in-progress' && (
                            <div className="space-y-6">
-                               {generatedQuiz.questions.map((q, index) => (
-                                   <div key={index}>
-                                       <p className="font-semibold">{index + 1}. {q.question}</p>
-                                       <RadioGroup className="mt-2 space-y-2">
-                                           {q.options?.map((opt, i) => (
-                                               <div key={i} className="flex items-center space-x-2">
-                                                    <RadioGroupItem value={opt} id={`q${index}-opt${i}`} />
-                                                    <Label htmlFor={`q${index}-opt${i}`}>{opt}</Label>
-                                               </div>
-                                           ))}
-                                       </RadioGroup>
-                                   </div>
-                               ))}
+                                <div className="text-center">
+                                    <p className="text-muted-foreground mb-2">Question {currentQuestionIndex + 1} of {generatedQuiz.questions.length}</p>
+                                    <Progress value={((currentQuestionIndex + 1) / generatedQuiz.questions.length) * 100} className="mb-4 h-2"/>
+                                    <h3 className="text-2xl font-bold">{generatedQuiz.questions[currentQuestionIndex].question}</h3>
+                                </div>
+                                 <RadioGroup value={selectedAnswer ?? ''} onValueChange={setSelectedAnswer} disabled={answerState === 'answered'}>
+                                    <div className="space-y-4">
+                                    {generatedQuiz.questions[currentQuestionIndex].options?.map((option, index) => {
+                                        const isCorrect = option.toLowerCase() === generatedQuiz.questions[currentQuestionIndex].answer.toLowerCase();
+                                        return (
+                                        <Label key={index} htmlFor={`q${index}-opt${index}`} className={cn(
+                                            "flex items-center gap-4 p-4 rounded-lg border transition-all cursor-pointer",
+                                            answerState === 'unanswered' && (selectedAnswer === option ? "border-primary bg-primary/10" : "border-border hover:bg-muted"),
+                                            answerState === 'answered' && isCorrect && "border-green-500 bg-green-500/10",
+                                            answerState === 'answered' && selectedAnswer === option && !isCorrect && "border-red-500 bg-red-500/10",
+                                        )}>
+                                            <RadioGroupItem value={option} id={`q${index}-opt${index}`} />
+                                            <span>{option}</span>
+                                            {answerState === 'answered' && isCorrect && <CheckCircle className="h-5 w-5 text-green-500 ml-auto"/>}
+                                            {answerState === 'answered' && selectedAnswer === option && !isCorrect && <XCircle className="h-5 w-5 text-red-500 ml-auto"/>}
+                                        </Label>
+                                    )})}
+                                    </div>
+                                </RadioGroup>
+                                {answerState === 'answered' && !feedback?.isCorrect && (
+                                     <div className="p-4 bg-amber-500/10 rounded-lg border border-amber-500/20">
+                                        <h4 className="font-semibold flex items-center gap-2 text-amber-700"><Lightbulb/> Explanation</h4>
+                                        {isExplanationLoading ? (
+                                            <p className="animate-pulse text-muted-foreground mt-2">Generating personalized feedback...</p>
+                                        ) : (
+                                            <div className="text-muted-foreground mt-2"><p>{explanation}</p></div>
+                                        )}
+                                    </div>
+                                )}
                            </div>
                        )
                     )}
+                    {quickQuizState === 'results' && (
+                        <div className="text-center space-y-4">
+                            <h2 className="text-3xl font-bold">Quiz Complete!</h2>
+                             <p className="text-5xl font-bold text-primary my-4">{answers.filter(a => a.isCorrect).length} / {generatedQuiz?.questions.length}</p>
+                            <p className="text-muted-foreground">Great job practicing!</p>
+                        </div>
+                    )}
                 </div>
                 <DialogFooter>
-                    <DialogClose asChild><Button>Close</Button></DialogClose>
+                    {quickQuizState === 'in-progress' && (
+                         <div className="w-full flex justify-end">
+                            {answerState === 'unanswered' ? (
+                                <Button onClick={handleSubmitAnswer} disabled={!selectedAnswer}>Submit</Button>
+                            ) : (
+                                <Button onClick={handleNextQuestion}>
+                                    {currentQuestionIndex < (generatedQuiz?.questions.length ?? 0) - 1 ? 'Next Question' : 'Finish Quiz'}
+                                    <ArrowRight className="ml-2 h-4 w-4" />
+                                </Button>
+                            )}
+                        </div>
+                    )}
+                    {quickQuizState === 'results' && (
+                         <DialogClose asChild><Button>Done</Button></DialogClose>
+                    )}
                 </DialogFooter>
             </DialogContent>
         </Dialog>
