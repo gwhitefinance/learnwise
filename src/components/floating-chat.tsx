@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -931,9 +932,7 @@ export default function FloatingChat() {
                                             {activeSession?.messages.map((msg, index) => (
                                                 <div key={index} className={cn("flex items-end gap-2", msg.role === 'user' ? 'justify-end' : '')}>
                                                     {msg.role === 'ai' && (
-                                                        <Avatar className="h-7 w-7">
-                                                            <AvatarFallback><BrainCircuit size={16}/></AvatarFallback>
-                                                        </Avatar>
+                                                        <AIBuddy className="w-7 h-7" {...customizations} />
                                                     )}
                                                     <div className={cn(
                                                         "p-3 rounded-2xl max-w-[80%] text-sm",
@@ -945,9 +944,7 @@ export default function FloatingChat() {
                                             ))}
                                             {isLoading && (
                                                 <div className="flex items-end gap-2">
-                                                    <Avatar className="h-7 w-7">
-                                                        <AvatarFallback><BrainCircuit size={16}/></AvatarFallback>
-                                                    </Avatar>
+                                                    <AIBuddy className="w-7 h-7" {...customizations} />
                                                     <div className="p-3 rounded-2xl max-w-[80%] text-sm bg-muted rounded-bl-none animate-pulse">
                                                         Thinking...
                                                     </div>
