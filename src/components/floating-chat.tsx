@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, X, MessageSquare, Loader2, PanelLeft, Plus, Edit, Trash2, FileText, Home, Phone, ChevronRight, HelpCircle, Search, Calendar, Lightbulb, Sparkles, Upload, User, Award, Gem, Copy, RefreshCw, ChevronLeft, CheckCircle, XCircle, ArrowRight } from 'lucide-react';
+import { Send, X, MessageSquare, Loader2, PanelLeft, Plus, Edit, Trash2, FileText, Home, Phone, ChevronRight, HelpCircle, Search, Calendar, Lightbulb, Sparkles, Upload, User, Award, Gem, Copy, RefreshCw, ChevronLeft, CheckCircle, XCircle, ArrowRight, BrainCircuit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -917,10 +917,6 @@ export default function FloatingChat() {
                                             <PanelLeft className="h-4 w-4" />
                                         </Button>
                                         <div className="flex-1 flex items-center gap-2 overflow-hidden">
-                                            <div className="relative flex-shrink-0">
-                                                <AIBuddy className="w-7 h-7" {...customizations} />
-                                                <span className="absolute bottom-0 right-0 w-2 h-2 bg-green-500 border border-card rounded-full"/>
-                                            </div>
                                             <div className="flex-1 truncate">
                                                 <h3 className="font-semibold text-sm truncate">{activeSession?.title || 'AI Buddy'}</h3>
                                                 {activeSession?.courseContext && <p className="text-xs text-muted-foreground truncate">Focus: {activeSession.courseContext}</p>}
@@ -936,9 +932,7 @@ export default function FloatingChat() {
                                                 <div key={index} className={cn("flex items-end gap-2", msg.role === 'user' ? 'justify-end' : '')}>
                                                     {msg.role === 'ai' && (
                                                         <Avatar className="h-7 w-7">
-                                                            <div className="w-full h-full flex items-center justify-center rounded-full">
-                                                                <AIBuddy className="w-7 h-7" {...customizations}/>
-                                                            </div>
+                                                            <AvatarFallback><BrainCircuit size={16}/></AvatarFallback>
                                                         </Avatar>
                                                     )}
                                                     <div className={cn(
@@ -952,9 +946,7 @@ export default function FloatingChat() {
                                             {isLoading && (
                                                 <div className="flex items-end gap-2">
                                                     <Avatar className="h-7 w-7">
-                                                        <div className="w-full h-full flex items-center justify-center rounded-full">
-                                                            <AIBuddy className="w-7 h-7" {...customizations}/>
-                                                        </div>
+                                                        <AvatarFallback><BrainCircuit size={16}/></AvatarFallback>
                                                     </Avatar>
                                                     <div className="p-3 rounded-2xl max-w-[80%] text-sm bg-muted rounded-bl-none animate-pulse">
                                                         Thinking...
@@ -1069,5 +1061,3 @@ export default function FloatingChat() {
     </div>
   );
 }
-
-    
