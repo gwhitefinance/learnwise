@@ -609,8 +609,8 @@ export default function FloatingChat() {
                     <div className="border-t p-2 flex justify-around bg-card rounded-b-2xl">
                        <TabButton name="Home" icon={<Home />} currentTab={activeTab} setTab={setActiveTab} />
                        <TabButton name="Conversation" icon={<MessageSquare />} currentTab={activeTab} setTab={setActiveTab} />
-                       <TabButton name="FAQs" icon={<HelpCircle />} currentTab={activeTab} setTab={setActiveTab} />
-                       <TabButton name="Articles" icon={<FileText />} currentTab={activeTab} setTab={setActiveTab} />
+                       <TabButton name="AI Tools" icon={<Sparkles />} currentTab={activeTab} setTab={setActiveTab} />
+                       <TabButton name="Contact" icon={<Phone />} currentTab={activeTab} setTab={setActiveTab} />
                     </div>
 
                 </motion.div>
