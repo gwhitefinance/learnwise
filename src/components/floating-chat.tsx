@@ -937,7 +937,15 @@ export default function FloatingChat() {
                                             {activeSession?.messages.map((msg, index) => (
                                                 <div key={index} className={cn("flex items-end gap-2", msg.role === 'user' ? 'justify-end' : '')}>
                                                     {msg.role === 'ai' && (
-                                                        <Avatar className="h-7 w-7"><AvatarFallback><Bot/></AvatarFallback></Avatar>
+                                                        <Avatar className="h-7 w-7">
+                                                            <AIBuddy
+                                                                className="w-full h-full"
+                                                                color={customizations.color}
+                                                                hat={customizations.hat}
+                                                                shirt={customizations.shirt}
+                                                                shoes={customizations.shoes}
+                                                            />
+                                                        </Avatar>
                                                     )}
                                                     <div className={cn(
                                                         "p-3 rounded-2xl max-w-[80%] text-sm",
