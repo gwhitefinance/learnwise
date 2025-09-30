@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, X, MessageSquare, Loader2, PanelLeft, Plus, Edit, Trash2, FileText, Home, Phone, ChevronRight, HelpCircle, Search, Calendar, Lightbulb, Sparkles, Upload, User, Award, Gem } from 'lucide-react';
+import { Send, X, MessageSquare, Loader2, PanelLeft, Plus, Edit, Trash2, FileText, Home, Phone, ChevronRight, HelpCircle, Search, Calendar, Lightbulb, Sparkles, Upload, User, Award, Gem, Copy, RefreshCw, ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -23,6 +23,8 @@ import { Textarea } from './ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Progress } from './ui/progress';
 import Link from 'next/link';
+import type { GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
+import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 
 
 interface Message {
@@ -68,6 +70,11 @@ type CalendarEvent = {
   startTime: string;
   type: 'Test' | 'Homework' | 'Quiz' | 'Event' | 'Project';
   description: string;
+};
+
+type Flashcard = {
+    front: string;
+    back: string;
 };
 
 const ChatHomeScreen = ({ onNavigate, onStartChatWithPrompt }: { onNavigate: (tab: string) => void, onStartChatWithPrompt: (prompt: string) => void }) => {
@@ -156,14 +163,48 @@ const AIToolsTab = () => {
     const [numQuestions, setNumQuestions] = useState('3');
     const [flashcardContent, setFlashcardContent] = useState('');
     const { toast } = useToast();
+    const [learnerType, setLearnerType] = useState<string | null>(null);
+
+    // State for quiz dialog
+    const [isQuizDialogOpen, setQuizDialogOpen] = useState(false);
+    const [isQuizLoading, setQuizLoading] = useState(false);
+    const [generatedQuiz, setGeneratedQuiz] = useState<GenerateQuizOutput | null>(null);
+
+    // State for flashcard dialog
+    const [isFlashcardDialogOpen, setFlashcardDialogOpen] = useState(false);
+    const [isFlashcardLoading, setFlashcardLoading] = useState(false);
+    const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
+    const [currentFlashcardIndex, setCurrentFlashcardIndex] = useState(0);
+    const [isFlipped, setIsFlipped] = useState(false);
+
+    useEffect(() => {
+        const type = localStorage.getItem('learnerType');
+        setLearnerType(type);
+    }, []);
 
     const handleGenerateQuiz = async () => {
         if (!quizTopic) {
             toast({ variant: 'destructive', title: 'Topic is required.'});
             return;
         }
-        toast({ title: 'Generating your quiz...'});
-        // Placeholder for actual quiz generation logic
+        setQuizDialogOpen(true);
+        setQuizLoading(true);
+        setGeneratedQuiz(null);
+        try {
+            const result = await generateQuizAction({
+                topics: quizTopic,
+                questionType: 'Multiple Choice',
+                difficulty: 'Medium',
+                numQuestions: parseInt(numQuestions),
+            });
+            setGeneratedQuiz(result);
+        } catch (error) {
+            console.error("Quiz generation failed:", error);
+            toast({ variant: 'destructive', title: 'Failed to generate quiz.' });
+            setQuizDialogOpen(false);
+        } finally {
+            setQuizLoading(false);
+        }
     };
     
     const handleGenerateFlashcards = async () => {
@@ -171,11 +212,26 @@ const AIToolsTab = () => {
             toast({ variant: 'destructive', title: 'Content is required.'});
             return;
         }
-        toast({ title: 'Generating your flashcards...'});
-        // Placeholder
+        setFlashcardDialogOpen(true);
+        setFlashcardLoading(true);
+        setFlashcards([]);
+        try {
+            const result = await generateFlashcardsFromNote({
+                noteContent: flashcardContent,
+                learnerType: (learnerType as any) ?? 'Reading/Writing',
+            });
+            setFlashcards(result.flashcards);
+        } catch (error) {
+            console.error("Flashcard generation failed:", error);
+            toast({ variant: 'destructive', title: 'Failed to generate flashcards.' });
+            setFlashcardDialogOpen(false);
+        } finally {
+            setFlashcardLoading(false);
+        }
     };
 
     return (
+        <>
         <div className="flex flex-col h-full">
             <div className="p-4 border-b">
                 <h2 className="text-lg font-bold text-center">AI Toolkit</h2>
@@ -201,6 +257,108 @@ const AIToolsTab = () => {
                 </div>
             </ScrollArea>
         </div>
+
+        <Dialog open={isQuizDialogOpen} onOpenChange={setQuizDialogOpen}>
+            <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                        <Lightbulb className="text-yellow-500" />
+                        Quick Quiz on "{quizTopic}"
+                    </DialogTitle>
+                </DialogHeader>
+                <div className="py-4 max-h-[60vh] overflow-y-auto">
+                    {isQuizLoading ? (
+                        <div className="flex justify-center items-center h-40">
+                            <Loader2 className="w-8 h-8 animate-spin" />
+                        </div>
+                    ) : (
+                       generatedQuiz && (
+                           <div className="space-y-6">
+                               {generatedQuiz.questions.map((q, index) => (
+                                   <div key={index}>
+                                       <p className="font-semibold">{index + 1}. {q.question}</p>
+                                       <RadioGroup className="mt-2 space-y-2">
+                                           {q.options?.map((opt, i) => (
+                                               <div key={i} className="flex items-center space-x-2">
+                                                    <RadioGroupItem value={opt} id={`q${index}-opt${i}`} />
+                                                    <Label htmlFor={`q${index}-opt${i}`}>{opt}</Label>
+                                               </div>
+                                           ))}
+                                       </RadioGroup>
+                                   </div>
+                               ))}
+                           </div>
+                       )
+                    )}
+                </div>
+                <DialogFooter>
+                    <DialogClose asChild><Button>Close</Button></DialogClose>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+
+        <Dialog open={isFlashcardDialogOpen} onOpenChange={setFlashcardDialogOpen}>
+            <DialogContent className="max-w-xl">
+                 <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                        <Copy className="text-blue-500" />
+                        Flashcards
+                    </DialogTitle>
+                </DialogHeader>
+                <div className="py-4">
+                    {isFlashcardLoading ? (
+                        <div className="flex items-center justify-center h-52">
+                            <Loader2 className="w-8 h-8 animate-spin" />
+                        </div>
+                    ) : flashcards.length > 0 ? (
+                        <div className="space-y-4">
+                             <div className="text-center text-sm text-muted-foreground">
+                                Card {currentFlashcardIndex + 1} of {flashcards.length}
+                            </div>
+                            <div
+                                className="relative w-full h-64 cursor-pointer"
+                                onClick={() => setIsFlipped(!isFlipped)}
+                            >
+                                <AnimatePresence>
+                                    <motion.div
+                                        key={isFlipped ? 'back' : 'front'}
+                                        initial={{ rotateY: isFlipped ? 180 : 0 }}
+                                        animate={{ rotateY: 0 }}
+                                        exit={{ rotateY: isFlipped ? 0 : -180 }}
+                                        transition={{ duration: 0.5 }}
+                                        className="absolute w-full h-full p-6 flex items-center justify-center text-center rounded-lg border bg-card text-card-foreground shadow-sm"
+                                        style={{ backfaceVisibility: 'hidden' }}
+                                    >
+                                        <p className="text-xl font-semibold">
+                                            {isFlipped ? flashcards[currentFlashcardIndex].back : flashcards[currentFlashcardIndex].front}
+                                        </p>
+                                    </motion.div>
+                                </AnimatePresence>
+                            </div>
+                            <div className="flex justify-center items-center gap-4">
+                                <Button variant="outline" size="icon" onClick={() => { setIsFlipped(false); setCurrentFlashcardIndex(prev => Math.max(0, prev - 1))}} disabled={currentFlashcardIndex === 0}>
+                                    <ChevronLeft className="h-4 w-4" />
+                                </Button>
+                                <Button onClick={() => setIsFlipped(!isFlipped)}>
+                                    <RefreshCw className="mr-2 h-4 w-4"/> Flip Card
+                                </Button>
+                                <Button variant="outline" size="icon" onClick={() => { setIsFlipped(false); setCurrentFlashcardIndex(prev => Math.min(flashcards.length - 1, prev + 1))}} disabled={currentFlashcardIndex === flashcards.length - 1}>
+                                    <ChevronRight className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="flex items-center justify-center h-52">
+                            <p>No flashcards were generated.</p>
+                        </div>
+                    )}
+                </div>
+                <DialogFooter>
+                    <DialogClose asChild><Button>Close</Button></DialogClose>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+        </>
     )
 }
 
@@ -652,7 +810,7 @@ export default function FloatingChat() {
                                         </Button>
                                     </header>
                                     <ScrollArea className="flex-1" ref={scrollAreaRef}>
-                                        <div className="space-y-4 p-4">
+                                        <div className="p-4 space-y-4">
                                             {activeSession?.messages.map((msg, index) => (
                                                 <div key={index} className={cn("flex items-end gap-2", msg.role === 'user' ? 'justify-end' : '')}>
                                                     {msg.role === 'ai' && (
@@ -790,7 +948,3 @@ export default function FloatingChat() {
     </div>
   );
 }
-
-    
-
-    
