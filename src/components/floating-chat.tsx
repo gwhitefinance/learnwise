@@ -401,7 +401,7 @@ export default function FloatingChat() {
                     <div className="flex-1 overflow-hidden flex">
                         {activeTab === 'home' && <ChatHomeScreen onNavigate={setActiveTab} onStartChatWithPrompt={handleStartChatWithPrompt} />}
                         {activeTab === 'conversation' && (
-                            <div className="flex-1 flex flex-col h-full">
+                            <div className="flex-1 flex flex-row h-full">
                                  <AnimatePresence>
                                     {isSidebarVisible && (
                                         <motion.aside 
@@ -449,7 +449,7 @@ export default function FloatingChat() {
                                         </motion.aside>
                                     )}
                                 </AnimatePresence>
-                                <div className="flex-1 flex flex-col">
+                                <div className="flex-1 flex flex-col min-w-0">
                                     <header className="p-2 border-b flex items-center justify-between">
                                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsSidebarVisible(!isSidebarVisible)}>
                                             <PanelLeft className="h-4 w-4" />
@@ -465,8 +465,8 @@ export default function FloatingChat() {
                                             <FileText className="h-4 w-4" />
                                         </Button>
                                     </header>
-                                    <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
-                                        <div className="space-y-4">
+                                    <ScrollArea className="flex-1" ref={scrollAreaRef}>
+                                        <div className="space-y-4 p-4">
                                             {activeSession?.messages.map((msg, index) => (
                                                 <div key={index} className={cn("flex items-end gap-2", msg.role === 'user' ? 'justify-end' : '')}>
                                                     {msg.role === 'ai' && (
