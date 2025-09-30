@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, X, MessageSquare, Loader2, PanelLeft, Plus, Edit, Trash2, FileText, Home, Phone, ChevronRight, HelpCircle, Search, Calendar, Lightbulb, Sparkles, Upload } from 'lucide-react';
+import { Send, X, MessageSquare, Loader2, PanelLeft, Plus, Edit, Trash2, FileText, Home, Phone, ChevronRight, HelpCircle, Search, Calendar, Lightbulb, Sparkles, Upload, User, Award, Gem } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -11,13 +11,17 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { collection, query, where, getDocs, onSnapshot, addDoc, doc, updateDoc, Timestamp, deleteDoc, orderBy } from 'firebase/firestore';
-import { studyPlannerFlow, generateChatTitle, generateNoteFromChat, analyzeImage } from '@/lib/actions';
+import { studyPlannerFlow, generateChatTitle, generateNoteFromChat, analyzeImage, generateQuizAction, generateFlashcardsFromNote } from '@/lib/actions';
 import { cn } from '@/lib/utils';
 import AIBuddy from './ai-buddy';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { format, formatDistanceToNow } from 'date-fns';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from './ui/dialog';
+import { Label } from './ui/label';
+import { Textarea } from './ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Progress } from './ui/progress';
 
 
 interface Message {
@@ -142,6 +146,121 @@ const ChatHomeScreen = ({ onNavigate, onStartChatWithPrompt }: { onNavigate: (ta
                     ))}
                 </div>
             </ScrollArea>
+        </div>
+    );
+};
+
+const AIToolsTab = () => {
+    const [quizTopic, setQuizTopic] = useState('');
+    const [numQuestions, setNumQuestions] = useState('3');
+    const [flashcardContent, setFlashcardContent] = useState('');
+    const { toast } = useToast();
+
+    const handleGenerateQuiz = async () => {
+        if (!quizTopic) {
+            toast({ variant: 'destructive', title: 'Topic is required.'});
+            return;
+        }
+        toast({ title: 'Generating your quiz...'});
+        // Placeholder for actual quiz generation logic
+    };
+    
+    const handleGenerateFlashcards = async () => {
+        if (!flashcardContent) {
+            toast({ variant: 'destructive', title: 'Content is required.'});
+            return;
+        }
+        toast({ title: 'Generating your flashcards...'});
+        // Placeholder
+    };
+
+    return (
+        <div className="flex flex-col h-full">
+            <div className="p-4 border-b">
+                <h2 className="text-lg font-bold text-center">AI Toolkit</h2>
+            </div>
+            <ScrollArea className="flex-1 p-4 space-y-6">
+                <div className="space-y-4 p-4 border rounded-lg bg-card">
+                    <h3 className="font-semibold flex items-center gap-2"><Lightbulb className="text-yellow-500"/> Quick Quiz</h3>
+                    <Input placeholder="Enter a topic..." value={quizTopic} onChange={(e) => setQuizTopic(e.target.value)} />
+                    <Select value={numQuestions} onValueChange={setNumQuestions}>
+                        <SelectTrigger><SelectValue/></SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="3">3 Questions</SelectItem>
+                            <SelectItem value="5">5 Questions</SelectItem>
+                            <SelectItem value="10">10 Questions</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <Button className="w-full" onClick={handleGenerateQuiz}>Generate Quiz</Button>
+                </div>
+                 <div className="space-y-4 p-4 border rounded-lg bg-card">
+                    <h3 className="font-semibold flex items-center gap-2"><FileText className="text-blue-500"/> Flashcard Factory</h3>
+                    <Textarea placeholder="Paste notes or concepts here..." value={flashcardContent} onChange={(e) => setFlashcardContent(e.target.value)} />
+                    <Button className="w-full" onClick={handleGenerateFlashcards}>Create Flashcards</Button>
+                </div>
+            </ScrollArea>
+        </div>
+    )
+}
+
+const MyStatsTab = () => {
+    const [user] = useAuthState(auth);
+    const [stats, setStats] = useState({ level: 1, xp: 0, coins: 0, streak: 0 });
+
+    useEffect(() => {
+        if (!user) return;
+        const userRef = doc(db, 'users', user.uid);
+        const unsubscribe = onSnapshot(userRef, (doc) => {
+            if (doc.exists()) {
+                const data = doc.data();
+                setStats(prev => ({...prev, level: data.level || 1, xp: data.xp || 0, coins: data.coins || 0 }));
+            }
+        });
+        
+        const lastVisit = localStorage.getItem('lastVisit');
+        const today = new Date().toDateString();
+        if (lastVisit === today) {
+            setStats(prev => ({ ...prev, streak: Number(localStorage.getItem('streakCount')) || 1}));
+        } else {
+             const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            if (lastVisit === yesterday.toDateString()) {
+                setStats(prev => ({...prev, streak: (Number(localStorage.getItem('streakCount')) || 0) + 1}));
+            } else {
+                setStats(prev => ({...prev, streak: 1}));
+            }
+        }
+
+        return () => unsubscribe();
+    }, [user]);
+
+    const xpForNextLevel = stats.level * 100;
+    const xpProgress = (stats.xp / xpForNextLevel) * 100;
+
+    return (
+         <div className="flex flex-col h-full">
+            <div className="p-4 border-b">
+                <h2 className="text-lg font-bold text-center">My Stats</h2>
+            </div>
+            <div className="flex-1 p-4 space-y-4">
+                <div className="p-4 border rounded-lg bg-card">
+                    <h3 className="font-semibold text-sm mb-2">Level {stats.level}</h3>
+                    <Progress value={xpProgress} />
+                    <p className="text-xs text-muted-foreground mt-1 text-right">{stats.xp} / {xpForNextLevel} XP</p>
+                </div>
+                 <div className="grid grid-cols-2 gap-4">
+                     <div className="p-4 border rounded-lg bg-card text-center">
+                        <p className="text-2xl font-bold text-amber-500">{stats.coins}</p>
+                        <p className="text-xs font-semibold text-muted-foreground">Coins</p>
+                    </div>
+                     <div className="p-4 border rounded-lg bg-card text-center">
+                        <p className="text-2xl font-bold text-orange-500">{stats.streak}</p>
+                        <p className="text-xs font-semibold text-muted-foreground">Day Streak</p>
+                    </div>
+                </div>
+                 <Button variant="outline" className="w-full" asChild><Link href="/dashboard/profile">View Full Profile</Link></Button>
+                 <Button className="w-full" asChild><Link href="/dashboard/shop">Go to Shop</Link></Button>
+            </div>
         </div>
     );
 };
@@ -464,6 +583,8 @@ export default function FloatingChat() {
                 >
                     <div className="flex-1 overflow-hidden flex flex-col">
                         {activeTab === 'home' && <ChatHomeScreen onNavigate={setActiveTab} onStartChatWithPrompt={handleStartChatWithPrompt} />}
+                        {activeTab === 'ai tools' && <AIToolsTab />}
+                        {activeTab === 'my stats' && <MyStatsTab />}
                         {activeTab === 'conversation' && (
                             <div className="flex-1 flex flex-row h-full overflow-hidden">
                                  <AnimatePresence>
@@ -610,7 +731,7 @@ export default function FloatingChat() {
                        <TabButton name="Home" icon={<Home />} currentTab={activeTab} setTab={setActiveTab} />
                        <TabButton name="Conversation" icon={<MessageSquare />} currentTab={activeTab} setTab={setActiveTab} />
                        <TabButton name="AI Tools" icon={<Sparkles />} currentTab={activeTab} setTab={setActiveTab} />
-                       <TabButton name="Contact" icon={<Phone />} currentTab={activeTab} setTab={setActiveTab} />
+                       <TabButton name="My Stats" icon={<Award />} currentTab={activeTab} setTab={setActiveTab} />
                     </div>
 
                 </motion.div>
@@ -668,3 +789,5 @@ export default function FloatingChat() {
     </div>
   );
 }
+
+    
