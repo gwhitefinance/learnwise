@@ -11,7 +11,7 @@ import { scrapeWebpageTool } from '@/ai/tools/web-scraper-tool';
 
 const prompt = ai.definePrompt({
     name: 'roadmapGenerationPrompt',
-    model: googleAI.model('gemini-2.5-flash'),
+    model: googleAI.model('gemini-1.5-flash'),
     input: { schema: GenerateRoadmapInputSchema },
     output: { schema: GenerateRoadmapOutputSchema },
     tools: [scrapeWebpageTool],
@@ -81,6 +81,6 @@ const generateRoadmapFlow = ai.defineFlow(
   }
 );
 
-export async function generateRoadmap(input: GenerateRoadnameInput): Promise<GenerateRoadmapOutput> {
+export async function generateRoadmap(input: GenerateRoadmapInput): Promise<GenerateRoadmapOutput> {
     return generateRoadmapFlow(input);
 }

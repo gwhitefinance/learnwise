@@ -11,7 +11,7 @@ import { GenerateNoteFromChatInputSchema, GenerateNoteFromChatOutputSchema, Gene
 
 const prompt = ai.definePrompt({
     name: 'chatToNotePrompt',
-    model: googleAI.model('gemini-2.5-flash'),
+    model: googleAI.model('gemini-1.5-flash'),
     input: { schema: GenerateNoteFromChatInputSchema },
     output: { schema: GenerateNoteFromChatOutputSchema },
     prompt: `You are an expert at summarizing conversations and creating structured notes.
