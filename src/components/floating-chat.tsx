@@ -4,7 +4,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, X, MessageSquare, Loader2, PanelLeft, Plus, Edit, Trash2, FileText, Home, Phone, ChevronRight, HelpCircle, Search, Calendar, Lightbulb, Sparkles, Upload, User, Award, Gem, Copy, RefreshCw, ChevronLeft, CheckCircle, XCircle, ArrowRight, BrainCircuit, Bot } from 'lucide-react';
+import { Send, X, MessageSquare, Loader2, PanelLeft, Plus, Edit, Trash2, FileText, Home, Phone, ChevronRight, HelpCircle, Search, Calendar, Lightbulb, Sparkles, Upload, User, Award, Gem, Copy, RefreshCw, ChevronLeft, CheckCircle, XCircle, ArrowRight, BrainCircuit, Bot, MoreVertical, Link as LinkIcon, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -26,6 +26,7 @@ import { Progress } from './ui/progress';
 import Link from 'next/link';
 import type { GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
 
 
 interface Message {
@@ -554,6 +555,7 @@ export default function FloatingChat() {
   const [showWelcome, setShowWelcome] =useState(true);
   
   const [sessions, setSessions] = useState<ChatSession[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('home');
   
@@ -572,6 +574,14 @@ export default function FloatingChat() {
   const [isUploadOpen, setUploadOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [fileToUpload, setFileToUpload] = useState<File | null>(null);
+
+  // State for "Save as Note" dialog
+  const [isNoteDialogOpen, setNoteDialogOpen] = useState(false);
+  const [noteGenerationLoading, setNoteGenerationLoading] = useState(false);
+  const [generatedNoteTitle, setGeneratedNoteTitle] = useState('');
+  const [generatedNoteContent, setGeneratedNoteContent] = useState('');
+  const [selectedNoteCourseId, setSelectedNoteCourseId] = useState<string | undefined>(undefined);
+
 
   const activeSession = sessions.find(s => s.id === activeSessionId);
 
@@ -611,8 +621,17 @@ export default function FloatingChat() {
             createNewSession();
         }
     });
+    
+    const coursesQuery = query(collection(db, "courses"), where("userId", "==", user.uid));
+    const unsubscribeCourses = onSnapshot(coursesQuery, (snapshot) => {
+        const userCourses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
+        setCourses(userCourses);
+    });
 
-    return () => unsubscribe();
+    return () => {
+        unsubscribe();
+        unsubscribeCourses();
+    }
 
   }, [isOpen, user, activeSessionId]);
 
@@ -764,23 +783,56 @@ export default function FloatingChat() {
     }
   };
 
-  const handleSaveAsNote = async () => {
-    if (!activeSession || !user) return;
+  const handleOpenNoteDialog = async () => {
+    if (!activeSession) return;
+    setNoteDialogOpen(true);
+    setNoteGenerationLoading(true);
     try {
         const result = await generateNoteFromChat({ messages: activeSession.messages });
+        setGeneratedNoteTitle(result.title);
+        setGeneratedNoteContent(result.note);
+    } catch (e) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not generate note summary.' });
+        setNoteDialogOpen(false);
+    } finally {
+        setNoteGenerationLoading(false);
+    }
+  }
+
+  const handleSaveNote = async () => {
+    if (!user) return;
+    try {
         await addDoc(collection(db, "notes"), {
-            title: result.title,
-            content: result.note,
+            title: generatedNoteTitle,
+            content: generatedNoteContent,
             date: Timestamp.now(),
             color: 'bg-indigo-100 dark:bg-indigo-900/20',
             isImportant: false,
             isCompleted: false,
             userId: user.uid,
-            courseId: activeSession.courseId || null,
+            courseId: selectedNoteCourseId || null,
         });
         toast({ title: "Note Saved!", description: "Find it on your Notes page." });
-    } catch(e) {
-        toast({ variant: 'destructive', title: 'Error saving note.'});
+    } catch (e) {
+        toast({ variant: 'destructive', title: 'Error saving note.' });
+    } finally {
+        setNoteDialogOpen(false);
+        setGeneratedNoteTitle('');
+        setGeneratedNoteContent('');
+        setSelectedNoteCourseId(undefined);
+    }
+  }
+
+  const handleShareChat = async () => {
+    if (!activeSessionId) return;
+    try {
+        const sessionRef = doc(db, 'chatSessions', activeSessionId);
+        await updateDoc(sessionRef, { isPublic: true });
+        const shareLink = `${window.location.origin}/share/chat/${activeSessionId}`;
+        navigator.clipboard.writeText(shareLink);
+        toast({ title: "Link Copied!", description: "A shareable link to this chat has been copied." });
+    } catch (e) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not make this chat public.' });
     }
   }
 
@@ -928,9 +980,47 @@ export default function FloatingChat() {
                                                 {activeSession?.courseContext && <p className="text-xs text-muted-foreground truncate">Focus: {activeSession.courseContext}</p>}
                                             </div>
                                         </div>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" onClick={handleSaveAsNote}>
-                                            <FileText className="h-4 w-4" />
-                                        </Button>
+                                         <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+                                                    <MoreVertical className="h-4 w-4" />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                                <DropdownMenuItem onSelect={handleOpenNoteDialog}>
+                                                    <FileText className="mr-2 h-4 w-4" />
+                                                    <span>Save as Note</span>
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem onSelect={handleShareChat}>
+                                                    <Share2 className="mr-2 h-4 w-4" />
+                                                    <span>Share Chat</span>
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem>
+                                                    <Link href={`/share/chat/${activeSessionId}`} target="_blank" className="flex items-center w-full">
+                                                        <LinkIcon className="mr-2 h-4 w-4" />
+                                                        <span>Open in New Tab</span>
+                                                    </Link>
+                                                </DropdownMenuItem>
+                                                <DropdownMenuSeparator />
+                                                <AlertDialog>
+                                                    <AlertDialogTrigger asChild>
+                                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
+                                                            <Trash2 className="mr-2 h-4 w-4"/> Delete Chat
+                                                        </DropdownMenuItem>
+                                                    </AlertDialogTrigger>
+                                                    <AlertDialogContent>
+                                                        <AlertDialogHeader>
+                                                            <AlertDialogTitle>Are you sure you want to delete this chat?</AlertDialogTitle>
+                                                            <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
+                                                        </AlertDialogHeader>
+                                                        <AlertDialogFooter>
+                                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                            <AlertDialogAction onClick={() => activeSessionId && handleDeleteSession(activeSessionId)}>Delete</AlertDialogAction>
+                                                        </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                </AlertDialog>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
                                     </header>
                                     <ScrollArea className="flex-1" ref={scrollAreaRef}>
                                         <div className="p-4 space-y-4">
@@ -938,7 +1028,7 @@ export default function FloatingChat() {
                                                 <div key={index} className={cn("flex items-end gap-2", msg.role === 'user' ? 'justify-end' : '')}>
                                                     {msg.role === 'ai' && (
                                                         <Avatar className="h-10 w-10">
-                                                            <AIBuddy
+                                                          <AIBuddy
                                                                 className="w-full h-full"
                                                                 color={customizations.color}
                                                                 hat={customizations.hat}
@@ -957,7 +1047,15 @@ export default function FloatingChat() {
                                             ))}
                                             {isLoading && (
                                                 <div className="flex items-end gap-2">
-                                                    <Avatar className="h-7 w-7"><AvatarFallback><Bot/></AvatarFallback></Avatar>
+                                                    <Avatar className="h-10 w-10">
+                                                        <AIBuddy
+                                                            className="w-full h-full"
+                                                            color={customizations.color}
+                                                            hat={customizations.hat}
+                                                            shirt={customizations.shirt}
+                                                            shoes={customizations.shoes}
+                                                        />
+                                                    </Avatar>
                                                     <div className="p-3 rounded-2xl max-w-[80%] text-sm bg-muted rounded-bl-none animate-pulse">
                                                         Thinking...
                                                     </div>
@@ -1012,7 +1110,7 @@ export default function FloatingChat() {
                     <div className="border-t p-2 flex justify-around bg-card rounded-b-2xl">
                        <TabButton name="Home" icon={<Home />} currentTab={activeTab} setTab={setActiveTab} />
                        <TabButton name="Conversation" icon={<MessageSquare />} currentTab={activeTab} setTab={setActiveTab} />
-                       <TabButton name="AI Tools" icon={<Sparkles />} currentTab={activeTab} setTab={setActiveTab} />
+                       <TabButton name="AI Tools" icon={<Sparkles />} currentTab={setActiveTab} setTab={setActiveTab} />
                        <TabButton name="My Stats" icon={<Award />} currentTab={activeTab} setTab={setActiveTab} />
                     </div>
 
@@ -1068,6 +1166,46 @@ export default function FloatingChat() {
                 </AnimatePresence>
             </motion.button>
         </div>
+         <Dialog open={isNoteDialogOpen} onOpenChange={setNoteDialogOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Save Chat as Note</DialogTitle>
+                    <DialogDescription>Review the generated note and assign it to a course.</DialogDescription>
+                </DialogHeader>
+                 {noteGenerationLoading ? (
+                    <div className="py-4"><Loader2 className="w-6 h-6 animate-spin mx-auto"/></div>
+                ) : (
+                    <div className="grid gap-4 py-4">
+                        <div className="grid gap-2">
+                            <Label htmlFor="note-title">Title</Label>
+                            <Input id="note-title" value={generatedNoteTitle} onChange={(e) => setGeneratedNoteTitle(e.target.value)} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="note-content">Content</Label>
+                            <Textarea id="note-content" value={generatedNoteContent} onChange={(e) => setGeneratedNoteContent(e.target.value)} className="h-32"/>
+                        </div>
+                         <div className="grid gap-2">
+                            <Label htmlFor="note-course">Assign to Course (Optional)</Label>
+                            <Select value={selectedNoteCourseId} onValueChange={setSelectedNoteCourseId}>
+                                <SelectTrigger id="note-course">
+                                    <SelectValue placeholder="Select a course"/>
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {courses.map(course => (
+                                        <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                )}
+                <DialogFooter>
+                    <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
+                    <Button onClick={handleSaveNote} disabled={noteGenerationLoading}>Save Note</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     </div>
   );
 }
+
