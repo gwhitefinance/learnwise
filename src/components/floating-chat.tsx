@@ -22,6 +22,7 @@ import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Progress } from './ui/progress';
+import Link from 'next/link';
 
 
 interface Message {
@@ -789,5 +790,7 @@ export default function FloatingChat() {
     </div>
   );
 }
+
+    
 
     
