@@ -10,7 +10,7 @@ import { GenerateFlashcardsInputSchema, GenerateFlashcardsInput, GenerateFlashca
 
 const prompt = ai.definePrompt({
     name: 'noteToFlashcardGenerationPrompt',
-    model: googleAI.model('gemini-1.5-flash'),
+    model: googleAI.model('gemini-2.0-flash'),
     input: { schema: GenerateFlashcardsInputSchema },
     output: { schema: GenerateFlashcardsOutputSchema },
     prompt: `You are an expert at creating study materials. 
