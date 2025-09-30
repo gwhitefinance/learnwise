@@ -204,7 +204,7 @@ function AnalysisPage() {
           </Card>
            <Card className="hover:bg-muted/50 transition-colors">
             <CardContent className="p-6">
-              <Link href={`/dashboard/ai-chat?courseId=${weakestCourse?.id ?? ''}`}>
+              <Link href={`/dashboard?courseId=${weakestCourse?.id ?? ''}`}>
                     <div className="flex items-start gap-4">
                          <div className="p-3 bg-primary/10 rounded-lg text-primary"><BrainCircuit /></div>
                          <div>

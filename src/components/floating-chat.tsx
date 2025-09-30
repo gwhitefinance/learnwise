@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, X, MessageSquare, Loader2, PanelLeft, Plus, Edit, Trash2, FileText, Home, Phone, ChevronRight, HelpCircle, Search, Calendar, Lightbulb, Sparkles } from 'lucide-react';
+import { Send, X, MessageSquare, Loader2, PanelLeft, Plus, Edit, Trash2, FileText, Home, Phone, ChevronRight, HelpCircle, Search, Calendar, Lightbulb, Sparkles, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -11,12 +11,13 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { collection, query, where, getDocs, onSnapshot, addDoc, doc, updateDoc, Timestamp, deleteDoc, orderBy } from 'firebase/firestore';
-import { studyPlannerFlow, generateChatTitle, generateNoteFromChat } from '@/lib/actions';
+import { studyPlannerFlow, generateChatTitle, generateNoteFromChat, analyzeImage } from '@/lib/actions';
 import { cn } from '@/lib/utils';
 import AIBuddy from './ai-buddy';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { format, formatDistanceToNow } from 'date-fns';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from './ui/dialog';
 
 
 interface Message {
@@ -164,6 +165,11 @@ export default function FloatingChat() {
   const [isSidebarVisible, setIsSidebarVisible] = useState(false);
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
   const [renameInput, setRenameInput] = useState('');
+  
+  // State for upload dialog
+  const [isUploadOpen, setUploadOpen] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [fileToUpload, setFileToUpload] = useState<File | null>(null);
 
   const activeSession = sessions.find(s => s.id === activeSessionId);
 
@@ -375,6 +381,64 @@ export default function FloatingChat() {
         toast({ variant: 'destructive', title: 'Error saving note.'});
     }
   }
+
+  const handleUpload = async () => {
+    if (!fileToUpload || !activeSessionId) {
+      toast({ variant: 'destructive', title: 'No file selected' });
+      return;
+    }
+    
+    setIsLoading(true);
+    setUploadOpen(false);
+
+    const userMessageContent = `I've uploaded an image: ${fileToUpload.name}. Can you help me with this?`;
+    const userMessage: Message = { role: 'user', content: userMessageContent };
+    const updatedMessages = activeSession ? [...activeSession.messages, userMessage] : [userMessage];
+    setSessions(sessions.map(s => s.id === activeSessionId ? { ...s, messages: updatedMessages } : s));
+
+    try {
+        const reader = new FileReader();
+        reader.readAsDataURL(fileToUpload);
+        reader.onload = async (e) => {
+            const imageDataUri = e.target?.result as string;
+            if (!imageDataUri) {
+                throw new Error("Could not read file data.");
+            }
+            const { analysis } = await analyzeImage({ imageDataUri });
+
+            const aiMessage: Message = { role: 'ai', content: analysis };
+            const finalMessages = [...updatedMessages, aiMessage];
+            
+            setIsLoading(false);
+            const sessionRef = doc(db, "chatSessions", activeSessionId);
+            await updateDoc(sessionRef, { messages: finalMessages });
+        }
+        reader.onerror = (error) => {
+            throw error;
+        }
+
+    } catch (error) {
+        console.error(error);
+        setIsLoading(false);
+        toast({ variant: 'destructive', title: 'Analysis Failed', description: 'Could not analyze the uploaded image.' });
+        setSessions(sessions.map(s => s.id === activeSessionId ? activeSession! : s)); // Revert
+    } finally {
+        setFileToUpload(null);
+    }
+  };
+  
+  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); };
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); };
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); if (!isDragging) setIsDragging(true); };
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    const droppedFiles = e.dataTransfer.files;
+    if (droppedFiles && droppedFiles.length > 0) {
+      setFileToUpload(droppedFiles[0]);
+    }
+  };
   
   const TabButton = ({ name, icon, currentTab, setTab }: {name: string, icon: React.ReactNode, currentTab: string, setTab: (tab:string) => void}) => (
     <button onClick={() => setTab(name.toLowerCase())} className={cn(
@@ -398,10 +462,10 @@ export default function FloatingChat() {
                     transition={{ duration: 0.2 }}
                     className="w-96 h-[600px] bg-card rounded-2xl shadow-2xl border flex flex-col origin-bottom-right"
                 >
-                    <div className="flex-1 overflow-hidden flex">
+                    <div className="flex-1 overflow-hidden flex flex-col">
                         {activeTab === 'home' && <ChatHomeScreen onNavigate={setActiveTab} onStartChatWithPrompt={handleStartChatWithPrompt} />}
                         {activeTab === 'conversation' && (
-                            <div className="flex-1 flex flex-row h-full">
+                            <div className="flex-1 flex flex-row h-full overflow-hidden">
                                  <AnimatePresence>
                                     {isSidebarVisible && (
                                         <motion.aside 
@@ -502,15 +566,39 @@ export default function FloatingChat() {
                                         <div className="relative">
                                             <Input 
                                                 placeholder="Ask anything..."
-                                                className="pr-12 rounded-full"
+                                                className="pr-20 rounded-full"
                                                 value={input}
                                                 onChange={e => setInput(e.target.value)}
                                                 onKeyDown={e => e.key === 'Enter' && handleSendMessage()}
                                                 disabled={isLoading}
                                             />
-                                            <Button size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full" onClick={() => handleSendMessage()} disabled={isLoading}>
-                                                <Send className="h-4 w-4"/>
-                                            </Button>
+                                            <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                                                <Dialog open={isUploadOpen} onOpenChange={setUploadOpen}>
+                                                    <DialogTrigger asChild>
+                                                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full"><Upload className="h-4 w-4"/></Button>
+                                                    </DialogTrigger>
+                                                    <DialogContent onDragEnter={handleDragEnter} onDragLeave={handleDragLeave} onDragOver={handleDragOver} onDrop={handleDrop}>
+                                                        <DialogHeader>
+                                                            <DialogTitle>Upload File</DialogTitle>
+                                                            <DialogDescription>Upload an image file to discuss it with the AI.</DialogDescription>
+                                                        </DialogHeader>
+                                                        <div className={cn("relative flex flex-col items-center justify-center w-full p-12 border-2 border-dashed rounded-lg cursor-pointer transition-colors", isDragging ? "border-primary bg-primary/10" : "border-border hover:border-primary/50")} onClick={() => document.getElementById('chat-file-upload')?.click()}>
+                                                            <input id="chat-file-upload" type="file" className="hidden" onChange={(e) => setFileToUpload(e.target.files?.[0] || null)} accept="image/*" />
+                                                            <Upload className="w-10 h-10 mb-4 text-muted-foreground" />
+                                                            <p className="mb-2 text-lg font-semibold">Drag and drop your file here</p>
+                                                            <p className="text-sm text-muted-foreground">Or click to browse</p>
+                                                        </div>
+                                                        {fileToUpload && <p className="text-sm text-muted-foreground">Selected: {fileToUpload.name}</p>}
+                                                        <DialogFooter>
+                                                            <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
+                                                            <Button onClick={handleUpload} disabled={!fileToUpload}>Upload & Analyze</Button>
+                                                        </DialogFooter>
+                                                    </DialogContent>
+                                                </Dialog>
+                                                <Button size="icon" className="h-8 w-8 rounded-full" onClick={() => handleSendMessage()} disabled={isLoading}>
+                                                    <Send className="h-4 w-4"/>
+                                                </Button>
+                                            </div>
                                         </div>
                                     </footer>
                                 </div>

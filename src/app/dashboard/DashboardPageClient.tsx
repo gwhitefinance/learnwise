@@ -1018,10 +1018,9 @@ function DashboardPageClient({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                             <AppCard 
                                 id="ai-chat-app"
                                 title="AI Chat" 
-                                href="/dashboard/ai-chat" 
+                                href="/dashboard" 
                                 description="Get instant answers and explanations from your AI study partner." 
                                 icon={<BrainCircuit className="w-8 h-8"/>} 
-                                actionButton={<Button variant="outline" className="w-full">Start Chatting <ArrowRight className="ml-2 h-4 w-4"/></Button>} 
                             />
                         </motion.div>
                        <motion.div whileHover={{ y: -5, scale: 1.02 }} transition={{ type: 'spring', stiffness: 300 }}>

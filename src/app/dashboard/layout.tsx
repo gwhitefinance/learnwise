@@ -177,12 +177,6 @@ const sidebarItems = [
       id: "ai-tools-section",
       children: [
         {
-            title: "AI Chat",
-            icon: <BrainCircuit />,
-            href: "/dashboard/ai-chat",
-            id: "ai-chat-link",
-        },
-        {
             title: "Analysis",
             icon: <BarChart3 />,
             href: "/dashboard/analysis",
@@ -423,8 +417,6 @@ export default function DashboardLayout({
     return null;
   }).filter(Boolean);
 
-  const isChatPage = pathname.startsWith('/dashboard/ai-chat');
-
   const xpForNextLevel = userLevel * 100;
   const xpProgress = (userXp / xpForNextLevel) * 100;
 
@@ -490,199 +482,180 @@ export default function DashboardLayout({
         )}
 
         {/* Sidebar - Mobile */}
-        {!isChatPage && (
-            <div
-              className={cn(
-                "fixed inset-y-0 left-0 z-50 w-64 transform bg-background transition-transform duration-300 ease-in-out md:hidden",
-                mobileMenuOpen ? "translate-x-0" : "-translate-x-full",
-              )}
-            >
-              <div className="flex h-full flex-col border-r">
-                <div className="flex items-center justify-between p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="flex aspect-square size-10 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-600 to-blue-600 text-white">
-                      <Wand2 className="size-5" />
-                    </div>
-                    <div>
-                      <h2 className="font-semibold">LearnWise</h2>
-                      <p className="text-xs text-muted-foreground">Study Suite</p>
-                    </div>
-                  </div>
-                  <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(false)}>
-                    <X className="h-5 w-5" />
-                  </Button>
+        <div
+            className={cn(
+            "fixed inset-y-0 left-0 z-50 w-64 transform bg-background transition-transform duration-300 ease-in-out md:hidden",
+            mobileMenuOpen ? "translate-x-0" : "-translate-x-full",
+            )}
+        >
+            <div className="flex h-full flex-col border-r">
+            <div className="flex items-center justify-between p-4">
+                <div className="flex items-center gap-3">
+                <div className="flex aspect-square size-10 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-600 to-blue-600 text-white">
+                    <Wand2 className="size-5" />
                 </div>
-
-                <div className="px-3 py-2">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input type="search" placeholder="Search..." className="w-full rounded-2xl bg-muted pl-9 pr-4 py-2" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
-                  </div>
+                <div>
+                    <h2 className="font-semibold">LearnWise</h2>
+                    <p className="text-xs text-muted-foreground">Study Suite</p>
                 </div>
-
-                <ScrollArea className="flex-1 px-3 py-2">
-                  <div className="space-y-1">
-                    {filteredSidebarItems.length > 0 ? filteredSidebarItems.map((item: any) => (
-                      <div key={item.title} className="mb-1">
-                          <SidebarNavItem item={item} pathname={pathname} setMobileMenuOpen={setMobileMenuOpen} />
-                      </div>
-                    )) : (
-                      <div className="p-4 text-center text-sm text-muted-foreground">No results found.</div>
-                    )}
-                  </div>
-                </ScrollArea>
-
-                <div className="border-t p-3">
-                  <div className="space-y-1">
-                    <Button onClick={handleSignOut} className="flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm font-medium hover:bg-muted">
-                          <LogOut className="h-5 w-5" />
-                          <span>Sign Out</span>
-                      </Button>
-                    {userProfileDisplay}
-                  </div>
                 </div>
-              </div>
+                <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(false)}>
+                <X className="h-5 w-5" />
+                </Button>
             </div>
-        )}
+
+            <div className="px-3 py-2">
+                <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input type="search" placeholder="Search..." className="w-full rounded-2xl bg-muted pl-9 pr-4 py-2" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+                </div>
+            </div>
+
+            <ScrollArea className="flex-1 px-3 py-2">
+                <div className="space-y-1">
+                {filteredSidebarItems.length > 0 ? filteredSidebarItems.map((item: any) => (
+                    <div key={item.title} className="mb-1">
+                        <SidebarNavItem item={item} pathname={pathname} setMobileMenuOpen={setMobileMenuOpen} />
+                    </div>
+                )) : (
+                    <div className="p-4 text-center text-sm text-muted-foreground">No results found.</div>
+                )}
+                </div>
+            </ScrollArea>
+
+            <div className="border-t p-3">
+                <div className="space-y-1">
+                <Button onClick={handleSignOut} className="flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm font-medium hover:bg-muted">
+                        <LogOut className="h-5 w-5" />
+                        <span>Sign Out</span>
+                    </Button>
+                {userProfileDisplay}
+                </div>
+            </div>
+            </div>
+        </div>
 
         {/* Sidebar - Desktop */}
-        {!isChatPage && (
-            <div
-              className={cn(
-                "fixed inset-y-0 left-0 z-30 hidden w-64 transform border-r bg-background transition-transform duration-300 ease-in-out md:block",
-                sidebarOpen ? "translate-x-0" : "-translate-x-full",
-              )}
-            >
-              <div className="flex h-full flex-col">
-                <div className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="flex aspect-square size-10 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-600 to-blue-600 text-white">
-                      <Wand2 className="size-5" />
-                    </div>
-                    <div>
-                      <h2 className="font-semibold">LearnWise</h2>
-                      <p className="text-xs text-muted-foreground">Study Suite</p>
-                    </div>
-                  </div>
+        <div
+            className={cn(
+            "fixed inset-y-0 left-0 z-30 hidden w-64 transform border-r bg-background transition-transform duration-300 ease-in-out md:block",
+            sidebarOpen ? "translate-x-0" : "-translate-x-full",
+            )}
+        >
+            <div className="flex h-full flex-col">
+            <div className="p-4">
+                <div className="flex items-center gap-3">
+                <div className="flex aspect-square size-10 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-600 to-blue-600 text-white">
+                    <Wand2 className="size-5" />
                 </div>
-
-                <div className="px-3 py-2">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input type="search" placeholder="Search..." className="w-full rounded-2xl bg-muted pl-9 pr-4 py-2" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
-                  </div>
+                <div>
+                    <h2 className="font-semibold">LearnWise</h2>
+                    <p className="text-xs text-muted-foreground">Study Suite</p>
                 </div>
-
-                <ScrollArea className="flex-1 px-3 py-2">
-                  <div className="space-y-1">
-                    {filteredSidebarItems.length > 0 ? filteredSidebarItems.map((item: any) => (
-                      <div key={item.title} className="mb-1">
-                          <SidebarNavItem item={item} pathname={pathname} setMobileMenuOpen={setMobileMenuOpen} />
-                      </div>
-                    )) : (
-                      <div className="p-4 text-center text-sm text-muted-foreground">No results found.</div>
-                    )}
-                  </div>
-                </ScrollArea>
-
-                <div className="border-t p-3">
-                  <div className="space-y-2">
-                    <Button onClick={handleSignOut} className="flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm font-medium hover:bg-muted">
-                      <LogOut className="h-5 w-5" />
-                      <span>Sign Out</span>
-                    </Button>
-                    {userProfileDisplay}
-                  </div>
                 </div>
-              </div>
             </div>
-        )}
+
+            <div className="px-3 py-2">
+                <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input type="search" placeholder="Search..." className="w-full rounded-2xl bg-muted pl-9 pr-4 py-2" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+                </div>
+            </div>
+
+            <ScrollArea className="flex-1 px-3 py-2">
+                <div className="space-y-1">
+                {filteredSidebarItems.length > 0 ? filteredSidebarItems.map((item: any) => (
+                    <div key={item.title} className="mb-1">
+                        <SidebarNavItem item={item} pathname={pathname} setMobileMenuOpen={setMobileMenuOpen} />
+                    </div>
+                )) : (
+                    <div className="p-4 text-center text-sm text-muted-foreground">No results found.</div>
+                )}
+                </div>
+            </ScrollArea>
+
+            <div className="border-t p-3">
+                <div className="space-y-2">
+                <Button onClick={handleSignOut} className="flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm font-medium hover:bg-muted">
+                    <LogOut className="h-5 w-5" />
+                    <span>Sign Out</span>
+                </Button>
+                {userProfileDisplay}
+                </div>
+            </div>
+            </div>
+        </div>
 
         {/* Main Content */}
         <div className={cn(
             "flex flex-col min-h-screen transition-all duration-300 ease-in-out", 
-            sidebarOpen && !isChatPage ? "md:pl-64" : "md:pl-0",
-            isChatPage && "md:pl-0"
-          )}>
-          {!isChatPage && (
+            sidebarOpen ? "md:pl-64" : "md:pl-0",
+        )}>
             <header className="sticky top-0 z-10 flex h-16 items-center gap-3 border-b bg-background/95 px-4 backdrop-blur">
-              <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileMenuOpen(true)}>
+            <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileMenuOpen(true)}>
                 <Menu className="h-5 w-5" />
-              </Button>
-              <Button variant="ghost" size="icon" className="hidden md:flex" onClick={() => setSidebarOpen(!sidebarOpen)} aria-label="Toggle Sidebar">
+            </Button>
+            <Button variant="ghost" size="icon" className="hidden md:flex" onClick={() => setSidebarOpen(!sidebarOpen)} aria-label="Toggle Sidebar">
                 <PanelLeft className="h-5 w-5" />
-              </Button>
-              <div className="flex flex-1 items-center justify-between">
+            </Button>
+            <div className="flex flex-1 items-center justify-between">
                 <h1 className="text-xl font-semibold">LearnWise</h1>
                 <div className="flex items-center gap-3">
-                  <TooltipProvider>
-                      <Tooltip>
-                          <TooltipTrigger asChild>
-                              <Button variant="ghost" size="icon" className="rounded-2xl" onClick={() => setIsHalloweenTheme(!isHalloweenTheme)}>
-                                  <PumpkinIcon className="h-5 w-5 text-orange-500"/>
-                              </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                              {isHalloweenTheme ? 'Disable Halloween Theme' : 'Enable Halloween Theme'}
-                          </TooltipContent>
-                      </Tooltip>
-                  </TooltipProvider>
-
-                  <Link href="/dashboard/ai-chat">
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button variant="ghost" size="icon" className="rounded-2xl">
-                            <MessageSquare className="h-5 w-5" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>AI Chat</TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </Link>
-
-                  <TooltipProvider>
+                <TooltipProvider>
                     <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" className="rounded-2xl relative">
-                          <Bell className="h-5 w-5" />
-                          {notifications > 0 && (
-                            <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
-                              {notifications}
-                            </span>
-                          )}
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>Notifications</TooltipContent>
+                        <TooltipTrigger asChild>
+                            <Button variant="ghost" size="icon" className="rounded-2xl" onClick={() => setIsHalloweenTheme(!isHalloweenTheme)}>
+                                <PumpkinIcon className="h-5 w-5 text-orange-500"/>
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            {isHalloweenTheme ? 'Disable Halloween Theme' : 'Enable Halloween Theme'}
+                        </TooltipContent>
                     </Tooltip>
-                  </TooltipProvider>
+                </TooltipProvider>
 
-                  <TooltipProvider>
-                      <Tooltip>
-                          <TooltipTrigger asChild>
-                              <Link href="/dashboard/shop">
-                                  <div className="flex items-center gap-2 rounded-full bg-amber-500/10 px-3 py-1.5 text-amber-600">
-                                      <Gem className="h-4 w-4" />
-                                      <span className="text-sm font-medium">{userCoins}</span>
-                                  </div>
-                              </Link>
-                          </TooltipTrigger>
-                          <TooltipContent>Your Coins</TooltipContent>
-                      </Tooltip>
-                  </TooltipProvider>
+                <TooltipProvider>
+                    <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button variant="ghost" size="icon" className="rounded-2xl relative">
+                        <Bell className="h-5 w-5" />
+                        {notifications > 0 && (
+                            <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
+                            {notifications}
+                            </span>
+                        )}
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Notifications</TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Link href="/dashboard/shop">
+                                <div className="flex items-center gap-2 rounded-full bg-amber-500/10 px-3 py-1.5 text-amber-600">
+                                    <Gem className="h-4 w-4" />
+                                    <span className="text-sm font-medium">{userCoins}</span>
+                                </div>
+                            </Link>
+                        </TooltipTrigger>
+                        <TooltipContent>Your Coins</TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
 
 
-                  <DropdownMenu>
+                <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <button>
-                          <Avatar className="h-9 w-9 border-2 border-primary cursor-pointer">
-                              {profilePic ? (
-                                  <AvatarImage src={profilePic} alt="User" />
-                              ): (
-                                  <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
-                              )}
-                          </Avatar>
-                      </button>
+                    <button>
+                        <Avatar className="h-9 w-9 border-2 border-primary cursor-pointer">
+                            {profilePic ? (
+                                <AvatarImage src={profilePic} alt="User" />
+                            ): (
+                                <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
+                            )}
+                        </Avatar>
+                    </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
                         <DropdownMenuItem onSelect={() => router.push('/dashboard/profile')}>
@@ -703,16 +676,15 @@ export default function DashboardLayout({
                             <span>Sign Out</span>
                         </DropdownMenuItem>
                     </DropdownMenuContent>
-                  </DropdownMenu>
+                </DropdownMenu>
 
                 </div>
-              </div>
+            </div>
             </header>
-          )}
 
-          <main className={cn("flex-1 flex flex-col relative", !isChatPage && "p-4 md:p-6")}>
-              {React.cloneElement(children as React.ReactElement, { isHalloweenTheme })}
-          </main>
+            <main className="flex-1 flex flex-col relative p-4 md:p-6">
+                {React.cloneElement(children as React.ReactElement, { isHalloweenTheme })}
+            </main>
         </div>
       </div>
       <FloatingChat />
