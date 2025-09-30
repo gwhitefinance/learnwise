@@ -52,19 +52,35 @@ const generateRoadmapFlow = ai.defineFlow(
             // Continue without web content if scraping fails
         }
     }
-    
-    const { output } = await prompt({
-        ...input,
-        currentDate: new Date().toISOString().split('T')[0],
-        webContent: webContent || 'No additional content available.',
-    });
-    if (!output) {
-        throw new Error('Failed to generate roadmap.');
+
+    const maxRetries = 3;
+    let attempt = 0;
+    while (attempt < maxRetries) {
+        try {
+            const { output } = await prompt({
+                ...input,
+                currentDate: new Date().toISOString().split('T')[0],
+                webContent: webContent || 'No additional content available.',
+            });
+            if (!output) {
+                throw new Error('Failed to generate roadmap: No output from AI.');
+            }
+            return output;
+        } catch (error: any) {
+            attempt++;
+            if (error.message.includes('503') && attempt < maxRetries) {
+                console.warn(`Roadmap generation failed with 503, retrying... (Attempt ${attempt})`);
+                await new Promise(resolve => setTimeout(resolve, 2000 * attempt)); // Wait longer each retry
+            } else {
+                throw error; // Re-throw if it's not a 503 or if retries are exhausted
+            }
+        }
     }
-    return output;
+    // This part should be unreachable if the loop is correct, but satisfies TypeScript
+    throw new Error('Failed to generate roadmap after multiple retries.');
   }
 );
 
-export async function generateRoadmap(input: GenerateRoadmapInput): Promise<GenerateRoadmapOutput> {
+export async function generateRoadmap(input: GenerateRoadnameInput): Promise<GenerateRoadmapOutput> {
     return generateRoadmapFlow(input);
 }
