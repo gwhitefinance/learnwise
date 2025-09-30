@@ -555,8 +555,8 @@ export default function FloatingChat() {
                                                             <AIBuddy className="w-7 h-7" {...customizations}/>
                                                         </div>
                                                     </Avatar>
-                                                    <div className="p-3 rounded-2xl max-w-[80%] text-sm bg-muted rounded-bl-none">
-                                                        <Loader2 className="w-4 h-4 animate-spin"/>
+                                                    <div className="p-3 rounded-2xl max-w-[80%] text-sm bg-muted rounded-bl-none animate-pulse">
+                                                        Thinking...
                                                     </div>
                                                 </div>
                                             )}
