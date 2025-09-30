@@ -4,7 +4,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, X, MessageSquare, Loader2, PanelLeft, Plus, Edit, Trash2, FileText, Home, Phone, ChevronRight, HelpCircle, Search, Calendar, Lightbulb, Sparkles, Upload, User, Award, Gem, Copy, RefreshCw, ChevronLeft, CheckCircle, XCircle, ArrowRight, BrainCircuit, Bot, MoreVertical, Link as LinkIcon, Share2 } from 'lucide-react';
+import { Send, X, MessageSquare, Loader2, PanelLeft, Plus, Edit, Trash2, FileText, Home, Phone, ChevronRight, HelpCircle, Search, Calendar, Lightbulb, Sparkles, Upload, User, Award, Gem, Copy, RefreshCw, ChevronLeft, CheckCircle, XCircle, ArrowRight, BrainCircuit, Bot, MoreVertical, Link as LinkIcon, Share2, Maximize, Minimize } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -582,6 +582,7 @@ export default function FloatingChat() {
   const [generatedNoteContent, setGeneratedNoteContent] = useState('');
   const [selectedNoteCourseId, setSelectedNoteCourseId] = useState<string | undefined>(undefined);
 
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const activeSession = sessions.find(s => s.id === activeSessionId);
 
@@ -906,7 +907,10 @@ export default function FloatingChat() {
 
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
+    <div className={cn(
+        "fixed bottom-6 right-6 z-50",
+        isFullscreen && "inset-0 bottom-0 right-0 w-full h-full"
+    )}>
         <AnimatePresence>
             {isOpen && (
                  <motion.div
@@ -914,7 +918,10 @@ export default function FloatingChat() {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 20, scale: 0.95 }}
                     transition={{ duration: 0.2 }}
-                    className="w-96 h-[600px] bg-card rounded-2xl shadow-2xl border flex flex-col origin-bottom-right"
+                    className={cn(
+                        "bg-card rounded-2xl shadow-2xl border flex flex-col origin-bottom-right",
+                        isFullscreen ? "w-full h-full" : "w-96 h-[600px]"
+                    )}
                 >
                     <div className="flex-1 overflow-hidden flex flex-col">
                         {activeTab === 'home' && <ChatHomeScreen onNavigate={setActiveTab} onStartChatWithPrompt={handleStartChatWithPrompt} />}
@@ -980,6 +987,9 @@ export default function FloatingChat() {
                                                 {activeSession?.courseContext && <p className="text-xs text-muted-foreground truncate">Focus: {activeSession.courseContext}</p>}
                                             </div>
                                         </div>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsFullscreen(!isFullscreen)}>
+                                            {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+                                        </Button>
                                          <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
                                                 <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
@@ -994,12 +1004,6 @@ export default function FloatingChat() {
                                                 <DropdownMenuItem onSelect={handleShareChat}>
                                                     <Share2 className="mr-2 h-4 w-4" />
                                                     <span>Share Chat</span>
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem>
-                                                    <Link href={`/share/chat/${activeSessionId}`} target="_blank" className="flex items-center w-full">
-                                                        <LinkIcon className="mr-2 h-4 w-4" />
-                                                        <span>Open in New Tab</span>
-                                                    </Link>
                                                 </DropdownMenuItem>
                                                 <DropdownMenuSeparator />
                                                 <AlertDialog>
@@ -1110,7 +1114,7 @@ export default function FloatingChat() {
                     <div className="border-t p-2 flex justify-around bg-card rounded-b-2xl">
                        <TabButton name="Home" icon={<Home />} currentTab={activeTab} setTab={setActiveTab} />
                        <TabButton name="Conversation" icon={<MessageSquare />} currentTab={activeTab} setTab={setActiveTab} />
-                       <TabButton name="AI Tools" icon={<Sparkles />} currentTab={setActiveTab} setTab={setActiveTab} />
+                       <TabButton name="AI Tools" icon={<Sparkles />} currentTab={activeTab} setTab={setActiveTab} />
                        <TabButton name="My Stats" icon={<Award />} currentTab={activeTab} setTab={setActiveTab} />
                     </div>
 
@@ -1208,4 +1212,3 @@ export default function FloatingChat() {
     </div>
   );
 }
-
