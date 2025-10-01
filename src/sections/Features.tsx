@@ -53,18 +53,17 @@ export default function Features() {
                         <FeatureCard
                             title="Upload Notes"
                             description="Drag and drop or browse and select the notes you need to study."
-                            className="h-full"
                         >
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 h-full mt-6">
-                               <Card className="bg-white/5 flex flex-col items-center justify-center p-4 min-h-[150px]">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
+                               <Card className="bg-white/5 flex flex-col items-center justify-center p-4 aspect-square">
                                     <Code className="w-8 h-8 text-blue-400 mb-2"/>
                                     <span className="text-sm text-white/70">Text Books</span>
                                </Card>
-                               <Card className="bg-white/5 flex flex-col items-center justify-center p-4 min-h-[150px]">
+                               <Card className="bg-white/5 flex flex-col items-center justify-center p-4 aspect-square">
                                    <ImageIcon className="w-8 h-8 text-blue-400 mb-2"/>
                                     <span className="text-sm text-white/70">Images</span>
                                </Card>
-                               <Card className="bg-white/5 flex flex-col items-center justify-center p-4 min-h-[150px]">
+                               <Card className="bg-white/5 flex flex-col items-center justify-center p-4 aspect-square">
                                    <Video className="w-8 h-8 text-blue-400 mb-2"/>
                                     <span className="text-sm text-white/70">Videos</span>
                                </Card>
