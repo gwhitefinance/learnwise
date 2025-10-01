@@ -9,6 +9,9 @@ import { generateChapterContent } from './chapter-content-flow';
 import { generateRoadmap } from './roadmap-flow';
 import { GenerateFullCourseContentInputSchema, GenerateFullCourseContentOutputSchema, GenerateFullCourseContentInput, GenerateFullCourseContentOutput, GenerateRoadmapInput } from '@/ai/schemas/full-course-content-schema';
 
+// Helper function for generating a simple unique ID
+const generateUniqueId = () => `id-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
 const generateFullCourseContentFlow = ai.defineFlow(
   {
     name: 'generateFullCourseContentFlow',
@@ -32,12 +35,12 @@ const generateFullCourseContentFlow = ai.defineFlow(
 
     let contentIndex = 0;
     const updatedUnits = input.courseOutline.map(module => ({
-        id: crypto.randomUUID(),
+        id: generateUniqueId(),
         title: module.title,
         chapters: module.chapters.map(chapter => {
             const content = allChapterContents[contentIndex++];
             return {
-                id: crypto.randomUUID(),
+                id: generateUniqueId(),
                 title: chapter.title,
                 content: content.content,
                 activity: content.activity,
@@ -54,8 +57,8 @@ const generateFullCourseContentFlow = ai.defineFlow(
     const roadmapResult = await generateRoadmap(roadmapInput);
     
     const newRoadmap = {
-        goals: roadmapResult.goals.map(g => ({ ...g, id: crypto.randomUUID(), icon: g.icon || 'Flag' })),
-        milestones: roadmapResult.milestones.map(m => ({ ...m, id: crypto.randomUUID(), icon: m.icon || 'Calendar', completed: false }))
+        goals: roadmapResult.goals.map(g => ({ ...g, id: generateUniqueId(), icon: g.icon || 'Flag' })),
+        milestones: roadmapResult.milestones.map(m => ({ ...m, id: generateUniqueId(), icon: m.icon || 'Calendar', completed: false }))
     };
 
     return {
