@@ -27,11 +27,11 @@ const Hero = () => (
         }}
       >
         <Image
-          src="https://img.favpng.com/8/20/19/paper-plane-logo-desktop-wallpaper-image-png-favpng-CdeFvC3u6Gg5vj1vAgvWpTJjA.jpg"
-          alt="Flying paper plane"
+          src="https://static.vecteezy.com/system/resources/previews/024/769/931/original/3d-book-icon-for-education-or-knowledge-symbol-3d-rendering-png.png"
+          alt="Stack of books"
           width={96}
           height={96}
-          data-ai-hint="paper plane"
+          data-ai-hint="books education"
         />
       </motion.div>
       <motion.div
@@ -45,11 +45,11 @@ const Hero = () => (
         }}
       >
         <Image
-          src="https://img.favpng.com/8/20/19/paper-plane-logo-desktop-wallpaper-image-png-favpng-CdeFvC3u6Gg5vj1vAgvWpTJjA.jpg"
-          alt="Flying paper plane"
+          src="https://t4.ftcdn.net/jpg/05/61/88/24/360_F_561882485_A3x2T9yqN2grtBf1yvN5n2x5d2kHBNXn.jpg"
+          alt="Lightbulb idea"
           width={80}
           height={80}
-          data-ai-hint="paper plane"
+          data-ai-hint="lightbulb idea"
         />
       </motion.div>
       <motion.div
@@ -63,11 +63,11 @@ const Hero = () => (
         }}
       >
         <Image
-          src="https://img.favpng.com/8/20/19/paper-plane-logo-desktop-wallpaper-image-png-favpng-CdeFvC3u6Gg5vj1vAgvWpTJjA.jpg"
-          alt="Flying paper plane"
+          src="https://static.vecteezy.com/system/resources/previews/021/413/448/original/3d-atom-icon-for-business-and-education-png.png"
+          alt="Atom icon"
           width={112}
           height={112}
-          data-ai-hint="paper plane"
+          data-ai-hint="atom science"
         />
       </motion.div>
       <motion.div
@@ -81,11 +81,11 @@ const Hero = () => (
         }}
       >
         <Image
-          src="https://img.favpng.com/8/20/19/paper-plane-logo-desktop-wallpaper-image-png-favpng-CdeFvC3u6Gg5vj1vAgvWpTJjA.jpg"
-          alt="Flying paper plane"
+          src="https://w7.pngwing.com/pngs/340/329/png-transparent-graduation-ceremony-square-academic-cap-computer-icons-hat-graduation-hat-angle-logo-graduation-ceremony-thumbnail.png"
+          alt="Graduation cap"
           width={96}
           height={96}
-          data-ai-hint="paper plane"
+          data-ai-hint="graduation cap"
         />
       </motion.div>
 
@@ -93,7 +93,7 @@ const Hero = () => (
         Master <br /> <span className="text-blue-400">your notes</span>
       </h1>
       <p className="mt-6 text-lg md:text-xl text-white/70 max-w-xl mx-auto">
-        Turn class notes into <span className="text-blue-400">quizzes</span>, <br /> <span className="text-blue-400">flashcards</span>, and <span className="text-blue-400">smart study plans</span> <br /> instantly.
+        Turn class notes into <span className="text-blue-400">quizzes</span>,<br /> <span className="text-blue-400">flashcards</span>, and <span className="text-blue-400">smart study plans</span><br /> instantly.
       </p>
       <div className="flex justify-center items-center gap-4 mt-8">
         <div className="flex -space-x-4">
@@ -159,8 +159,12 @@ const Hero = () => (
           </DialogTrigger>
           <DialogContent>
             <DialogHeader className="items-center text-center">
-                <BrainCircuit className="h-12 w-12 text-blue-400 mb-4" />
-                <DialogTitle className="text-3xl font-bold mb-4">What's LearnWise?</DialogTitle>
+                <DialogTitle>
+                    <div className="flex flex-col items-center text-center">
+                        <BrainCircuit className="h-12 w-12 text-blue-400 mb-4" />
+                        <h2 className="text-3xl font-bold mb-4">What's LearnWise?</h2>
+                    </div>
+                </DialogTitle>
                  <DialogDescription className="text-muted-foreground mb-8 text-base">
                     We built LearnWise to make studying effortless and truly effective. It is an AI powered tutor that learns how you learn, helping you focus on the topics you need most. Whether it is quizzes, flashcards, or personalized study plans, LearnWise helps you study smarter, not harder.
                 </DialogDescription>
