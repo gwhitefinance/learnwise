@@ -81,11 +81,11 @@ const Hero = () => (
         }}
       >
         <Image
-          src="https://w7.pngwing.com/pngs/340/329/png-transparent-graduation-ceremony-square-academic-cap-computer-icons-hat-graduation-hat-angle-logo-graduation-ceremony-thumbnail.png"
-          alt="Graduation cap"
+          src="https://i.imgur.com/2D4lYqE.png"
+          alt="Sticky notes"
           width={96}
           height={96}
-          data-ai-hint="graduation cap"
+          data-ai-hint="notes organization"
         />
       </motion.div>
 
@@ -157,15 +157,15 @@ const Hero = () => (
                 </Button>
             </div>
           </DialogTrigger>
-          <DialogContent>
+           <DialogContent>
             <DialogHeader className="items-center text-center">
-                <DialogTitle>
+                 <DialogTitle>
                     <div className="flex flex-col items-center text-center">
                         <BrainCircuit className="h-12 w-12 text-blue-400 mb-4" />
                         <h2 className="text-3xl font-bold mb-4">What's LearnWise?</h2>
                     </div>
                 </DialogTitle>
-                 <DialogDescription className="text-muted-foreground mb-8 text-base">
+                <DialogDescription className="text-muted-foreground mb-8 text-base">
                     We built LearnWise to make studying effortless and truly effective. It is an AI powered tutor that learns how you learn, helping you focus on the topics you need most. Whether it is quizzes, flashcards, or personalized study plans, LearnWise helps you study smarter, not harder.
                 </DialogDescription>
             </DialogHeader>
