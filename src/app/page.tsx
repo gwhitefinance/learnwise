@@ -13,36 +13,37 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
+import AIBuddy from '@/components/ai-buddy';
 
 const Hero = () => (
-    <section className="relative pt-32 pb-24 lg:pt-48 lg:pb-32">
-        <div className="container mx-auto px-4 text-center">
-            <div className="absolute inset-0 hero-glow" />
-            <div className="relative z-10">
-                <h1 className="text-4xl md:text-6xl font-bold tracking-tighter text-foreground">
-                    Your Personal AI Tutor
-                </h1>
-                <p className="mt-6 text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-                    From lecture notes to final exams, LearnWise helps you upload, understand, and ace any subject.
-                </p>
+    <section className="relative pt-32 pb-24 lg:pt-48 lg:pb-32 light-background">
+        <div className="container mx-auto px-4">
+            <div className="grid md:grid-cols-2 gap-12 items-center">
+                <div className="text-center md:text-left">
+                    <h1 className="text-4xl md:text-6xl font-bold tracking-tighter text-foreground">
+                        Your Personal AI Tutor
+                    </h1>
+                    <p className="mt-6 text-lg md:text-xl text-muted-foreground max-w-lg mx-auto md:mx-0">
+                        From lecture notes to final exams, LearnWise helps you upload, understand, and ace any subject.
+                    </p>
 
-                <div className="flex justify-center gap-4 mt-8">
-                    <Link href="/signup">
-                        <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full text-base">
-                            Get Started Free
-                            <ArrowRight className="ml-2 h-4 w-4" />
-                        </Button>
-                    </Link>
+                    <div className="flex justify-center md:justify-start gap-4 mt-8">
+                        <Link href="/signup">
+                            <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full text-base">
+                                Get Started Free
+                                <ArrowRight className="ml-2 h-4 w-4" />
+                            </Button>
+                        </Link>
+                    </div>
                 </div>
-                 <div className="mt-8">
+                 <div className="relative flex items-center justify-center">
+                    <AIBuddy className="w-64 h-64" />
                     <Image 
-                        src="https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?q=80&w=2070&auto=format&fit=crop"
-                        alt="A student studying with books"
-                        width={1000}
-                        height={600}
-                        className="rounded-2xl shadow-2xl mx-auto"
-                        data-ai-hint="student studying"
-                        priority
+                        src="https://nextjs-saas-landing-page-five.vercel.app/notebook.png"
+                        alt="A 3D notebook icon"
+                        width={200}
+                        height={200}
+                        className="absolute -left-12 -bottom-12 transform rotate-[-15deg] hidden md:block"
                     />
                 </div>
             </div>
