@@ -5,11 +5,12 @@ import CallToAction from '@/sections/CallToAction';
 import Faqs from '@/sections/Faqs';
 import Footer from '@/sections/Footer';
 import Navbar from '@/sections/Navbar';
-import { ArrowRight, Star } from 'lucide-react';
+import { ArrowRight, Star, BrainCircuit } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 
 const Hero = () => (
   <section className="relative py-32 lg:py-48 text-white text-center overflow-hidden">
@@ -144,17 +145,36 @@ const Hero = () => (
             </Button>
             </Link>
         </div>
-        <div className="bg-gray-400 rounded-2xl">
-            <Link href="#features">
-            <Button
-                size="lg"
-                variant="outline"
-                className="w-full sm:w-auto bg-white border-white/20 text-black hover:text-black hover:bg-gray-100 rounded-2xl text-lg h-14 border-b-4 border-black/20 transform active:translate-y-px"
-            >
-                More Info
-            </Button>
-            </Link>
-        </div>
+        <Dialog>
+          <DialogTrigger asChild>
+            <div className="bg-gray-400 rounded-2xl">
+                <Button
+                    size="lg"
+                    variant="outline"
+                    className="w-full sm:w-auto bg-white border-white/20 text-black hover:text-black hover:bg-gray-100 rounded-2xl text-lg h-14 border-b-4 border-black/20 transform active:translate-y-px"
+                >
+                    More Info
+                </Button>
+            </div>
+          </DialogTrigger>
+          <DialogContent>
+            <div className="flex flex-col items-center text-center p-8">
+                <BrainCircuit className="h-12 w-12 text-blue-400 mb-4" />
+                <h2 className="text-3xl font-bold mb-4">What's LearnWise?</h2>
+                <p className="text-muted-foreground mb-8">
+                    We built LearnWise to make studying effortless and truly effective. It is an AI powered tutor that learns how you learn, helping you focus on the topics you need most. Whether it is quizzes, flashcards, or personalized study plans, LearnWise helps you study smarter, not harder.
+                </p>
+                 <Link href="/signup">
+                    <Button
+                        size="lg"
+                        className="w-full bg-blue-500 text-white hover:bg-blue-600 rounded-full text-lg h-14"
+                    >
+                        Start for Free
+                    </Button>
+                </Link>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   </section>
