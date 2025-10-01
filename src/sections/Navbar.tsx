@@ -31,14 +31,14 @@ export default function Navbar() {
 
   const navLinksData = [
     { label: "Features", href: "#features" },
-    { label: "Integrations", href: "#integrations" },
-    { label: "Leaderboard", href: "/leaderboard" },
+    { label: "How It Works", href: "#how-it-works" },
+    { label: "Pricing", href: "#pricing" },
   ]
 
   return (
     <header className={cn(
       "fixed top-0 left-0 right-0 z-20 transition-all duration-300",
-      isScrolled ? "bg-black/80 border-b border-white/10 backdrop-blur-sm" : "bg-transparent border-b-transparent"
+      isScrolled ? "bg-background/80 border-b border-white/10 backdrop-blur-sm" : "bg-transparent"
     )}>
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
@@ -72,7 +72,7 @@ export default function Navbar() {
         </div>
       </div>
       {isOpen && (
-          <div className="md:hidden bg-black border-t border-white/10">
+          <div className="md:hidden bg-background/95 border-t border-white/10">
               <div className="container mx-auto px-4 py-4 flex flex-col gap-4">
                   {navLinksData.map((link) => (
                     <AnimatedNavLink key={link.href} href={link.href}>
