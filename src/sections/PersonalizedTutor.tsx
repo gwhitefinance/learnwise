@@ -115,7 +115,7 @@ export default function PersonalizedTutor() {
         <section className="py-24">
             <div className="container text-center">
                 <h2 className="text-4xl md:text-5xl font-bold tracking-tighter text-white">
-                    <span className="text-blue-400">Personalized</span> Tutor
+                    <span className="text-blue-400">Study</span> Smarter
                 </h2>
                 <div className="mt-12 bg-neutral-900 border border-white/10 rounded-3xl p-8 max-w-4xl mx-auto shadow-2xl">
                     <div className="flex justify-between items-center mb-6">
