@@ -10,9 +10,9 @@ import { cn } from "@/lib/utils";
 
 const AnimatedNavLink = ({ href, children }: { href: string; children: React.ReactNode }) => {
   return (
-    <a href={href} className="text-sm font-medium text-white/70 hover:text-white transition-colors">
+    <Link href={href} className="text-sm font-medium text-white/70 hover:text-white transition-colors">
       {children}
-    </a>
+    </Link>
   )
 }
 
@@ -32,6 +32,7 @@ export default function Navbar() {
   const navLinksData = [
     { label: "Features", href: "#features" },
     { label: "How It Works", href: "#how-it-works" },
+    { label: "Leaderboard", href: "/leaderboard" },
   ]
 
   return (
@@ -48,23 +49,26 @@ export default function Navbar() {
             <BrainCircuit className="h-7 w-7 text-blue-400" />
             <span className="font-bold text-xl text-white">LearnWise</span>
           </Link>
+          
+          <div className="hidden md:flex items-center gap-8">
+            <nav className="flex items-center gap-8">
+              {navLinksData.map((link) => (
+                <AnimatedNavLink key={link.href} href={link.href}>
+                  {link.label}
+                </AnimatedNavLink>
+              ))}
+            </nav>
 
-          <nav className="hidden md:flex items-center gap-8">
-            {navLinksData.map((link) => (
-              <AnimatedNavLink key={link.href} href={link.href}>
-                {link.label}
-              </AnimatedNavLink>
-            ))}
-          </nav>
-
-          <div className="hidden md:flex items-center gap-2">
-            <Link href="/login">
-                <Button variant="ghost" className="text-white hover:bg-white/10 hover:text-white">Login</Button>
-            </Link>
-             <Link href="/signup">
-                <Button className="bg-white text-black hover:bg-gray-200">Sign Up Free</Button>
-            </Link>
+            <div className="flex items-center gap-2">
+              <Link href="/login">
+                  <Button variant="ghost" className="text-white hover:bg-white/10 hover:text-white">Login</Button>
+              </Link>
+               <Link href="/signup">
+                  <Button className="bg-white text-black hover:bg-gray-200">Sign Up Free</Button>
+              </Link>
+            </div>
           </div>
+
 
           <div className="md:hidden">
               <Button variant="ghost" size="icon" onClick={() => setIsOpen(!isOpen)} className="text-white hover:bg-white/10 hover:text-white">
