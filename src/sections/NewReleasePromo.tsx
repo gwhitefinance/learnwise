@@ -26,20 +26,7 @@ export default function NewReleasePromo() {
 
           <div className="relative z-10">
             <div className="mt-8 text-center">
-              <h2 className="text-4xl font-bold text-white mb-6">Build for LearnWise</h2>
-              <p className="text-white/60 mb-8">Built to keep you hooked.</p>
-              
-              {/* Hand-drawn arrow SVG pointing down */}
-              <svg
-                width="100"
-                height="50"
-                viewBox="0 0 100 50"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                className="fill-black dark:fill-white mx-auto mb-4 -rotate-90"
-              >
-                <path d="M68.6958 5.40679C67.3329 12.7082 68.5287 20.1216 68.5197 27.4583C68.5189 29.5382 68.404 31.6054 68.1147 33.682C67.9844 34.592 69.4111 34.751 69.5414 33.8411C70.5618 26.5016 69.2488 19.104 69.4639 11.7325C69.5218 9.65887 69.7222 7.6012 70.0939 5.56265C70.1638 5.1949 69.831 4.81112 69.4601 4.76976C69.0891 4.72841 68.7689 5.01049 68.6958 5.40679Z"></path>
-              </svg>
+              <h2 className="text-4xl font-bold text-white mb-6">Reach your full study potential with LearnWise</h2>
               
               {/* Stylized button with border effect */}
               <div className="flex items-center justify-center">
@@ -48,7 +35,7 @@ export default function NewReleasePromo() {
                     <div className="border-border bg-primary flex h-[43px] items-center justify-center rounded-full border">
                       <p className="mr-3 ml-2 flex items-center justify-center gap-2 font-medium tracking-tight text-white">
                         <Globe className="lucide lucide-globe animate-spin" width="24" height="24" />
-                        Get started
+                        Get started for free
                       </p>
                     </div>
                     <div className="border-border flex size-[26px] items-center justify-center rounded-full border-2 transition-all ease-in-out group-hover:ml-2">
