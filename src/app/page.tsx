@@ -10,7 +10,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 const Hero = () => (
   <section className="relative py-32 lg:py-48 text-white text-center overflow-hidden">
@@ -158,12 +158,14 @@ const Hero = () => (
             </div>
           </DialogTrigger>
           <DialogContent>
-            <div className="flex flex-col items-center text-center p-8">
+            <DialogHeader className="items-center text-center">
                 <BrainCircuit className="h-12 w-12 text-blue-400 mb-4" />
-                <h2 className="text-3xl font-bold mb-4">What's LearnWise?</h2>
-                <p className="text-muted-foreground mb-8">
+                <DialogTitle className="text-3xl font-bold mb-4">What's LearnWise?</DialogTitle>
+                 <DialogDescription className="text-muted-foreground mb-8 text-base">
                     We built LearnWise to make studying effortless and truly effective. It is an AI powered tutor that learns how you learn, helping you focus on the topics you need most. Whether it is quizzes, flashcards, or personalized study plans, LearnWise helps you study smarter, not harder.
-                </p>
+                </DialogDescription>
+            </DialogHeader>
+            <div className="flex flex-col items-center">
                  <Link href="/signup">
                     <Button
                         size="lg"
