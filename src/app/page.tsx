@@ -1,6 +1,6 @@
 'use client';
 
-import CallToAction from '@/sections/CallToAction';
+import NewReleasePromo from '@/sections/NewReleasePromo';
 import Faqs from '@/sections/Faqs';
 import Footer from '@/sections/Footer';
 import Navbar from '@/sections/Navbar';
@@ -208,7 +208,7 @@ export default function Home() {
       <PersonalizedTutor />
       <Features />
       <Faqs />
-      <CallToAction />
+      <NewReleasePromo />
       <Footer />
     </main>
   );
