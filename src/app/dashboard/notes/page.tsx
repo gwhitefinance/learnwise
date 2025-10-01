@@ -49,7 +49,7 @@ type Note = {
   unitId?: string;
 };
 
-type FirestoreNote = Omit<Note, 'date'> & {
+type FirestoreNote = Omit<Note, 'date' | 'id'> & {
     date: Timestamp;
 }
 
@@ -169,9 +169,10 @@ export default function NotesPage() {
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const userNotes = querySnapshot.docs.map(doc => {
             const data = doc.data() as FirestoreNote;
+            const { id, ...restOfData } = data as any; // Prevent id from being in spread
             return { 
                 id: doc.id,
-                ...data,
+                ...restOfData,
                 date: data.date.toDate()
             } as Note;
         });
@@ -230,7 +231,7 @@ export default function NotesPage() {
     setIsSaving(false);
 
     try {
-        const docData: Partial<Note> & { date: Timestamp } = {
+        const docData: Omit<Note, 'id' | 'date'> & { date: Timestamp } = {
             title: newNoteTitle,
             content: newNoteContent,
             date: Timestamp.fromDate(new Date()),
