@@ -7,13 +7,14 @@ import { cn } from '@/lib/utils';
 import { ChevronLeft, ChevronRight, HelpCircle, FileQuestion } from 'lucide-react';
 import { useState } from 'react';
 
-const CalendarDay = ({ day, isSelected, isOtherMonth, onClick }: { day: number, isSelected?: boolean, isOtherMonth?: boolean, onClick: () => void }) => (
+const CalendarDay = ({ day, isSelected, isOtherMonth, onClick, hasEvent }: { day: number, isSelected?: boolean, isOtherMonth?: boolean, onClick: () => void, hasEvent?: boolean }) => (
     <button
         onClick={onClick}
         className={cn(
         "flex items-center justify-center h-10 w-10 rounded-full text-sm transition-colors",
         isOtherMonth ? "text-white/30" : "text-white/80",
-        isSelected ? "bg-blue-500 text-white font-bold" : "hover:bg-white/10"
+        isSelected ? "bg-blue-500 text-white font-bold" : "hover:bg-white/10",
+        hasEvent && !isSelected && "bg-white/10"
     )}>
         {day}
     </button>
@@ -142,6 +143,7 @@ export default function PersonalizedTutor() {
                                         isSelected={day === selectedDay} 
                                         isOtherMonth={(i < 3) || (i > 33)}
                                         onClick={() => setSelectedDay(day)}
+                                        hasEvent={!!studyPlanData[day]}
                                     />
                                 ))}
                             </div>
