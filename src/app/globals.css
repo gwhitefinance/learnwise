@@ -142,7 +142,7 @@
   }
 
   .dark-grid {
-    background-color: #000000;
+    background-color: #0a0a2a;
     background-image:
         linear-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px),
         linear-gradient(to right, rgba(255, 255, 255, 0.07) 1px, transparent 1px);
