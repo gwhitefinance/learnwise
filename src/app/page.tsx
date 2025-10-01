@@ -133,24 +133,28 @@ const Hero = () => (
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row justify-center gap-4 mt-8">
-        <Link href="/signup">
-          <Button
-            size="lg"
-            className="w-full sm:w-auto bg-blue-500 text-white hover:bg-blue-600 rounded-full text-base"
-          >
-            Start Now
-          </Button>
-        </Link>
-        <Link href="#features">
-          <Button
-            size="lg"
-            variant="outline"
-            className="w-full sm:w-auto bg-transparent border-white/20 text-white hover:bg-white/10 rounded-full text-base"
-          >
-            More Info
-          </Button>
-        </Link>
+      <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-8">
+        <div className="bg-black/80 rounded-2xl">
+            <Link href="/signup">
+            <Button
+                size="lg"
+                className="w-full sm:w-auto bg-blue-500 text-white hover:bg-blue-600 rounded-2xl text-lg h-14 border-b-4 border-black/30 transform active:translate-y-px"
+            >
+                Start Now
+            </Button>
+            </Link>
+        </div>
+        <div className="bg-gray-400 rounded-2xl">
+            <Link href="#features">
+            <Button
+                size="lg"
+                variant="outline"
+                className="w-full sm:w-auto bg-white border-white/20 text-black hover:bg-gray-100 rounded-2xl text-lg h-14 border-b-4 border-black/20 transform active:translate-y-px"
+            >
+                More Info
+            </Button>
+            </Link>
+        </div>
       </div>
     </div>
   </section>
