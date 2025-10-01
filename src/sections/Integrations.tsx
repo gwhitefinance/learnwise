@@ -36,16 +36,15 @@ export default function Integrations() {
     return (
         <section id="integrations" className="py-24">
             <div className="container text-center">
-                 <Tag>Integrations</Tag>
-                <h2 className="text-4xl md:text-5xl font-bold text-center mt-6 text-foreground">
+                <h2 className="text-4xl md:text-5xl font-bold text-center mt-6 text-white">
                     Connects With Your Workflow
                 </h2>
-                <p className="text-muted-foreground text-center mt-4 text-lg max-w-2xl mx-auto">
+                <p className="text-white/70 text-center mt-4 text-lg max-w-2xl mx-auto">
                    LearnWise seamlessly integrates with the tools you already use, making it easy to stay organized and focused.
                 </p>
 
                 <div className="flex justify-center mt-12">
-                     <div className="relative flex h-full w-full max-w-4xl items-center justify-center overflow-hidden rounded-lg border bg-background/50 p-12">
+                     <div className="relative flex h-full w-full max-w-4xl items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-black/50 p-12">
                         <div className="grid grid-cols-3 gap-x-8 gap-y-12 md:grid-cols-6">
                             {integrations.map((item, index) => (
                                 <motion.div

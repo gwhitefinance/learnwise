@@ -1,7 +1,6 @@
 
 "use client";
 
-import Tag from "@/sections/Tag";
 import { AnimatePresence, motion } from "framer-motion";
 import { Plus } from "lucide-react";
 import { useState } from "react";
@@ -40,10 +39,7 @@ export default function Faqs() {
     return (
         <section className="py-24 ">
             <div className="container">
-                <div className="flex justify-center">
-                    <Tag>Faqs</Tag>
-                </div>
-                <h2 className="text-4xl md:text-5xl font-bold text-center mt-6 max-w-2xl mx-auto text-foreground">
+                <h2 className="text-4xl md:text-5xl font-bold text-center mt-6 max-w-2xl mx-auto text-white">
                     Frequently Asked Questions
                 </h2>
 
@@ -52,13 +48,13 @@ export default function Faqs() {
                         <div
                             key={faq.question}
                             onClick={() => handleClick(faqIndex)}
-                            className="bg-card rounded-2xl border p-6 cursor-pointer"
+                            className="bg-black rounded-2xl border border-white/10 p-6 cursor-pointer"
                         >
                             <div className="flex justify-between items-center">
-                                <h3 className="font-semibold text-lg text-foreground">
+                                <h3 className="font-semibold text-lg text-white">
                                     {faq.question}
                                 </h3>
-                                <div className="p-2 bg-primary/10 rounded-full text-primary">
+                                <div className="p-2 bg-white/10 rounded-full text-white">
                                     <Plus
                                         size={20}
                                         className={twMerge(
@@ -89,7 +85,7 @@ export default function Faqs() {
                                         }}
                                         className="overflow-hidden"
                                     >
-                                        <p className="text-muted-foreground">
+                                        <p className="text-white/70">
                                             {faq.answer}
                                         </p>
                                     </motion.div>

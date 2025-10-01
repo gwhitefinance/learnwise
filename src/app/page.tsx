@@ -6,162 +6,111 @@ import Faqs from '@/sections/Faqs';
 import Footer from '@/sections/Footer';
 import Navbar from '@/sections/Navbar';
 import Integrations from '@/sections/Integrations';
-import { ArrowRight, BrainCircuit, CheckCircle, FileText, GitMerge, Lightbulb, MessageSquare, UploadCloud, Wand2, Star } from "lucide-react";
+import { ArrowRight, BrainCircuit, CheckCircle, FileText, GitMerge, Lightbulb, MessageSquare, UploadCloud, Wand2, Star, BookOpen, Calendar, FlaskConical } from "lucide-react";
 import Link from "next/link";
-import { motion } from 'framer-motion';
+import { motion, useScroll, useTransform } from 'framer-motion';
 import AIBuddy from '@/components/ai-buddy';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
+import Spline from '@splinetool/react-spline';
+import { useRef } from 'react';
 
 const Hero = () => (
-    <section className="relative pt-32 pb-24 lg:pt-48 lg:pb-32 light-background">
-        <div className="container mx-auto px-4">
-            <div className="grid md:grid-cols-2 gap-12 items-center">
-                <div className="text-center md:text-left">
-                    <h1 className="text-4xl md:text-6xl font-bold tracking-tighter text-foreground">
-                        Your Personal AI Study Partner
-                    </h1>
-                    <p className="mt-6 text-lg md:text-xl text-muted-foreground max-w-lg mx-auto md:mx-0">
-                        From lecture notes to final exams, LearnWise helps you upload, understand, and ace any subject.
-                    </p>
+    <section className="relative py-32 lg:py-48 text-white">
+        <div className="absolute inset-0 z-0">
+             <Spline scene="https://prod.spline.design/iWPr341AINn90G0S/scene.splinecode" />
+        </div>
+        <div className="container mx-auto px-4 text-center relative z-10">
+            <h1 className="text-5xl md:text-7xl font-bold tracking-tighter">
+                Master <span className="text-blue-400">your notes</span>
+            </h1>
+            <p className="mt-6 text-lg md:text-xl text-white/70 max-w-2xl mx-auto">
+               Turn class notes into quizzes, flashcards, and smart study plans instantly.
+            </p>
+             <div className="flex justify-center items-center gap-4 mt-8">
+                <div className="flex -space-x-4">
+                    <Image className="inline-block h-10 w-10 rounded-full ring-2 ring-background" src="https://i.pravatar.cc/150?u=a042581f4e29026704d" alt="User 1" width={40} height={40}/>
+                    <Image className="inline-block h-10 w-10 rounded-full ring-2 ring-background" src="https://i.pravatar.cc/150?u=a042581f4e29026705d" alt="User 2" width={40} height={40}/>
+                    <Image className="inline-block h-10 w-10 rounded-full ring-2 ring-background" src="https://i.pravatar.cc/150?u=a042581f4e29026706d" alt="User 3" width={40} height={40}/>
+                </div>
+                <div>
+                     <div className="flex items-center">
+                        <Star className="w-5 h-5 text-yellow-400 fill-yellow-400"/>
+                        <Star className="w-5 h-5 text-yellow-400 fill-yellow-400"/>
+                        <Star className="w-5 h-5 text-yellow-400 fill-yellow-400"/>
+                        <Star className="w-5 h-5 text-yellow-400 fill-yellow-400"/>
+                        <Star className="w-5 h-5 text-yellow-400 fill-yellow-400"/>
+                    </div>
+                    <p className="text-sm text-white/70">from 25k+ happy learners</p>
+                </div>
+            </div>
 
-                    <div className="flex justify-center md:justify-start gap-4 mt-8">
-                        <Link href="/signup">
-                            <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full text-base">
-                                Get Started Free
-                                <ArrowRight className="ml-2 h-4 w-4" />
-                            </Button>
-                        </Link>
-                    </div>
-                </div>
-                 <div className="relative flex items-center justify-center -mt-12 md:mt-0">
-                    <Image
-                        src="https://nextjs-saas-landing-page-five.vercel.app/notebook.png"
-                        alt="3D Notebook"
-                        width={500}
-                        height={500}
-                        className="object-contain"
-                    />
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                        <AIBuddy className="w-64 h-64" />
-                    </div>
-                </div>
+            <div className="flex flex-col sm:flex-row justify-center gap-4 mt-8">
+                <Link href="/signup">
+                    <Button size="lg" className="w-full sm:w-auto bg-white text-black hover:bg-gray-200 rounded-full text-base">
+                        Start Now
+                    </Button>
+                </Link>
+                 <Link href="#features">
+                    <Button size="lg" variant="outline" className="w-full sm:w-auto bg-transparent border-white/20 text-white hover:bg-white/10 rounded-full text-base">
+                        More Info
+                    </Button>
+                </Link>
             </div>
         </div>
     </section>
 );
 
-const HowItWorks = () => (
-    <section className="py-24">
-        <div className="container mx-auto px-4">
-            <div className="text-center mb-16">
-                <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground">
-                    How It Works
-                </h2>
-                <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
-                   In three simple steps, transform any material into a personalized learning experience.
-                </p>
-            </div>
-            <div className="grid md:grid-cols-3 gap-8 text-center">
-                <div className="border rounded-2xl p-8 bg-card">
-                    <div className="inline-block bg-primary/10 text-primary p-4 rounded-full mb-4">
-                        <UploadCloud size={32} />
-                    </div>
-                    <h3 className="text-2xl font-bold">1. Upload Anything</h3>
-                    <p className="text-muted-foreground mt-2">Upload lecture notes, a photo of a worksheet, or link to a URL. LearnWise can handle any material.</p>
-                </div>
-                <div className="border rounded-2xl p-8 bg-card">
-                     <div className="inline-block bg-primary/10 text-primary p-4 rounded-full mb-4">
-                        <Wand2 size={32} />
-                    </div>
-                    <h3 className="text-2xl font-bold">2. Generate Tools</h3>
-                    <p className="text-muted-foreground mt-2">Instantly create study roadmaps, practice quizzes, flashcards, or a full course outline from your content.</p>
-                </div>
-                <div className="border rounded-2xl p-8 bg-card">
-                     <div className="inline-block bg-primary/10 text-primary p-4 rounded-full mb-4">
-                        <Star size={32} />
-                    </div>
-                    <h3 className="text-2xl font-bold">3. Master Your Subject</h3>
-                    <p className="text-muted-foreground mt-2">Use the AI Tutor to ask questions and follow your personalized plan to ace your exams and goals.</p>
-                </div>
-            </div>
-        </div>
-    </section>
+
+const Feature = ({ title, description, icon }: { title: string; description: string; icon: React.ReactNode }) => (
+  <div className="mb-16">
+    <div className="flex items-center gap-4 mb-4">
+      <div className="p-3 bg-white/10 border border-white/20 rounded-lg text-blue-400">
+        {icon}
+      </div>
+      <h3 className="text-2xl font-bold text-white">{title}</h3>
+    </div>
+    <p className="text-white/70 text-lg ml-16">{description}</p>
+  </div>
 );
 
 
 const FeatureShowcase = () => {
-    const features = [
-        {
-            title: "AI-Powered Tutoring",
-            description: "Stuck on a problem? Upload a photo of your homework and get a step-by-step walkthrough from your AI tutor. It explains core concepts, provides practice questions, and tailors advice to your learning style.",
-            benefits: ["Conceptual Explanations", "Step-by-Step Problem Solving", "Personalized Study Advice"],
-            image: "https://images.unsplash.com/photo-1588196749597-9ff075ee6b5b?q=80&w=2148&auto=format&fit=crop"
-        },
-        {
-            title: "Dynamic Study Roadmaps",
-            description: "Don't just study—strategize. Generate a personalized roadmap for any course, complete with high-level goals and dated milestones. The AI analyzes your course materials to build a logical, actionable plan.",
-            benefits: ["Set High-Level Goals", "Sequential Milestones", "Automatic Date Planning"],
-            image: "https://images.unsplash.com/photo-1543269865-cbf427effbad?q=80&w=2340&auto=format&fit=crop"
-        },
-        {
-            title: "Instant Practice Materials",
-            description: "Turn any set of notes or a course chapter into a valuable study session. Instantly generate multiple-choice quizzes or a deck of flashcards to reinforce key concepts and test your knowledge on demand.",
-            benefits: ["Generate from Notes or Courses", "Multiple Choice Quizzes", "Digital Flashcards"],
-            image: "https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=2132&auto=format&fit=crop"
-        }
-    ];
+    const targetRef = useRef<HTMLDivElement | null>(null);
+    const { scrollYProgress } = useScroll({
+        target: targetRef,
+        offset: ["start end", "end start"]
+    })
+
+    const y = useTransform(scrollYProgress, [0, 1], ['10%', '-100%']);
 
     return (
-        <section className="py-24 light-background">
+        <section id="features" className="py-24">
             <div className="container mx-auto px-4">
-                <div className="text-center mb-16">
-                    <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground">
-                        A Smarter Way to Study
-                    </h2>
-                    <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
-                       Explore the tools that will help you learn faster and more effectively than ever before.
-                    </p>
-                </div>
-                <div className="space-y-24">
-                    {features.map((feature, index) => (
-                        <div key={feature.title} className="grid md:grid-cols-2 gap-12 items-center">
-                            <div className={index % 2 === 1 ? 'md:order-2' : ''}>
-                                <h3 className="text-3xl font-bold mb-4">{feature.title}</h3>
-                                <p className="text-muted-foreground text-lg mb-6">{feature.description}</p>
-                                <ul className="space-y-3">
-                                    {feature.benefits.map(benefit => (
-                                        <li key={benefit} className="flex items-center gap-3">
-                                            <CheckCircle className="h-6 w-6 text-primary flex-shrink-0" />
-                                            <span className="text-foreground">{benefit}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                            <div className={index % 2 === 1 ? 'md:order-1' : ''}>
-                                <Image 
-                                    src={feature.image}
-                                    alt={feature.title}
-                                    width={600}
-                                    height={400}
-                                    className="rounded-2xl object-cover aspect-[3/2] shadow-lg"
-                                />
-                            </div>
-                        </div>
-                    ))}
-                </div>
+                 <div ref={targetRef} className="grid md:grid-cols-2 gap-16 items-start">
+                    <div className="md:sticky top-24 h-auto md:h-[500px]">
+                        <motion.div style={{ y }}>
+                            <AIBuddy className="w-full h-full max-w-sm mx-auto" />
+                        </motion.div>
+                    </div>
+                    <div>
+                        <Feature title="Create Your Course" description="Add a new course to your dashboard. Provide a name, and optionally, a URL to existing material (like a Wikipedia page or a course syllabus)." icon={<BookOpen />} />
+                        <Feature title="Generate a Roadmap" description="Our AI analyzes your course and creates a personalized study roadmap with milestones and goals, helping you stay on track." icon={<GitMerge />} />
+                        <Feature title="Manage Your Schedule" description="All your milestones are automatically added to your calendar, so you can visualize your deadlines and plan your study sessions." icon={<Calendar />} />
+                        <Feature title="Enter the Learning Lab" description="Dive into interactive, AI-generated lessons for each chapter, complete with activities and tools tailored to your learning style." icon={<FlaskConical />} />
+                         <Feature title="Test Your Knowledge" description="Take practice quizzes generated from your notes or course content to ensure you've mastered the material." icon={<Lightbulb />} />
+                    </div>
+                 </div>
             </div>
         </section>
-    );
-};
-
+    )
+}
 
 export default function Home() {
     return (
-        <main className="light-background">
+        <main className="bg-black text-white">
             <Navbar />
             <Hero />
-            <HowItWorks />
             <FeatureShowcase />
             <Integrations />
             <Faqs />

@@ -142,12 +142,12 @@
       box-shadow: 0 0 15px rgba(249, 115, 22, 0.3), inset 0 0 5px rgba(249, 115, 22, 0.2);
   }
 
-  .light-background {
-    background-color: #f7faff;
-  }
-
-  .hero-glow {
-    background-image: radial-gradient(ellipse 80% 50% at 50% 120%, hsl(var(--primary) / 0.15), transparent);
+  .dark-grid {
+    background-color: #000000;
+    background-image:
+        linear-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px),
+        linear-gradient(to right, rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+    background-size: 40px 40px;
   }
 }
 
@@ -174,4 +174,16 @@
 @keyframes flap {
     0%, 100% { clip-path: polygon(50% 20%, 100% 50%, 80% 100%, 50% 70%, 20% 100%, 0 50%); }
     50% { clip-path: polygon(50% 0, 100% 40%, 80% 90%, 50% 60%, 20% 90%, 0 40%); }
+}
+
+html.lenis {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
 }

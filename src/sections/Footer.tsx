@@ -12,13 +12,13 @@ const footerLinks = [
 
 export default function Footer() {
     return (
-        <section className="py-16 bg-card border-t">
+        <section className="py-16 border-t border-white/10">
             <div className="container">
                 <div className="flex flex-col md:flex-row justify-center md:justify-between items-center gap-6">
                     <div>
                         <Link href="/" className="flex items-center gap-2">
-                          <BrainCircuit className="h-8 w-8 text-primary" />
-                          <span className="font-bold text-xl text-foreground">LearnWise</span>
+                          <BrainCircuit className="h-8 w-8 text-blue-400" />
+                          <span className="font-bold text-xl text-white">LearnWise</span>
                         </Link>
                     </div>
                     <div>
@@ -27,7 +27,7 @@ export default function Footer() {
                                 <a
                                     key={link.label}
                                     href={link.href}
-                                    className="text-muted-foreground hover:text-foreground text-sm "
+                                    className="text-white/70 hover:text-white text-sm "
                                 >
                                     {link.label}
                                 </a>
