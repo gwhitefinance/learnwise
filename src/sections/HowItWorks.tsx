@@ -1,82 +1,179 @@
 
-"use client";
+"use client"
 
-import { useRef } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
-import Image from 'next/image';
-import { cn } from '@/lib/utils';
-import placeholderImages from '@/lib/placeholder-images.json';
+import { motion } from "framer-motion"
+import { Search, Lightbulb, Rocket } from 'lucide-react'
 
 const steps = [
-    {
-        title: "Add a new course",
-        description: "Easily add a new course to your dashboard. Provide a name, instructor, and an optional URL for AI-powered content generation.",
-        image: "addCourseDialog",
-    },
-    {
-        title: "View your new course",
-        description: "Your newly created course will appear in your course list, ready for you to add content and track your progress.",
-        image: "courseAdded",
-    },
-    {
-        title: "Generate course content",
-        description: "With one click, let our AI generate a complete course structure with modules and chapters, tailored to your learning style.",
-        image: "generatedContent",
-    },
-];
+  {
+    number: "01",
+    title: "Upload & Analyze",
+    description: "Upload your course materials—notes, documents, or even images. Our AI analyzes the content to understand your study needs.",
+    icon: <Search className="w-8 h-8" />,
+    mockup: "discovery",
+    gradient: "from-blue-500/20 to-blue-600/10",
+  },
+  {
+    number: "02",
+    title: "Generate & Learn",
+    description: "Instantly transform your materials into quizzes, flashcards, and personalized study plans tailored to your learning style.",
+    icon: <Lightbulb className="w-8 h-8" />,
+    mockup: "development",
+    gradient: "from-purple-500/20 to-purple-600/10",
+  },
+  {
+    number: "03",
+    title: "Track & Master",
+    description: "Use your new study tools, track your progress on your roadmap, and master your subjects with the help of your AI tutor.",
+    icon: <Rocket className="w-8 h-8" />,
+    mockup: "launch",
+    gradient: "from-green-500/20 to-green-600/10",
+  },
+]
 
 export default function HowItWorks() {
-    const targetRef = useRef<HTMLDivElement | null>(null);
-    const { scrollYProgress } = useScroll({
-        target: targetRef,
-        offset: ['start end', 'end start'],
-    });
+  return (
+    <section className="py-24 bg-black relative">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          viewport={{ once: true }}
+          className="text-center mb-16"
+        >
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6">How It Works</h2>
+          <p className="text-xl text-gray-400 max-w-3xl mx-auto">
+            A simple, effective approach to supercharge your study sessions.
+          </p>
+        </motion.div>
 
-    return (
-        <section ref={targetRef} id="how-it-works" className="py-24 relative">
-            <div className="container mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
-                <div className="lg:sticky top-24">
-                    <h2 className="text-4xl md:text-5xl font-bold tracking-tighter text-white">
-                        How It Works
-                    </h2>
-                    <p className="mt-4 text-lg text-white/70">
-                        A simple, three-step process to get you started on your personalized learning journey.
-                    </p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {steps.map((step, index) => (
+            <motion.div
+              key={step.number}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: index * 0.2 }}
+              viewport={{ once: true }}
+              whileHover={{ y: -10 }}
+              className={`bg-gradient-to-br ${step.gradient} border border-gray-800/50 rounded-3xl p-8 backdrop-blur-sm hover:border-gray-700/50 transition-all duration-300 group`}
+            >
+              {/* Mockup Area */}
+              <div className="aspect-video bg-gray-900 rounded-2xl mb-6 overflow-hidden relative border border-gray-800">
+                <div className="absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900 p-4">
+                  {/* Discovery Mockup */}
+                  {step.mockup === "discovery" && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      whileInView={{ opacity: 1 }}
+                      transition={{ duration: 1, delay: index * 0.3 }}
+                      className="w-full h-full flex items-center justify-center"
+                    >
+                      <div className="w-full max-w-[200px] space-y-3">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                            <div className="w-3 h-3 bg-blue-500 rounded"></div>
+                          </div>
+                          <div className="flex-1 space-y-1">
+                            <div className="bg-gray-700 h-2 w-full rounded"></div>
+                            <div className="bg-gray-700 h-2 w-3/4 rounded"></div>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="bg-gray-700 h-12 rounded-lg"></div>
+                          <div className="bg-gray-700 h-12 rounded-lg"></div>
+                        </div>
+                        <div className="bg-gray-700 h-8 w-full rounded"></div>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Development Mockup */}
+                  {step.mockup === "development" && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      whileInView={{ opacity: 1 }}
+                      transition={{ duration: 1, delay: index * 0.3 }}
+                      className="w-full h-full flex items-center justify-center"
+                    >
+                      <div className="w-full max-w-[200px] space-y-3">
+                        <div className="bg-gray-800 rounded-lg p-3">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                            <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                          </div>
+                          <div className="space-y-2">
+                            <div className="bg-gray-700 h-2 w-full rounded"></div>
+                            <div className="bg-gray-700 h-2 w-2/3 rounded"></div>
+                            <div className="bg-purple-500 h-2 w-1/2 rounded"></div>
+                          </div>
+                        </div>
+                        <div className="flex space-x-2">
+                          <div className="bg-gray-700 h-8 flex-1 rounded"></div>
+                          <div className="bg-purple-500 h-8 w-16 rounded"></div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Launch Mockup */}
+                  {step.mockup === "launch" && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      whileInView={{ opacity: 1 }}
+                      transition={{ duration: 1, delay: index * 0.3 }}
+                      className="w-full h-full flex items-center justify-center"
+                    >
+                      <div className="w-full max-w-[200px] space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="text-xs text-gray-400">Status</div>
+                          <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
+                            className="w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full"
+                          ></motion.div>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center space-x-2">
+                            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                            <div className="text-xs text-gray-300">Progress Tracked</div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                            <div className="text-xs text-gray-300">Goals Aligned</div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                            <div className="text-xs text-gray-300">AI Tutor Ready</div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
+                            <div className="text-xs text-gray-300">Syncing...</div>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
                 </div>
+              </div>
 
-                <div className="space-y-16">
-                    {steps.map((step, i) => {
-                        const start = i / steps.length;
-                        const end = start + 1 / steps.length;
-                        const opacity = useTransform(scrollYProgress, [start, end], [0.3, 1]);
-                        const scale = useTransform(scrollYProgress, [start, end], [0.9, 1]);
-                        
-                        const imageData = (placeholderImages.howItWorks as any)[step.image];
-
-                        return (
-                            <motion.div
-                                key={i}
-                                style={{ opacity, scale }}
-                                className="space-y-4 p-8 rounded-2xl border border-white/10 bg-white/5"
-                            >
-                                <h3 className="text-2xl font-bold text-white">
-                                    <span className="text-blue-400">0{i + 1}</span> {step.title}
-                                </h3>
-                                <p className="text-white/70">{step.description}</p>
-                                <div className="aspect-video relative mt-4 rounded-lg overflow-hidden border-2 border-white/10">
-                                    <Image
-                                        src={imageData.src}
-                                        alt={imageData.alt}
-                                        fill
-                                        className="object-cover"
-                                        data-ai-hint={imageData.hint}
-                                    />
-                                </div>
-                            </motion.div>
-                        );
-                    })}
+              {/* Content */}
+              <div className="space-y-4">
+                <div className="flex items-center space-x-4">
+                  <div className="text-4xl font-bold text-gray-600">{step.number}</div>
+                  <div className="text-blue-400">{step.icon}</div>
                 </div>
-            </div>
-        </section>
-    );
+                <h3 className="text-2xl font-bold text-white group-hover:text-blue-400 transition-colors">
+                  {step.title}
+                </h3>
+                <p className="text-gray-400 leading-relaxed">{step.description}</p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
 }
