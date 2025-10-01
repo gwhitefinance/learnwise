@@ -1130,11 +1130,13 @@ export default function FloatingChat() {
                         initial={{ opacity: 0, y: 10, scale: 0.9 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, x: 20, transition: { duration: 0.2 } }}
-                        className="bg-card border p-4 rounded-xl shadow-lg mb-2 -mr-12"
+                        className="flex items-end gap-2"
                     >
-                        <p className="font-semibold">Hello {user.displayName?.split(' ')[0] || 'there'}!</p>
-                        <p className="text-sm text-muted-foreground">Chat with me at any time.</p>
-                        <div className="absolute right-[-9px] bottom-4 w-3 h-3 bg-card border-b border-r transform rotate-45"></div>
+                         <div className="bg-card border p-4 rounded-xl shadow-lg mb-2 relative">
+                            <p className="font-semibold">Hello {user.displayName?.split(' ')[0] || 'there'}!</p>
+                            <p className="text-sm text-muted-foreground">Chat with me at any time.</p>
+                             <div className="absolute right-[-9px] bottom-4 w-3 h-3 bg-card border-b border-r transform rotate-45"></div>
+                        </div>
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -1213,4 +1215,3 @@ export default function FloatingChat() {
     </div>
   );
 }
-
