@@ -5,6 +5,7 @@ import CallToAction from '@/sections/CallToAction';
 import Faqs from '@/sections/Faqs';
 import Footer from '@/sections/Footer';
 import Navbar from '@/sections/Navbar';
+import HowItWorks from '@/sections/HowItWorks';
 import { ArrowRight, Star, BrainCircuit } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -202,7 +203,7 @@ export default function Home() {
     <main className="bg-background text-white dark-grid">
       <Navbar />
       <Hero />
-      {/* Other sections can be added here */}
+      <HowItWorks />
       <Faqs />
       <CallToAction />
       <Footer />
