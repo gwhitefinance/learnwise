@@ -13,13 +13,14 @@ import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import AIBuddy from '@/components/ai-buddy';
+import PersonalizedTutor from '@/sections/PersonalizedTutor';
 
 const Hero = () => (
   <section className="relative py-20 lg:py-28 text-white text-center overflow-hidden">
     <div className="container mx-auto px-4 relative z-10">
       {/* Floating Icons */}
       <motion.div
-        className="absolute top-[15%] left-[10%]"
+        className="absolute top-[15%] left-[20%]"
         animate={{ y: [-10, 10], x: [-5, 5], rotate: [-8, 8] }}
         transition={{
           duration: 8,
@@ -29,7 +30,7 @@ const Hero = () => (
         }}
       >
         <Image
-          src="https://png.pngtree.com/png-vector/20240619/ourmid/pngtree-documents-folder-3d-icon-png-image_12797525.png"
+          src="https://cdn3d.iconscout.com/3d/premium/thumb/folder-7857077-6286383.png"
           alt="3D folder icon"
           width={96}
           height={96}
@@ -65,7 +66,7 @@ const Hero = () => (
         }}
       >
         <Image
-          src="https://cdn3d.iconscout.com/3d/premium/thumb/notes-3d-icon-png-download-5728147.png"
+          src="https://png.pngtree.com/png-clipart/20230823/original/pngtree-school-supplies-3d-icon-of-stacked-books-picture-image_8255959.png"
           alt="3D Calendar Icon"
           width={112}
           height={112}
@@ -83,7 +84,7 @@ const Hero = () => (
         }}
       >
         <Image
-          src="https://png.pngtree.com/png-clipart/20250130/original/pngtree-calendar-3d-icon-isolated-on-a-transparent-background-symbolizing-schedules-and-png-image_20358144.png"
+          src="https://uxwing.com/wp-content/themes/uxwing/download/education-school/study-notes-icon.png"
           alt="Sticky notes"
           width={96}
           height={96}
@@ -204,6 +205,7 @@ export default function Home() {
       <Navbar />
       <Hero />
       <HowItWorks />
+      <PersonalizedTutor />
       <Faqs />
       <CallToAction />
       <Footer />

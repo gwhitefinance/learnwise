@@ -97,6 +97,12 @@ const nextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'uxwing.com',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
 };
