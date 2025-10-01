@@ -3,50 +3,54 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-  
-    // Default: Deny all reads and writes
-    match /{document=**} {
-      allow read, write: if false;
-    }
 
-    // Allow users to read and write their own data in most collections
-    // This is a common pattern for user-owned data.
+    // Allow users to manage their own profile data
     match /users/{userId} {
-      allow read, update: if request.auth.uid == userId;
+      allow read, update: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null;
     }
-    
+
+    // Allow users to manage their own courses
     match /courses/{courseId} {
-      allow read, write: if request.auth.uid == request.resource.data.userId;
+      allow read, create, update, delete: if request.auth != null && request.auth.uid == request.resource.data.userId;
     }
-    
-    match /notes/{noteId} {
-      allow read, write: if request.auth.uid == request.resource.data.userId;
-    }
-    
+
+    // Allow users to manage their own projects
     match /projects/{projectId} {
-       allow read, write: if request.auth.uid == request.resource.data.userId;
+       allow read, create, update, delete: if request.auth != null && request.auth.uid == request.resource.data.userId;
     }
-    
+
+    // Allow users to manage their own recent files
     match /recentFiles/{fileId} {
-        allow read, write: if request.auth.uid == request.resource.data.userId;
+       allow read, create, update, delete: if request.auth != null && request.auth.uid == request.resource.data.userId;
+    }
+
+    // Allow users to manage their own calendar events
+    match /calendarEvents/{eventId} {
+       allow read, create, update, delete: if request.auth != null && request.auth.uid == request.resource.data.userId;
     }
     
-    match /calendarEvents/{eventId} {
-        allow read, write: if request.auth.uid == request.resource.data.userId;
+    // Allow users to manage their own notes
+    match /notes/{noteId} {
+       allow read, create, update, delete: if request.auth != null && request.auth.uid == request.resource.data.userId;
     }
 
-    match /quizAttempts/{attemptId} {
-        allow read, write: if request.auth.uid == request.resource.data.userId;
-    }
-
-    // Chat sessions are special.
-    // A user can read/write their OWN chat sessions.
+    // Allow users to manage their own chat sessions
     match /chatSessions/{sessionId} {
-      allow read, write: if request.auth.uid == resource.data.userId;
+       allow read, create, update, delete: if request.auth != null && request.auth.uid == request.resource.data.userId;
+    }
 
-      // Anyone can read a chat session IF it is marked as public.
-      // This rule is additive to the one above it.
-      allow get: if resource.data.isPublic == true;
+    // Allow users to manage their own quiz attempts
+    match /quizAttempts/{attemptId} {
+      allow read, create, update, delete: if request.auth != null && request.auth.uid == request.resource.data.userId;
+    }
+
+    // Allow users to manage their own roadmaps
+    match /roadmaps/{roadmapId} {
+      // Allow read, create, update if the user is authenticated and their ID matches the document's userId
+      allow read, create, update: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      // Allow delete if the user is authenticated and their ID matches the existing document's userId
+      allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
     }
   }
 }
