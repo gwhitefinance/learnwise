@@ -4,7 +4,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, X, MessageSquare, Loader2, PanelLeft, Plus, Edit, Trash2, FileText, Home, Phone, ChevronRight, HelpCircle, Search, Calendar, Lightbulb, Sparkles, Upload, User, Award, Gem, Copy, RefreshCw, ChevronLeft, CheckCircle, XCircle, ArrowRight, BrainCircuit, Bot, MoreVertical, Link as LinkIcon, Share2, Maximize, Minimize } from 'lucide-react';
+import { Send, X, MessageSquare, Loader2, PanelLeft, Plus, Edit, Trash2, FileText, Home, Phone, ChevronRight, HelpCircle, Search, Calendar, Lightbulb, Sparkles, Upload, User, Award, Gem, Copy, RefreshCw, ChevronLeft, CheckCircle, XCircle, ArrowRight, BrainCircuit, Bot, MoreVertical, Link as LinkIcon, Share2, Maximize, Minimize, NotebookText, Download, Eraser } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -26,7 +26,7 @@ import { Progress } from './ui/progress';
 import Link from 'next/link';
 import type { GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuPortal } from './ui/dropdown-menu';
 
 
 interface Message {
@@ -824,18 +824,48 @@ export default function FloatingChat() {
     }
   }
 
-  const handleShareChat = async () => {
+  const handleSetCourseFocus = async (course: Course | null) => {
     if (!activeSessionId) return;
+    const sessionRef = doc(db, 'chatSessions', activeSessionId);
+    try {
+        await updateDoc(sessionRef, {
+            courseId: course?.id || null,
+            courseContext: course ? `${course.name}: ${course.description}` : null,
+        });
+        toast({ title: 'Course Focus Updated!', description: course ? `AI will now focus on ${course.name}.` : 'AI focus has been cleared.' });
+    } catch(e) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not set course focus.' });
+    }
+  };
+
+  const handleExportConversation = () => {
+    if (!activeSession) return;
+    const content = activeSession.messages.map(msg => `${msg.role.toUpperCase()}: ${msg.content}`).join('\n\n');
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${activeSession.title.replace(/ /g, '_')}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    toast({ title: 'Chat Exported!' });
+  };
+  
+  const handleClearConversation = async () => {
+    if (!activeSessionId || !user) return;
     try {
         const sessionRef = doc(db, 'chatSessions', activeSessionId);
-        await updateDoc(sessionRef, { isPublic: true });
-        const shareLink = `${window.location.origin}/share/chat/${activeSessionId}`;
-        navigator.clipboard.writeText(shareLink);
-        toast({ title: "Link Copied!", description: "A shareable link to this chat has been copied." });
-    } catch (e) {
-        toast({ variant: 'destructive', title: 'Error', description: 'Could not make this chat public.' });
+        await updateDoc(sessionRef, {
+            messages: [{ role: 'ai', content: `Hey ${user.displayName?.split(' ')[0] || 'there'}! How can I help?` }]
+        });
+        toast({ title: 'Chat Cleared' });
+    } catch(e) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not clear the chat.' });
     }
-  }
+  };
+
 
   const handleUpload = async () => {
     if (!fileToUpload || !activeSessionId) {
@@ -984,7 +1014,7 @@ export default function FloatingChat() {
                                         <div className="flex-1 flex items-center gap-2 overflow-hidden">
                                             <div className="flex-1 truncate">
                                                 <h3 className="font-semibold text-sm truncate">{activeSession?.title || 'AI Buddy'}</h3>
-                                                {activeSession?.courseContext && <p className="text-xs text-muted-foreground truncate">Focus: {activeSession.courseContext}</p>}
+                                                {activeSession?.courseContext && <p className="text-xs text-muted-foreground truncate">Focus: {courses.find(c => c.id === activeSession.courseId)?.name}</p>}
                                             </div>
                                         </div>
                                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsFullscreen(!isFullscreen)}>
@@ -997,15 +1027,50 @@ export default function FloatingChat() {
                                                 </Button>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
+                                                 <DropdownMenuSub>
+                                                    <DropdownMenuSubTrigger>
+                                                        <BrainCircuit className="mr-2 h-4 w-4" />
+                                                        <span>Focus on Course</span>
+                                                    </DropdownMenuSubTrigger>
+                                                    <DropdownMenuPortal>
+                                                        <DropdownMenuSubContent>
+                                                            <DropdownMenuItem onSelect={() => handleSetCourseFocus(null)}>
+                                                                { !activeSession?.courseId && <CheckCircle className="mr-2 h-4 w-4" />}
+                                                                <span>None</span>
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuSeparator />
+                                                            {courses.map(course => (
+                                                                <DropdownMenuItem key={course.id} onSelect={() => handleSetCourseFocus(course)}>
+                                                                    { activeSession?.courseId === course.id && <CheckCircle className="mr-2 h-4 w-4" />}
+                                                                    {course.name}
+                                                                </DropdownMenuItem>
+                                                            ))}
+                                                        </DropdownMenuSubContent>
+                                                    </DropdownMenuPortal>
+                                                </DropdownMenuSub>
+                                                 <DropdownMenuItem onSelect={handleExportConversation}>
+                                                    <Download className="mr-2 h-4 w-4" />
+                                                    <span>Export Conversation</span>
+                                                </DropdownMenuItem>
                                                 <DropdownMenuItem onSelect={handleOpenNoteDialog}>
-                                                    <FileText className="mr-2 h-4 w-4" />
+                                                    <NotebookText className="mr-2 h-4 w-4" />
                                                     <span>Save as Note</span>
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem onSelect={handleShareChat}>
-                                                    <Share2 className="mr-2 h-4 w-4" />
-                                                    <span>Share Chat</span>
-                                                </DropdownMenuItem>
                                                 <DropdownMenuSeparator />
+                                                <AlertDialog>
+                                                    <AlertDialogTrigger asChild>
+                                                         <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                                            <Eraser className="mr-2 h-4 w-4"/> Clear Conversation
+                                                        </DropdownMenuItem>
+                                                    </AlertDialogTrigger>
+                                                    <AlertDialogContent>
+                                                        <AlertDialogHeader><AlertDialogTitle>Clear Conversation?</AlertDialogTitle><AlertDialogDescription>This will remove all messages from this chat session.</AlertDialogDescription></AlertDialogHeader>
+                                                        <AlertDialogFooter>
+                                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                            <AlertDialogAction onClick={handleClearConversation}>Clear</AlertDialogAction>
+                                                        </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                </AlertDialog>
                                                 <AlertDialog>
                                                     <AlertDialogTrigger asChild>
                                                         <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
@@ -1031,8 +1096,8 @@ export default function FloatingChat() {
                                             {activeSession?.messages.map((msg, index) => (
                                                 <div key={index} className={cn("flex items-end gap-2", msg.role === 'user' ? 'justify-end' : '')}>
                                                     {msg.role === 'ai' && (
-                                                        <Avatar className="h-10 w-10">
-                                                          <AIBuddy
+                                                         <Avatar className="h-10 w-10">
+                                                            <AIBuddy
                                                                 className="w-full h-full"
                                                                 color={customizations.color}
                                                                 hat={customizations.hat}
