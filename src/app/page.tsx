@@ -14,7 +14,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import AIBuddy from '@/components/ai-buddy';
 
 const Hero = () => (
-  <section className="relative py-32 lg:py-48 text-white text-center overflow-hidden">
+  <section className="relative py-20 lg:py-28 text-white text-center overflow-hidden">
     <div className="container mx-auto px-4 relative z-10">
       {/* Floating Icons */}
       <motion.div
