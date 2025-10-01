@@ -63,11 +63,11 @@ const Hero = () => (
         }}
       >
         <Image
-          src="https://static.vecteezy.com/system/resources/previews/021/413/448/original/3d-atom-icon-for-business-and-education-png.png"
-          alt="Atom icon"
+          src="https://i.imgur.com/vJvStiT.png"
+          alt="Calendar and clock icon"
           width={112}
           height={112}
-          data-ai-hint="atom science"
+          data-ai-hint="calendar clock schedule"
         />
       </motion.div>
       <motion.div
