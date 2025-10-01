@@ -20,7 +20,7 @@ const Hero = () => (
     <div className="container mx-auto px-4 relative z-10">
       {/* Floating Icons */}
       <motion.div
-        className="absolute top-[15%] left-[20%]"
+        className="absolute top-[15%] left-[10%]"
         animate={{ y: [-10, 10], x: [-5, 5], rotate: [-8, 8] }}
         transition={{
           duration: 8,
