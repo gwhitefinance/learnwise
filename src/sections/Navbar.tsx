@@ -32,16 +32,18 @@ export default function Navbar() {
   const navLinksData = [
     { label: "Features", href: "#features" },
     { label: "How It Works", href: "#how-it-works" },
-    { label: "Pricing", href: "#pricing" },
   ]
 
   return (
     <header className={cn(
       "fixed top-0 left-0 right-0 z-20 transition-all duration-300",
-      isScrolled ? "bg-background/80 border-b border-white/10 backdrop-blur-sm" : "bg-transparent"
+      isScrolled ? "pt-2" : "pt-0"
     )}>
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-20">
+        <div className={cn(
+            "flex items-center justify-between h-20 transition-all duration-300",
+            isScrolled ? "bg-black/50 border border-white/10 rounded-2xl px-4 backdrop-blur-md" : "bg-transparent border-transparent px-0"
+        )}>
           <Link href="/" className="flex items-center gap-2">
             <BrainCircuit className="h-7 w-7 text-blue-400" />
             <span className="font-bold text-xl text-white">LearnWise</span>
