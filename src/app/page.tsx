@@ -5,22 +5,17 @@ import CallToAction from '@/sections/CallToAction';
 import Faqs from '@/sections/Faqs';
 import Footer from '@/sections/Footer';
 import Navbar from '@/sections/Navbar';
-import Integrations from '@/sections/Integrations';
 import { ArrowRight, BrainCircuit, CheckCircle, FileText, GitMerge, Lightbulb, MessageSquare, UploadCloud, Wand2, Star, BookOpen, Calendar, FlaskConical } from "lucide-react";
 import Link from "next/link";
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion } from 'framer-motion';
 import AIBuddy from '@/components/ai-buddy';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
-import Spline from '@splinetool/react-spline';
 import { useRef } from 'react';
 
 const Hero = () => (
-    <section className="relative py-32 lg:py-48 text-white">
-        <div className="absolute inset-0 z-0">
-             <Spline scene="https://prod.spline.design/iWPr341AINn90G0S/scene.splinecode" />
-        </div>
-        <div className="container mx-auto px-4 text-center relative z-10">
+    <section className="py-32 lg:py-48 text-white text-center">
+        <div className="container mx-auto px-4 relative z-10">
             <h1 className="text-5xl md:text-7xl font-bold tracking-tighter">
                 Master <span className="text-blue-400">your notes</span>
             </h1>
@@ -62,43 +57,66 @@ const Hero = () => (
 );
 
 
-const Feature = ({ title, description, icon }: { title: string; description: string; icon: React.ReactNode }) => (
-  <div className="mb-16">
+const Feature = ({ title, description, icon, imageUrl }: { title: string; description: string; icon: React.ReactNode, imageUrl: string }) => (
+  <div className="mb-24">
     <div className="flex items-center gap-4 mb-4">
       <div className="p-3 bg-white/10 border border-white/20 rounded-lg text-blue-400">
         {icon}
       </div>
       <h3 className="text-2xl font-bold text-white">{title}</h3>
     </div>
-    <p className="text-white/70 text-lg ml-16">{description}</p>
+    <p className="text-white/70 text-lg mb-6">{description}</p>
+    <Image 
+        src={imageUrl}
+        alt={title}
+        width={600}
+        height={400}
+        className="rounded-lg border border-white/10 shadow-2xl"
+        data-ai-hint="screenshot of app feature"
+    />
   </div>
 );
 
 
 const FeatureShowcase = () => {
-    const targetRef = useRef<HTMLDivElement | null>(null);
-    const { scrollYProgress } = useScroll({
-        target: targetRef,
-        offset: ["start end", "end start"]
-    })
-
-    const y = useTransform(scrollYProgress, [0, 1], ['10%', '-100%']);
-
     return (
         <section id="features" className="py-24">
             <div className="container mx-auto px-4">
-                 <div ref={targetRef} className="grid md:grid-cols-2 gap-16 items-start">
-                    <div className="md:sticky top-24 h-auto md:h-[500px]">
-                        <motion.div style={{ y }}>
-                            <AIBuddy className="w-full h-full max-w-sm mx-auto" />
-                        </motion.div>
+                 <div className="grid md:grid-cols-2 gap-16 items-start">
+                    <div className="space-y-16">
+                        <Feature 
+                            title="Add Your Course" 
+                            description="Start by creating a new course. Just give it a name, and our AI is ready to help you build out your learning journey." 
+                            icon={<BookOpen />}
+                            imageUrl="https://picsum.photos/seed/course/600/400"
+                        />
+                        <Feature 
+                            title="Generate a Roadmap" 
+                            description="Our AI analyzes your course and creates a personalized study roadmap with milestones and goals, helping you stay on track." 
+                            icon={<GitMerge />}
+                            imageUrl="https://picsum.photos/seed/roadmap/600/400"
+                        />
+                        <Feature 
+                            title="Manage Your Schedule" 
+                            description="All your milestones are automatically added to your calendar, so you can visualize your deadlines and plan your study sessions." 
+                            icon={<Calendar />}
+                            imageUrl="https://picsum.photos/seed/calendar/600/400"
+                        />
+                        <Feature 
+                            title="Enter the Learning Lab" 
+                            description="Dive into interactive, AI-generated lessons for each chapter, complete with activities and tools tailored to your learning style." 
+                            icon={<FlaskConical />}
+                            imageUrl="https://picsum.photos/seed/lab/600/400"
+                        />
+                         <Feature 
+                            title="Test Your Knowledge" 
+                            description="Take practice quizzes generated from your notes or course content to ensure you've mastered the material." 
+                            icon={<Lightbulb />}
+                            imageUrl="https://picsum.photos/seed/quiz/600/400"
+                        />
                     </div>
-                    <div>
-                        <Feature title="Create Your Course" description="Add a new course to your dashboard. Provide a name, and optionally, a URL to existing material (like a Wikipedia page or a course syllabus)." icon={<BookOpen />} />
-                        <Feature title="Generate a Roadmap" description="Our AI analyzes your course and creates a personalized study roadmap with milestones and goals, helping you stay on track." icon={<GitMerge />} />
-                        <Feature title="Manage Your Schedule" description="All your milestones are automatically added to your calendar, so you can visualize your deadlines and plan your study sessions." icon={<Calendar />} />
-                        <Feature title="Enter the Learning Lab" description="Dive into interactive, AI-generated lessons for each chapter, complete with activities and tools tailored to your learning style." icon={<FlaskConical />} />
-                         <Feature title="Test Your Knowledge" description="Take practice quizzes generated from your notes or course content to ensure you've mastered the material." icon={<Lightbulb />} />
+                    <div className="sticky top-24 h-auto">
+                        <AIBuddy className="w-full h-full max-w-sm mx-auto" />
                     </div>
                  </div>
             </div>
@@ -112,7 +130,6 @@ export default function Home() {
             <Navbar />
             <Hero />
             <FeatureShowcase />
-            <Integrations />
             <Faqs />
             <CallToAction />
             <Footer />
