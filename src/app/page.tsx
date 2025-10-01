@@ -63,7 +63,7 @@ const Hero = () => (
         }}
       >
         <Image
-          src="https://png.pngtree.com/png-vector/20241225/ourlarge/pngtree-a-3d-calendar-icon-with-vibrant-colors-and-smooth-textures-png-image_14885517.png"
+          src="https://png.pngtree.com/png-clipart/20250130/original/pngtree-calendar-3d-icon-isolated-on-a-transparent-background-symbolizing-schedules-and-png-image_20358144.png"
           alt="3D Calendar Icon"
           width={112}
           height={112}
