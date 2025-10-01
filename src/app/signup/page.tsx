@@ -100,7 +100,7 @@ export default function SignUpPage() {
             <div className="mb-8">
               <h1 className="text-2xl font-semibold">LearnWise</h1>
             </div>
-            <h2 className="mb-6 text-4xl font-bold">Get Started with Us</h2>
+            <h2 className="mb-6 text-4xl font-bold">Welcome to LearnWise</h2>
             <p className="mb-12 text-lg">Complete these easy steps to register your account.</p>
 
             <div className="w-full max-w-sm space-y-4">
