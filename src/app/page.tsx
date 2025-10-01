@@ -149,7 +149,7 @@ const Hero = () => (
             <Button
                 size="lg"
                 variant="outline"
-                className="w-full sm:w-auto bg-white border-white/20 text-black hover:bg-gray-100 rounded-2xl text-lg h-14 border-b-4 border-black/20 transform active:translate-y-px"
+                className="w-full sm:w-auto bg-white border-white/20 text-black hover:text-black hover:bg-gray-100 rounded-2xl text-lg h-14 border-b-4 border-black/20 transform active:translate-y-px"
             >
                 More Info
             </Button>
