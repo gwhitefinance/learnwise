@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect, useContext } from 'react';
@@ -24,7 +23,7 @@ import AudioPlayer from '@/components/audio-player';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { addXp, generateMiniCourse, generateQuizFromModule, generateFlashcardsFromModule, generateTutorResponse, generateChapterContent, generateExplanation, generateMidtermExam } from '@/lib/actions';
+import { addXp, generateMiniCourse, generateQuizFromModule, generateFlashcardsFromModule, generateTutorResponse, generateChapterContent, generateExplanation, generateMidtermExam, generateFullCourseContent } from '@/lib/actions';
 import { RewardContext } from '@/context/RewardContext';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import Loading from './loading';
@@ -116,6 +115,9 @@ export default function LearningLabClientPage() {
   const [isStartLabDialogOpen, setStartLabDialogOpen] = useState(false);
   const [newLabCourseId, setNewLabCourseId] = useState<string | null>(null);
 
+  const [showPaceDialog, setShowPaceDialog] = useState(false);
+  const [isFullContentGenerating, setIsFullContentGenerating] = useState(false);
+
 
   useEffect(() => {
     if (authLoading || !user) return;
@@ -158,7 +160,15 @@ export default function LearningLabClientPage() {
         const courseRef = doc(db, 'courses', selectedCourseId);
         const courseSnap = await getDoc(courseRef);
         if (courseSnap.exists()) {
-            setActiveCourse({ id: courseSnap.id, ...courseSnap.data() } as Course);
+            const courseData = { id: courseSnap.id, ...courseSnap.data() } as Course;
+            setActiveCourse(courseData);
+            // Check if lab has outline but no content
+            const hasOutline = courseData.units && courseData.units.length > 0;
+            const hasContent = hasOutline && courseData.units![0].chapters[0].content;
+            if(hasOutline && !hasContent){
+                setShowPaceDialog(true);
+            }
+
         } else {
              setActiveCourse(null);
              toast({ variant: 'destructive', title: 'Course not found.' });
@@ -240,6 +250,53 @@ export default function LearningLabClientPage() {
         setNewLabCourseId(null);
     }
   };
+
+   const handleGenerateFullContentAndRoadmap = async (durationInMonths: number) => {
+        if (!activeCourse || !user || !learnerType) return;
+        
+        setShowPaceDialog(false);
+        setIsFullContentGenerating(true);
+        toast({ title: 'Generating Full Course...', description: 'Grab a coffee, this might take a few minutes!' });
+
+        try {
+            const courseOutline = activeCourse.units?.map(u => ({
+                title: u.title,
+                chapters: u.chapters.map(c => c.title),
+            }));
+
+            if (!courseOutline) {
+                throw new Error("Course outline is missing.");
+            }
+
+            const { updatedUnits, newRoadmap } = await generateFullCourseContent({
+                courseName: activeCourse.name,
+                courseOutline,
+                learnerType: learnerType as any,
+                durationInMonths,
+            });
+            
+            // Update course with full content
+            const courseRef = doc(db, 'courses', activeCourse.id);
+            await updateDoc(courseRef, { units: updatedUnits });
+
+            // Find and update the roadmap
+            const roadmapsQuery = query(collection(db, 'roadmaps'), where('courseId', '==', activeCourse.id));
+            const roadmapSnapshot = await getDocs(roadmapsQuery);
+            if (!roadmapSnapshot.empty) {
+                const roadmapDoc = roadmapSnapshot.docs[0];
+                await updateDoc(roadmapDoc.ref, newRoadmap);
+            }
+
+            setActiveCourse(prev => prev ? { ...prev, units: updatedUnits } : null);
+            toast({ title: 'Course Generated!', description: 'Your learning lab and roadmap are ready.'});
+
+        } catch (error) {
+            console.error('Full content generation failed:', error);
+            toast({ variant: 'destructive', title: 'Generation Failed', description: 'Could not generate the full course content.' });
+        } finally {
+            setIsFullContentGenerating(false);
+        }
+    };
 
 
   const handleStartModuleQuiz = async (module: Module) => {
@@ -789,6 +846,21 @@ export default function LearningLabClientPage() {
 
   return (
     <>
+      <Dialog open={showPaceDialog}>
+          <DialogContent>
+              <DialogHeader>
+                  <DialogTitle>Set Your Learning Pace</DialogTitle>
+                  <DialogDescription>
+                      How quickly do you want to master {activeCourse?.name}? This will generate all course content and set your roadmap dates.
+                  </DialogDescription>
+              </DialogHeader>
+               <div className="py-4 space-y-4">
+                  <Button className="w-full" onClick={() => handleGenerateFullContentAndRoadmap(3)}>Casual (3 Months)</Button>
+                  <Button className="w-full" onClick={() => handleGenerateFullContentAndRoadmap(2)}>Steady (2 Months)</Button>
+                  <Button className="w-full" onClick={() => handleGenerateFullContentAndRoadmap(1)}>Intense (1 Month)</Button>
+              </div>
+          </DialogContent>
+      </Dialog>
       <div className={cn("flex h-full", isFocusMode && "bg-background")}>
         <aside className={cn(
             "h-full bg-card border-r transition-all duration-300",
@@ -853,7 +925,7 @@ export default function LearningLabClientPage() {
                      
                      {currentChapter.content ? (
                         <p className="text-muted-foreground text-lg whitespace-pre-wrap leading-relaxed">{currentChapter.content}</p>
-                     ) : isChapterContentLoading[currentChapter.id] ? (
+                     ) : isChapterContentLoading[currentChapter.id] || isFullContentGenerating ? (
                         <div className="space-y-4">
                             <Skeleton className="h-6 w-3/4" />
                             <Skeleton className="h-4 w-full" />
@@ -890,7 +962,7 @@ export default function LearningLabClientPage() {
                      <div className="p-6 bg-amber-500/10 rounded-lg border border-amber-500/20">
                         <h5 className="font-semibold flex items-center gap-2 text-amber-700"><Lightbulb size={18}/> Suggested Activity</h5>
                         <div className="text-muted-foreground mt-2">
-                             {isChapterContentLoading[currentChapter.id] && !currentChapter.activity ? <Skeleton className="h-4 w-1/2" /> : <p>{currentChapter.activity || 'Generate chapter content to see an activity.'}</p>}
+                             {(isChapterContentLoading[currentChapter.id] || isFullContentGenerating) && !currentChapter.activity ? <Skeleton className="h-4 w-1/2" /> : <p>{currentChapter.activity || 'Generate chapter content to see an activity.'}</p>}
                         </div>
                     </div>
                      
