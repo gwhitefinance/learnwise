@@ -50,7 +50,7 @@ export default function Navbar() {
             <span className="font-bold text-xl text-white">LearnWise</span>
           </Link>
           
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden md:flex items-center justify-center flex-1">
             <nav className="flex items-center gap-8">
               {navLinksData.map((link) => (
                 <AnimatedNavLink key={link.href} href={link.href}>
@@ -58,15 +58,15 @@ export default function Navbar() {
                 </AnimatedNavLink>
               ))}
             </nav>
+          </div>
 
-            <div className="flex items-center gap-2">
-              <Link href="/login">
-                  <Button variant="ghost" className="text-white hover:bg-white/10 hover:text-white">Login</Button>
-              </Link>
-               <Link href="/signup">
-                  <Button className="bg-white text-black hover:bg-gray-200">Sign Up Free</Button>
-              </Link>
-            </div>
+          <div className="hidden md:flex items-center gap-2">
+            <Link href="/login">
+                <Button variant="ghost" className="text-white hover:bg-white/10 hover:text-white">Login</Button>
+            </Link>
+              <Link href="/signup">
+                <Button className="bg-white text-black hover:bg-gray-200">Sign Up Free</Button>
+            </Link>
           </div>
 
 
