@@ -1,4 +1,3 @@
-
 'use client';
 
 import CallToAction from '@/sections/CallToAction';
@@ -15,6 +14,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import AIBuddy from '@/components/ai-buddy';
 import PersonalizedTutor from '@/sections/PersonalizedTutor';
 import Features from '@/sections/Features';
+import ScrollTextSection from '@/sections/ScrollTextSection';
 
 const Hero = () => (
   <section className="relative py-20 lg:py-28 text-white text-center overflow-hidden">
@@ -205,6 +205,7 @@ export default function Home() {
     <main className="bg-background text-white dark-grid">
       <Navbar />
       <Hero />
+      <ScrollTextSection />
       <HowItWorks />
       <PersonalizedTutor />
       <Features />
