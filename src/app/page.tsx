@@ -97,7 +97,7 @@ const Hero = () => (
         Turn class notes into <span className="text-blue-400">quizzes</span>,<br /> <span className="text-blue-400">flashcards</span>, and <span className="text-blue-400">smart study plans</span><br /> instantly.
       </p>
 
-      <div className="flex justify-center mt-4">
+      <div className="flex justify-center mt-4 mb-8">
         <AIBuddy className="w-24 h-24" />
       </div>
 
