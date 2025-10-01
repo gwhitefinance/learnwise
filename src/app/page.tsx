@@ -45,7 +45,7 @@ const Hero = () => (
         }}
       >
         <Image
-          src="https://png.pngtree.com/png-vector/20250712/ourlarge/pngtree-online-test-quiz-3d-icon-png-image_16625927.webp"
+          src="https://cdn3d.iconscout.com/3d/premium/thumb/online-test-time-3d-icon-png-download-3337507.png"
           alt="Lightbulb idea"
           width={80}
           height={80}
