@@ -45,7 +45,7 @@ const Hero = () => (
         }}
       >
         <Image
-          src="https://t4.ftcdn.net/jpg/05/61/88/24/360_F_561882485_A3x2T9yqN2grtBf1yvN5n2x5d2kHBNXn.jpg"
+          src="https://static.vecteezy.com/system/resources/thumbnails/041/489/227/small_2x/3d-illustration-quiz-png.png"
           alt="Lightbulb idea"
           width={80}
           height={80}
