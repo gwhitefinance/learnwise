@@ -98,7 +98,7 @@ const Hero = () => (
       </p>
 
       <div className="flex justify-center mt-4 mb-8">
-        <AIBuddy className="w-24 h-24" />
+        <AIBuddy className="w-10 h-10" />
       </div>
 
       <div className="flex justify-center items-center gap-4 mt-8">
