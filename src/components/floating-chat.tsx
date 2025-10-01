@@ -596,7 +596,10 @@ export default function FloatingChat() {
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const userSessions = querySnapshot.docs.map(doc => {
             const data = doc.data() as FirestoreChatSession;
-            return { id: doc.id, ...data, timestamp: data.timestamp.toMillis() } as ChatSession;
+            // The issue is here. `data` might contain an `id` field.
+            // When you do `{ id: doc.id, ...data }`, you get two `id` properties if `data` has one.
+            const { id, ...restOfData } = data as any; // Destructure `id` out
+            return { id: doc.id, ...restOfData, timestamp: data.timestamp.toMillis() } as ChatSession;
         });
         setSessions(userSessions);
 
