@@ -33,7 +33,7 @@ export default function HowItWorks() {
     });
 
     return (
-        <section ref={targetRef} className="py-24 relative">
+        <section ref={targetRef} id="how-it-works" className="py-24 relative">
             <div className="container mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
                 <div className="lg:sticky top-24">
                     <h2 className="text-4xl md:text-5xl font-bold tracking-tighter text-white">
@@ -51,6 +51,8 @@ export default function HowItWorks() {
                         const opacity = useTransform(scrollYProgress, [start, end], [0.3, 1]);
                         const scale = useTransform(scrollYProgress, [start, end], [0.9, 1]);
                         
+                        const imageData = (placeholderImages.howItWorks as any)[step.image];
+
                         return (
                             <motion.div
                                 key={i}
@@ -63,11 +65,11 @@ export default function HowItWorks() {
                                 <p className="text-white/70">{step.description}</p>
                                 <div className="aspect-video relative mt-4 rounded-lg overflow-hidden border-2 border-white/10">
                                     <Image
-                                        src={(placeholderImages.howItWorks as any)[step.image].src}
-                                        alt={(placeholderImages.howItWorks as any)[step.image].alt}
+                                        src={imageData.src}
+                                        alt={imageData.alt}
                                         fill
                                         className="object-cover"
-                                        data-ai-hint={(placeholderImages.howItWorks as any)[step.image].hint}
+                                        data-ai-hint={imageData.hint}
                                     />
                                 </div>
                             </motion.div>
