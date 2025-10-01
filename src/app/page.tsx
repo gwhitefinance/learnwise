@@ -84,8 +84,8 @@ const Hero = () => (
         }}
       >
         <Image
-          src="https://uxwing.com/wp-content/themes/uxwing/download/education-school/study-notes-icon.png"
-          alt="Sticky notes"
+          src="https://png.pngtree.com/png-clipart/20250130/original/pngtree-calendar-3d-icon-isolated-on-a-transparent-background-symbolizing-schedules-and-png-image_20358144.png"
+          alt="Calendar icon"
           width={96}
           height={96}
           data-ai-hint="calendar schedule"
