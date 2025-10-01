@@ -26,15 +26,20 @@ export default function NewReleasePromo() {
 
           <div className="relative z-10">
             <div className="mt-8 text-center">
-              <h2 className="text-4xl font-bold text-white mb-6">Reach your full study potential with LearnWise</h2>
+              <h2 className="text-4xl font-bold text-white mb-4" dangerouslySetInnerHTML={{ __html: "Reach your full study potential<br> with LearnWise" }}></h2>
+              <p className="text-lg text-white/80">Start for free</p>
               
+              {/* Arrow SVG */}
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="mx-auto text-white/80 mt-2">
+                <path d="M12 5V19M12 19L18 13M12 19L6 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+
               {/* Stylized button with border effect */}
               <div className="flex items-center justify-center">
                 <a href="/signup">
-                  <div className="group border-border bg-secondary/70 flex h-[64px] cursor-pointer items-center gap-2 rounded-full border p-[11px] mt-10">
+                  <div className="group border-border bg-secondary/70 flex h-[64px] cursor-pointer items-center gap-2 rounded-full border p-[11px] mt-4">
                     <div className="border-border bg-primary flex h-[43px] items-center justify-center rounded-full border">
                       <p className="mr-3 ml-2 flex items-center justify-center gap-2 font-medium tracking-tight text-white">
-                        <Globe className="lucide lucide-globe animate-spin" width="24" height="24" />
                         Get started for free
                       </p>
                     </div>
@@ -46,11 +51,6 @@ export default function NewReleasePromo() {
               </div>
             </div>
 
-            {/* Large background text */}
-            <h1 className="absolute inset-x-0 mt-[120px] text-center text-[100px] font-semibold text-transparent sm:mt-[30px] sm:text-[190px] pointer-events-none"
-              style={{ WebkitTextStroke: "1px currentColor", color: "transparent" }}>
-              LearnWise
-            </h1>
           </div>
         </div>
       </div>
