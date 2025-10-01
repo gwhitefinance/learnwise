@@ -40,6 +40,23 @@ export default function NewReleasePromo() {
                   <div className="group border-border bg-secondary/70 flex h-[64px] cursor-pointer items-center gap-2 rounded-full border p-[11px] mt-4">
                     <div className="border-border bg-primary flex h-[43px] items-center justify-center rounded-full border">
                       <p className="mr-3 ml-2 flex items-center justify-center gap-2 font-medium tracking-tight text-white">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="18"
+                          height="18"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="lucide lucide-globe animate-spin"
+                          style={{ animationDuration: '10s' }}
+                        >
+                          <circle cx="12" cy="12" r="10"></circle>
+                          <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path>
+                          <path d="M2 12h20"></path>
+                        </svg>
                         Get started for free
                       </p>
                     </div>
