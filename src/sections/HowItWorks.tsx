@@ -23,8 +23,8 @@ const steps = [
   },
   {
     number: "03",
-    title: "Track & Master",
-    description: "Use your new study tools, track your progress on your roadmap, and master your subjects with the help of your AI tutor.",
+    title: "Generate & Learn",
+    description: "Instantly create quizzes, flashcards, and other study materials from your content. Start learning with your AI tutor.",
     icon: <Rocket className="w-8 h-8" />,
     mockup: "launch",
     gradient: "from-green-500/20 to-green-600/10",
@@ -138,19 +138,19 @@ export default function HowItWorks() {
                         <div className="space-y-2">
                           <div className="flex items-center space-x-2">
                             <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                            <div className="text-xs text-gray-300">Progress Tracked</div>
+                            <div className="text-xs text-gray-300">Quizzes Generated</div>
                           </div>
                           <div className="flex items-center space-x-2">
                             <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                            <div className="text-xs text-gray-300">Goals Aligned</div>
+                            <div className="text-xs text-gray-300">Flashcards Ready</div>
                           </div>
                           <div className="flex items-center space-x-2">
                             <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                            <div className="text-xs text-gray-300">AI Tutor Ready</div>
+                            <div className="text-xs text-gray-300">AI Tutor Active</div>
                           </div>
                           <div className="flex items-center space-x-2">
                             <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
-                            <div className="text-xs text-gray-300">Syncing...</div>
+                            <div className="text-xs text-gray-300">Ready to Learn...</div>
                           </div>
                         </div>
                       </div>
