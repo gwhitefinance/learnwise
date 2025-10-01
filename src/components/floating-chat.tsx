@@ -84,38 +84,67 @@ type AnswerState = 'unanswered' | 'answered';
 type AnswerFeedback = { question: string; answer: string; correctAnswer: string; isCorrect: boolean; explanation?: string; };
 
 
-const ChatHomeScreen = ({ sessions, onNavigate, onStartNewChat, onSelectSession }: { sessions: ChatSession[], onNavigate: (tab: string) => void, onStartNewChat: () => void, onSelectSession: (sessionId: string) => void }) => {
+const ChatHomeScreen = ({ sessions, onNavigate, onStartNewChat, onSelectSession, onStartChatWithPrompt, customizations }: { sessions: ChatSession[], onNavigate: (tab: string) => void, onStartNewChat: () => void, onSelectSession: (sessionId: string) => void, onStartChatWithPrompt: (prompt: string) => void, customizations: Record<string, string> }) => {
     const [user] = useAuthState(auth);
 
+    const conversationStarters = [
+        { icon: <Calendar className="h-5 w-5" />, text: "Help me create a study plan" },
+        { icon: <Lightbulb className="h-5 w-5" />, text: "Explain a difficult concept" },
+        { icon: <Sparkles className="h-5 w-5" />, text: "Give me ideas for a project" },
+        { icon: <HelpCircle className="h-5 w-5" />, text: "Generate practice questions" },
+    ];
+
     return (
-        <div className="flex flex-col h-full">
-            <div className="p-4 border-b">
-                <div className="flex justify-between items-center">
-                    <h2 className="text-lg font-bold">Chats</h2>
-                    <Button size="sm" onClick={onStartNewChat}><Plus className="w-4 h-4 mr-2" /> New Chat</Button>
-                </div>
+        <div className="flex flex-col h-full bg-muted/30">
+             <div className="p-4 flex justify-between items-center">
+                <h2 className="text-lg font-bold">Home</h2>
+                <Button size="sm" onClick={onStartNewChat}><Plus className="w-4 h-4 mr-2" /> New Chat</Button>
             </div>
             <ScrollArea className="flex-1">
-                {sessions.length === 0 ? (
-                    <div className="text-center p-8 text-muted-foreground">
-                        <p>No past conversations.</p>
-                        <p>Start a new chat to begin!</p>
+                <div className="p-4 space-y-8">
+                     <div className="flex flex-col items-center text-center p-6 bg-card rounded-xl border">
+                        <AIBuddy {...customizations} className="w-24 h-24 mb-2" />
+                        <h3 className="font-semibold text-lg">Hello, {user?.displayName?.split(' ')[0] || 'Learner'}!</h3>
+                        <p className="text-sm text-muted-foreground">How can I help you learn today?</p>
                     </div>
-                ) : (
-                    <div className="p-2 space-y-1">
-                        {sessions.map(session => (
-                            <button
-                                key={session.id}
-                                onClick={() => onSelectSession(session.id)}
-                                className="w-full text-left bg-card p-3 rounded-lg flex flex-col hover:bg-muted transition-colors"
-                            >
-                                <p className="text-sm font-semibold truncate">{session.title}</p>
-                                <p className="text-xs text-muted-foreground truncate">{session.messages.slice(-1)[0]?.content}</p>
-                                <p className="text-xs text-muted-foreground mt-1">{formatDistanceToNow(new Date(session.timestamp), { addSuffix: true })}</p>
-                            </button>
-                        ))}
+
+                    <div>
+                        <h4 className="font-semibold mb-3 px-2">Conversation Starters</h4>
+                        <div className="grid grid-cols-2 gap-3">
+                            {conversationStarters.map(starter => (
+                                <button key={starter.text} onClick={() => onStartChatWithPrompt(starter.text)} className="bg-card border p-3 rounded-lg text-left hover:bg-muted transition-colors">
+                                    <div className="text-primary mb-2">{starter.icon}</div>
+                                    <p className="text-sm font-medium">{starter.text}</p>
+                                </button>
+                            ))}
+                        </div>
                     </div>
-                )}
+                   
+                    <div>
+                        <h4 className="font-semibold mb-3 px-2">Recent Chats</h4>
+                        {sessions.length > 0 ? (
+                            <div className="space-y-2">
+                                {sessions.slice(0, 3).map(session => (
+                                     <button
+                                        key={session.id}
+                                        onClick={() => onSelectSession(session.id)}
+                                        className="w-full text-left bg-card p-3 rounded-lg flex items-center gap-3 hover:bg-muted transition-colors border"
+                                    >
+                                        <div className="flex-1 overflow-hidden">
+                                            <p className="text-sm font-semibold truncate">{session.title}</p>
+                                            <p className="text-xs text-muted-foreground truncate">{formatDistanceToNow(new Date(session.timestamp), { addSuffix: true })}</p>
+                                        </div>
+                                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                                    </button>
+                                ))}
+                            </div>
+                        ) : (
+                             <div className="text-center py-8 text-sm text-muted-foreground">
+                                <p>Your past conversations will appear here.</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
             </ScrollArea>
         </div>
     );
@@ -909,7 +938,7 @@ export default function FloatingChat() {
                     )}
                 >
                     <div className="flex-1 overflow-hidden flex flex-col">
-                        {activeTab === 'home' && <ChatHomeScreen sessions={sessions} onNavigate={setActiveTab} onStartNewChat={createNewSession} onSelectSession={(id) => { setActiveSessionId(id); setActiveTab('conversation'); }} />}
+                        {activeTab === 'home' && <ChatHomeScreen sessions={sessions} onNavigate={setActiveTab} onStartNewChat={createNewSession} onSelectSession={(id) => { setActiveSessionId(id); setActiveTab('conversation'); }} onStartChatWithPrompt={handleStartChatWithPrompt} customizations={customizations} />}
                         {activeTab === 'ai tools' && <AIToolsTab onStartChatWithPrompt={handleStartChatWithPrompt} />}
                         {activeTab === 'my stats' && <MyStatsTab />}
                         {activeTab === 'conversation' && (
@@ -1182,4 +1211,3 @@ export default function FloatingChat() {
     </div>
   );
 }
-
