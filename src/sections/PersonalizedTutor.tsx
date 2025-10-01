@@ -4,7 +4,7 @@
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
-import { ChevronLeft, ChevronRight, HelpCircle, FileQuestion } from 'lucide-react';
+import { ChevronLeft, ChevronRight, HelpCircle, FileQuestion, Copy, BrainCircuit } from 'lucide-react';
 import { useState } from 'react';
 
 const CalendarDay = ({ day, isSelected, isOtherMonth, onClick, hasEvent }: { day: number, isSelected?: boolean, isOtherMonth?: boolean, onClick: () => void, hasEvent?: boolean }) => (
@@ -49,12 +49,12 @@ const studyPlanData: Record<number, React.ReactNode> = {
         <>
             <StudyItem
                 icon={<HelpCircle />}
-                title="Multiple Choice Quiz"
-                duration="1 hour"
-                progress={23}
+                title="Practice Quiz: Algebra"
+                duration="45 minutes"
+                progress={75}
             />
             <StudyItem
-                icon={<FileQuestion />}
+                icon={<Copy />}
                 title="Review Flashcards"
                 duration="30 minutes"
                 progress={80}
@@ -65,15 +65,15 @@ const studyPlanData: Record<number, React.ReactNode> = {
         <>
             <StudyItem
                 icon={<FileQuestion />}
-                title="Chapter 5 Reading"
+                title="Learning Lab: Photosynthesis"
                 duration="1.5 hours"
                 progress={45}
             />
              <StudyItem
-                icon={<HelpCircle />}
-                title="Practice Problems"
-                duration="45 minutes"
-                progress={10}
+                icon={<BrainCircuit />}
+                title="AI Tutor Chat"
+                duration="20 minutes"
+                progress={100}
             />
         </>
     ),
@@ -81,9 +81,9 @@ const studyPlanData: Record<number, React.ReactNode> = {
          <>
             <StudyItem
                 icon={<FileQuestion />}
-                title="Lab Report Draft"
-                duration="2 hours"
-                progress={50}
+                title="Finish Notes on Chapter 3"
+                duration="1 hour"
+                progress={60}
             />
         </>
     ),
@@ -91,9 +91,9 @@ const studyPlanData: Record<number, React.ReactNode> = {
          <>
             <StudyItem
                 icon={<HelpCircle />}
-                title="Final Project Brainstorm"
-                duration="1 hour"
-                progress={0}
+                title="Roadmap Milestone"
+                duration="2 hours"
+                progress={25}
             />
             <StudyItem
                 icon={<FileQuestion />}
