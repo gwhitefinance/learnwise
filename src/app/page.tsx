@@ -66,8 +66,8 @@ const Hero = () => (
         }}
       >
         <Image
-          src="https://png.pngtree.com/png-clipart/20230823/original/pngtree-school-supplies-3d-icon-of-stacked-books-picture-image_8255959.png"
-          alt="3D Calendar Icon"
+          src="https://cdn3d.iconscout.com/3d/premium/thumb/notes-3d-icon-png-download-5728147.png"
+          alt="3D Notes Icon"
           width={112}
           height={112}
           data-ai-hint="notes organization"
