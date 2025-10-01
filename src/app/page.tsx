@@ -92,7 +92,7 @@ const Hero = () => (
         Master <br /> <span className="text-blue-400">your notes</span>
       </h1>
       <p className="mt-6 text-lg md:text-xl text-white/70 max-w-xl mx-auto">
-        Turn class notes into <span className="text-blue-400">quizzes</span>, <span className="text-blue-400">flashcards</span>, and <span className="text-blue-400">smart study plans</span> instantly.
+        Turn class notes into <span className="text-blue-400">quizzes</span>, <br /> <span className="text-blue-400">flashcards</span>, and <span className="text-blue-400">smart study plans</span> <br /> instantly.
       </p>
       <div className="flex justify-center items-center gap-4 mt-8">
         <div className="flex -space-x-4">
