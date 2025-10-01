@@ -9,7 +9,6 @@ const textContent = [
     { type: 'highlight', text: "You're juggling projects, training, and new skills," },
     { type: 'dim', text: "but generic learning methods slow you down." },
     { type: 'dim', text: "It's hard to stay organized and even harder to know what to focus on." },
-    { type: 'highlight', text: "That's why we built LearnWise." }
 ];
 
 const Word = ({ children, progress, range }: { children: React.ReactNode, progress: any, range: [number, number] }) => {
@@ -28,13 +27,15 @@ export default function ScrollTextSection() {
     const targetRef = useRef<HTMLDivElement | null>(null);
     const { scrollYProgress } = useScroll({
         target: targetRef,
-        offset: ['start end', 'end start'],
+        offset: ['start 0.9', 'end 0.1'],
     });
     
     const words = textContent.flatMap(item => {
         const words = item.text.split(' ');
         return words.map(word => ({ ...item, text: word }));
     });
+    
+    const lastLineProgress = useTransform(scrollYProgress, [0.8, 1], [0, 1]);
 
     return (
         <section ref={targetRef} className="py-32">
@@ -59,6 +60,12 @@ export default function ScrollTextSection() {
                         )
                     })}
                 </p>
+                <motion.p 
+                    className="text-4xl md:text-6xl font-bold leading-tight text-blue-400 mt-8"
+                    style={{ opacity: lastLineProgress }}
+                >
+                    That's why we built LearnWise.
+                </motion.p>
             </div>
         </section>
     );
