@@ -683,7 +683,7 @@ export default function FloatingChat() {
       const querySnapshot = await getDocs(q);
       const calendarEvents = querySnapshot.docs.map(doc => {
           const data = doc.data() as CalendarEvent;
-          return { id: doc.id, ...data };
+          return { ...data, id: doc.id };
       });
       const learnerType = localStorage.getItem('learnerType');
 

@@ -1,52 +1,29 @@
 
 "use client";
 
-import { AnimationPlaybackControls, motion, useAnimate } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
-import { twMerge } from "tailwind-merge";
+import { ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+
 
 export default function CallToAction() {
-    const animation = useRef<AnimationPlaybackControls>();
-    const [scope, animate] = useAnimate();
-
-    const [slowDownAnimation, setSlowDownAnimation] = useState(false);
-
-    useEffect(() => {
-        animation.current = animate(
-            scope.current,
-            { x: "-50%" },
-            { duration: 30, ease: "linear", repeat: Infinity }
-        );
-    }, []);
-
-    useEffect(() => {
-        if (animation.current) {
-            if (slowDownAnimation) {
-                animation.current.speed = 0.5;
-            } else {
-                animation.current.speed = 1;
-            }
-        }
-    }, [slowDownAnimation]);
-
     return (
-        <section className="py-24">
-            <div className="overflow-x-clip p-4 flex">
-                <motion.div
-                    ref={scope}
-                    className="flex flex-none gap-16 pr-16 text-7xl md:text-8xl font-medium"
-                    onMouseEnter={() => setSlowDownAnimation(true)}
-                    onMouseLeave={() => setSlowDownAnimation(false)}
-                >
-                    {Array.from({ length: 10 }).map((_, index) => (
-                        <div key={index} className="flex items-center gap-16">
-                            <span className="text-blue-500 text-7xl ">
-                                &#10038;
-                            </span>
-                            <span className={twMerge("text-white", slowDownAnimation && "text-blue-500")}>Start for free</span>
-                        </div>
-                    ))}
-                </motion.div>
+        <section className="py-24 bg-card border-y">
+            <div className="container text-center">
+                 <h2 className="text-4xl md:text-5xl font-bold tracking-tighter text-foreground max-w-2xl mx-auto">
+                    Ready to Revolutionize Your Learning?
+                </h2>
+                <p className="mt-4 text-lg text-muted-foreground max-w-xl mx-auto">
+                    Stop drowning in notes and start understanding. Get your personal AI tutor today.
+                </p>
+                <div className="mt-8">
+                     <Link href="/signup">
+                        <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full text-base">
+                            Get Started - It's Free
+                            <ArrowRight className="ml-2 h-4 w-4" />
+                        </Button>
+                    </Link>
+                </div>
             </div>
         </section>
     );

@@ -141,6 +141,14 @@
   .halloween-bg .dialog-content { /* Assuming DialogContent has this class */
       box-shadow: 0 0 15px rgba(249, 115, 22, 0.3), inset 0 0 5px rgba(249, 115, 22, 0.2);
   }
+
+  .light-background {
+    background-color: #f7faff;
+  }
+
+  .hero-glow {
+    background-image: radial-gradient(ellipse 80% 50% at 50% 120%, hsl(var(--primary) / 0.15), transparent);
+  }
 }
 
 .react-draggable {

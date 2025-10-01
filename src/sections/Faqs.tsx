@@ -31,7 +31,7 @@ const faqs = [
 ];
 
 export default function Faqs() {
-    const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+    const [selectedIndex, setSelectedIndex] = useState<number | null>(0);
 
     const handleClick = (index: number) => {
         setSelectedIndex(selectedIndex === index ? null : index);
@@ -43,30 +43,30 @@ export default function Faqs() {
                 <div className="flex justify-center">
                     <Tag>Faqs</Tag>
                 </div>
-                <h2 className="text-6xl font-medium mt-6 text-center max-w-xl mx-auto text-white">
-                    Questions? We've got{" "}
-                    <span className="text-blue-500">answers</span>
+                <h2 className="text-4xl md:text-5xl font-bold text-center mt-6 max-w-2xl mx-auto text-foreground">
+                    Frequently Asked Questions
                 </h2>
 
-                <div className="mt-12 flex flex-col gap-6 max-w-xl mx-auto">
+                <div className="mt-12 flex flex-col gap-4 max-w-3xl mx-auto">
                     {faqs.map((faq, faqIndex) => (
                         <div
                             key={faq.question}
                             onClick={() => handleClick(faqIndex)}
-                            className="bg-neutral-900 rounded-2xl border border-white/10 p-6 cursor-pointer"
+                            className="bg-card rounded-2xl border p-6 cursor-pointer"
                         >
-                            <div className="flex justify-between items-start">
-                                <h3 className="font-medium m-0 text-white">
+                            <div className="flex justify-between items-center">
+                                <h3 className="font-semibold text-lg text-foreground">
                                     {faq.question}
                                 </h3>
-                                <Plus
-                                    size={30}
-                                    className={twMerge(
-                                        "feather feather-plus text-blue-500 flex-shrink-0 transition duration-300",
-                                        selectedIndex === faqIndex &&
-                                            "rotate-45"
-                                    )}
-                                />
+                                <div className="p-2 bg-primary/10 rounded-full text-primary">
+                                    <Plus
+                                        size={20}
+                                        className={twMerge(
+                                            "transition duration-300",
+                                            selectedIndex === faqIndex && "rotate-45"
+                                        )}
+                                    />
+                                </div>
                             </div>
 
                             <AnimatePresence>
@@ -79,7 +79,7 @@ export default function Faqs() {
                                         }}
                                         animate={{
                                             height: "auto",
-                                            marginTop: 24,
+                                            marginTop: 16,
                                             opacity: 1,
                                         }}
                                         exit={{
@@ -89,7 +89,7 @@ export default function Faqs() {
                                         }}
                                         className="overflow-hidden"
                                     >
-                                        <p className="text-white/50">
+                                        <p className="text-muted-foreground">
                                             {faq.answer}
                                         </p>
                                     </motion.div>

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { BrainCircuit } from "lucide-react";
@@ -11,13 +12,13 @@ const footerLinks = [
 
 export default function Footer() {
     return (
-        <section className="py-16">
+        <section className="py-16 bg-card border-t">
             <div className="container">
                 <div className="flex flex-col md:flex-row justify-center md:justify-between items-center gap-6">
                     <div>
                         <Link href="/" className="flex items-center gap-2">
-                          <BrainCircuit className="h-8 w-8 text-white" />
-                          <span className="font-bold text-xl text-white">LearnWise</span>
+                          <BrainCircuit className="h-8 w-8 text-primary" />
+                          <span className="font-bold text-xl text-foreground">LearnWise</span>
                         </Link>
                     </div>
                     <div>
@@ -26,7 +27,7 @@ export default function Footer() {
                                 <a
                                     key={link.label}
                                     href={link.href}
-                                    className="text-white/50 text-sm "
+                                    className="text-muted-foreground hover:text-foreground text-sm "
                                 >
                                     {link.label}
                                 </a>
