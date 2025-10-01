@@ -5,20 +5,24 @@ import { useRef } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 
 const textContent = [
-    { type: 'highlight', text: "Your learning process deserves better." },
-    { type: 'highlight', text: "You're juggling projects, training, and new skills," },
-    { type: 'dim', text: "but generic learning methods slow you down." },
-    { type: 'dim', text: "It's hard to stay organized and even harder to know what to focus on." },
+    "Your learning process deserves better.",
+    "You're juggling projects, training, and new skills,",
+    "but generic learning methods slow you down.",
+    "It's hard to stay organized and even harder to know what to focus on.",
 ];
 
-const Word = ({ children, progress, range }: { children: React.ReactNode, progress: any, range: [number, number] }) => {
+const Word = ({ children, progress, range, isFirstSentence }: { children: React.ReactNode, progress: any, range: [number, number], isFirstSentence?: boolean }) => {
     const opacity = useTransform(progress, range, [0.3, 1]);
     const color = useTransform(progress, range, ["hsl(240, 9%, 59%)", "hsl(0, 0%, 100%)"]);
+
+    if (isFirstSentence) {
+        return <span className="text-white">{children} </span>;
+    }
 
     return (
         <span className="relative">
             <span className="absolute opacity-20">{children}</span>
-            <motion.span style={{ opacity, color }}>{children}</motion.span>
+            <motion.span style={{ opacity, color }}>{children} </motion.span>
         </span>
     )
 }
@@ -30,13 +34,11 @@ export default function ScrollTextSection() {
         offset: ['start 0.9', 'end 0.2'],
     });
     
-    const words = textContent.flatMap(item => {
-        const words = item.text.split(' ');
-        return words.map(word => ({ ...item, text: word }));
-    });
+    const words = textContent.flatMap(sentence => sentence.split(' '));
+    const firstSentenceLength = textContent[0].split(' ').length;
 
     return (
-        <section ref={targetRef} className="py-32">
+        <section ref={targetRef} className="py-32 bg-background">
             <div className="container mx-auto max-w-4xl text-center">
                  <div className="inline-block relative mb-12">
                     <h2 className="text-xl font-semibold text-white">Introducing LearnWise</h2>
@@ -46,14 +48,12 @@ export default function ScrollTextSection() {
                     />
                 </div>
                 <p className="text-4xl md:text-6xl font-bold leading-tight text-white/80">
-                    {words.map((item, i) => {
+                    {words.map((word, i) => {
                          const start = i / words.length;
                          const end = start + (1 / words.length)
                         return (
-                            <Word key={i} progress={scrollYProgress} range={[start, end]}>
-                                <span className={item.type === 'highlight' ? 'text-white' : 'text-muted-foreground'}>
-                                    {item.text + ' '}
-                                </span>
+                            <Word key={i} progress={scrollYProgress} range={[start, end]} isFirstSentence={i < firstSentenceLength}>
+                               {word}
                             </Word>
                         )
                     })}
