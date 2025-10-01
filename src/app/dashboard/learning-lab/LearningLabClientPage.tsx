@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useContext } from 'react';
@@ -261,7 +262,7 @@ export default function LearningLabClientPage() {
         try {
             const courseOutline = activeCourse.units?.map(u => ({
                 title: u.title,
-                chapters: u.chapters.map(c => c.title),
+                chapters: u.chapters.map(c => ({ title: c.title })),
             }));
 
             if (!courseOutline) {
