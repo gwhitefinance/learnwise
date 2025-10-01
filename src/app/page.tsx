@@ -63,11 +63,11 @@ const Hero = () => (
         }}
       >
         <Image
-          src="https://i.imgur.com/vJvStiT.png"
-          alt="Calendar and clock icon"
+          src="https://png.pngtree.com/png-vector/20241225/ourlarge/pngtree-a-3d-calendar-icon-with-vibrant-colors-and-smooth-textures-png-image_14885517.png"
+          alt="3D Calendar Icon"
           width={112}
           height={112}
-          data-ai-hint="calendar clock schedule"
+          data-ai-hint="calendar schedule"
         />
       </motion.div>
       <motion.div
@@ -158,17 +158,20 @@ const Hero = () => (
             </div>
           </DialogTrigger>
            <DialogContent>
-            <DialogHeader className="items-center text-center">
-                 <DialogTitle>
+            <DialogHeader>
+                <DialogTitle>
                     <div className="flex flex-col items-center text-center">
                         <BrainCircuit className="h-12 w-12 text-blue-400 mb-4" />
                         <h2 className="text-3xl font-bold mb-4">What's LearnWise?</h2>
                     </div>
                 </DialogTitle>
-                <DialogDescription className="text-muted-foreground mb-8 text-base">
-                    We built LearnWise to make studying effortless and truly effective. It is an AI powered tutor that learns how you learn, helping you focus on the topics you need most. Whether it is quizzes, flashcards, or personalized study plans, LearnWise helps you study smarter, not harder.
+                <DialogDescription className="sr-only">
+                    LearnWise is an AI-powered tutor that helps you study smarter by turning your notes into quizzes, flashcards, and personalized study plans.
                 </DialogDescription>
             </DialogHeader>
+            <p className="text-muted-foreground mb-8 text-base text-center">
+                We built LearnWise to make studying effortless and truly effective. It is an AI powered tutor that learns how you learn, helping you focus on the topics you need most. Whether it is quizzes, flashcards, or personalized study plans, LearnWise helps you study smarter, not harder.
+            </p>
             <div className="flex flex-col items-center">
                  <Link href="/signup">
                     <Button
