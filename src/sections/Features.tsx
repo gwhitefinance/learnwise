@@ -4,7 +4,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { BrainCircuit, Lightbulb, FileUp, Code, Image as ImageIcon, Video } from 'lucide-react';
+import { BrainCircuit, Lightbulb, FileUp, Code, Image as ImageIcon, Video, GitMerge, Files, FlaskConical, MessageSquare } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 
 const FeatureCard = ({ title, description, children, className }: { title: string, description: string, children: React.ReactNode, className?: string }) => (
@@ -17,76 +17,64 @@ const FeatureCard = ({ title, description, children, className }: { title: strin
 
 export default function Features() {
     return (
-        <section className="py-24">
+        <section id="features" className="py-24">
             <div className="container">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-1 space-y-8 flex flex-col">
                         <FeatureCard 
-                            title="Choose Your Tutor" 
-                            description="Select a tutor that matches your learning style and subject."
+                            title="Personalized Learning Paths" 
+                            description="Your learning style is unique. We generate custom roadmaps and content that adapt to you, not the other way around."
                         >
-                            <BrainCircuit className="w-12 h-12 text-blue-400" />
+                            <GitMerge className="w-12 h-12 text-blue-400" />
                              <div className="space-y-4 mt-6">
                                 <Card className="bg-white/5 p-4">
-                                    <h4 className="font-semibold text-white">Calculus</h4>
-                                    <Badge variant="outline" className="border-blue-400 text-blue-400 mt-1">Beginner</Badge>
+                                    <h4 className="font-semibold text-white">Visual Learner</h4>
+                                    <p className="text-xs text-white/50">Focus on diagrams & video.</p>
+                                </Card>
+                                <Card className="bg-blue-500/10 p-4 border border-blue-500/50">
+                                    <h4 className="font-semibold text-white">Kinesthetic Learner</h4>
+                                    <p className="text-xs text-white/50">Hands-on activities & examples.</p>
                                 </Card>
                                 <Card className="bg-white/5 p-4">
-                                    <h4 className="font-semibold text-white">Bio</h4>
-                                    <Badge className="bg-blue-500 mt-1">Active</Badge>
-                                </Card>
-                                <Card className="bg-white/5 p-4">
-                                    <h4 className="font-semibold text-white">Chem</h4>
-                                    <Badge variant="outline" className="border-blue-400 text-blue-400 mt-1">Expert</Badge>
+                                    <h4 className="font-semibold text-white">Auditory Learner</h4>
+                                     <p className="text-xs text-white/50">Audio explanations & discussions.</p>
                                 </Card>
                             </div>
-                        </FeatureCard>
-                        <FeatureCard 
-                            title="Chat with Document"
-                            description="Speak or type your answers and converse with your tutor."
-                        >
-                             {/* Content for this card can be added if needed */}
                         </FeatureCard>
                     </div>
 
                     <div className="lg:col-span-2 space-y-8">
                         <FeatureCard
-                            title="Upload Notes"
-                            description="Drag and drop or browse and select the notes you need to study."
+                            title="Transform Your Content"
+                            description="Upload anything—from lecture notes and textbooks to articles and images—and watch it become interactive study material."
                         >
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
                                <Card className="bg-white/5 flex flex-col items-center justify-center p-4 aspect-square">
-                                    <Code className="w-8 h-8 text-blue-400 mb-2"/>
-                                    <span className="text-sm text-white/70">Text Books</span>
+                                    <FileUp className="w-8 h-8 text-blue-400 mb-2"/>
+                                    <span className="text-sm text-white/70 text-center">Upload Your Notes & Docs</span>
                                </Card>
                                <Card className="bg-white/5 flex flex-col items-center justify-center p-4 aspect-square">
-                                   <ImageIcon className="w-8 h-8 text-blue-400 mb-2"/>
-                                    <span className="text-sm text-white/70">Images</span>
+                                   <Files className="w-8 h-8 text-blue-400 mb-2"/>
+                                    <span className="text-sm text-white/70 text-center">Generate Flashcards</span>
                                </Card>
                                <Card className="bg-white/5 flex flex-col items-center justify-center p-4 aspect-square">
-                                   <Video className="w-8 h-8 text-blue-400 mb-2"/>
-                                    <span className="text-sm text-white/70">Videos</span>
+                                   <Lightbulb className="w-8 h-8 text-blue-400 mb-2"/>
+                                    <span className="text-sm text-white/70 text-center">Create Practice Quizzes</span>
                                </Card>
                             </div>
                         </FeatureCard>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                              <FeatureCard
-                                title="Unlimited Questions"
-                                description="Ask as many questions as you need and get instant, accurate answers from your AI tutor."
+                                title="Interactive Learning Lab"
+                                description="Go beyond memorization. Engage with hands-on labs, activities, and challenges that make learning stick."
                             >
-                                 <Lightbulb className="w-12 h-12 text-blue-400"/>
+                                 <FlaskConical className="w-12 h-12 text-blue-400"/>
                             </FeatureCard>
                             <FeatureCard
-                                title="Start Learning"
-                                description=""
+                                title="24/7 AI Tutor"
+                                description="Stuck on a problem at 2 AM? Your AI tutor is always available to provide instant help and clear explanations."
                             >
-                                <div className="space-y-4">
-                                    <p className="bg-white/5 p-3 rounded-xl text-left text-white/90">Need help with tangible examples for osmosis...</p>
-                                    <div className="bg-blue-500/10 p-3 rounded-xl text-left flex justify-between items-center">
-                                       <span className="text-white/90">I can help! I specialize in biology 🪴</span>
-                                       <Switch checked={true} />
-                                    </div>
-                                </div>
+                                <MessageSquare className="w-12 h-12 text-blue-400" />
                             </FeatureCard>
                         </div>
                     </div>
