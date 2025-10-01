@@ -11,6 +11,7 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import AIBuddy from '@/components/ai-buddy';
 
 const Hero = () => (
   <section className="relative py-32 lg:py-48 text-white text-center overflow-hidden">
@@ -95,6 +96,11 @@ const Hero = () => (
       <p className="mt-6 text-lg md:text-xl text-white/70 max-w-xl mx-auto">
         Turn class notes into <span className="text-blue-400">quizzes</span>,<br /> <span className="text-blue-400">flashcards</span>, and <span className="text-blue-400">smart study plans</span><br /> instantly.
       </p>
+
+      <div className="flex justify-center mt-4">
+        <AIBuddy className="w-24 h-24" />
+      </div>
+
       <div className="flex justify-center items-center gap-4 mt-8">
         <div className="flex -space-x-4">
           <Image
