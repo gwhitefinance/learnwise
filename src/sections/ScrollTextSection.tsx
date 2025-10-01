@@ -37,7 +37,7 @@ export default function ScrollTextSection() {
     });
 
     return (
-        <section ref={targetRef} className="py-32 bg-black">
+        <section ref={targetRef} className="py-32 bg-background">
             <div className="container mx-auto max-w-4xl text-center">
                  <div className="inline-block relative mb-12">
                     <h2 className="text-xl font-semibold text-white">Introducing LearnWise</h2>
@@ -52,7 +52,7 @@ export default function ScrollTextSection() {
                          const end = start + (1 / words.length)
                         return (
                             <Word key={i} progress={scrollYProgress} range={[start, end]}>
-                                <span className={item.type === 'highlight' ? 'text-white' : 'text-blue-400'}>
+                                <span className={item.type === 'highlight' ? 'text-white' : 'text-muted-foreground'}>
                                     {item.text + ' '}
                                 </span>
                             </Word>
