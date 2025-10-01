@@ -98,7 +98,9 @@ const Hero = () => (
       </p>
 
       <div className="flex justify-center mt-4 mb-8">
-        <AIBuddy className="w-10 h-10" />
+        <div style={{ width: '40px', height: '40px' }}>
+            <AIBuddy />
+        </div>
       </div>
 
       <div className="flex justify-center items-center gap-4 mt-8">
