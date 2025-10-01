@@ -24,7 +24,7 @@ import AudioPlayer from '@/components/audio-player';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { addXp, generateMiniCourse, generateQuizFromModule, generateFlashcardsFromModule, generateTutorResponse, generateChapterContent, generateExplanation, generateMidtermExam, generateFullCourseContent } from '@/lib/actions';
+import { addXp, generateMiniCourse, generateQuizFromModule, generateFlashcardsFromModule, generateTutorResponse, generateChapterContent, generateExplanation, generateMidtermExam, generateRoadmap, generateModuleContent } from '@/lib/actions';
 import { RewardContext } from '@/context/RewardContext';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import Loading from './loading';
@@ -79,7 +79,7 @@ export default function LearningLabClientPage() {
   
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isChapterContentLoading, setChapterContentLoading] = useState<Record<string, boolean>>({});
+  const [isModuleContentLoading, setIsModuleContentLoading] = useState<Record<string, boolean>>({});
 
 
   const { toast } = useToast();
@@ -117,7 +117,7 @@ export default function LearningLabClientPage() {
   const [newLabCourseId, setNewLabCourseId] = useState<string | null>(null);
 
   const [showPaceDialog, setShowPaceDialog] = useState(false);
-  const [isFullContentGenerating, setIsFullContentGenerating] = useState(false);
+  const [isRoadmapGenerating, setIsRoadmapGenerating] = useState(false);
 
 
   useEffect(() => {
@@ -252,50 +252,41 @@ export default function LearningLabClientPage() {
     }
   };
 
-   const handleGenerateFullContentAndRoadmap = async (durationInMonths: number) => {
-        if (!activeCourse || !user || !learnerType) return;
+   const handleGenerateRoadmap = async (durationInMonths: number) => {
+        if (!activeCourse || !user) return;
         
         setShowPaceDialog(false);
-        setIsFullContentGenerating(true);
-        toast({ title: 'Generating Full Course...', description: 'Grab a coffee, this might take a few minutes!' });
+        setIsRoadmapGenerating(true);
+        toast({ title: 'Generating Your Roadmap...', description: 'This should be quick!' });
 
         try {
-            const courseOutline = activeCourse.units?.map(u => ({
-                title: u.title,
-                chapters: u.chapters.map(c => ({ title: c.title })),
-            }));
-
-            if (!courseOutline) {
-                throw new Error("Course outline is missing.");
-            }
-
-            const { updatedUnits, newRoadmap } = await generateFullCourseContent({
+            const roadmapResult = await generateRoadmap({
                 courseName: activeCourse.name,
-                courseOutline,
-                learnerType: learnerType as any,
-                durationInMonths,
+                durationInMonths: durationInMonths,
+                courseDescription: `A comprehensive course on ${activeCourse.name}`,
             });
             
-            // Update course with full content
-            const courseRef = doc(db, 'courses', activeCourse.id);
-            await updateDoc(courseRef, { units: updatedUnits });
+            const newRoadmap = {
+                goals: roadmapResult.goals.map(g => ({ ...g, id: `id-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, icon: g.icon || 'Flag' })),
+                milestones: roadmapResult.milestones.map(m => ({ ...m, id: `id-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, icon: m.icon || 'Calendar', completed: false }))
+            };
 
-            // Find and update the roadmap
             const roadmapsQuery = query(collection(db, 'roadmaps'), where('courseId', '==', activeCourse.id));
             const roadmapSnapshot = await getDocs(roadmapsQuery);
             if (!roadmapSnapshot.empty) {
                 const roadmapDoc = roadmapSnapshot.docs[0];
                 await updateDoc(roadmapDoc.ref, newRoadmap);
+            } else {
+                await addDoc(collection(db, 'roadmaps'), { ...newRoadmap, courseId: activeCourse.id, userId: user.uid });
             }
 
-            setActiveCourse(prev => prev ? { ...prev, units: updatedUnits } : null);
-            toast({ title: 'Course Generated!', description: 'Your learning lab and roadmap are ready.'});
+            toast({ title: 'Roadmap Updated!', description: 'Your study plan now reflects your chosen pace.'});
 
         } catch (error) {
-            console.error('Full content generation failed:', error);
-            toast({ variant: 'destructive', title: 'Generation Failed', description: 'Could not generate the full course content.' });
+            console.error('Roadmap generation failed:', error);
+            toast({ variant: 'destructive', title: 'Roadmap Generation Failed' });
         } finally {
-            setIsFullContentGenerating(false);
+            setIsRoadmapGenerating(false);
         }
     };
 
@@ -550,6 +541,43 @@ export default function LearningLabClientPage() {
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
 
+  const handleGenerateModuleContent = async (module: Module) => {
+    if (!activeCourse || !user || !learnerType) return;
+    
+    setIsModuleContentLoading(prev => ({...prev, [module.id]: true}));
+    toast({ title: 'Generating Module Content...', description: 'This may take a few moments.' });
+
+    try {
+        const moduleOutline = {
+            id: module.id,
+            title: module.title,
+            chapters: module.chapters.map(c => ({ id: c.id, title: c.title })),
+        };
+        
+        const { updatedModule } = await generateModuleContent({
+            courseName: activeCourse.name,
+            module: moduleOutline,
+            learnerType: learnerType as any,
+        });
+
+        const updatedUnits = activeCourse.units?.map(u => 
+            u.id === module.id ? updatedModule : u
+        );
+
+        setActiveCourse(prev => prev ? { ...prev, units: updatedUnits } : null);
+
+        const courseRef = doc(db, 'courses', activeCourse.id);
+        await updateDoc(courseRef, { units: updatedUnits });
+        toast({ title: 'Content Generated!', description: `Content for ${module.title} is ready.` });
+
+    } catch (error) {
+        console.error("Failed to generate module content:", error);
+        toast({ variant: 'destructive', title: 'Content Generation Failed' });
+    } finally {
+        setIsModuleContentLoading(prev => ({...prev, [module.id]: false}));
+    }
+  };
+
   const handleGenerateChapterContent = async (moduleIndex: number, chapterIndex: number) => {
     if (!activeCourse || !user || !learnerType) return;
     
@@ -562,7 +590,7 @@ export default function LearningLabClientPage() {
     }
 
     const chapterId = chapter.id;
-    setChapterContentLoading(prev => ({ ...prev, [chapterId]: true }));
+    setIsModuleContentLoading(prev => ({ ...prev, [chapterId]: true }));
 
     try {
         const result = await generateChapterContent({
@@ -595,7 +623,7 @@ export default function LearningLabClientPage() {
         console.error("Failed to generate chapter content:", error);
         toast({ variant: 'destructive', title: 'Content Generation Failed' });
     } finally {
-        setChapterContentLoading(prev => ({ ...prev, [chapterId]: false }));
+        setIsModuleContentLoading(prev => ({ ...prev, [chapterId]: false }));
     }
   };
   
@@ -852,13 +880,19 @@ export default function LearningLabClientPage() {
               <DialogHeader>
                   <DialogTitle>Set Your Learning Pace</DialogTitle>
                   <DialogDescription>
-                      How quickly do you want to master {activeCourse?.name}? This will generate all course content and set your roadmap dates.
+                      How quickly do you want to master {activeCourse?.name}? This will generate your roadmap dates.
                   </DialogDescription>
               </DialogHeader>
                <div className="py-4 space-y-4">
-                  <Button className="w-full" onClick={() => handleGenerateFullContentAndRoadmap(3)}>Casual (3 Months)</Button>
-                  <Button className="w-full" onClick={() => handleGenerateFullContentAndRoadmap(2)}>Steady (2 Months)</Button>
-                  <Button className="w-full" onClick={() => handleGenerateFullContentAndRoadmap(1)}>Intense (1 Month)</Button>
+                  <Button className="w-full" onClick={() => handleGenerateRoadmap(3)} disabled={isRoadmapGenerating}>
+                    {isRoadmapGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null} Casual (3 Months)
+                  </Button>
+                  <Button className="w-full" onClick={() => handleGenerateRoadmap(2)} disabled={isRoadmapGenerating}>
+                    {isRoadmapGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null} Steady (2 Months)
+                  </Button>
+                  <Button className="w-full" onClick={() => handleGenerateRoadmap(1)} disabled={isRoadmapGenerating}>
+                    {isRoadmapGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null} Intense (1 Month)
+                  </Button>
               </div>
           </DialogContent>
       </Dialog>
@@ -874,10 +908,19 @@ export default function LearningLabClientPage() {
                     <Progress value={progress} className="mt-2 h-2" />
                 </div>
                  <Accordion type="multiple" defaultValue={activeCourse?.units?.map(u => u.id)} className="w-full flex-1 overflow-y-auto">
-                    {activeCourse?.units?.map((unit, mIndex) => (
+                    {activeCourse?.units?.map((unit, mIndex) => {
+                        const isModuleGenerated = unit.chapters.every(c => c.content);
+                        return (
                         <AccordionItem key={unit.id} value={unit.id}>
                             <AccordionTrigger className="text-md font-semibold">{unit.title}</AccordionTrigger>
                             <AccordionContent>
+                                {!isModuleGenerated && (
+                                    <div className="p-2 mb-2">
+                                        <Button size="sm" className="w-full" onClick={() => handleGenerateModuleContent(unit)} disabled={isModuleContentLoading[unit.id]}>
+                                            <Wand2 className="mr-2 h-4 w-4"/> {isModuleContentLoading[unit.id] ? 'Generating...' : 'Generate Module Content'}
+                                        </Button>
+                                    </div>
+                                )}
                                 <ul className="space-y-1 pl-4">
                                     {unit.chapters.map((chapter, cIndex) => (
                                         <li key={chapter.id}>
@@ -896,7 +939,7 @@ export default function LearningLabClientPage() {
                                 </ul>
                             </AccordionContent>
                         </AccordionItem>
-                    ))}
+                    )})}
                  </Accordion>
                  <div className="mt-4 pt-4 border-t">
                      <Button variant="outline" className="w-full" onClick={startNewCourse}>Back to Labs Overview</Button>
@@ -926,7 +969,7 @@ export default function LearningLabClientPage() {
                      
                      {currentChapter.content ? (
                         <p className="text-muted-foreground text-lg whitespace-pre-wrap leading-relaxed">{currentChapter.content}</p>
-                     ) : isChapterContentLoading[currentChapter.id] || isFullContentGenerating ? (
+                     ) : isModuleContentLoading[currentChapter.id] ? (
                         <div className="space-y-4">
                             <Skeleton className="h-6 w-3/4" />
                             <Skeleton className="h-4 w-full" />
@@ -936,7 +979,7 @@ export default function LearningLabClientPage() {
                      ) : (
                          <div className="text-center p-8 border-2 border-dashed rounded-lg">
                             <h3 className="text-lg font-semibold">This chapter is empty.</h3>
-                            <p className="text-muted-foreground mt-1 mb-4">Let our AI generate the content for you.</p>
+                            <p className="text-muted-foreground mt-1 mb-4">Generate this chapter's content individually, or generate the entire module's content from the sidebar.</p>
                             <Button onClick={() => handleGenerateChapterContent(currentModuleIndex, currentChapterIndex)}>
                                 <Wand2 className="mr-2 h-4 w-4" /> Generate Chapter Content
                             </Button>
@@ -963,7 +1006,7 @@ export default function LearningLabClientPage() {
                      <div className="p-6 bg-amber-500/10 rounded-lg border border-amber-500/20">
                         <h5 className="font-semibold flex items-center gap-2 text-amber-700"><Lightbulb size={18}/> Suggested Activity</h5>
                         <div className="text-muted-foreground mt-2">
-                             {(isChapterContentLoading[currentChapter.id] || isFullContentGenerating) && !currentChapter.activity ? <Skeleton className="h-4 w-1/2" /> : <p>{currentChapter.activity || 'Generate chapter content to see an activity.'}</p>}
+                             {isModuleContentLoading[currentChapter.id] && !currentChapter.activity ? <Skeleton className="h-4 w-1/2" /> : <p>{currentChapter.activity || 'Generate chapter content to see an activity.'}</p>}
                         </div>
                     </div>
                      
