@@ -14,6 +14,7 @@ import Image from 'next/image';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import AIBuddy from '@/components/ai-buddy';
 import PersonalizedTutor from '@/sections/PersonalizedTutor';
+import Features from '@/sections/Features';
 
 const Hero = () => (
   <section className="relative py-20 lg:py-28 text-white text-center overflow-hidden">
@@ -206,6 +207,7 @@ export default function Home() {
       <Hero />
       <HowItWorks />
       <PersonalizedTutor />
+      <Features />
       <Faqs />
       <CallToAction />
       <Footer />
