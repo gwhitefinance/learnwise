@@ -45,7 +45,7 @@ const Hero = () => (
         }}
       >
         <Image
-          src="https://static.vecteezy.com/system/resources/thumbnails/012/627/899/small_2x/3d-cheklist-clipboard-icon-todo-or-tasks-list-vote-form-online-survey-feedback-or-examination-concept-high-quality-isolated-render-png.png"
+          src="https://png.pngtree.com/png-vector/20250712/ourlarge/pngtree-online-test-quiz-3d-icon-png-image_16625927.webp"
           alt="Lightbulb idea"
           width={80}
           height={80}
