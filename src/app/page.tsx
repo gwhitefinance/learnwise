@@ -81,7 +81,7 @@ const Hero = () => (
         }}
       >
         <Image
-          src="https://i.imgur.com/2D4lYqE.png"
+          src="https://cdn3d.iconscout.com/3d/premium/thumb/notes-3d-icon-png-download-5728147.png"
           alt="Sticky notes"
           width={96}
           height={96}
