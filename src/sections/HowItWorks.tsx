@@ -33,7 +33,7 @@ const steps = [
 
 export default function HowItWorks() {
   return (
-    <section className="py-24 bg-black relative">
+    <section className="py-24 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -131,7 +131,7 @@ export default function HowItWorks() {
                           <div className="text-xs text-gray-400">Status</div>
                           <motion.div
                             animate={{ rotate: 360 }}
-                            transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
+                            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
                             className="w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full"
                           ></motion.div>
                         </div>
