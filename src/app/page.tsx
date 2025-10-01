@@ -17,7 +17,7 @@ const Hero = () => (
     <div className="container mx-auto px-4 relative z-10">
       {/* Floating Icons */}
       <motion.div
-        className="absolute top-[15%] left-[10%] w-24 h-24 opacity-50"
+        className="absolute top-[15%] left-[10%] w-24 h-24"
         animate={{ y: [-10, 10], x: [-5, 5], rotate: [-8, 8] }}
         transition={{
           duration: 8,
@@ -35,7 +35,7 @@ const Hero = () => (
         />
       </motion.div>
       <motion.div
-        className="absolute top-[20%] right-[12%] w-20 h-20 opacity-50"
+        className="absolute top-[20%] right-[12%] w-20 h-20"
         animate={{ y: [15, -15], x: [5, -5], rotate: [5, -5] }}
         transition={{
           duration: 7,
@@ -53,7 +53,7 @@ const Hero = () => (
         />
       </motion.div>
       <motion.div
-        className="absolute bottom-[25%] left-[20%] w-28 h-28 opacity-50"
+        className="absolute bottom-[25%] left-[20%] w-28 h-28"
         animate={{ y: [-5, 5], x: [-8, 8], rotate: [10, -10] }}
         transition={{
           duration: 9,
@@ -71,7 +71,7 @@ const Hero = () => (
         />
       </motion.div>
       <motion.div
-        className="absolute bottom-[15%] right-[25%] w-24 h-24 opacity-50"
+        className="absolute bottom-[15%] right-[25%] w-24 h-24"
         animate={{ y: [10, -10], x: [8, -8], rotate: [-3, 3] }}
         transition={{
           duration: 6,
