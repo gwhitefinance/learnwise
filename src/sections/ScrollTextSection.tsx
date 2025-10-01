@@ -37,7 +37,7 @@ export default function ScrollTextSection() {
     });
 
     return (
-        <section ref={targetRef} className="py-32 bg-background">
+        <section ref={targetRef} className="py-32">
             <div className="container mx-auto max-w-4xl text-center">
                  <div className="inline-block relative mb-12">
                     <h2 className="text-xl font-semibold text-white">Introducing LearnWise</h2>
