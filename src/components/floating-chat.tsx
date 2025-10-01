@@ -723,9 +723,11 @@ export default function FloatingChat() {
 
   const handleStartChatWithPrompt = async (prompt: string) => {
     setActiveTab('conversation');
-    await createNewSession(prompt);
-    // Use a short delay to ensure state updates before sending message
-    setTimeout(() => handleSendMessage(prompt), 100);
+    const newSessionId = await createNewSession(prompt);
+    if (newSessionId) {
+        // Use a short delay to ensure state updates before sending message
+        setTimeout(() => handleSendMessage(prompt), 100);
+    }
   };
 
 
@@ -1211,3 +1213,4 @@ export default function FloatingChat() {
     </div>
   );
 }
+

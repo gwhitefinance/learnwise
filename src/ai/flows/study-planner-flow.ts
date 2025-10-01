@@ -20,7 +20,7 @@ const EventSchema = z.object({
     date: z.string().describe("The event date in ISO format."),
     title: z.string(),
     time: z.string(),
-    type: z.enum(['Test', 'Homework', 'Quiz', 'Event']),
+    type: z.enum(['Test', 'Homework', 'Quiz', 'Event', 'Project']),
     description: z.string(),
 });
 
@@ -92,5 +92,6 @@ export const studyPlannerFlow = ai.defineFlow(
     return response.text ?? "I'm sorry, I am unable to answer that question. Please try rephrasing it.";
   }
 );
+
 
 
