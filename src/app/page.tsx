@@ -27,7 +27,7 @@ const Hero = () => (
         }}
       >
         <Image
-          src="https://static.vecteezy.com/system/resources/thumbnails/070/916/692/small_2x/a-3d-purple-folder-icon-with-a-blue-progress-bar-is-isolated-on-transparent-background-png.png"
+          src="https://png.pngtree.com/png-vector/20240619/ourmid/pngtree-documents-folder-3d-icon-png-image_12797525.png"
           alt="3D folder icon"
           width={96}
           height={96}
