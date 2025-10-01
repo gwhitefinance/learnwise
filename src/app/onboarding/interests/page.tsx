@@ -8,7 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { ArrowRight, Loader2, BookOpen, Atom, Globe, History, Palette, Music, Code, BarChart2, Briefcase, BrainCircuit, HeartPulse, AreaChart, Target, Brush, FolderKanban } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { generateMiniCourse } from '@/lib/actions';
+import { generateOnboardingCourse } from '@/lib/actions';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { addDoc, collection } from 'firebase/firestore';
@@ -42,10 +42,12 @@ export default function InterestsPage() {
     const { toast } = useToast();
     const [user] = useAuthState(auth);
     const [interestsList, setInterestsList] = useState(academicInterests);
+    const [gradeLevel, setGradeLevel] = useState<string | null>(null);
 
     useEffect(() => {
-        const gradeLevel = localStorage.getItem('onboardingGradeLevel');
-        if (gradeLevel === 'Other') {
+        const storedGradeLevel = localStorage.getItem('onboardingGradeLevel');
+        setGradeLevel(storedGradeLevel);
+        if (storedGradeLevel === 'Other') {
             setInterestsList(professionalInterests);
         } else {
             setInterestsList(academicInterests);
@@ -56,66 +58,58 @@ export default function InterestsPage() {
         setSelectedInterests(prev => 
             prev.includes(interest) 
             ? prev.filter(i => i !== interest) 
-            : [...prev, interest]
+            : [interest] // Allow only one interest selection
         );
     };
 
     const handleNext = async () => {
-        if (selectedInterests.length < 1) {
+        if (selectedInterests.length === 0) {
             toast({
                 variant: 'destructive',
-                title: 'Select at least 1 interest',
-                description: 'This helps us create the best starter courses for you.',
+                title: 'Select an interest',
+                description: 'This helps us create the best starter course for you.',
             });
             return;
         }
 
-        if (!user) {
-            toast({ variant: 'destructive', title: 'You must be logged in.'});
+        if (!user || !gradeLevel) {
+            toast({ variant: 'destructive', title: 'User data not found.'});
             router.push('/signup');
             return;
         }
 
         setIsSubmitting(true);
-        toast({ title: "Building your course outlines...", description: "This will only take a moment."});
+        toast({ title: "Building your first course...", description: "This will only take a moment."});
         
         try {
-            const learnerType = localStorage.getItem('learnerType') as any || 'Reading/Writing';
-            
-            const courseGenerationPromises = selectedInterests.map(interest => 
-                generateMiniCourse({
-                    courseName: interest,
-                    courseDescription: `A course about ${interest}.`,
-                    learnerType: learnerType,
-                }).then(courseOutline => {
-                    const courseToAdd = {
-                        name: courseOutline.courseTitle,
-                        description: `A comprehensive course on ${courseOutline.courseTitle}.`,
-                        instructor: "AI Assistant",
-                        credits: 3,
-                        url: '',
-                        progress: 0,
-                        files: 0,
-                        userId: user.uid,
-                        units: courseOutline.modules.map(module => ({
-                            id: crypto.randomUUID(),
-                            title: module.title,
-                            chapters: module.chapters.map(chapter => ({ ...chapter, id: crypto.randomUUID() }))
-                        })),
-                    };
-                    return addDoc(collection(db, "courses"), courseToAdd);
-                })
-            );
+            const interest = selectedInterests[0];
+            const { courseTitle, courseDescription } = await generateOnboardingCourse({
+                gradeLevel: gradeLevel,
+                interest: interest,
+            });
 
-            await Promise.all(courseGenerationPromises);
+            const courseToAdd = {
+                name: courseTitle,
+                description: courseDescription,
+                instructor: "AI Assistant",
+                credits: 3,
+                url: '',
+                progress: 0,
+                files: 0,
+                userId: user.uid,
+                units: [],
+            };
             
-            toast({ title: 'Course Outlines Created!', description: 'Next, let\'s find out your learning style.'});
+            const docRef = await addDoc(collection(db, "courses"), courseToAdd);
+            localStorage.setItem('onboardingCourseId', docRef.id);
             
-            router.push('/learner-type');
+            toast({ title: 'Course Concept Created!', description: 'Next, let\'s set your learning pace.'});
+            
+            router.push('/onboarding/pace');
 
         } catch (error) {
-            console.error("Course generation failed:", error);
-            toast({ variant: 'destructive', title: 'Course Generation Failed', description: 'There was an error creating your course outlines. Please try again.' });
+            console.error("Course concept generation failed:", error);
+            toast({ variant: 'destructive', title: 'Course Generation Failed', description: 'There was an error creating your course concept.' });
             setIsSubmitting(false);
         }
     };
@@ -129,12 +123,12 @@ export default function InterestsPage() {
                 className="w-full max-w-4xl px-8"
             >
                 <div className="mb-8">
-                    <p className="text-sm text-muted-foreground mb-2">Onboarding (3/4)</p>
-                    <Progress value={75} />
+                    <p className="text-sm text-muted-foreground mb-2">Onboarding (2/4)</p>
+                    <Progress value={50} />
                 </div>
 
                 <h1 className="text-4xl font-bold text-center mb-4">What are you passionate about?</h1>
-                <p className="text-center text-muted-foreground mb-12">Select one or more interests to generate personalized starter courses.</p>
+                <p className="text-center text-muted-foreground mb-12">Select an interest to generate a personalized starter course.</p>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {interestsList.map(({ name, icon }) => (
@@ -160,11 +154,11 @@ export default function InterestsPage() {
                 </div>
 
                 <div className="mt-12 flex justify-end">
-                    <Button size="lg" onClick={handleNext} disabled={selectedInterests.length < 1 || isSubmitting}>
+                    <Button size="lg" onClick={handleNext} disabled={selectedInterests.length === 0 || isSubmitting}>
                         {isSubmitting ? (
                             <>
                                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                                Generating Outlines...
+                                Generating Course...
                             </>
                         ) : (
                              <>

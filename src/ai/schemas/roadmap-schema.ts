@@ -9,7 +9,8 @@ export const GenerateRoadmapInputSchema = z.object({
   courseDescription: z.string().optional().describe('The description of the course.'),
   courseUrl: z.string().url().optional().or(z.literal('')).describe('The URL for the course materials.'),
   currentDate: z.string().optional().describe("The current date in YYYY-MM-DD format to use as a starting point."),
-  webContent: z.string().optional().describe("The text content scraped from the course URL.")
+  webContent: z.string().optional().describe("The text content scraped from the course URL."),
+  durationInMonths: z.number().optional().describe("The desired duration of the roadmap in months. Defaults to 3 if not provided."),
 });
 export type GenerateRoadmapInput = z.infer<typeof GenerateRoadmapInputSchema>;
 

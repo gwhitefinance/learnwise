@@ -28,8 +28,8 @@ const prompt = ai.definePrompt({
     
     Instructions:
     1.  **Goals:** Generate 3-4 high-level, aspirational goals for what a student should achieve by the end of the course. These are the big-picture outcomes.
-    2.  **Milestones:** Generate a detailed list of 6-8 specific, sequential milestones. Each milestone must represent a distinct unit, topic, or major concept required to master the subject. These milestones will serve as the modules of the course. The titles should be clear and descriptive (e.g., "Understanding Core Concepts", "Advanced Techniques", "Final Project Preparation").
-    3.  **Dates:** The roadmap should start from today's date, which is {{currentDate}}. Spread the milestones logically over the specified number of months (defaulting to 3 months if not provided).
+    2.  **Milestones:** Generate a detailed list of 6-8 specific, sequential milestones. Each milestone must represent a distinct unit, topic, or major concept required to master the subject. The titles should be clear and descriptive (e.g., "Understanding Core Concepts", "Advanced Techniques", "Final Project Preparation").
+    3.  **Dates:** The roadmap should start from today's date, which is {{currentDate}}. Spread the milestones logically over the specified number of months (defaulting to 3 months if not provided). Use {{durationInMonths}} as the number of months.
     4.  **Icons:** Assign a relevant 'lucide-react' icon name to each goal and milestone.
 
     Provide clear, actionable goals and milestones. For milestone dates, use YYYY-MM-DD format and ensure they are all in the future.
@@ -61,6 +61,7 @@ const generateRoadmapFlow = ai.defineFlow(
                 ...input,
                 currentDate: new Date().toISOString().split('T')[0],
                 webContent: webContent || 'No additional content available.',
+                durationInMonths: input.durationInMonths || 3,
             });
             if (!output) {
                 throw new Error('Failed to generate roadmap: No output from AI.');

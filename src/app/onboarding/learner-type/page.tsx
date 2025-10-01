@@ -9,6 +9,10 @@ import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { ArrowRight, Loader2 } from 'lucide-react';
+import { generateRoadmap } from '@/lib/actions';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { auth, db } from '@/lib/firebase';
+import { collection, query, where, getDocs, addDoc, serverTimestamp, Timestamp, getDoc, doc } from 'firebase/firestore';
 
 const questions = [
   {
@@ -68,8 +72,10 @@ export default function LearnerTypeQuizPage() {
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [answers, setAnswers] = useState<Record<number, string>>({});
     const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const router = useRouter();
     const { toast } = useToast();
+    const [user] = useAuthState(auth);
 
     const handleNext = () => {
         if (selectedAnswer === null) {
@@ -88,31 +94,92 @@ export default function LearnerTypeQuizPage() {
         if (currentQuestionIndex < questions.length - 1) {
             setCurrentQuestionIndex(currentQuestionIndex + 1);
         } else {
+            // End of quiz, calculate result
             calculateResult(newAnswers);
         }
     };
 
-    const calculateResult = (finalAnswers: Record<number, string>) => {
-        const counts: Record<string, number> = { Visual: 0, Auditory: 0, Kinesthetic: 0, "Reading/Writing": 0 };
+    const calculateResult = async (finalAnswers: Record<number, string>) => {
+        setIsSubmitting(true);
+        const counts = { Visual: 0, Auditory: 0, Kinesthetic: 0, "Reading/Writing": 0 };
         questions.forEach((q, i) => {
             const answer = finalAnswers[i];
-            const style = q.styles[answer as keyof typeof q.styles];
+            const style = q.styles[answer as keyof typeof q.styles] as keyof typeof counts;
             if(style) {
                 counts[style]++;
             }
         });
 
         const dominantStyle = Object.keys(counts).reduce((a, b) =>
-            counts[a] > counts[b] ? a : b
+            counts[a as keyof typeof counts] > counts[b as keyof typeof counts] ? a : b
         );
 
         localStorage.setItem('learnerType', dominantStyle);
         toast({
-            title: 'All set!',
-            description: `You're a ${dominantStyle} learner. Redirecting to your personalized dashboard.`,
+            title: 'Finalizing your setup...',
+            description: `You are a ${dominantStyle} learner. Generating your roadmap and calendar...`,
         });
 
-        router.push('/dashboard');
+        if (!user) {
+            toast({ variant: 'destructive', title: 'User not found!'});
+            router.push('/login');
+            return;
+        }
+
+        try {
+            const courseId = localStorage.getItem('onboardingCourseId');
+            if (!courseId) {
+                throw new Error("Course ID not found from onboarding.");
+            }
+
+            const courseDocRef = doc(db, 'courses', courseId);
+            const courseSnap = await getDoc(courseDocRef);
+            if (!courseSnap.exists()) {
+                throw new Error("Could not find the created course.");
+            }
+            const course = courseSnap.data();
+
+            const learningPace = parseInt(localStorage.getItem('learningPace') || '3', 10);
+            
+            const roadmapResponse = await generateRoadmap({
+                courseName: course.name,
+                courseDescription: course.description,
+                courseUrl: course.url,
+                durationInMonths: learningPace,
+            });
+
+            const roadmapData = {
+                courseId: courseId,
+                userId: user.uid,
+                goals: roadmapResponse.goals.map(g => ({ ...g, id: crypto.randomUUID(), icon: g.icon || 'Flag' })),
+                milestones: roadmapResponse.milestones.map(m => ({ ...m, id: crypto.randomUUID(), icon: m.icon || 'Calendar', completed: false }))
+            };
+            await addDoc(collection(db, 'roadmaps'), roadmapData);
+
+            // Add milestones to calendar
+            for (const milestone of roadmapData.milestones) {
+                await addDoc(collection(db, 'calendarEvents'), {
+                    title: `Milestone: ${milestone.title}`,
+                    description: milestone.description,
+                    date: Timestamp.fromDate(new Date(milestone.date)),
+                    startTime: '09:00', // Default time
+                    endTime: '10:00',
+                    type: 'Homework', // Default type
+                    color: 'bg-blue-500',
+                    userId: user.uid,
+                });
+            }
+            
+            toast({ title: 'All set!', description: 'Redirecting to your personalized dashboard.' });
+            router.push('/dashboard');
+
+        } catch (error) {
+            console.error("Final setup failed:", error);
+            toast({ variant: 'destructive', title: 'Setup Failed', description: 'Could not generate roadmap. You can generate it later from the dashboard.'});
+            router.push('/dashboard'); // Still go to dashboard
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
@@ -143,9 +210,18 @@ export default function LearnerTypeQuizPage() {
                 </RadioGroup>
 
                 <div className="mt-12 flex justify-end">
-                    <Button size="lg" onClick={handleNext}>
-                        {currentQuestionIndex < questions.length - 1 ? 'Next' : 'Finish & Go to Dashboard'}
-                        <ArrowRight className="ml-2 h-5 w-5" />
+                    <Button size="lg" onClick={handleNext} disabled={isSubmitting}>
+                         {isSubmitting ? (
+                            <>
+                                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                                Setting up your account...
+                            </>
+                        ) : (
+                             <>
+                                {currentQuestionIndex < questions.length - 1 ? 'Next' : 'Finish & Go to Dashboard'}
+                                <ArrowRight className="ml-2 h-5 w-5" />
+                            </>
+                        )}
                     </Button>
                 </div>
             </div>

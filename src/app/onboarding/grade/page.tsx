@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -37,8 +36,8 @@ export default function GradeSpecificPage() {
                 className="w-full max-w-2xl px-8"
             >
                  <div className="mb-8">
-                    <p className="text-sm text-muted-foreground mb-2">Onboarding (2/4)</p>
-                    <Progress value={50} />
+                    <p className="text-sm text-muted-foreground mb-2">Onboarding (1.5/4)</p>
+                    <Progress value={37.5} />
                  </div>
 
                 <h1 className="text-4xl font-bold text-center mb-12">What grade are you in?</h1>
