@@ -4,7 +4,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, X, MessageSquare, Loader2, PanelLeft, Plus, Edit, Trash2, FileText, Home, Phone, ChevronRight, HelpCircle, Search, Calendar, Lightbulb, Sparkles, Upload, User, Award, Gem, Copy, RefreshCw, ChevronLeft, CheckCircle, XCircle, ArrowRight, BrainCircuit, Bot, MoreVertical, Link as LinkIcon, Share2, Maximize, Minimize, NotebookText, Download, Eraser } from 'lucide-react';
+import { Send, X, MessageSquare, Loader2, Plus, Edit, Trash2, FileText, Home, Phone, ChevronRight, HelpCircle, Search, Calendar, Lightbulb, Sparkles, Upload, User, Award, Gem, Copy, RefreshCw, ChevronLeft, CheckCircle, XCircle, ArrowRight, BrainCircuit, Bot, MoreVertical, Link as LinkIcon, Share2, Maximize, Minimize, NotebookText, Download, Eraser } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -84,82 +84,38 @@ type AnswerState = 'unanswered' | 'answered';
 type AnswerFeedback = { question: string; answer: string; correctAnswer: string; isCorrect: boolean; explanation?: string; };
 
 
-const ChatHomeScreen = ({ onNavigate, onStartChatWithPrompt }: { onNavigate: (tab: string) => void, onStartChatWithPrompt: (prompt: string) => void }) => {
+const ChatHomeScreen = ({ sessions, onNavigate, onStartNewChat, onSelectSession }: { sessions: ChatSession[], onNavigate: (tab: string) => void, onStartNewChat: () => void, onSelectSession: (sessionId: string) => void }) => {
     const [user] = useAuthState(auth);
-    const [topPriority, setTopPriority] = useState<CalendarEvent | null>(null);
-    const [courses, setCourses] = useState<Course[]>([]);
-    const [conversationStarters, setConversationStarters] = useState<string[]>([]);
-
-    useEffect(() => {
-        if (!user) return;
-        const q = query(
-            collection(db, "calendarEvents"),
-            where("userId", "==", user.uid),
-            orderBy("date", "asc")
-        );
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const events = snapshot.docs
-                .map(doc => ({id: doc.id, ...doc.data()} as CalendarEvent))
-                .filter(event => new Date(event.date) >= new Date()); // Only future events
-            setTopPriority(events[0] || null);
-        });
-        
-        const coursesQuery = query(collection(db, "courses"), where("userId", "==", user.uid));
-        const unsubscribeCourses = onSnapshot(coursesQuery, (snapshot) => {
-            const userCourses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
-            setCourses(userCourses);
-        });
-
-
-        return () => {
-            unsubscribe();
-            unsubscribeCourses();
-        };
-    }, [user]);
-
-    useEffect(() => {
-        const staticStarters = [
-            "Explain photosynthesis like I'm five",
-            "Give me a 5-step study plan for my exam"
-        ];
-        const dynamicStarters = courses.slice(0, 2).map(course => `Help me study for ${course.name}`);
-        setConversationStarters([...dynamicStarters, ...staticStarters].slice(0, 4));
-    }, [courses]);
 
     return (
         <div className="flex flex-col h-full">
-            <div className="bg-primary text-primary-foreground p-6 rounded-t-2xl">
-                <h2 className="text-3xl font-bold">Hello {user?.displayName?.split(' ')[0] || 'there'}!</h2>
-                <p className="opacity-80">How can I help you today?</p>
-                <div className="relative mt-4">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary-foreground/60" />
-                    <Input placeholder="Search notes and docs..." className="bg-white/20 placeholder:text-primary-foreground/60 border-0 text-white pl-9" />
+            <div className="p-4 border-b">
+                <div className="flex justify-between items-center">
+                    <h2 className="text-lg font-bold">Chats</h2>
+                    <Button size="sm" onClick={onStartNewChat}><Plus className="w-4 h-4 mr-2" /> New Chat</Button>
                 </div>
             </div>
-            <ScrollArea className="p-6 space-y-4 flex-1 bg-muted/30">
-                 {topPriority && (
-                    <div className="bg-card p-4 rounded-lg border">
-                        <h3 className="text-sm font-semibold mb-2 flex items-center gap-2"><Calendar className="w-4 h-4 text-primary" /> Today's Top Priority</h3>
-                        <p className="font-bold">{topPriority.title}</p>
-                        <p className="text-sm text-muted-foreground">
-                            {format(new Date(topPriority.date), "EEE, MMM d")} at {topPriority.startTime}
-                        </p>
+            <ScrollArea className="flex-1">
+                {sessions.length === 0 ? (
+                    <div className="text-center p-8 text-muted-foreground">
+                        <p>No past conversations.</p>
+                        <p>Start a new chat to begin!</p>
+                    </div>
+                ) : (
+                    <div className="p-2 space-y-1">
+                        {sessions.map(session => (
+                            <button
+                                key={session.id}
+                                onClick={() => onSelectSession(session.id)}
+                                className="w-full text-left bg-card p-3 rounded-lg flex flex-col hover:bg-muted transition-colors"
+                            >
+                                <p className="text-sm font-semibold truncate">{session.title}</p>
+                                <p className="text-xs text-muted-foreground truncate">{session.messages.slice(-1)[0]?.content}</p>
+                                <p className="text-xs text-muted-foreground mt-1">{formatDistanceToNow(new Date(session.timestamp), { addSuffix: true })}</p>
+                            </button>
+                        ))}
                     </div>
                 )}
-                
-                <div className="space-y-2">
-                    <h3 className="text-sm font-semibold flex items-center gap-2"><Lightbulb className="w-4 h-4 text-primary" /> Conversation Starters</h3>
-                    {conversationStarters.map(prompt => (
-                        <button
-                            key={prompt}
-                            onClick={() => onStartChatWithPrompt(prompt)}
-                            className="w-full text-left bg-card p-3 rounded-lg flex items-center justify-between hover:bg-muted transition-colors"
-                        >
-                            <p className="text-sm">{prompt}</p>
-                            <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                        </button>
-                    ))}
-                </div>
             </ScrollArea>
         </div>
     );
@@ -566,7 +522,6 @@ export default function FloatingChat() {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   
-  const [isSidebarVisible, setIsSidebarVisible] = useState(false);
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
   const [renameInput, setRenameInput] = useState('');
   
@@ -618,7 +573,7 @@ export default function FloatingChat() {
 
         if (!activeSessionId && userSessions.length > 0) {
             setActiveSessionId(userSessions[0].id);
-        } else if (userSessions.length === 0) {
+        } else if (userSessions.length === 0 && activeTab !== 'home') {
             createNewSession();
         }
     });
@@ -954,63 +909,13 @@ export default function FloatingChat() {
                     )}
                 >
                     <div className="flex-1 overflow-hidden flex flex-col">
-                        {activeTab === 'home' && <ChatHomeScreen onNavigate={setActiveTab} onStartChatWithPrompt={handleStartChatWithPrompt} />}
+                        {activeTab === 'home' && <ChatHomeScreen sessions={sessions} onNavigate={setActiveTab} onStartNewChat={createNewSession} onSelectSession={(id) => { setActiveSessionId(id); setActiveTab('conversation'); }} />}
                         {activeTab === 'ai tools' && <AIToolsTab onStartChatWithPrompt={handleStartChatWithPrompt} />}
                         {activeTab === 'my stats' && <MyStatsTab />}
                         {activeTab === 'conversation' && (
                             <div className="flex-1 flex flex-row h-full overflow-hidden">
-                                 <AnimatePresence>
-                                    {isSidebarVisible && (
-                                        <motion.aside 
-                                            initial={{ width: 0, opacity: 0, marginRight: 0, padding: 0 }}
-                                            animate={{ width: 144, opacity: 1, marginRight: 8, padding: 4 }}
-                                            exit={{ width: 0, opacity: 0, marginRight: 0, padding: 0 }}
-                                            transition={{ duration: 0.3, ease: 'easeInOut' }}
-                                            className="bg-muted/50 border-r flex-col flex"
-                                        >
-                                            <div className="p-1 flex justify-between items-center border-b">
-                                                <h2 className="text-xs font-semibold pl-2">Chats</h2>
-                                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => createNewSession()}><Plus className="h-3 w-3"/></Button>
-                                            </div>
-                                            <ScrollArea className="flex-1">
-                                                <div className="p-1 space-y-1">
-                                                    {sessions.map(session => (
-                                                        <div key={session.id} className="group relative">
-                                                            {editingSessionId === session.id ? (
-                                                                <Input value={renameInput} onChange={(e) => setRenameInput(e.target.value)} onBlur={handleRename} onKeyDown={(e) => e.key === 'Enter' && handleRename()} autoFocus className="h-7 text-xs" />
-                                                            ) : (
-                                                                <Button variant={activeSessionId === session.id ? "secondary" : "ghost"} className="w-full justify-start h-7 text-xs truncate" onClick={() => setActiveSessionId(session.id)}>
-                                                                    <MessageSquare className="h-3 w-3 mr-2"/>
-                                                                    {session.title}
-                                                                </Button>
-                                                            )}
-                                                            <div className="absolute right-0 top-1/2 -translate-y-1/2 flex opacity-0 group-hover:opacity-100 transition-opacity">
-                                                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => startRename(session)}><Edit className="h-3 w-3"/></Button>
-                                                                <AlertDialog>
-                                                                    <AlertDialogTrigger asChild>
-                                                                        <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive hover:text-destructive"><Trash2 className="h-3 w-3"/></Button>
-                                                                    </AlertDialogTrigger>
-                                                                    <AlertDialogContent>
-                                                                        <AlertDialogHeader><AlertDialogTitle>Delete Chat?</AlertDialogTitle><AlertDialogDescription>This action cannot be undone.</AlertDialogDescription></AlertDialogHeader>
-                                                                        <AlertDialogFooter>
-                                                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                                            <AlertDialogAction onClick={() => handleDeleteSession(session.id)}>Delete</AlertDialogAction>
-                                                                        </AlertDialogFooter>
-                                                                    </AlertDialogContent>
-                                                                </AlertDialog>
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </ScrollArea>
-                                        </motion.aside>
-                                    )}
-                                </AnimatePresence>
                                 <div className="flex-1 flex flex-col min-w-0">
                                     <header className="p-2 border-b flex items-center justify-between gap-2">
-                                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsSidebarVisible(!isSidebarVisible)}>
-                                            <PanelLeft className="h-4 w-4" />
-                                        </Button>
                                         <div className="flex-1 flex items-center gap-2 overflow-hidden">
                                             <div className="flex-1 truncate">
                                                 <h3 className="font-semibold text-sm truncate">{activeSession?.title || 'AI Buddy'}</h3>
@@ -1277,3 +1182,4 @@ export default function FloatingChat() {
     </div>
   );
 }
+
