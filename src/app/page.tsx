@@ -1,3 +1,4 @@
+
 'use client';
 
 import NewReleasePromo from '@/sections/NewReleasePromo';
@@ -14,6 +15,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import AIBuddy from '@/components/ai-buddy';
 import PersonalizedTutor from '@/sections/PersonalizedTutor';
 import Features from '@/sections/Features';
+import { Pricing } from '@/sections/Pricing';
 
 const Hero = () => (
   <section className="relative py-20 lg:py-28 text-white text-center overflow-hidden">
@@ -93,10 +95,10 @@ const Hero = () => (
       </motion.div>
 
       <h1 className="text-5xl md:text-7xl font-bold tracking-tighter">
-        Master <br /> <span className="text-blue-400">your notes</span>
+        Reach your learning <br /> <span className="text-blue-400">goals effortlessly</span>
       </h1>
       <p className="mt-6 text-lg md:text-xl text-white/70 max-w-xl mx-auto">
-        Turn class notes into <span className="text-blue-400">quizzes</span>,<br /> <span className="text-blue-400">flashcards</span>, and <span className="text-blue-400">smart study plans</span><br /> instantly.
+        Turn class notes into <span className="text-blue-400">quizzes</span>,<br /> <span className="text-blue-400">flashcards</span>, and <span className="text-blue-400">smart study plans</span><br /> to build your next project faster.
       </p>
 
       <div className="flex justify-center mt-4 mb-8">
@@ -199,6 +201,58 @@ const Hero = () => (
   </section>
 );
 
+const plans = [
+    {
+        name: "Free",
+        price: "0",
+        yearlyPrice: "0",
+        period: "month",
+        features: [
+            "Access to core features",
+            "5 AI interactions per day",
+            "Basic study plan generation",
+            "Community support",
+        ],
+        description: "Get started for free and explore the power of AI-driven learning.",
+        buttonText: "Start for Free",
+        href: "/signup",
+        isPopular: false,
+    },
+    {
+        name: "Pro",
+        price: "15",
+        yearlyPrice: "12",
+        period: "month",
+        features: [
+            "Unlimited AI interactions",
+            "Advanced study plan generation",
+            "Personalized AI tutor chat",
+            "Priority email support",
+        ],
+        description: "Unlock your full potential with unlimited access to all features.",
+        buttonText: "Go Pro",
+        href: "/signup",
+        isPopular: true,
+    },
+    {
+        name: "Team",
+        price: "Contact us",
+        yearlyPrice: "Contact us",
+        period: "Next 3 months",
+        features: [
+            "Everything in Pro",
+            "Team collaboration features",
+            "Centralized billing",
+            "Dedicated account manager",
+        ],
+        description: "Equip your team with the best tools for continuous learning.",
+        buttonText: "Contact Sales",
+        href: "/contact",
+        isPopular: false,
+    },
+];
+
+
 export default function Home() {
   return (
     <main className="bg-background text-white dark-grid">
@@ -207,6 +261,7 @@ export default function Home() {
       <HowItWorks />
       <PersonalizedTutor />
       <Features />
+      <Pricing plans={plans} />
       <Faqs />
       <NewReleasePromo />
       <Footer />
