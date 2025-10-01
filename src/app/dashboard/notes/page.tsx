@@ -165,10 +165,10 @@ export default function NotesPage() {
     }
 
     setIsNotesLoading(true);
-    const q = query(collection(db, "notes"), where("userId", "==", user.uid));
+    const q = query(collection(db, "notes"), where("userId", "==", user.uid), orderBy("date", "desc"));
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const userNotes = querySnapshot.docs.map(doc => {
-            const data = doc.data() as Omit<FirestoreNote, 'id'>;
+            const data = doc.data() as FirestoreNote;
             return { 
                 id: doc.id,
                 ...data,
@@ -176,7 +176,6 @@ export default function NotesPage() {
             } as Note;
         });
         
-        userNotes.sort((a, b) => b.date.getTime() - a.date.getTime());
         setNotes(userNotes);
         setIsNotesLoading(false);
     });
@@ -231,7 +230,7 @@ export default function NotesPage() {
     setIsSaving(false);
 
     try {
-        const docData: Partial<Note> = {
+        const docData: Partial<Note> & { date: Timestamp } = {
             title: newNoteTitle,
             content: newNoteContent,
             date: Timestamp.fromDate(new Date()),
