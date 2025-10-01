@@ -2,7 +2,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Search, Lightbulb, Rocket } from 'lucide-react'
+import { Search, Lightbulb, Rocket, GitMerge } from 'lucide-react'
 
 const steps = [
   {
@@ -15,9 +15,9 @@ const steps = [
   },
   {
     number: "02",
-    title: "Generate & Learn",
-    description: "Instantly transform your materials into quizzes, flashcards, and personalized study plans tailored to your learning style.",
-    icon: <Lightbulb className="w-8 h-8" />,
+    title: "Create Your Roadmap",
+    description: "Our AI generates a personalized study plan with goals and milestones, giving you a clear path to success.",
+    icon: <GitMerge className="w-8 h-8" />,
     mockup: "development",
     gradient: "from-purple-500/20 to-purple-600/10",
   },
