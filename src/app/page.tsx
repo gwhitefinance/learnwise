@@ -30,7 +30,7 @@ const Hero = () => (
         }}
       >
         <Image
-          src="https://cdn3d.iconscout.com/3d/premium/thumb/folder-7857077-6286383.png"
+          src="https://png.pngtree.com/png-vector/20240619/ourmid/pngtree-documents-folder-3d-icon-png-image_12797525.png"
           alt="3D folder icon"
           width={96}
           height={96}
