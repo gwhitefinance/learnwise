@@ -1,3 +1,4 @@
+
 'use client';
 
 import CallToAction from '@/sections/CallToAction';
@@ -88,7 +89,7 @@ const Hero = () => (
       </motion.div>
 
       <h1 className="text-5xl md:text-7xl font-bold tracking-tighter">
-        Master <span className="text-blue-400">your notes</span>
+        Master <br /> <span className="text-blue-400">your notes</span>
       </h1>
       <p className="mt-6 text-lg md:text-xl text-white/70 max-w-xl mx-auto">
         Turn class notes into quizzes, flashcards, and smart study plans
