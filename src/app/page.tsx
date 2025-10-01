@@ -27,11 +27,11 @@ const Hero = () => (
         }}
       >
         <Image
-          src="https://static.vecteezy.com/system/resources/previews/024/769/931/original/3d-book-icon-for-education-or-knowledge-symbol-3d-rendering-png.png"
-          alt="Stack of books"
+          src="https://i.imgur.com/r6sVp2j.png"
+          alt="3D folder icon"
           width={96}
           height={96}
-          data-ai-hint="books education"
+          data-ai-hint="folder documents"
         />
       </motion.div>
       <motion.div
