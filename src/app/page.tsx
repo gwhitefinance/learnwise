@@ -107,7 +107,7 @@ const Hero = () => (
         />
       </motion.div>
       <motion.div
-        className="absolute bottom-[25%] left-[20%]"
+        className="absolute bottom-[20%] left-[15%]"
         animate={{ y: [-5, 5], x: [-8, 8], rotate: [10, -10] }}
         transition={{
           duration: 9,
