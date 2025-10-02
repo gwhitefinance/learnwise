@@ -219,3 +219,13 @@ html.lenis {
   border-bottom: 10px solid transparent;
   border-right: 15px solid hsl(var(--card)); /* Match bubble background */
 }
+
+@keyframes float-bubble {
+  0% { transform: translateY(0px) rotate(-1deg); }
+  50% { transform: translateY(-8px) rotate(1deg); }
+  100% { transform: translateY(0px) rotate(-1deg); }
+}
+
+.thought-bubble {
+  animation: float-bubble 6s ease-in-out infinite;
+}
