@@ -525,7 +525,7 @@ export default function DashboardLayout({
 
             <div className="border-t p-3">
                 <div className="space-y-1">
-                <Button onClick={handleSignOut} className="flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm font-medium hover:bg-muted">
+                <Button onClick={handleSignOut} className="flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm font-medium">
                         <LogOut className="h-5 w-5" />
                         <span>Sign Out</span>
                     </Button>
@@ -576,7 +576,7 @@ export default function DashboardLayout({
 
             <div className="border-t p-3">
                 <div className="space-y-2">
-                <Button onClick={handleSignOut} className="flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm font-medium hover:bg-muted">
+                <Button onClick={handleSignOut} className="flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm font-medium">
                     <LogOut className="h-5 w-5" />
                     <span>Sign Out</span>
                 </Button>
