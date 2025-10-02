@@ -3,9 +3,16 @@
 
 import React, { Fragment } from "react";
 import Image from "next/image";
-import { type IntegrationsType } from "@/sections/Integrations";
 import { twMerge } from "tailwind-merge";
 import { motion } from "framer-motion";
+
+type Integration = {
+    name: string;
+    icon: string;
+    description: string;
+};
+
+export type IntegrationsType = Integration[];
 
 const IntegrationColumn = (props: {
     integrations: IntegrationsType;
@@ -30,7 +37,7 @@ const IntegrationColumn = (props: {
         >
             {Array.from({ length: 2 }).map((_, i) => (
                 <Fragment key={i}>
-                    {integrations.map((integration) => (
+                    {integrations.map((integration: Integration) => (
                         <div
                             key={integration.name}
                             className="bg-neutral-900 border border-white/10 rounded-3xl p-6 "
