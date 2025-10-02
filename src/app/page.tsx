@@ -97,13 +97,17 @@ const Hero = () => (
       <h1 className="text-5xl md:text-7xl font-bold tracking-tighter">
         Reach your learning <br /> <span className="text-blue-400">goals effortlessly</span>
       </h1>
-      <p className="mt-6 text-lg md:text-xl text-white/70 max-w-xl mx-auto">
-        Turn class notes into <span className="text-blue-400">quizzes</span>,<br /> <span className="text-blue-400">flashcards</span>, and <span className="text-blue-400">smart study plans</span><br /> to build your next project faster.
-      </p>
 
-      <div className="flex justify-center mt-4 mb-8">
+      <div className="flex justify-center items-center gap-4 mt-8 mb-8">
         <div style={{ width: '250px', height: '250px' }}>
             <AIBuddy />
+        </div>
+        <div className="relative speech-bubble">
+          <div className="bg-card p-6 rounded-2xl text-left shadow-lg">
+             <p className="text-lg md:text-xl text-card-foreground max-w-md mx-auto">
+              Turn class notes into <span className="text-blue-400">quizzes</span>, <span className="text-blue-400">flashcards</span>, and <span className="text-blue-400">smart study plans</span> to build your next project faster.
+            </p>
+          </div>
         </div>
       </div>
 

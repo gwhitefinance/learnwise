@@ -192,3 +192,30 @@ html.lenis {
 .lenis.lenis-stopped {
   overflow: hidden;
 }
+
+@keyframes speech-bubble-appear {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.speech-bubble {
+  animation: speech-bubble-appear 0.5s ease-out forwards;
+}
+
+.speech-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: 1rem;
+  left: -0.75rem;
+  width: 0;
+  height: 0;
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+  border-right: 15px solid hsl(var(--card)); /* Match bubble background */
+}
