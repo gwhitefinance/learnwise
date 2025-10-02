@@ -151,7 +151,7 @@ const Hero = () => (
           <div className="absolute inset-0 flex justify-center items-center">
               <div style={{ width: '400px', height: '250px' }} className="relative">
                   <AIBuddy />
-                  <div className="absolute top-1/2 -translate-y-1/2 left-[calc(100%_-_20px)]">
+                  <div className="absolute top-1/2 -translate-y-1/2 left-[calc(100%_-_80px)]">
                       <TypingBubble />
                   </div>
               </div>
