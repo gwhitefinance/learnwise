@@ -16,12 +16,51 @@ import AIBuddy from '@/components/ai-buddy';
 import PersonalizedTutor from '@/sections/PersonalizedTutor';
 import Features from '@/sections/Features';
 import { Pricing } from '@/sections/Pricing';
+import { useState, useEffect } from 'react';
 
 const TypingBubble = () => {
-    const text = "Turn class notes into quizzes, flashcards, and smart study plans to build your next project faster.";
+    const [index, setIndex] = useState(0);
+    const [subIndex, setSubIndex] = useState(0);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [text, setText] = useState('');
+    const words = ["quizzes", "flashcards", "study plans", "tests"];
+    const baseText = "Turn class notes into ";
+
+    useEffect(() => {
+        if (isDeleting) {
+            if (subIndex === 0) {
+                setIsDeleting(false);
+                setIndex((prev) => (prev + 1) % words.length);
+            } else {
+                const timer = setTimeout(() => {
+                    setText(words[index].substring(0, subIndex - 1));
+                    setSubIndex(subIndex - 1);
+                }, 100);
+                return () => clearTimeout(timer);
+            }
+        } else {
+            if (subIndex === words[index].length) {
+                const holdTimer = setTimeout(() => {
+                    setIsDeleting(true);
+                }, 2000);
+                return () => clearTimeout(holdTimer);
+            } else {
+                const timer = setTimeout(() => {
+                    setText(words[index].substring(0, subIndex + 1));
+                    setSubIndex(subIndex + 1);
+                }, 150);
+                return () => clearTimeout(timer);
+            }
+        }
+    }, [subIndex, isDeleting, index, words]);
+
     return (
         <div className="speech-bubble-typing">
-            <p className="typing-animation">{text}</p>
+            <p>
+                {baseText}
+                <span className="font-semibold text-blue-500">{text}</span>
+                <span className="typing-cursor"></span>
+            </p>
         </div>
     );
 };
