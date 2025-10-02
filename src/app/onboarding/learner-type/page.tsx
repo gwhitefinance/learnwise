@@ -10,10 +10,8 @@ import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { ArrowRight, Loader2 } from 'lucide-react';
-import { generateMiniCourse } from '@/lib/actions';
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { auth, db } from '@/lib/firebase';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { auth } from '@/lib/firebase';
 
 const questions = [
   {
@@ -116,57 +114,9 @@ export default function LearnerTypeQuizPage() {
         ) as "Visual" | "Auditory" | "Kinesthetic" | "Reading/Writing" | "Unknown";
 
         localStorage.setItem('learnerType', dominantStyle);
-        toast({
-            title: 'Finalizing your setup...',
-            description: `You are a ${dominantStyle} learner. Generating your course structure...`,
-        });
-
-        if (!user) {
-            toast({ variant: 'destructive', title: 'User not found!'});
-            router.push('/login');
-            return;
-        }
-
-        try {
-            const courseId = localStorage.getItem('onboardingCourseId');
-            if (!courseId) {
-                throw new Error("Course ID not found from onboarding.");
-            }
-
-            const courseDocRef = doc(db, 'courses', courseId);
-            const courseSnap = await getDoc(courseDocRef);
-            if (!courseSnap.exists()) {
-                throw new Error("Could not find the created course.");
-            }
-            const course = courseSnap.data();
-
-            const courseOutline = await generateMiniCourse({
-                courseName: course.name,
-                courseDescription: course.description,
-                learnerType: dominantStyle
-            });
-
-            const newUnits = courseOutline.modules.map(module => ({
-                id: crypto.randomUUID(),
-                title: module.title,
-                chapters: module.chapters.map(chapter => ({
-                    ...chapter,
-                    id: crypto.randomUUID(),
-                }))
-            }));
-            
-            await updateDoc(courseDocRef, { units: newUnits });
-            
-            toast({ title: 'All set!', description: 'Redirecting to your personalized dashboard.' });
-            router.push('/dashboard');
-
-        } catch (error) {
-            console.error("Final setup failed:", error);
-            toast({ variant: 'destructive', title: 'Setup Failed', description: 'Could not generate course structure. You can generate it later.'});
-            router.push('/dashboard'); // Still go to dashboard
-        } finally {
-            setIsSubmitting(false);
-        }
+        
+        toast({ title: 'All set!', description: 'Redirecting to your personalized dashboard.' });
+        router.push('/dashboard?tour=true');
     };
 
     const progress = ((currentQuestionIndex + 1) / questions.length) * 100;

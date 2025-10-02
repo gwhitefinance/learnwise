@@ -59,7 +59,7 @@ export default function InterestsPage() {
         setSelectedInterests(prev => 
             prev.includes(interest) 
             ? prev.filter(i => i !== interest) 
-            : [interest] // Allow only one interest selection
+            : [...prev, interest]
         );
     };
 
@@ -67,8 +67,8 @@ export default function InterestsPage() {
         if (selectedInterests.length === 0) {
             toast({
                 variant: 'destructive',
-                title: 'Select an interest',
-                description: 'This helps us create the best starter course for you.',
+                title: 'Select at least one interest',
+                description: 'This helps us create the best starter courses for you.',
             });
             return;
         }
@@ -80,37 +80,37 @@ export default function InterestsPage() {
         }
 
         setIsSubmitting(true);
-        toast({ title: "Building your first course...", description: "This will only take a moment."});
+        toast({ title: "Building your first course(s)...", description: "This will only take a moment."});
         
         try {
-            const interest = selectedInterests[0];
-            const { courseTitle, courseDescription } = await generateOnboardingCourse({
-                gradeLevel: gradeLevel,
-                interest: interest,
-            });
+            const courseCreationPromises = selectedInterests.map(interest => 
+                generateOnboardingCourse({
+                    gradeLevel: gradeLevel,
+                    interest: interest,
+                }).then(courseConcept => 
+                    addDoc(collection(db, "courses"), {
+                        name: courseConcept.courseTitle,
+                        description: courseConcept.courseDescription,
+                        instructor: "AI Assistant",
+                        credits: 3,
+                        url: '',
+                        progress: 0,
+                        files: 0,
+                        userId: user.uid,
+                        units: [],
+                    })
+                )
+            );
 
-            const courseToAdd = {
-                name: courseTitle,
-                description: courseDescription,
-                instructor: "AI Assistant",
-                credits: 3,
-                url: '',
-                progress: 0,
-                files: 0,
-                userId: user.uid,
-                units: [],
-            };
+            await Promise.all(courseCreationPromises);
             
-            const docRef = await addDoc(collection(db, "courses"), courseToAdd);
-            localStorage.setItem('onboardingCourseId', docRef.id);
-            
-            toast({ title: 'Course Concept Created!', description: 'Next, let\'s set your learning pace.'});
+            toast({ title: 'Course Concepts Created!', description: 'Next, let\'s set your learning pace.'});
             
             router.push('/onboarding/pace');
 
         } catch (error) {
             console.error("Course concept generation failed:", error);
-            toast({ variant: 'destructive', title: 'Course Generation Failed', description: 'There was an error creating your course concept.' });
+            toast({ variant: 'destructive', title: 'Course Generation Failed', description: 'There was an error creating your course concepts.' });
             setIsSubmitting(false);
         }
     };
@@ -129,7 +129,7 @@ export default function InterestsPage() {
                 </div>
 
                 <h1 className="text-4xl font-bold text-center mb-4">What are you passionate about?</h1>
-                <p className="text-center text-muted-foreground mb-12">Select an interest to generate a personalized starter course.</p>
+                <p className="text-center text-muted-foreground mb-12">Select one or more interests to generate personalized starter courses.</p>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {interestsList.map(({ name, icon }) => (
@@ -159,7 +159,7 @@ export default function InterestsPage() {
                         {isSubmitting ? (
                             <>
                                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                                Generating Course...
+                                Generating Courses...
                             </>
                         ) : (
                              <>

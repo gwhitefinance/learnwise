@@ -14,7 +14,7 @@ import { motion } from 'framer-motion';
 import { generateRoadmap } from '@/lib/actions';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
-import { collection, query, where, getDocs, addDoc, doc, getDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc } from 'firebase/firestore';
 
 
 const paces = [
@@ -46,43 +46,38 @@ export default function PacePage() {
         }
 
         setIsSubmitting(true);
-        toast({ title: "Generating your roadmap...", description: "This will create a study plan for your new course."});
+        toast({ title: "Generating your roadmap(s)...", description: "This will create study plans for your new courses."});
 
         try {
-            const courseId = localStorage.getItem('onboardingCourseId');
-            if (!courseId) {
-                throw new Error("Course ID not found from onboarding.");
-            }
+            const coursesQuery = query(collection(db, 'courses'), where('userId', '==', user.uid));
+            const querySnapshot = await getDocs(coursesQuery);
+            const userCourses = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
+            
+            const roadmapGenerationPromises = userCourses.map(async (course) => {
+                 const roadmapResponse = await generateRoadmap({
+                    courseName: course.name,
+                    courseDescription: course.description,
+                    courseUrl: course.url,
+                    durationInMonths: parseInt(selectedPace, 10),
+                });
 
-            const courseDocRef = doc(db, 'courses', courseId);
-            const courseSnap = await getDoc(courseDocRef);
-
-            if (!courseSnap.exists()) {
-                throw new Error("Could not find the created course.");
-            }
-            const course = courseSnap.data();
-
-            const roadmapResponse = await generateRoadmap({
-                courseName: course.name,
-                courseDescription: course.description,
-                courseUrl: course.url,
-                durationInMonths: parseInt(selectedPace, 10),
+                const roadmapData = {
+                    courseId: course.id,
+                    userId: user.uid,
+                    goals: roadmapResponse.goals.map(g => ({ ...g, id: crypto.randomUUID(), icon: g.icon || 'Flag' })),
+                    milestones: roadmapResponse.milestones.map(m => ({ ...m, id: crypto.randomUUID(), icon: m.icon || 'Calendar', completed: false }))
+                };
+                await addDoc(collection(db, 'roadmaps'), roadmapData);
             });
 
-            const roadmapData = {
-                courseId: courseId,
-                userId: user.uid,
-                goals: roadmapResponse.goals.map(g => ({ ...g, id: crypto.randomUUID(), icon: g.icon || 'Flag' })),
-                milestones: roadmapResponse.milestones.map(m => ({ ...m, id: crypto.randomUUID(), icon: m.icon || 'Calendar', completed: false }))
-            };
-            await addDoc(collection(db, 'roadmaps'), roadmapData);
+            await Promise.all(roadmapGenerationPromises);
 
-            toast({ title: "Roadmap Created!", description: "Next, let's find your learning style."});
+            toast({ title: "Roadmaps Created!", description: "Next, let's find your learning style."});
             router.push('/learner-type');
 
         } catch(error) {
             console.error("Roadmap generation failed:", error);
-            toast({ variant: 'destructive', title: 'Roadmap Generation Failed', description: 'Could not create your roadmap. You can generate it later.' });
+            toast({ variant: 'destructive', title: 'Roadmap Generation Failed', description: 'Could not create your roadmaps. You can generate them later.' });
             router.push('/learner-type'); // Still continue to next step
         } finally {
             setIsSubmitting(false);
@@ -129,7 +124,7 @@ export default function PacePage() {
                          {isSubmitting ? (
                             <>
                                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                                Generating Roadmap...
+                                Generating Roadmaps...
                             </>
                         ) : (
                             <>
