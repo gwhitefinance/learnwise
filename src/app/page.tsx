@@ -262,7 +262,7 @@ const plans = [
 
 export default function Home() {
   return (
-    <main className="bg-background text-white dark-grid">
+    <main className="bg-background text-white dark-grid dark">
       <Navbar />
       <Hero />
       <HowItWorks />
