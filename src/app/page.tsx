@@ -149,7 +149,7 @@ const Hero = () => (
 
       <div className="relative mt-8 mb-8 h-[250px]">
           <div className="absolute inset-0 flex justify-center items-center">
-              <div style={{ width: '250px', height: '250px' }} className="relative">
+              <div style={{ width: '400px', height: '250px' }} className="relative">
                   <AIBuddy />
                   <div className="absolute top-1/2 -translate-y-1/2 left-[calc(100%_-_20px)]">
                       <TypingBubble />
@@ -158,44 +158,7 @@ const Hero = () => (
           </div>
       </div>
 
-      <div className="flex justify-center items-center gap-4 mt-8">
-        <div className="flex -space-x-4">
-          <Image
-            className="inline-block h-10 w-10 rounded-full ring-2 ring-background"
-            src="https://i.pravatar.cc/150?u=a042581f4e29026704d"
-            alt="User 1"
-            width={40}
-            height={40}
-          />
-          <Image
-            className="inline-block h-10 w-10 rounded-full ring-2 ring-background"
-            src="https://i.pravatar.cc/150?u=a042581f4e29026705d"
-            alt="User 2"
-            width={40}
-            height={40}
-          />
-           <Image
-            className="inline-block h-10 w-10 rounded-full ring-2 ring-background"
-            src="https://i.pravatar.cc/150?u=a042581f4e29026706d"
-            alt="User 3"
-            width={40}
-            height={40}
-          />
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-muted-foreground ring-2 ring-background text-sm font-bold">
-            25k+
-          </div>
-        </div>
-        <div>
-          <div className="flex items-center">
-            <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
-            <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
-            <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
-            <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
-            <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
-          </div>
-          
-        </div>
-      </div>
+      
 
       <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-8">
         <div className="bg-black/80 rounded-2xl">
