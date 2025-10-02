@@ -201,6 +201,7 @@ html.lenis {
   color: black;
   max-width: 400px;
   text-align: left;
+  white-space: nowrap;
 }
 
 .speech-bubble-typing:after {
