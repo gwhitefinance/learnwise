@@ -9,8 +9,13 @@ import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { ArrowRight, Rabbit, Snail, Turtle } from 'lucide-react';
+import { ArrowRight, Rabbit, Snail, Turtle, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { generateRoadmap } from '@/lib/actions';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { auth, db } from '@/lib/firebase';
+import { collection, query, where, getDocs, addDoc, doc, getDoc } from 'firebase/firestore';
+
 
 const paces = [
   { value: "6", label: "Casual", description: "A relaxed pace, perfect for exploring topics without pressure.", icon: <Snail className="h-6 w-6" /> },
@@ -20,10 +25,12 @@ const paces = [
 
 export default function PacePage() {
     const [selectedPace, setSelectedPace] = useState<string | null>("3");
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const router = useRouter();
     const { toast } = useToast();
+    const [user] = useAuthState(auth);
 
-    const handleNext = () => {
+    const handleNext = async () => {
         if (!selectedPace) {
             toast({
                 variant: 'destructive',
@@ -32,8 +39,54 @@ export default function PacePage() {
             return;
         }
         
-        localStorage.setItem('learningPace', selectedPace);
-        router.push('/learner-type');
+        if (!user) {
+            toast({ variant: 'destructive', title: 'User not found!'});
+            router.push('/login');
+            return;
+        }
+
+        setIsSubmitting(true);
+        toast({ title: "Generating your roadmap...", description: "This will create a study plan for your new course."});
+
+        try {
+            const courseId = localStorage.getItem('onboardingCourseId');
+            if (!courseId) {
+                throw new Error("Course ID not found from onboarding.");
+            }
+
+            const courseDocRef = doc(db, 'courses', courseId);
+            const courseSnap = await getDoc(courseDocRef);
+
+            if (!courseSnap.exists()) {
+                throw new Error("Could not find the created course.");
+            }
+            const course = courseSnap.data();
+
+            const roadmapResponse = await generateRoadmap({
+                courseName: course.name,
+                courseDescription: course.description,
+                courseUrl: course.url,
+                durationInMonths: parseInt(selectedPace, 10),
+            });
+
+            const roadmapData = {
+                courseId: courseId,
+                userId: user.uid,
+                goals: roadmapResponse.goals.map(g => ({ ...g, id: crypto.randomUUID(), icon: g.icon || 'Flag' })),
+                milestones: roadmapResponse.milestones.map(m => ({ ...m, id: crypto.randomUUID(), icon: m.icon || 'Calendar', completed: false }))
+            };
+            await addDoc(collection(db, 'roadmaps'), roadmapData);
+
+            toast({ title: "Roadmap Created!", description: "Next, let's find your learning style."});
+            router.push('/learner-type');
+
+        } catch(error) {
+            console.error("Roadmap generation failed:", error);
+            toast({ variant: 'destructive', title: 'Roadmap Generation Failed', description: 'Could not create your roadmap. You can generate it later.' });
+            router.push('/learner-type'); // Still continue to next step
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -72,9 +125,18 @@ export default function PacePage() {
                 </RadioGroup>
 
                 <div className="mt-12 flex justify-end">
-                    <Button size="lg" onClick={handleNext} disabled={!selectedPace}>
-                        Next
-                       <ArrowRight className="ml-2 h-5 w-5" />
+                    <Button size="lg" onClick={handleNext} disabled={!selectedPace || isSubmitting}>
+                         {isSubmitting ? (
+                            <>
+                                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                                Generating Roadmap...
+                            </>
+                        ) : (
+                            <>
+                                Next
+                                <ArrowRight className="ml-2 h-5 w-5" />
+                            </>
+                        )}
                     </Button>
                 </div>
             </motion.div>

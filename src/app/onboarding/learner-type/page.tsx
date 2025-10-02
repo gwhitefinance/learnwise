@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -9,10 +10,10 @@ import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { ArrowRight, Loader2 } from 'lucide-react';
-import { generateRoadmap } from '@/lib/actions';
+import { generateMiniCourse } from '@/lib/actions';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
-import { collection, query, where, getDocs, addDoc, serverTimestamp, Timestamp, getDoc, doc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 
 const questions = [
   {
@@ -112,12 +113,12 @@ export default function LearnerTypeQuizPage() {
 
         const dominantStyle = Object.keys(counts).reduce((a, b) =>
             counts[a as keyof typeof counts] > counts[b as keyof typeof counts] ? a : b
-        );
+        ) as "Visual" | "Auditory" | "Kinesthetic" | "Reading/Writing" | "Unknown";
 
         localStorage.setItem('learnerType', dominantStyle);
         toast({
             title: 'Finalizing your setup...',
-            description: `You are a ${dominantStyle} learner. Generating your roadmap and calendar...`,
+            description: `You are a ${dominantStyle} learner. Generating your course structure...`,
         });
 
         if (!user) {
@@ -139,43 +140,29 @@ export default function LearnerTypeQuizPage() {
             }
             const course = courseSnap.data();
 
-            const learningPace = parseInt(localStorage.getItem('learningPace') || '3', 10);
-            
-            const roadmapResponse = await generateRoadmap({
+            const courseOutline = await generateMiniCourse({
                 courseName: course.name,
                 courseDescription: course.description,
-                courseUrl: course.url,
-                durationInMonths: learningPace,
+                learnerType: dominantStyle
             });
 
-            const roadmapData = {
-                courseId: courseId,
-                userId: user.uid,
-                goals: roadmapResponse.goals.map(g => ({ ...g, id: crypto.randomUUID(), icon: g.icon || 'Flag' })),
-                milestones: roadmapResponse.milestones.map(m => ({ ...m, id: crypto.randomUUID(), icon: m.icon || 'Calendar', completed: false }))
-            };
-            await addDoc(collection(db, 'roadmaps'), roadmapData);
-
-            // Add milestones to calendar
-            for (const milestone of roadmapData.milestones) {
-                await addDoc(collection(db, 'calendarEvents'), {
-                    title: `Milestone: ${milestone.title}`,
-                    description: milestone.description,
-                    date: Timestamp.fromDate(new Date(milestone.date)),
-                    startTime: '09:00', // Default time
-                    endTime: '10:00',
-                    type: 'Homework', // Default type
-                    color: 'bg-blue-500',
-                    userId: user.uid,
-                });
-            }
+            const newUnits = courseOutline.modules.map(module => ({
+                id: crypto.randomUUID(),
+                title: module.title,
+                chapters: module.chapters.map(chapter => ({
+                    ...chapter,
+                    id: crypto.randomUUID(),
+                }))
+            }));
+            
+            await updateDoc(courseDocRef, { units: newUnits });
             
             toast({ title: 'All set!', description: 'Redirecting to your personalized dashboard.' });
             router.push('/dashboard');
 
         } catch (error) {
             console.error("Final setup failed:", error);
-            toast({ variant: 'destructive', title: 'Setup Failed', description: 'Could not generate roadmap. You can generate it later from the dashboard.'});
+            toast({ variant: 'destructive', title: 'Setup Failed', description: 'Could not generate course structure. You can generate it later.'});
             router.push('/dashboard'); // Still go to dashboard
         } finally {
             setIsSubmitting(false);
