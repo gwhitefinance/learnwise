@@ -17,6 +17,16 @@ import PersonalizedTutor from '@/sections/PersonalizedTutor';
 import Features from '@/sections/Features';
 import { Pricing } from '@/sections/Pricing';
 
+const TypingBubble = () => {
+    const text = "Turn class notes into quizzes, flashcards, and smart study plans to build your next project faster.";
+    return (
+        <div className="speech-bubble-typing">
+            <p className="typing-animation">{text}</p>
+        </div>
+    );
+};
+
+
 const Hero = () => (
   <section className="relative py-20 lg:py-28 text-white text-center overflow-hidden">
     <div className="container mx-auto px-4 relative z-10">
@@ -98,24 +108,11 @@ const Hero = () => (
         Reach your learning <br /> <span className="text-blue-400">goals effortlessly</span>
       </h1>
 
-      <div className="flex justify-center items-center gap-8 mt-8 mb-8">
+      <div className="flex justify-center items-center gap-4 mt-8 mb-8">
         <div style={{ width: '250px', height: '250px' }}>
           <AIBuddy />
         </div>
-        <div className="relative w-[450px] thought-bubble">
-          <svg viewBox="0 0 200 150" className="w-full h-auto">
-              <g transform="translate(10, 10)">
-                  <path d="M 62.1,1.1 C 44.9,1.1 32.5,10.3 27.2,21.9 C 21.8,33.5 24.5,51.8 20.3,64.2 C 16,76.6 0.9,81.1 0.9,94.9 C 0.9,108.6 15.1,118.8 28.9,122.3 C 42.6,125.8 62.1,128.2 82.5,128.2 C 103,128.2 125,125.8 138.8,122.3 C 152.5,118.8 168.5,108.6 168.5,94.9 C 168.5,81.1 151.7,76.6 148.4,64.2 C 145.1,51.8 141.8,33.5 147.2,21.9 C 152.5,10.3 140.1,1.1 122.9,1.1 L 62.1,1.1 Z" fill="#FFF" stroke="#000" strokeWidth="2.5" strokeLinejoin="round" />
-                  <ellipse cx="25" cy="120" rx="10" ry="8" fill="#FFF" stroke="#000" strokeWidth="2.5" />
-                  <ellipse cx="10" cy="135" rx="7" ry="5" fill="#FFF" stroke="#000" strokeWidth="2.5" />
-              </g>
-          </svg>
-          <div className="absolute inset-0 flex items-center justify-center -translate-y-4 px-12">
-            <p className="text-lg md:text-xl text-black text-center max-w-md mx-auto">
-              Turn class notes into <span className="font-semibold">quizzes</span>, <span className="font-semibold">flashcards</span>, and <span className="font-semibold">smart study plans</span> to build your next project faster.
-            </p>
-          </div>
-        </div>
+        <TypingBubble />
       </div>
 
       <div className="flex justify-center items-center gap-4 mt-8">

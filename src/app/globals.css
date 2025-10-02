@@ -193,31 +193,50 @@ html.lenis {
   overflow: hidden;
 }
 
-@keyframes speech-bubble-appear {
-  0% {
-    opacity: 0;
-    transform: scale(0.8) translateY(10px);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
+.speech-bubble-typing {
+  position: relative;
+  background: white;
+  border-radius: .4em;
+  padding: 20px;
+  color: black;
+  max-width: 300px;
+  text-align: left;
 }
 
-.speech-bubble {
-  animation: speech-bubble-appear 0.5s ease-out forwards;
-}
-
-.speech-bubble::after {
+.speech-bubble-typing:after {
   content: '';
   position: absolute;
-  bottom: 1rem;
-  left: -0.75rem;
+  left: 0;
+  top: 50%;
   width: 0;
   height: 0;
-  border-top: 10px solid transparent;
-  border-bottom: 10px solid transparent;
-  border-right: 15px solid hsl(var(--card)); /* Match bubble background */
+  border: 20px solid transparent;
+  border-right-color: white;
+  border-left: 0;
+  border-top: 0;
+  margin-top: -10px;
+  margin-left: -20px;
+}
+
+.typing-animation {
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  border-right: .15em solid orange;
+  animation: typing 4s steps(60, end) infinite, blink-caret .75s step-end infinite;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+  font-family: monospace;
+}
+
+@keyframes typing {
+  from { width: 0 }
+  to { width: 100% }
+}
+
+@keyframes blink-caret {
+  from, to { border-color: transparent }
+  50% { border-color: orange; }
 }
 
 @keyframes float-bubble {
