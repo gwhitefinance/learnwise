@@ -116,7 +116,6 @@ export default function LearningLabClientPage() {
   const [isStartLabDialogOpen, setStartLabDialogOpen] = useState(false);
   const [newLabCourseId, setNewLabCourseId] = useState<string | null>(null);
 
-  const [showPaceDialog, setShowPaceDialog] = useState(false);
   const [isRoadmapGenerating, setIsRoadmapGenerating] = useState(false);
 
 
@@ -163,13 +162,6 @@ export default function LearningLabClientPage() {
         if (courseSnap.exists()) {
             const courseData = { id: courseSnap.id, ...courseSnap.data() } as Course;
             setActiveCourse(courseData);
-            // Check if lab has outline but no content
-            const hasOutline = courseData.units && courseData.units.length > 0;
-            const hasContent = hasOutline && courseData.units![0].chapters[0].content;
-            if(hasOutline && !hasContent){
-                setShowPaceDialog(true);
-            }
-
         } else {
              setActiveCourse(null);
              toast({ variant: 'destructive', title: 'Course not found.' });
@@ -255,7 +247,6 @@ export default function LearningLabClientPage() {
    const handleGenerateRoadmap = async (durationInMonths: number) => {
         if (!activeCourse || !user) return;
         
-        setShowPaceDialog(false);
         setIsRoadmapGenerating(true);
         toast({ title: 'Generating Your Roadmap...', description: 'This should be quick!' });
 
@@ -875,27 +866,6 @@ export default function LearningLabClientPage() {
 
   return (
     <>
-      <Dialog open={showPaceDialog}>
-          <DialogContent>
-              <DialogHeader>
-                  <DialogTitle>Set Your Learning Pace</DialogTitle>
-                  <DialogDescription>
-                      How quickly do you want to master {activeCourse?.name}? This will generate your roadmap dates.
-                  </DialogDescription>
-              </DialogHeader>
-               <div className="py-4 space-y-4">
-                  <Button className="w-full" onClick={() => handleGenerateRoadmap(3)} disabled={isRoadmapGenerating}>
-                    {isRoadmapGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null} Casual (3 Months)
-                  </Button>
-                  <Button className="w-full" onClick={() => handleGenerateRoadmap(2)} disabled={isRoadmapGenerating}>
-                    {isRoadmapGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null} Steady (2 Months)
-                  </Button>
-                  <Button className="w-full" onClick={() => handleGenerateRoadmap(1)} disabled={isRoadmapGenerating}>
-                    {isRoadmapGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null} Intense (1 Month)
-                  </Button>
-              </div>
-          </DialogContent>
-      </Dialog>
       <div className={cn("flex h-full", isFocusMode && "bg-background")}>
         <aside className={cn(
             "h-full bg-card border-r transition-all duration-300",
