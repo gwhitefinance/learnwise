@@ -950,13 +950,16 @@ function DashboardPageClient({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                             <p className="max-w-md text-white/80">
                                 This is your central hub for all your learning activities. Let's make today a productive one!
                             </p>
-                             <div className="mt-4">
+                             <div className="mt-4 flex gap-2">
                                 <Link href="/dashboard/courses">
                                     <Button variant="outline" className="bg-white/20 text-white hover:bg-white/30 rounded-xl">
                                         Go to courses
                                         <ArrowRight className="ml-2 h-4 w-4" />
                                     </Button>
                                 </Link>
+                                <Button variant="outline" className="bg-white/20 text-white hover:bg-white/30 rounded-xl" onClick={() => { setIsTourActive(true); setTourStep(1); }}>
+                                    Start Tour
+                                </Button>
                             </div>
                         </div>
                          <div className="relative hidden lg:flex items-center justify-center gap-2">
@@ -1501,3 +1504,5 @@ function DashboardPageClient({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
 }
 
 export default DashboardPageClient;
+
+    
