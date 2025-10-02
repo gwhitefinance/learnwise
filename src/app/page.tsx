@@ -108,11 +108,15 @@ const Hero = () => (
         Reach your learning <br /> <span className="text-blue-400">goals effortlessly</span>
       </h1>
 
-      <div className="flex justify-center items-center gap-4 mt-8 mb-8">
-        <div style={{ width: '250px', height: '250px' }}>
-          <AIBuddy />
-        </div>
-        <TypingBubble />
+      <div className="relative mt-8 mb-8 h-[250px]">
+          <div className="absolute inset-0 flex justify-center items-center">
+              <div style={{ width: '250px', height: '250px' }} className="relative">
+                  <AIBuddy />
+                  <div className="absolute top-1/2 -translate-y-1/2 left-[calc(100%_-_20px)]">
+                      <TypingBubble />
+                  </div>
+              </div>
+          </div>
       </div>
 
       <div className="flex justify-center items-center gap-4 mt-8">
