@@ -193,7 +193,7 @@ const Hero = () => (
             <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
             <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
           </div>
-          <p className="text-sm text-white/70">from 25k+ happy learners</p>
+          
         </div>
       </div>
 
