@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { Badge } from '@/components/ui/badge';
@@ -20,6 +19,14 @@ const FeatureCard = ({ title, description, children, className, theme }: { title
 export default function Features({ theme }: { theme: string }) {
     return (
         <section id="features" className="py-24">
+            <div className="container text-center mb-16">
+                <h2 className={cn("text-4xl md:text-5xl font-bold tracking-tighter", theme === 'dark' ? 'text-white' : 'text-black')}>
+                    Learn like never before
+                </h2>
+                <p className={cn("text-xl mx-auto max-w-2xl mt-4", theme === 'dark' ? 'text-white/70' : 'text-black/70')}>
+                    Tutorin is packed with features designed to make your study sessions more effective and engaging.
+                </p>
+            </div>
             <div className="container">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-1 space-y-8 flex flex-col">
