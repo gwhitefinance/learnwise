@@ -48,7 +48,7 @@ const tourStepsConfig: any = {
             step: 4,
             title: "Recent Files & Courses",
             content: "Your recent files and active courses will appear in these cards for easy access.",
-            elementId: 'recent-files',
+            elementId: 'recent-files-card',
             position: 'bottom-end',
         },
         {
@@ -114,16 +114,39 @@ const TourGuide = () => {
     const currentStepConfig = tourStepsConfig[pathname]?.find((s: any) => s.step === tourStep);
     
     useEffect(() => {
-        if (currentStepConfig && currentStepConfig.elementId) {
-            const element = document.getElementById(currentStepConfig.elementId);
-            if (element) {
-                setElementRect(element.getBoundingClientRect());
-                element.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+        if (isTourActive && currentStepConfig && currentStepConfig.elementId) {
+            const checkElement = () => {
+                const element = document.getElementById(currentStepConfig.elementId);
+                if (element) {
+                    setElementRect(element.getBoundingClientRect());
+                    element.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+                    return true;
+                }
+                return false;
+            }
+
+            if (!checkElement()) {
+                // Poll for the element if it's not immediately available
+                const interval = setInterval(() => {
+                    if (checkElement()) {
+                        clearInterval(interval);
+                    }
+                }, 100);
+
+                // Timeout to avoid infinite polling
+                const timeout = setTimeout(() => {
+                    clearInterval(interval);
+                }, 3000);
+
+                return () => {
+                    clearInterval(interval);
+                    clearTimeout(timeout);
+                };
             }
         } else {
             setElementRect(null);
         }
-    }, [currentStepConfig]);
+    }, [isTourActive, currentStepConfig]);
 
 
     const handleGenerateLabOutlines = async () => {
@@ -199,7 +222,7 @@ const TourGuide = () => {
 
 
     return (
-        <div className="fixed inset-0 z-40 p-4 pointer-events-none">
+        <div className="fixed inset-0 z-40 p-4 bg-black/30 backdrop-blur-sm pointer-events-none">
             {elementRect && (
                 <div
                     className="fixed z-40 rounded-lg border-2 border-dashed border-primary bg-primary/10 transition-all duration-300 pointer-events-none"
@@ -221,24 +244,26 @@ const TourGuide = () => {
                 style={getPositionStyles()}
             >
                 <div className="relative max-w-sm w-full">
-                    <div className="flex items-start gap-4">
-                        <div className="flex-shrink-0 size-24 rounded-full bg-primary text-white shadow-lg flex items-center justify-center ring-4 ring-card">
-                            <AIBuddy className="w-20 h-20"/>
-                        </div>
-                        <div className="bg-card rounded-xl shadow-2xl p-6 flex-1">
-                            <h3 className="text-lg font-bold mb-2">{currentStepConfig.title}</h3>
-                            <p className="text-sm text-muted-foreground mb-4">{currentStepConfig.content}</p>
-                            <div className="flex justify-end gap-2">
-                                 <Button variant="ghost" size="sm" onClick={endTour}>Dismiss</Button>
-                                 {currentStepConfig.isFinal ? (
-                                    <Button size="sm" onClick={endTour} className="bg-primary hover:bg-primary/90">Explore Dashboard</Button>
-                                ) : (
-                                    <Button size="sm" onClick={() => currentStepConfig.action === 'generateOutlines' ? handleGenerateLabOutlines() : nextTourStep(currentStepConfig.nextPath)} className="bg-primary hover:bg-primary/90" disabled={isGenerating}>
-                                        {isGenerating ? 'Generating...' : 'Next'}
-                                        <ArrowRight className="h-4 w-4 ml-2"/>
-                                    </Button>
-                                )}
+                    <div className="bg-card rounded-xl shadow-2xl p-6 flex flex-col">
+                         <div className="flex items-start gap-4">
+                            <div className="flex-shrink-0 size-12 rounded-full bg-primary text-white shadow-lg flex items-center justify-center ring-4 ring-card">
+                                <AIBuddy className="w-10 h-10"/>
                             </div>
+                            <div className="flex-1">
+                                <h3 className="text-lg font-bold mb-1">{currentStepConfig.title}</h3>
+                                <p className="text-sm text-muted-foreground">{currentStepConfig.content}</p>
+                            </div>
+                         </div>
+                        <div className="flex justify-end gap-2 mt-4">
+                             <Button variant="ghost" size="sm" onClick={endTour}>Dismiss</Button>
+                             {currentStepConfig.isFinal ? (
+                                <Button size="sm" onClick={endTour} className="bg-primary hover:bg-primary/90">Explore Dashboard</Button>
+                            ) : (
+                                <Button size="sm" onClick={() => currentStepConfig.action === 'generateOutlines' ? handleGenerateLabOutlines() : nextTourStep(currentStepConfig.nextPath)} className="bg-primary hover:bg-primary/90" disabled={isGenerating}>
+                                    {isGenerating ? 'Generating...' : 'Next'}
+                                    <ArrowRight className="h-4 w-4 ml-2"/>
+                                </Button>
+                            )}
                         </div>
                     </div>
                 </div>
