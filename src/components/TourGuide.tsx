@@ -46,9 +46,9 @@ const tourStepsConfig: any = {
         },
         {
             step: 4,
-            title: "Recent Files",
-            content: "Your recently uploaded files will appear here for easy access.",
-            elementId: 'recent-files-card',
+            title: "Recent Files & Courses",
+            content: "Your recent files and active courses will appear in these cards for easy access.",
+            elementId: 'recent-files',
             position: 'bottom-end',
         },
         {
@@ -200,14 +200,13 @@ const TourGuide = () => {
 
     return (
         <div className="fixed inset-0 z-40 p-4 pointer-events-none">
-            {isTourActive && <div className="fixed inset-0 bg-black/60 z-40" />}
             {elementRect && (
                 <div
                     className="fixed z-40 rounded-lg border-2 border-dashed border-primary bg-primary/10 transition-all duration-300 pointer-events-none"
                     style={{
                         width: elementRect.width + 16,
                         height: elementRect.height + 16,
-                        top: elementRect.top - 8 + window.scrollY,
+                        top: elementRect.top - 8,
                         left: elementRect.left - 8,
                     }}
                 />
