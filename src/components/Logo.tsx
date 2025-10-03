@@ -16,6 +16,12 @@ const Logo = ({ className }: { className?: string }) => (
         <rect x="50" y="30" width="100" height="80" rx="40" fill="#87CEEB" />
         <rect x="50" y="30" width="100" height="80" rx="40" fill="url(#bodyGradient)" />
 
+        {/* Antenna */}
+        <g>
+            <line x1="100" y1="30" x2="100" y2="10" stroke="#333" strokeWidth="3" />
+            <circle cx="100" cy="8" r="5" fill="#FFC700" />
+        </g>
+        
         {/* Face Screen */}
         <rect x="65" y="50" width="70" height="45" rx="15" fill="#222" />
         
