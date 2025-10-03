@@ -55,7 +55,7 @@ const TypingBubble = ({ theme }: { theme: string }) => {
                 return () => clearTimeout(timer);
             }
         }
-    }, [subIndex, isDeleting, index, words]);
+    }, [subIndex, isDeleting, index]);
 
     return (
         <div className={cn("speech-bubble-typing", theme === 'light' && "shadow-lg")}>
@@ -291,7 +291,7 @@ export default function Home() {
       <Navbar onThemeToggle={toggleTheme} theme={theme} />
       <Hero theme={theme} />
       <HowItWorks theme={theme} />
-      <PersonalizedTutor />
+      <PersonalizedTutor theme={theme} />
       <Features theme={theme} />
       <Pricing plans={plans} theme={theme} />
       <Faqs theme={theme} />
