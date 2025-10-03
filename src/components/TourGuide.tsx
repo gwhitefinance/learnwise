@@ -39,17 +39,16 @@ const tourStepsConfig: any = {
         },
         {
             step: 3,
-            title: "Track Your Progress",
-            content: "Here you can see your study streak and your most recent files. Keep the streak going to earn rewards!",
-            elementId: 'recent-files',
-            position: 'right',
-        },
-        {
-            step: 4,
             title: "Navigation",
             content: "Use these tabs to explore different sections like your files, projects, and learning tools.",
             elementId: 'main-tabs-nav',
             position: 'bottom-start',
+        },
+        {
+            step: 4,
+            title: "Let's Show You Your Courses",
+            content: "Next, we'll head over to the courses page where you can manage your learning content.",
+            position: 'center',
             nextPath: '/dashboard/courses',
         },
     ],
