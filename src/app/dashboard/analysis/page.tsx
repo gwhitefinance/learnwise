@@ -4,14 +4,15 @@ import dynamic from 'next/dynamic';
 import Loading from './loading';
 import { Suspense } from 'react';
 
-const AnalysisPageComponent = dynamic(() => import('./AnalysisClientPage'), {
+const AnalysisClientPage = dynamic(() => import('./AnalysisClientPage'), {
     ssr: false,
+    loading: () => <Loading />,
 });
 
 export default function AnalysisPage() {
     return (
         <Suspense fallback={<Loading />}>
-            <AnalysisPageComponent />
+            <AnalysisClientPage />
         </Suspense>
     );
 }
