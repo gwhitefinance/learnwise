@@ -2,6 +2,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import { Suspense } from 'react';
 import Loading from './loading';
 
 const LearningLabClientPage = dynamic(() => import('./LearningLabClientPage'), {
@@ -10,5 +11,9 @@ const LearningLabClientPage = dynamic(() => import('./LearningLabClientPage'), {
 });
 
 export default function LearningLabPage() {
-    return <LearningLabClientPage />;
+    return (
+        <Suspense fallback={<Loading />}>
+            <LearningLabClientPage />
+        </Suspense>
+    );
 }
