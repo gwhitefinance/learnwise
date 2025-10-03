@@ -34,7 +34,11 @@ export default function AnalysisClientPage() {
   const [user, authLoading] = useAuthState(auth);
 
   useEffect(() => {
-    if (authLoading || !user) return;
+    if (authLoading) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    };
 
     const storedLearnerType = localStorage.getItem('learnerType');
     if (storedLearnerType) {
