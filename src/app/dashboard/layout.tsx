@@ -414,13 +414,13 @@ export default function DashboardLayout({
               
               const messagingInstance = getMessaging();
               if (messagingInstance) {
-                const currentToken = await getToken(messagingInstance, { vapidKey: 'YOUR_VAPID_KEY_HERE' });
+                // const currentToken = await getToken(messagingInstance, { vapidKey: 'YOUR_VAPID_KEY_HERE' });
               
-                if (currentToken) {
-                  console.log('FCM Token:', currentToken);
-                } else {
-                  console.log('No registration token available. Request permission to generate one.');
-                }
+                // if (currentToken) {
+                //   console.log('FCM Token:', currentToken);
+                // } else {
+                //   console.log('No registration token available. Request permission to generate one.');
+                // }
               }
             } else {
               console.log('Unable to get permission to notify.');
