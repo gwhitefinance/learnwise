@@ -1,6 +1,5 @@
 
-
-"use client"
+'use client';
 
 import { motion } from "framer-motion"
 import { Search, Lightbulb, Rocket, GitMerge } from 'lucide-react'
@@ -167,7 +166,7 @@ export default function HowItWorks({ theme }: { theme: string }) {
                   <div className="text-4xl font-bold text-gray-600">{step.number}</div>
                   <div className="text-blue-400">{step.icon}</div>
                 </div>
-                <h3 className="text-2xl font-bold group-hover:text-blue-400 transition-colors text-white">
+                <h3 className={cn("text-2xl font-bold group-hover:text-blue-400 transition-colors", theme === 'dark' ? 'text-white' : 'text-black')}>
                   {step.title}
                 </h3>
                 <p className="text-gray-400 leading-relaxed">{step.description}</p>
