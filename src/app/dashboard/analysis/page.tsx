@@ -1,8 +1,7 @@
-'use client';
 
 import dynamic from 'next/dynamic';
-import Loading from './loading';
 import { Suspense } from 'react';
+import Loading from './loading';
 
 export const dynamic = "force-dynamic";
 
