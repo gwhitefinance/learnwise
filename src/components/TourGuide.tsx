@@ -9,7 +9,7 @@ import { X, ArrowRight } from 'lucide-react';
 import AIBuddy from './ai-buddy';
 import { useState, useEffect } from 'react';
 import { generateMiniCourse } from '@/lib/actions';
-import { useToast } from './ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
