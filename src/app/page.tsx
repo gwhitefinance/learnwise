@@ -21,7 +21,7 @@ import { useState, useEffect } from 'react';
 import Logo from '@/components/Logo';
 import { cn } from '@/lib/utils';
 
-const TypingBubble = () => {
+const TypingBubble = ({ theme }: { theme: string }) => {
     const [index, setIndex] = useState(0);
     const [subIndex, setSubIndex] = useState(0);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -58,7 +58,7 @@ const TypingBubble = () => {
     }, [subIndex, isDeleting, index, words]);
 
     return (
-        <div className="speech-bubble-typing">
+        <div className={cn("speech-bubble-typing", theme === 'light' && "shadow-lg")}>
             <p>
                 {baseText}
                 <span className="font-semibold text-blue-500">{text}</span>
@@ -155,7 +155,7 @@ const Hero = ({ theme }: { theme: string }) => (
               <div style={{ width: '400px', height: '250px' }} className="relative">
                   <AIBuddy />
                   <div className="absolute top-1/2 -translate-y-1/2 left-[calc(100%_-_80px)]">
-                      <TypingBubble />
+                      <TypingBubble theme={theme} />
                   </div>
               </div>
           </div>
