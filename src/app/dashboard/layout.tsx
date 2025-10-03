@@ -94,7 +94,6 @@ import { RewardProvider } from '@/context/RewardContext';
 import RewardPopup from '@/components/RewardPopup';
 import FloatingChat from '@/components/floating-chat';
 import TourGuide from '@/components/TourGuide';
-import { generateMiniCourse } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 
 
@@ -321,6 +320,18 @@ export default function DashboardLayout({
     }
   }, [searchParams]);
 
+  useEffect(() => {
+    if (isTourActive) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+
+    return () => {
+      document.body.style.overflow = ''; // Cleanup on unmount
+    };
+  }, [isTourActive]);
+
   const startTour = () => {
     setIsTourActive(true);
     setTourStep(1);
@@ -413,15 +424,15 @@ export default function DashboardLayout({
               console.log('Notification permission granted.');
               
               const messagingInstance = getMessaging();
-              if (messagingInstance) {
-                // const currentToken = await getToken(messagingInstance, { vapidKey: 'YOUR_VAPID_KEY_HERE' });
+              // if (messagingInstance) {
+              //   const currentToken = await getToken(messagingInstance, { vapidKey: 'YOUR_VAPID_KEY_HERE' });
               
-                // if (currentToken) {
-                //   console.log('FCM Token:', currentToken);
-                // } else {
-                //   console.log('No registration token available. Request permission to generate one.');
-                // }
-              }
+              //   if (currentToken) {
+              //     console.log('FCM Token:', currentToken);
+              //   } else {
+              //     console.log('No registration token available. Request permission to generate one.');
+              //   }
+              // }
             } else {
               console.log('Unable to get permission to notify.');
             }

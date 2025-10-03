@@ -46,10 +46,10 @@ const tourStepsConfig: any = {
         },
         {
             step: 4,
-            title: "Recent Files",
-            content: "Quickly access your most recent documents right here.",
-            elementId: 'recent-files-card',
-            position: 'bottom',
+            title: "Recent Files & Courses",
+            content: "Quickly access your most recent documents and active courses right here.",
+            elementId: 'recent-files',
+            position: 'bottom-end',
         },
         {
             step: 5,
@@ -198,6 +198,7 @@ const TourGuide = () => {
 
     return (
         <div className="fixed inset-0 z-40 p-4 pointer-events-none">
+             {isTourActive && <div className="fixed inset-0 bg-black/30 z-40" />}
              {elementRect && (
                 <div
                     className="fixed z-40 rounded-lg border-2 border-dashed border-primary bg-primary/10 transition-all duration-300 pointer-events-none"
@@ -219,30 +220,26 @@ const TourGuide = () => {
                 className="relative max-w-sm w-full z-50 fixed pointer-events-auto"
                 style={getPositionStyles()}
             >
-                <div className="bg-card rounded-xl shadow-2xl p-4 flex items-start gap-4">
-                    <div className="size-16 rounded-full bg-primary text-white shadow-lg flex items-center justify-center ring-4 ring-card shrink-0">
-                        <AIBuddy className="w-14 h-14"/>
+                 <div className="absolute -top-12 left-1/2 -translate-x-1/2">
+                    <div className="size-24 rounded-full bg-primary text-white shadow-lg flex items-center justify-center ring-4 ring-card">
+                       <AIBuddy className="w-20 h-20"/>
                     </div>
-                    <div className="flex-1">
-                        <h3 className="text-md font-bold mb-1">{currentStepConfig.title}</h3>
-                        <p className="text-xs text-muted-foreground mb-3">{currentStepConfig.content}</p>
-                        <div className="flex justify-start gap-2">
-                             {currentStepConfig.isFinal ? (
-                                <Button size="sm" onClick={endTour} className="bg-primary hover:bg-primary/90 text-xs h-7 px-3">Explore Dashboard</Button>
-                            ) : (
-                                <>
-                                    <Button size="sm" variant="ghost" onClick={endTour} className="text-muted-foreground h-7 px-2 text-xs">Dismiss</Button>
-                                    <Button size="sm" onClick={() => currentStepConfig.action === 'generateOutlines' ? handleGenerateLabOutlines() : nextTourStep(currentStepConfig.nextPath)} className="bg-primary hover:bg-primary/90 h-7 px-3 text-xs" disabled={isGenerating}>
-                                        {isGenerating ? 'Generating...' : 'Next'}
-                                        <ArrowRight className="h-3 w-3 ml-1.5"/>
-                                    </Button>
-                                </>
-                            )}
-                        </div>
+                </div>
+                <div className="bg-card rounded-xl shadow-2xl p-6 pt-16 text-center">
+                    <h3 className="text-lg font-bold mb-2">{currentStepConfig.title}</h3>
+                    <p className="text-sm text-muted-foreground mb-4">{currentStepConfig.content}</p>
+                    <div className="flex justify-center gap-2">
+                        {currentStepConfig.isFinal ? (
+                            <Button size="sm" onClick={endTour} className="bg-primary hover:bg-primary/90">Explore Dashboard</Button>
+                        ) : (
+                            <>
+                                <Button size="sm" variant="ghost" onClick={endTour} className="text-muted-foreground">Dismiss</Button>
+                                <Button size="sm" onClick={() => currentStepConfig.action === 'generateOutlines' ? handleGenerateLabOutlines() : nextTourStep(currentStepConfig.nextPath)} className="bg-primary hover:bg-primary/90" disabled={isGenerating}>
+                                    {isGenerating ? 'Generating...' : 'Next'}
+                                </Button>
+                            </>
+                        )}
                     </div>
-                     <button onClick={endTour} className="absolute top-2 right-2 text-muted-foreground hover:text-foreground">
-                        <X className="h-4 w-4" />
-                    </button>
                 </div>
             </motion.div>
         </div>
