@@ -40,12 +40,19 @@ const tourStepsConfig: any = {
         {
             step: 3,
             title: "Streak & Rewards",
-            content: "Track your study streak and claim rewards for your consistency.",
-            elementId: 'recent-files',
+            content: "Track your study streak and claim rewards for your consistency. This is a great way to stay motivated!",
+            elementId: 'streak-card',
             position: 'right',
         },
         {
             step: 4,
+            title: "Recent Files & Courses",
+            content: "Your recently uploaded files and active courses will appear here for easy access.",
+            elementId: 'recent-files',
+            position: 'bottom-end',
+        },
+        {
+            step: 5,
             title: "Navigation",
             content: "Use these tabs to explore different sections like your files, projects, and learning tools.",
             elementId: 'main-tabs-nav',
@@ -55,13 +62,13 @@ const tourStepsConfig: any = {
     ],
     '/dashboard/courses': [
          {
-            step: 5,
+            step: 6,
             title: "Your Courses",
             content: "We've created starter courses for you based on your interests. You can view them all here.",
             position: 'center',
         },
         {
-            step: 6,
+            step: 7,
             title: "Add a Course",
             content: "You can also manually add a new course at any time by clicking this button.",
             elementId: 'add-course-button',
@@ -71,7 +78,7 @@ const tourStepsConfig: any = {
     ],
     '/dashboard/roadmaps': [
          {
-            step: 7,
+            step: 8,
             title: "Study Roadmaps",
             content: "Here are the AI-generated roadmaps for your courses, complete with goals and milestones to guide you.",
             position: 'center',
@@ -80,14 +87,14 @@ const tourStepsConfig: any = {
     ],
     '/dashboard/learning-lab': [
          {
-            step: 8,
+            step: 9,
             title: "The Learning Lab",
             content: "This is where the magic happens. Let's generate the full outline for your courses now.",
             position: 'center',
             action: 'generateOutlines',
         },
         {
-            step: 9,
+            step: 10,
             title: "You're All Set!",
             content: "Your dashboard is ready. Feel free to explore, or chat with me if you have any questions.",
             position: 'center',
@@ -215,24 +222,24 @@ const TourGuide = () => {
                 style={getPositionStyles()}
             >
                 <div className="relative max-w-sm w-full">
-                    <div className="bg-card rounded-xl shadow-2xl p-6 text-center">
-                        <div className="flex justify-center -mt-16 mb-4">
-                            <div className="size-24 rounded-full bg-primary text-white shadow-lg flex items-center justify-center ring-4 ring-card">
-                                <AIBuddy className="w-20 h-20"/>
-                            </div>
+                    <div className="flex items-start gap-4">
+                        <div className="flex-shrink-0 size-24 rounded-full bg-primary text-white shadow-lg flex items-center justify-center ring-4 ring-card">
+                            <AIBuddy className="w-20 h-20"/>
                         </div>
-                        <h3 className="text-lg font-bold mb-2">{currentStepConfig.title}</h3>
-                        <p className="text-sm text-muted-foreground mb-4">{currentStepConfig.content}</p>
-                        <div className="flex justify-center gap-2">
-                             <Button variant="ghost" size="sm" onClick={endTour}>Dismiss</Button>
-                             {currentStepConfig.isFinal ? (
-                                <Button size="sm" onClick={endTour} className="bg-primary hover:bg-primary/90">Explore Dashboard</Button>
-                            ) : (
-                                <Button size="sm" onClick={() => currentStepConfig.action === 'generateOutlines' ? handleGenerateLabOutlines() : nextTourStep(currentStepConfig.nextPath)} className="bg-primary hover:bg-primary/90" disabled={isGenerating}>
-                                    {isGenerating ? 'Generating...' : 'Next'}
-                                    <ArrowRight className="h-4 w-4 ml-2"/>
-                                </Button>
-                            )}
+                        <div className="bg-card rounded-xl shadow-2xl p-6 flex-1">
+                            <h3 className="text-lg font-bold mb-2">{currentStepConfig.title}</h3>
+                            <p className="text-sm text-muted-foreground mb-4">{currentStepConfig.content}</p>
+                            <div className="flex justify-end gap-2">
+                                 <Button variant="ghost" size="sm" onClick={endTour}>Dismiss</Button>
+                                 {currentStepConfig.isFinal ? (
+                                    <Button size="sm" onClick={endTour} className="bg-primary hover:bg-primary/90">Explore Dashboard</Button>
+                                ) : (
+                                    <Button size="sm" onClick={() => currentStepConfig.action === 'generateOutlines' ? handleGenerateLabOutlines() : nextTourStep(currentStepConfig.nextPath)} className="bg-primary hover:bg-primary/90" disabled={isGenerating}>
+                                        {isGenerating ? 'Generating...' : 'Next'}
+                                        <ArrowRight className="h-4 w-4 ml-2"/>
+                                    </Button>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
