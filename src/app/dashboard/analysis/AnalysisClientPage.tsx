@@ -222,3 +222,5 @@ function AnalysisClientPage() {
     </div>
   );
 }
+
+export default AnalysisClientPage;
