@@ -20,6 +20,7 @@ import { Pricing } from '@/sections/Pricing';
 import { useState, useEffect } from 'react';
 import Logo from '@/components/Logo';
 import { cn } from '@/lib/utils';
+import DailyPractice from '@/sections/DailyPractice';
 
 const TypingBubble = ({ theme }: { theme: string }) => {
     const [index, setIndex] = useState(0);
@@ -292,6 +293,7 @@ export default function Home() {
       <Hero theme={theme} />
       <HowItWorks theme={theme} />
       <PersonalizedTutor theme={theme} />
+      <DailyPractice theme={theme} />
       <Features theme={theme} />
       <Pricing plans={plans} theme={theme} />
       <Faqs theme={theme} />
