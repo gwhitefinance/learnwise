@@ -5,7 +5,7 @@ import { useTour } from '@/app/dashboard/layout';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Button } from './ui/button';
-import { X, ArrowRight } from 'lucide-react';
+import { X, ArrowRight, Wand2 } from 'lucide-react';
 import AIBuddy from './ai-buddy';
 import { useState, useEffect } from 'react';
 import { generateMiniCourse } from '@/lib/actions';
@@ -25,7 +25,8 @@ const tourStepsConfig: any = {
     '/dashboard': [
         { 
             step: 1, 
-            content: "Welcome to your dashboard! This is the central hub for all your learning activities.",
+            title: "Welcome to LearnWise!",
+            content: "This is your central hub for all learning activities. Let's take a quick look around.",
             position: 'center',
             nextPath: '/dashboard/courses'
         },
@@ -33,7 +34,8 @@ const tourStepsConfig: any = {
     '/dashboard/courses': [
          { 
             step: 2, 
-            content: "We've created a few starter courses for you. Click 'Next' to see the study plans we've made.",
+            title: "Your Courses",
+            content: "We've created a few starter courses for you based on your interests. Next, we'll generate your study plans.",
             position: 'center',
             nextPath: '/dashboard/roadmaps'
         },
@@ -41,7 +43,8 @@ const tourStepsConfig: any = {
     '/dashboard/roadmaps': [
          { 
             step: 3, 
-            content: "Here are the AI-generated study roadmaps for your courses. Next, let's head to the Learning Lab to generate the course content!",
+            title: "Study Roadmaps",
+            content: "Here are the AI-generated roadmaps for your courses. Now, let's head to the Learning Lab to generate the course content!",
             position: 'center',
             nextPath: '/dashboard/learning-lab'
         },
@@ -49,13 +52,15 @@ const tourStepsConfig: any = {
     '/dashboard/learning-lab': [
          { 
             step: 4, 
-            content: "This is where the magic happens. Let's generate the full outline for all your courses now.",
+            title: "The Learning Lab",
+            content: "This is where the magic happens. Let's generate the full outline for your courses now.",
             position: 'center',
             action: 'generateOutlines',
         },
         {
             step: 5,
-            content: "You're all set! Your dashboard is ready. Feel free to explore, or chat with me if you have any questions.",
+            title: "You're All Set!",
+            content: "Your dashboard is ready. Feel free to explore, or chat with me if you have any questions.",
             position: 'center',
             isFinal: true,
         }
@@ -129,38 +134,38 @@ const TourGuide = () => {
     }
     
     return (
-        <motion.div
-            initial={{ opacity: 0, y: 50, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 50, scale: 0.9 }}
-            transition={{ type: "spring", stiffness: 400, damping: 25 }}
-            className={`fixed z-[100] w-96 bg-card/80 backdrop-blur-lg p-4 rounded-2xl shadow-xl border border-border/30 ${getPositionClass(currentStepConfig.position)}`}
-        >
-            <div className="flex gap-4 items-start">
-                <AIBuddy className="w-16 h-16 flex-shrink-0 mt-1"/>
-                <div className="flex-1 space-y-3">
-                    <div className="flex justify-between items-start">
-                        <p className="text-sm text-card-foreground pr-4">{currentStepConfig.content}</p>
-                         <Button variant="ghost" size="icon" className="h-6 w-6 flex-shrink-0" onClick={endTour}>
-                            <X className="h-4 w-4" />
-                        </Button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+             <div className="fixed inset-0 bg-black/30 z-40" />
+            <motion.div
+                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 20, scale: 0.95 }}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                className="relative max-w-sm w-full z-50"
+            >
+                <div className="absolute -top-12 left-1/2 -translate-x-1/2">
+                    <div className="size-24 rounded-full bg-primary text-white shadow-lg flex items-center justify-center ring-4 ring-card">
+                       <AIBuddy className="w-16 h-16"/>
                     </div>
-                    <div className="flex justify-end">
+                </div>
+                <div className="bg-card rounded-xl shadow-2xl p-6 pt-16 text-center">
+                    <h3 className="text-lg font-bold mb-2">{currentStepConfig.title}</h3>
+                    <p className="text-sm text-muted-foreground mb-4">{currentStepConfig.content}</p>
+                    <div className="flex justify-center gap-2">
                         {currentStepConfig.isFinal ? (
-                            <Button size="sm" onClick={endTour}>Explore Dashboard</Button>
-                        ) : currentStepConfig.action === 'generateOutlines' ? (
-                            <Button size="sm" onClick={handleGenerateLabOutlines} disabled={isGenerating}>
-                                {isGenerating ? "Generating..." : "Generate Course Outlines"}
-                            </Button>
+                            <Button onClick={endTour} className="bg-primary hover:bg-primary/90">Explore Dashboard</Button>
                         ) : (
-                            <Button size="sm" onClick={() => nextTourStep(currentStepConfig.nextPath)}>
-                                Next <ArrowRight className="w-4 h-4 ml-2"/>
-                            </Button>
+                            <>
+                                <Button variant="ghost" onClick={endTour} className="text-muted-foreground">Dismiss</Button>
+                                <Button onClick={() => currentStepConfig.action === 'generateOutlines' ? handleGenerateLabOutlines() : nextTourStep(currentStepConfig.nextPath)} className="bg-primary hover:bg-primary/90" disabled={isGenerating}>
+                                    {isGenerating ? 'Generating...' : 'Next'}
+                                </Button>
+                            </>
                         )}
                     </div>
                 </div>
-            </div>
-        </motion.div>
+            </motion.div>
+        </div>
     );
 };
 
