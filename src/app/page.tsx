@@ -19,6 +19,7 @@ import Features from '@/sections/Features';
 import { Pricing } from '@/sections/Pricing';
 import { useState, useEffect } from 'react';
 import Logo from '@/components/Logo';
+import { cn } from '@/lib/utils';
 
 const TypingBubble = () => {
     const [index, setIndex] = useState(0);
@@ -277,9 +278,17 @@ const plans = [
 
 
 export default function Home() {
+    const [theme, setTheme] = useState('dark');
+    const toggleTheme = () => {
+        setTheme(current => (current === 'dark' ? 'light' : 'dark'));
+    }
+
   return (
-    <main className="bg-background text-white dark-grid dark">
-      <Navbar />
+    <main className={cn(
+        "bg-background text-white",
+        theme === 'dark' ? 'dark-grid dark' : 'bg-white text-black'
+    )}>
+      <Navbar onThemeToggle={toggleTheme} theme={theme} />
       <Hero />
       <HowItWorks />
       <PersonalizedTutor />
