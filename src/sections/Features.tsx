@@ -21,7 +21,7 @@ export default function Features({ theme }: { theme: string }) {
         <section id="features" className="py-24">
             <div className="container text-center mb-16">
                 <h2 className={cn("text-4xl md:text-5xl font-bold tracking-tighter", theme === 'dark' ? 'text-white' : 'text-black')}>
-                    Your Study Sessions, Supercharged
+                    Your Study Sessions, <span className="text-blue-400">Supercharged</span>
                 </h2>
                 <p className={cn("text-xl mx-auto max-w-2xl mt-4", theme === 'dark' ? 'text-white/70' : 'text-black/70')}>
                     Tutorin is packed with features designed to make your study sessions more effective and engaging.
