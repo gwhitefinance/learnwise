@@ -39,7 +39,7 @@ export default function Faqs() {
     return (
         <section className="py-24 ">
             <div className="container">
-                <h2 className="text-4xl md:text-5xl font-bold text-center mt-6 max-w-2xl mx-auto text-white">
+                <h2 className="text-4xl md:text-5xl font-bold text-center mt-6 max-w-2xl mx-auto">
                     Frequently Asked Questions
                 </h2>
 

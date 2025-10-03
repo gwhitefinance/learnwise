@@ -12,33 +12,33 @@ const CalendarDay = ({ day, isSelected, isOtherMonth, onClick, hasEvent }: { day
         onClick={onClick}
         className={cn(
         "flex items-center justify-center h-10 w-10 rounded-full text-sm transition-colors",
-        isOtherMonth ? "text-white/30" : "text-white/80",
-        isSelected ? "bg-blue-500 text-white font-bold" : "hover:bg-white/10",
-        hasEvent && !isSelected && "bg-white/10"
+        isOtherMonth ? "text-foreground/30" : "text-foreground/80",
+        isSelected ? "bg-blue-500 text-white font-bold" : "hover:bg-muted",
+        hasEvent && !isSelected && "bg-muted"
     )}>
         {day}
     </button>
 );
 
 const StudyItem = ({ icon, title, duration, progress }: { icon: React.ReactNode, title: string, duration: string, progress: number }) => (
-    <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+    <div className="bg-background/50 border border-border rounded-2xl p-4">
         <div className="flex items-start gap-4">
-            <div className="bg-white/10 p-3 rounded-xl text-blue-400">
+            <div className="bg-primary/10 p-3 rounded-xl text-blue-400">
                 {icon}
             </div>
             <div>
-                <h4 className="font-semibold text-white">{title}</h4>
-                <p className="text-xs text-white/50">{duration}</p>
+                <h4 className="font-semibold text-foreground">{title}</h4>
+                <p className="text-xs text-muted-foreground">{duration}</p>
             </div>
         </div>
         <div className="mt-4">
             <div className="flex justify-between items-center text-xs mb-1">
-                <span className="text-white/50">Progress</span>
-                <span className="text-white">{progress}%</span>
+                <span className="text-muted-foreground">Progress</span>
+                <span className="text-foreground">{progress}%</span>
             </div>
             <Progress value={progress} className="h-2" />
         </div>
-        <Button variant="outline" className="w-full mt-4 bg-white/10 border-white/20 text-white hover:bg-white/20">
+        <Button variant="outline" className="w-full mt-4 bg-muted border-border text-foreground hover:bg-accent">
             Continue <ChevronRight className="w-4 h-4 ml-2" />
         </Button>
     </div>
@@ -114,27 +114,27 @@ export default function PersonalizedTutor() {
     return (
         <section className="py-24">
             <div className="container text-center">
-                <h2 className="text-4xl md:text-5xl font-bold tracking-tighter text-white">
+                <h2 className="text-4xl md:text-5xl font-bold tracking-tighter">
                     <span className="text-blue-400">Study</span> Smarter
                 </h2>
-                <div className="mt-12 bg-neutral-900 border border-white/10 rounded-3xl p-8 max-w-4xl mx-auto shadow-2xl">
+                <div className="mt-12 bg-card border border-border rounded-3xl p-8 max-w-4xl mx-auto shadow-2xl">
                     <div className="flex justify-between items-center mb-6">
                         <div>
-                            <h3 className="text-2xl font-bold text-white text-left">Your study plan</h3>
+                            <h3 className="text-2xl font-bold text-left">Your study plan</h3>
                             <p className="text-blue-400 text-sm text-left">Dynamically generated learning paths</p>
                         </div>
-                        <ChevronRight className="w-6 h-6 text-white/50" />
+                        <ChevronRight className="w-6 h-6 text-muted-foreground" />
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div>
                              <div className="flex justify-between items-center mb-4">
-                                <Button variant="ghost" size="icon" className="text-white/70 hover:text-white"><ChevronLeft/></Button>
-                                <p className="font-semibold text-white">January 2025</p>
-                                <Button variant="ghost" size="icon" className="text-white/70 hover:text-white"><ChevronRight/></Button>
+                                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground"><ChevronLeft/></Button>
+                                <p className="font-semibold">January 2025</p>
+                                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground"><ChevronRight/></Button>
                             </div>
                             <div className="grid grid-cols-7 gap-1 text-center">
                                 {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => (
-                                    <div key={day} className="text-xs text-white/50 font-medium py-2">{day}</div>
+                                    <div key={day} className="text-xs text-muted-foreground font-medium py-2">{day}</div>
                                 ))}
                                 {calendarDays.map((day, i) => (
                                     <CalendarDay 
@@ -149,7 +149,7 @@ export default function PersonalizedTutor() {
                             </div>
                         </div>
                         <div className="space-y-4">
-                           {studyPlanData[selectedDay] || <div className="text-center text-white/50 pt-16">No study items for this day.</div>}
+                           {studyPlanData[selectedDay] || <div className="text-center text-muted-foreground pt-16">No study items for this day.</div>}
                         </div>
                     </div>
                 </div>

@@ -42,7 +42,7 @@ export default function HowItWorks() {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6">How It Works</h2>
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6">How It Works</h2>
           <p className="text-xl text-gray-400 max-w-3xl mx-auto">
             A simple, effective approach to supercharge your study sessions.
           </p>
@@ -165,7 +165,7 @@ export default function HowItWorks() {
                   <div className="text-4xl font-bold text-gray-600">{step.number}</div>
                   <div className="text-blue-400">{step.icon}</div>
                 </div>
-                <h3 className="text-2xl font-bold text-white group-hover:text-blue-400 transition-colors">
+                <h3 className="text-2xl font-bold group-hover:text-blue-400 transition-colors">
                   {step.title}
                 </h3>
                 <p className="text-gray-400 leading-relaxed">{step.description}</p>

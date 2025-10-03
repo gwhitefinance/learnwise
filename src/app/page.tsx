@@ -70,7 +70,7 @@ const TypingBubble = () => {
 
 
 const Hero = () => (
-  <section className="relative py-20 lg:py-28 text-white text-center overflow-hidden">
+  <section className="relative py-20 lg:py-28 text-center overflow-hidden">
     <div className="container mx-auto px-4 relative z-10">
       {/* Floating Icons */}
       <motion.div
@@ -285,8 +285,8 @@ export default function Home() {
 
   return (
     <main className={cn(
-        "bg-background text-white",
-        theme === 'dark' ? 'dark-grid dark' : 'bg-white text-black'
+        "bg-background",
+        theme === 'dark' ? 'dark-grid dark text-white' : 'bg-white text-black'
     )}>
       <Navbar onThemeToggle={toggleTheme} theme={theme} />
       <Hero />
