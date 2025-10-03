@@ -1,19 +1,18 @@
+// src/app/dashboard/analysis/page.tsx
 
-import { default as dynamic } from 'next/dynamic';
-import { Suspense } from 'react';
+import dynamic from 'next/dynamic';
 import Loading from './loading';
 
-export const dynamic = "force-dynamic";
+// Force this page to be dynamically rendered at request time, not at build time.
+export const dynamic = 'force-dynamic';
 
+// Dynamically import the client component. 
+// We remove `ssr: false` as it's not allowed in Server Components.
+// The 'use client' directive within AnalysisClientPage will ensure it behaves as expected.
 const AnalysisClientPage = dynamic(() => import('./AnalysisClientPage'), {
-    ssr: false,
-    loading: () => <Loading />,
+  loading: () => <Loading />,
 });
 
 export default function AnalysisPage() {
-    return (
-        <Suspense fallback={<Loading />}>
-            <AnalysisClientPage />
-        </Suspense>
-    );
+  return <AnalysisClientPage />;
 }
