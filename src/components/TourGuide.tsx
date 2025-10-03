@@ -48,7 +48,7 @@ const tourStepsConfig: any = {
             step: 4,
             title: "Recent Files & Courses",
             content: "Quickly access your most recent documents and active courses right here.",
-            elementId: 'recent-files',
+            elementId: 'recent-files-card',
             position: 'bottom-end',
         },
         {
@@ -198,8 +198,8 @@ const TourGuide = () => {
 
     return (
         <div className="fixed inset-0 z-40 p-4 pointer-events-none">
-             {isTourActive && <div className="fixed inset-0 bg-black/30 z-40" />}
-             {elementRect && (
+            {isTourActive && <div className="fixed inset-0 bg-black/60 z-40" />}
+            {elementRect && (
                 <div
                     className="fixed z-40 rounded-lg border-2 border-dashed border-primary bg-primary/10 transition-all duration-300 pointer-events-none"
                     style={{
@@ -210,34 +210,36 @@ const TourGuide = () => {
                     }}
                 />
             )}
-
             <motion.div
                 key={tourStep}
-                initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 20, scale: 0.95 }}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                className="relative max-w-sm w-full z-50 fixed pointer-events-auto"
+                className="relative w-full z-50 fixed pointer-events-auto flex items-start gap-4"
                 style={getPositionStyles()}
             >
-                 <div className="absolute -top-12 left-1/2 -translate-x-1/2">
-                    <div className="size-24 rounded-full bg-primary text-white shadow-lg flex items-center justify-center ring-4 ring-card">
-                       <AIBuddy className="w-20 h-20"/>
-                    </div>
+                <div className="w-20 h-20 rounded-full bg-primary text-white shadow-lg flex items-center justify-center ring-4 ring-card flex-shrink-0">
+                    <AIBuddy className="w-16 h-16"/>
                 </div>
-                <div className="bg-card rounded-xl shadow-2xl p-6 pt-16 text-center">
-                    <h3 className="text-lg font-bold mb-2">{currentStepConfig.title}</h3>
+                <div className="bg-card rounded-xl shadow-2xl p-4 max-w-xs w-full">
+                    <div className="flex justify-between items-center mb-2">
+                        <h3 className="text-md font-bold">{currentStepConfig.title}</h3>
+                         <Button variant="ghost" size="icon" className="h-6 w-6" onClick={endTour}>
+                            <X className="h-4 w-4"/>
+                        </Button>
+                    </div>
+
                     <p className="text-sm text-muted-foreground mb-4">{currentStepConfig.content}</p>
-                    <div className="flex justify-center gap-2">
-                        {currentStepConfig.isFinal ? (
+
+                    <div className="flex justify-end gap-2">
+                         {currentStepConfig.isFinal ? (
                             <Button size="sm" onClick={endTour} className="bg-primary hover:bg-primary/90">Explore Dashboard</Button>
                         ) : (
-                            <>
-                                <Button size="sm" variant="ghost" onClick={endTour} className="text-muted-foreground">Dismiss</Button>
-                                <Button size="sm" onClick={() => currentStepConfig.action === 'generateOutlines' ? handleGenerateLabOutlines() : nextTourStep(currentStepConfig.nextPath)} className="bg-primary hover:bg-primary/90" disabled={isGenerating}>
-                                    {isGenerating ? 'Generating...' : 'Next'}
-                                </Button>
-                            </>
+                            <Button size="sm" onClick={() => currentStepConfig.action === 'generateOutlines' ? handleGenerateLabOutlines() : nextTourStep(currentStepConfig.nextPath)} className="bg-primary hover:bg-primary/90" disabled={isGenerating}>
+                                {isGenerating ? 'Generating...' : 'Next'}
+                                <ArrowRight className="h-4 w-4 ml-2"/>
+                            </Button>
                         )}
                     </div>
                 </div>
