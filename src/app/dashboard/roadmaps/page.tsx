@@ -309,7 +309,7 @@ export default function RoadmapsPage() {
                     ) : (
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                             <div className="lg:col-span-2 space-y-8">
-                                <div className="flex justify-between items-center">
+                                <div className="flex justify-between items-center" id="roadmap-goals">
                                     <h2 className="text-2xl font-semibold">Goals</h2>
                                     <Button variant="outline" size="sm" onClick={() => openItemDialog('goal')}>
                                         <Plus className="mr-2 h-4 w-4"/> Add Goal
@@ -357,7 +357,7 @@ export default function RoadmapsPage() {
                                 </div>
                             </div>
                              <div className="space-y-8">
-                                <div className="flex justify-between items-center">
+                                <div className="flex justify-between items-center" id="roadmap-milestones">
                                     <h2 className="text-2xl font-semibold">Milestones</h2>
                                      <Button variant="outline" size="sm" onClick={() => openItemDialog('milestone')}>
                                         <Plus className="mr-2 h-4 w-4"/> Add Milestone

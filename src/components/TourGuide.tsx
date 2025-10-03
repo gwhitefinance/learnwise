@@ -72,21 +72,35 @@ const tourStepsConfig: any = {
          {
             step: 7,
             title: "Study Roadmaps",
-            content: "Here are the AI-generated roadmaps for your courses, complete with goals and milestones to guide you.",
+            content: "Here are the AI-generated roadmaps for your courses. This gives you a high-level plan for your learning.",
             position: 'center',
-            nextPath: '/dashboard/learning-lab'
         },
+        {
+            step: 8,
+            title: "Your Goals",
+            content: "These are the main objectives you'll achieve by the end of the course. Think of it as your North Star!",
+            elementId: 'roadmap-goals',
+            position: 'bottom-start',
+        },
+        {
+            step: 9,
+            title: "Your Milestones",
+            content: "And these are the step-by-step topics you'll master along the way. Each one is a step closer to your goal.",
+            elementId: 'roadmap-milestones',
+            position: 'bottom-start',
+            nextPath: '/dashboard/learning-lab'
+        }
     ],
     '/dashboard/learning-lab': [
          {
-            step: 8,
+            step: 10,
             title: "The Learning Lab",
             content: "This is where the magic happens. Let's generate the full outline for your courses now.",
             position: 'center',
             action: 'generateOutlines',
         },
         {
-            step: 9,
+            step: 11,
             title: "You're All Set!",
             content: "Your dashboard is ready. Feel free to explore, or chat with me if you have any questions.",
             position: 'center',
