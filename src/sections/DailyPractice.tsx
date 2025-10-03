@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import { Calendar, BookOpen, MessageSquare, HelpCircle, Plus, ArrowRight, Play } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const ActivityCard = ({ icon, title, duration, progress, theme, actionText, actionVariant, progressColor }: { icon: React.ReactNode, title: string, duration: string, progress: number, theme: string, actionText: string, actionVariant?: 'primary' | 'secondary', progressColor?: string }) => (
     <div className={cn("border rounded-2xl p-6 flex flex-col", theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200')}>
@@ -39,7 +40,13 @@ export default function DailyPractice({ theme }: { theme: string }) {
     const topics = ["Cell Respiration", "Osmosis"];
 
     return (
-        <section className="py-24">
+        <motion.section 
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="py-24"
+        >
             <div className="container text-center">
                 <h2 className={cn("text-4xl md:text-5xl font-bold tracking-tighter", theme === 'dark' ? 'text-white' : 'text-black')}>
                     Daily <span className="text-blue-400">Practice</span>
@@ -106,6 +113,6 @@ export default function DailyPractice({ theme }: { theme: string }) {
                     </div>
                 </div>
             </div>
-        </section>
+        </motion.section>
     );
 }

@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -7,6 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import { ChevronLeft, ChevronRight, HelpCircle, FileQuestion, Copy, BrainCircuit } from 'lucide-react';
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 
 const CalendarDay = ({ day, isSelected, isOtherMonth, onClick, hasEvent, theme }: { day: number, isSelected?: boolean, isOtherMonth?: boolean, onClick: () => void, hasEvent?: boolean, theme: string }) => (
     <button
@@ -122,7 +122,13 @@ export default function PersonalizedTutor({ theme }: { theme: string }) {
     const StudyPlanForDay = studyPlanData[selectedDay];
 
     return (
-        <section className="py-24">
+        <motion.section 
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="py-24"
+        >
             <div className="container text-center">
                 <h2 className={cn("text-4xl md:text-5xl font-bold tracking-tighter", theme === 'dark' ? 'text-white' : 'text-black')}>
                     <span className="text-blue-400">Study</span> Smarter
@@ -165,6 +171,6 @@ export default function PersonalizedTutor({ theme }: { theme: string }) {
                     </div>
                 </div>
             </div>
-        </section>
+        </motion.section>
     )
 }
