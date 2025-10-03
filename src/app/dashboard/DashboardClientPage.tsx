@@ -839,7 +839,7 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
 
                 <div className="grid grid-cols-1 gap-8 md:grid-cols-2 mt-8">
                     <section className="space-y-4" id="recent-files">
-                        <Card className="bg-orange-500/10 border-orange-500/20 text-orange-900 dark:text-orange-200">
+                        <Card className="bg-orange-500/10 border-orange-500/20 text-orange-900 dark:text-orange-200" id="streak-card">
                            <CardContent className="p-6 flex items-center gap-6">
                                 <div className="p-4 bg-white/50 rounded-full">
                                     <Flame className="w-8 h-8 text-orange-500" />
@@ -930,7 +930,7 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                 </Dialog>
                            </CardContent>
                         </Card>
-                        <Card>
+                        <Card id="recent-files-card">
                              <CardHeader>
                                 <CardTitle>Recent Files</CardTitle>
                                 <CardDescription>Your most recently accessed documents.</CardDescription>
@@ -1366,5 +1366,3 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
 }
 
 export default DashboardClientPage;
-
-    

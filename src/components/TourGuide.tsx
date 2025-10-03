@@ -39,13 +39,20 @@ const tourStepsConfig: any = {
         },
         {
             step: 3,
-            title: "Streak & Recent Files",
-            content: "Track your study streak and quickly access your recent documents right here.",
-            elementId: 'recent-files',
-            position: 'bottom-end',
+            title: "Streak & Rewards",
+            content: "Track your study streak and claim rewards for your consistency.",
+            elementId: 'streak-card',
+            position: 'bottom',
         },
         {
             step: 4,
+            title: "Recent Files",
+            content: "Quickly access your most recent documents right here.",
+            elementId: 'recent-files-card',
+            position: 'bottom',
+        },
+        {
+            step: 5,
             title: "Navigation",
             content: "Use these tabs to explore different sections like your files, projects, and learning tools.",
             elementId: 'main-tabs-nav',
@@ -55,23 +62,23 @@ const tourStepsConfig: any = {
     ],
     '/dashboard/courses': [
          {
-            step: 5,
+            step: 6,
             title: "Your Courses",
             content: "We've created starter courses for you based on your interests. You can view them all here.",
             position: 'center',
         },
         {
-            step: 6,
+            step: 7,
             title: "Add a Course",
             content: "You can also manually add a new course at any time by clicking this button.",
-            elementId: 'add-course-button', // This ID will need to be added to the button
+            elementId: 'add-course-button',
             position: 'bottom-end',
             nextPath: '/dashboard/roadmaps'
         }
     ],
     '/dashboard/roadmaps': [
          {
-            step: 7,
+            step: 8,
             title: "Study Roadmaps",
             content: "Here are the AI-generated roadmaps for your courses, complete with goals and milestones to guide you.",
             position: 'center',
@@ -80,14 +87,14 @@ const tourStepsConfig: any = {
     ],
     '/dashboard/learning-lab': [
          {
-            step: 8,
+            step: 9,
             title: "The Learning Lab",
             content: "This is where the magic happens. Let's generate the full outline for your courses now.",
             position: 'center',
             action: 'generateOutlines',
         },
         {
-            step: 9,
+            step: 10,
             title: "You're All Set!",
             content: "Your dashboard is ready. Feel free to explore, or chat with me if you have any questions.",
             position: 'center',
@@ -212,7 +219,7 @@ const TourGuide = () => {
                 className="relative max-w-sm w-full z-50 fixed pointer-events-auto"
                 style={getPositionStyles()}
             >
-               <div className="bg-card rounded-xl shadow-2xl p-4 flex items-start gap-4">
+                <div className="bg-card rounded-xl shadow-2xl p-4 flex items-start gap-4">
                     <div className="size-16 rounded-full bg-primary text-white shadow-lg flex items-center justify-center ring-4 ring-card shrink-0">
                         <AIBuddy className="w-14 h-14"/>
                     </div>
