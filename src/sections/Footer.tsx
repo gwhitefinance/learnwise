@@ -13,8 +13,8 @@ export default function Footer() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
           <div className="lg:col-span-5 space-y-8">
             <div className="group flex items-center gap-2">
-               <Logo className="h-8 w-8 text-white" />
                <span className="font-bold text-2xl text-white">Tutorin</span>
+               <Logo className="h-8 w-8 text-white" />
             </div>
             <p className="text-gray-400 text-lg leading-relaxed max-w-md">
               Empowering learners to build powerful study habits that drive real understanding.

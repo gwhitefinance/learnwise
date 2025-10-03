@@ -560,12 +560,12 @@ export default function DashboardLayout({
             <div className="flex h-full flex-col border-r">
             <div className="flex items-center justify-between p-4">
                 <div className="flex items-center gap-3">
-                <div className="flex aspect-square size-10 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-600 to-blue-600 text-white">
-                    <Logo className="size-5" />
-                </div>
                 <div>
                     <h2 className="font-semibold">Tutorin</h2>
                     <p className="text-xs text-muted-foreground">Study Suite</p>
+                </div>
+                <div className="flex aspect-square size-10 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-600 to-blue-600 text-white">
+                    <Logo className="size-5" />
                 </div>
                 </div>
                 <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(false)}>
@@ -614,12 +614,12 @@ export default function DashboardLayout({
             <div className="flex h-full flex-col">
             <div className="p-4">
                 <div className="flex items-center gap-3">
-                <div className="flex aspect-square size-10 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-600 to-blue-600 text-white">
-                    <Logo className="size-5" />
-                </div>
                 <div>
                     <h2 className="font-semibold">Tutorin</h2>
                     <p className="text-xs text-muted-foreground">Study Suite</p>
+                </div>
+                <div className="flex aspect-square size-10 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-600 to-blue-600 text-white">
+                    <Logo className="size-5" />
                 </div>
                 </div>
             </div>
