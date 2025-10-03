@@ -1,5 +1,5 @@
 
-import dynamic from 'next/dynamic';
+import { default as dynamic } from 'next/dynamic';
 import { Suspense } from 'react';
 import Loading from './loading';
 
