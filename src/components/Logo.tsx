@@ -7,39 +7,45 @@ const Logo = ({ className }: { className?: string }) => (
   <svg
     width="28"
     height="28"
-    viewBox="0 0 28 28"
-    fill="none"
+    viewBox="0 0 100 100"
     xmlns="http://www.w3.org/2000/svg"
     className={className}
   >
-    <path
-      d="M5.83333 11.6667C5.83333 8.16667 8.66667 5.83333 12.1667 5.83333H15.8333C19.3333 5.83333 22.1667 8.16667 22.1667 11.6667V14C22.1667 17.5 19.3333 19.8333 15.8333 19.8333H12.1667C8.66667 19.8333 5.83333 17.5 5.83333 14V11.6667Z"
-      stroke="#2563EB"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M14 19.8333V23.3333"
-      stroke="#2563EB"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M10.5 23.3333H17.5"
-      stroke="#2563EB"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M9.33331 2.33333L14 4.66667L18.6666 2.33333"
-      stroke="#2563EB"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
+    <g transform="translate(0, -5)">
+      {/* Lightbulb Screw Base */}
+      <path d="M40 85 H60 L62 90 H38 Z" fill="#E0E0E0" />
+      <path d="M41 90 H59 L61 95 H39 Z" fill="#BDBDBD" />
+      <path d="M42 95 H58 L60 100 H40 Z" fill="#E0E0E0" />
+
+      {/* Brain Shape */}
+      <path 
+        d="M50 15 C 25 15, 20 40, 30 50 C 15 55, 15 75, 35 80 C 35 90, 65 90, 65 80 C 85 75, 85 55, 70 50 C 80 40, 75 15, 50 15 Z"
+        fill="#FFC0CB"
+        stroke="#D18193"
+        strokeWidth="3"
+      />
+      {/* Brain Details/Lobes */}
+      <path d="M50 15 C 55 25, 65 25, 70 35" fill="none" stroke="#F4A7B9" strokeWidth="3" strokeLinecap="round" />
+      <path d="M48 20 C 40 28, 35 35, 35 45" fill="none" stroke="#F4A7B9" strokeWidth="3" strokeLinecap="round" />
+      <path d="M30 50 C 35 60, 45 65, 50 60" fill="none" stroke="#F4A7B9" strokeWidth="3" strokeLinecap="round" />
+      <path d="M70 50 C 65 60, 55 65, 50 60" fill="none" stroke="#F4A7B9" strokeWidth="3" strokeLinecap="round" />
+      <path d="M35 80 C 45 70, 55 70, 65 80" fill="none" stroke="#F4A7B9" strokeWidth="3" strokeLinecap="round" />
+      
+      {/* Face */}
+      <circle cx="43" cy="55" r="3" fill="#6D4C41" />
+      <circle cx="57" cy="55" r="3" fill="#6D4C41" />
+      <path d="M45 65 Q 50 70, 55 65" fill="none" stroke="#6D4C41" strokeWidth="2" strokeLinecap="round" />
+
+      {/* Sparks */}
+      <path d="M20 25 L25 30" stroke="#D18193" strokeWidth="2.5" strokeLinecap="round" />
+      <path d="M80 25 L75 30" stroke="#D18193" strokeWidth="2.5" strokeLinecap="round" />
+      <path d="M15 50 L22 50" stroke="#D18193" strokeWidth="2.5" strokeLinecap="round" />
+      <path d="M85 50 L78 50" stroke="#D18193" strokeWidth="2.5" strokeLinecap="round" />
+      <path d="M25 80 L30 75" stroke="#D18193" strokeWidth="2.5" strokeLinecap="round" />
+      <path d="M75 80 L70 75" stroke="#D18193" strokeWidth="2.5" strokeLinecap="round" />
+      <path d="M50 10 L50 18" stroke="#D18193" strokeWidth="2.5" strokeLinecap="round" />
+
+    </g>
   </svg>
 );
 
