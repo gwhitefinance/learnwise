@@ -25,7 +25,7 @@ type QuizAttempt = {
   topic: string; // Keep topic for potential future use
 };
 
-function AnalysisClientPage() {
+export default function AnalysisClientPage() {
   const [learnerType, setLearnerType] = useState('Visual');
   const [loading, setLoading] = useState(true);
   const [weakestCourse, setWeakestCourse] = useState<Course | null>(null);
@@ -222,5 +222,3 @@ function AnalysisClientPage() {
     </div>
   );
 }
-
-export default AnalysisClientPage;
