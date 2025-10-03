@@ -42,7 +42,7 @@ const tourStepsConfig: any = {
             title: "Streak & Recent Files",
             content: "Track your study streak and quickly access your recent documents right here.",
             elementId: 'recent-files',
-            position: 'bottom',
+            position: 'bottom-end',
         },
         {
             step: 4,
@@ -212,27 +212,30 @@ const TourGuide = () => {
                 className="relative max-w-sm w-full z-50 fixed pointer-events-auto"
                 style={getPositionStyles()}
             >
-                <div className="absolute -top-12 left-1/2 -translate-x-1/2">
-                    <div className="size-24 rounded-full bg-primary text-white shadow-lg flex items-center justify-center ring-4 ring-card">
-                        <AIBuddy className="w-20 h-20"/>
+               <div className="bg-card rounded-xl shadow-2xl p-4 flex items-start gap-4">
+                    <div className="size-16 rounded-full bg-primary text-white shadow-lg flex items-center justify-center ring-4 ring-card shrink-0">
+                        <AIBuddy className="w-14 h-14"/>
                     </div>
-                </div>
-               <div className="bg-card rounded-xl shadow-2xl p-6 pt-16 text-center">
-                    <h3 className="text-lg font-bold mb-2">{currentStepConfig.title}</h3>
-                    <p className="text-sm text-muted-foreground mb-4">{currentStepConfig.content}</p>
-                    <div className="flex justify-center gap-2">
-                        {currentStepConfig.isFinal ? (
-                            <Button size="sm" onClick={endTour} className="bg-primary hover:bg-primary/90">Explore Dashboard</Button>
-                        ) : (
-                            <>
-                                <Button size="sm" variant="ghost" onClick={endTour} className="text-muted-foreground h-8 px-3">Dismiss</Button>
-                                <Button size="sm" onClick={() => currentStepConfig.action === 'generateOutlines' ? handleGenerateLabOutlines() : nextTourStep(currentStepConfig.nextPath)} className="bg-primary hover:bg-primary/90 h-8 px-3" disabled={isGenerating}>
-                                    {isGenerating ? 'Generating...' : 'Next'}
-                                    <ArrowRight className="h-4 w-4 ml-2"/>
-                                </Button>
-                            </>
-                        )}
+                    <div className="flex-1">
+                        <h3 className="text-md font-bold mb-1">{currentStepConfig.title}</h3>
+                        <p className="text-xs text-muted-foreground mb-3">{currentStepConfig.content}</p>
+                        <div className="flex justify-start gap-2">
+                             {currentStepConfig.isFinal ? (
+                                <Button size="sm" onClick={endTour} className="bg-primary hover:bg-primary/90 text-xs h-7 px-3">Explore Dashboard</Button>
+                            ) : (
+                                <>
+                                    <Button size="sm" variant="ghost" onClick={endTour} className="text-muted-foreground h-7 px-2 text-xs">Dismiss</Button>
+                                    <Button size="sm" onClick={() => currentStepConfig.action === 'generateOutlines' ? handleGenerateLabOutlines() : nextTourStep(currentStepConfig.nextPath)} className="bg-primary hover:bg-primary/90 h-7 px-3 text-xs" disabled={isGenerating}>
+                                        {isGenerating ? 'Generating...' : 'Next'}
+                                        <ArrowRight className="h-3 w-3 ml-1.5"/>
+                                    </Button>
+                                </>
+                            )}
+                        </div>
                     </div>
+                     <button onClick={endTour} className="absolute top-2 right-2 text-muted-foreground hover:text-foreground">
+                        <X className="h-4 w-4" />
+                    </button>
                 </div>
             </motion.div>
         </div>
@@ -240,5 +243,3 @@ const TourGuide = () => {
 };
 
 export default TourGuide;
-
-    
