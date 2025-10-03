@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useContext } from 'react';
@@ -675,7 +676,7 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
     <div className="space-y-8 mt-0">
         
         <Tabs defaultValue="home" id="main-tabs">
-            <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4" id="main-tabs-nav">
               <TabsList className="grid w-full max-w-[750px] grid-cols-6 rounded-2xl p-1">
                 <TabsTrigger value="home" className="rounded-xl data-[state=active]:rounded-xl" id="home-tab-trigger"><Home className="w-4 h-4 mr-2"/>Home</TabsTrigger>
                 <TabsTrigger value="apps" className="rounded-xl data-[state=active]:rounded-xl" id="apps-tab-trigger"><LayoutGrid className="w-4 h-4 mr-2"/>Apps</TabsTrigger>
@@ -1365,3 +1366,5 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
 }
 
 export default DashboardClientPage;
+
+    

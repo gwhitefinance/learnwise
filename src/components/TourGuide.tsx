@@ -27,46 +27,67 @@ const tourStepsConfig: any = {
         {
             step: 1,
             title: "Welcome to LearnWise!",
-            content: "This is your central hub for all learning activities. Let's take a quick look around.",
+            content: "I'm your AI buddy, here to guide you. Let's take a quick look around.",
             position: 'center',
         },
         {
             step: 2,
             title: "Your Dashboard",
-            content: "This is your welcome banner, where you'll find quick actions and an overview of your progress.",
+            content: "This is your welcome banner. You'll find quick actions and an overview of your progress here.",
             elementId: 'welcome-banner',
+            position: 'bottom-start',
+        },
+        {
+            step: 3,
+            title: "Streak & Recent Files",
+            content: "Track your study streak and quickly access your recent documents right here.",
+            elementId: 'recent-files',
+            position: 'bottom',
+        },
+        {
+            step: 4,
+            title: "Navigation",
+            content: "Use these tabs to explore different sections like your files, projects, and learning tools.",
+            elementId: 'main-tabs-nav',
             position: 'bottom-start',
             nextPath: '/dashboard/courses',
         },
     ],
     '/dashboard/courses': [
          {
-            step: 3,
+            step: 5,
             title: "Your Courses",
-            content: "We've created a few starter courses for you based on your interests. Next, we'll check out your study plans.",
+            content: "We've created starter courses for you based on your interests. You can view them all here.",
             position: 'center',
-            nextPath: '/dashboard/roadmaps'
         },
+        {
+            step: 6,
+            title: "Add a Course",
+            content: "You can also manually add a new course at any time by clicking this button.",
+            elementId: 'add-course-button', // This ID will need to be added to the button
+            position: 'bottom-end',
+            nextPath: '/dashboard/roadmaps'
+        }
     ],
     '/dashboard/roadmaps': [
          {
-            step: 4,
+            step: 7,
             title: "Study Roadmaps",
-            content: "Here are the AI-generated roadmaps for your courses. Now, let's head to the Learning Lab to generate the course content!",
+            content: "Here are the AI-generated roadmaps for your courses, complete with goals and milestones to guide you.",
             position: 'center',
             nextPath: '/dashboard/learning-lab'
         },
     ],
     '/dashboard/learning-lab': [
          {
-            step: 5,
+            step: 8,
             title: "The Learning Lab",
             content: "This is where the magic happens. Let's generate the full outline for your courses now.",
             position: 'center',
             action: 'generateOutlines',
         },
         {
-            step: 6,
+            step: 9,
             title: "You're All Set!",
             content: "Your dashboard is ready. Feel free to explore, or chat with me if you have any questions.",
             position: 'center',
@@ -152,6 +173,8 @@ const TourGuide = () => {
     
         const offset = 16; // 1rem
         switch (currentStepConfig.position) {
+            case 'bottom':
+                 return { top: `${elementRect.bottom + offset}px`, left: `${elementRect.left + elementRect.width / 2}px`, transform: 'translateX(-50%)' };
             case 'bottom-start':
                 return { top: `${elementRect.bottom + offset}px`, left: `${elementRect.left}px` };
             case 'bottom-end':
@@ -167,7 +190,7 @@ const TourGuide = () => {
 
 
     return (
-        <div className="fixed inset-0 z-50 p-4 pointer-events-none">
+        <div className="fixed inset-0 z-40 p-4 pointer-events-none">
              {elementRect && (
                 <div
                     className="fixed z-40 rounded-lg border-2 border-dashed border-primary bg-primary/10 transition-all duration-300 pointer-events-none"
@@ -189,28 +212,26 @@ const TourGuide = () => {
                 className="relative max-w-sm w-full z-50 fixed pointer-events-auto"
                 style={getPositionStyles()}
             >
-               <div className="bg-card rounded-xl shadow-2xl p-4 text-left">
-                     <div className="absolute -top-12 left-1/2 -translate-x-1/2">
-                        <div className="size-24 rounded-full bg-primary text-white shadow-lg flex items-center justify-center ring-4 ring-card">
-                            <AIBuddy className="w-20 h-20"/>
-                        </div>
+                <div className="absolute -top-12 left-1/2 -translate-x-1/2">
+                    <div className="size-24 rounded-full bg-primary text-white shadow-lg flex items-center justify-center ring-4 ring-card">
+                        <AIBuddy className="w-20 h-20"/>
                     </div>
-                    <div className="pt-12 text-center">
-                        <h3 className="text-lg font-bold mb-2">{currentStepConfig.title}</h3>
-                        <p className="text-sm text-muted-foreground mb-4">{currentStepConfig.content}</p>
-                        <div className="flex justify-center gap-2">
-                           {currentStepConfig.isFinal ? (
-                                <Button size="sm" onClick={endTour} className="bg-primary hover:bg-primary/90">Explore Dashboard</Button>
-                            ) : (
-                                <>
-                                    <Button size="sm" variant="ghost" onClick={endTour} className="text-muted-foreground h-8 px-3">Dismiss</Button>
-                                    <Button size="sm" onClick={() => currentStepConfig.action === 'generateOutlines' ? handleGenerateLabOutlines() : nextTourStep(currentStepConfig.nextPath)} className="bg-primary hover:bg-primary/90 h-8 px-3" disabled={isGenerating}>
-                                        {isGenerating ? 'Generating...' : 'Next'}
-                                        <ArrowRight className="h-4 w-4 ml-2"/>
-                                    </Button>
-                                </>
-                            )}
-                        </div>
+                </div>
+               <div className="bg-card rounded-xl shadow-2xl p-6 pt-16 text-center">
+                    <h3 className="text-lg font-bold mb-2">{currentStepConfig.title}</h3>
+                    <p className="text-sm text-muted-foreground mb-4">{currentStepConfig.content}</p>
+                    <div className="flex justify-center gap-2">
+                        {currentStepConfig.isFinal ? (
+                            <Button size="sm" onClick={endTour} className="bg-primary hover:bg-primary/90">Explore Dashboard</Button>
+                        ) : (
+                            <>
+                                <Button size="sm" variant="ghost" onClick={endTour} className="text-muted-foreground h-8 px-3">Dismiss</Button>
+                                <Button size="sm" onClick={() => currentStepConfig.action === 'generateOutlines' ? handleGenerateLabOutlines() : nextTourStep(currentStepConfig.nextPath)} className="bg-primary hover:bg-primary/90 h-8 px-3" disabled={isGenerating}>
+                                    {isGenerating ? 'Generating...' : 'Next'}
+                                    <ArrowRight className="h-4 w-4 ml-2"/>
+                                </Button>
+                            </>
+                        )}
                     </div>
                 </div>
             </motion.div>
@@ -219,3 +240,5 @@ const TourGuide = () => {
 };
 
 export default TourGuide;
+
+    

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -193,7 +194,7 @@ function CoursesTable({ initialCourses }: { initialCourses: Course[] }) {
         <h1 className="text-3xl font-bold">My Courses</h1>
         <Dialog open={isAddCourseOpen} onOpenChange={setAddCourseOpen}>
             <DialogTrigger asChild>
-                <Button>
+                <Button id="add-course-button">
                   <Plus className="mr-2 h-4 w-4" /> Add Course
                 </Button>
             </DialogTrigger>
@@ -353,5 +354,7 @@ function LoadingSkeleton() {
 const CoursesTableComponent = dynamic(() => Promise.resolve(CoursesTable), { ssr: false });
 
 export default CoursesTableComponent;
+
+    
 
     
