@@ -134,28 +134,30 @@ const TourGuide = () => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 50, scale: 0.9 }}
             transition={{ type: "spring", stiffness: 400, damping: 25 }}
-            className={`fixed z-[100] w-80 bg-card/80 backdrop-blur-lg p-4 rounded-2xl shadow-xl border border-border/30 ${getPositionClass(currentStepConfig.position)}`}
+            className={`fixed z-[100] w-96 bg-card/80 backdrop-blur-lg p-4 rounded-2xl shadow-xl border border-border/30 ${getPositionClass(currentStepConfig.position)}`}
         >
-            <div className="flex flex-col gap-4">
-                 <div className="flex items-start justify-between">
-                     <AIBuddy className="w-16 h-16 flex-shrink-0"/>
-                     <Button variant="ghost" size="icon" className="h-6 w-6" onClick={endTour}>
-                        <X className="h-4 w-4" />
-                    </Button>
-                </div>
-                <p className="text-sm text-card-foreground">{currentStepConfig.content}</p>
-                <div className="flex justify-end">
-                    {currentStepConfig.isFinal ? (
-                        <Button size="sm" onClick={endTour}>Explore Dashboard</Button>
-                    ) : currentStepConfig.action === 'generateOutlines' ? (
-                        <Button size="sm" onClick={handleGenerateLabOutlines} disabled={isGenerating}>
-                            {isGenerating ? "Generating..." : "Generate Course Outlines"}
+            <div className="flex gap-4 items-start">
+                <AIBuddy className="w-16 h-16 flex-shrink-0 mt-1"/>
+                <div className="flex-1 space-y-3">
+                    <div className="flex justify-between items-start">
+                        <p className="text-sm text-card-foreground pr-4">{currentStepConfig.content}</p>
+                         <Button variant="ghost" size="icon" className="h-6 w-6 flex-shrink-0" onClick={endTour}>
+                            <X className="h-4 w-4" />
                         </Button>
-                    ) : (
-                        <Button size="sm" onClick={() => nextTourStep(currentStepConfig.nextPath)}>
-                            Next <ArrowRight className="w-4 h-4 ml-2"/>
-                        </Button>
-                    )}
+                    </div>
+                    <div className="flex justify-end">
+                        {currentStepConfig.isFinal ? (
+                            <Button size="sm" onClick={endTour}>Explore Dashboard</Button>
+                        ) : currentStepConfig.action === 'generateOutlines' ? (
+                            <Button size="sm" onClick={handleGenerateLabOutlines} disabled={isGenerating}>
+                                {isGenerating ? "Generating..." : "Generate Course Outlines"}
+                            </Button>
+                        ) : (
+                            <Button size="sm" onClick={() => nextTourStep(currentStepConfig.nextPath)}>
+                                Next <ArrowRight className="w-4 h-4 ml-2"/>
+                            </Button>
+                        )}
+                    </div>
                 </div>
             </div>
         </motion.div>
