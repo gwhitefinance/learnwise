@@ -75,8 +75,7 @@ import AudioPlayer from '@/components/audio-player';
 import type { GenerateExplanationOutput } from '@/ai/schemas/quiz-explanation-schema';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { RewardContext } from '@/context/RewardContext';
-import { useSearchParams, useRouter } from 'next/navigation';
-
+import { useTour } from '@/app/dashboard/layout';
 
   type CourseFile = {
       id: string;
@@ -252,76 +251,7 @@ function DashboardPageClient({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
     const [learnerType, setLearnerType] = useState<string | null>(null);
     const [gradeLevel, setGradeLevel] = useState<string | null>(null);
     const { showReward } = useContext(RewardContext);
-
-    // Tour State
-    const searchParams = useSearchParams();
-    const router = useRouter();
-    const [tourStep, setTourStep] = useState(0);
-    const [isTourActive, setIsTourActive] = useState(false);
-    const [isGeneratingLab, setIsGeneratingLab] = useState(false);
-
-
-    useEffect(() => {
-        const tourParam = searchParams.get('tour');
-        if (tourParam === 'true' && user) {
-            setIsTourActive(true);
-            setTourStep(1);
-             // Clean the URL
-            const nextUrl = window.location.pathname;
-            window.history.replaceState({}, '', nextUrl);
-        }
-    }, [searchParams, user]);
-    
-    const handleNextTourStep = (path?: string) => {
-        setTourStep(prev => prev + 1);
-        if (path) {
-            router.push(path);
-        }
-    };
-    
-    const endTour = () => {
-        setIsTourActive(false);
-        setTourStep(0);
-    };
-
-    const handleGenerateLabOutline = async () => {
-        if (!user || !learnerType || courses.length === 0) return;
-        setIsGeneratingLab(true);
-        toast({ title: "Generating Lab Outlines...", description: "This might take a minute." });
-        
-        try {
-            const courseOutlinePromises = courses.map(async (course) => {
-                const outline = await generateMiniCourse({
-                    courseName: course.name,
-                    courseDescription: course.description || `A course about ${course.name}.`,
-                    learnerType: learnerType as any,
-                });
-                
-                const newUnits = outline.modules.map(module => ({
-                    id: crypto.randomUUID(),
-                    title: module.title,
-                    chapters: module.chapters.map(chapter => ({
-                        ...chapter,
-                        id: crypto.randomUUID(),
-                    }))
-                }));
-
-                const courseRef = doc(db, 'courses', course.id);
-                await updateDoc(courseRef, { units: newUnits });
-            });
-            
-            await Promise.all(courseOutlinePromises);
-            toast({ title: "Success!", description: "All course outlines have been generated."});
-            handleNextTourStep();
-
-        } catch (error) {
-            console.error("Failed to generate lab outlines:", error);
-            toast({ variant: 'destructive', title: 'Generation Failed'});
-        } finally {
-            setIsGeneratingLab(false);
-        }
-    };
-
+    const { startTour } = useTour();
 
      useEffect(() => {
         if (!user) return;
@@ -746,73 +676,6 @@ function DashboardPageClient({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
   return (
     <div className="space-y-8 mt-0">
         
-        {isTourActive && (
-            <Dialog open={isTourActive} onOpenChange={setIsTourActive}>
-                <DialogContent className="max-w-md">
-                     {tourStep === 1 && (
-                        <>
-                        <DialogHeader>
-                            <DialogTitle className="text-center">Welcome to LearnWise!</DialogTitle>
-                            <DialogDescription className="text-center pt-4">This is your dashboard, the central hub for all your learning activities.</DialogDescription>
-                        </DialogHeader>
-                        <div className="flex justify-center p-4">
-                            <AIBuddy className="w-32 h-32" {...customizations} />
-                        </div>
-                        <DialogFooter>
-                            <Button className="w-full" onClick={() => handleNextTourStep('/dashboard/courses')}>Check out your new courses</Button>
-                        </DialogFooter>
-                        </>
-                    )}
-                    {tourStep === 2 && (
-                        <>
-                        <DialogHeader>
-                            <DialogTitle className="text-center">Your Courses</DialogTitle>
-                             <DialogDescription className="text-center pt-4">We've created a few starter courses based on your interests. Click on one to see its roadmap.</DialogDescription>
-                        </DialogHeader>
-                        <DialogFooter>
-                           <Button className="w-full" onClick={() => handleNextTourStep('/dashboard/roadmaps')}>Let's see the roadmaps!</Button>
-                        </DialogFooter>
-                        </>
-                    )}
-                     {tourStep === 3 && (
-                        <>
-                        <DialogHeader>
-                            <DialogTitle className="text-center">Study Roadmaps</DialogTitle>
-                             <DialogDescription className="text-center pt-4">Here are the AI-generated study plans for your courses, tailored to your learning pace. Next, let's head to the Learning Lab to generate the course content!</DialogDescription>
-                        </DialogHeader>
-                        <DialogFooter>
-                           <Button className="w-full" onClick={() => handleNextTourStep('/dashboard/learning-lab')}>Go to Learning Lab</Button>
-                        </DialogFooter>
-                        </>
-                    )}
-                    {tourStep === 4 && (
-                        <>
-                        <DialogHeader>
-                            <DialogTitle className="text-center">The Learning Lab</DialogTitle>
-                            <DialogDescription className="text-center pt-4">This is where the magic happens. Let's generate the full outline for all your courses now.</DialogDescription>
-                        </DialogHeader>
-                        <DialogFooter>
-                           <Button className="w-full" onClick={handleGenerateLabOutline} disabled={isGeneratingLab}>
-                               {isGeneratingLab ? "Generating..." : "Generate Course Outlines"}
-                           </Button>
-                        </DialogFooter>
-                        </>
-                    )}
-                     {tourStep === 5 && (
-                        <>
-                        <DialogHeader>
-                            <DialogTitle className="text-center">You're All Set!</DialogTitle>
-                            <DialogDescription className="text-center pt-4">Your dashboard is ready. Feel free to explore, start a learning lab, or chat with your AI buddy if you have any questions.</DialogDescription>
-                        </DialogHeader>
-                        <DialogFooter>
-                            <Button className="w-full" onClick={endTour}>Explore Dashboard</Button>
-                        </DialogFooter>
-                        </>
-                    )}
-                </DialogContent>
-            </Dialog>
-        )}
-        
         <Tabs defaultValue="home" id="main-tabs">
             <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <TabsList className="grid w-full max-w-[750px] grid-cols-6 rounded-2xl p-1">
@@ -957,7 +820,7 @@ function DashboardPageClient({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                         <ArrowRight className="ml-2 h-4 w-4" />
                                     </Button>
                                 </Link>
-                                <Button variant="outline" className="bg-white/20 text-white hover:bg-white/30 rounded-xl" onClick={() => { setIsTourActive(true); setTourStep(1); }}>
+                                <Button variant="outline" className="bg-white/20 text-white hover:bg-white/30 rounded-xl" onClick={startTour}>
                                     Start Tour
                                 </Button>
                             </div>

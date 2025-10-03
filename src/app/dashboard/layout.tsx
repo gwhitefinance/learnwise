@@ -2,7 +2,7 @@
 
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, createContext, useContext } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Award,
@@ -66,7 +66,7 @@ import {
   Shield,
 } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -93,6 +93,9 @@ import { Progress } from '@/components/ui/progress';
 import { RewardProvider } from '@/context/RewardContext';
 import RewardPopup from '@/components/RewardPopup';
 import FloatingChat from '@/components/floating-chat';
+import TourGuide from '@/components/TourGuide';
+import { generateMiniCourse } from '@/lib/actions';
+import { useToast } from '@/hooks/use-toast';
 
 
 // Sample data for sidebar navigation
@@ -186,6 +189,23 @@ const sidebarItems = [
     }
   ];
 
+interface TourContextType {
+    isTourActive: boolean;
+    tourStep: number;
+    startTour: () => void;
+    nextTourStep: (path?: string) => void;
+    endTour: () => void;
+}
+
+const TourContext = createContext<TourContextType>({
+    isTourActive: false,
+    tourStep: 0,
+    startTour: () => {},
+    nextTourStep: () => {},
+    endTour: () => {},
+});
+
+export const useTour = () => useContext(TourContext);
 
 const SidebarNavItem = ({ item, pathname, setMobileMenuOpen }: { item: any, pathname: string, setMobileMenuOpen: (open: boolean) => void }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -288,9 +308,45 @@ export default function DashboardLayout({
   const [userXp, setUserXp] = useState<number>(0);
   const [isHalloweenTheme, setIsHalloweenTheme] = useState(false);
 
+  // Tour State
+  const searchParams = useSearchParams();
+  const [isTourActive, setIsTourActive] = useState(false);
+  const [tourStep, setTourStep] = useState(0);
+
   useEffect(() => {
     setIsMounted(true);
-  }, []);
+    const tourParam = searchParams.get('tour');
+    if (tourParam === 'true') {
+        startTour();
+    }
+  }, [searchParams]);
+
+  const startTour = () => {
+    setIsTourActive(true);
+    setTourStep(1);
+    const nextUrl = window.location.pathname;
+    window.history.replaceState({}, '', nextUrl);
+  };
+
+  const nextTourStep = (path?: string) => {
+    setTourStep(prev => prev + 1);
+    if (path) {
+        router.push(path);
+    }
+  };
+  
+  const endTour = () => {
+    setIsTourActive(false);
+    setTourStep(0);
+  };
+
+  const tourContextValue = {
+      isTourActive,
+      tourStep,
+      startTour,
+      nextTourStep,
+      endTour
+  };
 
   useEffect(() => {
     if (!isMounted) return;
@@ -455,6 +511,7 @@ export default function DashboardLayout({
 
   return (
     <RewardProvider>
+    <TourContext.Provider value={tourContextValue}>
       <div className={cn(
           "relative min-h-screen overflow-hidden bg-background",
           isHalloweenTheme && 'halloween-bg'
@@ -687,9 +744,11 @@ export default function DashboardLayout({
             </main>
         </div>
       </div>
+      <TourGuide />
       <FloatingChat />
       <RewardPopup />
       <Toaster />
+    </TourContext.Provider>
     </RewardProvider>
   );
 }
