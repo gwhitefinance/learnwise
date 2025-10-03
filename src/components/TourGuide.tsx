@@ -42,14 +42,14 @@ const tourStepsConfig: any = {
             title: "Streak & Rewards",
             content: "Track your study streak and claim rewards for your consistency.",
             elementId: 'streak-card',
-            position: 'bottom',
+            position: 'right',
         },
         {
             step: 4,
-            title: "Recent Files & Courses",
-            content: "Quickly access your most recent documents and active courses right here.",
+            title: "Recent Files",
+            content: "Quickly access your most recent documents right here.",
             elementId: 'recent-files-card',
-            position: 'bottom-end',
+            position: 'top-start',
         },
         {
             step: 5,
@@ -118,7 +118,7 @@ const TourGuide = () => {
             const element = document.getElementById(currentStepConfig.elementId);
             if (element) {
                 setElementRect(element.getBoundingClientRect());
-                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                element.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
             }
         } else {
             setElementRect(null);
@@ -190,6 +190,8 @@ const TourGuide = () => {
                  return { bottom: `${window.innerHeight - elementRect.top + offset}px`, left: `${elementRect.left}px` };
             case 'top-end':
                  return { bottom: `${window.innerHeight - elementRect.top + offset}px`, right: `${window.innerWidth - elementRect.right}px` };
+            case 'right':
+                return { top: `${elementRect.top + elementRect.height / 2}px`, left: `${elementRect.right + offset}px`, transform: 'translateY(-50%)' };
             default:
                 return { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' };
         }
@@ -216,31 +218,29 @@ const TourGuide = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                className="relative w-full z-50 fixed pointer-events-auto flex items-start gap-4"
+                className="relative w-full z-50 fixed pointer-events-auto"
                 style={getPositionStyles()}
             >
-                <div className="w-20 h-20 rounded-full bg-primary text-white shadow-lg flex items-center justify-center ring-4 ring-card flex-shrink-0">
-                    <AIBuddy className="w-16 h-16"/>
-                </div>
-                <div className="bg-card rounded-xl shadow-2xl p-4 max-w-xs w-full">
-                    <div className="flex justify-between items-center mb-2">
-                        <h3 className="text-md font-bold">{currentStepConfig.title}</h3>
-                         <Button variant="ghost" size="icon" className="h-6 w-6" onClick={endTour}>
-                            <X className="h-4 w-4"/>
-                        </Button>
+                <div className="relative max-w-sm w-full">
+                    <div className="absolute -top-12 left-1/2 -translate-x-1/2">
+                        <div className="size-24 rounded-full bg-primary text-white shadow-lg flex items-center justify-center ring-4 ring-card">
+                             <AIBuddy className="w-20 h-20"/>
+                        </div>
                     </div>
-
-                    <p className="text-sm text-muted-foreground mb-4">{currentStepConfig.content}</p>
-
-                    <div className="flex justify-end gap-2">
-                         {currentStepConfig.isFinal ? (
-                            <Button size="sm" onClick={endTour} className="bg-primary hover:bg-primary/90">Explore Dashboard</Button>
-                        ) : (
-                            <Button size="sm" onClick={() => currentStepConfig.action === 'generateOutlines' ? handleGenerateLabOutlines() : nextTourStep(currentStepConfig.nextPath)} className="bg-primary hover:bg-primary/90" disabled={isGenerating}>
-                                {isGenerating ? 'Generating...' : 'Next'}
-                                <ArrowRight className="h-4 w-4 ml-2"/>
-                            </Button>
-                        )}
+                    <div className="bg-card rounded-xl shadow-2xl p-6 pt-16 text-center">
+                        <h3 className="text-lg font-bold mb-2">{currentStepConfig.title}</h3>
+                        <p className="text-sm text-muted-foreground mb-4">{currentStepConfig.content}</p>
+                        <div className="flex justify-center gap-2">
+                             <Button variant="ghost" size="sm" onClick={endTour}>Dismiss</Button>
+                             {currentStepConfig.isFinal ? (
+                                <Button size="sm" onClick={endTour} className="bg-primary hover:bg-primary/90">Explore Dashboard</Button>
+                            ) : (
+                                <Button size="sm" onClick={() => currentStepConfig.action === 'generateOutlines' ? handleGenerateLabOutlines() : nextTourStep(currentStepConfig.nextPath)} className="bg-primary hover:bg-primary/90" disabled={isGenerating}>
+                                    {isGenerating ? 'Generating...' : 'Next'}
+                                    <ArrowRight className="h-4 w-4 ml-2"/>
+                                </Button>
+                            )}
+                        </div>
                     </div>
                 </div>
             </motion.div>
