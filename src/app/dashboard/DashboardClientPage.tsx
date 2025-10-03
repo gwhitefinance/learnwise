@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { useState, useEffect, useContext } from 'react';
@@ -1367,5 +1365,3 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
 }
 
 export default DashboardClientPage;
-
-    

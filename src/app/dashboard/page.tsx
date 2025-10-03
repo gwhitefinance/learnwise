@@ -5,12 +5,12 @@
 import dynamic from 'next/dynamic';
 import DashboardLoading from './loading';
 
-const DashboardPageClient = dynamic(
-  () => import('./DashboardPageClient'),
+const DashboardClientPage = dynamic(
+  () => import('./DashboardClientPage'),
   { ssr: false, loading: () => <DashboardLoading /> }
 );
 
 
 export default function DashboardPage() {
-  return <DashboardPageClient />;
+  return <DashboardClientPage />;
 }
