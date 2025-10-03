@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useTour } from '@/app/dashboard/layout';
@@ -39,20 +38,13 @@ const tourStepsConfig: any = {
         },
         {
             step: 3,
-            title: "Streak & Rewards",
-            content: "Track your study streak and claim rewards for your consistency. This is a great way to stay motivated!",
-            elementId: 'streak-card',
+            title: "Track Your Progress",
+            content: "Here you can see your study streak and your most recent files. Keep the streak going to earn rewards!",
+            elementId: 'recent-files',
             position: 'right',
         },
         {
             step: 4,
-            title: "Recent Files & Courses",
-            content: "Your recent files and active courses will appear in these cards for easy access.",
-            elementId: 'recent-files-card',
-            position: 'bottom-end',
-        },
-        {
-            step: 5,
             title: "Navigation",
             content: "Use these tabs to explore different sections like your files, projects, and learning tools.",
             elementId: 'main-tabs-nav',
@@ -62,13 +54,13 @@ const tourStepsConfig: any = {
     ],
     '/dashboard/courses': [
          {
-            step: 6,
+            step: 5,
             title: "Your Courses",
             content: "We've created starter courses for you based on your interests. You can view them all here.",
             position: 'center',
         },
         {
-            step: 7,
+            step: 6,
             title: "Add a Course",
             content: "You can also manually add a new course at any time by clicking this button.",
             elementId: 'add-course-button',
@@ -78,7 +70,7 @@ const tourStepsConfig: any = {
     ],
     '/dashboard/roadmaps': [
          {
-            step: 8,
+            step: 7,
             title: "Study Roadmaps",
             content: "Here are the AI-generated roadmaps for your courses, complete with goals and milestones to guide you.",
             position: 'center',
@@ -87,14 +79,14 @@ const tourStepsConfig: any = {
     ],
     '/dashboard/learning-lab': [
          {
-            step: 9,
+            step: 8,
             title: "The Learning Lab",
             content: "This is where the magic happens. Let's generate the full outline for your courses now.",
             position: 'center',
             action: 'generateOutlines',
         },
         {
-            step: 10,
+            step: 9,
             title: "You're All Set!",
             content: "Your dashboard is ready. Feel free to explore, or chat with me if you have any questions.",
             position: 'center',
@@ -222,7 +214,7 @@ const TourGuide = () => {
 
 
     return (
-        <div className="fixed inset-0 z-40 p-4 bg-black/30 backdrop-blur-sm pointer-events-none">
+        <div className="fixed inset-0 z-40 p-4 bg-black/30 pointer-events-none">
             {elementRect && (
                 <div
                     className="fixed z-40 rounded-lg border-2 border-dashed border-primary bg-primary/10 transition-all duration-300 pointer-events-none"
