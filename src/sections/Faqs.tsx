@@ -8,12 +8,12 @@ import { twMerge } from "tailwind-merge";
 
 const faqs = [
     {
-        question: "How does LearnWise personalize my learning?",
-        answer: "LearnWise analyzes your uploaded materials—from work training documents to college lecture notes—and your learning style to generate custom roadmaps and quizzes that focus on what you need to learn most.",
+        question: "How does Tutorin personalize my learning?",
+        answer: "Tutorin analyzes your uploaded materials—from work training documents to college lecture notes—and your learning style to generate custom roadmaps and quizzes that focus on what you need to learn most.",
     },
     {
-        question: "Can I use LearnWise for professional development?",
-        answer: "Absolutely! LearnWise is designed for any learning scenario. Upload your company's training manuals, new project documentation, or any material you need to master for your job.",
+        question: "Can I use Tutorin for professional development?",
+        answer: "Absolutely! Tutorin is designed for any learning scenario. Upload your company's training manuals, new project documentation, or any material you need to master for your job.",
     },
     {
         question: "Is my data secure?",

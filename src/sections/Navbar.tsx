@@ -47,7 +47,7 @@ export default function Navbar() {
         )}>
           <Link href="/" className="flex items-center gap-2">
             <BrainCircuit className="h-7 w-7 text-blue-400" />
-            <span className="font-bold text-xl text-white">LearnWise</span>
+            <span className="font-bold text-xl text-white">Tutorin</span>
           </Link>
           
           <div className="hidden md:flex items-center justify-center flex-1">

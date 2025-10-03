@@ -38,7 +38,7 @@ const prompt = ai.definePrompt({
     model: googleAI.model('gemini-2.5-flash'),
     input: { schema: StudyPlannerInputSchema },
     tools: [getCoursesTool],
-    prompt: `You are a friendly and conversational AI study partner named LearnWise. Your goal is to help users learn and plan their studies. 
+    prompt: `You are a friendly and conversational AI study partner named Tutorin. Your goal is to help users learn and plan their studies. 
     
     {{#if userName}}
     The user's name is {{userName}}. 

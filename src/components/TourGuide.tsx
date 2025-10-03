@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useTour } from '@/app/dashboard/layout';
@@ -25,7 +26,7 @@ const tourStepsConfig: any = {
     '/dashboard': [
         {
             step: 1,
-            title: "Welcome to LearnWise!",
+            title: "Welcome to Tutorin!",
             content: "I'm your AI buddy, here to guide you. Let's take a quick look around.",
             position: 'center',
         },

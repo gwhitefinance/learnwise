@@ -563,7 +563,7 @@ export default function DashboardLayout({
                     <Wand2 className="size-5" />
                 </div>
                 <div>
-                    <h2 className="font-semibold">LearnWise</h2>
+                    <h2 className="font-semibold">Tutorin</h2>
                     <p className="text-xs text-muted-foreground">Study Suite</p>
                 </div>
                 </div>
@@ -617,7 +617,7 @@ export default function DashboardLayout({
                     <Wand2 className="size-5" />
                 </div>
                 <div>
-                    <h2 className="font-semibold">LearnWise</h2>
+                    <h2 className="font-semibold">Tutorin</h2>
                     <p className="text-xs text-muted-foreground">Study Suite</p>
                 </div>
                 </div>
@@ -667,7 +667,7 @@ export default function DashboardLayout({
                 <PanelLeft className="h-5 w-5" />
             </Button>
             <div className="flex flex-1 items-center justify-between">
-                <h1 className="text-xl font-semibold">LearnWise</h1>
+                <h1 className="text-xl font-semibold">Tutorin</h1>
                 <div className="flex items-center gap-3">
                 <TooltipProvider>
                     <Tooltip>

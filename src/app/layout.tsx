@@ -1,4 +1,5 @@
 
+
 import type React from "react"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
@@ -11,7 +12,7 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: "LearnWise",
+  title: "Tutorin",
   description: "Advanced AI-powered study suite for personalized learning.",
   icons: null,
 }

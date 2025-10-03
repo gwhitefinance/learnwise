@@ -64,7 +64,7 @@ export default function LoginPage() {
         <div className="h-full w-full overflow-hidden rounded-[40px] bg-gradient-to-b from-blue-400 via-blue-600 to-black">
           <div className="flex h-full flex-col items-center justify-center px-8 text-center text-white">
             <div className="mb-8">
-              <h1 className="text-2xl font-semibold">LearnWise</h1>
+              <h1 className="text-2xl font-semibold">Tutorin</h1>
             </div>
             <h2 className="mb-6 text-4xl font-bold">Welcome Back</h2>
             <p className="mb-12 text-lg">Enter your credentials to access your personalized learning dashboard.</p>
@@ -76,7 +76,7 @@ export default function LoginPage() {
       <div className="flex w-full items-center justify-center bg-black p-6 lg:w-1/2">
         <div className="w-full max-w-md rounded-[40px] p-12">
           <div className="mx-auto max-w-sm">
-            <h2 className="mb-2 text-3xl font-bold text-white">Log In to LearnWise</h2>
+            <h2 className="mb-2 text-3xl font-bold text-white">Log In to Tutorin</h2>
             <p className="mb-8 text-gray-400">Welcome back! Enter your details to continue.</p>
 
             <div className="mb-8 grid gap-4">

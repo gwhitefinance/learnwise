@@ -65,7 +65,7 @@ export default function SignUpPage() {
 
         toast({
             title: "Account Created!",
-            description: "Welcome to LearnWise. Let's get you set up.",
+            description: "Welcome to Tutorin. Let's get you set up.",
         });
         router.push('/onboarding/grade-level');
 
@@ -98,9 +98,9 @@ export default function SignUpPage() {
         <div className="h-full w-full overflow-hidden rounded-[40px] bg-gradient-to-b from-purple-400 via-purple-600 to-black">
           <div className="flex h-full flex-col items-center justify-center px-8 text-center text-white">
             <div className="mb-8">
-              <h1 className="text-2xl font-semibold">LearnWise</h1>
+              <h1 className="text-2xl font-semibold">Tutorin</h1>
             </div>
-            <h2 className="mb-6 text-4xl font-bold">Welcome to LearnWise</h2>
+            <h2 className="mb-6 text-4xl font-bold">Welcome to Tutorin</h2>
             <p className="mb-12 text-lg">Complete these easy steps to register your account.</p>
 
             <div className="w-full max-w-sm space-y-4">

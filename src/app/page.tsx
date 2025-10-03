@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import NewReleasePromo from '@/sections/NewReleasePromo';
@@ -188,15 +189,15 @@ const Hero = () => (
                 <DialogTitle>
                     <div className="flex flex-col items-center text-center">
                         <BrainCircuit className="h-12 w-12 text-blue-400 mb-4" />
-                        <h2 className="text-3xl font-bold mb-4">What's LearnWise?</h2>
+                        <h2 className="text-3xl font-bold mb-4">What's Tutorin?</h2>
                     </div>
                 </DialogTitle>
                 <DialogDescription className="sr-only">
-                    LearnWise is an AI-powered tutor that helps you study smarter by turning your notes into quizzes, flashcards, and personalized study plans.
+                    Tutorin is an AI-powered tutor that helps you study smarter by turning your notes into quizzes, flashcards, and personalized study plans.
                 </DialogDescription>
             </DialogHeader>
             <p className="text-muted-foreground mb-8 text-base text-center">
-                We built LearnWise to make studying effortless and truly effective. It is an AI powered tutor that learns how you learn, helping you focus on the topics you need most. Whether it is quizzes, flashcards, or personalized study plans, LearnWise helps you study smarter, not harder.
+                We built Tutorin to make studying effortless and truly effective. It is an AI powered tutor that learns how you learn, helping you focus on the topics you need most. Whether it is quizzes, flashcards, or personalized study plans, Tutorin helps you study smarter, not harder.
             </p>
             <div className="flex flex-col items-center">
                  <Link href="/signup">

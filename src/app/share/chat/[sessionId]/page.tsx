@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -80,7 +81,7 @@ export default function SharedChatPage() {
                  <div className="max-w-4xl mx-auto flex justify-between items-center">
                     <Link href="/" className="flex items-center gap-2 font-bold text-lg">
                         <BrainCircuit />
-                        <span>LearnWise</span>
+                        <span>Tutorin</span>
                     </Link>
                     <Button asChild>
                         <Link href="/signup">Get Started</Link>
@@ -112,7 +113,7 @@ export default function SharedChatPage() {
                 ))}
             </main>
              <footer className="text-center p-8 text-sm text-muted-foreground">
-                Shared from LearnWise - Your AI Study Partner
+                Shared from Tutorin - Your AI Study Partner
             </footer>
         </div>
     );

@@ -13,7 +13,7 @@ export default function Footer() {
           <div className="lg:col-span-5 space-y-8">
             <div className="group flex items-center gap-2">
                <BrainCircuit className="h-8 w-8 text-blue-400" />
-               <span className="font-bold text-2xl text-white">LearnWise</span>
+               <span className="font-bold text-2xl text-white">Tutorin</span>
             </div>
             <p className="text-gray-400 text-lg leading-relaxed max-w-md">
               Empowering learners to build powerful study habits that drive real understanding.
@@ -74,7 +74,7 @@ export default function Footer() {
         </div>
         <div className="border-t border-gray-800 pt-8">
           <p className="text-gray-500 text-sm text-center">
-            © {new Date().getFullYear()} LearnWise. All rights reserved.
+            © {new Date().getFullYear()} Tutorin. All rights reserved.
           </p>
         </div>
       </div>

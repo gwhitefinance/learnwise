@@ -26,7 +26,7 @@ export default function NewReleasePromo() {
 
           <div className="relative z-10">
             <div className="mt-8 text-center">
-              <h2 className="text-4xl font-bold text-white mb-4" dangerouslySetInnerHTML={{ __html: "Reach your full study potential<br> with LearnWise" }}></h2>
+              <h2 className="text-4xl font-bold text-white mb-4" dangerouslySetInnerHTML={{ __html: "Reach your full study potential<br> with Tutorin" }}></h2>
               <p className="text-lg text-white/80">Start for free</p>
               
               {/* Arrow SVG */}
