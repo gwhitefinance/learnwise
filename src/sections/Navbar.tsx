@@ -7,6 +7,7 @@ import Link from "next/link";
 import { BrainCircuit, X, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import Logo from "@/components/Logo";
 
 const AnimatedNavLink = ({ href, children }: { href: string; children: React.ReactNode }) => {
   return (
@@ -46,7 +47,7 @@ export default function Navbar() {
             isScrolled ? "bg-black/50 border border-white/10 rounded-2xl px-4 backdrop-blur-md" : "bg-transparent border-transparent px-0"
         )}>
           <Link href="/" className="flex items-center gap-2">
-            <BrainCircuit className="h-7 w-7 text-blue-400" />
+            <Logo className="h-7 w-7 text-white" />
             <span className="font-bold text-xl text-white">Tutorin</span>
           </Link>
           

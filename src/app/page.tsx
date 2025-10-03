@@ -18,6 +18,7 @@ import PersonalizedTutor from '@/sections/PersonalizedTutor';
 import Features from '@/sections/Features';
 import { Pricing } from '@/sections/Pricing';
 import { useState, useEffect } from 'react';
+import Logo from '@/components/Logo';
 
 const TypingBubble = () => {
     const [index, setIndex] = useState(0);
@@ -188,7 +189,7 @@ const Hero = () => (
             <DialogHeader>
                 <DialogTitle>
                     <div className="flex flex-col items-center text-center">
-                        <BrainCircuit className="h-12 w-12 text-blue-400 mb-4" />
+                        <Logo className="h-12 w-12 text-blue-500 mb-4" />
                         <h2 className="text-3xl font-bold mb-4">What's Tutorin?</h2>
                     </div>
                 </DialogTitle>

@@ -95,6 +95,7 @@ import RewardPopup from '@/components/RewardPopup';
 import FloatingChat from '@/components/floating-chat';
 import TourGuide from '@/components/TourGuide';
 import { useToast } from '@/hooks/use-toast';
+import Logo from '@/components/Logo';
 
 
 // Sample data for sidebar navigation
@@ -560,7 +561,7 @@ export default function DashboardLayout({
             <div className="flex items-center justify-between p-4">
                 <div className="flex items-center gap-3">
                 <div className="flex aspect-square size-10 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-600 to-blue-600 text-white">
-                    <Wand2 className="size-5" />
+                    <Logo className="size-5" />
                 </div>
                 <div>
                     <h2 className="font-semibold">Tutorin</h2>
@@ -614,7 +615,7 @@ export default function DashboardLayout({
             <div className="p-4">
                 <div className="flex items-center gap-3">
                 <div className="flex aspect-square size-10 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-600 to-blue-600 text-white">
-                    <Wand2 className="size-5" />
+                    <Logo className="size-5" />
                 </div>
                 <div>
                     <h2 className="font-semibold">Tutorin</h2>
