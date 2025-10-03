@@ -1,12 +1,14 @@
 
+
 "use client"
 
 import { Globe, ArrowRight } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-export default function NewReleasePromo() {
+export default function NewReleasePromo({ theme }: { theme: string }) {
   return (
     <section className="mt-12 w-full">
-      <div className="mx-auto max-w-4xl rounded-[40px] border border-black/5 dark:border-white/20 p-2 shadow-sm">
+      <div className={cn("mx-auto max-w-4xl rounded-[40px] border p-2 shadow-sm", theme === 'dark' ? 'border-black/5 dark:border-white/20' : 'border-gray-200')}>
         <div className="relative mx-auto h-[400px] max-w-4xl overflow-hidden rounded-[38px] border border-black/5 dark:border-white/20 bg-primary p-2 shadow-sm">
           {/* Subtle radial glow from center */}
           <div

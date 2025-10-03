@@ -69,7 +69,7 @@ const TypingBubble = () => {
 };
 
 
-const Hero = () => (
+const Hero = ({ theme }: { theme: string }) => (
   <section className="relative py-20 lg:py-28 text-center overflow-hidden">
     <div className="container mx-auto px-4 relative z-10">
       {/* Floating Icons */}
@@ -146,7 +146,7 @@ const Hero = () => (
         />
       </motion.div>
 
-      <h1 className="text-5xl md:text-7xl font-bold tracking-tighter">
+      <h1 className={cn("text-5xl md:text-7xl font-bold tracking-tighter", theme === 'dark' ? 'text-white' : 'text-black')}>
         Reach your learning <br /> <span className="text-blue-400">goals effortlessly</span>
       </h1>
 
@@ -286,16 +286,16 @@ export default function Home() {
   return (
     <main className={cn(
         "bg-background",
-        theme === 'dark' ? 'dark-grid dark text-white' : 'bg-white text-black'
+        theme === 'dark' ? 'dark-grid dark' : 'bg-white'
     )}>
       <Navbar onThemeToggle={toggleTheme} theme={theme} />
-      <Hero />
-      <HowItWorks />
+      <Hero theme={theme} />
+      <HowItWorks theme={theme} />
       <PersonalizedTutor />
-      <Features />
-      <Pricing plans={plans} />
-      <Faqs />
-      <NewReleasePromo />
+      <Features theme={theme} />
+      <Pricing plans={plans} theme={theme} />
+      <Faqs theme={theme} />
+      <NewReleasePromo theme={theme}/>
       <Footer />
     </main>
   );

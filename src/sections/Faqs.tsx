@@ -1,10 +1,12 @@
 
+
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 import { twMerge } from "tailwind-merge";
+import { cn } from "@/lib/utils";
 
 const faqs = [
     {
@@ -29,7 +31,7 @@ const faqs = [
     },
 ];
 
-export default function Faqs() {
+export default function Faqs({ theme }: { theme: string }) {
     const [selectedIndex, setSelectedIndex] = useState<number | null>(0);
 
     const handleClick = (index: number) => {
@@ -39,7 +41,7 @@ export default function Faqs() {
     return (
         <section className="py-24 ">
             <div className="container">
-                <h2 className="text-4xl md:text-5xl font-bold text-center mt-6 max-w-2xl mx-auto">
+                <h2 className={cn("text-4xl md:text-5xl font-bold text-center mt-6 max-w-2xl mx-auto", theme === 'dark' ? 'text-white' : 'text-black')}>
                     Frequently Asked Questions
                 </h2>
 
@@ -48,13 +50,13 @@ export default function Faqs() {
                         <div
                             key={faq.question}
                             onClick={() => handleClick(faqIndex)}
-                            className="bg-black rounded-2xl border border-white/10 p-6 cursor-pointer"
+                            className={cn("rounded-2xl p-6 cursor-pointer", theme === 'dark' ? 'bg-black border border-white/10' : 'bg-gray-100 border border-gray-200')}
                         >
                             <div className="flex justify-between items-center">
-                                <h3 className="font-semibold text-lg text-white">
+                                <h3 className={cn("font-semibold text-lg", theme === 'dark' ? 'text-white' : 'text-black')}>
                                     {faq.question}
                                 </h3>
-                                <div className="p-2 bg-white/10 rounded-full text-white">
+                                <div className={cn("p-2 rounded-full", theme === 'dark' ? 'bg-white/10 text-white' : 'bg-black/10 text-black')}>
                                     <Plus
                                         size={20}
                                         className={twMerge(
@@ -85,7 +87,7 @@ export default function Faqs() {
                                         }}
                                         className="overflow-hidden"
                                     >
-                                        <p className="text-white/70">
+                                        <p className={cn(theme === 'dark' ? "text-white/70" : "text-black/70")}>
                                             {faq.answer}
                                         </p>
                                     </motion.div>

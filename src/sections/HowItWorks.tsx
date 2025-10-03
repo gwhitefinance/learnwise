@@ -1,8 +1,10 @@
 
+
 "use client"
 
 import { motion } from "framer-motion"
 import { Search, Lightbulb, Rocket, GitMerge } from 'lucide-react'
+import { cn } from "@/lib/utils";
 
 const steps = [
   {
@@ -31,7 +33,7 @@ const steps = [
   },
 ]
 
-export default function HowItWorks() {
+export default function HowItWorks({ theme }: { theme: string }) {
   return (
     <section className="py-24 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -42,7 +44,7 @@ export default function HowItWorks() {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6">How It Works</h2>
+          <h2 className={cn("text-4xl sm:text-5xl lg:text-6xl font-bold mb-6", theme === 'dark' ? 'text-white' : 'text-black')}>How It Works</h2>
           <p className="text-xl text-gray-400 max-w-3xl mx-auto">
             A simple, effective approach to supercharge your study sessions.
           </p>
@@ -165,7 +167,7 @@ export default function HowItWorks() {
                   <div className="text-4xl font-bold text-gray-600">{step.number}</div>
                   <div className="text-blue-400">{step.icon}</div>
                 </div>
-                <h3 className="text-2xl font-bold group-hover:text-blue-400 transition-colors">
+                <h3 className="text-2xl font-bold group-hover:text-blue-400 transition-colors text-white">
                   {step.title}
                 </h3>
                 <p className="text-gray-400 leading-relaxed">{step.description}</p>

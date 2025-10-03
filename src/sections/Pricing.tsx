@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import { buttonVariants } from "@/components/ui/button"
@@ -28,12 +29,14 @@ interface PricingProps {
   plans: PricingPlan[]
   title?: string
   description?: string
+  theme: string
 }
 
 export function Pricing({
   plans,
   title = "Simple, Transparent Pricing",
   description = "Choose the plan that works for you\nAll plans include access to our platform, lead generation tools, and dedicated support.",
+  theme,
 }: PricingProps) {
   const [isMonthly, setIsMonthly] = useState(true)
   const isDesktop = useMediaQuery("(min-width: 768px)")
@@ -66,7 +69,7 @@ export function Pricing({
   return (
     <div className="container py-20">
       <div className="text-center space-y-4 mb-12">
-        <h2 className="text-4xl font-bold tracking-tight sm:text-5xl text-white">{title}</h2>
+        <h2 className={cn("text-4xl font-bold tracking-tight sm:text-5xl", theme === 'dark' ? 'text-white' : 'text-black')}>{title}</h2>
       </div>
 
       <div className="flex justify-center mb-10">
@@ -75,7 +78,7 @@ export function Pricing({
             <Switch ref={switchRef as any} checked={!isMonthly} onCheckedChange={handleToggle} className="relative" />
           </Label>
         </label>
-        <span className="ml-2 font-semibold text-white">
+        <span className={cn("ml-2 font-semibold", theme === 'dark' ? 'text-white' : 'text-black')}>
           Annual billing <span className="text-blue-400">(Save 20%)</span>
         </span>
       </div>
@@ -105,8 +108,9 @@ export function Pricing({
               opacity: { duration: 0.5 },
             }}
             className={cn(
-              `rounded-2xl border-[1px] p-6 bg-white/10 backdrop-blur-md text-center lg:flex lg:flex-col lg:justify-center relative`,
-              plan.isPopular ? "border-blue-400 border-2" : "border-white/20",
+              `rounded-2xl border-[1px] p-6 text-center lg:flex lg:flex-col lg:justify-center relative`,
+              plan.isPopular ? "border-blue-400 border-2" : (theme === 'dark' ? 'border-white/20' : 'border-gray-200'),
+              theme === 'dark' ? 'bg-white/10 backdrop-blur-md' : 'bg-gray-50',
               "flex flex-col",
               !plan.isPopular && "mt-5",
               index === 0 || index === 2
@@ -123,28 +127,28 @@ export function Pricing({
               </div>
             )}
             <div className="flex-1 flex flex-col">
-              <p className="text-base font-semibold text-gray-300">{plan.name}</p>
+              <p className={cn("text-base font-semibold", theme === 'dark' ? 'text-gray-300' : 'text-gray-600')}>{plan.name}</p>
               <div className="mt-6 flex items-center justify-center gap-x-2">
-                <span className="text-5xl font-bold tracking-tight text-white transition-all duration-500 ease-out">
+                <span className={cn("text-5xl font-bold tracking-tight transition-all duration-500 ease-out", theme === 'dark' ? 'text-white' : 'text-black')}>
                   ${isMonthly ? plan.price : plan.yearlyPrice}
                 </span>
                 {plan.period !== "Next 3 months" && (
-                  <span className="text-sm font-semibold leading-6 tracking-wide text-gray-300">/ {plan.period}</span>
+                  <span className={cn("text-sm font-semibold leading-6 tracking-wide", theme === 'dark' ? 'text-gray-300' : 'text-gray-600')}>/ {plan.period}</span>
                 )}
               </div>
 
-              <p className="text-xs leading-5 text-gray-400">{isMonthly ? "billed monthly" : "billed annually"}</p>
+              <p className={cn("text-xs leading-5", theme === 'dark' ? 'text-gray-400' : 'text-gray-500')}>{isMonthly ? "billed monthly" : "billed annually"}</p>
 
               <ul className="mt-5 gap-2 flex flex-col">
                 {plan.features.map((feature, idx) => (
                   <li key={idx} className="flex items-start gap-2">
                     <Check className="h-4 w-4 text-blue-400 mt-1 flex-shrink-0" />
-                    <span className="text-left text-gray-200">{feature}</span>
+                    <span className={cn("text-left", theme === 'dark' ? 'text-gray-200' : 'text-gray-700')}>{feature}</span>
                   </li>
                 ))}
               </ul>
 
-              <hr className="w-full my-4 border-white/20" />
+              <hr className={cn("w-full my-4", theme === 'dark' ? 'border-white/20' : 'border-gray-200')} />
 
               <Link
                 href={plan.href}
@@ -154,12 +158,12 @@ export function Pricing({
                   }),
                   "group relative w-full gap-2 overflow-hidden text-lg font-semibold tracking-tighter",
                   "transform-gpu ring-offset-current transition-all duration-300 ease-out hover:ring-2 hover:ring-blue-400 hover:ring-offset-1 hover:bg-blue-500 hover:text-white",
-                  plan.isPopular ? "bg-blue-500 text-white border-blue-400" : "bg-white/10 text-white border-white/20",
+                  plan.isPopular ? "bg-blue-500 text-white border-blue-400" : (theme === 'dark' ? "bg-white/10 text-white border-white/20" : "bg-white text-black border-gray-300"),
                 )}
               >
                 {plan.buttonText}
               </Link>
-              <p className="mt-6 text-xs leading-5 text-gray-400">{plan.description}</p>
+              <p className={cn("mt-6 text-xs leading-5", theme === 'dark' ? 'text-gray-400' : 'text-gray-500')}>{plan.description}</p>
             </div>
           </motion.div>
         ))}

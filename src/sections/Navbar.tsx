@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import type React from "react"
@@ -9,15 +10,15 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import Logo from "@/components/Logo";
 
-const AnimatedNavLink = ({ href, children }: { href: string; children: React.ReactNode }) => {
+const AnimatedNavLink = ({ href, children, theme, isScrolled }: { href: string; children: React.ReactNode; theme: string; isScrolled: boolean }) => {
   return (
-    <Link href={href} className="text-sm font-medium text-white/70 hover:text-white transition-colors">
+    <Link href={href} className={cn("text-sm font-medium transition-colors", isScrolled || theme === 'dark' ? 'text-white/70 hover:text-white' : 'text-black/70 hover:text-black')}>
       {children}
     </Link>
   )
 }
 
-export default function Navbar({ onThemeToggle, theme }: { onThemeToggle?: () => void; theme?: string }) {
+export default function Navbar({ onThemeToggle, theme = 'dark' }: { onThemeToggle?: () => void; theme?: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -36,6 +37,9 @@ export default function Navbar({ onThemeToggle, theme }: { onThemeToggle?: () =>
     { label: "Leaderboard", href: "/leaderboard" },
   ]
 
+  const navTextColor = isScrolled || theme === 'dark' ? 'text-white' : 'text-black';
+  const navIconHover = isScrolled || theme === 'dark' ? 'hover:bg-white/10' : 'hover:bg-black/10';
+
   return (
     <header className={cn(
       "fixed top-0 left-0 right-0 z-20 transition-all duration-300",
@@ -47,14 +51,14 @@ export default function Navbar({ onThemeToggle, theme }: { onThemeToggle?: () =>
             isScrolled ? "bg-black/50 border border-white/10 rounded-2xl px-4 backdrop-blur-md" : "bg-transparent border-transparent px-0"
         )}>
           <Link href="/" className="flex items-center gap-2">
-            <span className="font-bold text-xl text-white">Tutorin</span>
-            <Logo className="h-7 w-7 text-white" />
+            <span className={cn("font-bold text-xl", navTextColor)}>Tutorin</span>
+            <Logo className={cn("h-7 w-7", navTextColor)} />
           </Link>
           
           <div className="hidden md:flex items-center justify-center flex-1">
             <nav className="flex items-center gap-8">
               {navLinksData.map((link) => (
-                <AnimatedNavLink key={link.href} href={link.href}>
+                <AnimatedNavLink key={link.href} href={link.href} theme={theme} isScrolled={isScrolled}>
                   {link.label}
                 </AnimatedNavLink>
               ))}
@@ -63,13 +67,13 @@ export default function Navbar({ onThemeToggle, theme }: { onThemeToggle?: () =>
 
           <div className="hidden md:flex items-center gap-2">
              {onThemeToggle && (
-                 <Button variant="ghost" size="icon" onClick={onThemeToggle} className="text-white hover:bg-white/10 hover:text-white">
+                 <Button variant="ghost" size="icon" onClick={onThemeToggle} className={cn(navTextColor, navIconHover, 'hover:'+navTextColor)}>
                     {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
                     <span className="sr-only">Toggle theme</span>
                 </Button>
             )}
             <Link href="/login">
-                <Button variant="ghost" className="text-white hover:bg-white/10 hover:text-white">Login</Button>
+                <Button variant="ghost" className={cn(navTextColor, navIconHover, 'hover:'+navTextColor)}>Login</Button>
             </Link>
               <Link href="/signup">
                 <Button className="bg-white text-black hover:bg-gray-200">Sign Up Free</Button>
@@ -79,12 +83,12 @@ export default function Navbar({ onThemeToggle, theme }: { onThemeToggle?: () =>
 
           <div className="md:hidden flex items-center gap-2">
                {onThemeToggle && (
-                 <Button variant="ghost" size="icon" onClick={onThemeToggle} className="text-white hover:bg-white/10 hover:text-white">
+                 <Button variant="ghost" size="icon" onClick={onThemeToggle} className={cn(navTextColor, navIconHover, 'hover:'+navTextColor)}>
                     {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
                     <span className="sr-only">Toggle theme</span>
                 </Button>
             )}
-              <Button variant="ghost" size="icon" onClick={() => setIsOpen(!isOpen)} className="text-white hover:bg-white/10 hover:text-white">
+              <Button variant="ghost" size="icon" onClick={() => setIsOpen(!isOpen)} className={cn(navTextColor, navIconHover, 'hover:'+navTextColor)}>
                   {isOpen ? <X /> : <Menu />}
               </Button>
           </div>
@@ -94,7 +98,7 @@ export default function Navbar({ onThemeToggle, theme }: { onThemeToggle?: () =>
           <div className="md:hidden bg-background/95 border-t border-white/10">
               <div className="container mx-auto px-4 py-4 flex flex-col gap-4">
                   {navLinksData.map((link) => (
-                    <AnimatedNavLink key={link.href} href={link.href}>
+                    <AnimatedNavLink key={link.href} href={link.href} theme={theme} isScrolled={isScrolled}>
                       {link.label}
                     </AnimatedNavLink>
                   ))}
