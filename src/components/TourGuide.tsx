@@ -35,7 +35,7 @@ const tourStepsConfig: any = {
             title: "Your Dashboard",
             content: "This is your welcome banner. You'll find quick actions and an overview of your progress here.",
             elementId: 'welcome-banner',
-            position: 'bottom-start',
+            position: 'bottom',
         },
         {
             step: 3,
@@ -46,9 +46,9 @@ const tourStepsConfig: any = {
         },
         {
             step: 4,
-            title: "Recent Files & Courses",
-            content: "Your recently uploaded files and active courses will appear here for easy access.",
-            elementId: 'recent-files',
+            title: "Recent Files",
+            content: "Your recently uploaded files will appear here for easy access.",
+            elementId: 'recent-files-card',
             position: 'bottom-end',
         },
         {
@@ -207,7 +207,7 @@ const TourGuide = () => {
                     style={{
                         width: elementRect.width + 16,
                         height: elementRect.height + 16,
-                        top: elementRect.top - 8,
+                        top: elementRect.top - 8 + window.scrollY,
                         left: elementRect.left - 8,
                     }}
                 />
