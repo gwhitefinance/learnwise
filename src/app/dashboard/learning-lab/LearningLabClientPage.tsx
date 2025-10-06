@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -24,7 +24,7 @@ import AudioPlayer from '@/components/audio-player';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { addXp, generateMiniCourse, generateQuizFromModule, generateFlashcardsFromModule, generateTutorResponse, generateChapterContent, generateExplanation, generateMidtermExam, generateRoadmap, generateModuleContent } from '@/lib/actions';
+import { addXp, generateMiniCourse, generateQuizFromModule, generateFlashcardsFromModule, generateTutorResponse, generateChapterContent, generateMidtermExam, generateRoadmap, generateModuleContent } from '@/lib/actions';
 import { RewardContext } from '@/context/RewardContext';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import Loading from './loading';
@@ -70,7 +70,8 @@ type AnswerFeedback = { question: string; answer: string; correctAnswer: string;
 type QuizState = 'configuring' | 'in-progress' | 'results';
 type AnswerState = 'unanswered' | 'answered';
 
-export default function LearningLabClientPage() {
+function LearningLabComponent() {
+  const searchParams = useSearchParams();
   const [courses, setCourses] = useState<Course[]>([]);
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
   const [learnerType, setLearnerType] = useState<string | null>(null);
@@ -85,7 +86,6 @@ export default function LearningLabClientPage() {
   const { toast } = useToast();
   const [user, authLoading] = useAuthState(auth);
   const { showReward } = useContext(RewardContext);
-  const searchParams = useSearchParams();
 
   const [currentModuleIndex, setCurrentModuleIndex] = useState(0);
   const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
@@ -1027,4 +1027,12 @@ export default function LearningLabClientPage() {
       </div>
     </>
   );
+}
+
+export default function LearningLabClientPage() {
+    return (
+        <Suspense fallback={<Loading />}>
+            <LearningLabComponent />
+        </Suspense>
+    )
 }

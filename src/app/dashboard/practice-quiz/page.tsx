@@ -1,7 +1,8 @@
 
+
 'use client';
 
-import { useState, useEffect, useRef, useContext } from 'react';
+import React, { useState, useEffect, useRef, useContext, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -25,6 +26,7 @@ import { auth, db } from '@/lib/firebase';
 import { doc, updateDoc, increment, collection, addDoc, serverTimestamp, onSnapshot, query, where } from 'firebase/firestore';
 import { addXp as addXpAction, generateQuizAction } from '@/lib/actions';
 import { RewardContext } from '@/context/RewardContext';
+import Loading from './loading';
 
 export const dynamic = "force-dynamic";
 
@@ -38,7 +40,7 @@ type QuizState = 'configuring' | 'in-progress' | 'results';
 type AnswerState = 'unanswered' | 'answered';
 type AnswerFeedback = { question: string; answer: string; correctAnswer: string; isCorrect: boolean; explanation?: string; };
 
-export default function PracticeQuizPage() {
+function PracticeQuizComponent() {
     const searchParams = useSearchParams();
     const initialTopic = searchParams.get('topic');
 
@@ -640,5 +642,13 @@ export default function PracticeQuizPage() {
                 </CardContent>
             </Card>
         </div>
+    )
+}
+
+export default function PracticeQuizPage() {
+    return (
+        <Suspense fallback={<Loading />}>
+            <PracticeQuizComponent />
+        </Suspense>
     )
 }

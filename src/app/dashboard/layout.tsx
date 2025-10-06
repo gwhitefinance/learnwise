@@ -2,7 +2,7 @@
 
 'use client';
 
-import React, { useEffect, useState, useRef, createContext, useContext } from 'react';
+import React, { useEffect, useState, useRef, createContext, useContext, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Award,
@@ -287,6 +287,21 @@ const PumpkinIcon = (props: React.SVGProps<SVGSVGElement>) => (
     </svg>
 )
 
+// This component uses the useSearchParams hook and must be wrapped in Suspense
+const TourHandler = () => {
+    const searchParams = useSearchParams();
+    const { startTour } = useTour();
+    
+    useEffect(() => {
+        const tourParam = searchParams.get('tour');
+        if (tourParam === 'true') {
+            startTour();
+        }
+    }, [searchParams, startTour]);
+
+    return null; // This component does not render anything itself
+};
+
 export default function DashboardLayout({
   children,
 }: {
@@ -309,17 +324,12 @@ export default function DashboardLayout({
   const [isHalloweenTheme, setIsHalloweenTheme] = useState(false);
 
   // Tour State
-  const searchParams = useSearchParams();
   const [isTourActive, setIsTourActive] = useState(false);
   const [tourStep, setTourStep] = useState(0);
 
   useEffect(() => {
     setIsMounted(true);
-    const tourParam = searchParams.get('tour');
-    if (tourParam === 'true') {
-        startTour();
-    }
-  }, [searchParams]);
+  }, []);
 
   useEffect(() => {
     if (isTourActive) {
@@ -336,6 +346,7 @@ export default function DashboardLayout({
   const startTour = () => {
     setIsTourActive(true);
     setTourStep(1);
+    // Clear the 'tour' param from URL without reloading
     const nextUrl = window.location.pathname;
     window.history.replaceState({}, '', nextUrl);
   };
@@ -752,7 +763,10 @@ export default function DashboardLayout({
             </header>
 
             <main className="flex-1 flex flex-col relative p-4 md:p-6">
-                {React.cloneElement(children as React.ReactElement, { isHalloweenTheme })}
+                 <Suspense fallback={<div>Loading...</div>}>
+                    {React.cloneElement(children as React.ReactElement, { isHalloweenTheme })}
+                    <TourHandler />
+                </Suspense>
             </main>
         </div>
       </div>
