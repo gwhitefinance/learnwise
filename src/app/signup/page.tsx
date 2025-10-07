@@ -153,10 +153,12 @@ export default function SignUpPage() {
       <div className="relative hidden w-1/2 flex-col items-center justify-center p-8 lg:flex">
         <div className="relative w-full max-w-lg h-[600px] bg-neutral-900 rounded-2xl flex items-center justify-center">
             <HalloweenBackground />
-            <div className="relative z-10 text-center">
-                <AIBuddy isStatic={true} className="w-64 h-64" />
-                <div className="mt-4">
-                     <TypingBubble />
+            <div className="relative z-10 flex flex-col items-center">
+                <div className="relative">
+                    <AIBuddy isStatic={true} className="w-64 h-64" />
+                    <div className="absolute -top-8 left-1/2 -translate-x-1/2">
+                         <TypingBubble />
+                    </div>
                 </div>
             </div>
           </div>
@@ -257,5 +259,3 @@ export default function SignUpPage() {
     </div>
   )
 }
-
-    
