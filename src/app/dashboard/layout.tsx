@@ -540,6 +540,10 @@ export default function DashboardLayout({
       )}>
         <input type="file" ref={fileInputRef} onChange={handleProfilePicChange} className="hidden" accept="image/*" />
         
+        <Suspense fallback={null}>
+            <TourHandler />
+        </Suspense>
+
         {!isHalloweenTheme && (
           <motion.div
               className="absolute inset-0 -z-10 opacity-20"
@@ -762,10 +766,7 @@ export default function DashboardLayout({
             </header>
 
             <main className="flex-1 flex flex-col relative p-4 md:p-6">
-                 <Suspense fallback={<div>Loading...</div>}>
-                    {React.cloneElement(children as React.ReactElement, { isHalloweenTheme })}
-                    <TourHandler />
-                </Suspense>
+                {React.cloneElement(children as React.ReactElement, { isHalloweenTheme })}
             </main>
         </div>
       </div>

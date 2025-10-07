@@ -29,6 +29,7 @@ const tourStepsConfig: any = {
             title: "Welcome to Tutorin!",
             content: "I'm your AI buddy, here to guide you. Let's take a quick look around.",
             position: 'center',
+            buttonText: "Start Tour",
         },
         {
             step: 2,
@@ -213,8 +214,8 @@ const TourGuide = () => {
                                 <Button size="sm" onClick={endTour} className="bg-primary hover:bg-primary/90 w-full">Explore Dashboard</Button>
                             ) : (
                                 <Button size="sm" onClick={() => currentStepConfig.action === 'generateOutlines' ? handleGenerateLabOutlines() : nextTourStep(currentStepConfig.nextPath)} className="bg-primary hover:bg-primary/90 w-full" disabled={isGenerating}>
-                                    {isGenerating ? 'Generating...' : 'Next'}
-                                    <ArrowRight className="h-4 w-4 ml-2"/>
+                                    {isGenerating ? 'Generating...' : (currentStepConfig.buttonText || 'Next')}
+                                    {!isGenerating && <ArrowRight className="h-4 w-4 ml-2"/>}
                                 </Button>
                             )}
                         </div>
