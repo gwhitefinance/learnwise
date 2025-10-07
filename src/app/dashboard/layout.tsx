@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useEffect, useState, useRef, createContext, useContext, Suspense } from 'react';
+import React, { useEffect, useState, useRef, createContext, useContext, Suspense, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -754,3 +754,5 @@ export default function DashboardLayout({
     </RewardProvider>
   )
 }
+
+    
