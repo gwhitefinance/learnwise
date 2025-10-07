@@ -206,16 +206,15 @@ html.lenis {
 .speech-bubble-typing::after {
   content: '';
   position: absolute;
-  bottom: 0;
-  left: 50%;
+  top: 50%;
+  right: 100%;
   width: 0;
   height: 0;
   border: 20px solid transparent;
-  border-top-color: hsl(var(--card));
-  border-bottom: 0;
+  border-right-color: hsl(var(--card));
   border-left: 0;
-  margin-left: -10px;
-  margin-bottom: -20px;
+  margin-top: -20px;
+  margin-right: -20px;
 }
 
 .typing-cursor {
@@ -232,4 +231,22 @@ html.lenis {
   0% { transform: translateY(0px) rotate(-1deg); }
   50% { transform: translateY(-8px) rotate(1deg); }
   100% { transform: translateY(0px) rotate(-1deg); }
+}
+
+@keyframes pumpkin-glow {
+  0%, 100% { fill: #ffb84d; }
+  50% { fill: #ffd699; }
+}
+
+@keyframes ghost-fade {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 0.8; }
+}
+
+@keyframes fly-bat {
+  0% { transform: translateX(-50px) translateY(20px) scale(0.8); }
+  25% { transform: translateX(50px) translateY(-10px) scale(1); }
+  50% { transform: translateX(150px) translateY(30px) scale(0.9); }
+  75% { transform: translateX(250px) translateY(-20px) scale(1.1); }
+  100% { transform: translateX(450px) translateY(10px) scale(0.8); }
 }
