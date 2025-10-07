@@ -15,16 +15,18 @@ import AIBuddy from "@/components/ai-buddy"
 const TypingBubble = () => {
     const [typedText, setTypedText] = useState('');
     const textToType = "Tutorin!";
+    const baseText = "Ready to start ";
     
     useEffect(() => {
-        let i = 0;
         const typingInterval = setInterval(() => {
-            if(i < textToType.length) {
-                setTypedText(prev => prev + textToType.charAt(i));
-                i++;
-            } else {
-                clearInterval(typingInterval);
-            }
+            setTypedText(prev => {
+                if (prev.length < textToType.length) {
+                    return textToType.substring(0, prev.length + 1);
+                } else {
+                    clearInterval(typingInterval);
+                    return prev;
+                }
+            });
         }, 150);
 
         return () => clearInterval(typingInterval);
@@ -33,7 +35,8 @@ const TypingBubble = () => {
     return (
         <div className="speech-bubble-typing">
             <p className="text-xl">
-                Ready to start <span className="font-semibold text-blue-500">{typedText}</span>
+                {baseText}
+                <span className="font-semibold text-blue-500">{typedText}</span>
                 <span className="typing-cursor"></span>
             </p>
         </div>
@@ -68,8 +71,8 @@ const HalloweenBackground = () => (
             </g>
 
             {/* -- Trees -- */}
-            <path d="M380 320 L370 250 L360 320 M370 250 L350 220 M370 250 L390 230" stroke="#222" strokeWidth="3" fill="none" />
-            <path d="M20 320 L30 240 L40 320 M30 240 L10 210 M30 240 L50 220" stroke="#222" strokeWidth="4" fill="none" />
+            <path d="M380 400 L370 250 L360 400 M370 250 L350 220 M370 250 L390 230" stroke="#222" strokeWidth="3" fill="none" />
+            <path d="M20 400 L30 240 L40 400 M30 240 L10 210 M30 240 L50 220" stroke="#222" strokeWidth="4" fill="none" />
 
             {/* -- Ground -- */}
             <path d="M0 400 L0 320 C 100 300, 300 340, 400 320 L400 400 Z" fill="#2c1f21" />
