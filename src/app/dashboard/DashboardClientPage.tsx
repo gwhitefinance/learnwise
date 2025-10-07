@@ -819,9 +819,6 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                         <ArrowRight className="ml-2 h-4 w-4" />
                                     </Button>
                                 </Link>
-                                <Button variant="outline" className="bg-white/20 text-white hover:bg-white/30 rounded-xl" onClick={startTour}>
-                                    Start Tour
-                                </Button>
                             </div>
                         </div>
                          <div className="relative hidden lg:flex items-center justify-center gap-2">
