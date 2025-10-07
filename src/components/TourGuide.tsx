@@ -41,7 +41,7 @@ const tourStepsConfig: any = {
             step: 3,
             title: "Track Your Progress",
             content: "Here you can see your study streak and your most recent files. Keep the streak going to earn rewards!",
-            elementId: 'recent-files',
+            elementId: 'recent-files-card',
             position: 'right',
         },
         {
@@ -189,9 +189,44 @@ const TourGuide = () => {
 
     if (!isTourActive || !currentStepConfig) return null;
 
+    if (currentStepConfig.position === 'center') {
+        return (
+            <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+                 <motion.div
+                    key={tourStep}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                    className="relative max-w-sm w-full"
+                >
+                     <div className="bg-card rounded-2xl shadow-2xl p-6 flex flex-col text-center items-center">
+                         <div className="flex-shrink-0 size-24 rounded-full bg-primary/10 text-primary shadow-lg flex items-center justify-center ring-4 ring-card mb-4">
+                            <AIBuddy className="w-20 h-20"/>
+                        </div>
+                        <h3 className="text-xl font-bold mb-2">{currentStepConfig.title}</h3>
+                        <p className="text-sm text-muted-foreground mb-6">{currentStepConfig.content}</p>
+                        
+                        <div className="flex justify-center gap-2 mt-4 w-full">
+                             {tourStep > 1 && <Button variant="ghost" size="sm" onClick={endTour}>Dismiss</Button>}
+                             {currentStepConfig.isFinal ? (
+                                <Button size="sm" onClick={endTour} className="bg-primary hover:bg-primary/90 w-full">Explore Dashboard</Button>
+                            ) : (
+                                <Button size="sm" onClick={() => currentStepConfig.action === 'generateOutlines' ? handleGenerateLabOutlines() : nextTourStep(currentStepConfig.nextPath)} className="bg-primary hover:bg-primary/90 w-full" disabled={isGenerating}>
+                                    {isGenerating ? 'Generating...' : tourStep === 1 ? 'Start Tour' : 'Next'}
+                                    <ArrowRight className="h-4 w-4 ml-2"/>
+                                </Button>
+                            )}
+                        </div>
+                    </div>
+                </motion.div>
+            </div>
+        )
+    }
+
     const getPositionStyles = () => {
         if (!elementRect) {
-            return { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' };
+            return { top: '50%', left: '50%', transform: 'translate(-50%, -50%)', opacity: 0 };
         }
     
         const offset = 16; // 1rem
