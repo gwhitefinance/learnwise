@@ -213,8 +213,8 @@ export default function SignUpPage() {
       <div className="relative hidden w-1/2 flex-col items-center justify-center p-8 lg:flex">
         <div className="relative w-full max-w-2xl h-[700px] bg-neutral-900 rounded-2xl flex flex-col items-center justify-center">
             <HalloweenBackground />
-             <div className="absolute top-8 text-center text-white w-full">
-                <h1 className="text-4xl font-bold">Welcome to Tutorin</h1>
+             <div className="absolute top-12 text-center text-white w-full">
+                <h1 className="text-5xl font-bold">Welcome to Tutorin</h1>
             </div>
             <div className="relative z-10 flex flex-col items-center">
                 <div className="relative">
