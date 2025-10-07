@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,6 +11,134 @@ import { getAuth, signInWithEmailAndPassword } from "firebase/auth"
 import { app } from "@/lib/firebase" // Import the initialized app
 import { AnimatePresence, motion } from "framer-motion"
 import Link from "next/link"
+import AIBuddy from "@/components/ai-buddy"
+
+const TypingBubble = () => {
+    const [typedText, setTypedText] = useState('');
+    const textToType = "Tutorin!";
+    const baseText = "Ready to start ";
+    
+    useEffect(() => {
+        const typingInterval = setInterval(() => {
+            setTypedText(prev => {
+                if (prev.length < textToType.length) {
+                    return textToType.substring(0, prev.length + 1);
+                } else {
+                    clearInterval(typingInterval);
+                    return prev;
+                }
+            });
+        }, 150);
+
+        return () => clearInterval(typingInterval);
+    }, []);
+
+    return (
+        <div className="speech-bubble-typing">
+            <p className="text-xl">
+                {baseText}
+                <span className="font-semibold text-blue-500">{typedText}</span>
+                <span className="typing-cursor"></span>
+            </p>
+        </div>
+    );
+};
+
+const HalloweenBackground = () => (
+    <div className="absolute inset-0 w-full h-full overflow-hidden rounded-2xl">
+        <svg width="100%" height="100%" preserveAspectRatio="xMidYMid slice" viewBox="0 0 400 400" className="opacity-80">
+            {/* -- Sky & Stars -- */}
+            <rect width="400" height="400" fill="#0d1a26" />
+            <g className="crescent-moon">
+                <circle cx="350" cy="50" r="20" fill="#f0e68c" />
+                <circle cx="340" cy="45" r="20" fill="#0d1a26" />
+            </g>
+
+            <circle cx="50" cy="80" r="1" fill="white" />
+            <circle cx="150" cy="40" r="1.5" fill="white" />
+            <circle cx="250" cy="90" r="1" fill="white" />
+            <circle cx="320" cy="150" r="1" fill="white" />
+            <circle cx="80" cy="180" r="1.2" fill="white" />
+            
+            {/* -- Bats -- */}
+            <g className="bat-1">
+              <path d="M10 10 C 15 5, 25 5, 30 10 L 20 15 Z" fill="black" />
+            </g>
+            <g className="bat-2">
+              <path d="M50 30 C 55 25, 65 25, 70 30 L 60 35 Z" fill="black" />
+            </g>
+             <g className="bat-3">
+              <path d="M100 20 C 105 15, 115 15, 120 20 L 110 25 Z" fill="black" />
+            </g>
+
+            {/* -- Trees -- */}
+            <path d="M380 400 L370 250 L360 400 M370 250 L350 220 M370 250 L390 230" stroke="#222" strokeWidth="3" fill="none" />
+            <path d="M20 400 L30 240 L40 400 M30 240 L10 210 M30 240 L50 220" stroke="#222" strokeWidth="4" fill="none" />
+
+            {/* -- Ground -- */}
+            <path d="M0 400 L0 320 C 100 300, 300 340, 400 320 L400 400 Z" fill="#2c1f21" />
+
+            {/* -- Ghost -- */}
+             <g className="ghost">
+                <path d="M150 320 Q 170 280, 190 320 L180 315 L170 320 L160 315 Z" fill="white" />
+                <circle cx="165" cy="305" r="3" fill="black" />
+                <circle cx="175" cy="305" r="3" fill="black" />
+            </g>
+
+            {/* -- Gravestones -- */}
+            <path d="M100 320 L100 260 A 20 20 0 0 1 140 260 L140 320 Z" fill="#4a4a4a" />
+            <text x="120" y="290" fontFamily="serif" fontSize="20" fill="#333" textAnchor="middle">RIP</text>
+            <g transform="rotate(-5 280 320)">
+                <path d="M260 320 L260 270 Q 280 250 300 270 L300 320 Z" fill="#555555" />
+            </g>
+
+            {/* -- Pumpkins -- */}
+            <g>
+              <ellipse cx="60" cy="330" rx="30" ry="25" fill="#f57d00"/>
+              <rect x="55" y="305" width="10" height="10" fill="green"/>
+              <g className="pumpkin-face">
+                <path d="M50 325 L45 320" stroke="black" strokeWidth="2" />
+                <path d="M70 325 L75 320" stroke="black" strokeWidth="2" />
+                <path d="M55 335 Q 60 340 65 335" stroke="black" strokeWidth="2" fill="none" />
+                <g className="pumpkin-glow-1">
+                    <path d="M50 325 L45 320" stroke="yellow" strokeWidth="2" />
+                    <path d="M70 325 L75 320" stroke="yellow" strokeWidth="2" />
+                </g>
+              </g>
+            </g>
+            <g>
+                <ellipse cx="200" cy="340" rx="25" ry="20" fill="#f57d00"/>
+                <rect x="195" y="320" width="10" height="8" fill="darkgreen"/>
+                 <g className="pumpkin-face">
+                    <path d="M190 335 L185 330" stroke="black" strokeWidth="2" />
+                    <path d="M210 335 L215 330" stroke="black" strokeWidth="2" />
+                    <rect x="193" y="340" width="14" height="3" fill="black" />
+                    <g className="pumpkin-glow-2">
+                       <path d="M190 335 L185 330" stroke="yellow" strokeWidth="2" />
+                       <path d="M210 335 L215 330" stroke="yellow" strokeWidth="2" />
+                    </g>
+                </g>
+            </g>
+            <ellipse cx="330" cy="335" rx="18" ry="15" fill="#f57d00"/>
+            <rect x="326" y="320" width="8" height="6" fill="green"/>
+
+            {/* -- Spider Web -- */}
+            <g transform="translate(0, 0)">
+                <path d="M 0 0 L 50 50" stroke="#aaa" strokeWidth="0.5" />
+                <path d="M 25 0 L 50 50" stroke="#aaa" strokeWidth="0.5" />
+                <path d="M 50 0 L 50 50" stroke="#aaa" strokeWidth="0.5" />
+                <path d="M 0 25 L 50 50" stroke="#aaa" strokeWidth="0.5" />
+                <path d="M 0 50 L 50 50" stroke="#aaa" strokeWidth="0.5" />
+                <path d="M 0 10 Q 10 10, 10 0" stroke="#aaa" strokeWidth="0.5" fill="none" />
+                <path d="M 0 20 Q 20 20, 20 0" stroke="#aaa" strokeWidth="0.5" fill="none" />
+                <path d="M 0 30 Q 30 30, 30 0" stroke="#aaa" strokeWidth="0.5" fill="none" />
+                <path d="M 0 40 Q 40 40, 40 0" stroke="#aaa" strokeWidth="0.5" fill="none" />
+                <path d="M 10 50 Q 50 40, 50 10" stroke="#aaa" strokeWidth="0.5" fill="none" />
+                <path d="M 20 50 Q 50 30, 50 20" stroke="#aaa" strokeWidth="0.5" fill="none" />
+            </g>
+        </svg>
+    </div>
+);
 
 export default function LoginPage() {
   const router = useRouter()
@@ -56,31 +184,34 @@ export default function LoginPage() {
     }
   }
 
-
   return (
     <div className="flex min-h-screen bg-black">
       {/* Left Section */}
-      <div className="relative hidden w-1/2 p-8 lg:block">
-        <div className="h-full w-full overflow-hidden rounded-[40px] bg-gradient-to-b from-blue-400 via-blue-600 to-black">
-          <div className="flex h-full flex-col items-center justify-center px-8 text-center text-white">
-            <div className="mb-8">
-              <h1 className="text-2xl font-semibold">Tutorin</h1>
+      <div className="relative hidden w-7/12 flex-col items-center justify-center p-8 lg:flex">
+        <div className="relative w-full max-w-4xl h-[700px] bg-neutral-900 rounded-2xl flex flex-col items-center justify-center">
+            <HalloweenBackground />
+             <div className="absolute top-20 text-center text-white w-full">
+                <h1 className="text-6xl font-bold">Welcome Back</h1>
             </div>
-            <h2 className="mb-6 text-4xl font-bold">Welcome Back</h2>
-            <p className="mb-12 text-lg">Enter your credentials to access your personalized learning dashboard.</p>
+            <div className="relative z-10 flex flex-col items-center">
+                <div className="relative">
+                    <AIBuddy isStatic={true} className="w-64 h-64" />
+                    <div className="absolute top-1/2 -translate-y-1/2 left-[calc(100%_-_80px)]">
+                         <TypingBubble />
+                    </div>
+                </div>
+            </div>
           </div>
-        </div>
       </div>
 
       {/* Right Section */}
-      <div className="flex w-full items-center justify-center bg-black p-6 lg:w-1/2">
-        <div className="w-full max-w-md rounded-[40px] p-12">
-          <div className="mx-auto max-w-sm">
+      <div className="flex w-full items-center justify-center bg-black p-6 lg:w-5/12">
+        <div className="w-full max-w-md">
             <h2 className="mb-2 text-3xl font-bold text-white">Log In to Tutorin</h2>
-            <p className="mb-8 text-gray-400">Welcome back! Enter your details to continue.</p>
+            <p className="mb-8 text-gray-400">Enter your details to continue.</p>
 
             <div className="mb-8 grid gap-4">
-              <Button variant="outline" className="h-12">
+              <Button variant="outline" className="h-12 border-gray-800 bg-gray-900 text-white hover:bg-gray-800">
                 <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
                   <path
                     d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -99,12 +230,8 @@ export default function LoginPage() {
                     fill="#EA4335"
                   />
                 </svg>
-                Google
-              </Button>
-              <Button variant="outline" className="h-12">
-                <Github className="mr-2 h-5 w-5" />
-                Github
-              </Button>
+                Continue with Google
+            </Button>
             </div>
 
             <div className="relative mb-8">
@@ -150,7 +277,6 @@ export default function LoginPage() {
                 </Link>
               </p>
             </form>
-          </div>
         </div>
       </div>
     </div>
