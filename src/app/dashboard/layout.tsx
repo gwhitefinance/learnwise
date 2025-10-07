@@ -287,9 +287,8 @@ const PumpkinIcon = (props: React.SVGProps<SVGSVGElement>) => (
 )
 
 // This component uses the useSearchParams hook and must be wrapped in Suspense
-const TourHandler = () => {
+const TourHandler = ({ startTour }: { startTour: () => void }) => {
     const searchParams = useSearchParams();
-    const { startTour } = useTour();
     
     useEffect(() => {
         const tourParam = searchParams.get('tour');
@@ -534,16 +533,15 @@ export default function DashboardLayout({
   return (
     <RewardProvider>
     <TourContext.Provider value={tourContextValue}>
+      <Suspense fallback={null}>
+        <TourHandler startTour={startTour} />
+      </Suspense>
       <div className={cn(
           "relative min-h-screen overflow-hidden bg-background",
           isHalloweenTheme && 'halloween-bg'
       )}>
         <input type="file" ref={fileInputRef} onChange={handleProfilePicChange} className="hidden" accept="image/*" />
         
-        <Suspense fallback={null}>
-            <TourHandler />
-        </Suspense>
-
         {!isHalloweenTheme && (
           <motion.div
               className="absolute inset-0 -z-10 opacity-20"
