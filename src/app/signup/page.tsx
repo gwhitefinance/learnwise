@@ -31,7 +31,7 @@ const TypingBubble = () => {
     }, []);
 
     return (
-        <div className="speech-bubble-typing thought-bubble">
+        <div className="speech-bubble-typing">
             <p className="text-xl">
                 {text}
                 <span className="typing-cursor"></span>
@@ -39,6 +39,40 @@ const TypingBubble = () => {
         </div>
     );
 };
+
+const HalloweenBackground = () => (
+    <div className="absolute inset-0 w-full h-full overflow-hidden rounded-2xl">
+        <svg width="100%" height="100%" preserveAspectRatio="xMidYMid slice" viewBox="0 0 400 400" className="opacity-80">
+            {/* Ground */}
+            <path d="M0 400 L0 320 C 100 300, 300 340, 400 320 L400 400 Z" fill="#2c1f21" />
+
+            {/* Gravestone 1 */}
+            <path d="M100 320 L100 260 A 20 20 0 0 1 140 260 L140 320 Z" fill="#4a4a4a" />
+            <text x="120" y="290" fontFamily="serif" fontSize="20" fill="#333" textAnchor="middle">RIP</text>
+            
+            {/* Gravestone 2 (crooked) */}
+            <g transform="rotate(-5 280 320)">
+                <path d="M260 320 L260 270 Q 280 250 300 270 L300 320 Z" fill="#555555" />
+            </g>
+
+            {/* Pumpkin 1 */}
+            <ellipse cx="60" cy="330" rx="30" ry="25" fill="#f57d00"/>
+            <rect x="55" y="305" width="10" height="10" fill="green"/>
+            <path d="M50 325 L45 320" stroke="black" strokeWidth="2" />
+            <path d="M70 325 L75 320" stroke="black" strokeWidth="2" />
+
+            {/* Pumpkin 2 */}
+            <ellipse cx="200" cy="340" rx="25" ry="20" fill="#f57d00"/>
+            <rect x="195" y="320" width="10" height="8" fill="darkgreen"/>
+            <path d="M190 335 L185 330" stroke="black" strokeWidth="2" />
+            <path d="M210 335 L215 330" stroke="black" strokeWidth="2" />
+
+             {/* Pumpkin 3 (small) */}
+            <ellipse cx="330" cy="335" rx="18" ry="15" fill="#f57d00"/>
+            <rect x="326" y="320" width="8" height="6" fill="green"/>
+        </svg>
+    </div>
+);
 
 
 export default function SignUpPage() {
@@ -117,10 +151,15 @@ export default function SignUpPage() {
     <div className="flex flex-col lg:flex-row items-center justify-center min-h-screen bg-background p-6">
       
       <div className="hidden lg:flex w-1/2 items-center justify-center relative">
-        <AIBuddy className="w-64 h-64" />
-        <div className="absolute top-1/2 -translate-y-1/2 left-[calc(50%_+_100px)]">
-            <TypingBubble />
-        </div>
+          <div className="relative w-[400px] h-[400px] bg-neutral-900 rounded-2xl flex items-center justify-center">
+            <HalloweenBackground />
+            <div className="relative z-10">
+                <AIBuddy isStatic={true} className="w-64 h-64" />
+            </div>
+            <div className="absolute top-1/2 -translate-y-full left-[calc(50%_+_90px)] z-20">
+                <TypingBubble />
+            </div>
+          </div>
       </div>
 
       <div className="w-full max-w-md lg:w-1/2">

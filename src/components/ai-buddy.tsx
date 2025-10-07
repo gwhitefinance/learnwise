@@ -12,9 +12,10 @@ interface AIBuddyProps {
     hat?: string;   
     shirt?: string; 
     shoes?: string;
+    isStatic?: boolean;
 }
 
-const AIBuddy: React.FC<AIBuddyProps> = ({ className, color, hat, shirt, shoes }) => {
+const AIBuddy: React.FC<AIBuddyProps> = ({ className, color, hat, shirt, shoes, isStatic = false }) => {
     const [bodyColor, setBodyColor] = useState('#87CEEB');
     const [isMounted, setIsMounted] = useState(false);
 
@@ -30,16 +31,24 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, color, hat, shirt, shoes }
                 { "name": "Mint", "hex": "#98FF98" },
                 { "name": "Lavender", "hex": "#E6E6FA" },
                 { "name": "Rose", "hex": "#FFC0CB" },
+                { "name": "Sakura", "hex": "#FFB7C5" },
+                { "name": "Sky", "hex": "#87CEFA" },
                 { "name": "Ocean", "hex": "#008B8B" },
                 { "name": "Sunset", "hex": "#FF6347" },
                 { "name": "Graphite", "hex": "#4f4f4f" },
+                { "name": "Ivory", "hex": "#FFFFF0" },
                 { "name": "Pumpkin", "hex": "#f57d00" },
                 { "name": "Autumn Leaf", "hex": "#b33b00" },
                 { "name": "Gold", "hex": "#FFD700" },
                 { "name": "Emerald", "hex": "#50C878" },
+                { "name": "Silver", "hex": "#C0C0C0" },
                 { "name": "Forest Green", "hex": "#228B22" },
                 { "name": "Ruby", "hex": "#E0115F" },
-                { "name": "Amethyst", "hex": "#9966CC" }
+                { "name": "Amethyst", "hex": "#9966CC" },
+                { "name": "Obsidian", "hex": "#343434" },
+                { "name": "Bronze", "hex": "#CD7F32" },
+                { "name": "Electric Lime", "hex": "#CCFF00" },
+                { "name": "Hot Pink", "hex": "#FF69B4" }
             ];
             const selectedColor = colors.find(c => c.name === color)?.hex || '#87CEEB';
             setBodyColor(selectedColor);
@@ -80,6 +89,9 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, color, hat, shirt, shoes }
     if (!isMounted) {
         return null; // Or a placeholder/skeleton
     }
+    
+    const bodyAnimation = isStatic ? {} : { y: [0, -4, 0], transition: { duration: 4, repeat: Infinity, ease: 'easeInOut' } };
+
 
     return (
         <div ref={containerRef} className={`relative w-full h-full ${className}`}>
@@ -98,21 +110,23 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, color, hat, shirt, shoes }
                 </defs>
 
                 {/* Shadow */}
-                <motion.ellipse
-                    cx="100"
-                    cy="185"
-                    rx="45"
-                    ry="5"
-                    fill="rgba(0,0,0,0.1)"
-                    animate={{ 
-                        scale: [1, 1.05, 1],
-                        transition: { duration: 4, repeat: Infinity, ease: 'easeInOut' }
-                    }}
-                />
+                {!isStatic && (
+                    <motion.ellipse
+                        cx="100"
+                        cy="185"
+                        rx="45"
+                        ry="5"
+                        fill="rgba(0,0,0,0.1)"
+                        animate={{ 
+                            scale: [1, 1.05, 1],
+                            transition: { duration: 4, repeat: Infinity, ease: 'easeInOut' }
+                        }}
+                    />
+                )}
                 
                 {/* Main Body Animation Group */}
                 <motion.g
-                     animate={{ y: [0, -4, 0], transition: { duration: 4, repeat: Infinity, ease: 'easeInOut' } }}
+                     animate={bodyAnimation}
                 >
                     {/* Feet/Shoes */}
                     <Shoes name={shoes} />
@@ -137,13 +151,13 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, color, hat, shirt, shoes }
 
                     {/* Arms */}
                     <motion.g
-                        animate={{ rotate: [0, -8, 0, 8, 0], transition: { duration: 5, repeat: Infinity, ease: 'easeInOut' } }}
+                        animate={{ rotate: isStatic ? 0 : [0, -8, 0, 8, 0], transition: { duration: 5, repeat: Infinity, ease: 'easeInOut' } }}
                         style={{ transformOrigin: '70px 115px' }}
                     >
                         <rect x="45" y="110" width="20" height="35" rx="10" fill={bodyColor} />
                     </motion.g>
                      <motion.g
-                        animate={{ rotate: [0, 8, 0, -8, 0], transition: { duration: 5, delay: 0.5, repeat: Infinity, ease: 'easeInOut' }}}
+                        animate={{ rotate: isStatic ? 0 : [0, 8, 0, -8, 0], transition: { duration: 5, delay: 0.5, repeat: Infinity, ease: 'easeInOut' }}}
                         style={{ transformOrigin: '130px 115px' }}
                     >
                         <rect x="135" y="110" width="20" height="35" rx="10" fill={bodyColor} />
@@ -164,7 +178,7 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, color, hat, shirt, shoes }
                         ) : (
                           <motion.g 
                               style={{ transformOrigin: '100px 30px'}}
-                              animate={{ rotate: [-5, 5, -5], transition: { duration: 6, repeat: Infinity, ease: 'linear' }}}
+                              animate={{ rotate: isStatic ? 0 : [-5, 5, -5], transition: { duration: 6, repeat: Infinity, ease: 'linear' }}}
                           >
                               <line x1="100" y1="30" x2="100" y2="10" stroke="#333" strokeWidth="3" />
                               <circle cx="100" cy="8" r="5" fill="#FFC700" />

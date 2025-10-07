@@ -235,7 +235,3 @@ html.lenis {
   50% { transform: translateY(-8px) rotate(1deg); }
   100% { transform: translateY(0px) rotate(-1deg); }
 }
-
-.thought-bubble {
-  animation: float-bubble 6s ease-in-out infinite;
-}
