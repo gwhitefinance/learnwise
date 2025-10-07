@@ -354,7 +354,3 @@ function LoadingSkeleton() {
 const CoursesTableComponent = dynamic(() => Promise.resolve(CoursesTable), { ssr: false });
 
 export default CoursesTableComponent;
-
-    
-
-    

@@ -11,6 +11,6 @@ const DashboardClientPage = dynamic(
 );
 
 
-export default function DashboardPage() {
-  return <DashboardClientPage />;
+export default function DashboardPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean }) {
+  return <DashboardClientPage isHalloweenTheme={isHalloweenTheme} />;
 }
