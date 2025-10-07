@@ -145,16 +145,18 @@ export default function LoginPage() {
   const { toast } = useToast()
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setEmailError('');
+    setPasswordError('');
+
     if (!email || !password) {
-        toast({
-            variant: "destructive",
-            title: "Missing fields",
-            description: "Please enter your email and password.",
-        });
+        if (!email) setEmailError("Please enter your email.");
+        if (!password) setPasswordError("Please enter your password.");
         return;
     }
 
@@ -168,21 +170,22 @@ export default function LoginPage() {
         });
         router.push('/dashboard');
     } catch (error: any) {
-        let description = "An unexpected error occurred. Please try again.";
-        if (error.code === 'auth/user-not-found') {
-            description = "Invalid email. No account found with this email address.";
-        } else if (error.code === 'auth/wrong-password') {
-            description = "Invalid password. Please check your password and try again.";
-        } else if (error.code === 'auth/invalid-credential') {
-            description = "Invalid credentials. Please check your email and password.";
-        } else {
-            console.error("Login error:", error);
+        switch (error.code) {
+            case 'auth/user-not-found':
+            case 'auth/invalid-email':
+                setEmailError("Invalid email. No account found with this email address.");
+                break;
+            case 'auth/wrong-password':
+                setPasswordError("Invalid password. Please check your password and try again.");
+                break;
+            case 'auth/invalid-credential':
+                 setEmailError("Invalid credentials. Please check your email and password.");
+                 setPasswordError("Invalid credentials. Please check your email and password.");
+                 break;
+            default:
+                setEmailError("An unexpected error occurred. Please try again.");
+                console.error("Login error:", error);
         }
-        toast({
-            variant: "destructive",
-            title: "Login Failed",
-            description: description,
-        });
     } finally {
         setIsLoading(false);
     }
@@ -257,6 +260,7 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
+                {emailError && <p className="text-sm text-red-500">{emailError}</p>}
               </div>
 
               <div className="space-y-2">
@@ -268,6 +272,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
+                {passwordError && <p className="text-sm text-red-500">{passwordError}</p>}
               </div>
 
               <Button type="submit" className="h-12 w-full bg-white text-black hover:bg-gray-100" disabled={isLoading}>
