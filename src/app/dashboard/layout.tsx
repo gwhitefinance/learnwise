@@ -702,6 +702,18 @@ function DashboardLayoutContent({
   );
 }
 
+function DashboardLayoutWithSuspense({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+    return (
+        <Suspense fallback={<DashboardLoading />}>
+            <DashboardLayout>{children}</DashboardLayout>
+        </Suspense>
+    )
+}
+
 export default function DashboardLayout({
   children,
 }: {
@@ -747,12 +759,8 @@ export default function DashboardLayout({
   return (
     <RewardProvider>
         <TourContext.Provider value={tourContextValue}>
-            <Suspense fallback={<DashboardLoading />}>
-                <DashboardLayoutContent>{children}</DashboardLayoutContent>
-            </Suspense>
+            <DashboardLayoutContent>{children}</DashboardLayoutContent>
         </TourContext.Provider>
     </RewardProvider>
   )
 }
-
-    
