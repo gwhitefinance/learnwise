@@ -14,7 +14,7 @@ import AIBuddy from "@/components/ai-buddy"
 
 const TypingBubble = () => {
     const [text, setText] = useState('');
-    const fullText = "Ready to start tutorin!";
+    const fullText = "Ready to start Tutorin!";
     
     useEffect(() => {
         let i = 0;
