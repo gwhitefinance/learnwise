@@ -201,8 +201,15 @@ html.lenis {
   color: hsl(var(--card-foreground));
   border: 1px solid hsl(var(--border));
   width: 280px; /* Increased width */
-  white-space: normal;
+  animation: float-bubble 4s ease-in-out infinite;
 }
+
+.dark .speech-bubble-typing {
+  background: white;
+  color: black;
+  border-color: #e5e7eb;
+}
+
 
 .speech-bubble-typing::after {
   content: '';
@@ -217,6 +224,11 @@ html.lenis {
   margin-top: -20px;
   margin-left: -20px;
 }
+
+.dark .speech-bubble-typing::after {
+  border-right-color: white;
+}
+
 
 .typing-cursor {
   border-right: .15em solid hsl(var(--primary));

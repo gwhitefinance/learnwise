@@ -155,7 +155,7 @@ const Hero = ({ theme }: { theme: string }) => (
           <div className="absolute inset-0 flex justify-center items-center">
               <div style={{ width: '400px', height: '250px' }} className="relative">
                   <AIBuddy />
-                  <div className="absolute top-1/2 -translate-y-1/2 left-[calc(100%_-_80px)]">
+                  <div className="absolute top-1/2 -translate-y-full left-[calc(100%_-_140px)]">
                       <TypingBubble theme={theme} />
                   </div>
               </div>
@@ -171,7 +171,7 @@ const Hero = ({ theme }: { theme: string }) => (
                 size="lg"
                 className="w-full sm:w-auto bg-blue-500 text-white hover:bg-blue-600 rounded-2xl text-lg h-14 border-b-4 border-black/30 transform active:translate-y-px"
             >
-                Start Now
+                Start for Free
             </Button>
             </Link>
         </div>
