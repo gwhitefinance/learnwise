@@ -200,19 +200,19 @@ html.lenis {
   padding: 20px;
   color: hsl(var(--card-foreground));
   border: 1px solid hsl(var(--border));
-  width: 220px;
+  width: 240px; /* Increased width */
 }
 
 .speech-bubble-typing::after {
   content: '';
   position: absolute;
   top: 50%;
-  left: 100%;
+  left: 0;
   width: 0;
   height: 0;
   border: 20px solid transparent;
-  border-left-color: hsl(var(--card));
-  border-right: 0;
+  border-right-color: hsl(var(--card));
+  border-left: 0;
   margin-top: -20px;
   margin-left: -20px;
 }
@@ -233,14 +233,24 @@ html.lenis {
   100% { transform: translateY(0px) rotate(-1deg); }
 }
 
+.pumpkin-glow-1 { animation: pumpkin-glow 3s infinite; }
+.pumpkin-glow-2 { animation: pumpkin-glow 3.5s infinite 0.5s; }
+
+.ghost { animation: ghost-fade 6s ease-in-out infinite; }
+
+.bat-1 { animation: fly-bat 12s linear infinite; }
+.bat-2 { animation: fly-bat 15s linear infinite 2s; }
+.bat-3 { animation: fly-bat 10s linear infinite 4s; }
+
+
 @keyframes pumpkin-glow {
-  0%, 100% { fill: #ffb84d; }
-  50% { fill: #ffd699; }
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
 }
 
 @keyframes ghost-fade {
-  0%, 100% { opacity: 0.2; }
-  50% { opacity: 0.8; }
+  0%, 100% { opacity: 0.2; transform: translateY(0px); }
+  50% { opacity: 0.8; transform: translateY(-20px); }
 }
 
 @keyframes fly-bat {

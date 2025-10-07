@@ -13,19 +13,19 @@ import Link from "next/link"
 import AIBuddy from "@/components/ai-buddy"
 
 const TypingBubble = () => {
-    const [text, setText] = useState('');
-    const fullText = "Ready to start Tutorin!";
+    const [typedText, setTypedText] = useState('');
+    const textToType = "Tutorin!";
     
     useEffect(() => {
         let i = 0;
         const typingInterval = setInterval(() => {
-            if(i < fullText.length) {
-                setText(prev => prev + fullText.charAt(i));
+            if(i < textToType.length) {
+                setTypedText(prev => prev + textToType.charAt(i));
                 i++;
             } else {
                 clearInterval(typingInterval);
             }
-        }, 100);
+        }, 150);
 
         return () => clearInterval(typingInterval);
     }, []);
@@ -33,7 +33,7 @@ const TypingBubble = () => {
     return (
         <div className="speech-bubble-typing">
             <p className="text-xl">
-                {text}
+                Ready to start <span className="font-semibold text-blue-500">{typedText}</span>
                 <span className="typing-cursor"></span>
             </p>
         </div>
@@ -45,8 +45,10 @@ const HalloweenBackground = () => (
         <svg width="100%" height="100%" preserveAspectRatio="xMidYMid slice" viewBox="0 0 400 400" className="opacity-80">
             {/* -- Sky & Stars -- */}
             <rect width="400" height="400" fill="#0d1a26" />
-            <circle cx="350" cy="50" r="20" fill="#f0e68c" />
-            <circle cx="345" cy="50" r="20" fill="#0d1a26" />
+            <g className="crescent-moon">
+                <circle cx="350" cy="50" r="20" fill="#f0e68c" />
+                <circle cx="340" cy="45" r="20" fill="#0d1a26" />
+            </g>
 
             <circle cx="50" cy="80" r="1" fill="white" />
             <circle cx="150" cy="40" r="1.5" fill="white" />
@@ -55,13 +57,13 @@ const HalloweenBackground = () => (
             <circle cx="80" cy="180" r="1.2" fill="white" />
             
             {/* -- Bats -- */}
-            <g style={{ animation: 'fly-bat 12s linear infinite' }}>
+            <g className="bat-1">
               <path d="M10 10 C 15 5, 25 5, 30 10 L 20 15 Z" fill="black" />
             </g>
-            <g style={{ animation: 'fly-bat 15s linear infinite 2s' }}>
+            <g className="bat-2">
               <path d="M50 30 C 55 25, 65 25, 70 30 L 60 35 Z" fill="black" />
             </g>
-             <g style={{ animation: 'fly-bat 10s linear infinite 4s' }}>
+             <g className="bat-3">
               <path d="M100 20 C 105 15, 115 15, 120 20 L 110 25 Z" fill="black" />
             </g>
 
@@ -73,7 +75,7 @@ const HalloweenBackground = () => (
             <path d="M0 400 L0 320 C 100 300, 300 340, 400 320 L400 400 Z" fill="#2c1f21" />
 
             {/* -- Ghost -- */}
-             <g style={{ animation: 'ghost-fade 6s ease-in-out infinite' }}>
+             <g className="ghost">
                 <path d="M150 320 Q 170 280, 190 320 L180 315 L170 320 L160 315 Z" fill="white" />
                 <circle cx="165" cy="305" r="3" fill="black" />
                 <circle cx="175" cy="305" r="3" fill="black" />
@@ -94,7 +96,7 @@ const HalloweenBackground = () => (
                 <path d="M50 325 L45 320" stroke="black" strokeWidth="2" />
                 <path d="M70 325 L75 320" stroke="black" strokeWidth="2" />
                 <path d="M55 335 Q 60 340 65 335" stroke="black" strokeWidth="2" fill="none" />
-                <g style={{ animation: 'pumpkin-glow 3s infinite' }}>
+                <g className="pumpkin-glow-1">
                     <path d="M50 325 L45 320" stroke="yellow" strokeWidth="2" />
                     <path d="M70 325 L75 320" stroke="yellow" strokeWidth="2" />
                 </g>
@@ -107,7 +109,7 @@ const HalloweenBackground = () => (
                     <path d="M190 335 L185 330" stroke="black" strokeWidth="2" />
                     <path d="M210 335 L215 330" stroke="black" strokeWidth="2" />
                     <rect x="193" y="340" width="14" height="3" fill="black" />
-                    <g style={{ animation: 'pumpkin-glow 3.5s infinite 0.5s' }}>
+                    <g className="pumpkin-glow-2">
                        <path d="M190 335 L185 330" stroke="yellow" strokeWidth="2" />
                        <path d="M210 335 L215 330" stroke="yellow" strokeWidth="2" />
                     </g>
