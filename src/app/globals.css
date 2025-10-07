@@ -195,12 +195,13 @@ html.lenis {
 
 .speech-bubble-typing {
   position: relative;
-  background: white;
+  background: hsl(var(--card));
   border-radius: .4em;
   padding: 20px;
-  color: black;
+  color: hsl(var(--card-foreground));
   max-width: 400px;
   text-align: left;
+  border: 1px solid hsl(var(--border));
   white-space: nowrap;
 }
 
@@ -212,7 +213,7 @@ html.lenis {
   width: 0;
   height: 0;
   border: 20px solid transparent;
-  border-right-color: white;
+  border-right-color: hsl(var(--card));
   border-left: 0;
   border-top: 0;
   margin-top: -10px;
@@ -220,13 +221,13 @@ html.lenis {
 }
 
 .typing-cursor {
-  border-right: .15em solid orange;
+  border-right: .15em solid hsl(var(--primary));
   animation: blink-caret .75s step-end infinite;
 }
 
 @keyframes blink-caret {
   from, to { border-color: transparent }
-  50% { border-color: orange; }
+  50% { border-color: hsl(var(--primary)); }
 }
 
 @keyframes float-bubble {

@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,7 +11,35 @@ import { app, db } from "@/lib/firebase"
 import { doc, setDoc, serverTimestamp } from "firebase/firestore"
 import Link from "next/link"
 import AIBuddy from "@/components/ai-buddy"
-import Logo from "@/components/Logo"
+
+const TypingBubble = () => {
+    const [text, setText] = useState('');
+    const fullText = "Ready to start tutorin!";
+    
+    useEffect(() => {
+        let i = 0;
+        const typingInterval = setInterval(() => {
+            if(i < fullText.length) {
+                setText(prev => prev + fullText.charAt(i));
+                i++;
+            } else {
+                clearInterval(typingInterval);
+            }
+        }, 100);
+
+        return () => clearInterval(typingInterval);
+    }, []);
+
+    return (
+        <div className="speech-bubble-typing thought-bubble">
+            <p className="text-xl">
+                {text}
+                <span className="typing-cursor"></span>
+            </p>
+        </div>
+    );
+};
+
 
 export default function SignUpPage() {
   const router = useRouter()
@@ -86,10 +114,17 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-background p-6">
-      <div className="w-full max-w-md">
-        <div className="flex flex-col items-center justify-center text-center mb-8">
-            <AIBuddy className="w-32 h-32" />
+    <div className="flex flex-col lg:flex-row items-center justify-center min-h-screen bg-background p-6">
+      
+      <div className="hidden lg:flex w-1/2 items-center justify-center relative">
+        <AIBuddy className="w-64 h-64" />
+        <div className="absolute top-1/2 -translate-y-1/2 left-[calc(50%_+_100px)]">
+            <TypingBubble />
+        </div>
+      </div>
+
+      <div className="w-full max-w-md lg:w-1/2">
+        <div className="text-center lg:text-left mb-8">
             <h2 className="mt-6 text-3xl font-bold">Create Your Account</h2>
             <p className="mt-2 text-muted-foreground">Join Tutorin to start learning smarter.</p>
         </div>
