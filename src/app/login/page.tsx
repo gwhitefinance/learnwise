@@ -169,8 +169,12 @@ export default function LoginPage() {
         router.push('/dashboard');
     } catch (error: any) {
         let description = "An unexpected error occurred. Please try again.";
-        if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
-            description = "Invalid email or password. Please check your credentials and try again.";
+        if (error.code === 'auth/user-not-found') {
+            description = "Invalid email. No account found with this email address.";
+        } else if (error.code === 'auth/wrong-password') {
+            description = "Invalid password. Please check your password and try again.";
+        } else if (error.code === 'auth/invalid-credential') {
+            description = "Invalid credentials. Please check your email and password.";
         } else {
             console.error("Login error:", error);
         }
@@ -196,7 +200,7 @@ export default function LoginPage() {
             <div className="relative z-10 flex flex-col items-center">
                 <div className="relative">
                     <AIBuddy isStatic={true} className="w-64 h-64" />
-                    <div className="absolute top-1/2 -translate-y-1/2 left-[calc(100%_-_80px)]">
+                    <div className="absolute top-1/2 -translate-y-full left-[calc(100%_-_80px)]">
                          <TypingBubble />
                     </div>
                 </div>
