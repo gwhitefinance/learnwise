@@ -200,20 +200,21 @@ html.lenis {
   padding: 20px;
   color: hsl(var(--card-foreground));
   border: 1px solid hsl(var(--border));
+  width: 220px;
 }
 
 .speech-bubble-typing::after {
   content: '';
   position: absolute;
   top: 50%;
-  right: 100%;
+  left: 100%;
   width: 0;
   height: 0;
   border: 20px solid transparent;
-  border-right-color: hsl(var(--card));
-  border-left: 0;
+  border-left-color: hsl(var(--card));
+  border-right: 0;
   margin-top: -20px;
-  margin-right: -20px;
+  margin-left: -20px;
 }
 
 .typing-cursor {
