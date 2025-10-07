@@ -5,13 +5,13 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Github } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { getAuth, createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
-import { app, db } from "@/lib/firebase" // Import the initialized app and db
-import { AnimatePresence, motion } from "framer-motion"
+import { app, db } from "@/lib/firebase"
 import { doc, setDoc, serverTimestamp } from "firebase/firestore"
 import Link from "next/link"
+import AIBuddy from "@/components/ai-buddy"
+import Logo from "@/components/Logo"
 
 export default function SignUpPage() {
   const router = useRouter()
@@ -43,7 +43,7 @@ export default function SignUpPage() {
 
     setIsLoading(true);
     try {
-        const auth = getAuth(app); // Get auth instance from the app
+        const auth = getAuth(app);
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
@@ -51,17 +51,15 @@ export default function SignUpPage() {
             displayName: `${firstName} ${lastName}`
         });
 
-        // Create a user document in Firestore
         await setDoc(doc(db, "users", user.uid), {
             uid: user.uid,
             displayName: `${firstName} ${lastName}`,
             email: user.email,
             createdAt: serverTimestamp(),
-            coins: 0, // Initialize coins
-            level: 1, // Initialize level
-            xp: 0, // Initialize xp
+            coins: 0,
+            level: 1,
+            xp: 0,
         });
-
 
         toast({
             title: "Account Created!",
@@ -73,12 +71,8 @@ export default function SignUpPage() {
         let description = "An unexpected error occurred. Please try again.";
         if (error.code === 'auth/email-already-in-use') {
             description = "This email address is already in use. Please try another one or log in.";
-        } else if (error.code === 'auth/operation-not-allowed') {
-            description = "Email/Password sign-in is not enabled for this project. Please enable it in the Firebase console under Authentication > Sign-in method.";
-        } else if (error.code === 'auth/invalid-api-key' || error.code === 'auth/configuration-not-found' || error.code === 'auth/invalid-credential') {
-            description = "The provided API key is invalid. Please check your Firebase configuration."
         } else {
-            console.error("Sign up error:", error);
+             console.error("Sign up error:", error);
         }
         
         toast({
@@ -92,54 +86,16 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-black">
-      {/* Left Section */}
-      <div className="relative hidden w-1/2 p-8 lg:block">
-        <div className="h-full w-full overflow-hidden rounded-[40px] bg-gradient-to-b from-purple-400 via-purple-600 to-black">
-          <div className="flex h-full flex-col items-center justify-center px-8 text-center text-white">
-            <div className="mb-8">
-              <h1 className="text-2xl font-semibold">Tutorin</h1>
-            </div>
-            <h2 className="mb-6 text-4xl font-bold">Welcome to Tutorin</h2>
-            <p className="mb-12 text-lg">Complete these easy steps to register your account.</p>
-
-            <div className="w-full max-w-sm space-y-4">
-              <div className="rounded-lg bg-white/10 p-4 backdrop-blur-sm">
-                <div className="flex items-center gap-4">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-black">1</span>
-                  <span className="text-lg">Sign up your account</span>
-                </div>
-              </div>
-              <div className="rounded-lg bg-white/5 p-4 backdrop-blur-sm">
-                <div className="flex items-center gap-4">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white">
-                    2
-                  </span>
-                  <span className="text-lg">Personalize your experience</span>
-                </div>
-              </div>
-              <div className="rounded-lg bg-white/5 p-4 backdrop-blur-sm">
-                <div className="flex items-center gap-4">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white">
-                    3
-                  </span>
-                  <span className="text-lg">Discover your learning style</span>
-                </div>
-              </div>
-            </div>
-          </div>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-background p-6">
+      <div className="w-full max-w-md">
+        <div className="flex flex-col items-center justify-center text-center mb-8">
+            <AIBuddy className="w-32 h-32" />
+            <h2 className="mt-6 text-3xl font-bold">Create Your Account</h2>
+            <p className="mt-2 text-muted-foreground">Join Tutorin to start learning smarter.</p>
         </div>
-      </div>
 
-      {/* Right Section */}
-      <div className="flex w-full items-center justify-center bg-black p-6 lg:w-1/2">
-        <div className="w-full max-w-md rounded-[40px] p-12">
-          <div className="mx-auto max-w-sm">
-            <h2 className="mb-2 text-3xl font-bold text-white">Sign Up Account</h2>
-            <p className="mb-8 text-gray-400">Enter your personal data to create your account.</p>
-
-            <div className="mb-8 grid gap-4">
-              <Button variant="outline" className="h-12">
+        <div className="space-y-4">
+             <Button variant="outline" className="w-full h-12">
                 <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
                   <path
                     d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -158,94 +114,66 @@ export default function SignUpPage() {
                     fill="#EA4335"
                   />
                 </svg>
-                Google
-              </Button>
-              <Button variant="outline" className="h-12">
-                <Github className="mr-2 h-5 w-5" />
-                Github
-              </Button>
-            </div>
+                Sign up with Google
+            </Button>
 
-            <div className="relative mb-8">
+            <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-800"></div>
+                <div className="w-full border-t border-border"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="bg-black px-2 text-gray-400">Or</span>
+                <span className="bg-background px-2 text-muted-foreground">OR</span>
               </div>
             </div>
 
-            <form className="space-y-6" onSubmit={handleSignUp}>
-              <AnimatePresence>
-                <motion.div
-                    key="name-fields"
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="overflow-hidden"
-                >
-                    <div className="grid gap-4 md:grid-cols-2">
-                        <div className="space-y-2">
-                        <Input
-                            className="h-12 border-gray-800 bg-gray-900 text-white placeholder:text-gray-400"
-                            placeholder="First Name"
-                            type="text"
-                            required
-                            value={firstName}
-                            onChange={(e) => setFirstName(e.target.value)}
-                        />
-                        </div>
-                        <div className="space-y-2">
-                        <Input
-                            className="h-12 border-gray-800 bg-gray-900 text-white placeholder:text-gray-400"
-                            placeholder="Last Name"
-                            type="text"
-                            required
-                            value={lastName}
-                            onChange={(e) => setLastName(e.target.value)}
-                        />
-                        </div>
-                    </div>
-                </motion.div>
-              </AnimatePresence>
+            <form className="space-y-4" onSubmit={handleSignUp}>
+                <div className="grid gap-4 md:grid-cols-2">
+                    <Input
+                        placeholder="First Name"
+                        type="text"
+                        required
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                        className="h-12"
+                    />
+                    <Input
+                        placeholder="Last Name"
+                        type="text"
+                        required
+                        value={lastName}
+                        onChange={(e) => setLastName(e.target.value)}
+                        className="h-12"
+                    />
+                </div>
+              <Input
+                placeholder="example@email.com"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="h-12"
+              />
+              <Input
+                placeholder="Password (min. 8 characters)"
+                type="password"
+                required
+                minLength={8}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="h-12"
+              />
 
-              <div className="space-y-2">
-                <Input
-                  className="h-12 border-gray-800 bg-gray-900 text-white placeholder:text-gray-400"
-                  placeholder="example@email.com"
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Input
-                  className="h-12 border-gray-800 bg-gray-900 text-white placeholder:text-gray-400"
-                  placeholder="YourbestPasword"
-                  type="password"
-                  required
-                  minLength={8}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-                <p className="text-sm text-gray-400">Must be at least 8 characters.</p>
-              </div>
-
-              <Button type="submit" className="h-12 w-full bg-white text-black hover:bg-gray-100" disabled={isLoading}>
-                {isLoading ? 'Signing Up...' : 'Sign Up'}
+              <Button type="submit" className="h-12 w-full" disabled={isLoading}>
+                {isLoading ? 'Creating Account...' : 'Sign Up'}
               </Button>
-
-              <p className="text-center text-sm text-gray-400">
-                Already have an account?{" "}
-                <Link href="/login" className="text-white hover:underline font-semibold">
-                  Log in
-                </Link>
-              </p>
             </form>
-          </div>
+
+            <p className="text-center text-sm text-muted-foreground pt-4">
+              Already have an account?{" "}
+              <Link href="/login" className="font-semibold text-primary hover:underline">
+                Log in
+              </Link>
+            </p>
         </div>
       </div>
     </div>
