@@ -711,31 +711,30 @@ export default function DashboardLayout({
   const [tourStep, setTourStep] = useState(0);
   const router = useRouter();
 
-  const startTour = () => {
+  const startTour = useCallback(() => {
     setIsTourActive(true);
     setTourStep(1);
-  };
+  }, []);
 
-  const nextTourStep = (path?: string) => {
+  const nextTourStep = useCallback((path?: string) => {
     setTourStep(prev => prev + 1);
     if (path) {
         router.push(path);
     }
-  };
+  }, [router]);
   
-  const endTour = () => {
+  const endTour = useCallback(() => {
     setIsTourActive(false);
     setTourStep(0);
-  };
+  }, []);
   
   useEffect(() => {
     if (typeof window !== 'undefined' && window.location.search.includes('tour=true')) {
       startTour();
-      // Clean up the URL
       const nextUrl = window.location.pathname;
       window.history.replaceState({}, '', nextUrl);
     }
-  }, []);
+  }, [startTour]);
 
   const tourContextValue = {
       isTourActive,
