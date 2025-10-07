@@ -215,7 +215,7 @@ export default function SignUpPage() {
   return (
     <div className="flex min-h-screen bg-black">
       {/* Left Section */}
-      <div className="relative hidden w-1/2 flex-col items-center justify-center p-8 lg:flex">
+      <div className="relative hidden w-7/12 flex-col items-center justify-center p-8 lg:flex">
         <div className="relative w-full max-w-4xl h-[700px] bg-neutral-900 rounded-2xl flex flex-col items-center justify-center">
             <HalloweenBackground />
              <div className="absolute top-20 text-center text-white w-full">
@@ -233,7 +233,7 @@ export default function SignUpPage() {
       </div>
 
       {/* Right Section */}
-      <div className="flex w-full items-center justify-center bg-black p-6 lg:w-1/2">
+      <div className="flex w-full items-center justify-center bg-black p-6 lg:w-5/12">
         <div className="w-full max-w-md">
             <h2 className="mb-2 text-3xl font-bold text-white">Sign Up Account</h2>
             <p className="mb-8 text-gray-400">Enter your personal data to create your account.</p>
