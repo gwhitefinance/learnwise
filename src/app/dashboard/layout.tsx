@@ -288,20 +288,6 @@ const PumpkinIcon = (props: React.SVGProps<SVGSVGElement>) => (
     </svg>
 )
 
-// This component uses the useSearchParams hook and must be wrapped in Suspense
-const TourHandler = ({ startTour }: { startTour: () => void }) => {
-    const searchParams = useSearchParams();
-    
-    useEffect(() => {
-        const tourParam = searchParams.get('tour');
-        if (tourParam === 'true') {
-            startTour();
-        }
-    }, [searchParams, startTour]);
-
-    return null; // This component does not render anything itself
-};
-
 function DashboardLayoutContent({
   children,
 }: {
@@ -321,23 +307,6 @@ function DashboardLayoutContent({
   const [userLevel, setUserLevel] = useState<number>(1);
   const [userXp, setUserXp] = useState<number>(0);
   const [isHalloweenTheme, setIsHalloweenTheme] = useState(false);
-
-  // Tour State
-  const { startTour } = useTour();
-  const [isTourCheckComplete, setIsTourCheckComplete] = useState(false);
-  const searchParams = useSearchParams();
-
-  useEffect(() => {
-    const tourParam = searchParams.get('tour');
-    if (tourParam === 'true') {
-      startTour();
-      // We remove the param so a refresh doesn't restart the tour
-      const nextUrl = window.location.pathname;
-      window.history.replaceState({}, '', nextUrl);
-    }
-    setIsTourCheckComplete(true);
-  }, [searchParams, startTour]);
-
 
   useEffect(() => {
     setIsMounted(true);
@@ -462,7 +431,7 @@ function DashboardLayoutContent({
   const xpForNextLevel = userLevel * 100;
   const xpProgress = (userXp / xpForNextLevel) * 100;
 
-  if (loading || !isMounted || !isTourCheckComplete) {
+  if (loading || !isMounted) {
     return <DashboardLoading />;
   }
 
@@ -758,6 +727,15 @@ export default function DashboardLayout({
     setIsTourActive(false);
     setTourStep(0);
   };
+  
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.search.includes('tour=true')) {
+      startTour();
+      // Clean up the URL
+      const nextUrl = window.location.pathname;
+      window.history.replaceState({}, '', nextUrl);
+    }
+  }, []);
 
   const tourContextValue = {
       isTourActive,
@@ -769,11 +747,11 @@ export default function DashboardLayout({
 
   return (
     <RewardProvider>
-      <TourContext.Provider value={tourContextValue}>
-        <Suspense fallback={<DashboardLoading />}>
-          <DashboardLayoutContent>{children}</DashboardLayoutContent>
-        </Suspense>
-      </TourContext.Provider>
+        <TourContext.Provider value={tourContextValue}>
+            <Suspense fallback={<DashboardLoading />}>
+                <DashboardLayoutContent>{children}</DashboardLayoutContent>
+            </Suspense>
+        </TourContext.Provider>
     </RewardProvider>
   )
 }
