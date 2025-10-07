@@ -200,7 +200,6 @@ html.lenis {
   padding: 20px;
   color: hsl(var(--card-foreground));
   border: 1px solid hsl(var(--border));
-  white-space: nowrap;
 }
 
 .speech-bubble-typing::after {
