@@ -43,6 +43,22 @@ const TypingBubble = () => {
 const HalloweenBackground = () => (
     <div className="absolute inset-0 w-full h-full overflow-hidden rounded-2xl">
         <svg width="100%" height="100%" preserveAspectRatio="xMidYMid slice" viewBox="0 0 400 400" className="opacity-80">
+            {/* Spider Web */}
+            <g transform="translate(0, 0)">
+                <path d="M 0 0 L 50 50" stroke="#aaa" strokeWidth="1" />
+                <path d="M 25 0 L 50 50" stroke="#aaa" strokeWidth="1" />
+                <path d="M 50 0 L 50 50" stroke="#aaa" strokeWidth="1" />
+                <path d="M 0 25 L 50 50" stroke="#aaa" strokeWidth="1" />
+                 <path d="M 0 50 L 50 50" stroke="#aaa" strokeWidth="1" />
+
+                <path d="M 0 10 Q 10 10, 10 0" stroke="#aaa" strokeWidth="1" fill="none" />
+                <path d="M 0 20 Q 20 20, 20 0" stroke="#aaa" strokeWidth="1" fill="none" />
+                <path d="M 0 30 Q 30 30, 30 0" stroke="#aaa" strokeWidth="1" fill="none" />
+                <path d="M 0 40 Q 40 40, 40 0" stroke="#aaa" strokeWidth="1" fill="none" />
+                <path d="M 10 50 Q 50 40, 50 10" stroke="#aaa" strokeWidth="1" fill="none" />
+                 <path d="M 20 50 Q 50 30, 50 20" stroke="#aaa" strokeWidth="1" fill="none" />
+            </g>
+
             {/* Ground */}
             <path d="M0 400 L0 320 C 100 300, 300 340, 400 320 L400 400 Z" fill="#2c1f21" />
 
@@ -151,12 +167,12 @@ export default function SignUpPage() {
     <div className="flex min-h-screen bg-black">
       {/* Left Section */}
       <div className="relative hidden w-1/2 flex-col items-center justify-center p-8 lg:flex">
-        <div className="relative w-full max-w-lg h-[600px] bg-neutral-900 rounded-2xl flex items-center justify-center">
+        <div className="relative w-full max-w-2xl h-[700px] bg-neutral-900 rounded-2xl flex items-center justify-center">
             <HalloweenBackground />
             <div className="relative z-10 flex flex-col items-center">
                 <div className="relative">
                     <AIBuddy isStatic={true} className="w-64 h-64" />
-                    <div className="absolute -top-8 left-1/2 -translate-x-1/2">
+                    <div className="absolute top-8 left-1/2">
                          <TypingBubble />
                     </div>
                 </div>
