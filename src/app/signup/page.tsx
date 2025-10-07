@@ -148,28 +148,28 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="flex flex-col lg:flex-row items-center justify-center min-h-screen bg-background p-6">
-      
-      <div className="hidden lg:flex w-1/2 items-center justify-center relative">
-          <div className="relative w-[400px] h-[400px] bg-neutral-900 rounded-2xl flex items-center justify-center">
+    <div className="flex min-h-screen bg-black">
+      {/* Left Section */}
+      <div className="relative hidden w-1/2 flex-col items-center justify-center p-8 lg:flex">
+        <div className="relative w-full max-w-lg h-[600px] bg-neutral-900 rounded-2xl flex items-center justify-center">
             <HalloweenBackground />
-            <div className="relative z-10">
+            <div className="relative z-10 text-center">
                 <AIBuddy isStatic={true} className="w-64 h-64" />
-            </div>
-            <div className="absolute top-1/2 -translate-y-full left-[calc(50%_+_90px)] z-20">
-                <TypingBubble />
+                <div className="mt-4">
+                     <TypingBubble />
+                </div>
             </div>
           </div>
       </div>
 
-      <div className="w-full max-w-md lg:w-1/2">
-        <div className="text-center lg:text-left mb-8">
-            <h2 className="mt-6 text-3xl font-bold">Create Your Account</h2>
-            <p className="mt-2 text-muted-foreground">Join Tutorin to start learning smarter.</p>
-        </div>
+      {/* Right Section */}
+      <div className="flex w-full items-center justify-center bg-black p-6 lg:w-1/2">
+        <div className="w-full max-w-md">
+            <h2 className="mb-2 text-3xl font-bold text-white">Sign Up Account</h2>
+            <p className="mb-8 text-gray-400">Enter your personal data to create your account.</p>
 
-        <div className="space-y-4">
-             <Button variant="outline" className="w-full h-12">
+            <div className="mb-8 grid gap-4">
+              <Button variant="outline" className="h-12 border-gray-800 bg-gray-900 text-white hover:bg-gray-800">
                 <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
                   <path
                     d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -190,61 +190,65 @@ export default function SignUpPage() {
                 </svg>
                 Sign up with Google
             </Button>
+            </div>
 
-            <div className="relative">
+            <div className="relative mb-8">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-border"></div>
+                <div className="w-full border-t border-gray-800"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="bg-background px-2 text-muted-foreground">OR</span>
+                <span className="bg-black px-2 text-gray-400">Or</span>
               </div>
             </div>
 
             <form className="space-y-4" onSubmit={handleSignUp}>
                 <div className="grid gap-4 md:grid-cols-2">
                     <Input
+                        className="h-12 border-gray-800 bg-gray-900 text-white placeholder:text-gray-400"
                         placeholder="First Name"
                         type="text"
                         required
                         value={firstName}
                         onChange={(e) => setFirstName(e.target.value)}
-                        className="h-12"
                     />
                     <Input
+                        className="h-12 border-gray-800 bg-gray-900 text-white placeholder:text-gray-400"
                         placeholder="Last Name"
                         type="text"
                         required
                         value={lastName}
                         onChange={(e) => setLastName(e.target.value)}
-                        className="h-12"
                     />
                 </div>
               <Input
+                 className="h-12 border-gray-800 bg-gray-900 text-white placeholder:text-gray-400"
                 placeholder="example@email.com"
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="h-12"
               />
-              <Input
-                placeholder="Password (min. 8 characters)"
-                type="password"
-                required
-                minLength={8}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="h-12"
-              />
+              <div className="space-y-2">
+                <Input
+                    className="h-12 border-gray-800 bg-gray-900 text-white placeholder:text-gray-400"
+                    placeholder="YourBestPassword"
+                    type="password"
+                    required
+                    minLength={8}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                />
+                 <p className="text-xs text-gray-500">Must be at least 8 characters.</p>
+              </div>
 
-              <Button type="submit" className="h-12 w-full" disabled={isLoading}>
+              <Button type="submit" className="h-12 w-full bg-white text-black hover:bg-gray-100" disabled={isLoading}>
                 {isLoading ? 'Creating Account...' : 'Sign Up'}
               </Button>
             </form>
 
-            <p className="text-center text-sm text-muted-foreground pt-4">
+            <p className="text-center text-sm text-gray-400 pt-8">
               Already have an account?{" "}
-              <Link href="/login" className="font-semibold text-primary hover:underline">
+              <Link href="/login" className="font-semibold text-white hover:underline">
                 Log in
               </Link>
             </p>
@@ -253,3 +257,5 @@ export default function SignUpPage() {
     </div>
   )
 }
+
+    
