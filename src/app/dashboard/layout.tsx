@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useEffect, useState, useRef, createContext, useContext, Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Award,
@@ -65,7 +66,7 @@ import {
   Shield,
 } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -95,6 +96,7 @@ import FloatingChat from '@/components/floating-chat';
 import TourGuide from '@/components/TourGuide';
 import { useToast } from '@/hooks/use-toast';
 import Logo from '@/components/Logo';
+import DashboardLoading from './loading';
 
 
 // Sample data for sidebar navigation
@@ -300,12 +302,11 @@ const TourHandler = ({ startTour }: { startTour: () => void }) => {
     return null; // This component does not render anything itself
 };
 
-export default function DashboardLayout({
+function DashboardLayoutContent({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  
   const [isMounted, setIsMounted] = useState(false);
   const [notifications, setNotifications] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -322,52 +323,25 @@ export default function DashboardLayout({
   const [isHalloweenTheme, setIsHalloweenTheme] = useState(false);
 
   // Tour State
-  const [isTourActive, setIsTourActive] = useState(false);
-  const [tourStep, setTourStep] = useState(0);
+  const { startTour } = useTour();
+  const [isTourCheckComplete, setIsTourCheckComplete] = useState(false);
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const tourParam = searchParams.get('tour');
+    if (tourParam === 'true') {
+      startTour();
+      // We remove the param so a refresh doesn't restart the tour
+      const nextUrl = window.location.pathname;
+      window.history.replaceState({}, '', nextUrl);
+    }
+    setIsTourCheckComplete(true);
+  }, [searchParams, startTour]);
+
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
-
-  useEffect(() => {
-    if (isTourActive) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-
-    return () => {
-      document.body.style.overflow = ''; // Cleanup on unmount
-    };
-  }, [isTourActive]);
-
-  const startTour = () => {
-    setIsTourActive(true);
-    setTourStep(1);
-    // Clear the 'tour' param from URL without reloading
-    const nextUrl = window.location.pathname;
-    window.history.replaceState({}, '', nextUrl);
-  };
-
-  const nextTourStep = (path?: string) => {
-    setTourStep(prev => prev + 1);
-    if (path) {
-        router.push(path);
-    }
-  };
-  
-  const endTour = () => {
-    setIsTourActive(false);
-    setTourStep(0);
-  };
-
-  const tourContextValue = {
-      isTourActive,
-      tourStep,
-      startTour,
-      nextTourStep,
-      endTour
-  };
 
   useEffect(() => {
     if (!isMounted) return;
@@ -434,15 +408,6 @@ export default function DashboardLayout({
               console.log('Notification permission granted.');
               
               const messagingInstance = getMessaging();
-              // if (messagingInstance) {
-              //   const currentToken = await getToken(messagingInstance, { vapidKey: 'YOUR_VAPID_KEY_HERE' });
-              
-              //   if (currentToken) {
-              //     console.log('FCM Token:', currentToken);
-              //   } else {
-              //     console.log('No registration token available. Request permission to generate one.');
-              //   }
-              // }
             } else {
               console.log('Unable to get permission to notify.');
             }
@@ -497,12 +462,8 @@ export default function DashboardLayout({
   const xpForNextLevel = userLevel * 100;
   const xpProgress = (userXp / xpForNextLevel) * 100;
 
-  if (loading || !isMounted) {
-    return (
-        <div className="flex items-center justify-center h-screen">
-            <div>Loading...</div>
-        </div>
-    )
+  if (loading || !isMounted || !isTourCheckComplete) {
+    return <DashboardLoading />;
   }
 
   const userProfileDisplay = (
@@ -531,11 +492,7 @@ export default function DashboardLayout({
 
 
   return (
-    <RewardProvider>
-    <TourContext.Provider value={tourContextValue}>
-      <Suspense fallback={null}>
-        <TourHandler startTour={startTour} />
-      </Suspense>
+    <>
       <div className={cn(
           "relative min-h-screen overflow-hidden bg-background",
           isHalloweenTheme && 'halloween-bg'
@@ -772,7 +729,51 @@ export default function DashboardLayout({
       <FloatingChat />
       <RewardPopup />
       <Toaster />
-    </TourContext.Provider>
-    </RewardProvider>
+    </>
   );
+}
+
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const [isTourActive, setIsTourActive] = useState(false);
+  const [tourStep, setTourStep] = useState(0);
+  const router = useRouter();
+
+  const startTour = () => {
+    setIsTourActive(true);
+    setTourStep(1);
+  };
+
+  const nextTourStep = (path?: string) => {
+    setTourStep(prev => prev + 1);
+    if (path) {
+        router.push(path);
+    }
+  };
+  
+  const endTour = () => {
+    setIsTourActive(false);
+    setTourStep(0);
+  };
+
+  const tourContextValue = {
+      isTourActive,
+      tourStep,
+      startTour,
+      nextTourStep,
+      endTour
+  };
+
+  return (
+    <RewardProvider>
+      <TourContext.Provider value={tourContextValue}>
+        <Suspense fallback={<DashboardLoading />}>
+          <DashboardLayoutContent>{children}</DashboardLayoutContent>
+        </Suspense>
+      </TourContext.Provider>
+    </RewardProvider>
+  )
 }
