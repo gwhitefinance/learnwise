@@ -4,7 +4,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
-import { GitMerge, Plus, Trash2, Edit, Check, Lightbulb, Car, Flag } from "lucide-react";
+import { GitMerge, Plus, Trash2, Edit, Check, Lightbulb, Car, Flag, Rocket } from "lucide-react";
 import * as LucideIcons from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -22,6 +22,7 @@ import { collection, query, where, addDoc, doc, updateDoc, deleteDoc, onSnapshot
 import { generateRoadmap } from '@/lib/actions';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export const dynamic = "force-dynamic";
 
@@ -58,9 +59,17 @@ type Roadmap = {
 };
 
 const getIcon = (iconName: keyof typeof LucideIcons | undefined, defaultIcon: keyof typeof LucideIcons) => {
-    const Icon = iconName ? LucideIcons[iconName] as React.ElementType : LucideIcons[defaultIcon] as React.ElementType;
-    if (!Icon) return LucideIcons[defaultIcon] as React.ElementType;
-    return Icon;
+    if (!iconName) return LucideIcons[defaultIcon] as React.ElementType;
+    const Icon = LucideIcons[iconName];
+    if (typeof Icon === 'function') {
+        return Icon;
+    }
+    // Fallback for icons that might have a different name casing, e.g. 'rocket' vs 'Rocket'
+    const iconKey = Object.keys(LucideIcons).find(key => key.toLowerCase() === iconName.toLowerCase()) as keyof typeof LucideIcons;
+    if (iconKey && typeof LucideIcons[iconKey] === 'function') {
+        return LucideIcons[iconKey] as React.ElementType;
+    }
+    return LucideIcons[defaultIcon] as React.ElementType;
 };
 
 
@@ -273,7 +282,7 @@ export default function RoadmapsPage() {
     const currentProgress = useMemo(() => {
         if (!activeRoadmap || !activeRoadmap.milestones.length) return 0;
         const completedCount = activeRoadmap.milestones.filter(m => m.completed).length;
-        return completedCount / activeRoadmap.milestones.length;
+        return (completedCount / activeRoadmap.milestones.length) * 100;
     }, [activeRoadmap]);
 
   return (
@@ -287,25 +296,29 @@ export default function RoadmapsPage() {
         </div>
         
         {courses.length > 0 ? (
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
-                <div className="lg:col-span-1 space-y-4 lg:sticky lg:top-20">
-                    <h2 className="text-xl font-semibold">Your Courses</h2>
-                    {courses.map(course => (
-                        <Card 
-                            key={course.id}
-                            className={cn("cursor-pointer transition-all", activeCourseId === course.id ? "border-primary ring-2 ring-primary" : "hover:border-primary/50")}
-                            onClick={() => setActiveCourseId(course.id)}
-                        >
-                            <CardHeader>
-                                <CardTitle>{course.name}</CardTitle>
-                                <CardDescription>{roadmaps[course.id]?.milestones.length || 0} milestones</CardDescription>
-                            </CardHeader>
-                        </Card>
-                    ))}
-                </div>
+            <div className="space-y-8">
+                <Card>
+                    <CardHeader className="flex-row items-center justify-between">
+                         <div>
+                            <CardTitle>Select Your Course</CardTitle>
+                            <CardDescription>Choose a roadmap to view and edit.</CardDescription>
+                        </div>
+                        <Select value={activeCourseId ?? undefined} onValueChange={(value) => setActiveCourseId(value)}>
+                            <SelectTrigger className="w-[300px]">
+                                <SelectValue placeholder="Select a course..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {courses.map(course => (
+                                    <SelectItem key={course.id} value={course.id}>
+                                        {course.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </CardHeader>
+                </Card>
 
-                <div className="lg:col-span-3">
-                    {activeCourseId && courses.find(c => c.id === activeCourseId) ? (() => {
+                {activeCourseId && courses.find(c => c.id === activeCourseId) ? (() => {
                         const course = courses.find(c => c.id === activeCourseId)!;
                         const roadmap = roadmaps[course.id];
                         const courseIsLoading = isLoading[course.id];
@@ -324,32 +337,35 @@ export default function RoadmapsPage() {
 
                         if (courseIsLoading && !roadmap) {
                             return (
-                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                     <div className="space-y-8">
+                                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                                     <div className="lg:col-span-2 space-y-8">
                                         <Skeleton className="h-8 w-32" />
-                                        <div className="flex items-start gap-6"><Skeleton className="h-8 w-8 rounded-full"/><div className="space-y-2"><Skeleton className="h-4 w-48"/><Skeleton className="h-4 w-32"/></div></div>
-                                        <div className="flex items-start gap-6"><Skeleton className="h-8 w-8 rounded-full"/><div className="space-y-2"><Skeleton className="h-4 w-48"/><Skeleton className="h-4 w-32"/></div></div>
+                                        <Skeleton className="h-96 w-full" />
                                     </div>
                                     <div className="space-y-8">
                                         <Skeleton className="h-8 w-32" />
-                                        <Skeleton className="h-40" />
-                                        <Skeleton className="h-40" />
+                                        <div className="grid gap-4 md:grid-cols-2">
+                                            <Skeleton className="h-40" />
+                                            <Skeleton className="h-40" />
+                                            <Skeleton className="h-40" />
+                                            <Skeleton className="h-40" />
+                                        </div>
                                     </div>
                                  </div>
                             )
                         }
                         
                         return (
-                             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
-                                <div className="md:col-span-2">
+                             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                                <div className="lg:col-span-2">
                                     <div className="flex justify-between items-center mb-6">
                                         <h2 className="text-2xl font-semibold">Milestone Road</h2>
                                          <Button variant="outline" size="sm" onClick={() => openItemDialog('milestone')}>
                                             <Plus className="mr-2 h-4 w-4"/> Add Milestone
                                         </Button>
                                     </div>
-                                    <div className="relative">
-                                         <svg width="100%" height="800" viewBox="0 0 400 800" className="absolute -z-10">
+                                    <div className="relative p-4 md:p-8">
+                                         <svg width="100%" height="100%" viewBox="0 0 400 800" className="absolute -z-10 top-0 left-0">
                                             <motion.path
                                                 d="M 200 0 C 100 100, 300 200, 200 300 C 100 400, 300 500, 200 600 C 100 700, 300 800, 200 800"
                                                 fill="none"
@@ -362,27 +378,28 @@ export default function RoadmapsPage() {
                                                 fill="none"
                                                 stroke="hsl(var(--primary))"
                                                 strokeWidth="4"
-                                                strokeDasharray="1"
-                                                style={{ pathLength: currentProgress }}
-                                                transition={{ duration: 1, ease: "easeInOut" }}
+                                                initial={{ pathLength: 0 }}
+                                                animate={{ pathLength: currentProgress / 100 }}
+                                                transition={{ duration: 1.5, ease: "easeInOut" }}
                                             />
                                         </svg>
                                         <motion.div 
                                             className="absolute -ml-4 -mt-4"
+                                            initial={{ offsetDistance: "0%" }}
+                                            animate={{ offsetDistance: `${currentProgress}%` }}
+                                            transition={{ duration: 1.5, ease: "easeInOut" }}
                                             style={{
                                                 offsetPath: `path("M 200 0 C 100 100, 300 200, 200 300 C 100 400, 300 500, 200 600 C 100 700, 300 800, 200 800")`,
-                                                offsetDistance: `${currentProgress * 100}%`,
                                             }}
-                                            transition={{ duration: 1, ease: "easeInOut" }}
                                         >
                                            <Car className="text-primary h-8 w-8" />
                                         </motion.div>
 
                                         <div className="space-y-16">
                                         {roadmap?.milestones.map((milestone, index) => {
-                                            const totalMilestones = roadmap.milestones.length;
+                                            const totalMilestones = roadmap.milestones.length || 1;
                                             const position = (index / (totalMilestones -1));
-                                            const horizontalPosition = Math.sin(position * Math.PI * 2) * 50 + 50;
+                                            const horizontalPosition = Math.sin(position * Math.PI * 2) * 40 + 50;
 
                                             return (
                                                 <div 
@@ -394,14 +411,14 @@ export default function RoadmapsPage() {
                                                     }}
                                                 >
                                                     <Card className={cn(
-                                                        "w-full max-w-sm transition-all",
+                                                        "w-full max-w-sm transition-all shadow-md",
                                                         milestone.completed ? "bg-muted/80" : "bg-card"
                                                     )}>
                                                         <CardHeader>
                                                             <div className="flex justify-between items-start">
                                                                 <div>
                                                                     <p className="text-xs text-muted-foreground">{new Date(milestone.date).toLocaleDateString('en-US', { timeZone: 'UTC', month: 'long', day: 'numeric' })}</p>
-                                                                    <CardTitle className={cn(milestone.completed && "line-through text-muted-foreground")}>{milestone.title}</CardTitle>
+                                                                    <CardTitle className={cn("text-lg", milestone.completed && "line-through text-muted-foreground")}>{milestone.title}</CardTitle>
                                                                 </div>
                                                                  <button onClick={() => handleToggleMilestone(milestone.id)} className={cn(
                                                                     "h-7 w-7 rounded-full flex items-center justify-center border-2 transition-colors flex-shrink-0",
@@ -443,40 +460,22 @@ export default function RoadmapsPage() {
                                 </div>
                                 <div className="md:col-span-1">
                                     <div className="flex justify-between items-center mb-6">
-                                        <h2 className="text-2xl font-semibold">Goals</h2>
+                                        <h2 className="text-2xl font-semibold">Achievements</h2>
                                         <Button variant="outline" size="sm" onClick={() => openItemDialog('goal')}>
                                             <Plus className="mr-2 h-4 w-4"/> Add Goal
                                         </Button>
                                     </div>
-                                    <div className="space-y-4">
-                                        {roadmap?.goals.map(goal => {
+                                    <div className="grid grid-cols-2 gap-4">
+                                        {roadmap?.goals.map((goal, index) => {
                                             const GoalIcon = getIcon(goal.icon, 'Flag');
+                                            const colors = ['bg-blue-500/10 text-blue-400', 'bg-purple-500/10 text-purple-400', 'bg-green-500/10 text-green-400', 'bg-orange-500/10 text-orange-400'];
                                             return(
-                                            <Card key={goal.id} className="group">
-                                                <CardHeader className="flex-row justify-between items-start">
-                                                    <div className="bg-muted p-3 rounded-lg">
-                                                        <GoalIcon className="h-6 w-6 text-muted-foreground"/>
-                                                    </div>
-                                                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openItemDialog('goal', goal)}><Edit className="h-4 w-4"/></Button>
-                                                        <AlertDialog>
-                                                            <AlertDialogTrigger asChild>
-                                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive"><Trash2 className="h-4 w-4"/></Button>
-                                                            </AlertDialogTrigger>
-                                                            <AlertDialogContent>
-                                                                <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>This will permanently delete this goal.</AlertDialogDescription></AlertDialogHeader>
-                                                                <AlertDialogFooter>
-                                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                                    <AlertDialogAction onClick={() => handleDeleteItem('goal', goal.id)}>Delete</AlertDialogAction>
-                                                                </AlertDialogFooter>
-                                                            </AlertDialogContent>
-                                                        </AlertDialog>
-                                                    </div>
-                                                </CardHeader>
-                                                <CardContent>
-                                                    <h3 className="font-semibold text-lg">{goal.title}</h3>
-                                                    <p className="text-muted-foreground text-sm mt-1">{goal.description}</p>
-                                                </CardContent>
+                                            <Card key={goal.id} className={cn("group text-center p-4 aspect-square flex flex-col justify-center items-center", colors[index % colors.length])}>
+                                                <div className="p-3 rounded-full bg-background/50 mb-2">
+                                                    <GoalIcon className="h-8 w-8"/>
+                                                </div>
+                                                <h3 className="font-semibold text-sm">{goal.title}</h3>
+                                                <p className="text-xs text-muted-foreground line-clamp-2">{goal.description}</p>
                                             </Card>
                                         )})}
                                     </div>
