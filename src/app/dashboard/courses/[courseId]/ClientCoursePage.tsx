@@ -6,7 +6,7 @@ import { notFound, useRouter, useParams } from 'next/navigation';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, BrainCircuit, Lightbulb, Link as LinkIcon, Plus, UploadCloud, FileText, Trash2, Wand2 } from 'lucide-react';
+import { ArrowLeft, BrainCircuit, Lightbulb, Link as LinkIcon, Plus, UploadCloud, FileText, Trash2, Wand2, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
@@ -17,7 +17,8 @@ import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, Di
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { generateChapterContent } from '@/lib/actions';
+import { generateChapterContent, generateMiniCourse } from '@/lib/actions';
+import { useTour } from '../../layout';
 
 type CourseFile = {
     id: string;
@@ -55,12 +56,14 @@ type Course = {
 export default function ClientCoursePage() {
   const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [user, authLoading] = useAuthState(auth);
   const router = useRouter();
   const params = useParams();
   const courseId = params.courseId as string;
   const { toast } = useToast();
   const [learnerType, setLearnerType] = useState<string | null>(null);
+  const { nextTourStep } = useTour();
 
 
   // State for dialogs
@@ -111,6 +114,51 @@ export default function ClientCoursePage() {
 
     fetchCourse();
   }, [courseId, user, authLoading, router, fetchCourse]);
+
+  const handleGenerateLab = async () => {
+    if (!course || !user) return;
+    
+    setIsGenerating(true);
+    toast({ title: 'Generating Learning Lab...', description: `This might take a minute...` });
+
+    try {
+        const learnerType = localStorage.getItem('learnerType') as any || 'Reading/Writing';
+        const result = await generateMiniCourse({
+            courseName: course.name,
+            courseDescription: course.description || `An in-depth course on ${course.name}`,
+            learnerType,
+        });
+
+        const newUnits = result.modules.map(module => ({
+            id: crypto.randomUUID(),
+            title: module.title,
+            chapters: module.chapters.map(chapter => ({ 
+                ...chapter, 
+                id: crypto.randomUUID(),
+            }))
+        }));
+        
+        if (newUnits.length === 0) {
+            throw new Error("AI did not generate any modules.");
+        }
+        
+        const courseRef = doc(db, 'courses', course.id);
+        await updateDoc(courseRef, { 
+            units: newUnits,
+        });
+        
+        setCourse(prev => prev ? { ...prev, units: newUnits } : null);
+
+        toast({ title: 'Learning Lab Generated!', description: 'Your new course structure is ready.'});
+        nextTourStep();
+
+    } catch (error) {
+        console.error("Failed to generate course content:", error);
+        toast({ variant: 'destructive', title: 'Generation Failed', description: 'Could not create content for this course.' });
+    } finally {
+        setIsGenerating(false);
+    }
+  };
 
   const handleAddUnit = async () => {
       if (!newUnitName.trim() || !course) {
@@ -300,7 +348,7 @@ export default function ClientCoursePage() {
 
        <div className="space-y-4">
             <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-semibold tracking-tight">Course Content</h2>
+                <h2 className="text-2xl font-semibold tracking-tight">Learning Lab Content</h2>
                 <Dialog open={isUnitDialogOpen} onOpenChange={setUnitDialogOpen}>
                     <DialogTrigger asChild>
                         <Button variant="outline"><Plus className="mr-2 h-4 w-4" /> Add Unit</Button>
@@ -319,71 +367,77 @@ export default function ClientCoursePage() {
                 </Dialog>
             </div>
             
-            <Accordion type="single" collapsible className="w-full" defaultValue={course.units?.[0]?.id}>
-                 {course.units && course.units.length > 0 ? course.units.map(unit => (
-                    <AccordionItem key={unit.id} value={unit.id}>
-                        <AccordionTrigger className="text-lg font-medium">{unit.name}</AccordionTrigger>
-                        <AccordionContent>
-                           <div className="space-y-6 pl-4 border-l-2 ml-2">
-                                {/* Chapters Section */}
-                                {unit.chapters?.length > 0 ? (
-                                <div className="space-y-4">
-                                    {unit.chapters.map(chapter => (
-                                        <div key={chapter.id}>
-                                            <h4 className="font-semibold text-md">{chapter.title}</h4>
-                                            {chapter.content ? (
-                                                <>
-                                                    <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">{chapter.content}</p>
-                                                    <div className="mt-2 p-3 bg-amber-500/10 rounded-md border border-amber-500/20 text-sm">
-                                                        <p className="font-semibold text-amber-700">Activity:</p>
-                                                        <p className="text-muted-foreground">{chapter.activity}</p>
-                                                    </div>
-                                                </>
-                                            ) : (
-                                                <Button size="sm" variant="secondary" className="mt-2" onClick={() => handleGenerateChapterContent(unit.id, chapter.id)} disabled={isChapterContentLoading[chapter.id]}>
-                                                    <Wand2 className="mr-2 h-4 w-4"/> {isChapterContentLoading[chapter.id] ? 'Generating...' : 'Generate Content with AI'}
-                                                </Button>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-                                ) : (
-                                    <p className="text-sm text-muted-foreground text-center py-4">No chapters in this unit yet.</p>
-                                )}
-
-                                {/* Files Section */}
-                                <div className="pt-4 border-t">
-                                     <div className="flex justify-between items-center mb-2">
-                                        <h4 className="font-semibold text-md">Unit Files</h4>
-                                        <Button variant="ghost" size="sm" onClick={() => openUploadDialog(unit.id)}>
-                                            <UploadCloud className="mr-2 h-4 w-4"/> Upload File
-                                        </Button>
+            {(!course.units || course.units.length === 0) ? (
+                 <Card className="text-center p-8 border-dashed">
+                    <Wand2 className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground mb-4">No Learning Lab content has been generated for this course yet.</p>
+                    <Button id="generate-lab-button" onClick={handleGenerateLab} disabled={isGenerating}>
+                        {isGenerating ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating...</> : <><Wand2 className="mr-2 h-4 w-4"/> Generate Learning Lab with AI</>}
+                    </Button>
+                </Card>
+            ) : (
+                <Accordion type="single" collapsible className="w-full" defaultValue={course.units?.[0]?.id}>
+                    {course.units.map(unit => (
+                        <AccordionItem key={unit.id} value={unit.id}>
+                            <AccordionTrigger className="text-lg font-medium">{unit.name}</AccordionTrigger>
+                            <AccordionContent>
+                            <div className="space-y-6 pl-4 border-l-2 ml-2">
+                                    {/* Chapters Section */}
+                                    {unit.chapters?.length > 0 ? (
+                                    <div className="space-y-4">
+                                        {unit.chapters.map(chapter => (
+                                            <div key={chapter.id}>
+                                                <h4 className="font-semibold text-md">{chapter.title}</h4>
+                                                {chapter.content ? (
+                                                    <>
+                                                        <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">{chapter.content}</p>
+                                                        <div className="mt-2 p-3 bg-amber-500/10 rounded-md border border-amber-500/20 text-sm">
+                                                            <p className="font-semibold text-amber-700">Activity:</p>
+                                                            <p className="text-muted-foreground">{chapter.activity}</p>
+                                                        </div>
+                                                    </>
+                                                ) : (
+                                                    <Button size="sm" variant="secondary" className="mt-2" onClick={() => handleGenerateChapterContent(unit.id, chapter.id)} disabled={isChapterContentLoading[chapter.id]}>
+                                                        <Wand2 className="mr-2 h-4 w-4"/> {isChapterContentLoading[chapter.id] ? 'Generating...' : 'Generate Content with AI'}
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        ))}
                                     </div>
-                                    {unit.files && unit.files.length > 0 ? (
-                                        <ul className="space-y-2">
-                                            {unit.files.map(file => (
-                                                <li key={file.id} className="flex items-center justify-between text-sm p-2 rounded-md bg-muted/50">
-                                                    <div className="flex items-center gap-2">
-                                                        <FileText className="h-4 w-4 text-muted-foreground" />
-                                                        <span>{file.name}</span>
-                                                    </div>
-                                                    <Button variant="ghost" size="icon" className="h-6 w-6"><Trash2 className="h-4 w-4 text-destructive"/></Button>
-                                                </li>
-                                            ))}
-                                        </ul>
                                     ) : (
-                                        <p className="text-sm text-muted-foreground text-center py-4">No files uploaded to this unit.</p>
+                                        <p className="text-sm text-muted-foreground text-center py-4">No chapters in this unit yet.</p>
                                     )}
-                                </div>
-                           </div>
-                        </AccordionContent>
-                    </AccordionItem>
-                )) : (
-                    <Card className="text-center p-8 border-dashed">
-                        <p className="text-muted-foreground">No units created yet. Add a unit or regenerate course content from a URL.</p>
-                    </Card>
-                )}
-            </Accordion>
+
+                                    {/* Files Section */}
+                                    <div className="pt-4 border-t">
+                                        <div className="flex justify-between items-center mb-2">
+                                            <h4 className="font-semibold text-md">Unit Files</h4>
+                                            <Button variant="ghost" size="sm" onClick={() => openUploadDialog(unit.id)}>
+                                                <UploadCloud className="mr-2 h-4 w-4"/> Upload File
+                                            </Button>
+                                        </div>
+                                        {unit.files && unit.files.length > 0 ? (
+                                            <ul className="space-y-2">
+                                                {unit.files.map(file => (
+                                                    <li key={file.id} className="flex items-center justify-between text-sm p-2 rounded-md bg-muted/50">
+                                                        <div className="flex items-center gap-2">
+                                                            <FileText className="h-4 w-4 text-muted-foreground" />
+                                                            <span>{file.name}</span>
+                                                        </div>
+                                                        <Button variant="ghost" size="icon" className="h-6 w-6"><Trash2 className="h-4 w-4 text-destructive"/></Button>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        ) : (
+                                            <p className="text-sm text-muted-foreground text-center py-4">No files uploaded to this unit.</p>
+                                        )}
+                                    </div>
+                            </div>
+                            </AccordionContent>
+                        </AccordionItem>
+                    ))}
+                </Accordion>
+            )}
         </div>
 
 

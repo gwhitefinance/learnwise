@@ -255,7 +255,7 @@ function CoursesTable({ initialCourses }: { initialCourses: Course[] }) {
             </Alert>
         )}
 
-      <Card className="mt-4">
+      <Card className="mt-4" id="courses-list-card">
         <CardContent className="p-0">
           <Table>
             <TableHeader>

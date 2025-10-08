@@ -5,7 +5,7 @@ import { useTour } from '@/app/dashboard/layout';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Button } from './ui/button';
-import { X, ArrowRight, Wand2 } from 'lucide-react';
+import { X, ArrowRight, Wand2, Loader2 } from 'lucide-react';
 import AIBuddy from './ai-buddy';
 import { useState, useEffect } from 'react';
 import { generateMiniCourse } from '@/lib/actions';
@@ -13,7 +13,6 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
-import { cn } from '@/lib/utils';
 
 
 type Course = {
@@ -23,74 +22,29 @@ type Course = {
 };
 
 const tourStepsConfig: any = {
-    '/dashboard': [
-        {
-            step: 1,
-            title: "Welcome to Tutorin!",
-            content: "I'm your AI buddy, here to guide you. Let's take a quick look around.",
-            position: 'center',
-            buttonText: "Start Tour",
-        },
+    '/dashboard': [], // No more tour on the main dashboard
+    '/dashboard/courses': [
         {
             step: 2,
-            title: "Your Dashboard",
-            content: "This is your welcome banner. You'll find quick actions and an overview of your progress here.",
-            elementId: 'welcome-banner',
+            title: "Your Courses",
+            content: "We've created starter courses based on your interests. Let's pick one to generate a full Learning Lab.",
+            elementId: 'courses-list-card',
             position: 'bottom',
         },
+    ],
+    '/dashboard/courses/[courseId]': [
         {
             step: 3,
-            title: "Track Your Progress",
-            content: "Here you can see your study streak and your most recent files. Keep the streak going to earn rewards!",
-            elementId: 'recent-files-card',
-            position: 'right',
+            title: "Generate Your Lab",
+            content: "This is where the magic happens! Click here to have the AI build out the full course content.",
+            elementId: 'generate-lab-button',
+            position: 'bottom-end',
+            action: 'generateLab',
         },
         {
             step: 4,
-            title: "Navigation",
-            content: "Use these tabs to explore different sections like your files, projects, and learning tools.",
-            elementId: 'main-tabs-nav',
-            position: 'bottom-start',
-            nextPath: '/dashboard/courses',
-        },
-    ],
-    '/dashboard/courses': [
-         {
-            step: 5,
-            title: "Your Courses",
-            content: "We've created starter courses for you based on your interests. You can view them all here.",
-            position: 'center',
-        },
-        {
-            step: 6,
-            title: "Add a Course",
-            content: "You can also manually add a new course at any time by clicking this button.",
-            elementId: 'add-course-button',
-            position: 'bottom-end',
-            nextPath: '/dashboard/roadmaps'
-        }
-    ],
-    '/dashboard/roadmaps': [
-         {
-            step: 7,
-            title: "Study Roadmaps",
-            content: "Here are the AI-generated roadmaps for your courses, complete with goals and milestones to guide you.",
-            position: 'center',
-            nextPath: '/dashboard/learning-lab'
-        },
-    ],
-    '/dashboard/learning-lab': [
-         {
-            step: 8,
-            title: "The Learning Lab",
-            content: "This is where the magic happens. Let's generate the full outline for your courses now.",
-            position: 'center',
-            action: 'generateOutlines',
-        },
-        {
-            step: 9,
             title: "You're All Set!",
-            content: "Your dashboard is ready. Feel free to explore, or chat with me if you have any questions.",
+            content: "Your first Learning Lab is ready. Dive in whenever you're ready to start. You can chat with me anytime using the icon in the corner.",
             position: 'center',
             isFinal: true,
         }
@@ -105,8 +59,14 @@ const TourGuide = () => {
     const [isGenerating, setIsGenerating] = useState(false);
     const [elementRect, setElementRect] = useState<DOMRect | null>(null);
 
-    const currentStepConfig = tourStepsConfig[pathname]?.find((s: any) => s.step === tourStep);
+    // This is a bit of a hack to handle dynamic routes
+    const dynamicPath = /^\/dashboard\/courses\/[^/]+$/;
+    const currentPathConfigKey = dynamicPath.test(pathname) ? '/dashboard/courses/[courseId]' : pathname;
     
+    const currentStepConfig = isTourActive 
+        ? tourStepsConfig[currentPathConfigKey]?.find((s: any) => s.step === tourStep)
+        : null;
+
     useEffect(() => {
         if (isTourActive && currentStepConfig && currentStepConfig.elementId) {
             const checkElement = () => {
@@ -120,22 +80,13 @@ const TourGuide = () => {
             }
 
             if (!checkElement()) {
-                // Poll for the element if it's not immediately available
                 const interval = setInterval(() => {
                     if (checkElement()) {
                         clearInterval(interval);
                     }
                 }, 100);
-
-                // Timeout to avoid infinite polling
-                const timeout = setTimeout(() => {
-                    clearInterval(interval);
-                }, 3000);
-
-                return () => {
-                    clearInterval(interval);
-                    clearTimeout(timeout);
-                };
+                const timeout = setTimeout(() => clearInterval(interval), 3000);
+                return () => { clearInterval(interval); clearTimeout(timeout); };
             }
         } else {
             setElementRect(null);
@@ -143,53 +94,83 @@ const TourGuide = () => {
     }, [isTourActive, currentStepConfig]);
 
 
-    const handleGenerateLabOutlines = async () => {
+    const handleGenerateLab = async () => {
         if (!user) return;
-        
-        const learnerType = localStorage.getItem('learnerType') as any || 'Reading/Writing';
-        
+        const courseId = pathname.split('/').pop();
+        if (!courseId) return;
+
         setIsGenerating(true);
-        toast({ title: "Generating Lab Outlines...", description: "This might take a minute." });
-
+        toast({ title: "Generating Learning Lab...", description: "This may take a minute." });
+        
         try {
-            const coursesQuery = query(collection(db, 'courses'), where('userId', '==', user.uid));
-            const querySnapshot = await getDocs(coursesQuery);
-            const courses = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
+            const courseRef = doc(db, 'courses', courseId);
+            const courseSnap = await getDoc(courseRef);
+            if (!courseSnap.exists()) throw new Error("Course not found");
+            const course = courseSnap.data() as Course;
 
-            const courseOutlinePromises = courses.map(async (course) => {
-                const outline = await generateMiniCourse({
-                    courseName: course.name,
-                    courseDescription: course.description || `A course about ${course.name}.`,
-                    learnerType,
-                });
-                
-                const newUnits = outline.modules.map(module => ({
-                    id: crypto.randomUUID(),
-                    title: module.title,
-                    chapters: module.chapters.map(chapter => ({
-                        ...chapter,
-                        id: crypto.randomUUID(),
-                    }))
-                }));
-
-                const courseRef = doc(db, 'courses', course.id);
-                await updateDoc(courseRef, { units: newUnits });
+            const learnerType = localStorage.getItem('learnerType') as any || 'Reading/Writing';
+            const result = await generateMiniCourse({
+                courseName: course.name,
+                courseDescription: course.description || `An in-depth course on ${course.name}.`,
+                learnerType,
             });
-            
-            await Promise.all(courseOutlinePromises);
-            toast({ title: "Success!", description: "All course outlines have been generated."});
-            nextTourStep();
+
+            const newUnits = result.modules.map(module => ({
+                id: crypto.randomUUID(),
+                title: module.title,
+                chapters: module.chapters.map(chapter => ({ ...chapter, id: crypto.randomUUID() }))
+            }));
+
+            await updateDoc(courseRef, { units: newUnits });
+
+            toast({ title: "Success!", description: "Your Learning Lab is ready." });
+            nextTourStep(); // Move to the final step of the tour
 
         } catch (error) {
-            console.error("Failed to generate lab outlines:", error);
-            toast({ variant: 'destructive', title: 'Generation Failed'});
+            console.error("Failed to generate lab content:", error);
+            toast({ variant: 'destructive', title: 'Generation Failed' });
+            endTour(); // End the tour on failure
         } finally {
             setIsGenerating(false);
         }
-    };
+    }
+    
+    if (!isTourActive) return null;
 
-    if (!isTourActive || !currentStepConfig) return null;
+    // The very first step is the welcome modal
+    if (tourStep === 1) {
+        return (
+            <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+                 <motion.div
+                    key="step-1"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                    className="relative max-w-sm w-full"
+                >
+                     <div className="bg-card rounded-2xl shadow-2xl p-6 flex flex-col text-center items-center">
+                         <div className="flex-shrink-0 size-24 rounded-full bg-primary/10 text-primary shadow-lg flex items-center justify-center ring-4 ring-card mb-4">
+                            <AIBuddy className="w-20 h-20"/>
+                        </div>
+                        <h3 className="text-xl font-bold mb-2">Welcome to Tutorin!</h3>
+                        <p className="text-sm text-muted-foreground mb-6">I'm your AI buddy, here to guide you. Let's take a quick tour to set up your first course.</p>
+                        
+                        <div className="flex justify-center gap-2 mt-4 w-full">
+                            <Button variant="ghost" size="sm" onClick={endTour}>Dismiss</Button>
+                            <Button size="sm" onClick={() => nextTourStep()} className="bg-primary hover:bg-primary/90 w-full">
+                                Start Tour
+                                <ArrowRight className="h-4 w-4 ml-2"/>
+                            </Button>
+                        </div>
+                    </div>
+                </motion.div>
+            </div>
+        )
+    }
 
+    if (!currentStepConfig) return null;
+    
     if (currentStepConfig.position === 'center') {
         return (
             <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
@@ -209,13 +190,12 @@ const TourGuide = () => {
                         <p className="text-sm text-muted-foreground mb-6">{currentStepConfig.content}</p>
                         
                         <div className="flex justify-center gap-2 mt-4 w-full">
-                             {tourStep > 1 && <Button variant="ghost" size="sm" onClick={endTour}>Dismiss</Button>}
                              {currentStepConfig.isFinal ? (
-                                <Button size="sm" onClick={endTour} className="bg-primary hover:bg-primary/90 w-full">Explore Dashboard</Button>
+                                <Button size="sm" onClick={endTour} className="bg-primary hover:bg-primary/90 w-full">Start Learning!</Button>
                             ) : (
-                                <Button size="sm" onClick={() => currentStepConfig.action === 'generateOutlines' ? handleGenerateLabOutlines() : nextTourStep(currentStepConfig.nextPath)} className="bg-primary hover:bg-primary/90 w-full" disabled={isGenerating}>
-                                    {isGenerating ? 'Generating...' : (currentStepConfig.buttonText || 'Next')}
-                                    {!isGenerating && <ArrowRight className="h-4 w-4 ml-2"/>}
+                                <Button size="sm" onClick={() => nextTourStep(currentStepConfig.nextPath)} className="bg-primary hover:bg-primary/90 w-full">
+                                    Next
+                                    <ArrowRight className="h-4 w-4 ml-2"/>
                                 </Button>
                             )}
                         </div>
@@ -226,26 +206,14 @@ const TourGuide = () => {
     }
 
     const getPositionStyles = () => {
-        if (!elementRect) {
-            return { top: '50%', left: '50%', transform: 'translate(-50%, -50%)', opacity: 0 };
-        }
-    
-        const offset = 16; // 1rem
+        if (!elementRect) return { top: '50%', left: '50%', transform: 'translate(-50%, -50%)', opacity: 0 };
+        const offset = 16;
         switch (currentStepConfig.position) {
-            case 'bottom':
-                 return { top: `${elementRect.bottom + offset}px`, left: `${elementRect.left + elementRect.width / 2}px`, transform: 'translateX(-50%)' };
-            case 'bottom-start':
-                return { top: `${elementRect.bottom + offset}px`, left: `${elementRect.left}px` };
-            case 'bottom-end':
-                 return { top: `${elementRect.bottom + offset}px`, right: `${window.innerWidth - elementRect.right}px` };
-            case 'top-start':
-                 return { bottom: `${window.innerHeight - elementRect.top + offset}px`, left: `${elementRect.left}px` };
-            case 'top-end':
-                 return { bottom: `${window.innerHeight - elementRect.top + offset}px`, right: `${window.innerWidth - elementRect.right}px` };
-            case 'right':
-                return { top: `${elementRect.top + elementRect.height / 2}px`, left: `${elementRect.right + offset}px`, transform: 'translateY(-50%)' };
-            default:
-                return { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' };
+            case 'bottom': return { top: `${elementRect.bottom + offset}px`, left: `${elementRect.left + elementRect.width / 2}px`, transform: 'translateX(-50%)' };
+            case 'bottom-start': return { top: `${elementRect.bottom + offset}px`, left: `${elementRect.left}px` };
+            case 'bottom-end': return { top: `${elementRect.bottom + offset}px`, right: `${window.innerWidth - elementRect.right}px` };
+            case 'right': return { top: `${elementRect.top + elementRect.height / 2}px`, left: `${elementRect.right + offset}px`, transform: 'translateY(-50%)' };
+            default: return { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' };
         }
     };
 
@@ -285,14 +253,10 @@ const TourGuide = () => {
                          </div>
                         <div className="flex justify-end gap-2 mt-4">
                              <Button variant="ghost" size="sm" onClick={endTour}>Dismiss</Button>
-                             {currentStepConfig.isFinal ? (
-                                <Button size="sm" onClick={endTour} className="bg-primary hover:bg-primary/90">Explore Dashboard</Button>
-                            ) : (
-                                <Button size="sm" onClick={() => currentStepConfig.action === 'generateOutlines' ? handleGenerateLabOutlines() : nextTourStep(currentStepConfig.nextPath)} className="bg-primary hover:bg-primary/90" disabled={isGenerating}>
-                                    {isGenerating ? 'Generating...' : 'Next'}
-                                    <ArrowRight className="h-4 w-4 ml-2"/>
-                                </Button>
-                            )}
+                             <Button size="sm" onClick={() => currentStepConfig.action === 'generateLab' ? handleGenerateLab() : nextTourStep(currentStepConfig.nextPath)} className="bg-primary hover:bg-primary/90" disabled={isGenerating}>
+                                {isGenerating ? <><Loader2 className="h-4 w-4 mr-2 animate-spin"/> Generating...</> : currentStepConfig.action === 'generateLab' ? <><Wand2 className="h-4 w-4 mr-2"/> Generate</> : 'Next'}
+                                {!isGenerating && currentStepConfig.action !== 'generateLab' && <ArrowRight className="h-4 w-4 ml-2"/>}
+                            </Button>
                         </div>
                     </div>
                 </div>

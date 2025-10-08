@@ -116,7 +116,7 @@ export default function LearnerTypeQuizPage() {
         localStorage.setItem('learnerType', dominantStyle);
         
         toast({ title: 'All set!', description: 'Redirecting to your personalized dashboard.' });
-        router.push('/dashboard?tour=true');
+        router.push('/dashboard/courses?tour=true');
     };
 
     const progress = ((currentQuestionIndex + 1) / questions.length) * 100;

@@ -738,13 +738,16 @@ export default function DashboardLayout({
   const endTour = useCallback(() => {
     setIsTourActive(false);
     setTourStep(0);
+    // Remove the tour parameter from the URL
+    const url = new URL(window.location.href);
+    url.searchParams.delete('tour');
+    window.history.replaceState({}, '', url.toString());
   }, []);
   
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.location.search.includes('tour=true')) {
+    // This effect runs once on mount, like DOMContentLoaded
+    if (window.location.search.includes('tour=true')) {
       startTour();
-      const nextUrl = window.location.pathname;
-      window.history.replaceState({}, '', nextUrl);
     }
   }, [startTour]);
 
