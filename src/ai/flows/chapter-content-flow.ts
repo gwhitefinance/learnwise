@@ -48,11 +48,27 @@ const generateChapterContentFlow = ai.defineFlow(
     outputSchema: GenerateChapterContentOutputSchema,
   },
   async (input) => {
-    const { output } = await prompt(input);
-    if (!output) {
-        throw new Error('Failed to generate chapter content.');
+    const maxRetries = 3;
+    let attempt = 0;
+    while (attempt < maxRetries) {
+        try {
+            const { output } = await prompt(input);
+            if (!output) {
+                throw new Error('Failed to generate chapter content: No output from AI.');
+            }
+            return output;
+        } catch (error: any) {
+            attempt++;
+            if (error.message.includes('503') && attempt < maxRetries) {
+                console.warn(`Chapter content generation failed with 503, retrying... (Attempt ${attempt})`);
+                await new Promise(resolve => setTimeout(resolve, 2000 * attempt)); // Wait longer each retry
+            } else {
+                throw error; // Re-throw if it's not a 503 or if retries are exhausted
+            }
+        }
     }
-    return output;
+     // This part should be unreachable if the loop is correct, but satisfies TypeScript
+    throw new Error('Failed to generate chapter content after multiple retries.');
   }
 );
 
