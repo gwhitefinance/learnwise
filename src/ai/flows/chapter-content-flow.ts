@@ -8,7 +8,7 @@ import { GenerateChapterContentInput, GenerateChapterContentInputSchema, Generat
 
 const prompt = ai.definePrompt({
     name: 'generateChapterContentPrompt',
-    model: googleAI.model('gemini-2.5-flash'),
+    model: googleAI.model('gemini-1.5-pro-latest'),
     input: { schema: GenerateChapterContentInputSchema },
     output: { schema: GenerateChapterContentOutputSchema },
     prompt: `You are an expert instructional designer and multimedia producer who creates engaging, comprehensive, and in-depth educational content.
