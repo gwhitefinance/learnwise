@@ -1,35 +1,19 @@
 
 'use server';
 /**
- * @fileOverview A flow for generating detailed content for a single course chapter.
+ * @fileOverview A flow for generating detailed content for a single course chapter, including prompts for multimedia.
  */
 import { ai, googleAI } from '@/ai/genkit';
-import { z } from 'zod';
-
-const GenerateChapterContentInputSchema = z.object({
-  courseName: z.string().describe('The name of the overall course.'),
-  moduleTitle: z.string().describe('The title of the module this chapter belongs to.'),
-  chapterTitle: z.string().describe('The title of the chapter to generate content for.'),
-  learnerType: z.enum(['Visual', 'Auditory', 'Kinesthetic', 'Reading/Writing', 'Unknown']),
-});
-
-const GenerateChapterContentOutputSchema = z.object({
-  content: z.string().describe('The detailed, essay-length educational content for the chapter.'),
-  activity: z.string().describe('A suggested, interactive activity based on the chapter content, tailored to the learner\'s style.'),
-});
-
-export type GenerateChapterContentInput = z.infer<typeof GenerateChapterContentInputSchema>;
-export type GenerateChapterContentOutput = z.infer<typeof GenerateChapterContentOutputSchema>;
-
+import { GenerateChapterContentInput, GenerateChapterContentInputSchema, GenerateChapterContentOutput, GenerateChapterContentOutputSchema } from '@/ai/schemas/chapter-content-schema';
 
 const prompt = ai.definePrompt({
     name: 'generateChapterContentPrompt',
     model: googleAI.model('gemini-2.5-pro'),
     input: { schema: GenerateChapterContentInputSchema },
     output: { schema: GenerateChapterContentOutputSchema },
-    prompt: `You are an expert instructional designer who writes engaging, comprehensive, and in-depth educational content.
+    prompt: `You are an expert instructional designer and multimedia producer who creates engaging, comprehensive, and in-depth educational content.
 
-    Your task is to write the content for a single chapter within a course.
+    Your task is to write the content for a single chapter and devise relevant multimedia prompts.
 
     Course Context:
     - Course Name: {{courseName}}
@@ -42,10 +26,17 @@ const prompt = ai.definePrompt({
     - For Visual learners, the content should be very descriptive, using metaphors and analogies to paint a picture. The activity should involve creating diagrams, mind maps, or analyzing visual media.
     - For Auditory learners, write the content in a conversational, script-like format. The activity could involve listening to a relevant podcast, or explaining the concept aloud.
     - For Kinesthetic learners, the activity must be hands-on and interactive. Suggest building a model, performing a practical exercise, or relating the topic to a physical task.
-    - For Reading/Writing learners, provide clear, well-structured, text-based explanations and suggest activities like writing summaries or creating outlines.
+    - For Reading/Writing learners, provide clear, well-structured text-based explanations and suggest activities like writing summaries or creating outlines.
+
+    **MULTIMEDIA GENERATION:**
+    After generating the content and activity, create prompts for generative AI models:
+    1.  **Image Prompt**: Write a concise, descriptive prompt (10-15 words) for a text-to-image model to create a visually appealing header image for this chapter.
+    2.  **Diagram Prompt**: Write a detailed prompt for a text-to-image model to generate an educational diagram, chart, or infographic that visually explains a core concept from the chapter. Be specific about labels, arrows, and components.
+    3.  **Video Prompt**: Write a descriptive prompt for a text-to-video model to generate a short, 5-8 second silent educational video clip. Describe the scene, action, and style (e.g., "A cinematic, slow-motion shot of...", "An animated, time-lapse video showing...").
 
     First, generate the detailed 'content'.
-    Second, devise a creative and tailored 'activity' that reinforces the chapter's content.
+    Second, devise a creative and tailored 'activity'.
+    Third, create the 'imagePrompt', 'diagramPrompt', and 'videoPrompt'.
     `,
 });
 

@@ -25,6 +25,9 @@ const ChapterSchema = z.object({
   title: z.string(),
   content: z.string(),
   activity: z.string(),
+  imageUrl: z.string().optional(),
+  diagramUrl: z.string().optional(),
+  videoUrl: z.string().optional(),
 });
 
 const ModuleSchema = z.object({

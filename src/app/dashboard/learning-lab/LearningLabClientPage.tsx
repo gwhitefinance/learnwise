@@ -7,7 +7,7 @@ import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Play, Pause, ChevronLeft, ChevronRight, Wand2, FlaskConical, Lightbulb, Copy, RefreshCw, Check, Star, CheckCircle, Send, Bot, User, GitMerge, PanelLeft, Minimize, Maximize, Loader2, Plus, Trash2, MoreVertical, XCircle, ArrowRight, RotateCcw } from 'lucide-react';
+import { Play, Pause, ChevronLeft, ChevronRight, Wand2, FlaskConical, Lightbulb, Copy, RefreshCw, Check, Star, CheckCircle, Send, Bot, User, GitMerge, PanelLeft, Minimize, Maximize, Loader2, Plus, Trash2, MoreVertical, XCircle, ArrowRight, RotateCcw, Video, Image as ImageIcon } from 'lucide-react';
 import Link from 'next/link';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
@@ -30,7 +30,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import Loading from './loading';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-
+import Image from 'next/image';
 
 type Course = {
     id: string;
@@ -52,6 +52,9 @@ type Chapter = {
     title: string;
     content?: string;
     activity?: string;
+    imageUrl?: string;
+    diagramUrl?: string;
+    videoUrl?: string;
     interactiveTool?: string;
 };
 
@@ -938,7 +941,30 @@ function LearningLabComponent() {
                      <h1 className="text-4xl font-bold">{currentChapter.title}</h1>
                      
                      {currentChapter.content ? (
-                        <p className="text-muted-foreground text-lg whitespace-pre-wrap leading-relaxed">{currentChapter.content}</p>
+                         <div className='space-y-4'>
+                            {currentChapter.imageUrl && (
+                                <div className="mt-4 rounded-lg overflow-hidden border aspect-video relative">
+                                    <Image src={currentChapter.imageUrl} alt={`Header for ${currentChapter.title}`} layout="fill" objectFit="cover" />
+                                </div>
+                            )}
+                            <p className="text-muted-foreground text-lg whitespace-pre-wrap leading-relaxed">{currentChapter.content}</p>
+                            {currentChapter.diagramUrl && (
+                                <div className="mt-4 p-4 bg-muted/50 rounded-lg">
+                                    <h5 className="font-semibold text-sm mb-2 flex items-center gap-2"><ImageIcon size={16} /> Diagram</h5>
+                                    <div className="rounded-lg overflow-hidden border aspect-video relative">
+                                        <Image src={currentChapter.diagramUrl} alt={`Diagram for ${currentChapter.title}`} layout="fill" objectFit="contain" />
+                                    </div>
+                                </div>
+                            )}
+                                {currentChapter.videoUrl && (
+                                <div className="mt-4 p-4 bg-muted/50 rounded-lg">
+                                    <h5 className="font-semibold text-sm mb-2 flex items-center gap-2"><Video size={16} /> Video Clip</h5>
+                                    <div className="rounded-lg overflow-hidden border aspect-video bg-black">
+                                        <video src={currentChapter.videoUrl} controls className="w-full h-full" />
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                      ) : isModuleContentLoading[currentChapter.id] ? (
                         <div className="space-y-4">
                             <Skeleton className="h-6 w-3/4" />

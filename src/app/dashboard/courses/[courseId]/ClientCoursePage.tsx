@@ -6,7 +6,7 @@ import { notFound, useRouter, useParams } from 'next/navigation';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, BrainCircuit, Lightbulb, Link as LinkIcon, Plus, UploadCloud, FileText, Trash2, Wand2, Loader2 } from 'lucide-react';
+import { ArrowLeft, BrainCircuit, Lightbulb, Link as LinkIcon, Plus, UploadCloud, FileText, Trash2, Wand2, Loader2, Video, Image as ImageIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
@@ -19,6 +19,8 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { generateChapterContent, generateMiniCourse } from '@/lib/actions';
 import { useTour } from '../../layout';
+import { cn } from '@/lib/utils';
+
 
 type CourseFile = {
     id: string;
@@ -32,6 +34,9 @@ type Chapter = {
     title: string;
     content?: string;
     activity?: string;
+    imageUrl?: string;
+    diagramUrl?: string;
+    videoUrl?: string;
 };
 
 type Unit = {
@@ -131,7 +136,7 @@ export default function ClientCoursePage() {
 
         const newUnits = result.modules.map(module => ({
             id: crypto.randomUUID(),
-            title: module.title,
+            name: module.title,
             chapters: module.chapters.map(chapter => ({ 
                 ...chapter, 
                 id: crypto.randomUUID(),
@@ -384,14 +389,35 @@ export default function ClientCoursePage() {
                             <div className="space-y-6 pl-4 border-l-2 ml-2">
                                     {/* Chapters Section */}
                                     {unit.chapters?.length > 0 ? (
-                                    <div className="space-y-4">
+                                    <div className="space-y-6">
                                         {unit.chapters.map(chapter => (
-                                            <div key={chapter.id}>
+                                            <div key={chapter.id} className="pt-4 border-t first:border-t-0 first:pt-0">
                                                 <h4 className="font-semibold text-md">{chapter.title}</h4>
                                                 {chapter.content ? (
-                                                    <>
+                                                    <div className='space-y-4'>
+                                                        {chapter.imageUrl && (
+                                                            <div className="mt-4 rounded-lg overflow-hidden border aspect-video relative">
+                                                                <Image src={chapter.imageUrl} alt={`Header for ${chapter.title}`} layout="fill" objectFit="cover" />
+                                                            </div>
+                                                        )}
                                                         <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">{chapter.content}</p>
-                                                        <div className="mt-2 p-3 bg-amber-500/10 rounded-md border border-amber-500/20 text-sm">
+                                                        {chapter.diagramUrl && (
+                                                            <div className="mt-4 p-4 bg-muted/50 rounded-lg">
+                                                                <h5 className="font-semibold text-sm mb-2 flex items-center gap-2"><ImageIcon size={16} /> Diagram</h5>
+                                                                <div className="rounded-lg overflow-hidden border aspect-video relative">
+                                                                    <Image src={chapter.diagramUrl} alt={`Diagram for ${chapter.title}`} layout="fill" objectFit="contain" />
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                         {chapter.videoUrl && (
+                                                            <div className="mt-4 p-4 bg-muted/50 rounded-lg">
+                                                                <h5 className="font-semibold text-sm mb-2 flex items-center gap-2"><Video size={16} /> Video Clip</h5>
+                                                                <div className="rounded-lg overflow-hidden border aspect-video bg-black">
+                                                                    <video src={chapter.videoUrl} controls className="w-full h-full" />
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                        <div className="mt-4 p-3 bg-amber-500/10 rounded-md border border-amber-500/20 text-sm">
                                                             <p className="font-semibold text-amber-700">Activity:</p>
                                                             <p className="text-muted-foreground">{chapter.activity}</p>
                                                         </div>
