@@ -114,10 +114,11 @@ export default function LearnerTypeQuizPage() {
         ) as "Visual" | "Auditory" | "Kinesthetic" | "Reading/Writing" | "Unknown";
 
         localStorage.setItem('learnerType', dominantStyle);
-        localStorage.setItem('startTour', 'true');
+        // Set the flag to trigger the welcome popup on the dashboard
+        localStorage.setItem('quizCompleted', 'true');
         
         toast({ title: 'All set!', description: 'Redirecting to your personalized dashboard.' });
-        router.push('/dashboard/courses');
+        router.push('/dashboard');
     };
 
     const progress = ((currentQuestionIndex + 1) / questions.length) * 100;

@@ -307,10 +307,17 @@ function DashboardLayoutContent({
   const [userLevel, setUserLevel] = useState<number>(1);
   const [userXp, setUserXp] = useState<number>(0);
   const [isHalloweenTheme, setIsHalloweenTheme] = useState(false);
+  const { startTour } = useTour();
 
   useEffect(() => {
     setIsMounted(true);
-  }, []);
+    // Check for tour flag on initial mount
+    const shouldStartTour = localStorage.getItem('startTour') === 'true';
+    if (shouldStartTour) {
+      startTour();
+      localStorage.removeItem('startTour');
+    }
+  }, [startTour]);
 
   useEffect(() => {
     if (!isMounted) return;
@@ -728,14 +735,6 @@ export default function DashboardLayout({
     setTourStep(0);
   }, []);
   
-  useEffect(() => {
-    const shouldStartTour = localStorage.getItem('startTour');
-    if (shouldStartTour === 'true') {
-      startTour();
-      localStorage.removeItem('startTour');
-    }
-  }, [startTour]);
-
   const tourContextValue = {
       isTourActive,
       tourStep,
@@ -747,7 +746,9 @@ export default function DashboardLayout({
   return (
     <RewardProvider>
         <TourContext.Provider value={tourContextValue}>
-            <DashboardLayoutContent>{children}</DashboardLayoutContent>
+            <Suspense fallback={<DashboardLoading />}>
+                <DashboardLayoutContent>{children}</DashboardLayoutContent>
+            </Suspense>
         </TourContext.Provider>
     </RewardProvider>
   )
