@@ -14,11 +14,6 @@ if (process.env.GEMINI_API_KEY) {
   );
 }
 
-if (process.env.MISTRAL_API_KEY) {
-  // Assuming you might add mistral back later
-  // plugins.push(mistral({ apiKey: process.env.MISTRAL_API_KEY }));
-}
-
 export const ai = genkit({
   plugins,
 });

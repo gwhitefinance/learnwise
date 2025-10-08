@@ -3,13 +3,12 @@
 /**
  * @fileOverview A flow for generating detailed content for a single course chapter, including prompts for multimedia.
  */
-import { ai } from '@/ai/genkit';
+import { ai, googleAI } from '@/ai/genkit';
 import { GenerateChapterContentInput, GenerateChapterContentInputSchema, GenerateChapterContentOutput, GenerateChapterContentOutputSchema } from '@/ai/schemas/chapter-content-schema';
-import { mistral } from '@genkit-ai/mistral';
 
 const prompt = ai.definePrompt({
     name: 'generateChapterContentPrompt',
-    model: mistral('mistral-large-latest'),
+    model: googleAI.model('gemini-2.5-flash'),
     input: { schema: GenerateChapterContentInputSchema },
     output: { schema: GenerateChapterContentOutputSchema },
     prompt: `You are an expert instructional designer and multimedia producer who creates engaging, comprehensive, and in-depth educational content.
