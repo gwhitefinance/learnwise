@@ -1,13 +1,12 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
-import { GitMerge, Plus, Trash2, Edit, Check, Lightbulb } from "lucide-react";
+import { GitMerge, Plus, Trash2, Edit, Check, Lightbulb, Car, Flag } from "lucide-react";
 import * as LucideIcons from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger, DialogClose } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -22,6 +21,7 @@ import { auth, db } from '@/lib/firebase';
 import { collection, query, where, addDoc, doc, updateDoc, deleteDoc, onSnapshot } from 'firebase/firestore';
 import { generateRoadmap } from '@/lib/actions';
 import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 
 export const dynamic = "force-dynamic";
 
@@ -113,6 +113,8 @@ export default function RoadmapsPage() {
         }
         
     }, [user, authLoading, activeCourseId]);
+    
+    const activeRoadmap = activeCourseId ? roadmaps[activeCourseId] : null;
 
     const handleGenerateRoadmap = async (course: Course) => {
         if (!user) return;
@@ -132,15 +134,12 @@ export default function RoadmapsPage() {
                 milestones: response.milestones.map(m => ({ ...m, id: crypto.randomUUID(), icon: m.icon as keyof typeof LucideIcons || 'Calendar', completed: new Date(m.date) < new Date() }))
             };
             
-            // Check if a roadmap for this course already exists
             const existingRoadmapId = roadmaps[course.id]?.id;
             
             if (existingRoadmapId) {
-                // Update existing roadmap
                 const roadmapRef = doc(db, 'roadmaps', existingRoadmapId);
                 await updateDoc(roadmapRef, roadmapData);
             } else {
-                 // Add new roadmap
                 await addDoc(collection(db, 'roadmaps'), roadmapData);
             }
            
@@ -170,7 +169,7 @@ export default function RoadmapsPage() {
     };
 
     const handleSaveItem = async () => {
-        if (!activeCourseId || !editingType || !roadmaps[activeCourseId]) return;
+        if (!activeCourseId || !roadmaps[activeCourseId]) return;
         
         let updatedRoadmap = { ...roadmaps[activeCourseId] };
 
@@ -271,10 +270,16 @@ export default function RoadmapsPage() {
         router.push(`/dashboard/learning-lab?courseId=${courseId}&milestone=${encodeURIComponent(milestone.title)}`);
     }
 
+    const currentProgress = useMemo(() => {
+        if (!activeRoadmap || !activeRoadmap.milestones.length) return 0;
+        const completedCount = activeRoadmap.milestones.filter(m => m.completed).length;
+        return completedCount / activeRoadmap.milestones.length;
+    }, [activeRoadmap]);
+
   return (
     <>
     <div className="space-y-6">
-       <div>
+        <div>
             <h1 className="text-3xl font-bold tracking-tight">My Study Roadmaps</h1>
             <p className="text-muted-foreground">
             Visualize your learning journey with key milestones and goals for each course.
@@ -282,69 +287,190 @@ export default function RoadmapsPage() {
         </div>
         
         {courses.length > 0 ? (
-        <Tabs value={activeCourseId ?? undefined} onValueChange={setActiveCourseId} className="w-full">
-            <TabsList>
-                {courses.map(course => (
-                    <TabsTrigger key={course.id} value={course.id}>{course.name}</TabsTrigger>
-                ))}
-            </TabsList>
-
-            {courses.map(course => {
-                const roadmap = roadmaps[course.id];
-                const courseIsLoading = isLoading[course.id];
-
-                return (
-                 <TabsContent key={course.id} value={course.id}>
-                    <div className="flex justify-end mb-4">
-                        <Button onClick={() => handleGenerateRoadmap(course)} disabled={courseIsLoading}>
-                            <GitMerge className="mr-2 h-4 w-4"/> {courseIsLoading ? 'Generating...' : roadmaps[course.id] ? 'Regenerate with AI' : 'Generate with AI'}
-                        </Button>
-                    </div>
-
-                    {!roadmap && !courseIsLoading ? (
-                        <Card className="text-center p-12">
-                            <h2 className="text-xl font-semibold">No Roadmap Yet</h2>
-                            <p className="text-muted-foreground mt-2">Click the "Generate with AI" button to create a study plan for this course.</p>
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
+                <div className="lg:col-span-1 space-y-4 lg:sticky lg:top-20">
+                    <h2 className="text-xl font-semibold">Your Courses</h2>
+                    {courses.map(course => (
+                        <Card 
+                            key={course.id}
+                            className={cn("cursor-pointer transition-all", activeCourseId === course.id ? "border-primary ring-2 ring-primary" : "hover:border-primary/50")}
+                            onClick={() => setActiveCourseId(course.id)}
+                        >
+                            <CardHeader>
+                                <CardTitle>{course.name}</CardTitle>
+                                <CardDescription>{roadmaps[course.id]?.milestones.length || 0} milestones</CardDescription>
+                            </CardHeader>
                         </Card>
-                    ) : (
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                            <div className="lg:col-span-2 space-y-8">
-                                <div className="flex justify-between items-center">
-                                    <h2 className="text-2xl font-semibold">Goals</h2>
-                                    <Button variant="outline" size="sm" onClick={() => openItemDialog('goal')}>
-                                        <Plus className="mr-2 h-4 w-4"/> Add Goal
+                    ))}
+                </div>
+
+                <div className="lg:col-span-3">
+                    {activeCourseId && courses.find(c => c.id === activeCourseId) ? (() => {
+                        const course = courses.find(c => c.id === activeCourseId)!;
+                        const roadmap = roadmaps[course.id];
+                        const courseIsLoading = isLoading[course.id];
+
+                        if (!roadmap && !courseIsLoading) {
+                            return (
+                                <Card className="text-center p-12 col-span-2">
+                                    <h2 className="text-xl font-semibold">No Roadmap Yet for {course.name}</h2>
+                                    <p className="text-muted-foreground mt-2 mb-6">Click the button to create a personalized study plan for this course.</p>
+                                    <Button onClick={() => handleGenerateRoadmap(course)} disabled={courseIsLoading}>
+                                        <GitMerge className="mr-2 h-4 w-4"/> {courseIsLoading ? 'Generating...' : 'Generate with AI'}
                                     </Button>
+                                </Card>
+                            )
+                        }
+
+                        if (courseIsLoading && !roadmap) {
+                            return (
+                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                     <div className="space-y-8">
+                                        <Skeleton className="h-8 w-32" />
+                                        <div className="flex items-start gap-6"><Skeleton className="h-8 w-8 rounded-full"/><div className="space-y-2"><Skeleton className="h-4 w-48"/><Skeleton className="h-4 w-32"/></div></div>
+                                        <div className="flex items-start gap-6"><Skeleton className="h-8 w-8 rounded-full"/><div className="space-y-2"><Skeleton className="h-4 w-48"/><Skeleton className="h-4 w-32"/></div></div>
+                                    </div>
+                                    <div className="space-y-8">
+                                        <Skeleton className="h-8 w-32" />
+                                        <Skeleton className="h-40" />
+                                        <Skeleton className="h-40" />
+                                    </div>
+                                 </div>
+                            )
+                        }
+                        
+                        return (
+                             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+                                <div className="md:col-span-2">
+                                    <div className="flex justify-between items-center mb-6">
+                                        <h2 className="text-2xl font-semibold">Milestone Road</h2>
+                                         <Button variant="outline" size="sm" onClick={() => openItemDialog('milestone')}>
+                                            <Plus className="mr-2 h-4 w-4"/> Add Milestone
+                                        </Button>
+                                    </div>
+                                    <div className="relative">
+                                         <svg width="100%" height="800" viewBox="0 0 400 800" className="absolute -z-10">
+                                            <motion.path
+                                                d="M 200 0 C 100 100, 300 200, 200 300 C 100 400, 300 500, 200 600 C 100 700, 300 800, 200 800"
+                                                fill="none"
+                                                stroke="hsl(var(--border))"
+                                                strokeWidth="4"
+                                                strokeDasharray="10 10"
+                                            />
+                                            <motion.path
+                                                d="M 200 0 C 100 100, 300 200, 200 300 C 100 400, 300 500, 200 600 C 100 700, 300 800, 200 800"
+                                                fill="none"
+                                                stroke="hsl(var(--primary))"
+                                                strokeWidth="4"
+                                                strokeDasharray="1"
+                                                style={{ pathLength: currentProgress }}
+                                                transition={{ duration: 1, ease: "easeInOut" }}
+                                            />
+                                        </svg>
+                                        <motion.div 
+                                            className="absolute -ml-4 -mt-4"
+                                            style={{
+                                                offsetPath: `path("M 200 0 C 100 100, 300 200, 200 300 C 100 400, 300 500, 200 600 C 100 700, 300 800, 200 800")`,
+                                                offsetDistance: `${currentProgress * 100}%`,
+                                            }}
+                                            transition={{ duration: 1, ease: "easeInOut" }}
+                                        >
+                                           <Car className="text-primary h-8 w-8" />
+                                        </motion.div>
+
+                                        <div className="space-y-16">
+                                        {roadmap?.milestones.map((milestone, index) => {
+                                            const totalMilestones = roadmap.milestones.length;
+                                            const position = (index / (totalMilestones -1));
+                                            const horizontalPosition = Math.sin(position * Math.PI * 2) * 50 + 50;
+
+                                            return (
+                                                <div 
+                                                    key={milestone.id} 
+                                                    className="group relative"
+                                                    style={{ 
+                                                        marginLeft: `${horizontalPosition}%`, 
+                                                        transform: `translateX(-${horizontalPosition}%)`,
+                                                    }}
+                                                >
+                                                    <Card className={cn(
+                                                        "w-full max-w-sm transition-all",
+                                                        milestone.completed ? "bg-muted/80" : "bg-card"
+                                                    )}>
+                                                        <CardHeader>
+                                                            <div className="flex justify-between items-start">
+                                                                <div>
+                                                                    <p className="text-xs text-muted-foreground">{new Date(milestone.date).toLocaleDateString('en-US', { timeZone: 'UTC', month: 'long', day: 'numeric' })}</p>
+                                                                    <CardTitle className={cn(milestone.completed && "line-through text-muted-foreground")}>{milestone.title}</CardTitle>
+                                                                </div>
+                                                                 <button onClick={() => handleToggleMilestone(milestone.id)} className={cn(
+                                                                    "h-7 w-7 rounded-full flex items-center justify-center border-2 transition-colors flex-shrink-0",
+                                                                    milestone.completed ? 'bg-primary text-primary-foreground border-primary' : 'bg-muted border-primary hover:bg-primary/20'
+                                                                )}>
+                                                                    {milestone.completed && <Check className="h-4 w-4" />}
+                                                                </button>
+                                                            </div>
+                                                        </CardHeader>
+                                                        <CardContent>
+                                                            <p className={cn("text-sm text-muted-foreground", milestone.completed && "line-through")}>{milestone.description}</p>
+                                                              <div className="mt-4 flex gap-2 items-center">
+                                                                <Button variant="outline" size="sm" className="text-xs h-7" onClick={() => navigateToLearningLab(course.id, milestone)}>
+                                                                    <Lightbulb className="mr-2 h-3 w-3"/> Start Learning
+                                                                </Button>
+                                                                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openItemDialog('milestone', milestone)}><Edit className="h-4 w-4"/></Button>
+                                                                    <AlertDialog>
+                                                                        <AlertDialogTrigger asChild>
+                                                                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive"><Trash2 className="h-4 w-4"/></Button>
+                                                                        </AlertDialogTrigger>
+                                                                        <AlertDialogContent>
+                                                                            <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>This will permanently delete this milestone.</AlertDialogDescription></AlertDialogHeader>
+                                                                            <AlertDialogFooter>
+                                                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                                <AlertDialogAction onClick={() => handleDeleteItem('milestone', milestone.id)}>Delete</AlertDialogAction>
+                                                                            </AlertDialogFooter>
+                                                                        </AlertDialogContent>
+                                                                    </AlertDialog>
+                                                                </div>
+                                                            </div>
+                                                        </CardContent>
+                                                    </Card>
+                                                </div>
+                                            )
+                                        })}
+                                        </div>
+                                    </div>
                                 </div>
-                                 <div className="grid gap-4 md:grid-cols-2">
-                                     {courseIsLoading && !roadmap ? (
-                                        <>
-                                            <Skeleton className="h-32"/>
-                                            <Skeleton className="h-32"/>
-                                        </>
-                                     ) : roadmap?.goals.map((goal, index) => {
-                                         const GoalIcon = getIcon(goal.icon, 'Flag');
-                                         return (
-                                            <Card key={index} className="group">
-                                                <CardHeader>
-                                                    <div className="flex justify-between items-start">
-                                                         <div className="bg-muted p-3 rounded-lg">
-                                                            <GoalIcon className="h-6 w-6 text-muted-foreground"/>
-                                                        </div>
-                                                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openItemDialog('goal', goal)}><Edit className="h-4 w-4"/></Button>
-                                                            <AlertDialog>
-                                                                <AlertDialogTrigger asChild>
-                                                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive"><Trash2 className="h-4 w-4"/></Button>
-                                                                </AlertDialogTrigger>
-                                                                <AlertDialogContent>
-                                                                    <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>This will permanently delete this goal.</AlertDialogDescription></AlertDialogHeader>
-                                                                    <AlertDialogFooter>
-                                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                                        <AlertDialogAction onClick={() => handleDeleteItem('goal', goal.id)}>Delete</AlertDialogAction>
-                                                                    </AlertDialogFooter>
-                                                                </AlertDialogContent>
-                                                            </AlertDialog>
-                                                        </div>
+                                <div className="md:col-span-1">
+                                    <div className="flex justify-between items-center mb-6">
+                                        <h2 className="text-2xl font-semibold">Goals</h2>
+                                        <Button variant="outline" size="sm" onClick={() => openItemDialog('goal')}>
+                                            <Plus className="mr-2 h-4 w-4"/> Add Goal
+                                        </Button>
+                                    </div>
+                                    <div className="space-y-4">
+                                        {roadmap?.goals.map(goal => {
+                                            const GoalIcon = getIcon(goal.icon, 'Flag');
+                                            return(
+                                            <Card key={goal.id} className="group">
+                                                <CardHeader className="flex-row justify-between items-start">
+                                                    <div className="bg-muted p-3 rounded-lg">
+                                                        <GoalIcon className="h-6 w-6 text-muted-foreground"/>
+                                                    </div>
+                                                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openItemDialog('goal', goal)}><Edit className="h-4 w-4"/></Button>
+                                                        <AlertDialog>
+                                                            <AlertDialogTrigger asChild>
+                                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive"><Trash2 className="h-4 w-4"/></Button>
+                                                            </AlertDialogTrigger>
+                                                            <AlertDialogContent>
+                                                                <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>This will permanently delete this goal.</AlertDialogDescription></AlertDialogHeader>
+                                                                <AlertDialogFooter>
+                                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                    <AlertDialogAction onClick={() => handleDeleteItem('goal', goal.id)}>Delete</AlertDialogAction>
+                                                                </AlertDialogFooter>
+                                                            </AlertDialogContent>
+                                                        </AlertDialog>
                                                     </div>
                                                 </CardHeader>
                                                 <CardContent>
@@ -352,79 +478,18 @@ export default function RoadmapsPage() {
                                                     <p className="text-muted-foreground text-sm mt-1">{goal.description}</p>
                                                 </CardContent>
                                             </Card>
-                                        )
-                                     })}
-                                </div>
-                            </div>
-                             <div className="space-y-8">
-                                <div className="flex justify-between items-center">
-                                    <h2 className="text-2xl font-semibold">Milestones</h2>
-                                     <Button variant="outline" size="sm" onClick={() => openItemDialog('milestone')}>
-                                        <Plus className="mr-2 h-4 w-4"/> Add Milestone
-                                    </Button>
-                                </div>
-                              <div className="relative">
-                                <div className="absolute left-3.5 top-0 h-full w-0.5 bg-border"></div>
-                                 {courseIsLoading && !roadmap ? (
-                                    <div className="space-y-8">
-                                        <div className="flex items-start gap-6"><Skeleton className="h-8 w-8 rounded-full"/><div className="space-y-2"><Skeleton className="h-4 w-48"/><Skeleton className="h-4 w-32"/></div></div>
-                                        <div className="flex items-start gap-6"><Skeleton className="h-8 w-8 rounded-full"/><div className="space-y-2"><Skeleton className="h-4 w-48"/><Skeleton className="h-4 w-32"/></div></div>
-                                        <div className="flex items-start gap-6"><Skeleton className="h-8 w-8 rounded-full"/><div className="space-y-2"><Skeleton className="h-4 w-48"/><Skeleton className="h-4 w-32"/></div></div>
+                                        )})}
                                     </div>
-                                 ) : roadmap?.milestones.map((milestone, index) => {
-                                     const MilestoneIcon = getIcon(milestone.icon, 'Calendar');
-                                     return (
-                                        <div key={index} className="relative flex items-start gap-4 mb-8 group">
-                                            <div className="flex flex-col items-center">
-                                                <button onClick={() => handleToggleMilestone(milestone.id)} className={cn(
-                                                    "h-8 w-8 rounded-full flex items-center justify-center z-10 border-2 transition-colors",
-                                                    milestone.completed ? 'bg-primary text-primary-foreground border-primary' : 'bg-muted border-primary hover:bg-primary/20'
-                                                )}>
-                                                    {milestone.completed ? <Check className="h-4 w-4" /> : <MilestoneIcon className="h-4 w-4" />}
-                                                </button>
-                                            </div>
-                                            <div className="flex-1 pt-1">
-                                                <p className="text-sm text-muted-foreground">{new Date(milestone.date).toLocaleDateString('en-US', { timeZone: 'UTC', month: 'long', day: 'numeric', year: 'numeric' })}</p>
-                                                <h3 className={cn("font-semibold text-lg", milestone.completed && "line-through text-muted-foreground")}>{milestone.title}</h3>
-                                                <p className={cn("text-muted-foreground text-sm", milestone.completed && "line-through")}>{milestone.description}</p>
-                                                
-                                                <div className="mt-2 flex gap-2 items-center">
-                                                    <Button variant="outline" size="sm" className="text-xs h-7" onClick={() => navigateToLearningLab(course.id, milestone)}>
-                                                        <Lightbulb className="mr-2 h-3 w-3"/> Start Learning
-                                                    </Button>
-                                                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openItemDialog('milestone', milestone)}><Edit className="h-4 w-4"/></Button>
-                                                        <AlertDialog>
-                                                            <AlertDialogTrigger asChild>
-                                                                <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive"><Trash2 className="h-4 w-4"/></Button>
-                                                            </AlertDialogTrigger>
-                                                            <AlertDialogContent>
-                                                                <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>This will permanently delete this milestone.</AlertDialogDescription></AlertDialogHeader>
-                                                                <AlertDialogFooter>
-                                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                                    <AlertDialogAction onClick={() => handleDeleteItem('milestone', milestone.id)}>Delete</AlertDialogAction>
-                                                                </AlertDialogFooter>
-                                                            </AlertDialogContent>
-                                                        </AlertDialog>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )
-                                })}
-                              </div>
+                                </div>
                             </div>
-                        </div>
-                    )}
-
-                 </TabsContent>
-                )
-            })}
-        </Tabs>
+                        )
+                    })() : null}
+                </div>
+            </div>
         ) : (
-            <Card className="text-center p-12">
+             <Card className="text-center p-12">
                 <h2 className="text-xl font-semibold">No Courses Found</h2>
-                <p className="text-muted-foreground mt-2">Add a course from the "Courses" page to start creating roadmaps.</p>
+                <p className="text-muted-foreground mt-2">Add a course to start creating roadmaps.</p>
                 <Link href="/dashboard/courses">
                     <Button className="mt-6">Go to Courses</Button>
                 </Link>
