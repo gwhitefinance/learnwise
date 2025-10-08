@@ -1,4 +1,3 @@
-
 /**
  * @fileoverview Defines the data schemas for the video generation feature.
  */

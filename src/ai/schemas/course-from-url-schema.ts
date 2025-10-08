@@ -1,4 +1,3 @@
-
 /**
  * @fileoverview Defines the data schemas for the course-from-URL generation feature.
  */

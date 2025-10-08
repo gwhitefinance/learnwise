@@ -1,5 +1,3 @@
-
-'use server';
 /**
  * @fileOverview A flow for generating detailed content for a single course chapter, including prompts for multimedia.
  */

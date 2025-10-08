@@ -1,4 +1,3 @@
-
 /**
  * @fileoverview Defines the data schemas for the midterm exam generation feature.
  */
