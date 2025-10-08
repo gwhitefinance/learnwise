@@ -702,18 +702,6 @@ function DashboardLayoutContent({
   );
 }
 
-function DashboardLayoutWithSuspense({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-    return (
-        <Suspense fallback={<DashboardLoading />}>
-            <DashboardLayout>{children}</DashboardLayout>
-        </Suspense>
-    )
-}
-
 export default function DashboardLayout({
   children,
 }: {
@@ -738,16 +726,13 @@ export default function DashboardLayout({
   const endTour = useCallback(() => {
     setIsTourActive(false);
     setTourStep(0);
-    // Remove the tour parameter from the URL
-    const url = new URL(window.location.href);
-    url.searchParams.delete('tour');
-    window.history.replaceState({}, '', url.toString());
   }, []);
   
   useEffect(() => {
-    // This effect runs once on mount, like DOMContentLoaded
-    if (window.location.search.includes('tour=true')) {
+    const shouldStartTour = localStorage.getItem('startTour');
+    if (shouldStartTour === 'true') {
       startTour();
+      localStorage.removeItem('startTour');
     }
   }, [startTour]);
 

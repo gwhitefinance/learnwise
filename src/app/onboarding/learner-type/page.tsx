@@ -114,9 +114,10 @@ export default function LearnerTypeQuizPage() {
         ) as "Visual" | "Auditory" | "Kinesthetic" | "Reading/Writing" | "Unknown";
 
         localStorage.setItem('learnerType', dominantStyle);
+        localStorage.setItem('startTour', 'true');
         
         toast({ title: 'All set!', description: 'Redirecting to your personalized dashboard.' });
-        router.push('/dashboard/courses?tour=true');
+        router.push('/dashboard/courses');
     };
 
     const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
