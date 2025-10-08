@@ -54,8 +54,9 @@ const generateRoadmapFlow = ai.defineFlow(
     }
 
     const maxRetries = 3;
-    let attempt = 0;
-    while (attempt < maxRetries) {
+    let lastError: any = null;
+
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
         try {
             const { output } = await prompt({
                 ...input,
@@ -66,19 +67,20 @@ const generateRoadmapFlow = ai.defineFlow(
             if (!output) {
                 throw new Error('Failed to generate roadmap: No output from AI.');
             }
-            return output;
+            return output; // Success
         } catch (error: any) {
-            attempt++;
-            if (error.message.includes('503') && attempt < maxRetries) {
-                console.warn(`Roadmap generation failed with 503, retrying... (Attempt ${attempt})`);
-                await new Promise(resolve => setTimeout(resolve, 2000 * attempt)); // Wait longer each retry
+            lastError = error;
+            if (error.message.includes('503') && attempt < maxRetries - 1) {
+                console.warn(`Roadmap generation failed with 503, retrying... (Attempt ${attempt + 1})`);
+                await new Promise(resolve => setTimeout(resolve, 2000 * (attempt + 1))); // Wait longer each retry
             } else {
-                throw error; // Re-throw if it's not a 503 or if retries are exhausted
+                 // For non-503 errors or if retries are exhausted, break the loop
+                break;
             }
         }
     }
-    // This part should be unreachable if the loop is correct, but satisfies TypeScript
-    throw new Error('Failed to generate roadmap after multiple retries.');
+    // If the loop finished without returning, it means all retries failed.
+    throw lastError;
   }
 );
 
