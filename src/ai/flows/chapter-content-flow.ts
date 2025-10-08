@@ -3,7 +3,7 @@
 /**
  * @fileOverview A flow for generating detailed content for a single course chapter, including prompts for multimedia.
  */
-import { ai, googleAI } from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
 import { GenerateChapterContentInput, GenerateChapterContentInputSchema, GenerateChapterContentOutput, GenerateChapterContentOutputSchema } from '@/ai/schemas/chapter-content-schema';
 import { mistral } from '@genkit-ai/mistral';
 
