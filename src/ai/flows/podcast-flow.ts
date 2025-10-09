@@ -3,13 +3,9 @@
 
 import { ai } from '@/ai/genkit';
 import { googleAI } from '@genkit-ai/googleai';
-import { GeneratePodcastEpisodeInput, GeneratePodcastEpisodeInputSchema, GeneratePodcastEpisodeOutput, GeneratePodcastEpisodeOutputSchema } from '@/ai/schemas/podcast-schema';
+import { GeneratePodcastEpisodeInput, GeneratePodcastEpisodeInputSchema, GeneratePodcastEpisodeOutput, GeneratePodcastEpisodeOutputSchema, podcastScriptSchema } from '@/ai/schemas/podcast-schema';
 import { generateAudio } from './text-to-speech-flow';
 import { z } from 'zod';
-
-const podcastScriptSchema = z.object({
-  script: z.string().describe('The generated podcast script, formatted for conversational delivery.'),
-});
 
 const podcastPrompt = ai.definePrompt({
     name: 'podcastEpisodeGenerationPrompt',
