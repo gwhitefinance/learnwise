@@ -1,56 +1,116 @@
 
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Allow users to manage their own profile data
+    // USERS - Each user can only access their own document
     match /users/{userId} {
-      allow read, update: if request.auth != null && request.auth.uid == userId;
-      allow create: if request.auth != null;
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Allow users to manage their own courses
+    // COURSES collection
     match /courses/{courseId} {
-      allow read, create, update, delete: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow list: if request.auth != null 
+                  && request.query.where('userId', '==', request.auth.uid).exists();
     }
 
-    // Allow users to manage their own projects
+    // PROJECTS collection
     match /projects/{projectId} {
-       allow read, create, update, delete: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow list: if request.auth != null 
+                  && request.query.where('userId', '==', request.auth.uid).exists();
     }
 
-    // Allow users to manage their own recent files
-    match /recentFiles/{fileId} {
-       allow read, create, update, delete: if request.auth != null && request.auth.uid == request.resource.data.userId;
-    }
-
-    // Allow users to manage their own calendar events
-    match /calendarEvents/{eventId} {
-       allow read, create, update, delete: if request.auth != null && request.auth.uid == request.resource.data.userId;
-    }
-    
-    // Allow users to manage their own notes
+    // NOTES collection
     match /notes/{noteId} {
-       allow read, create, update, delete: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow list: if request.auth != null 
+                  && request.query.where('userId', '==', request.auth.uid).exists();
     }
 
-    // Allow users to manage their own chat sessions
-    match /chatSessions/{sessionId} {
-       allow read, create, update, delete: if request.auth != null && request.auth.uid == request.resource.data.userId;
+    // RECENTFILES collection
+    match /recentFiles/{fileId} {
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow list: if request.auth != null 
+                  && request.query.where('userId', '==', request.auth.uid).exists();
     }
 
-    // Allow users to manage their own quiz attempts
+    // ROADMAPS collection
+    match /roadmaps/{roadmapsId} {
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow list: if request.auth != null 
+                  && request.query.where('userId', '==', request.auth.uid).exists();
+    }
+
+    // LEADERBOARD collection
+    match /leaderBoard/{leaderBoardId} {
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow list: if request.auth != null 
+                  && request.query.where('userId', '==', request.auth.uid).exists();
+    }
+
+    // TODO collection
+    match /toDo/{toDoId} {
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow list: if request.auth != null 
+                  && request.query.where('userId', '==', request.auth.uid).exists();
+    }
+
+    // CALENDAR collection
+    match /calendarEvents/{calendarEventsId} {
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow list: if request.auth != null 
+                  && request.query.where('userId', '==', request.auth.uid).exists();
+    }
+
+    // QUIZ ATTEMPTS collection
     match /quizAttempts/{attemptId} {
-      allow read, create, update, delete: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow list: if request.auth != null 
+                  && request.query.where('userId', '==', request.auth.uid).exists();
     }
 
-    // Allow users to manage their own roadmaps
-    match /roadmaps/{roadmapId} {
-      // Allow read, create, update if the user is authenticated and their ID matches the document's userId
-      allow read, create, update: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      // Allow delete if the user is authenticated and their ID matches the existing document's userId
-      allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
+    // LEARNING LAB collection
+    match /learningLab/{labId} {
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow list: if request.auth != null
+                  && request.query.where('userId', '==', request.auth.uid).exists();
     }
+
+    // AI CHAT APP collection
+    match /ai-chat-app/{chatId} {
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow list: if request.auth != null 
+                  && request.query.where('userId', '==', request.auth.uid).exists();
+    }
+
+    // CHAT SESSIONS collection
+    match /chatSessions/{sessionId} {
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow list: if request.auth != null 
+                  && request.query.where('userId', '==', request.auth.uid).exists();
+    }
+
+    // QUIZ RESULTS collection
+    match /quizResults/{resultId} {
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow list: if request.auth != null
+                  && request.query.where('userId', '==', request.auth.uid).exists();
+    }
+
   }
 }
