@@ -90,19 +90,14 @@ export default function PracticeTestPage() {
     };
 
     const handleContinueFromBreak = () => {
+        setCurrentQuestionIndex(0); // Reset question index for the new module
         if (currentSectionKey === 'reading_writing' && currentModuleIndex === 0) {
             setCurrentModuleIndex(1);
             setTestState('in-progress');
-            setBreakTimeRemaining(10 * 60); // Reset for next break if any
         } else if (currentSectionKey === 'reading_writing' && currentModuleIndex === 1) {
             setCurrentSectionKey('math');
             setCurrentModuleIndex(0);
             setTestState('in-progress');
-            setBreakTimeRemaining(25 * 60); 
-        } else if (currentSectionKey === 'math' && currentModuleIndex === 0) {
-             // After Math Module 1, go straight to Module 2 (as per official SAT)
-             setCurrentModuleIndex(1);
-             setTestState('in-progress');
         }
     };
 
@@ -120,7 +115,10 @@ export default function PracticeTestPage() {
                 setBreakTimeRemaining(25 * 60);
                 setTestState('break');
             } else if (currentSectionKey === 'math' && currentModuleIndex === 0) {
-                 handleContinueFromBreak();
+                // Per official digital SAT format, there is no break between Math Module 1 and 2.
+                setCurrentModuleIndex(1);
+                setCurrentQuestionIndex(0);
+                setTestState('in-progress');
             } else {
                 // Finished the whole test
                 calculateScore();
@@ -306,3 +304,5 @@ export default function PracticeTestPage() {
         </div>
     );
 }
+
+    
