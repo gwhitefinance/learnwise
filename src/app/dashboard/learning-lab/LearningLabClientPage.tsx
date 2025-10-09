@@ -18,7 +18,7 @@ import type { GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
 import { cn } from '@/lib/utils';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
-import { collection, query, where, onSnapshot, doc, updateDoc, getDoc, getDocs, addDoc, serverTimestamp, increment } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, updateDoc, getDoc, getDocs, addDoc, serverTimestamp, increment, deleteDoc } from 'firebase/firestore';
 import AudioPlayer from '@/components/audio-player';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -72,6 +72,14 @@ type AnswerFeedback = { question: string; answer: string; correctAnswer: string;
 type QuizState = 'configuring' | 'in-progress' | 'results';
 type AnswerState = 'unanswered' | 'answered';
 
+type QuizResult = {
+    score: number;
+    totalQuestions: number;
+    answers: AnswerFeedback[];
+    timestamp: any;
+}
+
+
 function LearningLabComponent() {
   const searchParams = useSearchParams();
   const [courses, setCourses] = useState<Course[]>([]);
@@ -100,6 +108,7 @@ function LearningLabComponent() {
   const [selectedQuizAnswer, setSelectedQuizAnswer] = useState<string | null>(null);
   const [quizAnswers, setQuizAnswers] = useState<AnswerFeedback[]>([]);
 
+  const [quizResults, setQuizResults] = useState<Record<string, QuizResult>>({});
   
   const [isFlashcardDialogOpen, setFlashcardDialogOpen] = useState(false);
   const [isFlashcardLoading, setFlashcardLoading] = useState(false);
@@ -183,6 +192,24 @@ function LearningLabComponent() {
           localStorage.setItem(`learningLabState_${selectedCourseId}`, JSON.stringify(stateToSave));
       }
   }, [selectedCourseId, currentModuleIndex, currentChapterIndex]);
+
+    useEffect(() => {
+        if (!user || !activeCourse) return;
+
+        const resultsRef = collection(db, 'quizResults');
+        const q = query(resultsRef, where("userId", "==", user.uid), where("courseId", "==", activeCourse.id));
+
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const results: Record<string, QuizResult> = {};
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                results[data.moduleId] = data as QuizResult;
+            });
+            setQuizResults(results);
+        });
+
+        return () => unsubscribe();
+    }, [user, activeCourse]);
 
 
   useEffect(() => {
@@ -373,45 +400,31 @@ function LearningLabComponent() {
     if (currentQuizQuestionIndex < generatedQuiz.questions.length - 1) {
         setCurrentQuizQuestionIndex(prev => prev + 1);
     } else {
-        setQuizState('results');
-        const correctCount = newQuizAnswers.filter(a => a.isCorrect).length;
-        const totalQuestions = newQuizAnswers.length;
+        const score = newQuizAnswers.filter(a => a.isCorrect).length;
+        const total = newQuizAnswers.length;
         
-        let coinsEarned = correctCount * 10;
-        if (isMidtermModule) coinsEarned *= 2; // Double coins for midterm
+        try {
+            await addDoc(collection(db, 'quizResults'), {
+                userId: user.uid,
+                courseId: activeCourse?.id,
+                moduleId: currentModule.id,
+                score,
+                totalQuestions: total,
+                answers: newQuizAnswers,
+                timestamp: serverTimestamp()
+            });
 
-        for (const answer of newQuizAnswers) {
-            if (!answer.isCorrect) {
-                try {
-                    await addDoc(collection(db, 'quizAttempts'), {
-                        userId: user.uid,
-                        courseId: selectedCourseId,
-                        topic: currentModule.title,
-                        question: answer.question,
-                        userAnswer: answer.answer,
-                        correctAnswer: answer.correctAnswer,
-                        timestamp: serverTimestamp()
-                    });
-                } catch (error) {
-                    console.error("Error saving incorrect answer:", error);
-                }
+            if (score > 0) {
+                const coinsEarned = score * 10;
+                await updateDoc(doc(db, 'users', user.uid), { coins: increment(coinsEarned) });
+                showReward({ type: 'coins', amount: coinsEarned });
             }
-        }
-        
-        if (coinsEarned > 0) {
-            showReward({ type: 'coins', amount: coinsEarned });
-            try {
-                const userRef = doc(db, 'users', user.uid);
-                await updateDoc(userRef, {
-                    coins: increment(coinsEarned)
-                });
-                toast({ title: "Quiz Complete!", description: `You earned ${coinsEarned} coins!` });
+            toast({ title: "Quiz Complete!", description: `You scored ${score}/${total}.` });
+            setQuizState('results');
 
-            } catch(e) {
-                console.error("Error awarding coins:", e);
-            }
-        } else {
-             toast({ title: "Quiz Complete!", description: `You earned 0 coins.` });
+        } catch (error) {
+            console.error("Error saving quiz results:", error);
+            toast({ variant: 'destructive', title: 'Error', description: 'Could not save your quiz results.' });
         }
     }
   };
@@ -496,9 +509,10 @@ function LearningLabComponent() {
     if (!activeCourse || !user) return;
     const module = activeCourse.units?.[currentModuleIndex];
     if (!module) return;
+    const existingResult = quizResults[module.id];
 
     // Check if the current chapter is a quiz and if it has been completed
-    if (currentChapter?.title === 'Module Quiz' && quizState !== 'results') {
+    if (currentChapter?.title.includes('Quiz') && !existingResult) {
         toast({
             variant: 'destructive',
             title: 'Quiz Required',
@@ -532,8 +546,7 @@ function LearningLabComponent() {
             await updateDoc(courseRef, {
                 labCompleted: true
             });
-            const userRef = doc(db, 'users', user.uid);
-            await updateDoc(userRef, { coins: increment(500) });
+            await updateDoc(doc(db, 'users', user.uid), { coins: increment(500) });
             showReward({ type: 'coins', amount: 500 });
         } catch (error) {
             console.error("Error completing course:", error);
@@ -543,7 +556,9 @@ function LearningLabComponent() {
   };
   
   const startNewCourse = () => {
-    localStorage.removeItem(`learningLabState_${selectedCourseId}`);
+    if (selectedCourseId) {
+        localStorage.removeItem(`learningLabState_${selectedCourseId}`);
+    }
     setSelectedCourseId(null);
     setActiveCourse(null);
     setCurrentModuleIndex(0);
@@ -617,7 +632,14 @@ function LearningLabComponent() {
   }
   
   const chapterCount = activeCourse?.units?.reduce((acc, unit) => acc + (unit.chapters?.length ?? 0), 0) ?? 0;
-  const progress = activeCourse && chapterCount > 0 ? (((currentModuleIndex * (currentModule?.chapters.length ?? 1)) + currentChapterIndex + 1) / chapterCount) * 100 : 0;
+  let completedChaptersCount = 0;
+  if(activeCourse?.units) {
+      for(let i=0; i<currentModuleIndex; i++) {
+          completedChaptersCount += activeCourse.units[i].chapters.length;
+      }
+      completedChaptersCount += currentChapterIndex;
+  }
+  const progress = chapterCount > 0 ? (completedChaptersCount / chapterCount) * 100 : 0;
   
   if (isLoading) {
     return <Loading />;
@@ -748,8 +770,34 @@ function LearningLabComponent() {
   }
   
   const isMidtermModule = activeCourse.units && currentModuleIndex === Math.floor(activeCourse.units.length / 2);
+  const existingQuizResult = currentModule ? quizResults[currentModule.id] : undefined;
 
-  if (currentChapter?.title === 'Module Quiz' && currentModule) {
+  if (currentChapter?.title.includes('Quiz') && currentModule) {
+    
+    if (existingQuizResult) {
+        return (
+            <div className="flex flex-col items-center">
+                <div className="text-center mb-10">
+                    <h1 className="text-4xl font-bold">Quiz Results</h1>
+                    <p className="text-muted-foreground mt-2">Here's how you did on the {currentModule.title} quiz.</p>
+                </div>
+                <Card className="w-full max-w-3xl">
+                    <CardContent className="p-8 text-center">
+                        <h2 className="text-2xl font-semibold">Your Score</h2>
+                        <p className="text-6xl font-bold text-primary my-4">{existingQuizResult.score} / {existingQuizResult.totalQuestions}</p>
+                        <p className="text-muted-foreground">You answered {((existingQuizResult.score / existingQuizResult.totalQuestions) * 100).toFixed(0)}% of the questions correctly.</p>
+
+                        <div className="mt-8 flex justify-center gap-4">
+                            <Button variant="outline" onClick={() => handleCompleteAndContinue()}>
+                                Continue to Next Section <ArrowRight className="ml-2 h-4 w-4"/>
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
+    
     const score = quizAnswers.filter(a => a.isCorrect).length;
     const totalQuestions = generatedQuiz?.questions.length ?? 0;
     const currentQuizQuestion = generatedQuiz?.questions[currentQuizQuestionIndex];
@@ -823,10 +871,7 @@ function LearningLabComponent() {
                         <p className="text-muted-foreground">You answered {totalQuestions > 0 ? ((score / totalQuestions) * 100).toFixed(0) : 0}% of the questions correctly.</p>
 
                         <div className="mt-8 flex justify-center gap-4">
-                            <Button onClick={() => setQuizState('configuring')}>
-                                <RotateCcw className="mr-2 h-4 w-4" /> Take Again
-                            </Button>
-                            <Button variant="outline" onClick={() => { setQuizDialogOpen(false); handleCompleteAndContinue(); }}>
+                            <Button variant="outline" onClick={() => handleCompleteAndContinue()}>
                                 Continue to Next Section <ArrowRight className="ml-2 h-4 w-4"/>
                             </Button>
                         </div>
@@ -923,7 +968,7 @@ function LearningLabComponent() {
                         {isFocusMode ? "Exit Focus Mode" : "Focus Mode"}
                     </Button>
                     <Button onClick={handleCompleteAndContinue}>
-                        {currentChapter?.title === 'Module Quiz' ? 'Continue' : 'Complete & Continue'} <ChevronRight className="ml-2 h-4 w-4"/>
+                        {currentChapter?.title.includes('Quiz') ? 'Continue' : 'Complete & Continue'} <ChevronRight className="ml-2 h-4 w-4"/>
                     </Button>
                 </div>
             </div>
