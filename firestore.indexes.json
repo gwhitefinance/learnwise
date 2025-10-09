@@ -35,7 +35,7 @@
       "fields": [
         {
           "fieldPath": "userId",
-          "order": "ASCENDING"
+          "order": "ASCending"
         },
         {
           "fieldPath": "date",
@@ -96,6 +96,20 @@
         {
           "fieldPath": "timestamp",
           "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "quizResults",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "userId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "courseId",
+          "order": "ASCENDING"
         }
       ]
     }
