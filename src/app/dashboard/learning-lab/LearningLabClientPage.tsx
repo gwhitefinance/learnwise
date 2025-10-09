@@ -18,7 +18,7 @@ import type { GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
 import { cn } from '@/lib/utils';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
-import { collection, query, where, onSnapshot, doc, updateDoc, getDoc, getDocs, addDoc, serverTimestamp, increment, deleteDoc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, updateDoc, getDoc, getDocs, addDoc, serverTimestamp, increment, deleteDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import AudioPlayer from '@/components/audio-player';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -38,6 +38,7 @@ type Course = {
     url?: string;
     userId?: string;
     units?: Module[];
+    completedChapters?: string[];
 };
 
 type Module = {
@@ -135,8 +136,8 @@ function LearningLabComponent() {
     if (authLoading || !user) return;
 
     const q = query(collection(db, "courses"), where("userId", "==", user.uid));
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-        const userCourses = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+        const userCourses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
         setCourses(userCourses);
         setIsLoading(false);
     });
@@ -148,12 +149,6 @@ function LearningLabComponent() {
 
     if (courseIdFromUrl) {
         setSelectedCourseId(courseIdFromUrl);
-         const savedState = localStorage.getItem(`learningLabState_${courseIdFromUrl}`);
-        if(savedState) {
-            const { moduleIndex, chapterIndex } = JSON.parse(savedState);
-            setCurrentModuleIndex(moduleIndex);
-            setCurrentChapterIndex(chapterIndex);
-        }
     } else {
         setSelectedCourseId(null);
     }
@@ -174,6 +169,33 @@ function LearningLabComponent() {
         if (courseSnap.exists()) {
             const courseData = { id: courseSnap.id, ...courseSnap.data() } as Course;
             setActiveCourse(courseData);
+
+            if (courseData.units && courseData.units.length > 0) {
+                // Find first uncompleted chapter
+                let found = false;
+                for (let mIdx = 0; mIdx < courseData.units.length; mIdx++) {
+                    const unit = courseData.units[mIdx];
+                    for (let cIdx = 0; cIdx < unit.chapters.length; cIdx++) {
+                        const chapter = unit.chapters[cIdx];
+                        if (!courseData.completedChapters?.includes(chapter.id)) {
+                            setCurrentModuleIndex(mIdx);
+                            setCurrentChapterIndex(cIdx);
+                            await handleGenerateChapterContent(mIdx, cIdx, courseData);
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (found) break;
+                }
+                if (!found) { // All chapters completed
+                    const lastModuleIndex = courseData.units.length - 1;
+                    const lastChapterIndex = courseData.units[lastModuleIndex].chapters.length - 1;
+                    setCurrentModuleIndex(lastModuleIndex);
+                    setCurrentChapterIndex(lastChapterIndex);
+                }
+            }
+
+
         } else {
              setActiveCourse(null);
              toast({ variant: 'destructive', title: 'Course not found.' });
@@ -183,15 +205,6 @@ function LearningLabComponent() {
     loadCourseData();
   }, [selectedCourseId, user, toast]);
   
-  useEffect(() => {
-      if (selectedCourseId) {
-          const stateToSave = {
-              moduleIndex: currentModuleIndex,
-              chapterIndex: currentChapterIndex,
-          };
-          localStorage.setItem(`learningLabState_${selectedCourseId}`, JSON.stringify(stateToSave));
-      }
-  }, [selectedCourseId, currentModuleIndex, currentChapterIndex]);
 
     useEffect(() => {
         if (!user || !activeCourse) return;
@@ -258,9 +271,10 @@ function LearningLabComponent() {
         await updateDoc(courseRef, { 
             units: newUnits,
             userId: user.uid,
+            completedChapters: [],
         });
         
-        setActiveCourse({ ...course, units: newUnits });
+        setActiveCourse({ ...course, units: newUnits, completedChapters: [] });
         setSelectedCourseId(course.id);
         setCurrentModuleIndex(0);
         setCurrentChapterIndex(0);
@@ -455,10 +469,10 @@ function LearningLabComponent() {
     }
   };
   
-  const handleGenerateChapterContent = async (moduleIndex: number, chapterIndex: number) => {
-    if (!activeCourse || !user || !learnerType) return false;
+  const handleGenerateChapterContent = async (moduleIndex: number, chapterIndex: number, course = activeCourse) => {
+    if (!course || !user || !learnerType) return false;
     
-    const module = activeCourse.units?.[moduleIndex];
+    const module = course.units?.[moduleIndex];
     const chapter = module?.chapters?.[chapterIndex];
 
     if(!module || !chapter || chapter.content) {
@@ -470,7 +484,7 @@ function LearningLabComponent() {
 
     try {
         const result = await generateChapterContent({
-            courseName: activeCourse.name,
+            courseName: course.name,
             moduleTitle: module.title,
             chapterTitle: chapter.title,
             learnerType: learnerType as any,
@@ -478,7 +492,7 @@ function LearningLabComponent() {
 
         const updatedChapter = { ...chapter, ...result };
         
-        const updatedUnits = activeCourse.units?.map((unit, mIdx) => {
+        const updatedUnits = course.units?.map((unit, mIdx) => {
             if (mIdx === moduleIndex) {
                 return {
                     ...unit,
@@ -492,7 +506,7 @@ function LearningLabComponent() {
 
         setActiveCourse(prev => prev ? { ...prev, units: updatedUnits } : null);
 
-        const courseRef = doc(db, 'courses', activeCourse.id);
+        const courseRef = doc(db, 'courses', course.id);
         await updateDoc(courseRef, { units: updatedUnits });
         return true;
 
@@ -506,10 +520,17 @@ function LearningLabComponent() {
   };
 
   const handleCompleteAndContinue = async () => {
-    if (!activeCourse || !user) return;
+    if (!activeCourse || !user || !currentChapter) return;
     const module = activeCourse.units?.[currentModuleIndex];
     if (!module) return;
     const existingResult = quizResults[module.id];
+
+    // Mark current chapter as complete
+    const courseRef = doc(db, 'courses', activeCourse.id);
+    await updateDoc(courseRef, { completedChapters: arrayUnion(currentChapter.id) });
+    
+    setActiveCourse(prev => prev ? { ...prev, completedChapters: [...(prev.completedChapters || []), currentChapter.id]} : null);
+
 
     // Check if the current chapter is a quiz and if it has been completed
     if (currentChapter?.title.includes('Quiz') && !existingResult) {
@@ -542,7 +563,6 @@ function LearningLabComponent() {
     } else {
         toast({ title: "Course Complete!", description: "Congratulations, you've finished the course!" });
         try {
-            const courseRef = doc(db, 'courses', activeCourse.id);
             await updateDoc(courseRef, {
                 labCompleted: true
             });
@@ -556,9 +576,6 @@ function LearningLabComponent() {
   };
   
   const startNewCourse = () => {
-    if (selectedCourseId) {
-        localStorage.removeItem(`learningLabState_${selectedCourseId}`);
-    }
     setSelectedCourseId(null);
     setActiveCourse(null);
     setCurrentModuleIndex(0);
@@ -573,9 +590,9 @@ function LearningLabComponent() {
     try {
         const courseRef = doc(db, 'courses', courseId);
         await updateDoc(courseRef, {
-            units: [] // Set units to an empty array
+            units: [],
+            completedChapters: []
         });
-        localStorage.removeItem(`learningLabState_${courseId}`);
         toast({ title: 'Learning Lab Deleted', description: 'The generated content for this course has been removed.' });
     } catch (error) {
         console.error("Error deleting lab:", error);
@@ -632,13 +649,7 @@ function LearningLabComponent() {
   }
   
   const chapterCount = activeCourse?.units?.reduce((acc, unit) => acc + (unit.chapters?.length ?? 0), 0) ?? 0;
-  let completedChaptersCount = 0;
-  if(activeCourse?.units) {
-      for(let i=0; i<currentModuleIndex; i++) {
-          completedChaptersCount += activeCourse.units[i].chapters.length;
-      }
-      completedChaptersCount += currentChapterIndex;
-  }
+  const completedChaptersCount = activeCourse?.completedChapters?.length ?? 0;
   const progress = chapterCount > 0 ? (completedChaptersCount / chapterCount) * 100 : 0;
   
   if (isLoading) {
@@ -693,17 +704,8 @@ function LearningLabComponent() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {coursesWithLabs.map(course => {
                         const totalChapters = course.units?.reduce((acc, unit) => acc + (unit.chapters?.length ?? 0), 0) ?? 0;
-                        const savedState = typeof window !== 'undefined' ? localStorage.getItem(`learningLabState_${course.id}`) : null;
-                        let completedChapters = 0;
-                        if(savedState){
-                            const { moduleIndex, chapterIndex } = JSON.parse(savedState);
-                            let chaptersCounted = 0;
-                            for(let i=0; i<moduleIndex; i++) {
-                                chaptersCounted += course.units?.[i].chapters.length ?? 0;
-                            }
-                            completedChapters = chaptersCounted + chapterIndex;
-                        }
-                        const courseProgress = totalChapters > 0 ? (completedChapters / totalChapters) * 100 : 0;
+                        const completedCount = course.completedChapters?.length ?? 0;
+                        const courseProgress = totalChapters > 0 ? (completedCount / totalChapters) * 100 : 0;
                         
                         return (
                         <Card key={course.id} className="hover:shadow-md transition-shadow flex flex-col">
@@ -921,25 +923,19 @@ function LearningLabComponent() {
                                 <ul className="space-y-1 pl-4">
                                     {unit.chapters.map((chapter, cIndex) => {
                                         const isCurrent = currentModuleIndex === mIndex && currentChapterIndex === cIndex;
-                                        const isCompleted = currentModuleIndex > mIndex || (currentModuleIndex === mIndex && currentChapterIndex > cIndex);
-                                        const isLocked = !chapter.content && !isCurrent;
+                                        const isCompleted = activeCourse.completedChapters?.includes(chapter.id) ?? false;
                                         
                                         return (
                                         <li key={chapter.id}>
                                             <button 
                                                 onClick={() => {
-                                                    if (isLocked) {
-                                                        toast({ variant: 'destructive', description: "Complete the previous chapter to unlock this one." });
-                                                    } else {
-                                                        setCurrentModuleIndex(mIndex);
-                                                        setCurrentChapterIndex(cIndex);
-                                                    }
+                                                    setCurrentModuleIndex(mIndex);
+                                                    setCurrentChapterIndex(cIndex);
                                                 }}
                                                 className={cn(
                                                     "w-full text-left p-2 rounded-md text-sm flex items-center gap-2",
-                                                    isCurrent ? "bg-primary/10 text-primary font-semibold" : (isLocked ? "text-muted-foreground/50 cursor-not-allowed" : "hover:bg-muted")
+                                                    isCurrent ? "bg-primary/10 text-primary font-semibold" : "hover:bg-muted"
                                                 )}
-                                                disabled={isLocked}
                                             >
                                                 <CheckCircle size={14} className={cn(isCompleted ? "text-green-500" : "text-muted-foreground/50")} />
                                                 {chapter.title}
