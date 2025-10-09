@@ -4,13 +4,14 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { FileText, ArrowLeft, ArrowRight, BookOpen, Calculator, Loader2, Clock, SkipForward, Trophy } from 'lucide-react';
+import { FileText, ArrowLeft, ArrowRight, BookOpen, Calculator, Loader2, Clock, SkipForward, Trophy, CheckCircle, XCircle } from 'lucide-react';
 import Link from 'next/link';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import practiceTestData from '@/lib/sat-practice-test.json';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 type Question = {
     id: string;
@@ -49,6 +50,7 @@ export default function PracticeTestPage() {
     const [testState, setTestState] = useState<'not-started' | 'in-progress' | 'break' | 'completed'>('not-started');
     const [breakTimeRemaining, setBreakTimeRemaining] = useState(10 * 60);
     const [finalScore, setFinalScore] = useState<Score | null>(null);
+    const [isReviewing, setIsReviewing] = useState(false);
 
     useEffect(() => {
         setTestData(practiceTestData as TestData);
@@ -90,7 +92,7 @@ export default function PracticeTestPage() {
     };
 
     const handleContinueFromBreak = () => {
-        setCurrentQuestionIndex(0); // Reset question index for the new module
+        setCurrentQuestionIndex(0); 
         if (currentSectionKey === 'reading_writing' && currentModuleIndex === 0) {
             setCurrentModuleIndex(1);
             setTestState('in-progress');
@@ -108,19 +110,20 @@ export default function PracticeTestPage() {
         if (currentQuestionIndex < currentModule.questions.length - 1) {
             setCurrentQuestionIndex(prev => prev + 1);
         } else {
+            setCurrentQuestionIndex(0);
             if (currentSectionKey === 'reading_writing' && currentModuleIndex === 0) {
                 setBreakTimeRemaining(10 * 60);
                 setTestState('break');
+                setCurrentModuleIndex(1);
             } else if (currentSectionKey === 'reading_writing' && currentModuleIndex === 1) {
                 setBreakTimeRemaining(25 * 60);
                 setTestState('break');
+                setCurrentSectionKey('math');
+                setCurrentModuleIndex(0);
             } else if (currentSectionKey === 'math' && currentModuleIndex === 0) {
-                // Per official digital SAT format, there is no break between Math Module 1 and 2.
                 setCurrentModuleIndex(1);
-                setCurrentQuestionIndex(0);
                 setTestState('in-progress');
             } else {
-                // Finished the whole test
                 calculateScore();
             }
         }
@@ -137,7 +140,50 @@ export default function PracticeTestPage() {
         setUserAnswers(prev => ({...prev, [questionId]: answer}));
     };
     
-     if (testState === 'completed' && finalScore) {
+    if (testState === 'completed' && finalScore) {
+        
+        if (isReviewing) {
+            const allQuestions = testData ? [...testData.reading_writing.modules.flatMap(m => m.questions), ...testData.math.modules.flatMap(m => m.questions)] : [];
+            const incorrectAnswers = allQuestions.filter(q => userAnswers[q.id] && userAnswers[q.id] !== q.answer);
+
+            return (
+                <div className="max-w-4xl mx-auto p-4">
+                    <div className="text-center mb-8">
+                        <h1 className="text-3xl font-bold">Review Incorrect Answers</h1>
+                        <p className="text-muted-foreground">You got {incorrectAnswers.length} questions wrong.</p>
+                    </div>
+                     <Accordion type="single" collapsible className="w-full space-y-4">
+                        {incorrectAnswers.map((question, index) => (
+                            <AccordionItem value={`item-${index}`} key={question.id} className="border bg-card rounded-lg">
+                                <AccordionTrigger className="p-4 text-left hover:no-underline">
+                                    <span className="font-semibold flex-1">Question {index + 1}: {question.question.substring(0, 50)}...</span>
+                                </AccordionTrigger>
+                                <AccordionContent className="p-4 pt-0 border-t">
+                                    <div className="prose dark:prose-invert max-w-none mb-4">
+                                        {question.passage && <p className="text-muted-foreground border-l-4 pl-4 italic">{question.passage}</p>}
+                                        <p className="font-bold">{question.question}</p>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <div className="flex items-start gap-2 p-3 rounded-md bg-red-500/10 text-red-700">
+                                            <XCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
+                                            <div><span className="font-semibold">Your Answer:</span> {userAnswers[question.id]}</div>
+                                        </div>
+                                         <div className="flex items-start gap-2 p-3 rounded-md bg-green-500/10 text-green-700">
+                                            <CheckCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
+                                            <div><span className="font-semibold">Correct Answer:</span> {question.answer}</div>
+                                        </div>
+                                    </div>
+                                </AccordionContent>
+                            </AccordionItem>
+                        ))}
+                    </Accordion>
+                     <div className="mt-8 text-center">
+                        <Button onClick={() => setIsReviewing(false)}>Back to Score</Button>
+                    </div>
+                </div>
+            )
+        }
+        
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh]">
                 <Card className="max-w-2xl w-full text-center p-8">
@@ -162,7 +208,8 @@ export default function PracticeTestPage() {
                                 <p className="font-bold text-2xl">{finalScore.math}</p>
                             </div>
                         </div>
-                        <div className="mt-12">
+                        <div className="mt-12 flex flex-col sm:flex-row gap-4 justify-center">
+                            <Button size="lg" variant="outline" onClick={() => setIsReviewing(true)}>Review Your Answers</Button>
                             <Button size="lg" asChild>
                                 <Link href="/dashboard/sat-prep">Back to SAT Prep Hub</Link>
                             </Button>
