@@ -1,0 +1,70 @@
+{
+  "reading_writing": {
+    "title": "Reading and Writing",
+    "timeLimit": 64,
+    "modules": [
+      {
+        "id": 1,
+        "questions": [
+          {
+            "id": "rw-1-1",
+            "passage": "The following text is from the 1924 short story 'The Gift of the Magi' by O. Henry. Della and Jim are a young married couple with very little money. Della has just sold her long, beautiful hair to buy a gift for Jim.",
+            "question": "Which choice best describes the main purpose of the text?",
+            "options": [
+              "To illustrate the financial struggles of a young couple.",
+              "To describe Della's physical appearance in detail.",
+              "To show the depth of Della's love and sacrifice for Jim.",
+              "To build suspense about the gift Jim will receive."
+            ],
+            "answer": "To show the depth of Della's love and sacrifice for Jim."
+          },
+          {
+            "id": "rw-1-2",
+            "passage": "A recent study on urban wildlife has found that raccoons are exceptionally good at remembering the solutions to complex problems. For over a year, researchers presented a group of raccoons with a puzzle box that required a multi-step sequence to open. Even after six months without seeing the box, most raccoons were able to open it on their first try, demonstrating remarkable long-term memory.",
+            "question": "Which choice best states the main idea of the text?",
+            "options": [
+              "Raccoons are more intelligent than other urban animals.",
+              "Researchers have been studying raccoons for over a year.",
+              "Raccoons possess impressive long-term memory for problem-solving tasks.",
+              "Puzzle boxes are a good way to test animal intelligence."
+            ],
+            "answer": "Raccoons possess impressive long-term memory for problem-solving tasks."
+          }
+        ]
+      }
+    ]
+  },
+  "math": {
+    "title": "Math",
+    "timeLimit": 70,
+    "modules": [
+      {
+        "id": 1,
+        "questions": [
+          {
+            "id": "m-1-1",
+            "question": "If 3x - 7 = 8, what is the value of 6x?",
+            "options": [
+              "15",
+              "24",
+              "30",
+              "45"
+            ],
+            "answer": "30"
+          },
+          {
+            "id": "m-1-2",
+            "question": "A circle has a circumference of 36π. What is the area of the circle?",
+            "options": [
+              "18π",
+              "36π",
+              "108π",
+              "324π"
+            ],
+            "answer": "324π"
+          }
+        ]
+      }
+    ]
+  }
+}
