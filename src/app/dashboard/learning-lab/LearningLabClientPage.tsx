@@ -494,17 +494,21 @@ function LearningLabComponent() {
 
     if (currentChapterIndex < module.chapters.length - 1) {
         const nextChapterIndex = currentChapterIndex + 1;
+        setCurrentChapterIndex(nextChapterIndex); // Move to next chapter immediately
         const generated = await handleGenerateChapterContent(currentModuleIndex, nextChapterIndex);
-        if (generated) {
-            setCurrentChapterIndex(nextChapterIndex);
+        if (!generated) {
+            setCurrentChapterIndex(currentChapterIndex); // Revert if generation fails
         }
     } else if (currentModuleIndex < (activeCourse.units?.length ?? 0) - 1) {
         const nextModuleIndex = currentModuleIndex + 1;
+        setCurrentModuleIndex(nextModuleIndex);
+        setCurrentChapterIndex(0);
         const generated = await handleGenerateChapterContent(nextModuleIndex, 0);
-         if (generated) {
-            setCurrentModuleIndex(nextModuleIndex);
-            setCurrentChapterIndex(0);
+        if (generated) {
             toast({ title: "Module Complete!", description: "Moving to the next module." });
+        } else {
+             setCurrentModuleIndex(currentModuleIndex); // Revert
+             setCurrentChapterIndex(currentChapterIndex);
         }
     } else {
         toast({ title: "Course Complete!", description: "Congratulations, you've finished the course!" });
@@ -940,7 +944,15 @@ function LearningLabComponent() {
                  <div className="max-w-4xl mx-auto space-y-8">
                      <h1 className="text-4xl font-bold">{currentChapter.title}</h1>
                      
-                     {currentChapter.content ? (
+                      {isChapterContentLoading[currentChapter.id] ? (
+                        <div className="space-y-4">
+                            <Skeleton className="h-40 w-full" />
+                            <Skeleton className="h-6 w-3/4" />
+                            <Skeleton className="h-4 w-full" />
+                            <Skeleton className="h-4 w-full" />
+                            <Skeleton className="h-4 w-5/6" />
+                        </div>
+                    ) : currentChapter.content ? (
                          <div className='space-y-4'>
                             {currentChapter.imageUrl && (
                                 <div className="mt-4 rounded-lg overflow-hidden border aspect-video relative">
@@ -964,13 +976,6 @@ function LearningLabComponent() {
                                     </div>
                                 </div>
                             )}
-                        </div>
-                     ) : isChapterContentLoading[currentChapter.id] ? (
-                        <div className="space-y-4">
-                            <Skeleton className="h-6 w-3/4" />
-                            <Skeleton className="h-4 w-full" />
-                            <Skeleton className="h-4 w-full" />
-                            <Skeleton className="h-4 w-5/6" />
                         </div>
                      ) : (
                          <div className="text-center p-8 border-2 border-dashed rounded-lg">

@@ -5,7 +5,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { notFound, useRouter, useParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, BrainCircuit, Lightbulb, Link as LinkIcon, Plus, UploadCloud, FileText, Trash2, Wand2, Loader2, Video, Image as ImageIcon } from 'lucide-react';
+import { ArrowLeft, BrainCircuit, Lightbulb, Link as LinkIcon, Plus, UploadCloud, FileText, Trash2, Wand2, Loader2, Video, Image as ImageIcon, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
@@ -16,7 +16,7 @@ import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, Di
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { generateChapterContent, generateMiniCourse } from '@/lib/actions';
+import { generateMiniCourse, generateChapterContent } from '@/lib/actions';
 import { useTour } from '../../layout';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
@@ -378,7 +378,15 @@ export default function ClientCoursePage() {
                                                     <AccordionTrigger className="px-4 py-3 text-md hover:no-underline">{chapter.title}</AccordionTrigger>
                                                     <AccordionContent className="px-4 pb-4">
                                                         <div className='space-y-4 border-t pt-4'>
-                                                            {chapter.content ? (
+                                                            {isChapterContentLoading[chapter.id] ? (
+                                                                <div className="space-y-4">
+                                                                    <Skeleton className="h-40 w-full" />
+                                                                    <Skeleton className="h-6 w-3/4" />
+                                                                    <Skeleton className="h-4 w-full" />
+                                                                    <Skeleton className="h-4 w-full" />
+                                                                    <Skeleton className="h-4 w-5/6" />
+                                                                </div>
+                                                            ) : chapter.content ? (
                                                                 <>
                                                                     {chapter.imageUrl && (
                                                                         <div className="mt-4 rounded-lg overflow-hidden border aspect-video relative">
