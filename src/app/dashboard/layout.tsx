@@ -65,6 +65,7 @@ import {
   ShoppingBag,
   Shield,
   Podcast,
+  BookMarked,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -196,6 +197,14 @@ const sidebarItems = [
     }
   ];
 
+const satPrepItem = {
+    title: "SAT Prep",
+    icon: <BookMarked />,
+    href: "/dashboard/sat-prep",
+    id: "sat-prep-link",
+};
+
+
 const SidebarNavItem = ({ item, pathname, setMobileMenuOpen }: { item: any, pathname: string, setMobileMenuOpen: (open: boolean) => void }) => {
     const [isOpen, setIsOpen] = useState(false);
     const hasChildren = item.children && item.children.length > 0;
@@ -293,9 +302,12 @@ function DashboardLayoutContent({
   const [searchQuery, setSearchQuery] = useState('');
   const [userCoins, setUserCoins] = useState<number>(0);
   const [isHalloweenTheme, setIsHalloweenTheme] = useState(false);
+  const [gradeLevel, setGradeLevel] = useState<string | null>(null);
 
   useEffect(() => {
     setIsMounted(true);
+    const storedGradeLevel = localStorage.getItem('onboardingGradeLevel');
+    setGradeLevel(storedGradeLevel);
   }, []);
 
   useEffect(() => {
@@ -396,7 +408,10 @@ function DashboardLayoutContent({
     fileInputRef.current?.click();
   }
 
-  const filteredSidebarItems = sidebarItems.map(item => {
+  const currentSidebarItems = isMounted && gradeLevel === 'High School' ? [...sidebarItems, satPrepItem] : sidebarItems;
+
+
+  const filteredSidebarItems = currentSidebarItems.map(item => {
     if (!item.children) {
       return item.title.toLowerCase().includes(searchQuery.toLowerCase()) ? item : null;
     }
