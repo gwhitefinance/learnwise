@@ -23,7 +23,7 @@ import AudioPlayer from '@/components/audio-player';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { doc, updateDoc, increment, collection, addDoc, serverTimestamp, onSnapshot, query, where } from 'firebase/firestore';
-import { addCoins, generateQuizAction } from '@/lib/actions';
+import { generateQuizAction } from '@/lib/actions';
 import { RewardContext } from '@/context/RewardContext';
 import Loading from './loading';
 
@@ -253,7 +253,10 @@ function PracticeQuizComponent() {
                 }
 
                 try {
-                    await addCoins(user.uid, coinsEarned);
+                    const userRef = doc(db, 'users', user.uid);
+                    await updateDoc(userRef, {
+                        coins: increment(coinsEarned)
+                    });
                     showReward({ type: 'coins', amount: coinsEarned });
                     toast({ title: "Quiz Complete!", description: `You earned ${coinsEarned} coins!`});
 

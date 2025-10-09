@@ -23,7 +23,7 @@ import AudioPlayer from '@/components/audio-player';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { addCoins, generateMiniCourse, generateQuizFromModule, generateFlashcardsFromModule, generateTutorResponse, generateChapterContent, generateMidtermExam, generateRoadmap } from '@/lib/actions';
+import { generateMiniCourse, generateQuizFromModule, generateFlashcardsFromModule, generateTutorResponse, generateChapterContent, generateMidtermExam, generateRoadmap } from '@/lib/actions';
 import { RewardContext } from '@/context/RewardContext';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import Loading from './loading';
@@ -401,7 +401,10 @@ function LearningLabComponent() {
         if (coinsEarned > 0) {
             showReward({ type: 'coins', amount: coinsEarned });
             try {
-                await addCoins(user.uid, coinsEarned);
+                const userRef = doc(db, 'users', user.uid);
+                await updateDoc(userRef, {
+                    coins: increment(coinsEarned)
+                });
                 toast({ title: "Quiz Complete!", description: `You earned ${coinsEarned} coins!` });
 
             } catch(e) {
@@ -529,7 +532,8 @@ function LearningLabComponent() {
             await updateDoc(courseRef, {
                 labCompleted: true
             });
-            await addCoins(user.uid, 500); // Award 500 coins for course completion
+            const userRef = doc(db, 'users', user.uid);
+            await updateDoc(userRef, { coins: increment(500) });
             showReward({ type: 'coins', amount: 500 });
         } catch (error) {
             console.error("Error completing course:", error);

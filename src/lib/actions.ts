@@ -1,8 +1,6 @@
 
 'use server';
 
-import { addCoins as addCoinsAdmin } from './firebase-admin';
-
 // All AI flow imports are centralized here
 import { generateQuiz } from '@/ai/flows/quiz-flow';
 import { generateExplanation } from '@/ai/flows/quiz-explanation-flow';
@@ -57,13 +55,3 @@ export {
     generateVideo,
     generatePodcastEpisode
 };
-
-export async function addCoins(userId: string, coins: number) {
-    try {
-        await addCoinsAdmin(userId, coins);
-    } catch(e) {
-        console.error("Action error adding coins:", e);
-        // This will be caught by the client-side try/catch block
-        throw new Error("Failed to update coins on the server.");
-    }
-}
