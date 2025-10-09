@@ -201,9 +201,16 @@ export default function PracticeTestPage() {
             const correctAnswers = section.modules.flatMap(m => m.questions).filter(q => userAnswers[q.id] === q.answer).length;
             const totalQuestions = section.modules.flatMap(m => m.questions).length;
             
-            // Simple linear scaling from raw score to 200-800 range
-            const scaledScore = 200 + Math.round((correctAnswers / totalQuestions) * 600);
-            return Math.round(scaledScore / 10) * 10; // Round to nearest 10
+            if (correctAnswers === 0) return 200;
+            if (correctAnswers === totalQuestions) return 800;
+            
+            // A more curved scaling function
+            const rawScoreRatio = correctAnswers / totalQuestions;
+            // Use a power function to create a curve - exponent > 1 makes it curve up
+            const curvedRatio = Math.pow(rawScoreRatio, 0.75); 
+            const scaledScore = 200 + Math.round(curvedRatio * 600);
+            
+            return Math.min(800, Math.round(scaledScore / 10) * 10);
         };
 
         const readingWritingScore = calculateSectionScore('reading_writing');
