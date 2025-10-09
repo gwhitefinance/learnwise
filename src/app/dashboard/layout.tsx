@@ -99,9 +99,24 @@ import { useToast } from '@/hooks/use-toast';
 import Logo from '@/components/Logo';
 import DashboardLoading from './loading';
 
+type SidebarChild = {
+  title: string;
+  icon: React.ReactElement;
+  href: string;
+  id: string;
+};
+
+type SidebarItem = {
+  title: string;
+  icon: React.ReactElement;
+  id: string;
+  href?: string;
+  children?: SidebarChild[];
+};
+
 
 // Sample data for sidebar navigation
-const sidebarItems = [
+const sidebarItems: SidebarItem[] = [
     {
       title: "Home",
       icon: <Home />,
@@ -203,7 +218,7 @@ const sidebarItems = [
     }
   ];
 
-const satPrepItem = {
+const satPrepItem: SidebarItem = {
     title: "SAT Prep",
     icon: <BookMarked />,
     href: "/dashboard/sat-prep",
@@ -211,10 +226,10 @@ const satPrepItem = {
 };
 
 
-const SidebarNavItem = ({ item, pathname, setMobileMenuOpen }: { item: any, pathname: string, setMobileMenuOpen: (open: boolean) => void }) => {
+const SidebarNavItem = ({ item, pathname, setMobileMenuOpen }: { item: SidebarItem, pathname: string, setMobileMenuOpen: (open: boolean) => void }) => {
     const [isOpen, setIsOpen] = useState(false);
     const hasChildren = item.children && item.children.length > 0;
-    const isActive = hasChildren ? item.children.some((child: any) => child.href === pathname || pathname.startsWith(child.href + '/')) : item.href === pathname;
+    const isActive = hasChildren ? item.children.some((child) => child.href === pathname || pathname.startsWith(child.href + '/')) : item.href === pathname;
 
     useEffect(() => {
         if (isActive) {
@@ -239,7 +254,7 @@ const SidebarNavItem = ({ item, pathname, setMobileMenuOpen }: { item: any, path
                 </CollapsibleTrigger>
                 <CollapsibleContent className="py-1 pl-8">
                     <div className="flex flex-col space-y-1">
-                        {item.children.map((child: any) => (
+                        {item.children.map((child: SidebarChild) => (
                              <Link
                                 key={child.title}
                                 href={child.href || '#'}
@@ -429,7 +444,7 @@ function DashboardLayoutContent({
         return item; // Keep the parent if it matches
     }
     return null;
-  }).filter(Boolean);
+  }).filter((item): item is SidebarItem => item !== null);
 
   if (loading || !isMounted) {
     return <DashboardLoading />;
@@ -516,7 +531,7 @@ function DashboardLayoutContent({
 
             <ScrollArea className="flex-1 px-3 py-2">
                 <div className="space-y-1">
-                {filteredSidebarItems.length > 0 ? filteredSidebarItems.map((item: any) => (
+                {filteredSidebarItems.length > 0 ? filteredSidebarItems.map((item) => (
                     <div key={item.title} className="mb-1">
                         <SidebarNavItem item={item} pathname={pathname} setMobileMenuOpen={setMobileMenuOpen} />
                     </div>
