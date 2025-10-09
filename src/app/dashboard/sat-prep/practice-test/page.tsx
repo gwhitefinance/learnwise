@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { FileText, ArrowLeft, ArrowRight, BookOpen, Calculator, Loader2, Clock, SkipForward } from 'lucide-react';
+import { FileText, ArrowLeft, ArrowRight, BookOpen, Calculator, Loader2, Clock, SkipForward, Trophy } from 'lucide-react';
 import Link from 'next/link';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
@@ -34,6 +34,12 @@ type TestData = {
     math: TestSection;
 };
 
+type Score = {
+    readingWriting: number;
+    math: number;
+    total: number;
+};
+
 export default function PracticeTestPage() {
     const [testData, setTestData] = useState<TestData | null>(null);
     const [currentSectionKey, setCurrentSectionKey] = useState<'reading_writing' | 'math'>('reading_writing');
@@ -42,6 +48,7 @@ export default function PracticeTestPage() {
     const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
     const [testState, setTestState] = useState<'not-started' | 'in-progress' | 'break' | 'completed'>('not-started');
     const [breakTimeRemaining, setBreakTimeRemaining] = useState(10 * 60);
+    const [finalScore, setFinalScore] = useState<Score | null>(null);
 
     useEffect(() => {
         setTestData(practiceTestData as TestData);
@@ -57,27 +64,113 @@ export default function PracticeTestPage() {
         return () => clearTimeout(timer);
     }, [testState, breakTimeRemaining]);
 
+    const calculateScore = () => {
+        if (!testData) return;
+
+        const calculateSectionScore = (sectionKey: 'reading_writing' | 'math') => {
+            const section = testData[sectionKey];
+            const correctAnswers = section.modules.flatMap(m => m.questions).filter(q => userAnswers[q.id] === q.answer).length;
+            const totalQuestions = section.modules.flatMap(m => m.questions).length;
+            
+            // Simple linear scaling from raw score to 200-800 range
+            const scaledScore = 200 + Math.round((correctAnswers / totalQuestions) * 600);
+            return Math.round(scaledScore / 10) * 10; // Round to nearest 10
+        };
+
+        const readingWritingScore = calculateSectionScore('reading_writing');
+        const mathScore = calculateSectionScore('math');
+        const totalScore = readingWritingScore + mathScore;
+
+        setFinalScore({
+            readingWriting: readingWritingScore,
+            math: mathScore,
+            total: totalScore,
+        });
+        setTestState('completed');
+    };
+
     const handleContinueFromBreak = () => {
         if (currentSectionKey === 'reading_writing' && currentModuleIndex === 0) {
-            // After RW Module 1 break
             setCurrentModuleIndex(1);
-            setCurrentQuestionIndex(0);
             setTestState('in-progress');
             setBreakTimeRemaining(10 * 60); // Reset for next break if any
         } else if (currentSectionKey === 'reading_writing' && currentModuleIndex === 1) {
-            // After RW Section, move to Math
             setCurrentSectionKey('math');
             setCurrentModuleIndex(0);
-            setCurrentQuestionIndex(0);
             setTestState('in-progress');
-            setBreakTimeRemaining(25 * 60); // Set for the longer break
+            setBreakTimeRemaining(25 * 60); 
         } else if (currentSectionKey === 'math' && currentModuleIndex === 0) {
-            // After Math Module 1, move to Math Module 2
             setCurrentModuleIndex(1);
-            setCurrentQuestionIndex(0);
             setTestState('in-progress');
         }
     };
+
+    const handleNext = () => {
+        if (currentQuestionIndex < currentModule.questions.length - 1) {
+            setCurrentQuestionIndex(prev => prev + 1);
+        } else {
+            if (currentSectionKey === 'reading_writing' && currentModuleIndex === 0) {
+                setBreakTimeRemaining(10 * 60);
+                setTestState('break');
+            } else if (currentSectionKey === 'reading_writing' && currentModuleIndex === 1) {
+                setBreakTimeRemaining(25 * 60);
+                setTestState('break');
+            } else if (currentSectionKey === 'math' && currentModuleIndex === 0) {
+                 // After Math Module 1, go straight to Module 2 (as per official SAT)
+                 handleContinueFromBreak();
+            } else {
+                // Finished the whole test
+                calculateScore();
+            }
+        }
+    };
+    
+
+    const handlePrevQuestion = () => {
+        if (currentQuestionIndex > 0) {
+            setCurrentQuestionIndex(prev => prev - 1);
+        }
+    };
+
+    const handleAnswerChange = (questionId: string, answer: string) => {
+        setUserAnswers(prev => ({...prev, [questionId]: answer}));
+    };
+    
+     if (testState === 'completed' && finalScore) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh]">
+                <Card className="max-w-2xl w-full text-center p-8">
+                    <CardHeader>
+                        <div className="mx-auto bg-primary/10 text-primary p-4 rounded-full w-fit">
+                            <Trophy className="h-10 w-10" />
+                        </div>
+                        <CardTitle className="text-4xl mt-4">Test Complete!</CardTitle>
+                        <CardDescription className="mt-2 text-lg">
+                            Here's how you did on your practice SAT.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-7xl font-bold my-6 text-primary">{finalScore.total}</div>
+                        <div className="flex justify-around items-center text-lg mt-8">
+                             <div className="text-center">
+                                <p className="text-muted-foreground">Reading & Writing</p>
+                                <p className="font-bold text-2xl">{finalScore.readingWriting}</p>
+                            </div>
+                             <div className="text-center">
+                                <p className="text-muted-foreground">Math</p>
+                                <p className="font-bold text-2xl">{finalScore.math}</p>
+                            </div>
+                        </div>
+                        <div className="mt-12">
+                            <Button size="lg" asChild>
+                                <Link href="/dashboard/sat-prep">Back to SAT Prep Hub</Link>
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+        )
+    }
 
     if (testState === 'not-started') {
         return (
@@ -149,40 +242,14 @@ export default function PracticeTestPage() {
     const questionsAnsweredInSection = Object.keys(userAnswers).filter(qid => currentSection.modules.flatMap(m => m.questions).some(q => q.id === qid)).length;
     const progress = (questionsAnsweredInSection / totalQuestionsInSection) * 100;
 
-    const handleNext = () => {
-        if (currentQuestionIndex < currentModule.questions.length - 1) {
-            setCurrentQuestionIndex(prev => prev + 1);
-        } else {
-            if (currentSectionKey === 'reading_writing' && currentModuleIndex === 0) {
-                setBreakTimeRemaining(10 * 60);
-                setTestState('break');
-            } else if (currentSectionKey === 'reading_writing' && currentModuleIndex === 1) {
-                setBreakTimeRemaining(25 * 60);
-                setTestState('break');
-            } else if (currentSectionKey === 'math' && currentModuleIndex === 0) {
-                 setTestState('break'); 
-            } else {
-                setTestState('completed');
-            }
-        }
-    };
-    
-
-    const handlePrevQuestion = () => {
-        if (currentQuestionIndex > 0) {
-            setCurrentQuestionIndex(prev => prev - 1);
-        }
-    };
-
-    const handleAnswerChange = (questionId: string, answer: string) => {
-        setUserAnswers(prev => ({...prev, [questionId]: answer}));
-    };
-
     return (
         <div className="max-w-4xl mx-auto p-4">
             <header className="mb-8">
                 <div className="flex justify-between items-center">
-                    <h1 className="text-2xl font-bold">{currentSection.title}</h1>
+                    <h1 className="text-2xl font-bold flex items-center gap-2">
+                        {currentSectionKey === 'reading_writing' ? <BookOpen /> : <Calculator />}
+                        {currentSection.title}
+                    </h1>
                     <div className="flex items-center gap-4">
                         <p className="text-sm text-muted-foreground">Time: --:--</p>
                         <Button variant="outline">End Section</Button>
