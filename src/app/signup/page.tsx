@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
 import { getAuth, createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
 import { app, db } from "@/lib/firebase"
-import { doc, setDoc, serverTimestamp } from "firebase/firestore"
+import { doc, setDoc, serverTimestamp, collection, query, where, getDocs, updateDoc, arrayUnion } from "firebase/firestore"
 import Link from "next/link"
 import AIBuddy from "@/components/ai-buddy"
 
@@ -185,6 +185,23 @@ export default function SignUpPage() {
             createdAt: serverTimestamp(),
             coins: 0,
         });
+
+        // Check for a pending squad invitation
+        const inviteCode = localStorage.getItem('squadInviteCode');
+        if (inviteCode) {
+            const squadsRef = collection(db, 'squads');
+            const q = query(squadsRef, where('inviteCode', '==', inviteCode));
+            const querySnapshot = await getDocs(q);
+
+            if (!querySnapshot.empty) {
+                const squadDoc = querySnapshot.docs[0];
+                await updateDoc(squadDoc.ref, {
+                    members: arrayUnion(user.uid)
+                });
+                toast({ title: "Squad Joined!", description: `You've been added to ${squadDoc.data().name}.`});
+            }
+            localStorage.removeItem('squadInviteCode');
+        }
 
         toast({
             title: "Account Created!",
