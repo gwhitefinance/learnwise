@@ -180,6 +180,12 @@ const sidebarItems = [
             href: "/dashboard/games",
             id: "games-link",
         },
+        {
+            title: "Learning Squad",
+            icon: <Users />,
+            href: "/dashboard/learning-squad",
+            id: "learning-squad-link",
+        },
       ]
     },
      {
