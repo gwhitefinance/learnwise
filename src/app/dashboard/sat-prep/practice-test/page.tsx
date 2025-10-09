@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -14,6 +15,9 @@ import practiceTestData from '@/lib/sat-practice-test.json';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { auth, db } from '@/lib/firebase';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 
 
 type Question = {
@@ -146,6 +150,7 @@ const CalculatorComponent = () => {
 }
 
 export default function PracticeTestPage() {
+    const [user] = useAuthState(auth);
     const [testData, setTestData] = useState<TestData | null>(null);
     const [currentSectionKey, setCurrentSectionKey] = useState<'reading_writing' | 'math'>('reading_writing');
     const [currentModuleId, setCurrentModuleId] = useState(1);
@@ -170,8 +175,8 @@ export default function PracticeTestPage() {
         return () => clearTimeout(timer);
     }, [testState, breakTimeRemaining]);
 
-    const calculateScore = () => {
-        if (!testData) return;
+    const calculateScore = async () => {
+        if (!testData || !user) return;
 
         const calculateSectionScore = (sectionKey: 'reading_writing' | 'math') => {
             const section = testData[sectionKey];
@@ -186,13 +191,26 @@ export default function PracticeTestPage() {
         const readingWritingScore = calculateSectionScore('reading_writing');
         const mathScore = calculateSectionScore('math');
         const totalScore = readingWritingScore + mathScore;
-
-        setFinalScore({
+        
+        const scoreData = {
             readingWriting: readingWritingScore,
             math: mathScore,
             total: totalScore,
-        });
+        };
+
+        setFinalScore(scoreData);
         setTestState('completed');
+
+        // Save to Firestore
+        try {
+            await addDoc(collection(db, 'satTestResults'), {
+                userId: user.uid,
+                ...scoreData,
+                timestamp: serverTimestamp()
+            });
+        } catch (error) {
+            console.error("Error saving test results:", error);
+        }
     };
 
     const handleContinueFromBreak = () => {
@@ -219,7 +237,7 @@ export default function PracticeTestPage() {
                 const nextModule = testData.reading_writing.modules.find(m => m.difficulty === nextDifficulty);
                 setCurrentModuleId(nextModule ? nextModule.id : 2); // Fallback to id 2 if not found
                 setCurrentQuestionIndex(0);
-            } else if (currentSectionKey === 'reading_writing' && currentModuleId !== 1) {
+            } else if (currentSectionKey === 'reading_writing') {
                 setBreakTimeRemaining(10 * 60);
                 setTestState('break');
             } else if (currentSectionKey === 'math' && currentModuleId === 1) {
@@ -448,7 +466,7 @@ export default function PracticeTestPage() {
             </header>
 
             <main>
-                <div className={cn("grid gap-8", currentQuestion.passage ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1")}>
+                 <div className={cn("grid gap-8", currentQuestion.passage ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1")}>
                     {currentQuestion.passage && (
                          <div className="prose dark:prose-invert max-w-none bg-muted p-6 rounded-lg h-fit">
                             <p>{currentQuestion.passage}</p>
@@ -489,7 +507,7 @@ export default function PracticeTestPage() {
                 </Button>
                 <p className="text-sm text-muted-foreground">Question {currentQuestionIndex + 1} of {currentModule.questions.length}</p>
                 <Button variant="default" onClick={handleNext}>
-                    Next <ArrowRight className="ml-2 h-4 w-4" />
+                    {currentQuestionIndex === currentModule.questions.length - 1 ? 'Finish Module' : 'Next'} <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
             </footer>
         </div>
