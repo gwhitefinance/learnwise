@@ -82,9 +82,9 @@ const CarIcon = (props: React.SVGProps<SVGSVGElement>) => (
 )
 
 const badgeColors = [
-    { bg: "bg-green-100 dark:bg-green-900/50", border: "border-green-500", text: "text-green-500" },
     { bg: "bg-blue-100 dark:bg-blue-900/50", border: "border-blue-500", text: "text-blue-500" },
     { bg: "bg-purple-100 dark:bg-purple-900/50", border: "border-purple-500", text: "text-purple-500" },
+    { bg: "bg-green-100 dark:bg-green-900/50", border: "border-green-500", text: "text-green-500" },
     { bg: "bg-orange-100 dark:bg-orange-900/50", border: "border-orange-500", text: "text-orange-500" },
 ];
 
@@ -324,7 +324,7 @@ export default function RoadmapsPage() {
         {authLoading ? (
              <Loading />
         ) : courses.length > 0 ? (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-start">
             {activeCourseId && courses.find((c) => c.id === activeCourseId) ? (
                  (() => {
                     const course = courses.find((c) => c.id === activeCourseId)!;
@@ -351,12 +351,12 @@ export default function RoadmapsPage() {
                       const completedCount = roadmap.milestones.filter(m => m.completed).length;
                       const carPosition = roadmap.milestones.length > 0 ? (completedCount / roadmap.milestones.length) : 0;
                       
-                      const pathD = `M 0 60 C 200 60, 200 250, 400 250 S 600 250, 600 440`;
+                      const pathD = `M 250 80 C 100 150, 400 250, 250 350 S 100 450, 250 550 S 400 650, 250 750`;
 
                       return (
                         <>
-                            <div className="relative pt-8">
-                                <svg className="absolute top-0 left-1/2 -translate-x-1/2 h-full w-full pointer-events-none" preserveAspectRatio="none" viewBox="0 0 600 800">
+                            <div className="lg:col-span-2 relative pt-8">
+                                <svg className="absolute top-0 left-0 h-full w-full pointer-events-none" preserveAspectRatio="xMidYMid meet" viewBox="0 0 500 800">
                                     <motion.path
                                         d={pathD}
                                         fill="none"
@@ -373,34 +373,30 @@ export default function RoadmapsPage() {
                                         animate={{ pathLength: carPosition }}
                                         transition={{ duration: 1, ease: "easeInOut" }}
                                     />
-                                    <motion.g
-                                        initial={{ offsetDistance: "0%" }}
+                                     <motion.g
+                                        style={{ offsetPath: `path("${pathD}")` }}
                                         animate={{ offsetDistance: `${carPosition * 100}%` }}
                                         transition={{ duration: 1, ease: "easeInOut" }}
-                                        style={{ offsetPath: `path("${pathD}")` }}
                                     >
-                                        <foreignObject
-                                            width="40"
-                                            height="40"
-                                            style={{
-                                                transform: 'translate(-20px, -20px)',
-                                            }}
-                                        >
+                                        <foreignObject x="-20" y="-20" width="40" height="40">
                                             <CarIcon className="w-8 h-8 text-primary" />
                                         </foreignObject>
                                     </motion.g>
                                 </svg>
-                                <div className="space-y-16 relative">
-                                     {roadmap.milestones.map((milestone, index) => (
-                                        <div key={milestone.id} className={cn("flex items-center", index % 2 === 0 ? "justify-start" : "justify-end")}>
-                                            <Card className={cn("w-[calc(50%-2rem)] flex-shrink-0", index % 2 === 0 ? "order-2 ml-16" : "order-1 mr-16")}>
+                                <div className="space-y-4 relative">
+                                    {roadmap.milestones.map((milestone, index) => (
+                                         <div key={milestone.id} className={cn("flex items-start gap-4 w-[calc(50%-2rem)]", index % 2 === 0 ? "ml-auto" : "mr-auto")}>
+                                             <div className="z-10 bg-primary w-12 h-12 rounded-full flex items-center justify-center text-white flex-shrink-0">
+                                                <LucideIcons.Calendar/>
+                                            </div>
+                                            <Card className="flex-1">
                                                  <CardContent className="p-4">
                                                      <div className="flex justify-between items-start gap-2">
                                                          <div>
-                                                            <p className="text-sm font-semibold">{milestone.title}</p>
-                                                            <p className="text-xs text-muted-foreground mt-1">{milestone.description}</p>
+                                                            <p className="font-semibold">{milestone.title}</p>
+                                                            <p className="text-xs text-muted-foreground mt-1">{new Date(milestone.date).toLocaleDateString()}</p>
                                                          </div>
-                                                          <button onClick={() => handleToggleMilestone(milestone.id)} className={cn("h-6 w-6 rounded-full flex items-center justify-center border-2 transition-colors flex-shrink-0", milestone.completed ? 'bg-primary text-primary-foreground border-primary' : 'bg-muted border-primary hover:bg-primary/20')}>
+                                                        <button onClick={() => handleToggleMilestone(milestone.id)} className={cn("h-6 w-6 rounded-full flex items-center justify-center border-2 transition-colors flex-shrink-0", milestone.completed ? 'bg-primary text-primary-foreground border-primary' : 'bg-muted border-primary hover:bg-primary/20')}>
                                                             {milestone.completed && <Check className="h-4 w-4" />}
                                                         </button>
                                                      </div>
