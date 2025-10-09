@@ -1,84 +1,64 @@
+
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // Helper Functions
     function isUserAuthenticated() {
       return request.auth != null;
     }
 
-    // Helper function to check if a user is a member of a specific squad
-    function isSquadMember(squadId, userId) {
-      return get(/databases/$(database)/documents/squads/$(squadId)).data.members.hasAny([userId]);
+    function isOwner(userId) {
+      return request.auth.uid == userId;
     }
 
-    // Helper function to check if two users share any squad
-    function doUsersShareSquad(userId1, userId2) {
-      // Get all squads for the first user
-      let squads1 = get(/databases/$(database)/documents/users/$(userId1)).data.squads;
-
-      // If squads1 is not a list or is empty, return false
-      if (!(squads1 is list) || squads1.size() == 0) {
-        return false;
-      }
-      
-      // Get all squads for the second user
-      let squads2 = get(/databases/$(database)/documents/users/$(userId2)).data.squads;
-
-      // If squads2 is not a list or is empty, return false
-      if (!(squads2 is list) || squads2.size() == 0) {
-        return false;
-      }
-
-      // Return true if there is any intersection between the two lists of squads
-      return squads1.hasAny(squads2);
+    function isMember(squadId) {
+      return request.auth.uid in get(/databases/$(database)/documents/squads/$(squadId)).data.members;
     }
-
+    
     match /users/{userId} {
-      allow read: if isUserAuthenticated() && (request.auth.uid == userId || doUsersShareSquad(request.auth.uid, userId));
-      allow write: if isUserAuthenticated() && request.auth.uid == userId;
+      allow read, write: if isOwner(userId);
     }
-
+    
     match /squads/{squadId} {
-      allow read: if isUserAuthenticated() && request.auth.uid in resource.data.members;
-      allow create: if isUserAuthenticated() && request.auth.uid == request.resource.data.ownerId;
-      allow update: if isUserAuthenticated() && 
-                    (request.auth.uid == resource.data.ownerId || 
-                    (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['members']) && 
-                     request.resource.data.members.toSet().diff(resource.data.members.toSet()).addedKeys().hasOnly([request.auth.uid]) &&
-                     !resource.data.members.hasAny([request.auth.uid])));
-      allow delete: if isUserAuthenticated() && request.auth.uid == resource.data.ownerId;
+      allow read: if isUserAuthenticated();
+      allow create: if isOwner(request.resource.data.ownerId);
+      allow update: if isOwner(resource.data.ownerId) || 
+                      (request.auth.uid in request.resource.data.members && !(request.auth.uid in resource.data.members));
+      allow delete: if isOwner(resource.data.ownerId);
     }
 
-    match /courses/{document=**} {
-      allow read, write: if isUserAuthenticated() && request.auth.uid == resource.data.userId;
+    match /courses/{courseId} {
+        allow read, write: if isUserAuthenticated() && (isOwner(resource.data.userId) || isMember(resource.data.squadId));
     }
-    match /chatSessions/{document=**} {
-      allow read, write: if isUserAuthenticated() && request.auth.uid == resource.data.userId;
+    
+    match /notes/{noteId} {
+        allow read, write: if isUserAuthenticated() && isOwner(resource.data.userId);
     }
-    match /notes/{document=**} {
-      allow read, write: if isUserAuthenticated() && request.auth.uid == resource.data.userId;
+
+    match /projects/{projectId} {
+        allow read, write: if isUserAuthenticated() && isOwner(resource.data.userId);
     }
-    match /projects/{document=**} {
-      allow read, write: if isUserAuthenticated() && request.auth.uid == resource.data.userId;
+    
+    match /calendarEvents/{eventId} {
+        allow read, write: if isUserAuthenticated() && isOwner(resource.data.userId);
     }
-    match /recentFiles/{document=**} {
-      allow read, write: if isUserAuthenticated() && request.auth.uid == resource.data.userId;
+
+    match /recentFiles/{fileId} {
+        allow read, write: if isUserAuthenticated() && isOwner(resource.data.userId);
     }
-     match /calendarEvents/{document=**} {
-      allow read, write: if isUserAuthenticated() && request.auth.uid == resource.data.userId;
+    
+    match /quizAttempts/{attemptId} {
+      allow read, write: if isUserAuthenticated() && isOwner(resource.data.userId);
     }
-    match /quizAttempts/{document=**} {
-      allow read, write: if isUserAuthenticated() && request.auth.uid == resource.data.userId;
+    
+    match /quizResults/{resultId} {
+       allow read, write: if isUserAuthenticated() && isOwner(resource.data.userId);
     }
-     match /quizResults/{document=**} {
-      allow read, write: if isUserAuthenticated() && request.auth.uid == resource.data.userId;
-    }
-     match /roadmaps/{document=**} {
-      allow read, write: if isUserAuthenticated() && request.auth.uid == resource.data.userId;
-    }
-    match /satTestResults/{document=**} {
-      allow read, write: if isUserAuthenticated() && request.auth.uid == resource.data.userId;
+
+    match /roadmaps/{roadmapId} {
+        allow read, write: if isUserAuthenticated() && isOwner(resource.data.userId);
     }
   }
 }

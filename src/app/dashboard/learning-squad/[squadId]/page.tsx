@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
-import { doc, onSnapshot, getDoc, collection, query, where } from 'firebase/firestore';
+import { doc, onSnapshot, getDoc, collection, query, where, updateDoc, arrayRemove } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Users, Link as LinkIcon, Trash2, Shield, MoreVertical, Copy, Check, Settings } from 'lucide-react';
 import Loading from './loading';
@@ -16,6 +16,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+
 
 type Squad = {
     id: string;
@@ -75,10 +77,10 @@ export default function SquadManagementPage() {
                                 photoURL: userData.photoURL
                             } as Member;
                         }
-                        return null;
+                        return { uid: memberId, displayName: 'Loading...' }; // Fallback
                     });
                     
-                    const membersData = (await Promise.all(memberPromises)).filter(Boolean) as Member[];
+                    const membersData = await Promise.all(memberPromises);
                     setMembers(membersData);
                 } else {
                     setSquad(null); // User is not a member, access denied
@@ -104,6 +106,21 @@ export default function SquadManagementPage() {
             setTimeout(() => setCopied(false), 2000);
         });
     }
+
+    const removeMember = async (memberId: string) => {
+        if (!squad || user?.uid !== squad.ownerId) return;
+
+        const squadRef = doc(db, 'squads', squad.id);
+        try {
+            await updateDoc(squadRef, {
+                members: arrayRemove(memberId)
+            });
+            toast({ title: "Member removed" });
+        } catch (error) {
+            console.error("Error removing member:", error);
+            toast({ variant: 'destructive', title: "Failed to remove member" });
+        }
+    };
 
     const isOwner = user?.uid === squad?.ownerId;
 
@@ -157,18 +174,34 @@ export default function SquadManagementPage() {
                                             </div>
                                         </div>
                                         {isOwner && member.uid !== user?.uid && (
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                        <MoreVertical className="h-4 w-4"/>
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem className="text-destructive">
-                                                        <Trash2 className="mr-2 h-4 w-4" /> Remove Member
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
+                                            <AlertDialog>
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                            <MoreVertical className="h-4 w-4"/>
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <AlertDialogTrigger asChild>
+                                                            <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
+                                                                <Trash2 className="mr-2 h-4 w-4" /> Remove Member
+                                                            </DropdownMenuItem>
+                                                        </AlertDialogTrigger>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                                <AlertDialogContent>
+                                                    <AlertDialogHeader>
+                                                        <AlertDialogTitle>Remove {member.displayName}?</AlertDialogTitle>
+                                                        <AlertDialogDescription>
+                                                            Are you sure you want to remove this member from the squad? This action cannot be undone.
+                                                        </AlertDialogDescription>
+                                                    </AlertDialogHeader>
+                                                    <AlertDialogFooter>
+                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                        <AlertDialogAction onClick={() => removeMember(member.uid)}>Remove</AlertDialogAction>
+                                                    </AlertDialogFooter>
+                                                </AlertDialogContent>
+                                            </AlertDialog>
                                         )}
                                     </div>
                                 ))}
