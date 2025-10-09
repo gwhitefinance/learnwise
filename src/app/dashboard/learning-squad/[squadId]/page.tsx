@@ -58,47 +58,42 @@ export default function SquadManagementPage() {
 
         const squadDocRef = doc(db, 'squads', squadId);
         
-        const fetchSquadData = async () => {
-            try {
-                const docSnap = await getDoc(squadDocRef);
-                if (docSnap.exists()) {
-                    const squadData = { id: docSnap.id, ...docSnap.data() } as Squad;
-
-                    if (squadData.members.includes(user.uid)) {
-                        setSquad(squadData);
-
-                        const memberPromises = squadData.members.map(async (memberId) => {
-                            const userDocRef = doc(db, 'users', memberId);
-                            const userDocSnap = await getDoc(userDocRef);
-                            if (userDocSnap.exists()) {
-                                const userData = userDocSnap.data();
-                                return {
-                                    uid: memberId,
-                                    displayName: userData.displayName || 'Anonymous',
-                                    photoURL: userData.photoURL
-                                } as Member;
-                            }
-                            return null;
-                        });
-                        
-                        const membersData = (await Promise.all(memberPromises)).filter(Boolean) as Member[];
-                        setMembers(membersData);
-                    } else {
-                        setSquad(null); // User is not a member
-                    }
+        const unsubscribe = onSnapshot(squadDocRef, async (docSnap) => {
+             if (docSnap.exists()) {
+                const squadData = { id: docSnap.id, ...docSnap.data() } as Squad;
+                if (squadData.members.includes(user.uid)) {
+                    setSquad(squadData);
+                    
+                    const memberPromises = squadData.members.map(async (memberId) => {
+                        const userDocRef = doc(db, 'users', memberId);
+                        const userDocSnap = await getDoc(userDocRef);
+                        if (userDocSnap.exists()) {
+                            const userData = userDocSnap.data();
+                            return {
+                                uid: memberId,
+                                displayName: userData.displayName || 'Anonymous',
+                                photoURL: userData.photoURL
+                            } as Member;
+                        }
+                        return null;
+                    });
+                    
+                    const membersData = (await Promise.all(memberPromises)).filter(Boolean) as Member[];
+                    setMembers(membersData);
                 } else {
-                    setSquad(null); // Squad doesn't exist
+                    setSquad(null); // User is not a member, access denied
                 }
-            } catch (error) {
-                console.error("Error fetching squad:", error);
-                setSquad(null);
-            } finally {
-                setLoading(false);
+            } else {
+                setSquad(null); // Squad doesn't exist
             }
-        }
+            setLoading(false);
+        }, (error) => {
+            console.error("Error fetching squad:", error);
+            setSquad(null);
+            setLoading(false);
+        });
 
-        fetchSquadData();
-
+        return () => unsubscribe();
     }, [user, authLoading, squadId, router]);
     
     const copyInviteLink = () => {

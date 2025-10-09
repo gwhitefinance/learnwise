@@ -1,134 +1,84 @@
-
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // USERS - Each user can only access their own document
+    function isUserAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Helper function to check if a user is a member of a specific squad
+    function isSquadMember(squadId, userId) {
+      return get(/databases/$(database)/documents/squads/$(squadId)).data.members.hasAny([userId]);
+    }
+
+    // Helper function to check if two users share any squad
+    function doUsersShareSquad(userId1, userId2) {
+      // Get all squads for the first user
+      let squads1 = get(/databases/$(database)/documents/users/$(userId1)).data.squads;
+
+      // If squads1 is not a list or is empty, return false
+      if (!(squads1 is list) || squads1.size() == 0) {
+        return false;
+      }
+      
+      // Get all squads for the second user
+      let squads2 = get(/databases/$(database)/documents/users/$(userId2)).data.squads;
+
+      // If squads2 is not a list or is empty, return false
+      if (!(squads2 is list) || squads2.size() == 0) {
+        return false;
+      }
+
+      // Return true if there is any intersection between the two lists of squads
+      return squads1.hasAny(squads2);
+    }
+
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if isUserAuthenticated() && (request.auth.uid == userId || doUsersShareSquad(request.auth.uid, userId));
+      allow write: if isUserAuthenticated() && request.auth.uid == userId;
     }
 
-    // AI CHAT APP collection
-    match /ai-chat-app/{chatId} {
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow list: if request.auth != null 
-                  && request.query.where('userId', '==', request.auth.uid).exists();
-    }
-
-    // CALENDAR collection
-    match /calendarEvents/{calendarEventsId} {
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow list: if request.auth != null 
-                  && request.query.where('userId', '==', request.auth.uid).exists();
-    }
-
-    // CHAT SESSIONS collection
-    match /chatSessions/{sessionId} {
-      allow read, update, delete: if resource.data.isPublic == true || (request.auth != null && request.auth.uid == resource.data.userId);
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow list: if request.auth != null && request.query.where('userId', '==', request.auth.uid).exists();
-    }
-
-    // COURSES collection
-    match /courses/{courseId} {
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow list: if request.auth != null 
-                  && request.query.where('userId', '==', request.auth.uid).exists();
-    }
-
-    // LEADERBOARD collection - Allow read for all authenticated users
-    match /leaderBoard/{leaderBoardId} {
-      allow read: if request.auth != null;
-      allow create, update, delete: if false; // Nobody can write directly to the leaderboard
-    }
-
-    // LEARNING LAB collection
-    match /learningLab/{labId} {
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow list: if request.auth != null
-                  && request.query.where('userId', '==', request.auth.uid).exists();
-    }
-
-    // NOTES collection
-    match /notes/{noteId} {
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow list: if request.auth != null 
-                  && request.query.where('userId', '==', request.auth.uid).exists();
-    }
-
-    // PROJECTS collection
-    match /projects/{projectId} {
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow list: if request.auth != null 
-                  && request.query.where('userId', '==', request.auth.uid).exists();
-    }
-
-    // QUIZ ATTEMPTS collection
-    match /quizAttempts/{attemptId} {
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow list: if request.auth != null 
-                  && request.query.where('userId', '==', request.auth.uid).exists();
-    }
-
-    // QUIZ RESULTS collection
-    match /quizResults/{resultId} {
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow list: if request.auth != null 
-                  && request.query.where('userId', '==', request.auth.uid).exists();
-    }
-
-    // RECENTFILES collection
-    match /recentFiles/{fileId} {
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow list: if request.auth != null 
-                  && request.query.where('userId', '==', request.auth.uid).exists();
-    }
-
-    // ROADMAPS collection
-    match /roadmaps/{roadmapsId} {
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow list: if request.auth != null 
-                  && request.query.where('userId', '==', request.auth.uid).exists();
-    }
-
-    // SAT TEST RESULTS collection
-    match /satTestResults/{resultId} {
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow list: if request.auth != null 
-                  && request.query.where('userId', '==', request.auth.uid).exists();
-    }
-
-    // SQUADS collection
     match /squads/{squadId} {
-        function isAddingSelf(request, resource) {
-            let diff = request.resource.data.members.toSet().difference(resource.data.members.toSet());
-            return diff.size() == 1 && diff.hasAny([request.auth.uid]);
-        }
-        allow list: if request.auth != null && request.query.where('members', 'array-contains', request.auth.uid).exists();
-        allow read: if request.auth != null;
-        allow create: if request.auth != null && request.auth.uid == request.resource.data.ownerId;
-        allow update: if request.auth != null && (request.auth.uid == resource.data.ownerId || isAddingSelf(request, resource));
+      allow read: if isUserAuthenticated() && request.auth.uid in resource.data.members;
+      allow create: if isUserAuthenticated() && request.auth.uid == request.resource.data.ownerId;
+      allow update: if isUserAuthenticated() && 
+                    (request.auth.uid == resource.data.ownerId || 
+                    (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['members']) && 
+                     request.resource.data.members.toSet().diff(resource.data.members.toSet()).addedKeys().hasOnly([request.auth.uid]) &&
+                     !resource.data.members.hasAny([request.auth.uid])));
+      allow delete: if isUserAuthenticated() && request.auth.uid == resource.data.ownerId;
     }
 
-
-    // TODO collection
-    match /toDo/{toDoId} {
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow list: if request.auth != null 
-                  && request.query.where('userId', '==', request.auth.uid).exists();
+    match /courses/{document=**} {
+      allow read, write: if isUserAuthenticated() && request.auth.uid == resource.data.userId;
+    }
+    match /chatSessions/{document=**} {
+      allow read, write: if isUserAuthenticated() && request.auth.uid == resource.data.userId;
+    }
+    match /notes/{document=**} {
+      allow read, write: if isUserAuthenticated() && request.auth.uid == resource.data.userId;
+    }
+    match /projects/{document=**} {
+      allow read, write: if isUserAuthenticated() && request.auth.uid == resource.data.userId;
+    }
+    match /recentFiles/{document=**} {
+      allow read, write: if isUserAuthenticated() && request.auth.uid == resource.data.userId;
+    }
+     match /calendarEvents/{document=**} {
+      allow read, write: if isUserAuthenticated() && request.auth.uid == resource.data.userId;
+    }
+    match /quizAttempts/{document=**} {
+      allow read, write: if isUserAuthenticated() && request.auth.uid == resource.data.userId;
+    }
+     match /quizResults/{document=**} {
+      allow read, write: if isUserAuthenticated() && request.auth.uid == resource.data.userId;
+    }
+     match /roadmaps/{document=**} {
+      allow read, write: if isUserAuthenticated() && request.auth.uid == resource.data.userId;
+    }
+    match /satTestResults/{document=**} {
+      allow read, write: if isUserAuthenticated() && request.auth.uid == resource.data.userId;
     }
   }
 }
