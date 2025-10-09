@@ -9,7 +9,7 @@ runConfig:
   # more instances in response to increased traffic.
   maxInstances: 1
   # Increase the timeout for server actions to allow for longer AI generation tasks.
-  timeoutSeconds: 180
+  timeoutSeconds: 300
 
 # Pass the Gemini API key as a secret to the backend.
 # The value can be set in the Firebase console.
