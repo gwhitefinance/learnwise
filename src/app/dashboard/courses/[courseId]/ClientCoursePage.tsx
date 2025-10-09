@@ -3,7 +3,6 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { notFound, useRouter, useParams } from 'next/navigation';
-import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, BrainCircuit, Lightbulb, Link as LinkIcon, Plus, UploadCloud, FileText, Trash2, Wand2, Loader2, Video, Image as ImageIcon } from 'lucide-react';
@@ -20,6 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 import { generateChapterContent, generateMiniCourse } from '@/lib/actions';
 import { useTour } from '../../layout';
 import { cn } from '@/lib/utils';
+import Image from 'next/image';
 
 
 type CourseFile = {
@@ -52,7 +52,6 @@ type Course = {
   instructor: string;
   credits: number;
   url?: string;
-  imageUrl?: string;
   description?: string;
   userId?: string;
   units?: Unit[];
