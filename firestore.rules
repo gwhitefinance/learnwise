@@ -3,13 +3,22 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     function isSquadMember(squadId) {
-      return get(/databases/$(database)/documents/squads/$(squadId)).data.members.has(request.auth.uid);
+      return get(/databases/$(database)/documents/squads/$(squadId)).data.members.hasAny([request.auth.uid]);
     }
-    
-    // USERS - Each user can only access their own document, unless they are in a squad together.
+
+    function isAddingSelf(request, resource) {
+      let diff = request.resource.data.members.removeAll(resource.data.members);
+      return diff.size() == 1 && diff.hasAny([request.auth.uid]);
+    }
+
+    // USERS - Each user can only access their own document
     match /users/{userId} {
-      allow read: if request.auth != null && (request.auth.uid == userId || exists(/databases/$(database)/documents/squads) && get(/databases/$(database)/documents/squads).data.members.has(userId));
-      allow write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow list: if request.auth != null
+                  && request.query.keys().hasOnly(['where'])
+                  && request.query.where[0][0] == 'uid'
+                  && request.query.where[0][1] == 'in'
+                  && isSquadMember(request.query.where[0][2]);
     }
 
     // AI CHAT APP collection
@@ -30,9 +39,8 @@ service cloud.firestore {
 
     // CHAT SESSIONS collection
     match /chatSessions/{sessionId} {
-      // Publicly readable if isPublic is true
-      allow get: if resource.data.isPublic == true;
-      allow read, update, delete, create: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
       allow list: if request.auth != null 
                   && request.query.where('userId', '==', request.auth.uid).exists();
     }
@@ -117,26 +125,16 @@ service cloud.firestore {
                   && request.query.where('userId', '==', request.auth.uid).exists();
     }
 
-    // ✅ SQUADS collection
+    // SQUADS collection
     match /squads/{squadId} {
-      function isOwner() {
-        return request.auth.uid == resource.data.ownerId;
-      }
-
-      function isMember() {
-        return request.auth.uid in resource.data.members;
-      }
-      
-      function isAddingSelf() {
-        let diff = request.resource.data.members.toSet().difference(resource.data.members.toSet());
-        return diff.size() == 1 && diff.hasAny([request.auth.uid]);
-      }
-
       allow create: if request.auth != null && request.auth.uid == request.resource.data.ownerId;
-      allow read: if isMember();
-      allow list: if request.auth != null && request.query.where('members', 'array-contains', request.auth.uid).exists();
-      allow update: if isOwner() || isAddingSelf();
+      allow read: if request.auth != null && request.auth.uid in resource.data.members;
+      allow update: if request.auth != null && (request.auth.uid == resource.data.ownerId || isAddingSelf(request, resource));
+      allow delete: if request.auth != null && request.auth.uid == resource.data.ownerId;
+      allow list: if request.auth != null 
+                  && request.query.where('members', 'array-contains', request.auth.uid).exists();
     }
+
 
     // TODO collection
     match /toDo/{toDoId} {
