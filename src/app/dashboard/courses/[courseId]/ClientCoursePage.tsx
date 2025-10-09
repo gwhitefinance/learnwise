@@ -381,60 +381,64 @@ export default function ClientCoursePage() {
                     </Button>
                 </Card>
             ) : (
-                <Accordion type="single" collapsible className="w-full" defaultValue={course.units?.[0]?.id}>
+                <Accordion type="multiple" className="w-full space-y-4">
                     {course.units.map(unit => (
-                        <AccordionItem key={unit.id} value={unit.id}>
-                            <AccordionTrigger className="text-lg font-medium">{unit.name}</AccordionTrigger>
-                            <AccordionContent>
-                            <div className="space-y-6 pl-4 border-l-2 ml-2">
-                                    {/* Chapters Section */}
-                                    {unit.chapters?.length > 0 ? (
-                                    <div className="space-y-6">
-                                        {unit.chapters.map(chapter => (
-                                            <div key={chapter.id} className="pt-4 border-t first:border-t-0 first:pt-0">
-                                                <h4 className="font-semibold text-md">{chapter.title}</h4>
-                                                {chapter.content ? (
-                                                    <div className='space-y-4'>
-                                                        {chapter.imageUrl && (
-                                                            <div className="mt-4 rounded-lg overflow-hidden border aspect-video relative">
-                                                                <Image src={chapter.imageUrl} alt={`Header for ${chapter.title}`} layout="fill" objectFit="cover" />
-                                                            </div>
-                                                        )}
-                                                        <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">{chapter.content}</p>
-                                                        {chapter.diagramUrl && (
-                                                            <div className="mt-4 p-4 bg-muted/50 rounded-lg">
-                                                                <h5 className="font-semibold text-sm mb-2 flex items-center gap-2"><ImageIcon size={16} /> Diagram</h5>
-                                                                <div className="rounded-lg overflow-hidden border aspect-video relative">
-                                                                    <Image src={chapter.diagramUrl} alt={`Diagram for ${chapter.title}`} layout="fill" objectFit="contain" />
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                         {chapter.videoUrl && (
-                                                            <div className="mt-4 p-4 bg-muted/50 rounded-lg">
-                                                                <h5 className="font-semibold text-sm mb-2 flex items-center gap-2"><Video size={16} /> Video Clip</h5>
-                                                                <div className="rounded-lg overflow-hidden border aspect-video bg-black">
-                                                                    <video src={chapter.videoUrl} controls className="w-full h-full" />
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                        <div className="mt-4 p-3 bg-amber-500/10 rounded-md border border-amber-500/20 text-sm">
-                                                            <p className="font-semibold text-amber-700">Activity:</p>
-                                                            <p className="text-muted-foreground">{chapter.activity}</p>
+                        <AccordionItem key={unit.id} value={unit.id} className="bg-card border rounded-lg">
+                            <AccordionTrigger className="text-lg font-medium p-6 hover:no-underline">
+                                {unit.name}
+                            </AccordionTrigger>
+                            <AccordionContent className="p-6 pt-0">
+                                <div className="space-y-4">
+                                     {unit.chapters?.length > 0 ? (
+                                        <Accordion type="multiple" className="w-full space-y-2">
+                                            {unit.chapters.map(chapter => (
+                                                <AccordionItem key={chapter.id} value={chapter.id} className="bg-muted/50 border rounded-md">
+                                                    <AccordionTrigger className="px-4 py-3 text-md hover:no-underline">{chapter.title}</AccordionTrigger>
+                                                    <AccordionContent className="px-4 pb-4">
+                                                        <div className='space-y-4 border-t pt-4'>
+                                                            {chapter.content ? (
+                                                                <>
+                                                                    {chapter.imageUrl && (
+                                                                        <div className="mt-4 rounded-lg overflow-hidden border aspect-video relative">
+                                                                            <Image src={chapter.imageUrl} alt={`Header for ${chapter.title}`} layout="fill" objectFit="cover" />
+                                                                        </div>
+                                                                    )}
+                                                                    <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">{chapter.content}</p>
+                                                                    {chapter.diagramUrl && (
+                                                                        <div className="mt-4 p-4 bg-background/50 rounded-lg">
+                                                                            <h5 className="font-semibold text-sm mb-2 flex items-center gap-2"><ImageIcon size={16} /> Diagram</h5>
+                                                                            <div className="rounded-lg overflow-hidden border aspect-video relative">
+                                                                                <Image src={chapter.diagramUrl} alt={`Diagram for ${chapter.title}`} layout="fill" objectFit="contain" />
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
+                                                                    {chapter.videoUrl && (
+                                                                        <div className="mt-4 p-4 bg-background/50 rounded-lg">
+                                                                            <h5 className="font-semibold text-sm mb-2 flex items-center gap-2"><Video size={16} /> Video Clip</h5>
+                                                                            <div className="rounded-lg overflow-hidden border aspect-video bg-black">
+                                                                                <video src={chapter.videoUrl} controls className="w-full h-full" />
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
+                                                                    <div className="mt-4 p-3 bg-amber-500/10 rounded-md border border-amber-500/20 text-sm">
+                                                                        <p className="font-semibold text-amber-700">Activity:</p>
+                                                                        <p className="text-muted-foreground">{chapter.activity}</p>
+                                                                    </div>
+                                                                </>
+                                                            ) : (
+                                                                <Button size="sm" variant="secondary" className="mt-2" onClick={() => handleGenerateChapterContent(unit.id, chapter.id)} disabled={isChapterContentLoading[chapter.id]}>
+                                                                    <Wand2 className="mr-2 h-4 w-4"/> {isChapterContentLoading[chapter.id] ? 'Generating...' : 'Generate Content with AI'}
+                                                                </Button>
+                                                            )}
                                                         </div>
-                                                    </div>
-                                                ) : (
-                                                    <Button size="sm" variant="secondary" className="mt-2" onClick={() => handleGenerateChapterContent(unit.id, chapter.id)} disabled={isChapterContentLoading[chapter.id]}>
-                                                        <Wand2 className="mr-2 h-4 w-4"/> {isChapterContentLoading[chapter.id] ? 'Generating...' : 'Generate Content with AI'}
-                                                    </Button>
-                                                )}
-                                            </div>
-                                        ))}
-                                    </div>
+                                                    </AccordionContent>
+                                                </AccordionItem>
+                                            ))}
+                                        </Accordion>
                                     ) : (
                                         <p className="text-sm text-muted-foreground text-center py-4">No chapters in this unit yet.</p>
                                     )}
 
-                                    {/* Files Section */}
                                     <div className="pt-4 border-t">
                                         <div className="flex justify-between items-center mb-2">
                                             <h4 className="font-semibold text-md">Unit Files</h4>
@@ -458,7 +462,7 @@ export default function ClientCoursePage() {
                                             <p className="text-sm text-muted-foreground text-center py-4">No files uploaded to this unit.</p>
                                         )}
                                     </div>
-                            </div>
+                                </div>
                             </AccordionContent>
                         </AccordionItem>
                     ))}
