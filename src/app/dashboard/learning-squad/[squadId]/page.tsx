@@ -44,9 +44,9 @@ export default function SquadManagementPage() {
     const [copied, setCopied] = useState(false);
 
     useEffect(() => {
-        if (authLoading || !user) return;
+        if (authLoading) return;
 
-        if (!user && !authLoading) {
+        if (!user) {
             router.push('/login');
             return;
         }
@@ -226,3 +226,5 @@ export default function SquadManagementPage() {
         </div>
     )
 }
+
+    
