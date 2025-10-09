@@ -13,7 +13,7 @@ const prompt = ai.definePrompt({
     model: googleAI.model('gemini-2.0-flash'),
     input: { schema: GenerateSatQuestionInputSchema },
     output: { schema: SatQuestionSchema },
-    prompt: `You are an expert SAT test creator. Your task is to generate a single, high-quality, medium-difficulty SAT practice question.
+    prompt: `You are an expert SAT test creator. Your task is to generate a single, high-quality, challenging SAT-level practice question that mirrors the difficulty of the hardest questions on the official digital SAT.
 
     - The question should be unique based on the provided seed: "{{seed}}".
     - You must alternate between 'Math' and 'Reading & Writing' categories daily. Use the provided seed to decide. If the seed's length is even, create a 'Math' question. If odd, create a 'Reading & Writing' question.
