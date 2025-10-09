@@ -1,11 +1,10 @@
 
-
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
-import { GitMerge, Plus, Trash2, Edit, Check, Lightbulb, Car, Flag, Rocket } from "lucide-react";
+import { GitMerge, Plus, Trash2, Edit, Check, Lightbulb, Flag, Rocket, Play } from "lucide-react";
 import * as LucideIcons from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -65,12 +64,20 @@ const getIcon = (iconName: keyof typeof LucideIcons | undefined, defaultIcon: ke
     if (typeof Icon === 'function') {
         return Icon;
     }
-    // Fallback for icons that might have a different name casing, e.g. 'rocket' vs 'Rocket'
     const iconKey = Object.keys(LucideIcons).find(key => key.toLowerCase() === iconName.toLowerCase()) as keyof typeof LucideIcons;
     if (iconKey && typeof LucideIcons[iconKey] === 'function') {
         return LucideIcons[iconKey] as React.ElementType;
     }
     return LucideIcons[defaultIcon] as React.ElementType;
+};
+
+const NumberIcon = ({ number }: { number: number }) => {
+    const numberMap: Record<number, keyof typeof LucideIcons> = {
+        1: 'Filter1', 2: 'Filter2', 3: 'Filter3', 4: 'Filter4', 5: 'Filter5',
+        6: 'Filter6', 7: 'Filter7', 8: 'Filter8', 9: 'Filter9'
+    };
+    const Icon = number > 0 && number < 10 ? getIcon(numberMap[number], 'GitMerge') : getIcon('GitMerge', 'GitMerge');
+    return <Icon className="w-8 h-8" />;
 };
 
 
@@ -94,7 +101,6 @@ export default function RoadmapsPage() {
     useEffect(() => {
         if (authLoading || !user) return;
 
-        // Listener for Courses
         const coursesQuery = query(collection(db, "courses"), where("userId", "==", user.uid));
         const unsubscribeCourses = onSnapshot(coursesQuery, (snapshot) => {
             const userCourses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
@@ -106,7 +112,6 @@ export default function RoadmapsPage() {
             }
         });
 
-        // Listener for Roadmaps
         const roadmapsQuery = query(collection(db, "roadmaps"), where("userId", "==", user.uid));
         const unsubscribeRoadmaps = onSnapshot(roadmapsQuery, (snapshot) => {
             const userRoadmaps: Record<string, Roadmap> = {};
@@ -280,78 +285,51 @@ export default function RoadmapsPage() {
         router.push(`/dashboard/learning-lab?courseId=${courseId}&milestone=${encodeURIComponent(milestone.title)}`);
     }
 
-    const currentProgress = useMemo(() => {
-        if (!activeRoadmap || !activeRoadmap.milestones.length) return 0;
-        const completedCount = activeRoadmap.milestones.filter(m => m.completed).length;
-        return (completedCount / activeRoadmap.milestones.length) * 100;
-    }, [activeRoadmap]);
-
-    const pathPoints = useMemo(() => {
-      if (!activeRoadmap) return "";
-      const points = activeRoadmap.milestones.map((_, index) => {
-        const row = Math.floor(index / 2);
-        const col = index % 2;
-        const x = col === 0 ? 25 : 75;
-        const y = 10 + row * 20;
-        return `${x},${y}`;
-      });
-
-      if (points.length === 0) return "";
-      
-      let d = `M ${points[0]}`;
-      for(let i = 1; i < points.length; i++) {
-        d += ` L ${points[i]}`;
-      }
-      return d;
-    }, [activeRoadmap]);
-
-    const carPosition = useMemo(() => {
-      if (!activeRoadmap || !activeRoadmap.milestones.length) return { x: '25%', y: '10%' };
-      const completedCount = activeRoadmap.milestones.filter(m => m.completed).length;
-      const targetIndex = Math.min(completedCount, activeRoadmap.milestones.length - 1);
-      
-      const row = Math.floor(targetIndex / 2);
-      const col = targetIndex % 2;
-      return {
-        x: `${col === 0 ? 25 : 75}%`,
-        y: `${10 + row * 20}%`
-      };
-    }, [activeRoadmap]);
-
   return (
     <>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">My Study Roadmaps</h1>
-          <p className="text-muted-foreground">
-            Visualize your learning journey with key milestones and goals for each course.
-          </p>
-        </div>
-
-        {courses.length > 0 ? (
-            <div className="space-y-8">
-            <Card>
-              <CardHeader className="flex-col md:flex-row items-start md:items-center justify-between">
-                <div>
-                  <CardTitle>Select Your Course</CardTitle>
-                  <CardDescription>Choose a roadmap to view and edit.</CardDescription>
+        <header className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">My Study Roadmap</h1>
+              <p className="text-muted-foreground">
+                Visualize your learning journey with key milestones and goals for each course.
+              </p>
+            </div>
+             {courses.length > 0 && (
+                <div className="relative">
+                    <Select value={activeCourseId ?? undefined} onValueChange={(value) => setActiveCourseId(value)}>
+                      <SelectTrigger className="w-full md:w-[300px] mt-4 md:mt-0">
+                        <SelectValue placeholder="Select a course..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {courses.map((course) => (
+                          <SelectItem key={course.id} value={course.id}>
+                            {course.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                 </div>
-                <Select value={activeCourseId ?? undefined} onValueChange={(value) => setActiveCourseId(value)}>
-                  <SelectTrigger className="w-full md:w-[300px] mt-4 md:mt-0">
-                    <SelectValue placeholder="Select a course..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {courses.map((course) => (
-                      <SelectItem key={course.id} value={course.id}>
-                        {course.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </CardHeader>
-            </Card>
+            )}
+        </header>
 
-            {activeCourseId && courses.find((c) => c.id === activeCourseId) ? (
+        {authLoading ? (
+             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2 space-y-8">
+                <Skeleton className="h-8 w-32" />
+                <Skeleton className="h-96 w-full" />
+                </div>
+                <div className="space-y-8">
+                <Skeleton className="h-8 w-32" />
+                <div className="grid gap-4 md:grid-cols-2">
+                    <Skeleton className="h-40" />
+                    <Skeleton className="h-40" />
+                    <Skeleton className="h-40" />
+                </div>
+                </div>
+            </div>
+        ) : courses.length > 0 ? (
+            activeCourseId && courses.find((c) => c.id === activeCourseId) ? (
                  (() => {
                     const course = courses.find((c) => c.id === activeCourseId)!;
                     const roadmap = roadmaps[course.id];
@@ -359,7 +337,7 @@ export default function RoadmapsPage() {
       
                     if (!roadmap && !courseIsLoading) {
                       return (
-                        <Card className="text-center p-12 col-span-2">
+                        <Card className="text-center p-12 col-span-full">
                           <h2 className="text-xl font-semibold">No Roadmap Yet for {course.name}</h2>
                           <p className="text-muted-foreground mt-2 mb-6">Click the button to create a personalized study plan for this course.</p>
                           <Button onClick={() => handleGenerateRoadmap(course)} disabled={courseIsLoading}>
@@ -370,128 +348,83 @@ export default function RoadmapsPage() {
                     }
       
                     if (courseIsLoading && !roadmap) {
-                      return (
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                          <div className="lg:col-span-2 space-y-8">
-                            <Skeleton className="h-8 w-32" />
-                            <Skeleton className="h-96 w-full" />
-                          </div>
-                          <div className="space-y-8">
-                            <Skeleton className="h-8 w-32" />
-                            <div className="grid gap-4 md:grid-cols-2">
-                              <Skeleton className="h-40" />
-                              <Skeleton className="h-40" />
-                              <Skeleton className="h-40" />
-                            </div>
-                          </div>
-                        </div>
-                      );
+                      return <Loading />;
                     }
       
                     if (roadmap) {
                       return (
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-                           <div className="lg:col-span-2">
-                                <div className="flex justify-between items-center mb-6">
-                                    <h2 className="text-2xl font-semibold">Milestone Road</h2>
-                                    <Button variant="outline" size="sm" onClick={() => openItemDialog('milestone')}>
-                                    <Plus className="mr-2 h-4 w-4" /> Add Milestone
-                                    </Button>
-                                </div>
-                                <div className="relative p-4">
-                                     <svg className="absolute top-0 left-0 w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 100">
-                                        <motion.path
-                                            d={pathPoints}
-                                            fill="none"
-                                            stroke="hsl(var(--border))"
-                                            strokeWidth="1"
-                                            strokeDasharray="4 4"
-                                            vectorEffect="non-scaling-stroke"
-                                        />
-                                        <motion.path
-                                            d={pathPoints}
-                                            fill="none"
-                                            stroke="hsl(var(--primary))"
-                                            strokeWidth="1"
-                                            vectorEffect="non-scaling-stroke"
-                                            initial={{ pathLength: 0 }}
-                                            animate={{ pathLength: currentProgress / 100 }}
-                                            transition={{ duration: 1.5, ease: "easeInOut" }}
-                                        />
-                                    </svg>
-                                    <div className="relative grid grid-cols-2 gap-x-8 gap-y-16">
-                                         {roadmap.milestones.map((milestone, index) => (
-                                             <div key={milestone.id} className={cn("group relative", index % 2 !== 0 && "justify-self-end")}>
-                                                <Card className={cn("w-full max-w-sm transition-all shadow-md", milestone.completed ? "bg-muted/80" : "bg-card")}>
-                                                    <CardHeader>
-                                                        <div className="flex justify-between items-start">
-                                                            <div>
-                                                                <p className="text-xs text-muted-foreground">{new Date(milestone.date).toLocaleDateString('en-US', { timeZone: 'UTC', month: 'long', day: 'numeric' })}</p>
-                                                                <CardTitle className={cn("text-lg", milestone.completed && "line-through text-muted-foreground")}>{milestone.title}</CardTitle>
-                                                            </div>
-                                                            <button onClick={() => handleToggleMilestone(milestone.id)} className={cn("h-7 w-7 rounded-full flex items-center justify-center border-2 transition-colors flex-shrink-0", milestone.completed ? 'bg-primary text-primary-foreground border-primary' : 'bg-muted border-primary hover:bg-primary/20')}>
-                                                                {milestone.completed && <Check className="h-4 w-4" />}
-                                                            </button>
-                                                        </div>
-                                                    </CardHeader>
-                                                    <CardContent>
-                                                        <p className={cn("text-sm text-muted-foreground", milestone.completed && "line-through")}>{milestone.description}</p>
-                                                         <div className="mt-4 flex gap-2 items-center">
-                                                            <Button variant="outline" size="sm" className="text-xs h-7" onClick={() => navigateToLearningLab(course.id, milestone)}>
-                                                                <Lightbulb className="mr-2 h-3 w-3" /> Start Learning
-                                                            </Button>
-                                                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openItemDialog('milestone', milestone)}><Edit className="h-4 w-4" /></Button>
-                                                                <AlertDialog>
-                                                                    <AlertDialogTrigger asChild>
-                                                                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
-                                                                    </AlertDialogTrigger>
-                                                                    <AlertDialogContent>
-                                                                        <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>This will permanently delete this milestone.</AlertDialogDescription></AlertDialogHeader>
-                                                                        <AlertDialogFooter>
-                                                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                                            <AlertDialogAction onClick={() => handleDeleteItem('milestone', milestone.id)}>Delete</AlertDialogAction>
-                                                                        </AlertDialogFooter>
-                                                                    </AlertDialogContent>
-                                                                </AlertDialog>
-                                                            </div>
-                                                        </div>
-                                                    </CardContent>
-                                                </Card>
-                                             </div>
-                                         ))}
-                                    </div>
-                                    <motion.div
-                                        className="absolute -ml-4 -mt-4 z-10"
-                                        initial={false}
-                                        animate={carPosition}
-                                        transition={{ duration: 1.5, ease: "easeInOut" }}
-                                    >
-                                        <Car className="text-primary h-8 w-8" />
-                                    </motion.div>
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-start">
+                           <div className="lg:col-span-2 relative">
+                                <svg className="absolute top-0 left-0 w-full h-full pointer-events-none" preserveAspectRatio="none">
+                                    <motion.path 
+                                        d="M 40 100 C 200 100, 200 290, 380 290 S 600 290, 600 480" 
+                                        fill="none" 
+                                        stroke="hsl(var(--border))"
+                                        strokeWidth="2"
+                                        strokeDasharray="5 5"
+                                    />
+                                </svg>
+                                <div className="space-y-16 relative">
+                                     {roadmap.milestones.map((milestone, index) => (
+                                         <div key={milestone.id} className="flex items-center">
+                                            <div className="z-10 bg-primary w-16 h-16 rounded-full flex items-center justify-center flex-shrink-0">
+                                                <NumberIcon number={index + 1} />
+                                            </div>
+                                            <Card className="ml-6 flex-1">
+                                                 <CardContent className="p-6">
+                                                     <div className="flex justify-between items-start">
+                                                         <div>
+                                                            <CardTitle className={cn("text-lg", milestone.completed && "line-through text-muted-foreground")}>{milestone.title}</CardTitle>
+                                                            <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{milestone.description}</p>
+                                                         </div>
+                                                          <button onClick={() => handleToggleMilestone(milestone.id)} className={cn("h-7 w-7 rounded-full flex items-center justify-center border-2 transition-colors flex-shrink-0", milestone.completed ? 'bg-primary text-primary-foreground border-primary' : 'bg-muted border-primary hover:bg-primary/20')}>
+                                                            {milestone.completed && <Check className="h-4 w-4" />}
+                                                        </button>
+                                                     </div>
+                                                    <div className="mt-4 flex gap-2 items-center">
+                                                        <Button variant="outline" size="sm" className="text-xs h-7" onClick={() => navigateToLearningLab(course.id, milestone)}>
+                                                            <Play className="mr-2 h-3 w-3" /> Start Learning
+                                                        </Button>
+                                                         <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openItemDialog('milestone', milestone)}><Edit className="h-4 w-4" /></Button>
+                                                        <AlertDialog>
+                                                            <AlertDialogTrigger asChild>
+                                                                <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
+                                                            </AlertDialogTrigger>
+                                                            <AlertDialogContent>
+                                                                <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>This will permanently delete this milestone.</AlertDialogDescription></AlertDialogHeader>
+                                                                <AlertDialogFooter>
+                                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                    <AlertDialogAction onClick={() => handleDeleteItem('milestone', milestone.id)}>Delete</AlertDialogAction>
+                                                                </AlertDialogFooter>
+                                                            </AlertDialogContent>
+                                                        </AlertDialog>
+                                                    </div>
+                                                </CardContent>
+                                            </Card>
+                                        </div>
+                                     ))}
                                 </div>
                             </div>
                             <div className="lg:col-span-1">
                                 <div className="flex justify-between items-center mb-6">
-                                <h2 className="text-2xl font-semibold">Achievements</h2>
-                                <Button variant="outline" size="sm" onClick={() => openItemDialog('goal')}>
-                                    <Plus className="mr-2 h-4 w-4" /> Add Goal
-                                </Button>
+                                    <h2 className="text-2xl font-semibold">Your Badges</h2>
+                                    <Button variant="outline" size="sm" onClick={() => openItemDialog('goal')}>
+                                        <Plus className="mr-2 h-4 w-4" /> Add Goal
+                                    </Button>
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                {roadmap.goals.map((goal, index) => {
-                                    const GoalIcon = getIcon(goal.icon, 'Flag');
-                                    const colors = ['bg-blue-500/10 text-blue-400', 'bg-purple-500/10 text-purple-400', 'bg-green-500/10 text-green-400', 'bg-orange-500/10 text-orange-400'];
-                                    return (
-                                    <Card key={goal.id} className={cn("group text-center p-4 aspect-square flex flex-col justify-center items-center", colors[index % colors.length])}>
-                                        <div className="p-3 rounded-full bg-background/50 mb-2">
-                                        <GoalIcon className="h-8 w-8" />
-                                        </div>
-                                        <h3 className="font-semibold text-sm">{goal.title}</h3>
-                                        <p className="text-xs text-muted-foreground line-clamp-2">{goal.description}</p>
-                                    </Card>
-                                    );
-                                })}
+                                <div className="grid grid-cols-2 gap-6">
+                                    {roadmap.goals.map((goal, index) => {
+                                        const GoalIcon = getIcon(goal.icon, 'Flag');
+                                        return (
+                                            <Card key={goal.id} className="group text-center p-4 aspect-square flex flex-col justify-center items-center bg-card hover:bg-muted/50 transition-colors">
+                                                <div className="w-20 h-20 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center mb-4 border-4 border-green-500">
+                                                    <GoalIcon className="h-10 w-10 text-green-500" />
+                                                </div>
+                                                <h3 className="font-semibold text-sm">{goal.title}</h3>
+                                                <p className="text-xs text-muted-foreground line-clamp-2">{goal.description}</p>
+                                            </Card>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         </div>
@@ -499,8 +432,7 @@ export default function RoadmapsPage() {
                     }
                     return null;
                   })()
-            ) : null}
-            </div>
+            ) : null
         ) : (
           <Card className="text-center p-12">
             <h2 className="text-xl font-semibold">No Courses Found</h2>
@@ -541,4 +473,40 @@ export default function RoadmapsPage() {
       </Dialog>
     </>
   );
+}
+
+function Loading() {
+    return (
+        <div className="space-y-6">
+            <div className="flex justify-between items-center">
+                <Skeleton className="h-8 w-1/2" />
+                 <Skeleton className="h-10 w-48" />
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2 space-y-8">
+                    <div className="flex justify-between items-center">
+                        <Skeleton className="h-8 w-32" />
+                    </div>
+                    <div className="space-y-16">
+                       <div className="flex items-center gap-6"><Skeleton className="h-16 w-16 rounded-full flex-shrink-0"/><div className="space-y-2 flex-1"><Skeleton className="h-5 w-3/4"/><Skeleton className="h-4 w-full"/><Skeleton className="h-4 w-1/2"/></div></div>
+                       <div className="flex items-center gap-6"><Skeleton className="h-16 w-16 rounded-full flex-shrink-0"/><div className="space-y-2 flex-1"><Skeleton className="h-5 w-3/4"/><Skeleton className="h-4 w-full"/><Skeleton className="h-4 w-1/2"/></div></div>
+                       <div className="flex items-center gap-6"><Skeleton className="h-16 w-16 rounded-full flex-shrink-0"/><div className="space-y-2 flex-1"><Skeleton className="h-5 w-3/4"/><Skeleton className="h-4 w-full"/><Skeleton className="h-4 w-1/2"/></div></div>
+                    </div>
+                </div>
+                <div className="space-y-8">
+                     <div className="flex justify-between items-center">
+                        <Skeleton className="h-8 w-32" />
+                        <Skeleton className="h-8 w-28" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <Skeleton className="h-40" />
+                        <Skeleton className="h-40" />
+                        <Skeleton className="h-40" />
+                         <Skeleton className="h-40" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
 }
