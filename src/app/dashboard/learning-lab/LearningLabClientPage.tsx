@@ -400,6 +400,7 @@ function LearningLabComponent() {
         }
         
         if (coinsEarned > 0) {
+            showReward({ type: 'coins', amount: coinsEarned });
             const xpEarned = correctCount * 10;
             try {
                 const userRef = doc(db, 'users', user.uid);
@@ -408,11 +409,8 @@ function LearningLabComponent() {
                 });
                 const { levelUp, newLevel, newCoins } = await addXp(user.uid, xpEarned);
                 
-                showReward({
-                    type: 'xp',
-                    amount: xpEarned,
-                });
-                toast({ title: "Quiz Complete!", description: `You earned ${coinsEarned} coins and ${xpEarned} XP!` });
+                showReward({ type: 'xp', amount: xpEarned });
+                toast({ title: "Quiz Complete!", description: `You earned ${xpEarned} XP!` });
 
             } catch(e) {
                 console.error("Error awarding XP and coins:", e);

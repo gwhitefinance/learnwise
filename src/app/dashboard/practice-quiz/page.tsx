@@ -256,6 +256,7 @@ function PracticeQuizComponent() {
                 }
 
                 try {
+                    showReward({ type: 'coins', amount: coinsEarned });
                     const userRef = doc(db, 'users', user.uid);
                     await updateDoc(userRef, {
                         coins: increment(coinsEarned)
@@ -263,7 +264,7 @@ function PracticeQuizComponent() {
                     const { levelUp, newLevel, newCoins } = await addXpAction(user.uid, xpEarned);
                     
                     showReward({ type: 'xp', amount: xpEarned });
-                    toast({ title: "Quiz Complete!", description: `You earned ${coinsEarned} coins and ${xpEarned} XP!`});
+                    toast({ title: "Quiz Complete!", description: `You earned ${xpEarned} XP!`});
 
                 } catch(e) {
                     console.error("Error awarding XP and coins:", e);

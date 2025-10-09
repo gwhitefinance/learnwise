@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useContext, useState, useEffect } from 'react';
@@ -28,6 +29,8 @@ export default function RewardPopup() {
         switch (rewardInfo.type) {
             case 'xp':
                 return <p className="text-sm text-muted-foreground">You earned <span className="font-bold text-primary">+{rewardInfo.amount} XP!</span> Keep up the great work.</p>;
+            case 'coins':
+                return <p className="text-sm text-muted-foreground">You earned <span className="font-bold text-amber-500 flex items-center justify-center gap-1"><Gem size={14}/> +{rewardInfo.amount} Coins!</span></p>;
             case 'levelUp':
                 return (
                     <div className="text-center">
