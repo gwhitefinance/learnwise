@@ -3,15 +3,19 @@
 
 import { ai } from '@/ai/genkit';
 import { googleAI } from '@genkit-ai/googleai';
-import { GeneratePodcastInput, GeneratePodcastInputSchema, GeneratePodcastOutput, GeneratePodcastOutputSchema } from '@/ai/schemas/podcast-schema';
+import { GeneratePodcastInput, GeneratePodcastInputSchema } from '@/ai/schemas/podcast-schema';
 import { generateAudio } from './text-to-speech-flow';
 import { z } from 'zod';
+
+const podcastScriptSchema = z.object({
+  script: z.string().describe('The generated podcast script, formatted for conversational delivery.'),
+});
 
 const podcastPrompt = ai.definePrompt({
     name: 'podcastGenerationPrompt',
     model: googleAI.model('gemini-2.5-flash'),
     input: { schema: GeneratePodcastInputSchema },
-    output: { schema: GeneratePodcastOutputSchema },
+    output: { schema: podcastScriptSchema },
     prompt: `You are an engaging podcast host named "AI Buddy". Your task is to convert the following educational material into a conversational and informative podcast script.
 
     Course Name: {{courseName}}
@@ -36,21 +40,30 @@ const generatePodcastFlow = ai.defineFlow(
         name: 'generatePodcastFlow',
         inputSchema: GeneratePodcastInputSchema,
         outputSchema: z.object({
-            audioDataUri: z.string(),
+            audioDataUris: z.array(z.string()),
         }),
     },
     async (input) => {
+        // 1. Generate the full script
         const { output: scriptOutput } = await podcastPrompt(input);
         if (!scriptOutput || !scriptOutput.script) {
             throw new Error('Failed to generate podcast script.');
         }
 
-        const { audioDataUri } = await generateAudio({ text: scriptOutput.script });
+        // 2. Split the script into paragraphs (or sentences for more granularity)
+        const segments = scriptOutput.script.split('\n').filter(s => s.trim() !== '');
 
-        return { audioDataUri };
+        // 3. Generate audio for each segment in parallel
+        const audioPromises = segments.map(segment => 
+            generateAudio({ text: segment }).then(result => result.audioDataUri)
+        );
+
+        const audioDataUris = await Promise.all(audioPromises);
+        
+        return { audioDataUris };
     }
 );
 
-export async function generatePodcast(input: GeneratePodcastInput): Promise<{ audioDataUri: string }> {
+export async function generatePodcast(input: GeneratePodcastInput): Promise<{ audioDataUris: string[] }> {
     return generatePodcastFlow(input);
 }

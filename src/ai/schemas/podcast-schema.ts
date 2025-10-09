@@ -9,6 +9,6 @@ export const GeneratePodcastInputSchema = z.object({
 export type GeneratePodcastInput = z.infer<typeof GeneratePodcastInputSchema>;
 
 export const GeneratePodcastOutputSchema = z.object({
-  script: z.string().describe('The generated podcast script, formatted for conversational delivery.'),
+  audioDataUris: z.array(z.string()).describe('An array of data URIs for the generated audio segments.'),
 });
 export type GeneratePodcastOutput = z.infer<typeof GeneratePodcastOutputSchema>;

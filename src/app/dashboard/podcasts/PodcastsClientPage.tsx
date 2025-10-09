@@ -1,17 +1,18 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Podcast, Wand2, Loader2, Play, Pause } from 'lucide-react';
+import { Podcast, Wand2, Loader2, Play, Pause, SkipForward, SkipBack } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { generatePodcast } from '@/lib/actions';
 import Loading from './loading';
+import { Slider } from '@/components/ui/slider';
 
 type Course = {
     id: string;
@@ -34,10 +35,14 @@ export default function PodcastsClientPage() {
     const [duration, setDuration] = useState('10');
     const [isLoading, setIsLoading] = useState(true);
     const [isGenerating, setIsGenerating] = useState(false);
-    const [audioUrl, setAudioUrl] = useState<string | null>(null);
-    const [audioPlayer, setAudioPlayer] = useState<HTMLAudioElement | null>(null);
+    
+    // Playlist state
+    const [audioUrls, setAudioUrls] = useState<string[]>([]);
+    const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
+    const [playbackProgress, setPlaybackProgress] = useState(0);
 
+    const audioRef = useRef<HTMLAudioElement | null>(null);
     const { toast } = useToast();
     const [user, authLoading] = useAuthState(auth);
     
@@ -55,13 +60,14 @@ export default function PodcastsClientPage() {
     }, [user, authLoading]);
     
     useEffect(() => {
-        if (audioPlayer) {
-            audioPlayer.onplay = () => setIsPlaying(true);
-            audioPlayer.onpause = () => setIsPlaying(false);
-            audioPlayer.onended = () => setIsPlaying(false);
+        if (audioRef.current) {
+            audioRef.current.src = audioUrls[currentTrackIndex];
+            if (isPlaying) {
+                audioRef.current.play().catch(e => console.error("Audio play error:", e));
+            }
         }
-    }, [audioPlayer]);
-    
+    }, [currentTrackIndex, audioUrls]);
+
     const handleGeneratePodcast = async () => {
         if (!selectedCourseId) {
             toast({ variant: 'destructive', title: 'Please select a course.' });
@@ -90,8 +96,8 @@ export default function PodcastsClientPage() {
         }
         
         setIsGenerating(true);
-        setAudioUrl(null);
-        if (audioPlayer) audioPlayer.pause();
+        setAudioUrls([]);
+        if (audioRef.current) audioRef.current.pause();
         toast({ title: 'Generating your podcast...', description: 'This may take a few minutes depending on the length.' });
 
         try {
@@ -100,9 +106,9 @@ export default function PodcastsClientPage() {
                 content: content,
                 duration: parseInt(duration),
             });
-            setAudioUrl(result.audioDataUri);
-            const newAudioPlayer = new Audio(result.audioDataUri);
-            setAudioPlayer(newAudioPlayer);
+            setAudioUrls(result.audioDataUris);
+            setCurrentTrackIndex(0);
+            setIsPlaying(true);
         } catch (error) {
             console.error(error);
             toast({ variant: 'destructive', title: 'Generation Failed', description: 'Could not create the podcast audio.' });
@@ -112,11 +118,45 @@ export default function PodcastsClientPage() {
     };
     
     const togglePlay = () => {
-        if (!audioPlayer) return;
+        if (!audioRef.current) return;
         if (isPlaying) {
-            audioPlayer.pause();
+            audioRef.current.pause();
         } else {
-            audioPlayer.play();
+            audioRef.current.play().catch(e => console.error("Audio play error:", e));
+        }
+        setIsPlaying(!isPlaying);
+    };
+
+    const handleNextTrack = () => {
+        if (currentTrackIndex < audioUrls.length - 1) {
+            setCurrentTrackIndex(prev => prev + 1);
+        }
+    };
+
+    const handlePrevTrack = () => {
+        if (currentTrackIndex > 0) {
+            setCurrentTrackIndex(prev => prev - 1);
+        }
+    };
+    
+    const handleTimeUpdate = () => {
+        if (audioRef.current) {
+            const progress = (audioRef.current.currentTime / audioRef.current.duration) * 100;
+            setPlaybackProgress(isNaN(progress) ? 0 : progress);
+        }
+    };
+
+    const handleSeek = (value: number[]) => {
+        if (audioRef.current) {
+            audioRef.current.currentTime = (value[0] / 100) * audioRef.current.duration;
+        }
+    };
+    
+    const handleTrackEnd = () => {
+        if (currentTrackIndex < audioUrls.length - 1) {
+            handleNextTrack();
+        } else {
+            setIsPlaying(false);
         }
     };
 
@@ -185,7 +225,7 @@ export default function PodcastsClientPage() {
                 </CardContent>
             </Card>
 
-            {(isGenerating || audioUrl) && (
+            {(isGenerating || audioUrls.length > 0) && (
                 <Card>
                     <CardHeader>
                         <CardTitle>Your Podcast</CardTitle>
@@ -196,19 +236,39 @@ export default function PodcastsClientPage() {
                                 <Loader2 className="h-12 w-12 text-primary animate-spin mb-4" />
                                 <p className="text-muted-foreground">Your podcast is being generated. This might take a few moments...</p>
                             </>
-                        ) : audioUrl ? (
+                        ) : audioUrls.length > 0 ? (
                             <>
                                 <Podcast className="h-12 w-12 text-primary mb-4" />
                                 <h3 className="text-xl font-semibold">{selectedCourse?.name}</h3>
                                 {selectedUnitId && selectedUnitId !== 'all' && (
                                     <p className="text-muted-foreground">{selectedCourse?.units?.find(u => u.id === selectedUnitId)?.title}</p>
                                 )}
-                                <div className="mt-6 flex items-center gap-4">
-                                    <Button onClick={togglePlay} size="lg" className="rounded-full w-20 h-20">
-                                        {isPlaying ? <Pause className="h-8 w-8" /> : <Play className="h-8 w-8 ml-1" />}
-                                    </Button>
+                                <div className="mt-6 w-full max-w-sm space-y-4">
+                                    <p className="text-sm text-muted-foreground">Segment {currentTrackIndex + 1} of {audioUrls.length}</p>
+                                    <Slider
+                                        value={[playbackProgress]}
+                                        onValueChange={handleSeek}
+                                        max={100}
+                                        step={1}
+                                    />
+                                    <div className="flex items-center justify-center gap-4">
+                                        <Button onClick={handlePrevTrack} variant="ghost" size="icon" disabled={currentTrackIndex === 0}>
+                                            <SkipBack />
+                                        </Button>
+                                        <Button onClick={togglePlay} size="lg" className="rounded-full w-20 h-20">
+                                            {isPlaying ? <Pause className="h-8 w-8" /> : <Play className="h-8 w-8 ml-1" />}
+                                        </Button>
+                                        <Button onClick={handleNextTrack} variant="ghost" size="icon" disabled={currentTrackIndex === audioUrls.length - 1}>
+                                            <SkipForward />
+                                        </Button>
+                                    </div>
                                 </div>
-                                 <audio ref={(el) => setAudioPlayer(el)} src={audioUrl} className="mt-4 w-full" controls />
+                                <audio 
+                                    ref={audioRef} 
+                                    onTimeUpdate={handleTimeUpdate} 
+                                    onEnded={handleTrackEnd} 
+                                    src={audioUrls.length > 0 ? audioUrls[currentTrackIndex] : ''}
+                                />
                             </>
                         ) : null}
                     </CardContent>
