@@ -9,7 +9,7 @@ import { z } from 'zod';
 
 const podcastPrompt = ai.definePrompt({
     name: 'podcastGenerationPrompt',
-    model: googleAI.model('gemini-2.5-pro'),
+    model: googleAI.model('gemini-2.5-flash'),
     input: { schema: GeneratePodcastInputSchema },
     output: { schema: GeneratePodcastOutputSchema },
     prompt: `You are an engaging podcast host named "AI Buddy". Your task is to convert the following educational material into a conversational and informative podcast script.
