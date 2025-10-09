@@ -17,7 +17,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { generateMiniCourse, generateChapterContent } from '@/lib/actions';
-import { useTour } from '../../layout';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 
@@ -67,7 +66,6 @@ export default function ClientCoursePage() {
   const courseId = params.courseId as string;
   const { toast } = useToast();
   const [learnerType, setLearnerType] = useState<string | null>(null);
-  const { nextTourStep } = useTour();
 
 
   // State for dialogs
@@ -154,7 +152,6 @@ export default function ClientCoursePage() {
         setCourse(prev => prev ? { ...prev, units: newUnits } : null);
 
         toast({ title: 'Learning Lab Generated!', description: 'Your new course structure is ready.'});
-        nextTourStep();
 
     } catch (error) {
         console.error("Failed to generate course content:", error);

@@ -94,7 +94,6 @@ import { Progress } from '@/components/ui/progress';
 import { RewardProvider } from '@/context/RewardContext';
 import RewardPopup from '@/components/RewardPopup';
 import FloatingChat from '@/components/floating-chat';
-import TourGuide from '@/components/TourGuide';
 import { useToast } from '@/hooks/use-toast';
 import Logo from '@/components/Logo';
 import DashboardLoading from './loading';
@@ -197,24 +196,6 @@ const sidebarItems = [
     }
   ];
 
-interface TourContextType {
-    isTourActive: boolean;
-    tourStep: number;
-    startTour: () => void;
-    nextTourStep: (path?: string) => void;
-    endTour: () => void;
-}
-
-const TourContext = createContext<TourContextType>({
-    isTourActive: false,
-    tourStep: 0,
-    startTour: () => {},
-    nextTourStep: () => {},
-    endTour: () => {},
-});
-
-export const useTour = () => useContext(TourContext);
-
 const SidebarNavItem = ({ item, pathname, setMobileMenuOpen }: { item: any, pathname: string, setMobileMenuOpen: (open: boolean) => void }) => {
     const [isOpen, setIsOpen] = useState(false);
     const hasChildren = item.children && item.children.length > 0;
@@ -314,17 +295,10 @@ function DashboardLayoutContent({
   const [userLevel, setUserLevel] = useState<number>(1);
   const [userXp, setUserXp] = useState<number>(0);
   const [isHalloweenTheme, setIsHalloweenTheme] = useState(false);
-  const { startTour } = useTour();
 
   useEffect(() => {
     setIsMounted(true);
-    // Check for tour flag on initial mount
-    const shouldStartTour = localStorage.getItem('startTour') === 'true';
-    if (shouldStartTour) {
-      startTour();
-      localStorage.removeItem('startTour');
-    }
-  }, [startTour]);
+  }, []);
 
   useEffect(() => {
     if (!isMounted) return;
@@ -708,7 +682,6 @@ function DashboardLayoutContent({
             </main>
         </div>
       </div>
-      <TourGuide />
       <FloatingChat />
       <RewardPopup />
       <Toaster />
@@ -721,42 +694,11 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [isTourActive, setIsTourActive] = useState(false);
-  const [tourStep, setTourStep] = useState(0);
-  const router = useRouter();
-
-  const startTour = useCallback(() => {
-    setIsTourActive(true);
-    setTourStep(1);
-  }, []);
-
-  const nextTourStep = useCallback((path?: string) => {
-    setTourStep(prev => prev + 1);
-    if (path) {
-        router.push(path);
-    }
-  }, [router]);
-  
-  const endTour = useCallback(() => {
-    setIsTourActive(false);
-    setTourStep(0);
-  }, []);
-  
-  const tourContextValue = {
-      isTourActive,
-      tourStep,
-      startTour,
-      nextTourStep,
-      endTour
-  };
-
   return (
     <RewardProvider>
-        <TourContext.Provider value={tourContextValue}>
-            <Suspense fallback={<DashboardLoading />}>
-                <DashboardLayoutContent>{children}</DashboardLayoutContent>
-            </Suspense>
-        </TourContext.Provider>
+        <Suspense fallback={<DashboardLoading />}>
+            <DashboardLayoutContent>{children}</DashboardLayoutContent>
+        </Suspense>
     </RewardProvider>
   )
 }

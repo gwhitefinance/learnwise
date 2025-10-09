@@ -74,7 +74,6 @@ import AudioPlayer from '@/components/audio-player';
 import type { GenerateExplanationOutput } from '@/ai/schemas/quiz-explanation-schema';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { RewardContext } from '@/context/RewardContext';
-import { useTour } from '@/app/dashboard/layout';
 
   type CourseFile = {
       id: string;
@@ -250,7 +249,6 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
     const [learnerType, setLearnerType] = useState<string | null>(null);
     const [gradeLevel, setGradeLevel] = useState<string | null>(null);
     const { showReward } = useContext(RewardContext);
-    const { startTour } = useTour();
 
      useEffect(() => {
         if (!user) return;

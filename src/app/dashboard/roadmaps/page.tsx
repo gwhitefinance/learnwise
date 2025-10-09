@@ -1,25 +1,23 @@
-
-
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { useState, useEffect } from 'react';
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
-import { GitMerge, Plus, Trash2, Edit, Check, Lightbulb, Flag, Rocket, Play } from "lucide-react";
+import { GitMerge, Plus, Check, Flag, Calendar } from "lucide-react";
 import * as LucideIcons from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { DatePicker } from '@/components/ui/date-picker';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
-import { collection, query, where, addDoc, doc, updateDoc, deleteDoc, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, addDoc, doc, updateDoc, onSnapshot } from 'firebase/firestore';
 import { generateRoadmap } from '@/lib/actions';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -37,14 +35,14 @@ type Course = {
 
 type Goal = {
     id: string;
-    icon: keyof typeof LucideIcons;
+    icon: string;
     title: string;
     description: string;
 };
 
 type Milestone = {
     id: string;
-    icon: keyof typeof LucideIcons;
+    icon: string;
     date: string; // YYYY-MM-DD
     title: string;
     description: string;
@@ -59,23 +57,23 @@ type Roadmap = {
     milestones: Milestone[];
 };
 
-const getIcon = (iconName: keyof typeof LucideIcons | undefined, defaultIcon: keyof typeof LucideIcons = 'Flag'): React.ElementType => {
-    if (!iconName) {
-        return LucideIcons[defaultIcon];
+// Fixed function with proper typing
+const getIcon = (iconName: string | undefined, defaultIconName: string = 'Flag'): LucideIcon => {
+    const nameToSearch = iconName || defaultIconName;
+
+    const iconKey = Object.keys(LucideIcons).find(
+        (key) => key.toLowerCase() === nameToSearch.toLowerCase()
+    ) as keyof typeof LucideIcons | undefined;
+
+    if (iconKey && typeof LucideIcons[iconKey] === 'function') {
+        return LucideIcons[iconKey] as LucideIcon;
     }
-    const iconKey = Object.keys(LucideIcons).find(key => key.toLowerCase() === iconName.toLowerCase()) as keyof typeof LucideIcons | undefined;
-    
-    if (iconKey && LucideIcons[iconKey]) {
-        const IconComponent = (LucideIcons as any)[iconKey];
-        if (typeof IconComponent === 'function' || typeof IconComponent === 'object') {
-            return IconComponent;
-        }
-    }
-    return LucideIcons[defaultIcon];
+
+    return Flag;
 };
 
 
-const CarIcon = (props: React.SVGProps<SVGSVGElement>) => (
+const CarIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M19.5 14.5A2.5 2.5 0 0 1 17 17H7a2.5 2.5 0 0 1-2.5-2.5V12h15v2.5Z"/>
         <path d="M19.33 10.13A2 2 0 0 0 17.5 9H6.5a2 2 0 0 0-1.83 1.13L3 14h18l-1.67-3.87Z"/>
@@ -83,7 +81,7 @@ const CarIcon = (props: React.SVGProps<SVGSVGElement>) => (
         <circle cx="8" cy="17" r="2"/>
         <circle cx="16" cy="17" r="2"/>
     </svg>
-)
+);
 
 const badgeColors = [
     { bg: "bg-blue-100 dark:bg-blue-900/50", border: "border-blue-500", text: "text-blue-500" },
@@ -157,8 +155,8 @@ export default function RoadmapsPage() {
             const roadmapData = {
                 courseId: course.id,
                 userId: user.uid,
-                goals: response.goals.map(g => ({ ...g, id: crypto.randomUUID(), icon: g.icon as keyof typeof LucideIcons || 'Flag' })),
-                milestones: response.milestones.map(m => ({ ...m, id: crypto.randomUUID(), icon: m.icon as keyof typeof LucideIcons || 'Calendar', completed: new Date(m.date) < new Date() }))
+                goals: response.goals.map(g => ({ ...g, id: crypto.randomUUID(), icon: g.icon || 'Flag' })),
+                milestones: response.milestones.map(m => ({ ...m, id: crypto.randomUUID(), icon: m.icon || 'Calendar', completed: new Date(m.date) < new Date() }))
             };
             
             const existingRoadmapId = roadmaps[course.id]?.id;
@@ -388,26 +386,29 @@ export default function RoadmapsPage() {
                                     </motion.g>
                                 </svg>
                                 <div className="space-y-4 relative">
-                                    {roadmap.milestones.map((milestone, index) => (
-                                         <div key={milestone.id} className={cn("flex items-start gap-4 w-[calc(50%-2rem)]", index % 2 === 0 ? "ml-auto" : "mr-auto")}>
-                                             <div className="z-10 bg-primary w-12 h-12 rounded-full flex items-center justify-center text-white flex-shrink-0">
-                                                <LucideIcons.Calendar/>
+                                    {roadmap.milestones.map((milestone, index) => {
+                                        const Icon = getIcon(milestone.icon, 'Calendar');
+                                        return (
+                                            <div key={milestone.id} className={cn("flex items-start gap-4 w-[calc(50%-2rem)]", index % 2 === 0 ? "ml-auto" : "mr-auto")}>
+                                                <div className="z-10 bg-primary w-12 h-12 rounded-full flex items-center justify-center text-white flex-shrink-0">
+                                                    <Icon className="w-5 h-5" size={20} />
+                                                </div>
+                                                <Card className="flex-1">
+                                                    <CardContent className="p-4">
+                                                        <div className="flex justify-between items-start gap-2">
+                                                            <div>
+                                                                <p className="font-semibold">{milestone.title}</p>
+                                                                <p className="text-xs text-muted-foreground mt-1">{new Date(milestone.date).toLocaleDateString()}</p>
+                                                            </div>
+                                                            <button onClick={() => handleToggleMilestone(milestone.id)} className={cn("h-6 w-6 rounded-full flex items-center justify-center border-2 transition-colors flex-shrink-0", milestone.completed ? 'bg-primary text-primary-foreground border-primary' : 'bg-muted border-primary hover:bg-primary/20')}>
+                                                                {milestone.completed && <Check className="h-4 w-4" />}
+                                                            </button>
+                                                        </div>
+                                                    </CardContent>
+                                                </Card>
                                             </div>
-                                            <Card className="flex-1">
-                                                 <CardContent className="p-4">
-                                                     <div className="flex justify-between items-start gap-2">
-                                                         <div>
-                                                            <p className="font-semibold">{milestone.title}</p>
-                                                            <p className="text-xs text-muted-foreground mt-1">{new Date(milestone.date).toLocaleDateString()}</p>
-                                                         </div>
-                                                        <button onClick={() => handleToggleMilestone(milestone.id)} className={cn("h-6 w-6 rounded-full flex items-center justify-center border-2 transition-colors flex-shrink-0", milestone.completed ? 'bg-primary text-primary-foreground border-primary' : 'bg-muted border-primary hover:bg-primary/20')}>
-                                                            {milestone.completed && <Check className="h-4 w-4" />}
-                                                        </button>
-                                                     </div>
-                                                </CardContent>
-                                            </Card>
-                                        </div>
-                                     ))}
+                                        );
+                                    })}
                                 </div>
                             </div>
                             <div>
@@ -424,7 +425,7 @@ export default function RoadmapsPage() {
                                         return (
                                             <Card key={goal.id} className="group text-center p-4 aspect-square flex flex-col justify-center items-center bg-card hover:bg-muted/50 transition-colors">
                                                 <div className={cn("w-24 h-24 rounded-full flex items-center justify-center mb-4 border-4", color.bg, color.border)}>
-                                                    <Icon className={cn("h-12 w-12", color.text)} />
+                                                    <Icon className={cn("h-12 w-12", color.text)} size={48} />
                                                 </div>
                                                 <h3 className="font-semibold text-sm">{goal.title}</h3>
                                                 <p className="text-xs text-muted-foreground line-clamp-2">{goal.description}</p>

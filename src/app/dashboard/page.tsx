@@ -36,10 +36,7 @@ export default function DashboardPageWrapper() {
     
     // Show the dashboard.
     setShowDashboard(true);
-
-    // Mark that the tour should start so the layout can pick it up.
-    localStorage.setItem('startTour', 'true');
-
+    
     // We can now remove the quiz completion flag as it has served its purpose.
     localStorage.removeItem('quizCompleted');
   };
@@ -62,11 +59,11 @@ export default function DashboardPageWrapper() {
                 </div>
                 <h3 className="text-xl font-bold mb-2">Welcome to Tutorin!</h3>
                 <p className="text-sm text-muted-foreground mb-6">
-                  You're all set up. Let's take a quick tour to see how everything works.
+                  You're all set up. You can explore the dashboard now.
                 </p>
                 <div className="flex justify-center w-full">
                   <Button size="lg" onClick={handleStartTour} className="w-full">
-                    Start Tour
+                    Go to Dashboard
                     <ArrowRight className="h-4 w-4 ml-2" />
                   </Button>
                 </div>
