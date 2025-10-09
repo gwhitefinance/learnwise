@@ -1,7 +1,7 @@
 
 'use server';
 
-import { addXp as addXpAdmin } from './firebase-admin';
+import { addCoins as addCoinsAdmin } from './firebase-admin';
 
 // All AI flow imports are centralized here
 import { generateQuiz } from '@/ai/flows/quiz-flow';
@@ -58,13 +58,12 @@ export {
     generatePodcastEpisode
 };
 
-export async function addXp(userId: string, xp: number) {
+export async function addCoins(userId: string, coins: number) {
     try {
-        const result = await addXpAdmin(userId, xp);
-        return result;
+        await addCoinsAdmin(userId, coins);
     } catch(e) {
-        console.error("Action error adding XP:", e);
+        console.error("Action error adding coins:", e);
         // This will be caught by the client-side try/catch block
-        throw new Error("Failed to update XP on the server.");
+        throw new Error("Failed to update coins on the server.");
     }
 }

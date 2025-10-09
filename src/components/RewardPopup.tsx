@@ -27,17 +27,8 @@ export default function RewardPopup() {
     const getMessage = () => {
         if (!rewardInfo) return null;
         switch (rewardInfo.type) {
-            case 'xp':
-                return <p className="text-sm text-muted-foreground">You earned <span className="font-bold text-primary">+{rewardInfo.amount} XP!</span> Keep up the great work.</p>;
             case 'coins':
                 return <p className="text-sm text-muted-foreground">You earned <span className="font-bold text-amber-500 flex items-center justify-center gap-1"><Gem size={14}/> +{rewardInfo.amount} Coins!</span></p>;
-            case 'levelUp':
-                return (
-                    <div className="text-center">
-                        <p className="font-bold text-lg text-primary">Level Up! You are now Level {rewardInfo.level}!</p>
-                        <p className="text-sm text-muted-foreground mt-1">You also earned <span className="font-bold text-amber-500 flex items-center justify-center gap-1"><Gem size={14}/> +{rewardInfo.coins} Coins!</span></p>
-                    </div>
-                );
             default:
                 return null;
         }

@@ -292,8 +292,6 @@ function DashboardLayoutContent({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [userCoins, setUserCoins] = useState<number>(0);
-  const [userLevel, setUserLevel] = useState<number>(1);
-  const [userXp, setUserXp] = useState<number>(0);
   const [isHalloweenTheme, setIsHalloweenTheme] = useState(false);
 
   useEffect(() => {
@@ -319,8 +317,6 @@ function DashboardLayoutContent({
                         email: user.email,
                         createdAt: serverTimestamp(),
                         coins: 0,
-                        level: 1,
-                        xp: 0,
                     });
                     console.log("Created profile for new user:", user.uid);
                 } catch (error) {
@@ -335,8 +331,6 @@ function DashboardLayoutContent({
             if (doc.exists()) {
                 const data = doc.data();
                 setUserCoins(data.coins || 0);
-                setUserLevel(data.level || 1);
-                setUserXp(data.xp || 0);
             }
         });
         
@@ -416,9 +410,6 @@ function DashboardLayoutContent({
     return null;
   }).filter(Boolean);
 
-  const xpForNextLevel = userLevel * 100;
-  const xpProgress = (userXp / xpForNextLevel) * 100;
-
   if (loading || !isMounted) {
     return <DashboardLoading />;
   }
@@ -435,13 +426,9 @@ function DashboardLayoutContent({
             </Avatar>
             <div className="flex-1 overflow-hidden">
                 <p className="font-semibold text-sm truncate">{user?.displayName}</p>
-                <div className="text-xs text-muted-foreground">
-                    <span>{userXp} / {xpForNextLevel} XP</span>
-                    <Progress value={xpProgress} className="h-1 mt-1" />
-                </div>
             </div>
              <Badge variant="outline" className="flex items-center gap-1.5 shrink-0">
-                <Shield className="h-3 w-3 text-blue-500" /> Lvl {userLevel}
+                <Gem className="h-3 w-3 text-amber-500" /> {userCoins}
             </Badge>
         </div>
     </div>

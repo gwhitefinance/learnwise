@@ -23,7 +23,7 @@ import AudioPlayer from '@/components/audio-player';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { addXp, generateMiniCourse, generateQuizFromModule, generateFlashcardsFromModule, generateTutorResponse, generateChapterContent, generateMidtermExam, generateRoadmap } from '@/lib/actions';
+import { addCoins, generateMiniCourse, generateQuizFromModule, generateFlashcardsFromModule, generateTutorResponse, generateChapterContent, generateMidtermExam, generateRoadmap } from '@/lib/actions';
 import { RewardContext } from '@/context/RewardContext';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import Loading from './loading';
@@ -376,9 +376,8 @@ function LearningLabComponent() {
         setQuizState('results');
         const correctCount = newQuizAnswers.filter(a => a.isCorrect).length;
         const totalQuestions = newQuizAnswers.length;
-        const scorePercentage = totalQuestions > 0 ? (correctCount / totalQuestions) * 100 : 0;
         
-        let coinsEarned = Math.round(scorePercentage);
+        let coinsEarned = correctCount * 10;
         if (isMidtermModule) coinsEarned *= 2; // Double coins for midterm
 
         for (const answer of newQuizAnswers) {
@@ -401,22 +400,15 @@ function LearningLabComponent() {
         
         if (coinsEarned > 0) {
             showReward({ type: 'coins', amount: coinsEarned });
-            const xpEarned = correctCount * 10;
             try {
-                const userRef = doc(db, 'users', user.uid);
-                await updateDoc(userRef, {
-                    coins: increment(coinsEarned)
-                });
-                const { levelUp, newLevel, newCoins } = await addXp(user.uid, xpEarned);
-                
-                showReward({ type: 'xp', amount: xpEarned });
-                toast({ title: "Quiz Complete!", description: `You earned ${xpEarned} XP!` });
+                await addCoins(user.uid, coinsEarned);
+                toast({ title: "Quiz Complete!", description: `You earned ${coinsEarned} coins!` });
 
             } catch(e) {
-                console.error("Error awarding XP and coins:", e);
+                console.error("Error awarding coins:", e);
             }
         } else {
-             toast({ title: "Quiz Complete!", description: `Your score was ${scorePercentage.toFixed(0)}%.` });
+             toast({ title: "Quiz Complete!", description: `You earned 0 coins.` });
         }
     }
   };
@@ -537,12 +529,8 @@ function LearningLabComponent() {
             await updateDoc(courseRef, {
                 labCompleted: true
             });
-            const { levelUp, newLevel, newCoins } = await addXp(user.uid, 500); // Award 500 XP for course completion
-            if (levelUp) {
-                showReward({ type: 'levelUp', level: newLevel, coins: newCoins });
-            } else {
-                showReward({ type: 'xp', amount: 500 });
-            }
+            await addCoins(user.uid, 500); // Award 500 coins for course completion
+            showReward({ type: 'coins', amount: 500 });
         } catch (error) {
             console.error("Error completing course:", error);
             toast({ variant: 'destructive', title: 'Error', description: 'Could not save course completion status.' });
@@ -753,27 +741,6 @@ function LearningLabComponent() {
             )}
         </div>
     );
-  }
-
-  if (!activeCourse?.units || activeCourse.units.length === 0) {
-      return (
-          <div className="space-y-6">
-              <h1 className="text-3xl font-bold tracking-tight">Learning Lab: {activeCourse?.name}</h1>
-              <Card className="text-center p-12">
-                  <Wand2 className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                  <h2 className="text-xl font-semibold">Generate Your Course Curriculum</h2>
-                  <p className="text-muted-foreground mt-2 mb-6 max-w-md mx-auto">
-                      Click the button below to have AI create a full, in-depth course structure with modules and chapters.
-                  </p>
-                  <Button onClick={handleGenerateCourse} disabled={isGenerating}>
-                      {isGenerating ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/> Generating...</> : <><Wand2 className="mr-2 h-4 w-4"/> Generate with AI</>}
-                  </Button>
-                   <div className="mt-8">
-                     <Button variant="link" onClick={startNewCourse}>Or select a different course</Button>
-                   </div>
-              </Card>
-          </div>
-      )
   }
   
   const isMidtermModule = activeCourse.units && currentModuleIndex === Math.floor(activeCourse.units.length / 2);

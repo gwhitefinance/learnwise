@@ -47,56 +47,22 @@ if (!admin.apps.length) {
   auth = admin.auth();
 }
 
-
-// --- LEVELING SYSTEM ---
-const XP_PER_LEVEL = 100;
-
-export async function addXp(userId: string, xp: number): Promise<{ levelUp: boolean, newLevel: number, newCoins: number }> {
-  if (!db || !Object.keys(db).length) {
-    console.log("Admin SDK not initialized. Skipping XP update.");
-    return { levelUp: false, newLevel: 0, newCoins: 0 };
-  }
-
-  const userRef = db.collection('users').doc(userId);
-  
-  try {
-    const doc = await userRef.get();
-    if (!doc.exists) {
-      throw new Error('User not found');
+export async function addCoins(userId: string, coins: number): Promise<void> {
+    if (!db || !Object.keys(db).length) {
+        console.log("Admin SDK not initialized. Skipping coin update.");
+        return;
     }
 
-    const userData = doc.data()!;
-    const currentXp = userData.xp || 0;
-    const currentLevel = userData.level || 1;
-    let newCoins = 0;
-    
-    const newXp = currentXp + xp;
-    let newLevel = currentLevel;
-    let levelUp = false;
+    const userRef = db.collection('users').doc(userId);
 
-    // Check for level up
-    const xpForNextLevel = currentLevel * XP_PER_LEVEL;
-    if (newXp >= xpForNextLevel) {
-      newLevel += 1;
-      levelUp = true;
-      newCoins = 50 * newLevel;
-      await userRef.update({
-        xp: newXp - xpForNextLevel, // Reset XP for the new level
-        level: newLevel,
-        coins: admin.firestore.FieldValue.increment(newCoins) // Award coins on level up
-      });
-    } else {
-      await userRef.update({
-        xp: newXp
-      });
+    try {
+        await userRef.update({
+            coins: admin.firestore.FieldValue.increment(coins)
+        });
+    } catch (error) {
+        console.error(`Failed to add coins for user ${userId}:`, error);
+        throw error;
     }
-
-    return { levelUp, newLevel, newCoins };
-
-  } catch (error) {
-    console.error(`Failed to add XP for user ${userId}:`, error);
-    throw error;
-  }
 }
 
 

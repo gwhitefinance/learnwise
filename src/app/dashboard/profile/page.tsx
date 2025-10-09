@@ -19,8 +19,6 @@ type UserProfile = {
     displayName: string;
     email: string;
     coins: number;
-    level: number;
-    xp: number;
     unlockedItems?: Record<string, string[]>;
 };
 
@@ -44,8 +42,6 @@ export default function ProfilePage() {
                 const data = doc.data();
                 setProfile({
                     ...data,
-                    level: data.level || 1,
-                    xp: data.xp || 0,
                 } as UserProfile);
             }
             setProfileLoading(false);
@@ -58,10 +54,6 @@ export default function ProfilePage() {
 
         return () => unsubscribe();
     }, [user, authLoading, router]);
-
-    const xpForNextLevel = profile ? profile.level * 100 : 100;
-    const xpProgress = profile ? (profile.xp / xpForNextLevel) * 100 : 0;
-
 
     if (authLoading || profileLoading) {
         return (
@@ -111,13 +103,6 @@ export default function ProfilePage() {
                             <div className='flex-1'>
                                 <CardTitle className="text-2xl">{profile.displayName}</CardTitle>
                                 <CardDescription>{profile.email}</CardDescription>
-                                <div className="mt-4 space-y-2">
-                                    <div className="flex justify-between text-sm font-medium">
-                                        <span>Level {profile.level}</span>
-                                        <span className="text-muted-foreground">{profile.xp} / {xpForNextLevel} XP</span>
-                                    </div>
-                                    <Progress value={xpProgress} />
-                                </div>
                             </div>
                         </CardHeader>
                         <CardContent className="flex items-center gap-8">
@@ -125,17 +110,13 @@ export default function ProfilePage() {
                                 <Gem className="h-6 w-6"/>
                                 <span>{profile.coins} Coins</span>
                             </div>
-                            <div className="flex items-center gap-2 text-2xl font-bold text-blue-400">
-                                <Shield className="h-6 w-6"/>
-                                <span>Level {profile.level}</span>
-                            </div>
                         </CardContent>
                     </Card>
 
                     <Card>
                         <CardHeader>
                             <CardTitle>Achievements</CardTitle>
-                             <CardDescription>Earn coins and XP by completing tasks.</CardDescription>
+                             <CardDescription>Earn coins by completing tasks.</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-4">

@@ -23,7 +23,7 @@ import AudioPlayer from '@/components/audio-player';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { doc, updateDoc, increment, collection, addDoc, serverTimestamp, onSnapshot, query, where } from 'firebase/firestore';
-import { addXp as addXpAction, generateQuizAction } from '@/lib/actions';
+import { addCoins, generateQuizAction } from '@/lib/actions';
 import { RewardContext } from '@/context/RewardContext';
 import Loading from './loading';
 
@@ -244,34 +244,25 @@ function PracticeQuizComponent() {
         } else {
             const correctAnswers = answers.filter(a => a.isCorrect).length;
             if (correctAnswers > 0) {
-                let xpEarned = correctAnswers * 5;
-                let coinsEarned = correctAnswers * 2;
+                let coinsEarned = correctAnswers * 5;
                 
                 if (difficulty === 'Medium') {
-                    xpEarned += 10;
-                    coinsEarned += 5;
-                } else if (difficulty === 'Hard') {
-                    xpEarned += 25;
                     coinsEarned += 10;
+                } else if (difficulty === 'Hard') {
+                    coinsEarned += 25;
                 }
 
                 try {
+                    await addCoins(user.uid, coinsEarned);
                     showReward({ type: 'coins', amount: coinsEarned });
-                    const userRef = doc(db, 'users', user.uid);
-                    await updateDoc(userRef, {
-                        coins: increment(coinsEarned)
-                    });
-                    const { levelUp, newLevel, newCoins } = await addXpAction(user.uid, xpEarned);
-                    
-                    showReward({ type: 'xp', amount: xpEarned });
-                    toast({ title: "Quiz Complete!", description: `You earned ${xpEarned} XP!`});
+                    toast({ title: "Quiz Complete!", description: `You earned ${coinsEarned} coins!`});
 
                 } catch(e) {
-                    console.error("Error awarding XP and coins:", e);
+                    console.error("Error awarding coins:", e);
                     toast({
                         variant: 'destructive',
                         title: "Reward Award Failed",
-                        description: "There was an issue awarding your rewards. Please try again."
+                        description: "There was an issue awarding your coins. Please try again."
                     })
                 }
             }

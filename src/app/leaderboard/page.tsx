@@ -18,8 +18,6 @@ export type UserProfile = {
     displayName: string;
     email: string;
     coins: number;
-    level: number;
-    xp: number;
 };
 
 export default function LeaderboardPage() {
@@ -65,7 +63,7 @@ export default function LeaderboardPage() {
                 <Card className="bg-neutral-900 border-white/10">
                     <CardHeader>
                         <CardTitle>Top Learners</CardTitle>
-                        <CardDescription>Ranked by level and XP earned.</CardDescription>
+                        <CardDescription>Ranked by coins earned.</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <Table>
@@ -73,14 +71,11 @@ export default function LeaderboardPage() {
                                 <TableRow className="border-b-white/10">
                                     <TableHead className="w-[80px]">Rank</TableHead>
                                     <TableHead>User</TableHead>
-                                    <TableHead>Level Progress</TableHead>
                                     <TableHead className="text-right">Coins</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {leaderboard.map((user, index) => {
-                                    const xpForNextLevel = user.level * 100;
-                                    const xpProgress = (user.xp / xpForNextLevel) * 100;
                                     
                                     return (
                                         <TableRow key={user.uid} className={cn(
@@ -100,18 +95,6 @@ export default function LeaderboardPage() {
                                                         <AvatarFallback>{user.displayName?.[0]}</AvatarFallback>
                                                     </Avatar>
                                                     <span className="font-medium">{user.displayName}</span>
-                                                </div>
-                                            </TableCell>
-                                            <TableCell>
-                                                <div className='flex items-center gap-4'>
-                                                    <div className="flex items-center justify-end gap-2 text-blue-400 font-medium">
-                                                        <Shield className="h-5 w-5"/>
-                                                        <span>{user.level}</span>
-                                                    </div>
-                                                    <div className='w-24'>
-                                                        <Progress value={xpProgress} className="h-2" />
-                                                        <span className="text-xs text-muted-foreground">{user.xp}/{xpForNextLevel} XP</span>
-                                                    </div>
                                                 </div>
                                             </TableCell>
                                             <TableCell className="text-right font-bold">

@@ -184,8 +184,6 @@ export default function SignUpPage() {
             email: user.email,
             createdAt: serverTimestamp(),
             coins: 0,
-            level: 1,
-            xp: 0,
         });
 
         toast({
@@ -224,7 +222,7 @@ export default function SignUpPage() {
             <div className="relative z-10 flex flex-col items-center">
                 <div className="relative">
                     <AIBuddy isStatic={true} className="w-64 h-64" />
-                    <div className="absolute top-1/2 -translate-y-1/2 left-[calc(100%_-_80px)]">
+                    <div className="absolute top-1/2 -translate-y-full left-[calc(100%_-_80px)]">
                          <TypingBubble />
                     </div>
                 </div>
