@@ -23,11 +23,13 @@ const prompt = ai.definePrompt({
 
     **CRITICAL INSTRUCTION**: Your primary goal is to generate the 'content' for this chapter. The content MUST be the length of a detailed essay, comprising at least 5 to 7 substantial paragraphs. It must be a comprehensive, word-heavy educational resource. Do NOT provide a short summary.
 
-    The user is a {{learnerType}} learner. Tailor the content and the interactive activity accordingly:
-    - For Visual learners, the content should be very descriptive, using metaphors and analogies to paint a picture. The activity should involve creating diagrams, mind maps, or analyzing visual media.
-    - For Auditory learners, write the content in a conversational, script-like format. The activity could involve listening to a relevant podcast, or explaining the concept aloud.
-    - For Kinesthetic learners, the activity must be hands-on and interactive. Suggest building a model, performing a practical exercise, or relating the topic to a physical task.
-    - For Reading/Writing learners, provide clear, well-structured text-based explanations and suggest activities like writing summaries or creating outlines.
+    The user is a {{learnerType}} learner. Tailor the content and the interactive activity accordingly.
+    
+    **Activity Instruction**: The 'activity' you generate MUST be short, fun, and simple (1-2 sentences). It should be a small, engaging task that helps reinforce the chapter's main point.
+    - For Visual learners: Suggest creating a quick sketch, a simple diagram, or finding a relevant image online.
+    - For Auditory learners: Suggest a quick vocal exercise, like explaining the concept to a friend or a rubber duck in 30 seconds.
+    - For Kinesthetic learners: Suggest a simple, tangible action, like a hand gesture to remember a process or relating the topic to a physical object on their desk.
+    - For Reading/Writing learners: Suggest summarizing the main point in one sentence or writing down 3 keywords.
 
     **MULTIMEDIA GENERATION:**
     After generating the content and activity, create prompts for generative AI models:
@@ -36,7 +38,7 @@ const prompt = ai.definePrompt({
     3.  **Video Prompt**: Write a descriptive prompt for a text-to-video model to generate a short, 5-8 second silent educational video clip. Describe the scene, action, and style (e.g., "A cinematic, slow-motion shot of...", "An animated, time-lapse video showing...").
 
     First, generate the detailed 'content'.
-    Second, devise a creative and tailored 'activity'.
+    Second, devise a short and fun 'activity'.
     Third, create the 'imagePrompt', 'diagramPrompt', and 'videoPrompt'.
     `,
 });
