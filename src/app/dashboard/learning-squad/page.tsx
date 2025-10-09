@@ -15,6 +15,7 @@ import { collection, addDoc, query, where, onSnapshot, serverTimestamp } from 'f
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { nanoid } from 'nanoid';
+import Link from 'next/link';
 
 type Squad = {
     id: string;
@@ -160,10 +161,11 @@ export default function LearningSquadPage() {
                                 </div>
                             </CardContent>
                             <CardFooter>
-                                <Button className="w-full" variant="outline" onClick={() => copyToClipboard(squad.inviteCode)}>
-                                    {copiedLink === squad.inviteCode ? <Check className="mr-2 h-4 w-4" /> : <LinkIcon className="mr-2 h-4 w-4" />}
-                                    {copiedLink === squad.inviteCode ? 'Copied!' : 'Copy Invite Link'}
-                                </Button>
+                                <Link href={`/dashboard/learning-squad/${squad.id}`} className='w-full'>
+                                    <Button className="w-full" variant="outline">
+                                        Manage Squad
+                                    </Button>
+                                </Link>
                             </CardFooter>
                         </Card>
                     ))}
