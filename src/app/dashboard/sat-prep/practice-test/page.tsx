@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { FileText, ArrowLeft, ArrowRight, BookOpen, Calculator, Loader2 } from 'lucide-react';
+import { FileText, ArrowLeft, ArrowRight, BookOpen, Calculator, Loader2, Clock, SkipForward } from 'lucide-react';
 import Link from 'next/link';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
@@ -40,11 +40,29 @@ export default function PracticeTestPage() {
     const [currentModuleIndex, setCurrentModuleIndex] = useState(0);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
-    const [testState, setTestState] = useState<'not-started' | 'in-progress' | 'completed'>('not-started');
+    const [testState, setTestState] = useState<'not-started' | 'in-progress' | 'break' | 'completed'>('not-started');
+    const [breakTimeRemaining, setBreakTimeRemaining] = useState(15 * 60);
 
     useEffect(() => {
         setTestData(practiceTestData as TestData);
     }, []);
+    
+    useEffect(() => {
+        let timer: NodeJS.Timeout;
+        if (testState === 'break' && breakTimeRemaining > 0) {
+            timer = setTimeout(() => setBreakTimeRemaining(t => t - 1), 1000);
+        } else if (testState === 'break' && breakTimeRemaining === 0) {
+            handleContinueFromBreak();
+        }
+        return () => clearTimeout(timer);
+    }, [testState, breakTimeRemaining]);
+
+    const handleContinueFromBreak = () => {
+        setTestState('in-progress');
+        setCurrentModuleIndex(1); // Move to the second module
+        setCurrentQuestionIndex(0);
+        setBreakTimeRemaining(15 * 60);
+    };
 
     if (testState === 'not-started') {
         return (
@@ -79,6 +97,32 @@ export default function PracticeTestPage() {
         );
     }
     
+     if (testState === 'break') {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh]">
+                <Card className="max-w-lg w-full text-center p-8">
+                    <CardHeader>
+                         <div className="mx-auto bg-primary/10 text-primary p-4 rounded-full w-fit">
+                            <Clock className="h-10 w-10" />
+                        </div>
+                        <CardTitle className="text-3xl mt-4">Break Time!</CardTitle>
+                        <CardDescription className="mt-2 text-lg">
+                            You've completed the first module. Take a short break.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-6xl font-bold my-6">
+                            {Math.floor(breakTimeRemaining / 60)}:{(breakTimeRemaining % 60).toString().padStart(2, '0')}
+                        </div>
+                        <Button size="lg" onClick={handleContinueFromBreak}>
+                            Skip & Continue <SkipForward className="ml-2 h-5 w-5"/>
+                        </Button>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
+    
     if (!testData) {
         return <div className="flex justify-center items-center h-full"><Loader2 className="h-8 w-8 animate-spin" /></div>;
     }
@@ -93,6 +137,14 @@ export default function PracticeTestPage() {
     const handleNextQuestion = () => {
         if (currentQuestionIndex < currentModule.questions.length - 1) {
             setCurrentQuestionIndex(prev => prev + 1);
+        } else {
+            // End of a module
+            if (currentModuleIndex === 0) {
+                setTestState('break');
+            } else {
+                // End of a section or test
+                // This logic will be expanded later
+            }
         }
     };
 
@@ -125,7 +177,7 @@ export default function PracticeTestPage() {
             <main>
                 <div className={cn("grid gap-8", currentQuestion.passage ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1")}>
                     {currentQuestion.passage && (
-                         <div className="prose dark:prose-invert max-w-none bg-muted p-6 rounded-lg">
+                         <div className="prose dark:prose-invert max-w-none bg-muted p-6 rounded-lg h-fit">
                             <p>{currentQuestion.passage}</p>
                         </div>
                     )}
@@ -153,8 +205,8 @@ export default function PracticeTestPage() {
                     <ArrowLeft className="mr-2 h-4 w-4" /> Previous
                 </Button>
                 <p className="text-sm text-muted-foreground">Question {currentQuestionIndex + 1} of {currentModule.questions.length}</p>
-                <Button variant="default" onClick={handleNextQuestion} disabled={currentQuestionIndex === currentModule.questions.length - 1}>
-                    Next <ArrowRight className="ml-2 h-4 w-4" />
+                <Button variant="default" onClick={handleNextQuestion}>
+                    {currentQuestionIndex === currentModule.questions.length - 1 ? 'Finish Module' : 'Next'} <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
             </footer>
         </div>

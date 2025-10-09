@@ -9,7 +9,7 @@
         "questions": [
           {
             "id": "rw-1-1",
-            "passage": "The following text is from Charlotte Brontë's 1847 novel Jane Eyre. The narrator, Jane, is a young governess at Thornfield Hall.",
+            "passage": "The following text is from Charlotte Brontë's 1847 novel Jane Eyre. The narrator, Jane, is a young governess at Thornfield Hall.\n\nMy new life at Thornfield was quiet and serene. I had a pupil, Adèle, a lively little French girl, whom I found docile and intelligent. My duties were light, and my evenings were my own. Mrs. Fairfax, the housekeeper, was a placid, kind-hearted woman, who treated me more as a visitor than a dependent. The house itself was a grand, imposing structure, but it was not the architecture that captivated me; it was the sense of a real home, a sanctuary after the hardships of my childhood.",
             "question": "Which choice best describes the main purpose of the text?",
             "options": [
               "To describe the architectural features of Thornfield Hall.",
@@ -21,7 +21,7 @@
           },
           {
             "id": "rw-1-2",
-            "passage": "A student is writing an essay about the painter Frida Kahlo. The student wants to emphasize the deeply personal nature of Kahlo's work. Which choice most effectively uses relevant information from the notes to accomplish this goal?",
+            "passage": "A student is writing an essay about the painter Frida Kahlo. The student wants to emphasize the deeply personal nature of Kahlo's work. The student has made the following notes:\n- Frida Kahlo (1907-1954) was a prominent Mexican artist.\n- She is known for her vibrant and symbolic self-portraits.\n- Her work often depicts her physical and emotional pain.\n- The painting 'The Two Fridas' explores her dual identity (Mexican and European).\n- Kahlo was married to fellow artist Diego Rivera.",
             "question": "Which choice most effectively uses relevant information from the notes to accomplish this goal?",
             "options": [
               "Frida Kahlo, a prominent Mexican artist, is known for her vibrant and symbolic self-portraits.",
@@ -33,7 +33,7 @@
           },
           {
             "id": "rw-1-3",
-            "passage": "The tardigrade, often called a 'water bear', is one of the most resilient animals known. It can survive extreme conditions that would be fatal to nearly all other life forms, ______ desiccation, freezing, and radiation.",
+            "passage": "The tardigrade, often called a 'water bear', is one of the most resilient animals known. These microscopic invertebrates can enter a state of suspended animation called cryptobiosis, allowing them to withstand extreme conditions that would be fatal to nearly all other life forms, ______ desiccation, freezing, radiation, and even the vacuum of space.",
             "question": "Which choice completes the text with the most logical and precise word or phrase?",
             "options": [
               "such as",
@@ -45,7 +45,7 @@
           },
           {
             "id": "rw-1-4",
-            "passage": "The city council has approved a new initiative to convert vacant lots into community gardens. Proponents argue that this will increase access to fresh produce, foster community engagement, and improve local aesthetics. ______, some residents have expressed concerns about the long-term maintenance and funding for these gardens.",
+            "passage": "The city council has approved a new initiative to convert vacant lots into community gardens. Proponents argue that this will increase access to fresh produce, foster community engagement, and improve local aesthetics. ______, some residents have expressed concerns about the long-term maintenance and funding for these gardens, questioning whether the city has allocated sufficient resources for their upkeep.",
             "question": "Which choice completes the text with the most logical transition?",
             "options": [
               "However",
@@ -57,7 +57,7 @@
           },
           {
             "id": "rw-1-5",
-            "passage": "When preparing for a presentation, it is crucial to not only know your material thoroughly but also to ______ your audience. Understanding their background and interests can help you tailor your message for maximum impact.",
+            "passage": "When preparing for a presentation, it is crucial to not only know your material thoroughly but also to ______ your audience. Understanding their background, prior knowledge, and potential biases can help you tailor your message for maximum impact and comprehension.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
               "analyze",
@@ -69,7 +69,7 @@
           },
           {
             "id": "rw-1-6",
-            "passage": "The Gobi Desert is a vast, arid region in Asia. It is the fifth-largest desert in the world and ______ by extreme temperatures, with very hot summers and cold winters.",
+            "passage": "The Gobi Desert is a vast, arid region in Asia. It is the fifth-largest desert in the world and ______ by extreme temperatures, with very hot summers and frigid winters. Unlike sandy deserts, much of the Gobi is covered by bare rock.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
               "is characterized",
@@ -81,7 +81,7 @@
           },
           {
             "id": "rw-1-7",
-            "passage": "The discovery of penicillin by Alexander Fleming in 1928 is one of the most famous examples of serendipity in science. He returned from a vacation to find that a mold called Penicillium had contaminated a petri dish and ____ the growth of bacteria.",
+            "passage": "The discovery of penicillin by Alexander Fleming in 1928 is one of the most famous examples of serendipity in science. He returned from a vacation to find that a mold called Penicillium had contaminated a petri dish. Upon closer inspection, he noticed that the mold ______ the growth of the surrounding staphylococci bacteria.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
               "was inhibiting",
@@ -93,8 +93,8 @@
           },
           {
             "id": "rw-1-8",
-            "passage": "The student wants to add a detail about the specific benefits of the community gardens. Which choice most effectively uses relevant information from the notes to accomplish this goal?",
-            "question": "Which choice most effectively adds a supporting detail to the text?",
+            "passage": "A student is writing an essay about the benefits of urban green spaces. The student has made these notes:\n- Community gardens provide fresh, affordable produce.\n- They offer educational opportunities for children about food sources.\n- Shared green spaces foster social interaction among neighbors.\n- Property values tend to increase near well-maintained parks.\n- Gardens can help reduce grocery bills.",
+            "question": "The student wants to add a detail about the specific benefits of the community gardens. Which choice most effectively uses relevant information from the notes to accomplish this goal?",
             "options": [
               "The gardens will be located on city-owned land.",
               "Volunteers from the community will be responsible for planting.",
@@ -105,7 +105,7 @@
           },
           {
             "id": "rw-1-9",
-            "passage": "The art of origami, the Japanese tradition of paper folding, transforms a simple sheet of paper into a complex sculpture. The process requires precision, patience, and ______ understanding of geometry.",
+            "passage": "The art of origami, the Japanese tradition of paper folding, transforms a simple sheet of paper into a complex sculpture without the use of cuts or glue. The process requires precision, patience, and ______ understanding of geometry to create intricate figures of animals, flowers, and other objects.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
               "a",
@@ -117,7 +117,7 @@
           },
           {
             "id": "rw-1-10",
-            "passage": "Bioluminescence, the production of light by living organisms, is a fascinating phenomenon. While common in marine life, it is much rarer on land. The firefly is perhaps the most well-known terrestrial example, ______ its light to attract mates and prey.",
+            "passage": "Bioluminescence, the production of light by living organisms, is a fascinating phenomenon. While common in marine life, it is much rarer on land. The firefly is perhaps the most well-known terrestrial example, ______ its light in complex flashing patterns to attract mates and prey.",
             "question": "Which choice completes the text with the most logical and precise word or phrase?",
             "options": [
               "using",
@@ -129,7 +129,7 @@
           },
           {
             "id": "rw-1-11",
-            "passage": "The committee will ______ tomorrow to discuss the new budget proposal. All members are expected to attend.",
+            "passage": "The committee will ______ tomorrow at 10:00 AM to discuss the new budget proposal and vote on its approval. All members are expected to attend this critical meeting.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
               "convene",
@@ -141,7 +141,7 @@
           },
           {
             "id": "rw-1-12",
-            "passage": "Despite its small size, the hummingbird has an incredibly high metabolism. To survive, it must consume up to half ______ body weight in nectar each day.",
+            "passage": "Despite its small size, the hummingbird has an incredibly high metabolism, with a heart rate that can reach over 1,200 beats per minute. To survive, it must consume up to half ______ body weight in nectar each day, visiting hundreds of flowers.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
               "its'",
@@ -153,7 +153,7 @@
           },
           {
             "id": "rw-1-13",
-            "passage": "The following text is an excerpt from a speech by a city planner. 'We envision a city where public transportation is not just an alternative, but the preferred choice for all citizens. Our plan includes expanding the light rail, adding dedicated bus lanes, and creating a more integrated ticketing system.'",
+            "passage": "The following text is from a speech by a city planner. 'We envision a city where public transportation is not just an alternative, but the preferred choice for all citizens. To achieve this, our plan includes expanding the light rail network by 30%, adding 50 miles of dedicated bus lanes, and creating a more integrated, contactless ticketing system across all modes of transit.'",
             "question": "Which choice best describes the function of the underlined sentence in the text as a whole?",
             "options": [
               "It introduces the main argument of the speech.",
@@ -165,7 +165,7 @@
           },
           {
             "id": "rw-1-14",
-            "passage": "In her groundbreaking book 'Silent Spring,' Rachel Carson warned of the dangers of pesticides, ______ a nationwide environmental movement.",
+            "passage": "In her groundbreaking 1962 book 'Silent Spring,' Rachel Carson meticulously documented the environmental harm caused by the indiscriminate use of pesticides like DDT. Her powerful writing and scientific evidence alerted the public to the dangers of chemical pollutants, ______ a nationwide environmental movement and leading to the creation of the U.S. Environmental Protection Agency.",
             "question": "Which choice completes the text with the most logical transition?",
             "options": [
               "thereby sparking",
@@ -177,7 +177,7 @@
           },
           {
             "id": "rw-1-15",
-            "passage": "The museum's new exhibit features a stunning collection of ancient Roman artifacts. Each item, from intricate mosaics to delicate glassware, ______ a story about life in the Roman Empire.",
+            "passage": "The museum's new exhibit features a stunning collection of ancient Roman artifacts. Each item in the collection, from intricate mosaics and detailed sculptures to delicate glassware and currency, ______ a story about the daily life, commerce, and culture of the Roman Empire.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
               "tell",
@@ -189,19 +189,19 @@
           },
           {
             "id": "rw-1-16",
-            "passage": "The student is writing about the benefits of learning a second language. Which choice most effectively concludes the paragraph with a summary of the main points?",
+            "passage": "The student is writing an argumentative paragraph about the importance of sleep for teenagers. The paragraph discusses how sufficient rest improves academic performance, regulates mood, and supports physical growth. Which choice would be the most effective concluding sentence?",
             "question": "Which choice most effectively concludes the paragraph?",
             "options": [
-              "Learning a second language can be challenging but rewarding.",
-              "Therefore, cognitive flexibility, improved problem-solving skills, and enhanced cultural awareness are all significant advantages of bilingualism.",
               "Many schools now require students to take a foreign language class.",
+              "In conclusion, these points show that getting enough sleep is a good idea for students.",
+              "Thus, prioritizing sleep is not a sign of laziness but an essential strategy for academic success and overall well-being during the critical adolescent years.",
               "Speaking more than one language is a useful skill for travelers."
             ],
-            "answer": "Therefore, cognitive flexibility, improved problem-solving skills, and enhanced cultural awareness are all significant advantages of bilingualism."
+            "answer": "Thus, prioritizing sleep is not a sign of laziness but an essential strategy for academic success and overall well-being during the critical adolescent years."
           },
           {
             "id": "rw-1-17",
-            "passage": "The process of photosynthesis is essential for life on Earth. Plants use sunlight, water, and carbon dioxide to create their own food and release oxygen, ______ is vital for animals to breathe.",
+            "passage": "The process of photosynthesis is essential for life on Earth. Through this complex biochemical process, plants, algae, and some bacteria use sunlight, water, and carbon dioxide to create their own food in the form of glucose. A critical byproduct of this process is oxygen, ______ is released into the atmosphere and is vital for the respiration of most animals.",
             "question": "Which choice completes the text with the most logical and precise word or phrase?",
             "options": [
               "that",
@@ -213,7 +213,7 @@
           },
           {
             "id": "rw-1-18",
-            "passage": "Neither the students nor the teacher ______ prepared for the fire drill.",
+            "passage": "During the school's emergency evacuation drill, the procedure was clear: everyone had to exit the building calmly. When the alarm sounded unexpectedly, neither the students nor the teacher ______ prepared for the fire drill, leading to a moment of confusion before the training kicked in.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
               "were",
@@ -225,7 +225,7 @@
           },
           {
             "id": "rw-1-19",
-            "passage": "The team of scientists worked ______ for months, analyzing the data from the space probe. Their dedication ultimately paid off with a major discovery.",
+            "passage": "The team of scientists worked ______ for months, meticulously analyzing the vast datasets from the space probe. Their dedication and systematic approach ultimately paid off when they discovered an anomaly that led to a major new finding about planetary formation.",
             "question": "Which choice completes the text with the most logical and precise word or phrase?",
             "options": [
               "leisurely",
@@ -237,19 +237,19 @@
           },
           {
             "id": "rw-1-20",
-            "passage": "The Great Barrier Reef, the world's largest coral reef system, is a marvel of biodiversity. ______ it faces significant threats from climate change and pollution.",
+            "passage": "The Great Barrier Reef, the world's largest coral reef system, is a marvel of biodiversity, hosting thousands of species of fish, corals, and mollusks. ______ this ecological importance, it faces significant threats from climate change-induced coral bleaching and pollution from agricultural runoff.",
             "question": "Which choice completes the text with the most logical transition?",
             "options": [
               "Additionally",
-              "However",
+              "Despite",
               "For this reason",
               "In fact"
             ],
-            "answer": "However"
+            "answer": "Despite"
           },
           {
             "id": "rw-1-21",
-            "passage": "The library's collection of rare manuscripts ______ a valuable resource for historians and scholars.",
+            "passage": "The library's collection of rare, centuries-old manuscripts, which includes first editions and handwritten letters from historical figures, ______ a valuable and irreplaceable resource for historians and scholars from around the world.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
               "represent",
@@ -261,7 +261,7 @@
           },
           {
             "id": "rw-1-22",
-            "passage": "To excel in creative writing, one must practice consistently. It's not enough to simply have good ideas; you must also develop the craft of ______ them effectively.",
+            "passage": "To excel in creative writing, one must practice consistently. It's not enough to simply have good ideas; you must also develop the craft of ______ them effectively, using precise language and compelling structure to engage the reader.",
             "question": "Which choice completes the text with the most logical and precise word or phrase?",
             "options": [
               "articulating",
@@ -273,7 +273,7 @@
           },
           {
             "id": "rw-1-23",
-            "passage": "The author used vivid imagery to describe the scene, ______ the reader to feel as if they were actually there.",
+            "passage": "The author used vivid, sensory imagery to describe the bustling marketplace scene, ______ the reader to almost smell the spices and hear the vendors' calls, effectively immersing them in the setting.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
               "allowing",
@@ -285,43 +285,43 @@
           },
           {
             "id": "rw-1-24",
-            "passage": "The following is from an art history text. 'The Impressionist movement of the 19th century marked a radical departure from traditional European painting. Artists like Monet and Renoir focused on capturing the fleeting effects of light and atmosphere, often painting outdoors to observe their subjects directly.'",
+            "passage": "The following is from an art history text. 'The Impressionist movement of the 19th century marked a radical departure from the highly polished, detailed style of traditional European academic painting. Artists like Monet and Renoir focused on capturing the fleeting effects of light and atmosphere on a subject, often painting outdoors ('en plein air') to observe their subjects directly and using visible brushstrokes to convey movement and change.'",
             "question": "What is the main idea of the text?",
             "options": [
               "Monet and Renoir were the only Impressionist painters.",
               "Impressionist art is the most important movement in art history.",
-              "The Impressionists revolutionized painting by focusing on light and direct observation.",
+              "The Impressionists revolutionized painting by prioritizing the capture of light and momentary perception over detailed realism.",
               "19th-century European painting was highly traditional."
             ],
-            "answer": "The Impressionists revolutionized painting by focusing on light and direct observation."
+            "answer": "The Impressionists revolutionized painting by prioritizing the capture of light and momentary perception over detailed realism."
           },
           {
             "id": "rw-1-25",
-            "passage": "The research findings were not only surprising but also ______ previous theories on the subject.",
+            "passage": "The speaker's argument, while emotionally compelling, was ultimately ______ by a lack of concrete evidence and statistical data, making it difficult for the more skeptical members of the audience to accept his conclusions.",
             "question": "Which choice completes the text with the most logical and precise word or phrase?",
             "options": [
-              "confirmed",
-              "supported",
-              "contradicted",
-              "ignored"
+              "bolstered",
+              "undermined",
+              "proven",
+              "clarified"
             ],
-            "answer": "contradicted"
+            "answer": "undermined"
           },
           {
             "id": "rw-1-26",
-            "passage": "Each of the participants ______ given a survey to complete at the end of the study.",
+            "passage": "In the final analysis of the experiment's data, a number of previously overlooked factors ______ been found to have contributed significantly to the unexpected outcome.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
-              "were",
-              "was",
-              "are",
-              "have"
+              "has",
+              "have",
+              "is",
+              "does"
             ],
-            "answer": "was"
+            "answer": "have"
           },
           {
             "id": "rw-1-27",
-            "passage": "The old castle, ______ sits atop the hill, has been abandoned for centuries.",
+            "passage": "The old castle, ______ sits atop the hill overlooking the town, has been abandoned for centuries but remains a popular tourist attraction due to its haunting beauty and local legends.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
               "that",
@@ -338,7 +338,7 @@
         "questions": [
           {
             "id": "rw-2-1",
-            "passage": "The novel 'Moby Dick' by Herman Melville is a complex work. On one level, it is an adventure story about a whaling voyage. On another, it is a deep philosophical exploration of obsession, humanity, and the nature of good and evil.",
+            "passage": "The novel 'Moby Dick' by Herman Melville is a complex work. On one level, it is an adventure story about a whaling voyage, filled with detailed descriptions of life at sea. On another, more profound level, it is a deep philosophical exploration of obsession, humanity's struggle against nature, and the ambiguous nature of good and evil.",
             "question": "The main purpose of the text is to",
             "options": [
               "summarize the plot of 'Moby Dick'.",
@@ -350,7 +350,7 @@
           },
           {
             "id": "rw-2-2",
-            "passage": "The city's new recycling program has been highly successful. In just six months, the amount of waste sent to landfills has decreased by 20 percent. This reduction is primarily due to the new single-stream system, ______ makes recycling easier for residents.",
+            "passage": "The city's new recycling program has been highly successful. In just six months, the amount of waste sent to landfills has decreased by 20 percent. This reduction is primarily due to the new single-stream system, ______ makes it unnecessary for residents to sort their recyclables, thereby increasing participation.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
               "that",
@@ -362,19 +362,19 @@
           },
           {
             "id": "rw-2-3",
-            "passage": "A student is writing an argumentative essay claiming that schools should teach financial literacy. Which choice would provide the most effective evidence to support the student's claim?",
+            "passage": "A student is writing an argumentative essay claiming that schools should implement later start times for high school students. Which choice would provide the most effective evidence to support the student's claim?",
             "question": "Which choice provides the most effective evidence?",
             "options": [
-              "A personal anecdote about the student's own struggles with budgeting.",
-              "A statistic showing that a high percentage of adults regret not learning more about personal finance in school.",
-              "An interview with a local bank manager about the importance of saving.",
-              "A general statement that money is an important part of modern life."
+              "A personal anecdote about how tired the student feels in their first-period class.",
+              "A study from the American Academy of Pediatrics that links later school start times to improved student health, academic performance, and safety.",
+              "An interview with a teacher who prefers the current school schedule.",
+              "A general statement that teenagers need more sleep than adults."
             ],
-            "answer": "A statistic showing that a high percentage of adults regret not learning more about personal finance in school."
+            "answer": "A study from the American Academy of Pediatrics that links later school start times to improved student health, academic performance, and safety."
           },
           {
             "id": "rw-2-4",
-            "passage": "The chameleon is famous for its ability to change color. ______ to popular belief, this change is not primarily for camouflage but is instead a way to communicate with other chameleons and regulate body temperature.",
+            "passage": "The chameleon is famous for its ability to change color. ______ to popular belief, this change is not primarily for camouflage. Instead, it is most often a physiological reaction to mood, temperature, and light, as well as a method of communicating with other chameleons.",
             "question": "Which choice completes the text with the most logical transition?",
             "options": [
               "Similar",
@@ -386,7 +386,7 @@
           },
           {
             "id": "rw-2-5",
-            "passage": "The group of hikers, exhausted after their long journey, ______ down to rest by the river.",
+            "passage": "The group of hikers, exhausted after their long and arduous journey through the mountains, finally ______ down to rest by the cool, clear river, their spirits lifted by the tranquil scene.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
               "sit",
@@ -398,7 +398,7 @@
           },
           {
             "id": "rw-2-6",
-            "passage": "The quality of the prints ______ on the type of paper used.",
+            "passage": "The final quality of the photographic prints ______ heavily on the type of paper used, with glossy and matte finishes producing markedly different textures and color saturations.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
               "depend",
@@ -410,7 +410,7 @@
           },
           {
             "id": "rw-2-7",
-            "passage": "The Sahara Desert is the largest hot desert in the world. Its vast landscape of sand dunes and rocky plateaus ______ an area comparable to that of the entire United States.",
+            "passage": "The Sahara Desert, the largest hot desert in the world, presents a vast and intimidating landscape of sand dunes and rocky plateaus. This single desert ______ an area comparable to that of the entire United States, stretching across much of North Africa.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
               "cover",
@@ -422,19 +422,19 @@
           },
           {
             "id": "rw-2-8",
-            "passage": "The student wants to provide a specific example of a company that successfully adapted to market changes. Which choice most effectively accomplishes this goal?",
+            "passage": "A student is writing an essay about corporate adaptation. Which choice most effectively uses a specific example to support the argument that companies must evolve to stay relevant?",
             "question": "Which choice provides the best specific example?",
             "options": [
-              "Many companies have had to change their strategies.",
-              "For example, Netflix transitioned from a DVD rental service to a global streaming giant in response to shifting consumer habits.",
-              "Business adaptation is key to long-term survival.",
-              "The market is always changing."
+              "Many companies have had to change their strategies over the years.",
+              "For example, Netflix, recognizing the shift in media consumption, transitioned from a DVD-by-mail rental service to a global streaming and content production giant.",
+              "Business adaptation is a key topic in many economics courses.",
+              "The market is always changing, and businesses must keep up."
             ],
-            "answer": "For example, Netflix transitioned from a DVD rental service to a global streaming giant in response to shifting consumer habits."
+            "answer": "For example, Netflix, recognizing the shift in media consumption, transitioned from a DVD-by-mail rental service to a global streaming and content production giant."
           },
           {
             "id": "rw-2-9",
-            "passage": "In order to ______ the experiment, the scientists needed to gather more data.",
+            "passage": "In order to ______ their controversial hypothesis, the scientists needed to gather more data through a series of rigorous and repeatable experiments before they could publish their findings.",
             "question": "Which choice completes the text with the most logical and precise word or phrase?",
             "options": [
               "validate",
@@ -446,7 +446,7 @@
           },
           {
             "id": "rw-2-10",
-            "passage": "The coach's ______ instructions were clear: pass the ball to the open player.",
+            "passage": "The coach's ______ instructions before the final play were clear and direct, focusing only on the essential actions needed to secure a victory: pass the ball to the open player.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
               "simple",
@@ -458,7 +458,7 @@
           },
           {
             "id": "rw-2-11",
-            "passage": "If I ______ you, I would study for the exam.",
+            "passage": "If I ______ in your position, I would seriously reconsider that decision, as it seems to have several long-term risks that have not been fully addressed.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
               "was",
@@ -470,7 +470,7 @@
           },
           {
             "id": "rw-2-12",
-            "passage": "The effect of the new policy on student morale ______ yet to be seen.",
+            "passage": "The long-term effect of the new social media policy on student morale and campus communication ______ yet to be seen, though initial reactions are mixed.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
               "is",
@@ -482,7 +482,7 @@
           },
           {
             "id": "rw-2-13",
-            "passage": "The following text is from an ecologist's field notes. 'The migration of the monarch butterfly is a remarkable journey. These small insects travel thousands of miles from Canada and the United States to spend the winter in Mexico. The journey spans multiple generations, with no single butterfly completing the entire round trip.'",
+            "passage": "The following text is from an ecologist's field notes. 'The migration of the monarch butterfly is a remarkable multi-generational journey. These small insects travel thousands of miles from Canada and the United States to spend the winter in specific oyamel fir forests in Mexico. The most astonishing aspect is that the butterflies that arrive in Mexico are several generations removed from the ones that left, meaning no single butterfly completes the entire round trip.'",
             "question": "What is the primary focus of the text?",
             "options": [
               "The life cycle of a single monarch butterfly.",
@@ -494,7 +494,7 @@
           },
           {
             "id": "rw-2-14",
-            "passage": "The government has implemented stricter regulations on industrial emissions. ______, many environmental groups feel that these measures do not go far enough.",
+            "passage": "The government has implemented stricter regulations on industrial emissions in an effort to combat air pollution. ______, many environmental groups argue that these measures do not go far enough to address the climate crisis and are calling for even more aggressive carbon-reduction targets.",
             "question": "Which choice completes the text with the most logical transition?",
             "options": [
               "Consequently",
@@ -506,7 +506,7 @@
           },
           {
             "id": "rw-2-15",
-            "passage": "The manager, along with the team members, ______ reviewing the quarterly report.",
+            "passage": "The manager, along with all the senior team members who contributed to the report, ______ currently reviewing the final draft before the quarterly presentation.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
               "are",
@@ -518,19 +518,19 @@
           },
           {
             "id": "rw-2-16",
-            "passage": "The student is writing a paragraph about the importance of sleep. Which of the following sentences would be the most effective topic sentence?",
+            "passage": "The student is writing a paragraph about the importance of sleep. The paragraph begins by stating that sleep is vital for health. Which of the following sentences would be the most effective follow-up to the topic sentence?",
             "question": "Which choice is the most effective topic sentence?",
             "options": [
               "Many people do not get enough sleep.",
-              "Sleep is something everyone does.",
+              "For example, during sleep, the brain consolidates memories, clears out toxins, and supports cellular repair throughout the body.",
               "Adequate sleep is not a luxury but a crucial component of physical and mental health, affecting everything from cognitive function to immune response.",
               "I feel much better when I get a full eight hours of sleep."
             ],
-            "answer": "Adequate sleep is not a luxury but a crucial component of physical and mental health, affecting everything from cognitive function to immune response."
+            "answer": "For example, during sleep, the brain consolidates memories, clears out toxins, and supports cellular repair throughout the body."
           },
           {
             "id": "rw-2-17",
-            "passage": "The ancient ruins were surprisingly well-preserved, ______ their age and exposure to the elements.",
+            "passage": "The ancient ruins were surprisingly well-preserved, ______ their age and their constant exposure to harsh desert elements over thousands of years.",
             "question": "Which choice completes the text with the most logical and precise word or phrase?",
             "options": [
               "considering",
@@ -542,7 +542,7 @@
           },
           {
             "id": "rw-2-18",
-            "passage": "To ______ a good impression, you should arrive on time for the interview.",
+            "passage": "To ______ a good first impression during a job interview, one should dress professionally, arrive on time, and communicate clearly and confidently.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
               "make",
@@ -554,7 +554,7 @@
           },
           {
             "id": "rw-2-19",
-            "passage": "The new software is designed to be highly ______, allowing users to customize it to their specific needs.",
+            "passage": "The new project management software is designed to be highly ______, allowing teams of all sizes to customize workflows, integrations, and reporting dashboards to their specific needs.",
             "question": "Which choice completes the text with the most logical and precise word or phrase?",
             "options": [
               "rigid",
@@ -566,7 +566,7 @@
           },
           {
             "id": "rw-2-20",
-            "passage": "The orchestra's performance was flawless. The conductor, ______ had rehearsed with them for months, took a final bow.",
+            "passage": "The orchestra's performance was flawless, receiving a standing ovation. The conductor, ______ had rehearsed tirelessly with the musicians for months, took a final, grateful bow.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
               "that",
@@ -578,19 +578,19 @@
           },
           {
             "id": "rw-2-21",
-            "passage": "Everyone on the team ______ excited about the upcoming championship game.",
+            "passage": "Following the coach's rousing pre-game speech, everyone on the team ______ filled with excitement and determination for the upcoming championship game.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
               "is",
               "are",
-              "were",
+              "was",
               "be"
             ],
             "answer": "is"
           },
           {
             "id": "rw-2-22",
-            "passage": "The journalist was praised for her ______ reporting, which exposed corruption at the highest levels of government.",
+            "passage": "The journalist was praised for her ______ reporting, which involved months of poring over documents and conducting interviews to expose a complex web of corruption at the highest levels of government.",
             "question": "Which choice completes the text with the most logical and precise word or phrase?",
             "options": [
               "superficial",
@@ -602,7 +602,7 @@
           },
           {
             "id": "rw-2-23",
-            "passage": "The Amazon rainforest, which ______ a vast area of South America, is home to an incredible diversity of species.",
+            "passage": "The Amazon rainforest, which ______ a vast area of South America and plays a crucial role in regulating the global climate, is home to an incredible diversity of plant and animal species.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
               "cover",
@@ -614,7 +614,7 @@
           },
           {
             "id": "rw-2-24",
-            "passage": "The following is from a biography of Marie Curie. 'Marie Curie's relentless dedication to her research, despite the immense physical toll of working with radioactive materials, led to discoveries that fundamentally changed our understanding of the universe. Her work earned her Nobel Prizes in two different scientific fields, a feat that remains unparalleled.'",
+            "passage": "The following is from a biography of Marie Curie. 'Marie Curie's relentless dedication to her research, despite the immense physical toll of working with radioactive materials without proper protection, led to discoveries that fundamentally changed our understanding of the atom. Her work not only earned her Nobel Prizes in two different scientific fields—Physics and Chemistry—but also established a legacy that continues to inspire scientists today.'",
             "question": "The text emphasizes which aspect of Marie Curie's career?",
             "options": [
               "The dangers she faced in her laboratory.",
@@ -626,7 +626,7 @@
           },
           {
             "id": "rw-2-25",
-            "passage": "The speaker's argument, while compelling, was ultimately ______ by a lack of concrete evidence.",
+            "passage": "The defense attorney's argument, while emotionally compelling, was ultimately ______ by the prosecution's presentation of verifiable forensic evidence that directly contradicted her client's alibi.",
             "question": "Which choice completes the text with the most logical and precise word or phrase?",
             "options": [
               "bolstered",
@@ -638,7 +638,7 @@
           },
           {
             "id": "rw-2-26",
-            "passage": "A number of factors ______ contributed to the company's success.",
+            "passage": "In recent years, a number of factors, including increased global competition and shifting consumer preferences, ______ contributed to the company's declining market share.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
               "has",
@@ -650,7 +650,7 @@
           },
           {
             "id": "rw-2-27",
-            "passage": "This is the student ______ I was telling you about.",
+            "passage": "After reviewing all the applicants, this is the student ______ the scholarship committee has chosen for the award.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
               "who",
