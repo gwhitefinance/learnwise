@@ -41,7 +41,7 @@ export default function PracticeTestPage() {
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
     const [testState, setTestState] = useState<'not-started' | 'in-progress' | 'break' | 'completed'>('not-started');
-    const [breakTimeRemaining, setBreakTimeRemaining] = useState(15 * 60);
+    const [breakTimeRemaining, setBreakTimeRemaining] = useState(10 * 60);
 
     useEffect(() => {
         setTestData(practiceTestData as TestData);
@@ -58,10 +58,25 @@ export default function PracticeTestPage() {
     }, [testState, breakTimeRemaining]);
 
     const handleContinueFromBreak = () => {
-        setTestState('in-progress');
-        setCurrentModuleIndex(1); // Move to the second module
-        setCurrentQuestionIndex(0);
-        setBreakTimeRemaining(15 * 60);
+        if (currentSectionKey === 'reading_writing' && currentModuleIndex === 0) {
+            // After RW Module 1 break
+            setCurrentModuleIndex(1);
+            setCurrentQuestionIndex(0);
+            setTestState('in-progress');
+            setBreakTimeRemaining(10 * 60); // Reset for next break if any
+        } else if (currentSectionKey === 'reading_writing' && currentModuleIndex === 1) {
+            // After RW Section, move to Math
+            setCurrentSectionKey('math');
+            setCurrentModuleIndex(0);
+            setCurrentQuestionIndex(0);
+            setTestState('in-progress');
+            setBreakTimeRemaining(25 * 60); // Set for the longer break
+        } else if (currentSectionKey === 'math' && currentModuleIndex === 0) {
+            // After Math Module 1, move to Math Module 2
+            setCurrentModuleIndex(1);
+            setCurrentQuestionIndex(0);
+            setTestState('in-progress');
+        }
     };
 
     if (testState === 'not-started') {
@@ -107,7 +122,7 @@ export default function PracticeTestPage() {
                         </div>
                         <CardTitle className="text-3xl mt-4">Break Time!</CardTitle>
                         <CardDescription className="mt-2 text-lg">
-                            You've completed the first module. Take a short break.
+                            You've completed a section. Take a short break.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -134,19 +149,24 @@ export default function PracticeTestPage() {
     const questionsAnsweredInSection = Object.keys(userAnswers).filter(qid => currentSection.modules.flatMap(m => m.questions).some(q => q.id === qid)).length;
     const progress = (questionsAnsweredInSection / totalQuestionsInSection) * 100;
 
-    const handleNextQuestion = () => {
+    const handleNext = () => {
         if (currentQuestionIndex < currentModule.questions.length - 1) {
             setCurrentQuestionIndex(prev => prev + 1);
         } else {
-            // End of a module
-            if (currentModuleIndex === 0) {
+            if (currentSectionKey === 'reading_writing' && currentModuleIndex === 0) {
+                setBreakTimeRemaining(10 * 60);
                 setTestState('break');
+            } else if (currentSectionKey === 'reading_writing' && currentModuleIndex === 1) {
+                setBreakTimeRemaining(25 * 60);
+                setTestState('break');
+            } else if (currentSectionKey === 'math' && currentModuleIndex === 0) {
+                 setTestState('break'); 
             } else {
-                // End of a section or test
-                // This logic will be expanded later
+                setTestState('completed');
             }
         }
     };
+    
 
     const handlePrevQuestion = () => {
         if (currentQuestionIndex > 0) {
@@ -205,7 +225,7 @@ export default function PracticeTestPage() {
                     <ArrowLeft className="mr-2 h-4 w-4" /> Previous
                 </Button>
                 <p className="text-sm text-muted-foreground">Question {currentQuestionIndex + 1} of {currentModule.questions.length}</p>
-                <Button variant="default" onClick={handleNextQuestion}>
+                <Button variant="default" onClick={handleNext}>
                     {currentQuestionIndex === currentModule.questions.length - 1 ? 'Finish Module' : 'Next'} <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
             </footer>
