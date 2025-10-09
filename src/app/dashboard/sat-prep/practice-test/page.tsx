@@ -160,6 +160,8 @@ export default function PracticeTestPage() {
     const [breakTimeRemaining, setBreakTimeRemaining] = useState(10 * 60);
     const [finalScore, setFinalScore] = useState<Score | null>(null);
     const [isReviewing, setIsReviewing] = useState(false);
+    const [timeRemaining, setTimeRemaining] = useState(0);
+
 
     useEffect(() => {
         setTestData(practiceTestData as TestData);
@@ -171,9 +173,25 @@ export default function PracticeTestPage() {
             timer = setTimeout(() => setBreakTimeRemaining(t => t - 1), 1000);
         } else if (testState === 'break' && breakTimeRemaining === 0) {
             handleContinueFromBreak();
+        } else if (testState === 'in-progress' && timeRemaining > 0) {
+            timer = setTimeout(() => setTimeRemaining(t => t-1), 1000);
+        } else if (testState === 'in-progress' && timeRemaining === 0) {
+            if (currentSectionKey === 'reading_writing') {
+                setBreakTimeRemaining(10 * 60);
+                setTestState('break');
+            } else {
+                calculateScore();
+            }
         }
         return () => clearTimeout(timer);
-    }, [testState, breakTimeRemaining]);
+    }, [testState, breakTimeRemaining, timeRemaining]);
+
+
+     const startTest = () => {
+        if (!testData) return;
+        setTimeRemaining(testData.reading_writing.timeLimit * 60);
+        setTestState('in-progress');
+    };
 
     const calculateScore = async () => {
         if (!testData || !user) return;
@@ -214,9 +232,11 @@ export default function PracticeTestPage() {
     };
 
     const handleContinueFromBreak = () => {
+        if(!testData) return;
         setCurrentQuestionIndex(0);
         setCurrentSectionKey('math');
         setCurrentModuleId(1);
+        setTimeRemaining(testData.math.timeLimit * 60);
         setTestState('in-progress');
     };
 
@@ -364,7 +384,7 @@ export default function PracticeTestPage() {
                             <li className="flex items-center gap-2"><strong>Math:</strong> {practiceTestData.math.timeLimit} minutes, {practiceTestData.math.modules.reduce((acc, m) => acc + m.questions.length, 0)} questions</li>
                             <li className="flex items-center gap-2"><strong>Total Time:</strong> Approximately 2 hours 14 minutes</li>
                         </ul>
-                        <Button size="lg" className="w-full max-w-xs" onClick={() => setTestState('in-progress')}>
+                        <Button size="lg" className="w-full max-w-xs" onClick={startTest}>
                            Start Test
                         </Button>
                          <div className="mt-4">
@@ -455,8 +475,11 @@ export default function PracticeTestPage() {
                                 </DialogContent>
                             </Dialog>
                         )}
-                        <p className="text-sm text-muted-foreground">Time: --:--</p>
-                        <Button variant="outline">End Section</Button>
+                         <div className="text-sm text-muted-foreground font-semibold flex items-center gap-2">
+                            <Clock className="h-5 w-5" />
+                            <span>{Math.floor(timeRemaining / 60)}:{(timeRemaining % 60).toString().padStart(2, '0')}</span>
+                        </div>
+                        <Button variant="outline" onClick={calculateScore}>End Test</Button>
                     </div>
                 </div>
                  <div className="mt-4">
