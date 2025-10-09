@@ -25,13 +25,16 @@ type Question = {
     type: 'multiple-choice' | 'grid-in';
 };
 
+type TestSectionModule = {
+    id: number;
+    difficulty: "medium" | "easy-medium" | "medium-hard";
+    questions: Question[];
+};
+
 type TestSection = {
     title: string;
     timeLimit: number;
-    modules: {
-        id: number;
-        questions: Question[];
-    }[];
+    modules: TestSectionModule[];
 };
 
 type TestData = {
@@ -115,28 +118,28 @@ const CalculatorComponent = () => {
         }
     };
 
-    const buttonClasses = "h-16 text-xl bg-muted hover:bg-muted/80";
+    const buttonClasses = "h-16 text-xl bg-muted hover:bg-muted/80 text-black";
 
     return (
         <div className="p-4 space-y-2 bg-background rounded-lg">
             <div className="bg-muted text-right p-4 rounded-lg text-4xl font-mono break-all">{display}</div>
             <div className="grid grid-cols-4 gap-2">
-                <Button onClick={handleClear} className={cn(buttonClasses, "col-span-2 bg-destructive/80 hover:bg-destructive")}>AC</Button>
+                <Button onClick={handleClear} className={cn(buttonClasses, "col-span-2 bg-destructive/80 hover:bg-destructive text-white")}>AC</Button>
                 <Button onClick={() => setDisplay(String(parseFloat(display) * -1))} className={buttonClasses}>+/-</Button>
-                <Button onClick={() => handleOperatorClick('/')} className={cn(buttonClasses, "bg-primary/80 hover:bg-primary")}>÷</Button>
+                <Button onClick={() => handleOperatorClick('/')} className={cn(buttonClasses, "bg-primary/80 hover:bg-primary text-white")}>÷</Button>
                 
                 {['7','8','9'].map(d => <Button key={d} onClick={() => handleDigitClick(d)} className={buttonClasses}>{d}</Button>)}
-                <Button onClick={() => handleOperatorClick('*')} className={cn(buttonClasses, "bg-primary/80 hover:bg-primary")}>×</Button>
+                <Button onClick={() => handleOperatorClick('*')} className={cn(buttonClasses, "bg-primary/80 hover:bg-primary text-white")}>×</Button>
 
                 {['4','5','6'].map(d => <Button key={d} onClick={() => handleDigitClick(d)} className={buttonClasses}>{d}</Button>)}
-                <Button onClick={() => handleOperatorClick('-')} className={cn(buttonClasses, "bg-primary/80 hover:bg-primary")}>−</Button>
+                <Button onClick={() => handleOperatorClick('-')} className={cn(buttonClasses, "bg-primary/80 hover:bg-primary text-white")}>−</Button>
 
                 {['1','2','3'].map(d => <Button key={d} onClick={() => handleDigitClick(d)} className={buttonClasses}>{d}</Button>)}
-                <Button onClick={() => handleOperatorClick('+')} className={cn(buttonClasses, "bg-primary/80 hover:bg-primary")}>+</Button>
+                <Button onClick={() => handleOperatorClick('+')} className={cn(buttonClasses, "bg-primary/80 hover:bg-primary text-white")}>+</Button>
 
                 <Button onClick={() => handleDigitClick('0')} className={cn(buttonClasses, "col-span-2")}>0</Button>
                 <Button onClick={handleDecimalClick} className={buttonClasses}>.</Button>
-                <Button onClick={handleEqualsClick} className={cn(buttonClasses, "bg-primary/80 hover:bg-primary")}>=</Button>
+                <Button onClick={handleEqualsClick} className={cn(buttonClasses, "bg-primary/80 hover:bg-primary text-white")}>=</Button>
             </div>
         </div>
     )
@@ -145,7 +148,7 @@ const CalculatorComponent = () => {
 export default function PracticeTestPage() {
     const [testData, setTestData] = useState<TestData | null>(null);
     const [currentSectionKey, setCurrentSectionKey] = useState<'reading_writing' | 'math'>('reading_writing');
-    const [currentModuleIndex, setCurrentModuleIndex] = useState(0);
+    const [currentModuleId, setCurrentModuleId] = useState(1);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
     const [testState, setTestState] = useState<'not-started' | 'in-progress' | 'break' | 'completed'>('not-started');
@@ -195,25 +198,37 @@ export default function PracticeTestPage() {
     const handleContinueFromBreak = () => {
         setCurrentQuestionIndex(0);
         setCurrentSectionKey('math');
-        setCurrentModuleIndex(0);
+        setCurrentModuleId(1);
         setTestState('in-progress');
     };
 
     const handleNext = () => {
-        const currentModule = testData?.[currentSectionKey]?.modules[currentModuleIndex];
+        if (!testData) return;
+        const currentModule = testData[currentSectionKey].modules.find(m => m.id === currentModuleId);
         if (!currentModule) return;
 
         if (currentQuestionIndex < currentModule.questions.length - 1) {
             setCurrentQuestionIndex(prev => prev + 1);
         } else {
-            if (currentSectionKey === 'reading_writing' && currentModuleIndex === 0) {
-                setCurrentModuleIndex(1);
+            // End of a module
+            if (currentSectionKey === 'reading_writing' && currentModuleId === 1) {
+                // Adaptive logic for Reading & Writing
+                const module1Questions = currentModule.questions;
+                const correctCount = module1Questions.filter(q => userAnswers[q.id] === q.answer).length;
+                const nextDifficulty = correctCount > module1Questions.length / 2 ? "medium-hard" : "easy-medium";
+                const nextModule = testData.reading_writing.modules.find(m => m.difficulty === nextDifficulty);
+                setCurrentModuleId(nextModule ? nextModule.id : 2); // Fallback to id 2 if not found
                 setCurrentQuestionIndex(0);
-            } else if (currentSectionKey === 'reading_writing' && currentModuleIndex === 1) {
+            } else if (currentSectionKey === 'reading_writing' && currentModuleId !== 1) {
                 setBreakTimeRemaining(10 * 60);
                 setTestState('break');
-            } else if (currentSectionKey === 'math' && currentModuleIndex === 0) {
-                setCurrentModuleIndex(1);
+            } else if (currentSectionKey === 'math' && currentModuleId === 1) {
+                 // Adaptive logic for Math
+                const module1Questions = currentModule.questions;
+                const correctCount = module1Questions.filter(q => userAnswers[q.id] === q.answer).length;
+                const nextDifficulty = correctCount > module1Questions.length / 2 ? "medium-hard" : "easy-medium";
+                const nextModule = testData.math.modules.find(m => m.difficulty === nextDifficulty);
+                setCurrentModuleId(nextModule ? nextModule.id : 2); // Fallback
                 setCurrentQuestionIndex(0);
             } else {
                 calculateScore();
@@ -376,13 +391,23 @@ export default function PracticeTestPage() {
     }
 
     const currentSection = testData[currentSectionKey];
-    const currentModule = currentSection.modules[currentModuleIndex];
+    const currentModule = currentSection.modules.find(m => m.id === currentModuleId);
+
+    if (!currentModule) {
+        return (
+             <div className="flex justify-center items-center h-full">
+                 <p>Error: Could not find the current test module. The test may be misconfigured.</p>
+                 <Button onClick={() => setTestState('not-started')} className="mt-4">Restart</Button>
+             </div>
+        );
+     }
+ 
     const currentQuestion = currentModule.questions[currentQuestionIndex];
     
     if (!currentQuestion) {
        return (
             <div className="flex justify-center items-center h-full">
-                <p>Error loading test data. Please try again.</p>
+                <p>Error loading question data. Please try again.</p>
                 <Button onClick={() => setTestState('not-started')} className="mt-4">Restart</Button>
             </div>
        );
@@ -398,7 +423,7 @@ export default function PracticeTestPage() {
                 <div className="flex justify-between items-center">
                     <h1 className="text-2xl font-bold flex items-center gap-2">
                         {currentSectionKey === 'reading_writing' ? <BookOpen /> : <Calculator />}
-                        {currentSection.title} - Module {currentModuleIndex + 1}
+                        {currentSection.title} - Module {currentModule.id}
                     </h1>
                     <div className="flex items-center gap-4">
                         {currentSectionKey === 'math' && (
@@ -470,8 +495,3 @@ export default function PracticeTestPage() {
         </div>
     );
 }
-
-    
-
-
-    
