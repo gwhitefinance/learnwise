@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -58,13 +59,17 @@ type Roadmap = {
     milestones: Milestone[];
 };
 
-const getIcon = (iconName: keyof typeof LucideIcons | undefined, defaultIcon: keyof typeof LucideIcons = 'Flag') => {
+const getIcon = (iconName: keyof typeof LucideIcons | undefined, defaultIcon: keyof typeof LucideIcons = 'Flag'): React.ElementType => {
     if (!iconName) {
         return LucideIcons[defaultIcon];
     }
     const iconKey = Object.keys(LucideIcons).find(key => key.toLowerCase() === iconName.toLowerCase()) as keyof typeof LucideIcons | undefined;
+    
     if (iconKey && LucideIcons[iconKey]) {
-        return LucideIcons[iconKey];
+        const IconComponent = (LucideIcons as any)[iconKey];
+        if (typeof IconComponent === 'function') {
+            return IconComponent;
+        }
     }
     return LucideIcons[defaultIcon];
 };
