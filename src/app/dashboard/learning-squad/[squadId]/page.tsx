@@ -77,7 +77,8 @@ export default function SquadManagementPage() {
                                 photoURL: userData.photoURL
                             } as Member;
                         }
-                        return { uid: memberId, displayName: 'Loading...' }; // Fallback
+                        // Fallback for cases where user doc might not be readable, though rules should prevent this if correct
+                        return { uid: memberId, displayName: memberId, photoURL: '' }; 
                     });
                     
                     const membersData = await Promise.all(memberPromises);
@@ -91,15 +92,17 @@ export default function SquadManagementPage() {
             setLoading(false);
         }, (error) => {
             console.error("Error fetching squad:", error);
+            toast({ variant: 'destructive', title: 'Permission Error', description: 'You may not have access to this squad.'})
             setSquad(null);
             setLoading(false);
         });
 
         return () => unsubscribe();
-    }, [user, authLoading, squadId, router]);
+    }, [user, authLoading, squadId, router, toast]);
     
     const copyInviteLink = () => {
-        const link = `${window.location.origin}/squad/join/${squad?.inviteCode}`;
+        if (!squad) return;
+        const link = `${window.location.origin}/squad/join/${squad.inviteCode}`;
         navigator.clipboard.writeText(link).then(() => {
             setCopied(true);
             toast({ title: 'Invite link copied!' });
