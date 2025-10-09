@@ -1,7 +1,21 @@
-
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    function isAddingSelf(request, resource) {
+      // The user is only adding themselves to the members list
+      let newMembers = request.resource.data.members;
+      let oldMembers = resource.data.members;
+      // Check that the user is in the new list and wasn't in the old one
+      let isJoining = request.auth.uid in newMembers && !(request.auth.uid in oldMembers);
+      // Check that the new list is exactly the old list plus the new user
+      let isOnlyJoining = newMembers.size() == oldMembers.size() + 1;
+      
+      // Ensure no other fields are being changed
+      let otherFieldsUnchanged = request.resource.data.diff(resource.data).affectedKeys().removeAll(["members"]).size() == 0;
+
+      return isJoining && isOnlyJoining && otherFieldsUnchanged;
+    }
 
     // USERS - Each user can only access their own document
     match /users/{userId} {
@@ -26,8 +40,6 @@ service cloud.firestore {
 
     // CHAT SESSIONS collection
     match /chatSessions/{sessionId} {
-      // Publicly shared chats can be read by anyone
-      allow get: if resource.data.isPublic == true;
       allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
       allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
       allow list: if request.auth != null 
@@ -42,9 +54,12 @@ service cloud.firestore {
                   && request.query.where('userId', '==', request.auth.uid).exists();
     }
 
-    // LEADERBOARD collection - allow read for anyone authenticated
+    // LEADERBOARD collection
     match /leaderBoard/{leaderBoardId} {
-      allow read: if request.auth != null;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow list: if request.auth != null 
+                  && request.query.where('userId', '==', request.auth.uid).exists();
     }
 
     // LEARNING LAB collection
@@ -103,7 +118,7 @@ service cloud.firestore {
                   && request.query.where('userId', '==', request.auth.uid).exists();
     }
 
-    // SAT TEST RESULTS collection
+    // ✅ SAT TEST RESULTS collection
     match /satTestResults/{resultId} {
       allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
       allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
@@ -115,15 +130,8 @@ service cloud.firestore {
     match /squads/{squadId} {
       allow create: if request.auth != null && request.auth.uid == request.resource.data.ownerId;
       allow read: if request.auth != null && request.auth.uid in resource.data.members;
-      // Allow users to add themselves to the members list, but not change other fields
-      allow update: if request.auth != null && (
-                      (request.auth.uid == resource.data.ownerId) || 
-                      (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['members']) && 
-                       request.resource.data.members == resource.data.members.concat([request.auth.uid]))
-                    );
-      allow delete: if request.auth != null && request.auth.uid == resource.data.ownerId;
-      allow list: if request.auth != null 
-                  && request.query.where('members', 'array-contains', request.auth.uid).exists();
+      allow update: if request.auth != null && (request.auth.uid == resource.data.ownerId || isAddingSelf(request, resource));
+      allow list: if request.auth != null && request.query.where('members', 'array-contains', request.auth.uid).exists();
     }
 
     // TODO collection
