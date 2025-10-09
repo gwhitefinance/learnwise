@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useContext, Suspense } from 'react';
@@ -17,7 +18,7 @@ import type { GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
 import { cn } from '@/lib/utils';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
-import { collection, query, where, onSnapshot, doc, updateDoc, getDoc, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, updateDoc, getDoc, getDocs, addDoc, serverTimestamp, increment } from 'firebase/firestore';
 import AudioPlayer from '@/components/audio-player';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -503,6 +504,16 @@ function LearningLabComponent() {
     const module = activeCourse.units?.[currentModuleIndex];
     if (!module) return;
 
+    // Check if the current chapter is a quiz and if it has been completed
+    if (currentChapter?.title === 'Module Quiz' && quizState !== 'results') {
+        toast({
+            variant: 'destructive',
+            title: 'Quiz Required',
+            description: 'You must complete the module quiz before continuing.',
+        });
+        return;
+    }
+
     if (currentChapterIndex < module.chapters.length - 1) {
         const nextChapterIndex = currentChapterIndex + 1;
         setCurrentChapterIndex(nextChapterIndex); // Move to next chapter immediately
@@ -943,7 +954,7 @@ function LearningLabComponent() {
                         {isFocusMode ? "Exit Focus Mode" : "Focus Mode"}
                     </Button>
                     <Button onClick={handleCompleteAndContinue}>
-                        Complete and Continue <ChevronRight className="ml-2 h-4 w-4"/>
+                        {currentChapter?.title === 'Module Quiz' ? 'Continue' : 'Complete & Continue'} <ChevronRight className="ml-2 h-4 w-4"/>
                     </Button>
                 </div>
             </div>
