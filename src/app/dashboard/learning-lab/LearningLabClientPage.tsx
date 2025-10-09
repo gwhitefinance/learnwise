@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { useState, useEffect, useContext, Suspense } from 'react';
@@ -376,6 +374,11 @@ function LearningLabComponent() {
     } else {
         setQuizState('results');
         const correctCount = newQuizAnswers.filter(a => a.isCorrect).length;
+        const totalQuestions = newQuizAnswers.length;
+        const scorePercentage = totalQuestions > 0 ? (correctCount / totalQuestions) * 100 : 0;
+        
+        let coinsEarned = Math.round(scorePercentage);
+        if (isMidtermModule) coinsEarned *= 2; // Double coins for midterm
 
         for (const answer of newQuizAnswers) {
             if (!answer.isCorrect) {
@@ -395,18 +398,26 @@ function LearningLabComponent() {
             }
         }
         
-        if (correctCount > 0) {
+        if (coinsEarned > 0) {
             const xpEarned = correctCount * 10;
             try {
+                const userRef = doc(db, 'users', user.uid);
+                await updateDoc(userRef, {
+                    coins: increment(coinsEarned)
+                });
                 const { levelUp, newLevel, newCoins } = await addXp(user.uid, xpEarned);
-                if (levelUp) {
-                    showReward({ type: 'levelUp', level: newLevel, coins: newCoins });
-                } else {
-                    showReward({ type: 'xp', amount: xpEarned });
-                }
+                
+                showReward({
+                    type: 'xp',
+                    amount: xpEarned,
+                });
+                toast({ title: "Quiz Complete!", description: `You earned ${coinsEarned} coins and ${xpEarned} XP!` });
+
             } catch(e) {
-                console.error("Error awarding XP:", e);
+                console.error("Error awarding XP and coins:", e);
             }
+        } else {
+             toast({ title: "Quiz Complete!", description: `Your score was ${scorePercentage.toFixed(0)}%.` });
         }
     }
   };
@@ -772,15 +783,12 @@ function LearningLabComponent() {
                 <p className="text-muted-foreground mt-2 max-w-md">
                     {isMidtermModule 
                         ? "This is a 35-question exam covering all material from the first half of the course." 
-                        : "Test your knowledge on the chapters you've just completed."
+                        : "Test your knowledge on the chapters you've just completed. A good score will earn you coins!"
                     }
                 </p>
                 <Button className="mt-6" onClick={isMidtermModule ? handleStartMidtermExam : () => handleStartModuleQuiz(currentModule)} disabled={isQuizLoading}>
                     {isQuizLoading ? 'Loading...' : `Start ${isMidtermModule ? 'Midterm Exam' : 'Quiz'}`}
                 </Button>
-                <div className="mt-8">
-                    <Button variant="link" onClick={handleCompleteAndContinue}>Skip & Continue</Button>
-                </div>
             </div>
         )}
 

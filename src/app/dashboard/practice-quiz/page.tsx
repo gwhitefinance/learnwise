@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import React, { useState, useEffect, useRef, useContext, Suspense } from 'react';
@@ -245,27 +243,33 @@ function PracticeQuizComponent() {
         } else {
             const correctAnswers = answers.filter(a => a.isCorrect).length;
             if (correctAnswers > 0) {
-                const xpEarned = correctAnswers * 10;
+                let xpEarned = correctAnswers * 5;
+                let coinsEarned = correctAnswers * 2;
+                
+                if (difficulty === 'Medium') {
+                    xpEarned += 10;
+                    coinsEarned += 5;
+                } else if (difficulty === 'Hard') {
+                    xpEarned += 25;
+                    coinsEarned += 10;
+                }
+
                 try {
+                    const userRef = doc(db, 'users', user.uid);
+                    await updateDoc(userRef, {
+                        coins: increment(coinsEarned)
+                    });
                     const { levelUp, newLevel, newCoins } = await addXpAction(user.uid, xpEarned);
-                    if (levelUp) {
-                         showReward({
-                            type: 'levelUp',
-                            level: newLevel,
-                            coins: newCoins
-                        });
-                    } else {
-                        showReward({
-                           type: 'xp',
-                           amount: xpEarned,
-                        });
-                    }
+                    
+                    showReward({ type: 'xp', amount: xpEarned });
+                    toast({ title: "Quiz Complete!", description: `You earned ${coinsEarned} coins and ${xpEarned} XP!`});
+
                 } catch(e) {
-                    console.error("Error awarding XP:", e);
+                    console.error("Error awarding XP and coins:", e);
                     toast({
                         variant: 'destructive',
-                        title: "XP Award Failed",
-                        description: "There was an issue awarding your XP. Please try again."
+                        title: "Reward Award Failed",
+                        description: "There was an issue awarding your rewards. Please try again."
                     })
                 }
             }
