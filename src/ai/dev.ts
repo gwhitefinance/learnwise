@@ -25,3 +25,4 @@ import './flows/module-content-flow';
 import './flows/tutor-chat-flow';
 import './flows/image-generation-flow';
 import './flows/video-generation-flow';
+import './flows/podcast-flow';

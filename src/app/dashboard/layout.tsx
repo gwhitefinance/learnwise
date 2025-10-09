@@ -64,6 +64,7 @@ import {
   Gem,
   ShoppingBag,
   Shield,
+  Podcast,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -154,6 +155,12 @@ const sidebarItems = [
             icon: <Lightbulb />,
             href: "/dashboard/practice-quiz",
             id: "practice-quiz-link",
+        },
+        {
+            title: "Podcasts",
+            icon: <Podcast />,
+            href: "/dashboard/podcasts",
+            id: "podcasts-link",
         },
         {
             title: "Upload",
