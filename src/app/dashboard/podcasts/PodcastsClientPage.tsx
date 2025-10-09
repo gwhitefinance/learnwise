@@ -10,9 +10,10 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
-import { generatePodcast } from '@/lib/actions';
+import { generatePodcastEpisode } from '@/lib/actions';
 import Loading from './loading';
 import { Slider } from '@/components/ui/slider';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 type Course = {
     id: string;
@@ -28,19 +29,21 @@ type Course = {
     }[];
 };
 
+type EpisodePlayerState = {
+    audioUrls: string[];
+    currentTrackIndex: number;
+    isPlaying: boolean;
+    playbackProgress: number;
+};
+
 export default function PodcastsClientPage() {
     const [courses, setCourses] = useState<Course[]>([]);
     const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
-    const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
-    const [duration, setDuration] = useState('10');
     const [isLoading, setIsLoading] = useState(true);
-    const [isGenerating, setIsGenerating] = useState(false);
+    const [generatingEpisodeId, setGeneratingEpisodeId] = useState<string | null>(null);
     
-    // Playlist state
-    const [audioUrls, setAudioUrls] = useState<string[]>([]);
-    const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
-    const [isPlaying, setIsPlaying] = useState(false);
-    const [playbackProgress, setPlaybackProgress] = useState(0);
+    // Player State
+    const [playerState, setPlayerState] = useState<Record<string, EpisodePlayerState>>({});
 
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const { toast } = useToast();
@@ -59,104 +62,132 @@ export default function PodcastsClientPage() {
         return () => unsubscribe();
     }, [user, authLoading]);
     
-    useEffect(() => {
-        if (audioRef.current) {
-            audioRef.current.src = audioUrls[currentTrackIndex];
-            if (isPlaying) {
-                audioRef.current.play().catch(e => console.error("Audio play error:", e));
+     useEffect(() => {
+        const activeEpisodeId = Object.keys(playerState).find(id => playerState[id]?.isPlaying);
+        if (audioRef.current && activeEpisodeId) {
+            const episode = playerState[activeEpisodeId];
+            if (episode) {
+                audioRef.current.src = episode.audioUrls[episode.currentTrackIndex];
+                if (episode.isPlaying) {
+                    audioRef.current.play().catch(e => console.error("Audio play error:", e));
+                }
             }
         }
-    }, [currentTrackIndex, audioUrls]);
+    }, [playerState]);
 
-    const handleGeneratePodcast = async () => {
-        if (!selectedCourseId) {
-            toast({ variant: 'destructive', title: 'Please select a course.' });
-            return;
-        }
 
-        const course = courses.find(c => c.id === selectedCourseId);
-        if (!course) return;
+    const handleGenerateEpisode = async (course: Course, unitId: string) => {
+        const unit = course.units?.find(u => u.id === unitId);
+        if (!unit) return;
 
-        let content = '';
-        let podcastTopic = course.name;
-
-        if (selectedUnitId && selectedUnitId !== 'all') {
-            const unit = course.units?.find(u => u.id === selectedUnitId);
-            if (unit) {
-                podcastTopic = `${course.name}: ${unit.title}`;
-                content = unit.chapters.map(c => `Chapter: ${c.title}\n${c.content || ''}`).join('\n\n');
-            }
-        } else {
-            content = course.units?.flatMap(u => u.chapters).map(c => `Chapter: ${c.title}\n${c.content || ''}`).join('\n\n') || '';
-        }
+        const content = unit.chapters.map(c => `Chapter: ${c.title}\n${c.content || ''}`).join('\n\n');
 
         if (!content.trim()) {
-            toast({ variant: 'destructive', title: 'No content available', description: 'Please make sure the selected course/unit has generated content.' });
+            toast({ variant: 'destructive', title: 'No content available', description: 'Please make sure the selected unit has generated chapter content.' });
             return;
         }
         
-        setIsGenerating(true);
-        setAudioUrls([]);
-        if (audioRef.current) audioRef.current.pause();
-        toast({ title: 'Generating your podcast...', description: 'This may take a few minutes depending on the length.' });
+        setGeneratingEpisodeId(unitId);
+        toast({ title: `Generating Episode: ${unit.title}`, description: 'This may take a moment...' });
 
         try {
-            const result = await generatePodcast({
-                courseName: podcastTopic,
-                content: content,
-                duration: parseInt(duration),
+            const result = await generatePodcastEpisode({
+                courseName: course.name,
+                episodeTitle: unit.title,
+                episodeContent: content,
             });
-            setAudioUrls(result.audioDataUris);
-            setCurrentTrackIndex(0);
-            setIsPlaying(true);
+
+            setPlayerState(prev => ({
+                ...prev,
+                [unitId]: {
+                    audioUrls: result.audioDataUris,
+                    currentTrackIndex: 0,
+                    isPlaying: true,
+                    playbackProgress: 0,
+                }
+            }));
+
         } catch (error) {
             console.error(error);
-            toast({ variant: 'destructive', title: 'Generation Failed', description: 'Could not create the podcast audio.' });
+            toast({ variant: 'destructive', title: 'Generation Failed', description: 'Could not create the podcast episode.' });
         } finally {
-            setIsGenerating(false);
+            setGeneratingEpisodeId(null);
         }
     };
     
-    const togglePlay = () => {
-        if (!audioRef.current) return;
-        if (isPlaying) {
+    const updatePlayerState = (unitId: string, updates: Partial<EpisodePlayerState>) => {
+        setPlayerState(prev => ({
+            ...prev,
+            [unitId]: {
+                ...prev[unitId],
+                ...updates,
+            }
+        }));
+    };
+
+    const togglePlay = (unitId: string) => {
+        const episode = playerState[unitId];
+        if (!audioRef.current || !episode) return;
+        
+        const isCurrentlyPlaying = episode.isPlaying;
+
+        // Pause all other episodes
+        const newState = { ...playerState };
+        Object.keys(newState).forEach(id => {
+            if (id !== unitId) {
+                newState[id].isPlaying = false;
+            }
+        });
+        
+        if (isCurrentlyPlaying) {
             audioRef.current.pause();
+            newState[unitId].isPlaying = false;
         } else {
+            audioRef.current.src = episode.audioUrls[episode.currentTrackIndex];
             audioRef.current.play().catch(e => console.error("Audio play error:", e));
+            newState[unitId].isPlaying = true;
         }
-        setIsPlaying(!isPlaying);
+        setPlayerState(newState);
     };
 
-    const handleNextTrack = () => {
-        if (currentTrackIndex < audioUrls.length - 1) {
-            setCurrentTrackIndex(prev => prev + 1);
+    const handleNextTrack = (unitId: string) => {
+        const episode = playerState[unitId];
+        if (episode && episode.currentTrackIndex < episode.audioUrls.length - 1) {
+            updatePlayerState(unitId, { currentTrackIndex: episode.currentTrackIndex + 1 });
         }
     };
 
-    const handlePrevTrack = () => {
-        if (currentTrackIndex > 0) {
-            setCurrentTrackIndex(prev => prev - 1);
+    const handlePrevTrack = (unitId: string) => {
+        const episode = playerState[unitId];
+        if (episode && episode.currentTrackIndex > 0) {
+            updatePlayerState(unitId, { currentTrackIndex: episode.currentTrackIndex - 1 });
         }
     };
     
     const handleTimeUpdate = () => {
-        if (audioRef.current) {
+        const activeEpisodeId = Object.keys(playerState).find(id => playerState[id]?.isPlaying);
+        if (audioRef.current && activeEpisodeId) {
             const progress = (audioRef.current.currentTime / audioRef.current.duration) * 100;
-            setPlaybackProgress(isNaN(progress) ? 0 : progress);
+            updatePlayerState(activeEpisodeId, { playbackProgress: isNaN(progress) ? 0 : progress });
         }
     };
 
-    const handleSeek = (value: number[]) => {
-        if (audioRef.current) {
+    const handleSeek = (unitId: string, value: number[]) => {
+        const episode = playerState[unitId];
+        if (audioRef.current && episode) {
             audioRef.current.currentTime = (value[0] / 100) * audioRef.current.duration;
         }
     };
     
     const handleTrackEnd = () => {
-        if (currentTrackIndex < audioUrls.length - 1) {
-            handleNextTrack();
-        } else {
-            setIsPlaying(false);
+        const activeEpisodeId = Object.keys(playerState).find(id => playerState[id]?.isPlaying);
+        if (activeEpisodeId) {
+            const episode = playerState[activeEpisodeId];
+            if (episode.currentTrackIndex < episode.audioUrls.length - 1) {
+                handleNextTrack(activeEpisodeId);
+            } else {
+                updatePlayerState(activeEpisodeId, { isPlaying: false });
+            }
         }
     };
 
@@ -168,109 +199,94 @@ export default function PodcastsClientPage() {
 
     return (
         <div className="space-y-6">
+            <audio 
+                ref={audioRef} 
+                onTimeUpdate={handleTimeUpdate} 
+                onEnded={handleTrackEnd} 
+            />
             <div>
                 <h1 className="text-3xl font-bold tracking-tight">AI Podcast Generator</h1>
-                <p className="text-muted-foreground">Turn your course materials into on-the-go audio lessons.</p>
+                <p className="text-muted-foreground">Turn your course materials into on-the-go audio episodes.</p>
             </div>
             
             <Card>
                 <CardHeader>
-                    <CardTitle>Create a New Podcast</CardTitle>
-                    <CardDescription>Select a course, unit (optional), and desired length to generate your audio lesson.</CardDescription>
+                    <CardTitle>Start a Podcast Show</CardTitle>
+                    <CardDescription>Select one of your courses to see its available episodes (units).</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="space-y-2">
-                             <label className="text-sm font-medium">Course</label>
-                            <Select value={selectedCourseId ?? ''} onValueChange={(val) => { setSelectedCourseId(val); setSelectedUnitId(null); }}>
-                                <SelectTrigger><SelectValue placeholder="Select a course..." /></SelectTrigger>
-                                <SelectContent>
-                                    {courses.map(course => (
-                                        <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                         <div className="space-y-2">
-                             <label className="text-sm font-medium">Unit (Optional)</label>
-                            <Select value={selectedUnitId ?? 'all'} onValueChange={setSelectedUnitId} disabled={!selectedCourse || !selectedCourse.units || selectedCourse.units.length === 0}>
-                                <SelectTrigger><SelectValue placeholder="Select a unit..." /></SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">Entire Course</SelectItem>
-                                    {selectedCourse?.units?.map(unit => (
-                                        <SelectItem key={unit.id} value={unit.id}>{unit.title}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium">Duration</label>
-                            <Select value={duration} onValueChange={setDuration}>
-                                <SelectTrigger><SelectValue/></SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="5">5 minutes</SelectItem>
-                                    <SelectItem value="10">10 minutes</SelectItem>
-                                    <SelectItem value="15">15 minutes</SelectItem>
-                                    <SelectItem value="30">30 minutes</SelectItem>
-                                    <SelectItem value="60">1 hour</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-                     <div className="flex justify-end pt-4">
-                        <Button onClick={handleGeneratePodcast} disabled={isGenerating || !selectedCourseId}>
-                            {isGenerating ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating...</> : <><Wand2 className="mr-2 h-4 w-4" /> Generate Podcast</>}
-                        </Button>
-                    </div>
+                    <Select value={selectedCourseId ?? ''} onValueChange={setSelectedCourseId}>
+                        <SelectTrigger><SelectValue placeholder="Select a course to start a show..." /></SelectTrigger>
+                        <SelectContent>
+                            {courses.map(course => (
+                                <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                 </CardContent>
             </Card>
 
-            {(isGenerating || audioUrls.length > 0) && (
+            {selectedCourse && (
                 <Card>
                     <CardHeader>
-                        <CardTitle>Your Podcast</CardTitle>
+                        <CardTitle>Episodes for: {selectedCourse.name}</CardTitle>
+                        <CardDescription>Generate and listen to individual episodes based on your course units.</CardDescription>
                     </CardHeader>
-                    <CardContent className="flex flex-col items-center justify-center p-8 text-center">
-                        {isGenerating ? (
-                            <>
-                                <Loader2 className="h-12 w-12 text-primary animate-spin mb-4" />
-                                <p className="text-muted-foreground">Your podcast is being generated. This might take a few moments...</p>
-                            </>
-                        ) : audioUrls.length > 0 ? (
-                            <>
-                                <Podcast className="h-12 w-12 text-primary mb-4" />
-                                <h3 className="text-xl font-semibold">{selectedCourse?.name}</h3>
-                                {selectedUnitId && selectedUnitId !== 'all' && (
-                                    <p className="text-muted-foreground">{selectedCourse?.units?.find(u => u.id === selectedUnitId)?.title}</p>
-                                )}
-                                <div className="mt-6 w-full max-w-sm space-y-4">
-                                    <p className="text-sm text-muted-foreground">Segment {currentTrackIndex + 1} of {audioUrls.length}</p>
-                                    <Slider
-                                        value={[playbackProgress]}
-                                        onValueChange={handleSeek}
-                                        max={100}
-                                        step={1}
-                                    />
-                                    <div className="flex items-center justify-center gap-4">
-                                        <Button onClick={handlePrevTrack} variant="ghost" size="icon" disabled={currentTrackIndex === 0}>
-                                            <SkipBack />
-                                        </Button>
-                                        <Button onClick={togglePlay} size="lg" className="rounded-full w-20 h-20">
-                                            {isPlaying ? <Pause className="h-8 w-8" /> : <Play className="h-8 w-8 ml-1" />}
-                                        </Button>
-                                        <Button onClick={handleNextTrack} variant="ghost" size="icon" disabled={currentTrackIndex === audioUrls.length - 1}>
-                                            <SkipForward />
-                                        </Button>
-                                    </div>
-                                </div>
-                                <audio 
-                                    ref={audioRef} 
-                                    onTimeUpdate={handleTimeUpdate} 
-                                    onEnded={handleTrackEnd} 
-                                    src={audioUrls.length > 0 ? audioUrls[currentTrackIndex] : ''}
-                                />
-                            </>
-                        ) : null}
+                    <CardContent>
+                        {selectedCourse.units && selectedCourse.units.length > 0 ? (
+                             <Accordion type="single" collapsible className="w-full">
+                                {selectedCourse.units.map(unit => {
+                                    const episode = playerState[unit.id];
+                                    const isGenerating = generatingEpisodeId === unit.id;
+                                    
+                                    return (
+                                        <AccordionItem key={unit.id} value={unit.id}>
+                                            <AccordionTrigger>
+                                                <div className="flex items-center gap-4">
+                                                    <Podcast className="h-5 w-5 text-primary"/>
+                                                    <span className="font-semibold">{unit.title}</span>
+                                                </div>
+                                            </AccordionTrigger>
+                                            <AccordionContent className="p-4 space-y-4">
+                                                {!episode ? (
+                                                    <div className="flex flex-col items-center justify-center text-center p-8 bg-muted rounded-lg">
+                                                        <p className="mb-4 text-muted-foreground">This episode hasn't been generated yet.</p>
+                                                        <Button onClick={() => handleGenerateEpisode(selectedCourse, unit.id)} disabled={isGenerating}>
+                                                            {isGenerating ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating Episode...</> : <><Wand2 className="mr-2 h-4 w-4" /> Generate Episode</>}
+                                                        </Button>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex flex-col items-center gap-4 p-4 bg-muted rounded-lg">
+                                                        <p className="text-sm text-muted-foreground">Segment {episode.currentTrackIndex + 1} of {episode.audioUrls.length}</p>
+                                                         <Slider
+                                                            value={[episode.playbackProgress]}
+                                                            onValueChange={(val) => handleSeek(unit.id, val)}
+                                                            max={100}
+                                                            step={1}
+                                                        />
+                                                        <div className="flex items-center justify-center gap-4">
+                                                            <Button onClick={() => handlePrevTrack(unit.id)} variant="ghost" size="icon" disabled={episode.currentTrackIndex === 0}>
+                                                                <SkipBack />
+                                                            </Button>
+                                                            <Button onClick={() => togglePlay(unit.id)} size="lg" className="rounded-full w-16 h-16">
+                                                                {episode.isPlaying ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6 ml-1" />}
+                                                            </Button>
+                                                            <Button onClick={() => handleNextTrack(unit.id)} variant="ghost" size="icon" disabled={episode.currentTrackIndex === episode.audioUrls.length - 1}>
+                                                                <SkipForward />
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </AccordionContent>
+                                        </AccordionItem>
+                                    )
+                                })}
+                            </Accordion>
+                        ) : (
+                            <div className="text-center text-muted-foreground p-8">
+                                This course has no units with content. Please generate content in the Learning Lab first.
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
             )}

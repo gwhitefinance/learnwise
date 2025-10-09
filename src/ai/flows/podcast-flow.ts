@@ -3,7 +3,7 @@
 
 import { ai } from '@/ai/genkit';
 import { googleAI } from '@genkit-ai/googleai';
-import { GeneratePodcastInput, GeneratePodcastInputSchema } from '@/ai/schemas/podcast-schema';
+import { GeneratePodcastEpisodeInput, GeneratePodcastEpisodeInputSchema, GeneratePodcastEpisodeOutput, GeneratePodcastEpisodeOutputSchema } from '@/ai/schemas/podcast-schema';
 import { generateAudio } from './text-to-speech-flow';
 import { z } from 'zod';
 
@@ -12,45 +12,42 @@ const podcastScriptSchema = z.object({
 });
 
 const podcastPrompt = ai.definePrompt({
-    name: 'podcastGenerationPrompt',
+    name: 'podcastEpisodeGenerationPrompt',
     model: googleAI.model('gemini-2.5-flash'),
-    input: { schema: GeneratePodcastInputSchema },
+    input: { schema: GeneratePodcastEpisodeInputSchema },
     output: { schema: podcastScriptSchema },
-    prompt: `You are an engaging podcast host named "AI Buddy". Your task is to convert the following educational material into a conversational and informative podcast script.
+    prompt: `You are an engaging podcast host named "AI Buddy". Your task is to convert the following educational material into a single, conversational, and informative podcast episode.
 
     Course Name: {{courseName}}
-    Desired Duration: {{duration}} minutes
+    Episode Title: {{episodeTitle}}
     
     Content to transform:
-    "{{content}}"
+    "{{episodeContent}}"
 
     Instructions:
-    1.  **Introduction**: Start with a catchy intro, introducing yourself and the topic.
+    1.  **Introduction**: Start with a catchy intro, introducing yourself, the main course topic, and this specific episode's title.
     2.  **Conversational Tone**: Rewrite the content in a natural, spoken-word format. Use questions, rhetorical devices, and a friendly tone. Avoid just reading the text.
     3.  **Structure**: Break the content down into logical segments. Use transitions to move smoothly between topics.
-    4.  **Duration**: Adjust the level of detail to fit the desired duration. For shorter durations, focus on key concepts and summaries. For longer durations, include more detailed explanations, examples, and analogies.
-    5.  **Outro**: End with a brief summary and a friendly sign-off.
+    4.  **Outro**: End with a brief summary of the episode and a friendly sign-off, perhaps teasing the next topic.
     
-    Generate only the script for the podcast.
+    Generate only the script for this single podcast episode.
     `,
 });
 
-const generatePodcastFlow = ai.defineFlow(
+const generatePodcastEpisodeFlow = ai.defineFlow(
     {
-        name: 'generatePodcastFlow',
-        inputSchema: GeneratePodcastInputSchema,
-        outputSchema: z.object({
-            audioDataUris: z.array(z.string()),
-        }),
+        name: 'generatePodcastEpisodeFlow',
+        inputSchema: GeneratePodcastEpisodeInputSchema,
+        outputSchema: GeneratePodcastEpisodeOutputSchema,
     },
     async (input) => {
-        // 1. Generate the full script
+        // 1. Generate the full script for the episode
         const { output: scriptOutput } = await podcastPrompt(input);
         if (!scriptOutput || !scriptOutput.script) {
             throw new Error('Failed to generate podcast script.');
         }
 
-        // 2. Split the script into paragraphs (or sentences for more granularity)
+        // 2. Split the script into paragraphs to generate audio in chunks
         const segments = scriptOutput.script.split('\n').filter(s => s.trim() !== '');
 
         // 3. Generate audio for each segment in parallel
@@ -64,6 +61,6 @@ const generatePodcastFlow = ai.defineFlow(
     }
 );
 
-export async function generatePodcast(input: GeneratePodcastInput): Promise<{ audioDataUris: string[] }> {
-    return generatePodcastFlow(input);
+export async function generatePodcastEpisode(input: GeneratePodcastEpisodeInput): Promise<GeneratePodcastEpisodeOutput> {
+    return generatePodcastEpisodeFlow(input);
 }
