@@ -1,13 +1,14 @@
 
 'use server';
 
-import { ai } from '@/ai/genkit';
+import { ai, googleAI } from '@/ai/genkit';
 import { GeneratePodcastInput, GeneratePodcastInputSchema, GeneratePodcastOutput, GeneratePodcastOutputSchema } from '@/ai/schemas/podcast-schema';
 import { generateAudio } from './text-to-speech-flow';
 import { z } from 'zod';
 
 const podcastPrompt = ai.definePrompt({
     name: 'podcastGenerationPrompt',
+    model: googleAI.model('gemini-2.5-pro'),
     input: { schema: GeneratePodcastInputSchema },
     output: { schema: GeneratePodcastOutputSchema },
     prompt: `You are an engaging podcast host named "AI Buddy". Your task is to convert the following educational material into a conversational and informative podcast script.
