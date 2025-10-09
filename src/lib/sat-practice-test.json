@@ -9,7 +9,7 @@
         "questions": [
           {
             "id": "rw-1-1",
-            "passage": "The following text is from Charlotte Brontë's 1847 novel Jane Eyre. The narrator, Jane, is a young governess at Thornfield Hall.\n\nMy new life at Thornfield was quiet and serene. I had a pupil, Adèle, a lively little French girl, whom I found docile and intelligent. My duties were light, and my evenings were my own. Mrs. Fairfax, the housekeeper, was a placid, kind-hearted woman, who treated me more as a visitor than a dependent. The house itself was a grand, imposing structure, but it was not the architecture that captivated me; it was the sense of a real home, a sanctuary after the hardships of my childhood. The real charm of the house lay in its tranquil gardens and the ancient, sprawling library filled with books that seemed to whisper tales of bygone eras. It was in this library that I spent most of my free time, losing myself in stories and forgetting the sorrows of my past.",
+            "passage": "The following text is from Charlotte Brontë's 1847 novel Jane Eyre. The narrator, Jane, is a young governess at Thornfield Hall.\n\nMy new life at Thornfield was quiet and serene. I had a pupil, Adèle, a lively little French girl, whom I found docile and intelligent. My duties were light, and my evenings were my own. Mrs. Fairfax, the housekeeper, was a placid, kind-hearted woman, who treated me more as a visitor than a dependent. The house itself was a grand, imposing structure, but it was not the architecture that captivated me; it was the sense of a real home, a sanctuary after the hardships of my childhood. The real charm of the house lay in its tranquil gardens and the ancient, sprawling library filled with books that seemed to whisper tales of bygone eras. It was in this library that I spent most of my free time, losing myself in stories and forgetting the sorrows of my past. It was a place of solace and intellectual freedom, a stark contrast to the oppressive environment of my earlier years at Lowood School.",
             "question": "Which choice best describes the main purpose of the text?",
             "options": [
               "To describe the architectural features of Thornfield Hall.",
@@ -17,7 +17,8 @@
               "To complain about the gloomy and isolating atmosphere of the house.",
               "To introduce the character of Mrs. Fairfax."
             ],
-            "answer": "To reveal Jane's feelings of contentment and belonging at Thornfield."
+            "answer": "To reveal Jane's feelings of contentment and belonging at Thornfield.",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-1-2",
@@ -29,7 +30,8 @@
               "Frida Kahlo was married to fellow artist Diego Rivera and was part of the post-revolutionary Mexicayotl movement.",
               "Kahlo's work is celebrated for its use of bold colors and influences from Mexican folk art."
             ],
-            "answer": "Many of Frida Kahlo's paintings, such as 'The Two Fridas', directly explore her personal struggles with identity, pain, and her mixed heritage."
+            "answer": "Many of Frida Kahlo's paintings, such as 'The Two Fridas', directly explore her personal struggles with identity, pain, and her mixed heritage.",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-1-3",
@@ -41,7 +43,8 @@
               "whereas",
               "in addition to"
             ],
-            "answer": "such as"
+            "answer": "such as",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-1-4",
@@ -53,7 +56,8 @@
               "Similarly",
               "For example"
             ],
-            "answer": "However"
+            "answer": "However",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-1-5",
@@ -65,7 +69,8 @@
               "have analyzed",
               "analyzes"
             ],
-            "answer": "analyze"
+            "answer": "analyze",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-1-6",
@@ -77,7 +82,8 @@
               "characterize",
               "characterizing"
             ],
-            "answer": "is characterized"
+            "answer": "is characterized",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-1-7",
@@ -89,7 +95,8 @@
               "had inhibited",
               "inhibits"
             ],
-            "answer": "had inhibited"
+            "answer": "had inhibited",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-1-8",
@@ -101,7 +108,8 @@
               "These gardens can reduce grocery bills for participating families and provide educational opportunities for children.",
               "The initiative was passed with a unanimous vote."
             ],
-            "answer": "These gardens can reduce grocery bills for participating families and provide educational opportunities for children."
+            "answer": "These gardens can reduce grocery bills for participating families and provide educational opportunities for children.",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-1-9",
@@ -113,7 +121,8 @@
               "the",
               "its"
             ],
-            "answer": "an"
+            "answer": "an",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-1-10",
@@ -125,7 +134,8 @@
               "ignoring",
               "destroying"
             ],
-            "answer": "using"
+            "answer": "using",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-1-11",
@@ -137,7 +147,8 @@
               "convenes",
               "convening"
             ],
-            "answer": "convene"
+            "answer": "convene",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-1-12",
@@ -149,7 +160,8 @@
               "its",
               "their"
             ],
-            "answer": "its"
+            "answer": "its",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-1-13",
@@ -161,7 +173,8 @@
               "It presents a counterargument to the main proposal.",
               "It offers a historical context for the transportation plan."
             ],
-            "answer": "It provides specific examples of how the main goal will be achieved."
+            "answer": "It provides specific examples of how the main goal will be achieved.",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-1-14",
@@ -173,7 +186,8 @@
               "for instance",
               "nevertheless"
             ],
-            "answer": "thereby sparking"
+            "answer": "thereby sparking",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-1-15",
@@ -185,7 +199,8 @@
               "tells",
               "have told"
             ],
-            "answer": "tells"
+            "answer": "tells",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-1-16",
@@ -197,7 +212,8 @@
               "Thus, prioritizing sleep is not a sign of laziness but an essential strategy for academic success and overall well-being during the critical adolescent years.",
               "Speaking more than one language is a useful skill for travelers."
             ],
-            "answer": "Thus, prioritizing sleep is not a sign of laziness but an essential strategy for academic success and overall well-being during the critical adolescent years."
+            "answer": "Thus, prioritizing sleep is not a sign of laziness but an essential strategy for academic success and overall well-being during the critical adolescent years.",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-1-17",
@@ -209,7 +225,8 @@
               "what",
               "who"
             ],
-            "answer": "which"
+            "answer": "which",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-1-18",
@@ -221,7 +238,8 @@
               "are",
               "have been"
             ],
-            "answer": "was"
+            "answer": "was",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-1-19",
@@ -233,7 +251,8 @@
               "diligently",
               "reluctantly"
             ],
-            "answer": "diligently"
+            "answer": "diligently",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-1-20",
@@ -245,7 +264,8 @@
               "For this reason",
               "In fact"
             ],
-            "answer": "Despite"
+            "answer": "Despite",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-1-21",
@@ -257,7 +277,8 @@
               "are representing",
               "have represented"
             ],
-            "answer": "represents"
+            "answer": "represents",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-1-22",
@@ -269,7 +290,8 @@
               "duplicating",
               "abandoning"
             ],
-            "answer": "articulating"
+            "answer": "articulating",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-1-23",
@@ -281,7 +303,8 @@
               "is allowing",
               "has allowed"
             ],
-            "answer": "allowing"
+            "answer": "allowing",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-1-24",
@@ -293,7 +316,8 @@
               "The Impressionists revolutionized painting by prioritizing the capture of light and momentary perception over detailed realism.",
               "19th-century European painting was highly traditional."
             ],
-            "answer": "The Impressionists revolutionized painting by prioritizing the capture of light and momentary perception over detailed realism."
+            "answer": "The Impressionists revolutionized painting by prioritizing the capture of light and momentary perception over detailed realism.",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-1-25",
@@ -305,7 +329,8 @@
               "proven",
               "clarified"
             ],
-            "answer": "undermined"
+            "answer": "undermined",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-1-26",
@@ -317,7 +342,8 @@
               "is",
               "does"
             ],
-            "answer": "have"
+            "answer": "have",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-1-27",
@@ -329,7 +355,8 @@
               "who",
               "it"
             ],
-            "answer": "which"
+            "answer": "which",
+            "type": "multiple-choice"
           }
         ]
       },
@@ -346,7 +373,8 @@
               "describe the multifaceted nature of 'Moby Dick'.",
               "discuss Herman Melville's life and other works."
             ],
-            "answer": "describe the multifaceted nature of 'Moby Dick'."
+            "answer": "describe the multifaceted nature of 'Moby Dick'.",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-2-2",
@@ -358,7 +386,8 @@
               "it",
               "who"
             ],
-            "answer": "which"
+            "answer": "which",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-2-3",
@@ -370,7 +399,8 @@
               "An interview with a teacher who prefers the current school schedule.",
               "A general statement that teenagers need more sleep than adults."
             ],
-            "answer": "A study from the American Academy of Pediatrics that links later school start times to improved student health, academic performance, and safety."
+            "answer": "A study from the American Academy of Pediatrics that links later school start times to improved student health, academic performance, and safety.",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-2-4",
@@ -382,7 +412,8 @@
               "According",
               "As a result of"
             ],
-            "answer": "Contrary"
+            "answer": "Contrary",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-2-5",
@@ -394,7 +425,8 @@
               "sat",
               "sitting"
             ],
-            "answer": "sat"
+            "answer": "sat",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-2-6",
@@ -406,7 +438,8 @@
               "depends",
               "have depended"
             ],
-            "answer": "depends"
+            "answer": "depends",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-2-7",
@@ -418,7 +451,8 @@
               "have covered",
               "covers"
             ],
-            "answer": "covers"
+            "answer": "covers",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-2-8",
@@ -430,7 +464,8 @@
               "Business adaptation is a key topic in many economics courses.",
               "The market is always changing, and businesses must keep up."
             ],
-            "answer": "For example, Netflix, recognizing the shift in media consumption, transitioned from a DVD-by-mail rental service to a global streaming and content production giant."
+            "answer": "For example, Netflix, recognizing the shift in media consumption, transitioned from a DVD-by-mail rental service to a global streaming and content production giant.",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-2-9",
@@ -442,7 +477,8 @@
               "fabricate",
               "postpone"
             ],
-            "answer": "validate"
+            "answer": "validate",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-2-10",
@@ -454,7 +490,8 @@
               "simplistic",
               "simpler"
             ],
-            "answer": "simple"
+            "answer": "simple",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-2-11",
@@ -466,7 +503,8 @@
               "were",
               "be"
             ],
-            "answer": "were"
+            "answer": "were",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-2-12",
@@ -478,7 +516,8 @@
               "have",
               "be"
             ],
-            "answer": "is"
+            "answer": "is",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-2-13",
@@ -490,7 +529,8 @@
               "The extraordinary, multi-generational nature of the monarch butterfly migration.",
               "The diet of monarch butterflies during their journey."
             ],
-            "answer": "The extraordinary, multi-generational nature of the monarch butterfly migration."
+            "answer": "The extraordinary, multi-generational nature of the monarch butterfly migration.",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-2-14",
@@ -502,7 +542,8 @@
               "Moreover",
               "Thus"
             ],
-            "answer": "Nonetheless"
+            "answer": "Nonetheless",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-2-15",
@@ -514,7 +555,8 @@
               "is",
               "have been"
             ],
-            "answer": "is"
+            "answer": "is",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-2-16",
@@ -526,7 +568,8 @@
               "Adequate sleep is not a luxury but a crucial component of physical and mental health, affecting everything from cognitive function to immune response.",
               "I feel much better when I get a full eight hours of sleep."
             ],
-            "answer": "For example, during sleep, the brain consolidates memories, clears out toxins, and supports cellular repair throughout the body."
+            "answer": "For example, during sleep, the brain consolidates memories, clears out toxins, and supports cellular repair throughout the body.",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-2-17",
@@ -538,7 +581,8 @@
               "because",
               "in addition to"
             ],
-            "answer": "considering"
+            "answer": "considering",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-2-18",
@@ -550,7 +594,8 @@
               "create",
               "have"
             ],
-            "answer": "make"
+            "answer": "make",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-2-19",
@@ -562,7 +607,8 @@
               "adaptable",
               "standardized"
             ],
-            "answer": "adaptable"
+            "answer": "adaptable",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-2-20",
@@ -574,7 +620,8 @@
               "who",
               "whom"
             ],
-            "answer": "who"
+            "answer": "who",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-2-21",
@@ -586,7 +633,8 @@
               "was",
               "be"
             ],
-            "answer": "is"
+            "answer": "is",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-2-22",
@@ -598,7 +646,8 @@
               "biased",
               "fictional"
             ],
-            "answer": "investigative"
+            "answer": "investigative",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-2-23",
@@ -610,7 +659,8 @@
               "are covering",
               "have covered"
             ],
-            "answer": "covers"
+            "answer": "covers",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-2-24",
@@ -622,7 +672,8 @@
               "The specific details of her scientific discoveries.",
               "Her groundbreaking research and unwavering commitment in the face of adversity."
             ],
-            "answer": "Her groundbreaking research and unwavering commitment in the face of adversity."
+            "answer": "Her groundbreaking research and unwavering commitment in the face of adversity.",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-2-25",
@@ -634,7 +685,8 @@
               "proven",
               "clarified"
             ],
-            "answer": "undermined"
+            "answer": "undermined",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-2-26",
@@ -646,7 +698,8 @@
               "is",
               "does"
             ],
-            "answer": "have"
+            "answer": "have",
+            "type": "multiple-choice"
           },
           {
             "id": "rw-2-27",
@@ -658,7 +711,8 @@
               "whom",
               "that"
             ],
-            "answer": "whom"
+            "answer": "whom",
+            "type": "multiple-choice"
           }
         ]
       }
@@ -675,133 +729,152 @@
             "id": "m-1-1",
             "question": "If 3x - 7 = 8, what is the value of 6x?",
             "options": ["15", "24", "30", "45"],
-            "answer": "30"
+            "answer": "30",
+            "type": "multiple-choice"
           },
           {
             "id": "m-1-2",
             "question": "A circle has a circumference of 36π. What is the area of the circle?",
             "options": ["18π", "36π", "108π", "324π"],
-            "answer": "324π"
+            "answer": "324π",
+            "type": "multiple-choice"
           },
           {
             "id": "m-1-3",
             "question": "A store sells a shirt for $20. If the store offers a 15% discount, what is the final price of the shirt?",
             "options": ["$3.00", "$17.00", "$18.50", "$23.00"],
-            "answer": "$17.00"
+            "answer": "$17.00",
+            "type": "multiple-choice"
           },
           {
             "id": "m-1-4",
             "question": "If a car travels at an average speed of 60 miles per hour, how many minutes will it take to travel 90 miles?",
             "options": ["90", "1.5", "150", "5400"],
-            "answer": "90"
+            "answer": "90",
+            "type": "multiple-choice"
           },
           {
             "id": "m-1-5",
             "question": "What is the slope of the line that passes through the points (2, 5) and (6, 13)?",
             "options": ["1/2", "2", "4", "8"],
-            "answer": "2"
+            "answer": "2",
+            "type": "multiple-choice"
           },
           {
             "id": "m-1-6",
             "question": "If y = 2x + 3 and x = 4, what is the value of y?",
             "options": ["8", "11", "9", "14"],
-            "answer": "11"
+            "answer": "11",
+            "type": "multiple-choice"
           },
           {
             "id": "m-1-7",
             "question": "The sum of two consecutive integers is 35. What is the smaller integer?",
             "options": ["15", "16", "17", "18"],
-            "answer": "17"
+            "answer": "17",
+            "type": "multiple-choice"
           },
           {
             "id": "m-1-8",
             "question": "A rectangular garden has a length of 12 feet and a width of 8 feet. What is its area?",
             "options": ["20 sq ft", "40 sq ft", "96 sq ft", "144 sq ft"],
-            "answer": "96 sq ft"
+            "answer": "96 sq ft",
+            "type": "multiple-choice"
           },
           {
             "id": "m-1-9",
             "question": "Solve for x: 5(x + 2) = 30",
             "options": ["4", "5", "6", "8"],
-            "answer": "4"
+            "answer": "4",
+            "type": "multiple-choice"
           },
           {
             "id": "m-1-10",
             "question": "What is 25% of 200?",
             "options": ["25", "50", "75", "100"],
-            "answer": "50"
+            "answer": "50",
+            "type": "multiple-choice"
           },
           {
             "id": "m-1-11",
             "question": "The price of a computer is reduced from $800 to $600. What is the percent decrease?",
             "options": ["20%", "25%", "33.3%", "75%"],
-            "answer": "25%"
+            "answer": "25%",
+            "type": "multiple-choice"
           },
           {
             "id": "m-1-12",
             "question": "If x^2 = 81, what is one possible value of x?",
             "options": ["3", "9", "18", "40.5"],
-            "answer": "9"
+            "answer": "9",
+            "type": "multiple-choice"
           },
           {
             "id": "m-1-13",
             "question": "In a class of 30 students, 60% are girls. How many boys are in the class?",
             "options": ["12", "18", "10", "20"],
-            "answer": "12"
+            "answer": "12",
+            "type": "multiple-choice"
           },
           {
             "id": "m-1-14",
             "question": "A triangle has angles measuring 30°, 60°, and x°. What is the value of x?",
             "options": ["30", "60", "90", "180"],
-            "answer": "90"
+            "answer": "90",
+            "type": "multiple-choice"
           },
           {
             "id": "m-1-15",
             "question": "What is the value of 3^4?",
             "options": ["12", "27", "64", "81"],
-            "answer": "81"
+            "answer": "81",
+            "type": "multiple-choice"
           },
           {
             "id": "m-1-16",
             "question": "A bag contains 5 red marbles and 3 blue marbles. What is the probability of randomly selecting a blue marble?",
             "options": ["3/8", "5/8", "3/5", "1/2"],
-            "answer": "3/8"
+            "answer": "3/8",
+            "type": "multiple-choice"
           },
           {
             "id": "m-1-17",
             "question": "If f(x) = 3x - 2, what is f(5)?",
             "options": ["10", "13", "15", "17"],
-            "answer": "13"
+            "answer": "13",
+            "type": "multiple-choice"
           },
           {
             "id": "m-1-18",
             "question": "The average of three numbers is 20. If two of the numbers are 15 and 25, what is the third number?",
             "options": ["10", "20", "30", "40"],
-            "answer": "20"
+            "answer": "20",
+            "type": "multiple-choice"
           },
           {
             "id": "m-1-19",
             "question": "What is the least common multiple of 6 and 8?",
             "options": ["12", "24", "48", "96"],
-            "answer": "24"
+            "answer": "24",
+            "type": "multiple-choice"
           },
           {
             "id": "m-1-20",
             "question": "A line is represented by the equation y = -2x + 5. What is its y-intercept?",
-            "options": ["-2", "5", "2.5", "0"],
-            "answer": "5"
+            "answer": "5",
+            "type": "grid-in"
           },
           {
             "id": "m-1-21",
             "question": "If a square has an area of 64 square units, what is the length of one of its sides?",
-            "options": ["4", "8", "16", "32"],
-            "answer": "8"
+            "answer": "8",
+            "type": "grid-in"
           },
           {
             "id": "m-1-22",
-            "question": "Simplify the expression: (2x^2)(3x^3)",
-            "options": ["5x^5", "6x^5", "5x^6", "6x^6"],
-            "answer": "6x^5"
+            "question": "Simplify the expression: (2x^2)(3x^3). If x=2, what is the value?",
+            "answer": "192",
+            "type": "grid-in"
           }
         ]
       },
@@ -812,133 +885,149 @@
             "id": "m-2-1",
             "question": "If 4(x - 1) = 20, what is the value of x?",
             "options": ["4", "5", "6", "7"],
-            "answer": "6"
+            "answer": "6",
+            "type": "multiple-choice"
           },
           {
             "id": "m-2-2",
             "question": "The perimeter of a square is 28 units. What is its area?",
             "options": ["7 sq units", "14 sq units", "49 sq units", "196 sq units"],
-            "answer": "49 sq units"
+            "answer": "49 sq units",
+            "type": "multiple-choice"
           },
           {
             "id": "m-2-3",
             "question": "A recipe calls for 2 cups of flour to make 12 cookies. How many cups of flour are needed to make 30 cookies?",
             "options": ["4", "5", "6", "7.5"],
-            "answer": "5"
+            "answer": "5",
+            "type": "multiple-choice"
           },
           {
             "id": "m-2-4",
             "question": "What is the median of the following set of numbers: 2, 8, 3, 9, 5, 3, 6?",
             "options": ["3", "5", "5.14", "6"],
-            "answer": "5"
+            "answer": "5",
+            "type": "multiple-choice"
           },
           {
             "id": "m-2-5",
             "question": "Solve the inequality: 2x + 5 > 15",
             "options": ["x > 5", "x < 5", "x > 10", "x < 10"],
-            "answer": "x > 5"
+            "answer": "x > 5",
+            "type": "multiple-choice"
           },
           {
             "id": "m-2-6",
             "question": "If a right triangle has legs of length 6 and 8, what is the length of the hypotenuse?",
-            "options": ["10", "12", "14", "100"],
-            "answer": "10"
+            "answer": "10",
+            "type": "grid-in"
           },
           {
             "id": "m-2-7",
             "question": "Which of the following is equivalent to (x+3)^2?",
             "options": ["x^2 + 9", "x^2 + 6x + 9", "x^2 + 3x + 9", "2x + 6"],
-            "answer": "x^2 + 6x + 9"
+            "answer": "x^2 + 6x + 9",
+            "type": "multiple-choice"
           },
           {
             "id": "m-2-8",
             "question": "A survey of 200 people found that 80 prefer coffee to tea. What percentage of people prefer coffee?",
             "options": ["20%", "40%", "60%", "80%"],
-            "answer": "40%"
+            "answer": "40%",
+            "type": "multiple-choice"
           },
           {
             "id": "m-2-9",
             "question": "If x = 2 and y = 3, what is the value of 2x^2 + y?",
             "options": ["11", "13", "19", "25"],
-            "answer": "11"
+            "answer": "11",
+            "type": "multiple-choice"
           },
           {
             "id": "m-2-10",
             "question": "The sum of the angles in a quadrilateral is:",
             "options": ["90°", "180°", "360°", "720°"],
-            "answer": "360°"
+            "answer": "360°",
+            "type": "multiple-choice"
           },
           {
             "id": "m-2-11",
             "question": "A car's value depreciates by 10% each year. If a car is worth $20,000 now, what will it be worth in one year?",
             "options": ["$18,000", "$19,000", "$2,000", "$22,000"],
-            "answer": "$18,000"
+            "answer": "$18,000",
+            "type": "multiple-choice"
           },
           {
             "id": "m-2-12",
             "question": "What is the next number in the sequence: 2, 5, 11, 23, ...?",
             "options": ["35", "46", "47", "51"],
-            "answer": "47"
+            "answer": "47",
+            "type": "multiple-choice"
           },
           {
             "id": "m-2-13",
             "question": "The equation of a line is 2y = 4x + 6. What is the slope of the line?",
-            "options": ["2", "4", "3", "6"],
-            "answer": "2"
+            "answer": "2",
+            "type": "grid-in"
           },
           {
             "id": "m-2-14",
             "question": "If the radius of a circle is doubled, its area is multiplied by:",
             "options": ["2", "π", "4", "8"],
-            "answer": "4"
+            "answer": "4",
+            "type": "multiple-choice"
           },
           {
             "id": "m-2-15",
             "question": "If 5 is subtracted from twice a number, the result is 11. What is the number?",
-            "options": ["3", "8", "16", "32"],
-            "answer": "8"
+            "answer": "8",
+            "type": "grid-in"
           },
           {
             "id": "m-2-16",
             "question": "What is the value of | -5 - 3 |?",
             "options": ["-8", "-2", "2", "8"],
-            "answer": "8"
+            "answer": "8",
+            "type": "multiple-choice"
           },
           {
             "id": "m-2-17",
-            "question": "A function is defined by f(x) = x^2 - 4. For which value of x is f(x) = 0?",
-            "options": ["0", "2", "4", "16"],
-            "answer": "2"
+            "question": "A function is defined by f(x) = x^2 - 4. For which positive value of x is f(x) = 0?",
+            "answer": "2",
+            "type": "grid-in"
           },
           {
             "id": "m-2-18",
             "question": "The volume of a cube with a side length of 4 units is:",
             "options": ["12 cubic units", "16 cubic units", "48 cubic units", "64 cubic units"],
-            "answer": "64 cubic units"
+            "answer": "64 cubic units",
+            "type": "multiple-choice"
           },
           {
             "id": "m-2-19",
             "question": "In a right triangle, sin(θ) = 3/5. What is cos(θ)?",
             "options": ["3/5", "4/5", "5/4", "5/3"],
-            "answer": "4/5"
+            "answer": "4/5",
+            "type": "multiple-choice"
           },
           {
             "id": "m-2-20",
             "question": "A poll showed that 3 out of 5 people prefer brand A. If 300 people were polled, how many prefer brand A?",
-            "options": ["60", "120", "150", "180"],
-            "answer": "180"
+            "answer": "180",
+            "type": "grid-in"
           },
           {
             "id": "m-2-21",
             "question": "Solve for x in the system of equations: y = 2x and x + y = 9.",
-            "options": ["1", "2", "3", "6"],
-            "answer": "3"
+            "answer": "3",
+            "type": "grid-in"
           },
           {
             "id": "m-2-22",
             "question": "If an event has a probability of 0.25, what is the probability that it will not occur?",
             "options": ["0.25", "0.50", "0.75", "1.00"],
-            "answer": "0.75"
+            "answer": "0.75",
+            "type": "multiple-choice"
           }
         ]
       }

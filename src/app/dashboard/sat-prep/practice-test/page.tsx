@@ -12,13 +12,17 @@ import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import practiceTestData from '@/lib/sat-practice-test.json';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+
 
 type Question = {
     id: string;
     passage?: string;
     question: string;
-    options: string[];
+    options?: string[];
     answer: string;
+    type: 'multiple-choice' | 'grid-in';
 };
 
 type TestSection = {
@@ -40,6 +44,103 @@ type Score = {
     math: number;
     total: number;
 };
+
+const CalculatorComponent = () => {
+    const [display, setDisplay] = useState('0');
+    const [currentValue, setCurrentValue] = useState<number | null>(null);
+    const [operator, setOperator] = useState<string | null>(null);
+    const [waitingForOperand, setWaitingForOperand] = useState(false);
+
+    const handleDigitClick = (digit: string) => {
+        if (waitingForOperand) {
+            setDisplay(digit);
+            setWaitingForOperand(false);
+        } else {
+            setDisplay(display === '0' ? digit : display + digit);
+        }
+    };
+
+    const handleOperatorClick = (nextOperator: string) => {
+        const inputValue = parseFloat(display);
+
+        if (currentValue === null) {
+            setCurrentValue(inputValue);
+        } else if (operator) {
+            const result = performCalculation();
+            setCurrentValue(result);
+            setDisplay(String(result));
+        }
+
+        setWaitingForOperand(true);
+        setOperator(nextOperator);
+    };
+    
+    const performCalculation = (): number => {
+        const inputValue = parseFloat(display);
+        if (currentValue === null || operator === null) return inputValue;
+
+        switch (operator) {
+            case '+': return currentValue + inputValue;
+            case '-': return currentValue - inputValue;
+            case '*': return currentValue * inputValue;
+            case '/': return currentValue / inputValue;
+            default: return inputValue;
+        }
+    };
+
+    const handleEqualsClick = () => {
+        if (operator === null || currentValue === null) return;
+        const result = performCalculation();
+        setDisplay(String(result));
+        setCurrentValue(null);
+        setOperator(null);
+        setWaitingForOperand(false);
+    };
+    
+    const handleClear = () => {
+        setDisplay('0');
+        setCurrentValue(null);
+        setOperator(null);
+        setWaitingForOperand(false);
+    };
+
+    const handleDecimalClick = () => {
+        if (waitingForOperand) {
+             setDisplay('0.');
+             setWaitingForOperand(false);
+             return;
+        }
+        if (!display.includes('.')) {
+            setDisplay(display + '.');
+        }
+    };
+
+    const buttonClasses = "h-16 text-xl bg-muted hover:bg-muted/80";
+
+    return (
+        <div className="p-4 space-y-2 bg-background rounded-lg">
+            <div className="bg-muted text-right p-4 rounded-lg text-4xl font-mono break-all">{display}</div>
+            <div className="grid grid-cols-4 gap-2">
+                <Button onClick={handleClear} className={cn(buttonClasses, "col-span-2 bg-destructive/80 hover:bg-destructive")}>AC</Button>
+                <Button onClick={() => setDisplay(String(parseFloat(display) * -1))} className={buttonClasses}>+/-</Button>
+                <Button onClick={() => handleOperatorClick('/')} className={cn(buttonClasses, "bg-primary/80 hover:bg-primary")}>÷</Button>
+                
+                {['7','8','9'].map(d => <Button key={d} onClick={() => handleDigitClick(d)} className={buttonClasses}>{d}</Button>)}
+                <Button onClick={() => handleOperatorClick('*')} className={cn(buttonClasses, "bg-primary/80 hover:bg-primary")}>×</Button>
+
+                {['4','5','6'].map(d => <Button key={d} onClick={() => handleDigitClick(d)} className={buttonClasses}>{d}</Button>)}
+                <Button onClick={() => handleOperatorClick('-')} className={cn(buttonClasses, "bg-primary/80 hover:bg-primary")}>−</Button>
+
+                {['1','2','3'].map(d => <Button key={d} onClick={() => handleDigitClick(d)} className={buttonClasses}>{d}</Button>)}
+                <Button onClick={() => handleOperatorClick('+')} className={cn(buttonClasses, "bg-primary/80 hover:bg-primary")}>+</Button>
+
+                <Button onClick={() => handleDigitClick('0')} className={cn(buttonClasses, "col-span-2")}>0</Button>
+                <Button onClick={handleDecimalClick} className={buttonClasses}>.</Button>
+                <Button onClick={handleEqualsClick} className={cn(buttonClasses, "bg-primary/80 hover:bg-primary")}>=</Button>
+            </div>
+        </div>
+    )
+}
 
 export default function PracticeTestPage() {
     const [testData, setTestData] = useState<TestData | null>(null);
@@ -105,21 +206,16 @@ export default function PracticeTestPage() {
         if (currentQuestionIndex < currentModule.questions.length - 1) {
             setCurrentQuestionIndex(prev => prev + 1);
         } else {
-            // End of a module
             if (currentSectionKey === 'reading_writing' && currentModuleIndex === 0) {
-                // Finished R&W Module 1, go to Module 2
                 setCurrentModuleIndex(1);
                 setCurrentQuestionIndex(0);
             } else if (currentSectionKey === 'reading_writing' && currentModuleIndex === 1) {
-                // Finished R&W section, start break
-                setBreakTimeRemaining(10 * 60); // 10 minute break
+                setBreakTimeRemaining(10 * 60);
                 setTestState('break');
             } else if (currentSectionKey === 'math' && currentModuleIndex === 0) {
-                // Finished Math Module 1, go to Module 2
                 setCurrentModuleIndex(1);
                 setCurrentQuestionIndex(0);
             } else {
-                // Finished Math Module 2, end of test
                 calculateScore();
             }
         }
@@ -162,7 +258,7 @@ export default function PracticeTestPage() {
                                     <div className="space-y-2">
                                         <div className="flex items-start gap-2 p-3 rounded-md bg-red-500/10 text-red-700">
                                             <XCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
-                                            <div><span className="font-semibold">Your Answer:</span> {userAnswers[question.id]}</div>
+                                            <div><span className="font-semibold">Your Answer:</span> {userAnswers[question.id] || "No answer"}</div>
                                         </div>
                                          <div className="flex items-start gap-2 p-3 rounded-md bg-green-500/10 text-green-700">
                                             <CheckCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
@@ -231,8 +327,8 @@ export default function PracticeTestPage() {
                     </CardHeader>
                     <CardContent>
                         <ul className="text-left space-y-2 text-muted-foreground mb-8">
-                            <li className="flex items-center gap-2"><strong>Reading and Writing:</strong> 64 minutes, {practiceTestData.reading_writing.modules.reduce((acc, m) => acc + m.questions.length, 0)} questions</li>
-                            <li className="flex items-center gap-2"><strong>Math:</strong> 70 minutes, {practiceTestData.math.modules.reduce((acc, m) => acc + m.questions.length, 0)} questions</li>
+                            <li className="flex items-center gap-2"><strong>Reading and Writing:</strong> {practiceTestData.reading_writing.timeLimit} minutes, {practiceTestData.reading_writing.modules.reduce((acc, m) => acc + m.questions.length, 0)} questions</li>
+                            <li className="flex items-center gap-2"><strong>Math:</strong> {practiceTestData.math.timeLimit} minutes, {practiceTestData.math.modules.reduce((acc, m) => acc + m.questions.length, 0)} questions</li>
                             <li className="flex items-center gap-2"><strong>Total Time:</strong> Approximately 2 hours 14 minutes</li>
                         </ul>
                         <Button size="lg" className="w-full max-w-xs" onClick={() => setTestState('in-progress')}>
@@ -283,7 +379,7 @@ export default function PracticeTestPage() {
     const currentModule = currentSection.modules[currentModuleIndex];
     const currentQuestion = currentModule.questions[currentQuestionIndex];
     
-    if (!currentSection || !currentModule || !currentQuestion) {
+    if (!currentQuestion) {
        return (
             <div className="flex justify-center items-center h-full">
                 <p>Error loading test data. Please try again.</p>
@@ -305,6 +401,17 @@ export default function PracticeTestPage() {
                         {currentSection.title} - Module {currentModuleIndex + 1}
                     </h1>
                     <div className="flex items-center gap-4">
+                        {currentSectionKey === 'math' && (
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <Button variant="outline" size="icon"><Calculator/></Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader><DialogTitle>Calculator</DialogTitle></DialogHeader>
+                                    <CalculatorComponent/>
+                                </DialogContent>
+                            </Dialog>
+                        )}
                         <p className="text-sm text-muted-foreground">Time: --:--</p>
                         <Button variant="outline">End Section</Button>
                     </div>
@@ -322,21 +429,31 @@ export default function PracticeTestPage() {
                             <p>{currentQuestion.passage}</p>
                         </div>
                     )}
-                    <div className={cn(!currentQuestion.passage && "max-w-2xl mx-auto w-full")}>
-                        <p className="font-semibold mb-4 text-lg">{currentQuestion.question}</p>
-                        <RadioGroup 
-                            value={userAnswers[currentQuestion.id] || ''} 
-                            onValueChange={(value) => handleAnswerChange(currentQuestion.id, value)}
-                        >
-                            <div className="space-y-3">
-                                {currentQuestion.options.map((option, index) => (
-                                    <Label key={index} htmlFor={`option-${index}`} className="flex items-start gap-3 p-4 rounded-lg border hover:bg-muted cursor-pointer transition-colors">
-                                        <RadioGroupItem value={option} id={`option-${index}`} className="mt-1"/>
-                                        <span>{option}</span>
-                                    </Label>
-                                ))}
-                            </div>
-                        </RadioGroup>
+                    <div className={cn("flex flex-col justify-center", !currentQuestion.passage && "max-w-2xl mx-auto w-full")}>
+                        <p className="font-semibold mb-4 text-lg">{currentQuestionIndex + 1}. {currentQuestion.question}</p>
+                        
+                        {currentQuestion.type === 'multiple-choice' ? (
+                            <RadioGroup 
+                                value={userAnswers[currentQuestion.id] || ''} 
+                                onValueChange={(value) => handleAnswerChange(currentQuestion.id, value)}
+                            >
+                                <div className="space-y-3">
+                                    {currentQuestion.options?.map((option, index) => (
+                                        <Label key={index} htmlFor={`option-${index}`} className="flex items-start gap-3 p-4 rounded-lg border hover:bg-muted cursor-pointer transition-colors">
+                                            <RadioGroupItem value={option} id={`option-${index}`} className="mt-1"/>
+                                            <span>{option}</span>
+                                        </Label>
+                                    ))}
+                                </div>
+                            </RadioGroup>
+                        ) : (
+                            <Input
+                                placeholder="Enter your answer"
+                                value={userAnswers[currentQuestion.id] || ''}
+                                onChange={(e) => handleAnswerChange(currentQuestion.id, e.target.value)}
+                                className="text-lg p-4"
+                            />
+                        )}
                     </div>
                 </div>
             </main>
