@@ -57,14 +57,15 @@ export default function SquadManagementPage() {
         }
 
         const squadDocRef = doc(db, 'squads', squadId);
-        const unsubscribeSquad = onSnapshot(squadDocRef, async (docSnap) => {
+        
+        const fetchSquadData = async () => {
+            const docSnap = await getDoc(squadDocRef);
             if (docSnap.exists()) {
                 const squadData = { id: docSnap.id, ...docSnap.data() } as Squad;
-                
+
                 if (squadData.members.includes(user.uid)) {
                     setSquad(squadData);
 
-                    // Fetch member details individually
                     const memberPromises = squadData.members.map(async (memberId) => {
                         const userDocRef = doc(db, 'users', memberId);
                         const userDocSnap = await getDoc(userDocRef);
@@ -78,7 +79,7 @@ export default function SquadManagementPage() {
                         }
                         return null;
                     });
-
+                    
                     const membersData = (await Promise.all(memberPromises)).filter(Boolean) as Member[];
                     setMembers(membersData);
 
@@ -89,7 +90,20 @@ export default function SquadManagementPage() {
                 setSquad(null); // Squad doesn't exist
             }
             setLoading(false);
+        }
+
+        fetchSquadData();
+
+        // Still use onSnapshot for real-time updates after initial fetch
+        const unsubscribeSquad = onSnapshot(squadDocRef, async (docSnap) => {
+             if (docSnap.exists()) {
+                const squadData = { id: docSnap.id, ...docSnap.data() } as Squad;
+                if (squadData.members.includes(user.uid)) {
+                    setSquad(squadData);
+                }
+             }
         });
+
 
         return () => unsubscribeSquad();
     }, [user, authLoading, squadId, router]);
