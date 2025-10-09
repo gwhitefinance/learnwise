@@ -1,3 +1,4 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -25,9 +26,10 @@ service cloud.firestore {
 
     // CHAT SESSIONS collection
     match /chatSessions/{sessionId} {
+      // Publicly shared chats can be read by anyone
+      allow get: if resource.data.isPublic == true;
       allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow read: if (resource.data.isPublic == true) || (request.auth != null && request.auth.uid == resource.data.userId);
-      allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
       allow list: if request.auth != null 
                   && request.query.where('userId', '==', request.auth.uid).exists();
     }
@@ -40,12 +42,9 @@ service cloud.firestore {
                   && request.query.where('userId', '==', request.auth.uid).exists();
     }
 
-    // LEADERBOARD collection
+    // LEADERBOARD collection - allow read for anyone authenticated
     match /leaderBoard/{leaderBoardId} {
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow list: if request.auth != null 
-                  && request.query.where('userId', '==', request.auth.uid).exists();
+      allow read: if request.auth != null;
     }
 
     // LEARNING LAB collection
@@ -116,7 +115,13 @@ service cloud.firestore {
     match /squads/{squadId} {
       allow create: if request.auth != null && request.auth.uid == request.resource.data.ownerId;
       allow read: if request.auth != null && request.auth.uid in resource.data.members;
-      allow update, delete: if request.auth != null && request.auth.uid == resource.data.ownerId;
+      // Allow users to add themselves to the members list, but not change other fields
+      allow update: if request.auth != null && (
+                      (request.auth.uid == resource.data.ownerId) || 
+                      (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['members']) && 
+                       request.resource.data.members == resource.data.members.concat([request.auth.uid]))
+                    );
+      allow delete: if request.auth != null && request.auth.uid == resource.data.ownerId;
       allow list: if request.auth != null 
                   && request.query.where('members', 'array-contains', request.auth.uid).exists();
     }
