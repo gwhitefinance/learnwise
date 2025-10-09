@@ -67,7 +67,7 @@ const getIcon = (iconName: keyof typeof LucideIcons | undefined, defaultIcon: ke
     
     if (iconKey && LucideIcons[iconKey]) {
         const IconComponent = (LucideIcons as any)[iconKey];
-        if (typeof IconComponent === 'function') {
+        if (typeof IconComponent === 'function' || typeof IconComponent === 'object') {
             return IconComponent;
         }
     }
