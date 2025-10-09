@@ -3,58 +3,59 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    //
+    // collections for user-specific data
+    //
+    function isSignedIn() {
+      return request.auth != null;
+    }
     
     function isOwner(userId) {
       return request.auth.uid == userId;
     }
-    
+
     match /users/{userId} {
       allow read, write: if isOwner(userId);
     }
-    
+
     match /courses/{courseId} {
-      allow read, write: if isOwner(resource.data.userId);
-    }
-
-    match /courses/{courseId}/{subcollection}/{docId} {
-      allow read, write: if isOwner(get(/databases/$(database)/documents/courses/$(courseId)).data.userId);
-    }
-
-    match /projects/{projectId} {
-      allow read, write: if isOwner(resource.data.userId);
-    }
-
-    match /recentFiles/{fileId} {
-      allow read, write: if isOwner(resource.data.userId);
-    }
-
-    match /calendarEvents/{eventId} {
-      allow read, write: if isOwner(resource.data.userId);
+      allow read, write: if isSignedIn() && isOwner(resource.data.userId);
     }
     
     match /notes/{noteId} {
-      allow read, write: if isOwner(resource.data.userId);
+      allow read, write: if isSignedIn() && isOwner(resource.data.userId);
     }
 
+    match /roadmaps/{roadmapId} {
+        allow read, write: if isSignedIn() && isOwner(resource.data.userId);
+    }
+
+    match /projects/{projectId} {
+        allow read, write: if isSignedIn() && isOwner(resource.data.userId);
+    }
+    
     match /chatSessions/{sessionId} {
-      allow read, write: if isOwner(resource.data.userId);
-      allow get: if resource.data.isPublic == true;
+      allow read, write: if isSignedIn() && isOwner(resource.data.userId);
+    }
+
+    match /recentFiles/{fileId} {
+        allow read, write: if isSignedIn() && isOwner(resource.data.userId);
     }
     
     match /quizAttempts/{attemptId} {
-      allow read, write: if isOwner(resource.data.userId);
+        allow read, write: if isSignedIn() && isOwner(resource.data.userId);
     }
-    
+
     match /quizResults/{resultId} {
-        allow read, write: if isOwner(resource.data.userId);
+        allow read, write: if isSignedIn() && isOwner(resource.data.userId);
+    }
+
+    match /calendarEvents/{eventId} {
+        allow read, write: if isSignedIn() && isOwner(resource.data.userId);
     }
 
     match /satTestResults/{resultId} {
-        allow read, create: if isOwner(request.resource.data.userId);
-    }
-    
-    match /roadmaps/{roadmapId} {
-      allow read, write: if isOwner(resource.data.userId);
+        allow read, write: if isSignedIn() && isOwner(resource.data.userId);
     }
   }
 }
