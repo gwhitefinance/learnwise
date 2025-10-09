@@ -11,7 +11,7 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { generatePodcast } from '@/lib/actions';
-import { Skeleton } from '@/components/ui/skeleton';
+import Loading from './loading';
 
 type Course = {
     id: string;
