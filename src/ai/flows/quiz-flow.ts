@@ -6,7 +6,8 @@
  * - generateQuiz - A function that generates a quiz based on user input.
  */
 
-import { ai, googleAI } from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
+import { googleAI } from '@genkit-ai/googleai';
 import { GenerateQuizInput, GenerateQuizInputSchema, GenerateQuizOutput, GenerateQuizOutputSchema } from '@/ai/schemas/quiz-schema';
 
 const prompt = ai.definePrompt({

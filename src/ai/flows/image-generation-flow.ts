@@ -3,7 +3,8 @@
 /**
  * @fileOverview A flow for generating images from text prompts.
  */
-import { ai, googleAI } from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
+import { googleAI } from '@genkit-ai/googleai';
 import { GenerateImageInput, GenerateImageInputSchema, GenerateImageOutput, GenerateImageOutputSchema } from '@/ai/schemas/image-generation-schema';
 
 const generateImageFlow = ai.defineFlow(

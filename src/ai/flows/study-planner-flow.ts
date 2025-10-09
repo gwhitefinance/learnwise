@@ -6,7 +6,8 @@
  * 
  * - studyPlannerFlow - A function that takes a user prompt and returns a study plan.
  */
-import { ai, googleAI } from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
+import { googleAI } from '@genkit-ai/googleai';
 import { getCoursesTool } from '@/ai/tools/course-tool';
 import { z } from 'zod';
 
@@ -92,6 +93,3 @@ export const studyPlannerFlow = ai.defineFlow(
     return response.text ?? "I'm sorry, I am unable to answer that question. Please try rephrasing it.";
   }
 );
-
-
-

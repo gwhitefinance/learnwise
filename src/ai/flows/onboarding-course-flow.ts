@@ -5,7 +5,8 @@
  *
  * - generateOnboardingCourse - Generates a course with modules and chapters based on user interests.
  */
-import { ai, googleAI } from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
+import { googleAI } from '@genkit-ai/googleai';
 import { GenerateOnboardingCourseInputSchema, GenerateOnboardingCourseOutputSchema, GenerateOnboardingCourseInput, GenerateOnboardingCourseOutput } from '@/ai/schemas/onboarding-course-schema';
 
 const prompt = ai.definePrompt({

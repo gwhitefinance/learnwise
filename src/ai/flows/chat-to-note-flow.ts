@@ -5,7 +5,8 @@
  *
  * - generateNoteFromChat - A function that summarizes a chat and creates a note.
  */
-import { ai, googleAI } from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
+import { googleAI } from '@genkit-ai/googleai';
 import { z } from 'zod';
 import { GenerateNoteFromChatInputSchema, GenerateNoteFromChatOutputSchema, GenerateNoteFromChatInput, GenerateNoteFromChatOutput } from '@/ai/schemas/chat-to-note-schema';
 

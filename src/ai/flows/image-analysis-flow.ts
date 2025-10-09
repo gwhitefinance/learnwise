@@ -3,7 +3,8 @@
 /**
  * @fileOverview A flow for analyzing and summarizing content from an image.
  */
-import { ai, googleAI } from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
+import { googleAI } from '@genkit-ai/googleai';
 import { AnalyzeImageInput, AnalyzeImageInputSchema, AnalyzeImageOutput, AnalyzeImageOutputSchema } from '@/ai/schemas/image-analysis-schema';
 
 const analysisPrompt = ai.definePrompt({

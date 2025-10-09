@@ -1,7 +1,8 @@
 
 'use server';
 
-import { ai, googleAI } from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
+import { googleAI } from '@genkit-ai/googleai';
 import { GeneratePodcastInput, GeneratePodcastInputSchema, GeneratePodcastOutput, GeneratePodcastOutputSchema } from '@/ai/schemas/podcast-schema';
 import { generateAudio } from './text-to-speech-flow';
 import { z } from 'zod';

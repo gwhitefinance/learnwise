@@ -3,7 +3,8 @@
 /**
  * @fileOverview A flow for generating videos from text prompts.
  */
-import { ai, googleAI } from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
+import { googleAI } from '@genkit-ai/googleai';
 import { GenerateVideoInput, GenerateVideoInputSchema, GenerateVideoOutput, GenerateVideoOutputSchema } from '@/ai/schemas/video-generation-schema';
 import { MediaPart } from 'genkit';
 import { Readable } from 'stream';

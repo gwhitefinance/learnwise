@@ -3,7 +3,8 @@
 /**
  * @fileOverview A flow for generating explanations for quiz questions.
  */
-import { ai, googleAI } from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
+import { googleAI } from '@genkit-ai/googleai';
 import { z } from 'zod';
 import { GenerateExplanationInputSchema, GenerateExplanationOutputSchema, GenerateExplanationInput, GenerateExplanationOutput, PracticeQuestionSchema } from '@/ai/schemas/quiz-explanation-schema';
 

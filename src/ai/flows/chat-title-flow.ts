@@ -5,7 +5,8 @@
  *
  * - generateChatTitle - A function that generates a title based on conversation history.
  */
-import { ai, googleAI } from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
+import { googleAI } from '@genkit-ai/googleai';
 import { z } from 'zod';
 
 const MessageSchema = z.object({

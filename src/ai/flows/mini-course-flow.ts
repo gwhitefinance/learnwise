@@ -5,7 +5,8 @@
  *
  * - generateMiniCourse - A function that generates a course with modules and chapters based on learner type.
  */
-import { ai, googleAI } from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
+import { googleAI } from '@genkit-ai/googleai';
 import { GenerateMiniCourseInputSchema, GenerateMiniCourseOutputSchema, GenerateMiniCourseInput, GenerateMiniCourseOutput } from '@/ai/schemas/mini-course-schema';
 
 const prompt = ai.definePrompt({

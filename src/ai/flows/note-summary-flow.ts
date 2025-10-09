@@ -3,7 +3,8 @@
 /**
  * @fileOverview A flow for generating summaries of notes.
  */
-import { ai, googleAI } from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
+import { googleAI } from '@genkit-ai/googleai';
 import { z } from 'zod';
 import { GenerateSummaryInputSchema, GenerateSummaryOutputSchema, GenerateSummaryInput, GenerateSummaryOutput } from '@/ai/schemas/note-summary-schema';
 
