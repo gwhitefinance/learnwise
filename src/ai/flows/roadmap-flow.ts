@@ -71,12 +71,9 @@ const generateRoadmapFlow = ai.defineFlow(
             return output; // Success
         } catch (error: any) {
             lastError = error;
-            if (error.message.includes('503') && attempt < maxRetries - 1) {
-                console.warn(`Roadmap generation failed with 503, retrying... (Attempt ${attempt + 1})`);
+            console.warn(`Roadmap generation failed, retrying... (Attempt ${attempt + 1}/${maxRetries})`, error);
+            if (attempt < maxRetries - 1) {
                 await new Promise(resolve => setTimeout(resolve, 2000 * (attempt + 1))); // Wait longer each retry
-            } else {
-                 // For non-503 errors or if retries are exhausted, break the loop
-                break;
             }
         }
     }
