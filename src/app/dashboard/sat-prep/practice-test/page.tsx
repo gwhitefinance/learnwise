@@ -92,15 +92,10 @@ export default function PracticeTestPage() {
     };
 
     const handleContinueFromBreak = () => {
-        setCurrentQuestionIndex(0); 
-        if (currentSectionKey === 'reading_writing' && currentModuleIndex === 0) {
-            setCurrentModuleIndex(1);
-            setTestState('in-progress');
-        } else if (currentSectionKey === 'reading_writing' && currentModuleIndex === 1) {
-            setCurrentSectionKey('math');
-            setCurrentModuleIndex(0);
-            setTestState('in-progress');
-        }
+        setCurrentQuestionIndex(0);
+        setCurrentSectionKey('math');
+        setCurrentModuleIndex(0);
+        setTestState('in-progress');
     };
 
     const handleNext = () => {
@@ -110,20 +105,21 @@ export default function PracticeTestPage() {
         if (currentQuestionIndex < currentModule.questions.length - 1) {
             setCurrentQuestionIndex(prev => prev + 1);
         } else {
-            setCurrentQuestionIndex(0);
+            // End of a module
             if (currentSectionKey === 'reading_writing' && currentModuleIndex === 0) {
-                setBreakTimeRemaining(10 * 60);
-                setTestState('break');
+                // Finished R&W Module 1, go to Module 2
                 setCurrentModuleIndex(1);
+                setCurrentQuestionIndex(0);
             } else if (currentSectionKey === 'reading_writing' && currentModuleIndex === 1) {
-                setBreakTimeRemaining(25 * 60);
+                // Finished R&W section, start break
+                setBreakTimeRemaining(10 * 60); // 10 minute break
                 setTestState('break');
-                setCurrentSectionKey('math');
-                setCurrentModuleIndex(0);
             } else if (currentSectionKey === 'math' && currentModuleIndex === 0) {
+                // Finished Math Module 1, go to Module 2
                 setCurrentModuleIndex(1);
-                setTestState('in-progress');
+                setCurrentQuestionIndex(0);
             } else {
+                // Finished Math Module 2, end of test
                 calculateScore();
             }
         }
@@ -263,7 +259,7 @@ export default function PracticeTestPage() {
                         </div>
                         <CardTitle className="text-3xl mt-4">Break Time!</CardTitle>
                         <CardDescription className="mt-2 text-lg">
-                            You've completed a section. Take a short break.
+                            You've completed the Reading & Writing section. Take a 10-minute break.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -271,7 +267,7 @@ export default function PracticeTestPage() {
                             {Math.floor(breakTimeRemaining / 60)}:{(breakTimeRemaining % 60).toString().padStart(2, '0')}
                         </div>
                         <Button size="lg" onClick={handleContinueFromBreak}>
-                            Skip & Continue <SkipForward className="ml-2 h-5 w-5"/>
+                            Skip & Continue to Math <SkipForward className="ml-2 h-5 w-5"/>
                         </Button>
                     </CardContent>
                 </Card>
@@ -286,13 +282,19 @@ export default function PracticeTestPage() {
     const currentSection = testData[currentSectionKey];
     const currentModule = currentSection.modules[currentModuleIndex];
     const currentQuestion = currentModule.questions[currentQuestionIndex];
+    
+    if (!currentSection || !currentModule || !currentQuestion) {
+       return (
+            <div className="flex justify-center items-center h-full">
+                <p>Error loading test data. Please try again.</p>
+                <Button onClick={() => setTestState('not-started')} className="mt-4">Restart</Button>
+            </div>
+       );
+    }
+
     const totalQuestionsInSection = currentSection.modules.reduce((acc, mod) => acc + mod.questions.length, 0);
     const questionsAnsweredInSection = Object.keys(userAnswers).filter(qid => currentSection.modules.flatMap(m => m.questions).some(q => q.id === qid)).length;
     const progress = (questionsAnsweredInSection / totalQuestionsInSection) * 100;
-    
-    if (!currentQuestion) {
-       return <div className="flex justify-center items-center h-full"><Loader2 className="h-8 w-8 animate-spin" /></div>;
-    }
 
     return (
         <div className="max-w-4xl mx-auto p-4">
@@ -300,7 +302,7 @@ export default function PracticeTestPage() {
                 <div className="flex justify-between items-center">
                     <h1 className="text-2xl font-bold flex items-center gap-2">
                         {currentSectionKey === 'reading_writing' ? <BookOpen /> : <Calculator />}
-                        {currentSection.title}
+                        {currentSection.title} - Module {currentModuleIndex + 1}
                     </h1>
                     <div className="flex items-center gap-4">
                         <p className="text-sm text-muted-foreground">Time: --:--</p>
@@ -345,11 +347,14 @@ export default function PracticeTestPage() {
                 </Button>
                 <p className="text-sm text-muted-foreground">Question {currentQuestionIndex + 1} of {currentModule.questions.length}</p>
                 <Button variant="default" onClick={handleNext}>
-                    {currentQuestionIndex === currentModule.questions.length - 1 ? 'Finish Module' : 'Next'} <ArrowRight className="ml-2 h-4 w-4" />
+                    Next <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
             </footer>
         </div>
     );
 }
+
+    
+
 
     
