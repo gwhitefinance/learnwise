@@ -4,35 +4,15 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, BookOpen, Calculator, Pencil, Clock, CheckCircle } from 'lucide-react';
+import { BookOpen, Calculator, Loader2, RefreshCw } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { Badge } from '@/components/ui/badge';
-import Image from 'next/image';
-
-const practiceTools = [
-    {
-        title: "Full-Length Practice Tests",
-        description: "Simulate the real testing experience with official, full-length practice tests on Bluebook™.",
-        icon: <BookOpen className="h-8 w-8 text-primary" />,
-        href: "https://bluebook.app.collegeboard.org/",
-        cta: "Go to Bluebook"
-    },
-    {
-        title: "Question of the Day",
-        description: "Build a consistent practice habit with a new question every day.",
-        icon: <Pencil className="h-8 w-8 text-primary" />,
-        href: "https://satsuite.collegeboard.org/digital/daily-practice",
-        cta: "Practice Now"
-    },
-    {
-        title: "Free Practice on Khan Academy",
-        description: "Access thousands of official practice questions and personalized study plans.",
-        icon: <Image src="https://logos-world.net/wp-content/uploads/2021/04/Khan-Academy-Logo.png" width={32} height={32} alt="Khan Academy Logo" />,
-        href: "https://www.khanacademy.org/digital-sat",
-        cta: "Start on Khan Academy"
-    },
-];
+import { cn } from '@/lib/utils';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+import type { SatQuestion } from '@/ai/schemas/sat-question-schema';
+import { generateSatQuestion } from '@/lib/actions';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const readingWritingTopics = [
     { title: "Information and Ideas", description: "Comprehend, analyze, and synthesize information from texts and graphics." },
@@ -53,12 +33,44 @@ export default function SatPrepPage() {
     const [gradeLevel, setGradeLevel] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
+    const { toast } = useToast();
+    
+    const [question, setQuestion] = useState<SatQuestion | null>(null);
+    const [isLoadingQuestion, setIsLoadingQuestion] = useState(true);
+    const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+    const [isAnswered, setIsAnswered] = useState(false);
+    
+    const fetchQuestion = async () => {
+        setIsLoadingQuestion(true);
+        setSelectedAnswer(null);
+        setIsAnswered(false);
+        try {
+            const learnerType = localStorage.getItem('learnerType') as any || 'Reading/Writing';
+            const today = new Date().toDateString(); // Use date as a seed for daily consistency
+            const result = await generateSatQuestion({ seed: today, learnerType });
+            setQuestion(result);
+        } catch (error) {
+            console.error("Failed to fetch daily SAT question:", error);
+            toast({ variant: 'destructive', title: 'Could not load question.' });
+        } finally {
+            setIsLoadingQuestion(false);
+        }
+    };
     
     useEffect(() => {
         const storedGrade = localStorage.getItem('onboardingGradeLevel');
         setGradeLevel(storedGrade);
         setLoading(false);
+        fetchQuestion();
     }, []);
+
+    const handleSubmit = () => {
+        if (!selectedAnswer) {
+            toast({ variant: 'destructive', title: 'Please select an answer.'});
+            return;
+        }
+        setIsAnswered(true);
+    };
 
     if (loading) {
         return (
@@ -88,6 +100,8 @@ export default function SatPrepPage() {
         );
     }
 
+    const isCorrect = selectedAnswer === question?.correctAnswer;
+
     return (
         <div className="space-y-8">
             <div>
@@ -95,56 +109,98 @@ export default function SatPrepPage() {
                 <p className="text-muted-foreground">Your centralized dashboard for Digital SAT resources and practice.</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {practiceTools.map((tool, index) => (
-                    <Card key={index} className="flex flex-col">
-                        <CardHeader>
-                            <div className="p-3 bg-primary/10 rounded-lg w-fit text-primary mb-4">{tool.icon}</div>
-                            <CardTitle>{tool.title}</CardTitle>
-                            <CardDescription>{tool.description}</CardDescription>
-                        </CardHeader>
-                        <CardContent className="flex-grow flex items-end">
-                            <a href={tool.href} target="_blank" rel="noopener noreferrer" className="w-full">
-                                <Button className="w-full">
-                                    {tool.cta} <ArrowRight className="ml-2 h-4 w-4" />
-                                </Button>
-                            </a>
-                        </CardContent>
-                    </Card>
-                ))}
-            </div>
+            <Card>
+                <CardHeader>
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <CardTitle>Question of the Day</CardTitle>
+                            <CardDescription>A new question every day to build your skills.</CardDescription>
+                        </div>
+                        <Button variant="ghost" size="icon" onClick={fetchQuestion} disabled={isLoadingQuestion}>
+                            <RefreshCw className={cn("h-4 w-4", isLoadingQuestion && "animate-spin")} />
+                        </Button>
+                    </div>
+                </CardHeader>
+                <CardContent>
+                    {isLoadingQuestion ? (
+                         <div className="space-y-4">
+                            <Skeleton className="h-6 w-3/4" />
+                            <div className="space-y-2 pt-4">
+                                <Skeleton className="h-10 w-full" />
+                                <Skeleton className="h-10 w-full" />
+                                <Skeleton className="h-10 w-full" />
+                                <Skeleton className="h-10 w-full" />
+                            </div>
+                        </div>
+                    ) : question ? (
+                        <div>
+                            <div className="prose dark:prose-invert max-w-none">
+                                {question.passage && <p className="text-muted-foreground border-l-4 pl-4 italic">{question.passage}</p>}
+                                <p className="text-lg font-semibold">{question.question}</p>
+                            </div>
+
+                            <RadioGroup value={selectedAnswer ?? ''} onValueChange={setSelectedAnswer} disabled={isAnswered}>
+                                <div className="space-y-2 mt-4">
+                                {question.options.map((option, index) => {
+                                    const isCorrectOption = option === question.correctAnswer;
+                                    const isSelected = option === selectedAnswer;
+                                    
+                                    return (
+                                        <Label 
+                                            key={index}
+                                            className={cn(
+                                                "flex items-start gap-4 p-4 rounded-lg border transition-all",
+                                                isAnswered && isCorrectOption && "bg-green-500/10 border-green-500",
+                                                isAnswered && isSelected && !isCorrectOption && "bg-red-500/10 border-red-500",
+                                                !isAnswered && "cursor-pointer hover:bg-muted"
+                                            )}
+                                        >
+                                            <RadioGroupItem value={option} id={`option-${index}`} className="mt-1" />
+                                            <span className="flex-1">{option}</span>
+                                        </Label>
+                                    )
+                                })}
+                                </div>
+                            </RadioGroup>
+
+                            {!isAnswered ? (
+                                <Button onClick={handleSubmit} className="mt-6" disabled={!selectedAnswer}>Submit</Button>
+                            ) : (
+                                <div className="mt-6 p-4 rounded-lg bg-muted border">
+                                    <h4 className="font-bold text-lg mb-2">{isCorrect ? "Correct!" : "Not Quite..."}</h4>
+                                    <p className="text-sm text-muted-foreground">{question.explanation}</p>
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <p className="text-muted-foreground">Could not load today's question. Please try again.</p>
+                    )}
+                </CardContent>
+            </Card>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <Card>
                     <CardHeader>
-                        <CardTitle>Reading and Writing</CardTitle>
-                        <CardDescription>This section tests your comprehension, analysis, and editing skills across a range of texts.</CardDescription>
+                        <CardTitle className="flex items-center gap-2"><BookOpen/> Reading and Writing</CardTitle>
+                        <CardDescription>This section tests your comprehension, analysis, and editing skills.</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
+                    <CardContent className="space-y-2">
                         {readingWritingTopics.map(topic => (
-                             <div key={topic.title} className="p-4 rounded-lg bg-muted flex items-start gap-4">
-                                <CheckCircle className="h-5 w-5 text-primary mt-1 flex-shrink-0"/>
-                                <div>
-                                    <h4 className="font-semibold">{topic.title}</h4>
-                                    <p className="text-sm text-muted-foreground">{topic.description}</p>
-                                </div>
+                             <div key={topic.title} className="p-3 rounded-lg bg-muted/50">
+                                <h4 className="font-semibold text-sm">{topic.title}</h4>
                             </div>
                         ))}
                     </CardContent>
                 </Card>
                  <Card>
                     <CardHeader>
-                        <CardTitle>Math</CardTitle>
-                        <CardDescription>This section tests your skills in algebra, advanced math, problem-solving, and geometry.</CardDescription>
+                        <CardTitle className="flex items-center gap-2"><Calculator/> Math</CardTitle>
+                        <CardDescription>This section tests your skills in algebra, advanced math, and geometry.</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
+                    <CardContent className="space-y-2">
                         {mathTopics.map(topic => (
-                             <div key={topic.title} className="p-4 rounded-lg bg-muted flex items-start gap-4">
-                                <CheckCircle className="h-5 w-5 text-primary mt-1 flex-shrink-0"/>
-                                <div>
-                                    <h4 className="font-semibold">{topic.title}</h4>
-                                    <p className="text-sm text-muted-foreground">{topic.description}</p>
-                                </div>
+                             <div key={topic.title} className="p-3 rounded-lg bg-muted/50">
+                                <h4 className="font-semibold text-sm">{topic.title}</h4>
                             </div>
                         ))}
                     </CardContent>

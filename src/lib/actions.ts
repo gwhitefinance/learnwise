@@ -26,6 +26,7 @@ import { generateModuleContent } from '@/ai/flows/module-content-flow';
 import { generateImage } from '@/ai/flows/image-generation-flow';
 import { generateVideo } from '@/ai/flows/video-generation-flow';
 import { generatePodcastEpisode } from '@/ai/flows/podcast-flow';
+import { generateSatQuestion } from '@/ai/flows/sat-question-flow';
 
 
 // Re-exporting all AI functions as Server Actions
@@ -53,5 +54,6 @@ export {
     generateModuleContent,
     generateImage,
     generateVideo,
-    generatePodcastEpisode
+    generatePodcastEpisode,
+    generateSatQuestion
 };
