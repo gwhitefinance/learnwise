@@ -314,8 +314,7 @@ export default function ClientCoursePage() {
         </Button>
       </Link>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
-        <div className="md:col-span-2">
+      <div>
           <Card>
             <CardHeader>
               <div className="flex justify-between items-start">
@@ -338,17 +337,6 @@ export default function ClientCoursePage() {
               <p className="text-muted-foreground mt-4">{course.description}</p>
             </CardContent>
           </Card>
-        </div>
-        <div className="space-y-4">
-          <Image
-            src={course.imageUrl || 'https://picsum.photos/seed/course1/600/400'}
-            alt="Course thumbnail"
-            width={600}
-            height={400}
-            className="rounded-lg object-cover w-full"
-            data-ai-hint="online course"
-          />
-        </div>
       </div>
 
        <div className="space-y-4">
