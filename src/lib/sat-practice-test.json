@@ -365,7 +365,7 @@
         "id": 2,
         "difficulty": "medium-hard",
         "questions": [
-          {
+           {
             "id": "rw-2-1",
             "passage": "The novel 'Moby Dick' by Herman Melville is a complex work. On one level, it is an adventure story about a whaling voyage, filled with detailed descriptions of life at sea. On another, more profound level, it is a deep philosophical exploration of obsession, humanity's struggle against nature, and the ambiguous nature of good and evil.",
             "question": "The main purpose of the text is to",
@@ -730,9 +730,10 @@
         "questions": [
           {
             "id": "m-1-1",
-            "question": "If 3x - 7 = 8, what is the value of 6x?",
-            "answer": "30",
-            "type": "grid-in"
+            "question": "A painter can paint a fence in 4 hours. Another painter can paint the same fence in 6 hours. If they work together, how many hours will it take them to paint the fence?",
+            "options": ["2.4", "2.5", "3", "5"],
+            "answer": "2.4",
+            "type": "multiple-choice"
           },
           {
             "id": "m-1-2",
@@ -743,125 +744,133 @@
           },
           {
             "id": "m-1-3",
-            "question": "A store sells a shirt for $20. If the store offers a 15% discount, what is the final price of the shirt?",
-            "answer": "17",
-            "type": "grid-in"
+            "question": "The function f is defined by f(x) = x^2 - 5x + 6. At which of the following x values does the graph of y = f(x) cross the x-axis?",
+            "options": ["-6 and -1", "-3 and -2", "1 and 6", "2 and 3"],
+            "answer": "2 and 3",
+            "type": "multiple-choice"
           },
           {
             "id": "m-1-4",
-            "question": "If a car travels at an average speed of 60 miles per hour, how many minutes will it take to travel 90 miles?",
+            "question": "A car travels at an average speed of 60 miles per hour, how many minutes will it take to travel 90 miles?",
             "answer": "90",
             "type": "grid-in"
           },
           {
             "id": "m-1-5",
             "question": "What is the slope of the line that passes through the points (2, 5) and (6, 13)?",
+            "options": ["1/2", "2", "3/4", "4/3"],
             "answer": "2",
-            "type": "grid-in"
+            "type": "multiple-choice"
           },
           {
             "id": "m-1-6",
-            "question": "If y = 2x + 3 and x = 4, what is the value of y?",
-            "answer": "11",
+            "question": "If f(x) = 2x^2 + 3x - 1, what is the value of f(-2)?",
+            "answer": "1",
             "type": "grid-in"
           },
           {
             "id": "m-1-7",
-            "question": "The sum of two consecutive integers is 35. What is the smaller integer?",
-            "options": ["15", "16", "17", "18"],
-            "answer": "17",
+            "question": "A system of equations is given by y = 3x + 2 and y = -x + 6. What is the x-coordinate of the solution to the system?",
+            "options": ["1", "2", "3", "4"],
+            "answer": "1",
             "type": "multiple-choice"
           },
           {
             "id": "m-1-8",
-            "question": "A rectangular garden has a length of 12 feet and a width of 8 feet. What is its area in square feet?",
+            "question": "A rectangular garden has a length of 12 feet and a perimeter of 40 feet. What is its area in square feet?",
             "answer": "96",
             "type": "grid-in"
           },
           {
             "id": "m-1-9",
-            "question": "Solve for x: 5(x + 2) = 30",
+            "question": "If 2^a * 2^b = 16, what is one possible value for a + b?",
             "answer": "4",
             "type": "grid-in"
           },
           {
             "id": "m-1-10",
-            "question": "What is 25% of 200?",
-            "answer": "50",
-            "type": "grid-in"
+            "question": "A survey of 150 people found that 40% prefer watching movies at home. How many people prefer watching movies at home?",
+            "options": ["40", "50", "60", "75"],
+            "answer": "60",
+            "type": "multiple-choice"
           },
           {
             "id": "m-1-11",
-            "question": "The price of a computer is reduced from $800 to $600. What is the percent decrease?",
-            "answer": "25",
+            "question": "The price of a computer is reduced by 25% to $600. What was the original price of the computer?",
+            "answer": "800",
             "type": "grid-in"
           },
           {
             "id": "m-1-12",
-            "question": "If x^2 = 81 and x > 0, what is the value of x?",
-            "answer": "9",
-            "type": "grid-in"
+            "question": "If x^2 - y^2 = 77 and x + y = 11, what is the value of x - y?",
+            "options": ["7", "9", "11", "66"],
+            "answer": "7",
+            "type": "multiple-choice"
           },
           {
             "id": "m-1-13",
-            "question": "In a class of 30 students, 60% are girls. How many boys are in the class?",
-            "answer": "12",
+            "question": "In a class of 30 students, the ratio of boys to girls is 2:3. How many girls are in the class?",
+            "answer": "18",
             "type": "grid-in"
           },
           {
             "id": "m-1-14",
-            "question": "A triangle has angles measuring 30°, 60°, and x°. What is the value of x?",
-            "answer": "90",
-            "type": "grid-in"
+            "question": "An isosceles right triangle has a hypotenuse of length 10. What is the length of one of its legs?",
+            "options": ["5", "5√2", "10√2", "10"],
+            "answer": "5√2",
+            "type": "multiple-choice"
           },
           {
             "id": "m-1-15",
-            "question": "What is the value of 3^4?",
-            "answer": "81",
+            "question": "What is the value of 8^(2/3)?",
+            "answer": "4",
             "type": "grid-in"
           },
           {
             "id": "m-1-16",
-            "question": "A bag contains 5 red marbles and 3 blue marbles. What is the probability of randomly selecting a blue marble?",
-            "options": ["3/8", "5/8", "3/5", "1/2"],
-            "answer": "3/8",
+            "question": "A bag contains 5 red marbles and 3 blue marbles. If two marbles are selected at random without replacement, what is the probability that both are red?",
+            "options": ["25/64", "20/56", "25/56", "20/64"],
+            "answer": "20/56",
             "type": "multiple-choice"
           },
           {
             "id": "m-1-17",
-            "question": "If f(x) = 3x - 2, what is f(5)?",
-            "answer": "13",
-            "type": "grid-in"
-          },
-          {
-            "id": "m-1-18",
-            "question": "The average of three numbers is 20. If two of the numbers are 15 and 25, what is the third number?",
+            "question": "If f(x) = kx and f(3) = 12, what is the value of f(5)?",
             "answer": "20",
             "type": "grid-in"
           },
           {
+            "id": "m-1-18",
+            "question": "The average of five numbers is 30. If one number is removed, the average of the remaining four numbers is 28. What is the value of the number that was removed?",
+            "options": ["2", "29", "38", "40"],
+            "answer": "38",
+            "type": "multiple-choice"
+          },
+          {
             "id": "m-1-19",
-            "question": "What is the least common multiple of 6 and 8?",
+            "question": "What is the greatest common factor of 48 and 72?",
             "answer": "24",
             "type": "grid-in"
           },
           {
             "id": "m-1-20",
-            "question": "A line is represented by the equation y = -2x + 5. What is its y-intercept?",
-            "answer": "5",
-            "type": "grid-in"
+            "question": "A line perpendicular to y = (1/3)x + 2 passes through the point (1, 1). What is the y-intercept of this perpendicular line?",
+            "options": ["-3", "1/3", "4", "5/3"],
+            "answer": "4",
+            "type": "multiple-choice"
           },
           {
             "id": "m-1-21",
-            "question": "If a square has an area of 64 square units, what is the length of one of its sides?",
-            "answer": "8",
+            "question": "If a cube has a volume of 125 cubic units, what is the surface area of the cube?",
+            "answer": "150",
             "type": "grid-in"
           },
           {
             "id": "m-1-22",
-            "question": "Simplify the expression: (2x^2)(3x^3). If x=2, what is the value?",
-            "answer": "192",
-            "type": "grid-in"
+            "question": "If 3x - y = 4 and x + 2y = 6, what is the value of x?",
+            "options": ["2", "3", "4", "5"],
+            "answer": "2",
+            "type": "multiple-choice"
           }
         ]
       },
@@ -871,139 +880,147 @@
         "questions": [
            {
             "id": "m-2-1",
-            "question": "If 4(x - 1) = 20, what is the value of x?",
-            "answer": "6",
+            "question": "If 4^(x) * 2^(y) = 32 and 3^(x) * 9^(y) = 243, what is the value of x?",
+            "answer": "3",
             "type": "grid-in"
           },
           {
             "id": "m-2-2",
-            "question": "The perimeter of a square is 28 units. What is its area?",
-            "answer": "49",
-            "type": "grid-in"
+            "question": "A circle is inscribed in a square with a side length of 10. What is the area of the region inside the square but outside the circle?",
+            "options": ["100 - 100π", "100 - 25π", "20 - 10π", "100 - 50π"],
+            "answer": "100 - 25π",
+            "type": "multiple-choice"
           },
           {
             "id": "m-2-3",
-            "question": "A recipe calls for 2 cups of flour to make 12 cookies. How many cups of flour are needed to make 30 cookies?",
-            "answer": "5",
+            "question": "A store increases the price of an item by 20%, then offers a 20% discount on the new price. The final price is what percentage of the original price?",
+            "answer": "96",
             "type": "grid-in"
           },
           {
             "id": "m-2-4",
-            "question": "What is the median of the following set of numbers: 2, 8, 3, 9, 5, 3, 6?",
-            "answer": "5",
-            "type": "grid-in"
-          },
-          {
-            "id": "m-2-5",
-            "question": "Solve the inequality: 2x + 5 > 15",
-            "options": ["x > 5", "x < 5", "x > 10", "x < 10"],
-            "answer": "x > 5",
+            "question": "The mean of a set of 10 numbers is 15. If a number 'y' is added to the set, the new mean is 16. What is the value of y?",
+            "options": ["16", "25", "26", "31"],
+            "answer": "26",
             "type": "multiple-choice"
           },
           {
-            "id": "m-2-6",
-            "question": "If a right triangle has legs of length 6 and 8, what is the length of the hypotenuse?",
-            "answer": "10",
+            "id": "m-2-5",
+            "question": "For what value of c does the quadratic equation x^2 - 6x + c = 0 have exactly one real solution?",
+            "answer": "9",
             "type": "grid-in"
           },
           {
+            "id": "m-2-6",
+            "question": "In a right triangle, one angle is 90° and another is 30°. If the side opposite the 30° angle is 5, what is the length of the hypotenuse?",
+            "options": ["5√3", "10", "10√3", "2.5"],
+            "answer": "10",
+            "type": "multiple-choice"
+          },
+          {
             "id": "m-2-7",
-            "question": "Which of the following is equivalent to (x+3)^2?",
-            "options": ["x^2 + 9", "x^2 + 6x + 9", "x^2 + 3x + 9", "2x + 6"],
-            "answer": "x^2 + 6x + 9",
+            "question": "If (x+y)^2 = 100 and (x-y)^2 = 16, what is the value of xy?",
+            "options": ["21", "25", "84", "116"],
+            "answer": "21",
             "type": "multiple-choice"
           },
           {
             "id": "m-2-8",
-            "question": "A survey of 200 people found that 80 prefer coffee to tea. What percentage of people prefer coffee?",
-            "answer": "40",
+            "question": "A poll has a margin of error of ±3 percentage points. If the poll shows 52% of voters in favor of a candidate, what is the minimum possible percentage of voters who favor the candidate?",
+            "answer": "49",
             "type": "grid-in"
           },
           {
             "id": "m-2-9",
-            "question": "If x = 2 and y = 3, what is the value of 2x^2 + y?",
-            "answer": "11",
-            "type": "grid-in"
-          },
-          {
-            "id": "m-2-10",
-            "question": "The sum of the angles in a quadrilateral is:",
-            "options": ["90", "180", "360", "720"],
-            "answer": "360",
+            "question": "If x = 2 and y = -3, what is the value of |x - y| + |y - x|?",
+            "options": ["0", "5", "10", "2"],
+            "answer": "10",
             "type": "multiple-choice"
           },
           {
-            "id": "m-2-11",
-            "question": "A car's value depreciates by 10% each year. If a car is worth $20,000 now, what will it be worth in one year?",
-            "answer": "18000",
+            "id": "m-2-10",
+            "question": "The sum of the interior angles of a polygon is 1080 degrees. How many sides does the polygon have?",
+            "answer": "8",
             "type": "grid-in"
           },
           {
+            "id": "m-2-11",
+            "question": "A car's value depreciates by 10% each year. If a car is purchased for $20,000, what is its value after 3 years?",
+            "options": ["$14,000", "$14,580", "$16,000", "$16,200"],
+            "answer": "$14,580",
+            "type": "multiple-choice"
+          },
+          {
             "id": "m-2-12",
-            "question": "What is the next number in the sequence: 2, 5, 11, 23, ...?",
-            "answer": "47",
+            "question": "What is the next number in the geometric sequence: 3, 6, 12, 24, ...?",
+            "answer": "48",
             "type": "grid-in"
           },
           {
             "id": "m-2-13",
-            "question": "The equation of a line is 2y = 4x + 6. What is the slope of the line?",
-            "answer": "2",
-            "type": "grid-in"
+            "question": "The line y = mx + c is parallel to the line 2x + 3y = 6. What is the value of m?",
+            "options": ["-2/3", "2/3", "2", "-2"],
+            "answer": "-2/3",
+            "type": "multiple-choice"
           },
           {
             "id": "m-2-14",
-            "question": "If the radius of a circle is doubled, its area is multiplied by:",
-            "answer": "4",
-            "type": "grid-in"
+            "question": "If the surface area of a sphere is 36π, what is its volume?",
+            "options": ["9π", "18π", "36π", "72π"],
+            "answer": "36π",
+            "type": "multiple-choice"
           },
           {
             "id": "m-2-15",
-            "question": "If 5 is subtracted from twice a number, the result is 11. What is the number?",
-            "answer": "8",
+            "question": "If 10 is added to half a number, the result is 22. What is the number?",
+            "answer": "24",
             "type": "grid-in"
           },
           {
             "id": "m-2-16",
-            "question": "What is the value of | -5 - 3 |?",
-            "answer": "8",
+            "question": "If |2x - 3| = 7, what is one possible value for x?",
+            "answer": "5",
             "type": "grid-in"
           },
           {
             "id": "m-2-17",
-            "question": "A function is defined by f(x) = x^2 - 4. For which positive value of x is f(x) = 0?",
-            "answer": "2",
-            "type": "grid-in"
+            "question": "A function is defined by f(x) = ax^2 - b. If f(2) = 10 and f(-2) = 10, and a and b are positive integers, what is one possible value for 'a'?",
+            "options": ["1", "2", "3", "4"],
+            "answer": "3",
+            "type": "multiple-choice"
           },
           {
             "id": "m-2-18",
-            "question": "The volume of a cube with a side length of 4 units is:",
-            "answer": "64",
+            "question": "The volume of a cylinder is 90π cubic inches. If its height is 10 inches, what is its radius?",
+            "answer": "3",
             "type": "grid-in"
           },
           {
             "id": "m-2-19",
-            "question": "In a right triangle, sin(θ) = 3/5. What is cos(θ)?",
-            "options": ["3/5", "4/5", "5/4", "5/3"],
+            "question": "In a right triangle, tan(θ) = 4/3. What is sin(θ)?",
+            "options": ["3/5", "4/5", "3/4", "5/3"],
             "answer": "4/5",
             "type": "multiple-choice"
           },
           {
             "id": "m-2-20",
-            "question": "A poll showed that 3 out of 5 people prefer brand A. If 300 people were polled, how many prefer brand A?",
-            "answer": "180",
-            "type": "grid-in"
+            "question": "A poll showed that 3 out of 5 people prefer brand A. If 600 people were polled, how many more people prefer brand A than those who do not?",
+            "options": ["120", "240", "360", "400"],
+            "answer": "120",
+            "type": "multiple-choice"
           },
           {
             "id": "m-2-21",
-            "question": "Solve for x in the system of equations: y = 2x and x + y = 9.",
-            "answer": "3",
+            "question": "Solve for y in the system of equations: 3x - 2y = 7 and 2x + y = 14.",
+            "answer": "4",
             "type": "grid-in"
           },
           {
             "id": "m-2-22",
-            "question": "If an event has a probability of 0.25, what is the probability that it will not occur?",
-            "answer": "0.75",
-            "type": "grid-in"
+            "question": "A deck of 52 cards is shuffled. What is the probability of drawing a king or a heart?",
+            "options": ["1/13", "1/4", "17/52", "16/52"],
+            "answer": "16/52",
+            "type": "multiple-choice"
           }
         ]
       }
