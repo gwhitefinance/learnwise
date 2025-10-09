@@ -10,6 +10,7 @@
         "questions": [
           {
             "id": "rw-1-1",
+            "topic": "Craft and Structure",
             "passage": "The following text is from Charlotte Brontë's 1847 novel Jane Eyre. The narrator, Jane, is a young governess at Thornfield Hall.\n\nMy new life at Thornfield was quiet and serene. I had a pupil, Adèle, a lively little French girl, whom I found docile and intelligent. My duties were light, and my evenings were my own. Mrs. Fairfax, the housekeeper, was a placid, kind-hearted woman, who treated me more as a visitor than a dependent. The house itself was a grand, imposing structure, but it was not the architecture that captivated me; it was the sense of a real home, a sanctuary after the hardships of my childhood. The real charm of the house lay in its tranquil gardens and the ancient, sprawling library filled with books that seemed to whisper tales of bygone eras. It was in this library that I spent most of my free time, losing myself in stories and forgetting the sorrows of my past. It was a place of solace and intellectual freedom, a stark contrast to the oppressive environment of my earlier years at Lowood School.",
             "question": "Which choice best describes the main purpose of the text?",
             "options": [
@@ -23,6 +24,7 @@
           },
           {
             "id": "rw-1-2",
+            "topic": "Expression of Ideas",
             "passage": "A student is writing an essay about the painter Frida Kahlo. The student wants to emphasize the deeply personal nature of Kahlo's work. The student has made the following notes:\n- Frida Kahlo (1907-1954) was a prominent Mexican artist.\n- She is known for her vibrant and symbolic self-portraits.\n- Her work often depicts her physical and emotional pain.\n- The painting 'The Two Fridas' explores her dual identity (Mexican and European).\n- Kahlo was married to fellow artist Diego Rivera.",
             "question": "Which choice most effectively uses relevant information from the notes to accomplish this goal?",
             "options": [
@@ -36,6 +38,7 @@
           },
           {
             "id": "rw-1-3",
+            "topic": "Standard English Conventions",
             "passage": "The tardigrade, often called a 'water bear', is one of the most resilient animals known. These microscopic invertebrates can enter a state of suspended animation called cryptobiosis, allowing them to withstand extreme conditions that would be fatal to nearly all other life forms, ______ desiccation, freezing, radiation, and even the vacuum of space.",
             "question": "Which choice completes the text with the most logical and precise word or phrase?",
             "options": [
@@ -49,6 +52,7 @@
           },
           {
             "id": "rw-1-4",
+            "topic": "Expression of Ideas",
             "passage": "The city council has approved a new initiative to convert vacant lots into community gardens. Proponents argue that this will increase access to fresh produce, foster community engagement, and improve local aesthetics. ______, some residents have expressed concerns about the long-term maintenance and funding for these gardens, questioning whether the city has allocated sufficient resources for their upkeep.",
             "question": "Which choice completes the text with the most logical transition?",
             "options": [
@@ -62,6 +66,7 @@
           },
           {
             "id": "rw-1-5",
+            "topic": "Standard English Conventions",
             "passage": "When preparing for a presentation, it is crucial to not only know your material thoroughly but also to ______ your audience. Understanding their background, prior knowledge, and potential biases can help you tailor your message for maximum impact and comprehension.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
@@ -75,6 +80,7 @@
           },
           {
             "id": "rw-1-6",
+            "topic": "Standard English Conventions",
             "passage": "The Gobi Desert is a vast, arid region in Asia. It is the fifth-largest desert in the world and ______ by extreme temperatures, with very hot summers and frigid winters. Unlike sandy deserts, much of the Gobi is covered by bare rock.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
@@ -88,6 +94,7 @@
           },
           {
             "id": "rw-1-7",
+            "topic": "Standard English Conventions",
             "passage": "The discovery of penicillin by Alexander Fleming in 1928 is one of the most famous examples of serendipity in science. He returned from a vacation to find that a mold called Penicillium had contaminated a petri dish. Upon closer inspection, he noticed that the mold ______ the growth of the surrounding staphylococci bacteria.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
@@ -101,6 +108,7 @@
           },
           {
             "id": "rw-1-8",
+            "topic": "Expression of Ideas",
             "passage": "A student is writing an essay about the benefits of urban green spaces. The student has made these notes:\n- Community gardens provide fresh, affordable produce.\n- They offer educational opportunities for children about food sources.\n- Shared green spaces foster social interaction among neighbors.\n- Property values tend to increase near well-maintained parks.\n- Gardens can help reduce grocery bills.",
             "question": "The student wants to add a detail about the specific benefits of the community gardens. Which choice most effectively uses relevant information from the notes to accomplish this goal?",
             "options": [
@@ -114,6 +122,7 @@
           },
           {
             "id": "rw-1-9",
+            "topic": "Standard English Conventions",
             "passage": "The art of origami, the Japanese tradition of paper folding, transforms a simple sheet of paper into a complex sculpture without the use of cuts or glue. The process requires precision, patience, and ______ understanding of geometry to create intricate figures of animals, flowers, and other objects.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
@@ -127,6 +136,7 @@
           },
           {
             "id": "rw-1-10",
+            "topic": "Information and Ideas",
             "passage": "Bioluminescence, the production of light by living organisms, is a fascinating phenomenon. While common in marine life, it is much rarer on land. The firefly is perhaps the most well-known terrestrial example, ______ its light in complex flashing patterns to attract mates and prey.",
             "question": "Which choice completes the text with the most logical and precise word or phrase?",
             "options": [
@@ -140,6 +150,7 @@
           },
           {
             "id": "rw-1-11",
+            "topic": "Standard English Conventions",
             "passage": "The committee will ______ tomorrow at 10:00 AM to discuss the new budget proposal and vote on its approval. All members are expected to attend this critical meeting.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
@@ -153,6 +164,7 @@
           },
           {
             "id": "rw-1-12",
+            "topic": "Standard English Conventions",
             "passage": "Despite its small size, the hummingbird has an incredibly high metabolism, with a heart rate that can reach over 1,200 beats per minute. To survive, it must consume up to half ______ body weight in nectar each day, visiting hundreds of flowers.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
@@ -166,6 +178,7 @@
           },
           {
             "id": "rw-1-13",
+            "topic": "Craft and Structure",
             "passage": "The following text is from a speech by a city planner. 'We envision a city where public transportation is not just an alternative, but the preferred choice for all citizens. Our comprehensive plan to achieve this includes expanding the light rail network by 30%, adding 50 miles of dedicated bus lanes, and creating a more integrated, contactless ticketing system across all modes of transit.'",
             "question": "Which choice best describes the function of the underlined sentence in the text as a whole?",
             "options": [
@@ -179,6 +192,7 @@
           },
           {
             "id": "rw-1-14",
+            "topic": "Expression of Ideas",
             "passage": "In her groundbreaking 1962 book 'Silent Spring,' Rachel Carson meticulously documented the environmental harm caused by the indiscriminate use of pesticides like DDT. Her powerful writing and scientific evidence alerted the public to the dangers of chemical pollutants, ______ a nationwide environmental movement and leading to the creation of the U.S. Environmental Protection Agency.",
             "question": "Which choice completes the text with the most logical transition?",
             "options": [
@@ -192,6 +206,7 @@
           },
           {
             "id": "rw-1-15",
+            "topic": "Standard English Conventions",
             "passage": "The museum's new exhibit features a stunning collection of ancient Roman artifacts. Each item in the collection, from intricate mosaics and detailed sculptures to delicate glassware and currency, ______ a story about the daily life, commerce, and culture of the Roman Empire.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
@@ -205,6 +220,7 @@
           },
           {
             "id": "rw-1-16",
+            "topic": "Expression of Ideas",
             "passage": "A student is writing an argumentative paragraph about the importance of sleep for teenagers. The paragraph discusses how sufficient rest improves academic performance, regulates mood, and supports physical growth. Which choice would be the most effective concluding sentence?",
             "question": "Which choice most effectively concludes the paragraph?",
             "options": [
@@ -218,6 +234,7 @@
           },
           {
             "id": "rw-1-17",
+            "topic": "Standard English Conventions",
             "passage": "The process of photosynthesis is essential for life on Earth. Through this complex biochemical process, plants, algae, and some bacteria use sunlight, water, and carbon dioxide to create their own food in the form of glucose. A critical byproduct of this process is oxygen, ______ is released into the atmosphere and is vital for the respiration of most animals.",
             "question": "Which choice completes the text with the most logical and precise word or phrase?",
             "options": [
@@ -231,6 +248,7 @@
           },
           {
             "id": "rw-1-18",
+            "topic": "Standard English Conventions",
             "passage": "During the school's emergency evacuation drill, the procedure was clear: everyone had to exit the building calmly. When the alarm sounded unexpectedly, neither the students nor the teacher ______ prepared for the fire drill, leading to a moment of confusion before the training kicked in.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
@@ -244,6 +262,7 @@
           },
           {
             "id": "rw-1-19",
+            "topic": "Information and Ideas",
             "passage": "The team of scientists worked ______ for months, meticulously analyzing the vast datasets from the space probe. Their dedication and systematic approach ultimately paid off when they discovered an anomaly that led to a major new finding about planetary formation.",
             "question": "Which choice completes the text with the most logical and precise word or phrase?",
             "options": [
@@ -257,6 +276,7 @@
           },
           {
             "id": "rw-1-20",
+            "topic": "Expression of Ideas",
             "passage": "The Great Barrier Reef, the world's largest coral reef system, is a marvel of biodiversity, hosting thousands of species of fish, corals, and mollusks. ______ this ecological importance, it faces significant threats from climate change-induced coral bleaching and pollution from agricultural runoff.",
             "question": "Which choice completes the text with the most logical transition?",
             "options": [
@@ -270,6 +290,7 @@
           },
           {
             "id": "rw-1-21",
+            "topic": "Standard English Conventions",
             "passage": "The library's collection of rare, centuries-old manuscripts, which includes first editions and handwritten letters from historical figures, ______ a valuable and irreplaceable resource for historians and scholars from around the world.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
@@ -283,6 +304,7 @@
           },
           {
             "id": "rw-1-22",
+            "topic": "Information and Ideas",
             "passage": "To excel in creative writing, one must practice consistently. It's not enough to simply have good ideas; you must also develop the craft of ______ them effectively, using precise language and compelling structure to engage the reader.",
             "question": "Which choice completes the text with the most logical and precise word or phrase?",
             "options": [
@@ -296,6 +318,7 @@
           },
           {
             "id": "rw-1-23",
+            "topic": "Standard English Conventions",
             "passage": "The author used vivid, sensory imagery to describe the bustling marketplace scene, ______ the reader to almost smell the spices and hear the vendors' calls, effectively immersing them in the setting.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
@@ -309,6 +332,7 @@
           },
           {
             "id": "rw-1-24",
+            "topic": "Craft and Structure",
             "passage": "The following is from an art history text. 'The Impressionist movement of the 19th century marked a radical departure from the highly polished, detailed style of traditional European academic painting. Artists like Monet and Renoir focused on capturing the fleeting effects of light and atmosphere on a subject, often painting outdoors ('en plein air') to observe their subjects directly and using visible brushstrokes to convey movement and change.'",
             "question": "What is the main idea of the text?",
             "options": [
@@ -322,6 +346,7 @@
           },
           {
             "id": "rw-1-25",
+            "topic": "Information and Ideas",
             "passage": "The speaker's argument, while emotionally compelling, was ultimately ______ by a lack of concrete evidence and statistical data, making it difficult for the more skeptical members of the audience to accept his conclusions.",
             "question": "Which choice completes the text with the most logical and precise word or phrase?",
             "options": [
@@ -335,6 +360,7 @@
           },
           {
             "id": "rw-1-26",
+            "topic": "Standard English Conventions",
             "passage": "In the final analysis of the experiment's data, a number of previously overlooked factors ______ been found to have contributed significantly to the unexpected outcome.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
@@ -348,6 +374,7 @@
           },
           {
             "id": "rw-1-27",
+            "topic": "Standard English Conventions",
             "passage": "The old castle, ______ sits atop the hill overlooking the town, has been abandoned for centuries but remains a popular tourist attraction due to its haunting beauty and local legends.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
@@ -367,6 +394,7 @@
         "questions": [
            {
             "id": "rw-2-1",
+            "topic": "Craft and Structure",
             "passage": "The novel 'Moby Dick' by Herman Melville is a complex work. On one level, it is an adventure story about a whaling voyage, filled with detailed descriptions of life at sea. On another, more profound level, it is a deep philosophical exploration of obsession, humanity's struggle against nature, and the ambiguous nature of good and evil.",
             "question": "The main purpose of the text is to",
             "options": [
@@ -380,6 +408,7 @@
           },
           {
             "id": "rw-2-2",
+            "topic": "Standard English Conventions",
             "passage": "The city's new recycling program has been highly successful. In just six months, the amount of waste sent to landfills has decreased by 20 percent. This reduction is primarily due to the new single-stream system, ______ makes it unnecessary for residents to sort their recyclables, thereby increasing participation.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
@@ -393,6 +422,7 @@
           },
           {
             "id": "rw-2-3",
+            "topic": "Expression of Ideas",
             "passage": "A student is writing an argumentative essay claiming that schools should implement later start times for high school students. Which choice would provide the most effective evidence to support the student's claim?",
             "question": "Which choice provides the most effective evidence?",
             "options": [
@@ -406,6 +436,7 @@
           },
           {
             "id": "rw-2-4",
+            "topic": "Expression of Ideas",
             "passage": "The chameleon is famous for its ability to change color. ______ to popular belief, this change is not primarily for camouflage. Instead, it is most often a physiological reaction to mood, temperature, and light, as well as a method of communicating with other chameleons.",
             "question": "Which choice completes the text with the most logical transition?",
             "options": [
@@ -419,6 +450,7 @@
           },
           {
             "id": "rw-2-5",
+            "topic": "Standard English Conventions",
             "passage": "The group of hikers, exhausted after their long and arduous journey through the mountains, finally ______ down to rest by the cool, clear river, their spirits lifted by the tranquil scene.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
@@ -432,6 +464,7 @@
           },
           {
             "id": "rw-2-6",
+            "topic": "Standard English Conventions",
             "passage": "The final quality of the photographic prints ______ heavily on the type of paper used, with glossy and matte finishes producing markedly different textures and color saturations.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
@@ -445,6 +478,7 @@
           },
           {
             "id": "rw-2-7",
+            "topic": "Standard English Conventions",
             "passage": "The Sahara Desert, the largest hot desert in the world, presents a vast and intimidating landscape of sand dunes and rocky plateaus. This single desert ______ an area comparable to that of the entire United States, stretching across much of North Africa.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
@@ -458,6 +492,7 @@
           },
           {
             "id": "rw-2-8",
+            "topic": "Expression of Ideas",
             "passage": "A student is writing an essay about corporate adaptation. Which choice most effectively uses a specific example to support the argument that companies must evolve to stay relevant?",
             "question": "Which choice provides the best specific example?",
             "options": [
@@ -471,6 +506,7 @@
           },
           {
             "id": "rw-2-9",
+            "topic": "Information and Ideas",
             "passage": "In order to ______ their controversial hypothesis, the scientists needed to gather more data through a series of rigorous and repeatable experiments before they could publish their findings.",
             "question": "Which choice completes the text with the most logical and precise word or phrase?",
             "options": [
@@ -484,6 +520,7 @@
           },
           {
             "id": "rw-2-10",
+            "topic": "Standard English Conventions",
             "passage": "The coach's ______ instructions before the final play were clear and direct, focusing only on the essential actions needed to secure a victory: pass the ball to the open player.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
@@ -497,6 +534,7 @@
           },
           {
             "id": "rw-2-11",
+            "topic": "Standard English Conventions",
             "passage": "If I ______ in your position, I would seriously reconsider that decision, as it seems to have several long-term risks that have not been fully addressed.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
@@ -510,6 +548,7 @@
           },
           {
             "id": "rw-2-12",
+            "topic": "Standard English Conventions",
             "passage": "The long-term effect of the new social media policy on student morale and campus communication ______ yet to be seen, though initial reactions are mixed.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
@@ -523,6 +562,7 @@
           },
           {
             "id": "rw-2-13",
+            "topic": "Craft and Structure",
             "passage": "The following text is from an ecologist's field notes. 'The migration of the monarch butterfly is a remarkable multi-generational journey. These small insects travel thousands of miles from Canada and the United States to spend the winter in specific oyamel fir forests in Mexico. The most astonishing aspect is that the butterflies that arrive in Mexico are several generations removed from the ones that left, meaning no single butterfly completes the entire round trip.'",
             "question": "What is the primary focus of the text?",
             "options": [
@@ -536,6 +576,7 @@
           },
           {
             "id": "rw-2-14",
+            "topic": "Expression of Ideas",
             "passage": "The government has implemented stricter regulations on industrial emissions in an effort to combat air pollution. ______, many environmental groups argue that these measures do not go far enough to address the climate crisis and are calling for even more aggressive carbon-reduction targets.",
             "question": "Which choice completes the text with the most logical transition?",
             "options": [
@@ -549,6 +590,7 @@
           },
           {
             "id": "rw-2-15",
+            "topic": "Standard English Conventions",
             "passage": "The manager, along with all the senior team members who contributed to the report, ______ currently reviewing the final draft before the quarterly presentation.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
@@ -562,6 +604,7 @@
           },
           {
             "id": "rw-2-16",
+            "topic": "Expression of Ideas",
             "passage": "The student is writing a paragraph about the importance of sleep. The paragraph begins by stating that sleep is vital for health. Which of the following sentences would be the most effective follow-up to the topic sentence?",
             "question": "Which choice is the most effective topic sentence?",
             "options": [
@@ -575,6 +618,7 @@
           },
           {
             "id": "rw-2-17",
+            "topic": "Information and Ideas",
             "passage": "The ancient ruins were surprisingly well-preserved, ______ their age and their constant exposure to harsh desert elements over thousands of years.",
             "question": "Which choice completes the text with the most logical and precise word or phrase?",
             "options": [
@@ -588,6 +632,7 @@
           },
           {
             "id": "rw-2-18",
+            "topic": "Standard English Conventions",
             "passage": "To ______ a good first impression during a job interview, one should dress professionally, arrive on time, and communicate clearly and confidently.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
@@ -601,6 +646,7 @@
           },
           {
             "id": "rw-2-19",
+            "topic": "Information and Ideas",
             "passage": "The new project management software is designed to be highly ______, allowing teams of all sizes to customize workflows, integrations, and reporting dashboards to their specific needs.",
             "question": "Which choice completes the text with the most logical and precise word or phrase?",
             "options": [
@@ -614,6 +660,7 @@
           },
           {
             "id": "rw-2-20",
+            "topic": "Standard English Conventions",
             "passage": "The orchestra's performance was flawless, receiving a standing ovation. The conductor, ______ had rehearsed tirelessly with the musicians for months, took a final, grateful bow.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
@@ -627,6 +674,7 @@
           },
           {
             "id": "rw-2-21",
+            "topic": "Standard English Conventions",
             "passage": "Following the coach's rousing pre-game speech, everyone on the team ______ filled with excitement and determination for the upcoming championship game.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
@@ -640,6 +688,7 @@
           },
           {
             "id": "rw-2-22",
+            "topic": "Information and Ideas",
             "passage": "The journalist was praised for her ______ reporting, which involved months of poring over documents and conducting interviews to expose a complex web of corruption at the highest levels of government.",
             "question": "Which choice completes the text with the most logical and precise word or phrase?",
             "options": [
@@ -653,6 +702,7 @@
           },
           {
             "id": "rw-2-23",
+            "topic": "Standard English Conventions",
             "passage": "The Amazon rainforest, which ______ a vast area of South America and plays a crucial role in regulating the global climate, is home to an incredible diversity of plant and animal species.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
@@ -666,6 +716,7 @@
           },
           {
             "id": "rw-2-24",
+            "topic": "Craft and Structure",
             "passage": "The following is from a biography of Marie Curie. 'Marie Curie's relentless dedication to her research, despite the immense physical toll of working with radioactive materials without proper protection, led to discoveries that fundamentally changed our understanding of the atom. Her work not only earned her Nobel Prizes in two different scientific fields—Physics and Chemistry—but also established a legacy that continues to inspire scientists today.'",
             "question": "The text emphasizes which aspect of Marie Curie's career?",
             "options": [
@@ -679,6 +730,7 @@
           },
           {
             "id": "rw-2-25",
+            "topic": "Information and Ideas",
             "passage": "The defense attorney's argument, while emotionally compelling, was ultimately ______ by the prosecution's presentation of verifiable forensic evidence that directly contradicted her client's alibi.",
             "question": "Which choice completes the text with the most logical and precise word or phrase?",
             "options": [
@@ -692,6 +744,7 @@
           },
           {
             "id": "rw-2-26",
+            "topic": "Standard English Conventions",
             "passage": "In recent years, a number of factors, including increased global competition and shifting consumer preferences, ______ contributed to the company's declining market share.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
@@ -705,6 +758,7 @@
           },
           {
             "id": "rw-2-27",
+            "topic": "Standard English Conventions",
             "passage": "After reviewing all the applicants, this is the student ______ the scholarship committee has chosen for the award.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
@@ -714,6 +768,390 @@
               "that"
             ],
             "answer": "whom",
+            "type": "multiple-choice"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "difficulty": "easy-medium",
+        "questions": [
+          {
+            "id": "rw-3-1",
+            "topic": "Information and Ideas",
+            "passage": "The giant panda primarily subsists on bamboo. An adult panda may spend up to 12 hours a day eating, consuming as much as 28 pounds of bamboo to meet its nutritional needs. This specialized diet is a major factor in the species' vulnerability, as habitat loss that reduces bamboo forests directly threatens panda populations.",
+            "question": "According to the text, why is the giant panda's diet a significant factor in its vulnerability?",
+            "options": [
+              "Because bamboo is not nutritious.",
+              "Because it spends too much time eating.",
+              "Because it is highly dependent on a single food source that is threatened by habitat loss.",
+              "Because other animals compete with it for bamboo."
+            ],
+            "answer": "Because it is highly dependent on a single food source that is threatened by habitat loss.",
+            "type": "multiple-choice"
+          },
+          {
+            "id": "rw-3-2",
+            "topic": "Standard English Conventions",
+            "passage": "Each of the students in the class ______ responsible for completing their own research project before the deadline next Friday.",
+            "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
+            "options": [
+              "is",
+              "are",
+              "were",
+              "have been"
+            ],
+            "answer": "is",
+            "type": "multiple-choice"
+          },
+          {
+            "id": "rw-3-3",
+            "topic": "Craft and Structure",
+            "passage": "The documentary began with a stunning aerial shot of the Amazon rainforest, immediately establishing the vastness of the ecosystem. It then transitioned to close-up footage of individual species, from the smallest insects to the largest predators. Finally, it featured interviews with scientists and indigenous leaders, providing context and a call to action for conservation.",
+            "question": "Which choice best describes the overall structure of the text?",
+            "options": [
+              "It presents a problem and then offers multiple solutions.",
+              "It moves from a broad, general view to specific details and then to expert commentary.",
+              "It argues a point by disproving a series of counterarguments.",
+              "It presents events in reverse chronological order."
+            ],
+            "answer": "It moves from a broad, general view to specific details and then to expert commentary.",
+            "type": "multiple-choice"
+          },
+          {
+            "id": "rw-3-4",
+            "topic": "Standard English Conventions",
+            "passage": "The new manager is respected by her colleagues because she is decisive, knowledgeable, and ______. She always treats everyone fairly and listens to all perspectives.",
+            "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
+            "options": [
+              "she has impartiality",
+              "impartial",
+              "is impartial",
+              "impartially"
+            ],
+            "answer": "impartial",
+            "type": "multiple-choice"
+          },
+          {
+            "id": "rw-3-5",
+            "topic": "Expression of Ideas",
+            "passage": "A student is writing an essay about the history of the internet. Which sentence would be the most effective topic sentence for a paragraph about the early development phase?",
+            "question": "Which choice provides the most effective topic sentence?",
+            "options": [
+              "Today, the internet is used by billions of people worldwide for communication, commerce, and entertainment.",
+              "The internet has many positive and negative effects on society.",
+              "The origins of the internet can be traced back to ARPANET, a network developed in the late 1960s by the United States Department of Defense.",
+              "Social media is one of the most popular uses of the internet."
+            ],
+            "answer": "The origins of the internet can be traced back to ARPANET, a network developed in the late 1960s by the United States Department of Defense.",
+            "type": "multiple-choice"
+          },
+          {
+            "id": "rw-3-6",
+            "topic": "Standard English Conventions",
+            "passage": "The survey results clearly indicate a strong preference for the proposed park renovation; ______, the city council has yet to approve the funding required to begin the project.",
+            "question": "Which choice completes the text with the most logical and precise word or phrase?",
+            "options": [
+              "furthermore",
+              "consequently",
+              "however",
+              "for instance"
+            ],
+            "answer": "however",
+            "type": "multiple-choice"
+          },
+          {
+            "id": "rw-3-7",
+            "topic": "Information and Ideas",
+            "passage": "The term 'aquifer' refers to an underground layer of water-bearing permeable rock or unconsolidated materials (gravel, sand, or silt). These underground reservoirs are crucial sources of freshwater, supplying drinking water for billions of people and supporting agriculture through irrigation. However, many aquifers are being depleted faster than they can be naturally replenished, posing a significant challenge to water security.",
+            "question": "According to the text, what is the primary threat to aquifers?",
+            "options": [
+              "Water contamination from industrial waste.",
+              "The slow rate at which water filters through rock.",
+              "The water being used at a rate faster than it can be refilled.",
+              "The high cost of drilling wells to access the water."
+            ],
+            "answer": "The water being used at a rate faster than it can be refilled.",
+            "type": "multiple-choice"
+          },
+          {
+            "id": "rw-3-8",
+            "topic": "Standard English Conventions",
+            "passage": "The poetry of Emily Dickinson is characterized by its unique style, which includes short lines, unconventional capitalization, and extensive use of dashes. Her poems often explore themes of death, immortality, and ______. ",
+            "question": "Which choice completes the text with the most logical and precise word or phrase?",
+            "options": [
+              "nature",
+              "economics",
+              "politics",
+              "technology"
+            ],
+            "answer": "nature",
+            "type": "multiple-choice"
+          },
+          {
+            "id": "rw-3-9",
+            "topic": "Standard English Conventions",
+            "passage": "After the game, the team captain, as well as the coaches, ______ unavailable for comment, as they immediately went into a closed-door meeting.",
+            "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
+            "options": [
+              "was",
+              "were",
+              "be",
+              "are"
+            ],
+            "answer": "was",
+            "type": "multiple-choice"
+          },
+          {
+            "id": "rw-3-10",
+            "topic": "Expression of Ideas",
+            "passage": "A student is writing about the benefits of learning a musical instrument. The student has written the following sentence: 'Playing an instrument can improve cognitive function, such as memory and problem-solving skills, and it also enhances coordination and discipline.' Which choice is the most effective revision of the sentence?",
+            "question": "Which choice is the most effective revision?",
+            "options": [
+              "Learning an instrument is good for your brain and your body.",
+              "Playing music helps you think better, and it also makes you more disciplined.",
+              "The sentence is effective as written.",
+              "Cognitive functions like memory and problem-solving, along with coordination and discipline, are improved by playing an instrument."
+            ],
+            "answer": "The sentence is effective as written.",
+            "type": "multiple-choice"
+          },
+          {
+            "id": "rw-3-11",
+            "topic": "Standard English Conventions",
+            "passage": "The ancient city of Pompeii, ______ was buried under volcanic ash after the eruption of Mount Vesuvius in 79 AD, provides an extraordinary snapshot of Roman life.",
+            "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
+            "options": [
+              "that",
+              "which",
+              "it",
+              "who"
+            ],
+            "answer": "which",
+            "type": "multiple-choice"
+          },
+          {
+            "id": "rw-3-12",
+            "topic": "Information and Ideas",
+            "passage": "The research team's initial findings were promising, but the small sample size of the study made it difficult to draw ______ conclusions about the broader population.",
+            "question": "Which choice completes the text with the most logical and precise word or phrase?",
+            "options": [
+              "definitive",
+              "ambiguous",
+              "preliminary",
+              "irrelevant"
+            ],
+            "answer": "definitive",
+            "type": "multiple-choice"
+          },
+          {
+            "id": "rw-3-13",
+            "topic": "Standard English Conventions",
+            "passage": "The news about the upcoming festival, including the schedule of events and the list of performers, ______ posted on the town's official website this morning.",
+            "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
+            "options": [
+              "were",
+              "was",
+              "are",
+              "have been"
+            ],
+            "answer": "was",
+            "type": "multiple-choice"
+          },
+          {
+            "id": "rw-3-14",
+            "topic": "Craft and Structure",
+            "passage": "The author begins the article by recounting a personal anecdote about struggling to learn a new language. This story serves to establish a relatable context before the author delves into a technical discussion of linguistic theories and memory consolidation techniques.",
+            "question": "The author's use of a personal anecdote at the beginning of the article primarily serves to",
+            "options": [
+              "prove that the author is an expert in linguistics.",
+              "provide a detailed history of language acquisition.",
+              "engage the reader and provide a relatable entry point to a complex topic.",
+              "discredit other linguistic theories."
+            ],
+            "answer": "engage the reader and provide a relatable entry point to a complex topic.",
+            "type": "multiple-choice"
+          },
+          {
+            "id": "rw-3-15",
+            "topic": "Standard English Conventions",
+            "passage": "The company's success is due not only to its innovative products but also to ______ strategic marketing campaigns that have built a loyal customer base.",
+            "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
+            "options": [
+              "its'",
+              "it's",
+              "their",
+              "its"
+            ],
+            "answer": "its",
+            "type": "multiple-choice"
+          },
+          {
+            "id": "rw-3-16",
+            "topic": "Expression of Ideas",
+            "passage": "A student is revising the following sentence: 'The invention of the printing press in the 15th century was a very important event, and it changed the world a lot by making books cheaper and more available.' Which choice is the most concise and precise revision?",
+            "question": "Which choice is the most concise and precise revision?",
+            "options": [
+              "The printing press, invented in the 15th century, had a huge impact on the world by making books more accessible.",
+              "The 15th-century invention of the printing press revolutionized society by dramatically increasing the accessibility and affordability of books.",
+              "It was a big deal when the printing press was invented in the 15th century because it changed how people got books.",
+              "In the 15th century, the printing press was invented, which was important because it made books easier to get."
+            ],
+            "answer": "The 15th-century invention of the printing press revolutionized society by dramatically increasing the accessibility and affordability of books.",
+            "type": "multiple-choice"
+          },
+          {
+            "id": "rw-3-17",
+            "topic": "Standard English Conventions",
+            "passage": "The new documentary offers a ______ look at the life of the emperor penguin, capturing its struggle for survival in the harsh Antarctic environment with stunning cinematography and a moving narrative.",
+            "question": "Which choice completes the text with the most logical and precise word or phrase?",
+            "options": [
+              "superficial",
+              "comical",
+              "compelling",
+              "irrelevant"
+            ],
+            "answer": "compelling",
+            "type": "multiple-choice"
+          },
+          {
+            "id": "rw-3-18",
+            "topic": "Standard English Conventions",
+            "passage": "Neither the players nor their coach ______ satisfied with the team's performance in the first half of the game, so they discussed new strategies during halftime.",
+            "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
+            "options": [
+              "was",
+              "were",
+              "is",
+              "have been"
+            ],
+            "answer": "was",
+            "type": "multiple-choice"
+          },
+          {
+            "id": "rw-3-19",
+            "topic": "Information and Ideas",
+            "passage": "The theory of plate tectonics explains the movement of Earth's lithospheric plates. This movement is responsible for many of the planet's major geological features, including mountains, volcanoes, and earthquakes. The plates float on the semi-fluid asthenosphere beneath them, and their interactions at boundaries—converging, diverging, or transforming—shape the Earth's surface.",
+            "question": "According to the text, the movement of tectonic plates is directly responsible for which of the following?",
+            "options": [
+              "The Earth's magnetic field.",
+              "The formation of mountains and volcanoes.",
+              "The composition of the Earth's atmosphere.",
+              "The changing of the seasons."
+            ],
+            "answer": "The formation of mountains and volcanoes.",
+            "type": "multiple-choice"
+          },
+          {
+            "id": "rw-3-20",
+            "topic": "Standard English Conventions",
+            "passage": "The artist is known for her unconventional use of materials; for example, in her latest piece, she ______ scraps of discarded fabric and old newspapers to create a complex and textured collage.",
+            "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
+            "options": [
+              "used",
+              "using",
+              "is used",
+              "has been using"
+            ],
+            "answer": "used",
+            "type": "multiple-choice"
+          },
+          {
+            "id": "rw-3-21",
+            "topic": "Expression of Ideas",
+            "passage": "Many cities are investing in renewable energy sources. ______, solar panels are being installed on municipal buildings, and wind turbines are being constructed on the outskirts of town to generate clean power for residents.",
+            "question": "Which choice completes the text with the most logical transition?",
+            "options": [
+              "However",
+              "In conclusion",
+              "For example",
+              "Similarly"
+            ],
+            "answer": "For example",
+            "type": "multiple-choice"
+          },
+          {
+            "id": "rw-3-22",
+            "topic": "Standard English Conventions",
+            "passage": "The student, ______ ambition was to become a doctor, spent countless hours studying biology and chemistry to build a strong foundation for medical school.",
+            "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
+            "options": [
+              "who's",
+              "whose",
+              "who",
+              "whom"
+            ],
+            "answer": "whose",
+            "type": "multiple-choice"
+          },
+          {
+            "id": "rw-3-23",
+            "topic": "Craft and Structure",
+            "passage": "A research paper on climate change includes the following sentence: 'While some may argue that natural climate cycles are solely responsible for recent warming trends, this view overlooks the overwhelming scientific consensus that human activities, particularly the burning of fossil fuels, are the primary driver.'",
+            "question": "The primary function of this sentence is to",
+            "options": [
+              "introduce the main topic of the paper.",
+              "provide a concluding summary of the research.",
+              "present and immediately counter a potential opposing argument.",
+              "offer a detailed explanation of natural climate cycles."
+            ],
+            "answer": "present and immediately counter a potential opposing argument.",
+            "type": "multiple-choice"
+          },
+          {
+            "id": "rw-3-24",
+            "topic": "Information and Ideas",
+            "passage": "To maintain a healthy lifestyle, it is important to incorporate both a balanced diet and regular physical activity. A nutritious diet provides the essential vitamins and minerals the body needs, while exercise strengthens the cardiovascular system, improves muscle tone, and boosts mental well-being.",
+            "question": "Based on the text, what are the two key components of a healthy lifestyle?",
+            "options": [
+              "Taking vitamin supplements and getting enough sleep.",
+              "A balanced diet and regular physical activity.",
+              "Avoiding junk food and meditating daily.",
+              "Weightlifting and running marathons."
+            ],
+            "answer": "A balanced diet and regular physical activity.",
+            "type": "multiple-choice"
+          },
+          {
+            "id": "rw-3-25",
+            "topic": "Standard English Conventions",
+            "passage": "The team's victory in the championship was not just a result of their talent, but also a testament to ______ perseverance and teamwork throughout the entire season.",
+            "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
+            "options": [
+              "there",
+              "their",
+              "they're",
+              "its"
+            ],
+            "answer": "their",
+            "type": "multiple-choice"
+          },
+          {
+            "id": "rw-3-26",
+            "topic": "Standard English Conventions",
+            "passage": "Last year, my family and I ______ to the Grand Canyon and were amazed by the breathtaking views and the vastness of the landscape.",
+            "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
+            "options": [
+              "go",
+              "gone",
+              "went",
+              "going"
+            ],
+            "answer": "went",
+            "type": "multiple-choice"
+          },
+          {
+            "id": "rw-3-27",
+            "topic": "Expression of Ideas",
+            "passage": "A student is writing a short description of the planet Mars. Which choice is the most descriptive and engaging?",
+            "question": "Which choice is the most descriptive and engaging?",
+            "options": [
+              "Mars is the fourth planet from the sun.",
+              "Known as the Red Planet, Mars is a cold, desert world with a thin atmosphere, featuring enormous dust storms, polar ice caps, and the largest volcano in the solar system, Olympus Mons.",
+              "Mars has two small moons, Phobos and Deimos.",
+              "Scientists are interested in studying Mars."
+            ],
+            "answer": "Known as the Red Planet, Mars is a cold, desert world with a thin atmosphere, featuring enormous dust storms, polar ice caps, and the largest volcano in the solar system, Olympus Mons.",
             "type": "multiple-choice"
           }
         ]
@@ -730,6 +1168,7 @@
         "questions": [
           {
             "id": "m-1-1",
+            "topic": "Algebra",
             "question": "A painter can paint a fence in 4 hours. Another painter can paint the same fence in 6 hours. If they work together, how many hours will it take them to paint the fence?",
             "options": ["2.4", "2.5", "3", "5"],
             "answer": "2.4",
@@ -737,6 +1176,7 @@
           },
           {
             "id": "m-1-2",
+            "topic": "Geometry and Trigonometry",
             "question": "A circle has a circumference of 36π. What is the area of the circle?",
             "options": ["18π", "36π", "108π", "324π"],
             "answer": "324π",
@@ -744,6 +1184,7 @@
           },
           {
             "id": "m-1-3",
+            "topic": "Advanced Math",
             "question": "The function f is defined by f(x) = x^2 - 5x + 6. At which of the following x values does the graph of y = f(x) cross the x-axis?",
             "options": ["-6 and -1", "-3 and -2", "1 and 6", "2 and 3"],
             "answer": "2 and 3",
@@ -751,12 +1192,14 @@
           },
           {
             "id": "m-1-4",
+            "topic": "Problem Solving and Data Analysis",
             "question": "A car travels at an average speed of 60 miles per hour, how many minutes will it take to travel 90 miles?",
             "answer": "90",
             "type": "grid-in"
           },
           {
             "id": "m-1-5",
+            "topic": "Algebra",
             "question": "What is the slope of the line that passes through the points (2, 5) and (6, 13)?",
             "options": ["1/2", "2", "3/4", "4/3"],
             "answer": "2",
@@ -764,12 +1207,14 @@
           },
           {
             "id": "m-1-6",
+            "topic": "Advanced Math",
             "question": "If f(x) = 2x^2 + 3x - 1, what is the value of f(-2)?",
             "answer": "1",
             "type": "grid-in"
           },
           {
             "id": "m-1-7",
+            "topic": "Algebra",
             "question": "A system of equations is given by y = 3x + 2 and y = -x + 6. What is the x-coordinate of the solution to the system?",
             "options": ["1", "2", "3", "4"],
             "answer": "1",
@@ -777,18 +1222,22 @@
           },
           {
             "id": "m-1-8",
+            "topic": "Geometry and Trigonometry",
             "question": "A rectangular garden has a length of 12 feet and a perimeter of 40 feet. What is its area in square feet?",
             "answer": "96",
             "type": "grid-in"
           },
           {
             "id": "m-1-9",
+            "topic": "Advanced Math",
             "question": "If 2^a * 2^b = 16, what is one possible value for a + b?",
+            "options": ["2", "4", "8", "16"],
             "answer": "4",
-            "type": "grid-in"
+            "type": "multiple-choice"
           },
           {
             "id": "m-1-10",
+            "topic": "Problem Solving and Data Analysis",
             "question": "A survey of 150 people found that 40% prefer watching movies at home. How many people prefer watching movies at home?",
             "options": ["40", "50", "60", "75"],
             "answer": "60",
@@ -796,12 +1245,15 @@
           },
           {
             "id": "m-1-11",
+            "topic": "Problem Solving and Data Analysis",
             "question": "The price of a computer is reduced by 25% to $600. What was the original price of the computer?",
+            "options": ["750", "800", "825", "900"],
             "answer": "800",
-            "type": "grid-in"
+            "type": "multiple-choice"
           },
           {
             "id": "m-1-12",
+            "topic": "Advanced Math",
             "question": "If x^2 - y^2 = 77 and x + y = 11, what is the value of x - y?",
             "options": ["7", "9", "11", "66"],
             "answer": "7",
@@ -809,12 +1261,14 @@
           },
           {
             "id": "m-1-13",
+            "topic": "Problem Solving and Data Analysis",
             "question": "In a class of 30 students, the ratio of boys to girls is 2:3. How many girls are in the class?",
             "answer": "18",
             "type": "grid-in"
           },
           {
             "id": "m-1-14",
+            "topic": "Geometry and Trigonometry",
             "question": "An isosceles right triangle has a hypotenuse of length 10. What is the length of one of its legs?",
             "options": ["5", "5√2", "10√2", "10"],
             "answer": "5√2",
@@ -822,25 +1276,29 @@
           },
           {
             "id": "m-1-15",
+            "topic": "Advanced Math",
             "question": "What is the value of 8^(2/3)?",
             "answer": "4",
             "type": "grid-in"
           },
           {
             "id": "m-1-16",
+            "topic": "Problem Solving and Data Analysis",
             "question": "A bag contains 5 red marbles and 3 blue marbles. If two marbles are selected at random without replacement, what is the probability that both are red?",
-            "options": ["25/64", "20/56", "25/56", "20/64"],
-            "answer": "20/56",
+            "options": ["25/64", "5/14", "25/56", "5/8"],
+            "answer": "5/14",
             "type": "multiple-choice"
           },
           {
             "id": "m-1-17",
+            "topic": "Algebra",
             "question": "If f(x) = kx and f(3) = 12, what is the value of f(5)?",
             "answer": "20",
             "type": "grid-in"
           },
           {
             "id": "m-1-18",
+            "topic": "Problem Solving and Data Analysis",
             "question": "The average of five numbers is 30. If one number is removed, the average of the remaining four numbers is 28. What is the value of the number that was removed?",
             "options": ["2", "29", "38", "40"],
             "answer": "38",
@@ -848,12 +1306,14 @@
           },
           {
             "id": "m-1-19",
+            "topic": "Problem Solving and Data Analysis",
             "question": "What is the greatest common factor of 48 and 72?",
             "answer": "24",
             "type": "grid-in"
           },
           {
             "id": "m-1-20",
+            "topic": "Algebra",
             "question": "A line perpendicular to y = (1/3)x + 2 passes through the point (1, 1). What is the y-intercept of this perpendicular line?",
             "options": ["-3", "1/3", "4", "5/3"],
             "answer": "4",
@@ -861,12 +1321,14 @@
           },
           {
             "id": "m-1-21",
+            "topic": "Geometry and Trigonometry",
             "question": "If a cube has a volume of 125 cubic units, what is the surface area of the cube?",
             "answer": "150",
             "type": "grid-in"
           },
           {
             "id": "m-1-22",
+            "topic": "Algebra",
             "question": "If 3x - y = 4 and x + 2y = 6, what is the value of x?",
             "options": ["2", "3", "4", "5"],
             "answer": "2",
@@ -880,12 +1342,14 @@
         "questions": [
            {
             "id": "m-2-1",
-            "question": "If 4^(x) * 2^(y) = 32 and 3^(x) * 9^(y) = 243, what is the value of x?",
+            "topic": "Advanced Math",
+            "question": "If 4^x * 2^y = 32 and 3^x * 9^y = 243, what is the value of x?",
             "answer": "3",
             "type": "grid-in"
           },
           {
             "id": "m-2-2",
+            "topic": "Geometry and Trigonometry",
             "question": "A circle is inscribed in a square with a side length of 10. What is the area of the region inside the square but outside the circle?",
             "options": ["100 - 100π", "100 - 25π", "20 - 10π", "100 - 50π"],
             "answer": "100 - 25π",
@@ -893,12 +1357,14 @@
           },
           {
             "id": "m-2-3",
+            "topic": "Problem Solving and Data Analysis",
             "question": "A store increases the price of an item by 20%, then offers a 20% discount on the new price. The final price is what percentage of the original price?",
             "answer": "96",
             "type": "grid-in"
           },
           {
             "id": "m-2-4",
+            "topic": "Problem Solving and Data Analysis",
             "question": "The mean of a set of 10 numbers is 15. If a number 'y' is added to the set, the new mean is 16. What is the value of y?",
             "options": ["16", "25", "26", "31"],
             "answer": "26",
@@ -906,12 +1372,14 @@
           },
           {
             "id": "m-2-5",
+            "topic": "Advanced Math",
             "question": "For what value of c does the quadratic equation x^2 - 6x + c = 0 have exactly one real solution?",
             "answer": "9",
             "type": "grid-in"
           },
           {
             "id": "m-2-6",
+            "topic": "Geometry and Trigonometry",
             "question": "In a right triangle, one angle is 90° and another is 30°. If the side opposite the 30° angle is 5, what is the length of the hypotenuse?",
             "options": ["5√3", "10", "10√3", "2.5"],
             "answer": "10",
@@ -919,6 +1387,7 @@
           },
           {
             "id": "m-2-7",
+            "topic": "Advanced Math",
             "question": "If (x+y)^2 = 100 and (x-y)^2 = 16, what is the value of xy?",
             "options": ["21", "25", "84", "116"],
             "answer": "21",
@@ -926,12 +1395,14 @@
           },
           {
             "id": "m-2-8",
+            "topic": "Problem Solving and Data Analysis",
             "question": "A poll has a margin of error of ±3 percentage points. If the poll shows 52% of voters in favor of a candidate, what is the minimum possible percentage of voters who favor the candidate?",
             "answer": "49",
             "type": "grid-in"
           },
           {
             "id": "m-2-9",
+            "topic": "Advanced Math",
             "question": "If x = 2 and y = -3, what is the value of |x - y| + |y - x|?",
             "options": ["0", "5", "10", "2"],
             "answer": "10",
@@ -939,12 +1410,14 @@
           },
           {
             "id": "m-2-10",
+            "topic": "Geometry and Trigonometry",
             "question": "The sum of the interior angles of a polygon is 1080 degrees. How many sides does the polygon have?",
             "answer": "8",
             "type": "grid-in"
           },
           {
             "id": "m-2-11",
+            "topic": "Problem Solving and Data Analysis",
             "question": "A car's value depreciates by 10% each year. If a car is purchased for $20,000, what is its value after 3 years?",
             "options": ["$14,000", "$14,580", "$16,000", "$16,200"],
             "answer": "$14,580",
@@ -952,12 +1425,14 @@
           },
           {
             "id": "m-2-12",
+            "topic": "Advanced Math",
             "question": "What is the next number in the geometric sequence: 3, 6, 12, 24, ...?",
             "answer": "48",
             "type": "grid-in"
           },
           {
             "id": "m-2-13",
+            "topic": "Algebra",
             "question": "The line y = mx + c is parallel to the line 2x + 3y = 6. What is the value of m?",
             "options": ["-2/3", "2/3", "2", "-2"],
             "answer": "-2/3",
@@ -965,6 +1440,7 @@
           },
           {
             "id": "m-2-14",
+            "topic": "Geometry and Trigonometry",
             "question": "If the surface area of a sphere is 36π, what is its volume?",
             "options": ["9π", "18π", "36π", "72π"],
             "answer": "36π",
@@ -972,18 +1448,21 @@
           },
           {
             "id": "m-2-15",
+            "topic": "Algebra",
             "question": "If 10 is added to half a number, the result is 22. What is the number?",
             "answer": "24",
             "type": "grid-in"
           },
           {
             "id": "m-2-16",
+            "topic": "Algebra",
             "question": "If |2x - 3| = 7, what is one possible value for x?",
             "answer": "5",
             "type": "grid-in"
           },
           {
             "id": "m-2-17",
+            "topic": "Advanced Math",
             "question": "A function is defined by f(x) = ax^2 - b. If f(2) = 10 and f(-2) = 10, and a and b are positive integers, what is one possible value for 'a'?",
             "options": ["1", "2", "3", "4"],
             "answer": "3",
@@ -991,12 +1470,14 @@
           },
           {
             "id": "m-2-18",
+            "topic": "Geometry and Trigonometry",
             "question": "The volume of a cylinder is 90π cubic inches. If its height is 10 inches, what is its radius?",
             "answer": "3",
             "type": "grid-in"
           },
           {
             "id": "m-2-19",
+            "topic": "Geometry and Trigonometry",
             "question": "In a right triangle, tan(θ) = 4/3. What is sin(θ)?",
             "options": ["3/5", "4/5", "3/4", "5/3"],
             "answer": "4/5",
@@ -1004,6 +1485,7 @@
           },
           {
             "id": "m-2-20",
+            "topic": "Problem Solving and Data Analysis",
             "question": "A poll showed that 3 out of 5 people prefer brand A. If 600 people were polled, how many more people prefer brand A than those who do not?",
             "options": ["120", "240", "360", "400"],
             "answer": "120",
@@ -1011,15 +1493,191 @@
           },
           {
             "id": "m-2-21",
+            "topic": "Algebra",
             "question": "Solve for y in the system of equations: 3x - 2y = 7 and 2x + y = 14.",
             "answer": "4",
             "type": "grid-in"
           },
           {
             "id": "m-2-22",
+            "topic": "Problem Solving and Data Analysis",
             "question": "A deck of 52 cards is shuffled. What is the probability of drawing a king or a heart?",
             "options": ["1/13", "1/4", "17/52", "16/52"],
             "answer": "16/52",
+            "type": "multiple-choice"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "difficulty": "easy-medium",
+        "questions": [
+           {
+            "id": "m-3-1",
+            "topic": "Algebra",
+            "question": "If 5x + 6 = 10, what is the value of 10x + 3?",
+            "options": ["4", "9", "11", "23"],
+            "answer": "11",
+            "type": "multiple-choice"
+          },
+          {
+            "id": "m-3-2",
+            "topic": "Geometry and Trigonometry",
+            "question": "The angles of a triangle are in the ratio 2:3:4. What is the measure of the largest angle?",
+            "options": ["40", "60", "80", "90"],
+            "answer": "80",
+            "type": "multiple-choice"
+          },
+          {
+            "id": "m-3-3",
+            "topic": "Problem Solving and Data Analysis",
+            "question": "A shirt originally priced at $40 is on sale for 25% off. What is the sale price of the shirt?",
+            "answer": "30",
+            "type": "grid-in"
+          },
+          {
+            "id": "m-3-4",
+            "topic": "Algebra",
+            "question": "Which of the following ordered pairs (x,y) satisfies the inequality 5x - 3y < 4?",
+            "options": ["(1,1)", "(2,2)", "(3,3)", "(4,4)"],
+            "answer": "(1,1)",
+            "type": "multiple-choice"
+          },
+          {
+            "id": "m-3-5",
+            "topic": "Advanced Math",
+            "question": "If x > 0 and x^2 - 12 = 4, what is the value of x?",
+            "answer": "4",
+            "type": "grid-in"
+          },
+          {
+            "id": "m-3-6",
+            "topic": "Algebra",
+            "question": "If y = kx, where k is a constant, and y = 24 when x = 6, what is the value of y when x = 5?",
+            "options": ["15", "20", "23", "25"],
+            "answer": "20",
+            "type": "multiple-choice"
+          },
+          {
+            "id": "m-3-7",
+            "topic": "Problem Solving and Data Analysis",
+            "question": "The median of the numbers 8, 10, 12, 14, 16 is equal to the mean of the same set of numbers. What is the value?",
+            "answer": "12",
+            "type": "grid-in"
+          },
+          {
+            "id": "m-3-8",
+            "topic": "Geometry and Trigonometry",
+            "question": "A right circular cylinder has a height of 5 and a radius of 2. What is its volume?",
+            "options": ["10π", "20π", "25π", "100π"],
+            "answer": "20π",
+            "type": "multiple-choice"
+          },
+          {
+            "id": "m-3-9",
+            "topic": "Advanced Math",
+            "question": "If (a - b)^2 = 36 and (a + b)^2 = 16, what is the value of ab?",
+            "options": ["-5", "5", "10", "25"],
+            "answer": "-5",
+            "type": "multiple-choice"
+          },
+          {
+            "id": "m-3-10",
+            "topic": "Algebra",
+            "question": "The equation of line L is y = -2x + 5. Line M is parallel to line L and passes through the point (1, -1). What is the equation of line M?",
+            "options": ["y = -2x + 1", "y = (1/2)x - 1.5", "y = -2x - 1", "y = 2x - 3"],
+            "answer": "y = -2x + 1",
+            "type": "multiple-choice"
+          },
+          {
+            "id": "m-3-11",
+            "topic": "Problem Solving and Data Analysis",
+            "question": "A recipe calls for 2 cups of flour to make 12 cookies. How many cups of flour are needed to make 30 cookies?",
+            "answer": "5",
+            "type": "grid-in"
+          },
+          {
+            "id": "m-3-12",
+            "topic": "Advanced Math",
+            "question": "If x^2 + y^2 = 25 and x=3, what is one possible value for y?",
+            "options": ["2", "4", "5", "16"],
+            "answer": "4",
+            "type": "multiple-choice"
+          },
+          {
+            "id": "m-3-13",
+            "topic": "Geometry and Trigonometry",
+            "question": "The length of a rectangle is twice its width. If the perimeter of the rectangle is 36, what is the width?",
+            "answer": "6",
+            "type": "grid-in"
+          },
+          {
+            "id": "m-3-14",
+            "topic": "Problem Solving and Data Analysis",
+            "question": "In a school of 800 students, 30% are in the band. Of those in the band, 25% play a brass instrument. How many students play a brass instrument?",
+            "options": ["60", "80", "200", "240"],
+            "answer": "60",
+            "type": "multiple-choice"
+          },
+          {
+            "id": "m-3-15",
+            "topic": "Algebra",
+            "question": "If 2(x + 1) = 3(x - 2), what is the value of x?",
+            "answer": "8",
+            "type": "grid-in"
+          },
+          {
+            "id": "m-3-16",
+            "topic": "Advanced Math",
+            "question": "What is the value of the expression (x - y)(x + y) when x = 5 and y = 4?",
+            "options": ["1", "9", "16", "41"],
+            "answer": "9",
+            "type": "multiple-choice"
+          },
+          {
+            "id": "m-3-17",
+            "topic": "Geometry and Trigonometry",
+            "question": "The area of a circle is 49π. What is its circumference?",
+            "options": ["7π", "14π", "21π", "49π"],
+            "answer": "14π",
+            "type": "multiple-choice"
+          },
+          {
+            "id": "m-3-18",
+            "topic": "Problem Solving and Data Analysis",
+            "question": "A machine produces 150 items in 6 minutes. At this constant rate, how many items can it produce in 20 minutes?",
+            "answer": "500",
+            "type": "grid-in"
+          },
+          {
+            "id": "m-3-19",
+            "topic": "Algebra",
+            "question": "A line passes through the points (0, 3) and (2, 7). What is the slope of the line?",
+            "options": ["1/2", "2", "3", "4"],
+            "answer": "2",
+            "type": "multiple-choice"
+          },
+          {
+            "id": "m-3-20",
+            "topic": "Advanced Math",
+            "question": "If f(x) = x^3 - x^2, what is f(-1)?",
+            "options": ["-2", "0", "1", "2"],
+            "answer": "-2",
+            "type": "multiple-choice"
+          },
+          {
+            "id": "m-3-21",
+            "topic": "Geometry and Trigonometry",
+            "question": "A right triangle has legs of length 6 and 8. What is the length of the hypotenuse?",
+            "answer": "10",
+            "type": "grid-in"
+          },
+          {
+            "id": "m-3-22",
+            "topic": "Problem Solving and Data Analysis",
+            "question": "The average of three numbers is 20. If two of the numbers are 15 and 25, what is the third number?",
+            "options": ["20", "25", "30", "35"],
+            "answer": "20",
             "type": "multiple-choice"
           }
         ]
