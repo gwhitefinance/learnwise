@@ -4,6 +4,7 @@
 import { ai } from '@/ai/genkit';
 import { GeneratePodcastInput, GeneratePodcastInputSchema, GeneratePodcastOutput, GeneratePodcastOutputSchema } from '@/ai/schemas/podcast-schema';
 import { generateAudio } from './text-to-speech-flow';
+import { z } from 'zod';
 
 const podcastPrompt = ai.definePrompt({
     name: 'podcastGenerationPrompt',
