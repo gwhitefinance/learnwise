@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
-import { doc, onSnapshot, getDocs, collection, query, where } from 'firebase/firestore';
+import { doc, onSnapshot, getDoc, collection, query, where } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Users, Link as LinkIcon, Trash2, Shield, MoreVertical, Copy, Check, Settings } from 'lucide-react';
 import Loading from './loading';
@@ -15,6 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 
 type Squad = {
     id: string;
@@ -63,22 +64,29 @@ export default function SquadManagementPage() {
                 if (squadData.members.includes(user.uid)) {
                     setSquad(squadData);
 
-                    // Fetch member details
-                    const usersRef = collection(db, 'users');
-                    const membersQuery = query(usersRef, where('uid', 'in', squadData.members));
-                    const membersSnapshot = await getDocs(membersQuery);
-                    const membersData = membersSnapshot.docs.map(doc => ({
-                        uid: doc.id,
-                        displayName: doc.data().displayName,
-                        photoURL: doc.data().photoURL
-                    } as Member));
+                    // Fetch member details individually
+                    const memberPromises = squadData.members.map(async (memberId) => {
+                        const userDocRef = doc(db, 'users', memberId);
+                        const userDocSnap = await getDoc(userDocRef);
+                        if (userDocSnap.exists()) {
+                            const userData = userDocSnap.data();
+                            return {
+                                uid: memberId,
+                                displayName: userData.displayName || 'Anonymous',
+                                photoURL: userData.photoURL
+                            } as Member;
+                        }
+                        return null;
+                    });
+
+                    const membersData = (await Promise.all(memberPromises)).filter(Boolean) as Member[];
                     setMembers(membersData);
 
                 } else {
-                    setSquad(null);
+                    setSquad(null); // User is not a member
                 }
             } else {
-                setSquad(null);
+                setSquad(null); // Squad doesn't exist
             }
             setLoading(false);
         });
