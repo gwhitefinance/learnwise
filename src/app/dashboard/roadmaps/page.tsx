@@ -71,14 +71,22 @@ const getIcon = (iconName: keyof typeof LucideIcons | undefined, defaultIcon: ke
     return LucideIcons[defaultIcon] as React.ElementType;
 };
 
-const NumberIcon = ({ number }: { number: number }) => {
-    const numberMap: Record<number, keyof typeof LucideIcons> = {
-        1: 'Filter1', 2: 'Filter2', 3: 'Filter3', 4: 'Filter4', 5: 'Filter5',
-        6: 'Filter6', 7: 'Filter7', 8: 'Filter8', 9: 'Filter9'
-    };
-    const Icon = number > 0 && number < 10 ? getIcon(numberMap[number], 'GitMerge') : getIcon('GitMerge', 'GitMerge');
-    return <Icon className="w-8 h-8" />;
-};
+const CarIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M19.5 14.5A2.5 2.5 0 0 1 17 17H7a2.5 2.5 0 0 1-2.5-2.5V12h15v2.5Z"/>
+        <path d="M19.33 10.13A2 2 0 0 0 17.5 9H6.5a2 2 0 0 0-1.83 1.13L3 14h18l-1.67-3.87Z"/>
+        <path d="M7 9a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v0"/>
+        <circle cx="8" cy="17" r="2"/>
+        <circle cx="16" cy="17" r="2"/>
+    </svg>
+)
+
+const badgeColors = [
+    { bg: "bg-green-100 dark:bg-green-900/50", border: "border-green-500", text: "text-green-500" },
+    { bg: "bg-blue-100 dark:bg-blue-900/50", border: "border-blue-500", text: "text-blue-500" },
+    { bg: "bg-purple-100 dark:bg-purple-900/50", border: "border-purple-500", text: "text-purple-500" },
+    { bg: "bg-orange-100 dark:bg-orange-900/50", border: "border-orange-500", text: "text-orange-500" },
+];
 
 
 export default function RoadmapsPage() {
@@ -288,7 +296,7 @@ export default function RoadmapsPage() {
   return (
     <>
       <div className="space-y-6">
-        <header className="flex items-center justify-between">
+        <header>
             <div>
               <h1 className="text-3xl font-bold tracking-tight">My Study Roadmap</h1>
               <p className="text-muted-foreground">
@@ -296,9 +304,9 @@ export default function RoadmapsPage() {
               </p>
             </div>
              {courses.length > 0 && (
-                <div className="relative">
+                <div className="relative mt-4">
                     <Select value={activeCourseId ?? undefined} onValueChange={(value) => setActiveCourseId(value)}>
-                      <SelectTrigger className="w-full md:w-[300px] mt-4 md:mt-0">
+                      <SelectTrigger className="w-full md:w-[300px]">
                         <SelectValue placeholder="Select a course..." />
                       </SelectTrigger>
                       <SelectContent>
@@ -314,27 +322,14 @@ export default function RoadmapsPage() {
         </header>
 
         {authLoading ? (
-             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 space-y-8">
-                <Skeleton className="h-8 w-32" />
-                <Skeleton className="h-96 w-full" />
-                </div>
-                <div className="space-y-8">
-                <Skeleton className="h-8 w-32" />
-                <div className="grid gap-4 md:grid-cols-2">
-                    <Skeleton className="h-40" />
-                    <Skeleton className="h-40" />
-                    <Skeleton className="h-40" />
-                </div>
-                </div>
-            </div>
+             <Loading />
         ) : courses.length > 0 ? (
             activeCourseId && courses.find((c) => c.id === activeCourseId) ? (
                  (() => {
                     const course = courses.find((c) => c.id === activeCourseId)!;
                     const roadmap = roadmaps[course.id];
                     const courseIsLoading = isLoading[course.id];
-      
+
                     if (!roadmap && !courseIsLoading) {
                       return (
                         <Card className="text-center p-12 col-span-full">
@@ -352,57 +347,62 @@ export default function RoadmapsPage() {
                     }
       
                     if (roadmap) {
+                      const completedCount = roadmap.milestones.filter(m => m.completed).length;
+                      const carPosition = completedCount > 0 ? (completedCount / roadmap.milestones.length) : 0;
+                      
                       return (
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-start">
-                           <div className="lg:col-span-2 relative">
-                                <svg className="absolute top-0 left-0 w-full h-full pointer-events-none" preserveAspectRatio="none">
-                                    <motion.path 
-                                        d="M 40 100 C 200 100, 200 290, 380 290 S 600 290, 600 480" 
-                                        fill="none" 
-                                        stroke="hsl(var(--border))"
-                                        strokeWidth="2"
-                                        strokeDasharray="5 5"
-                                    />
-                                </svg>
+                           <div className="lg:col-span-2 relative pt-8">
+                                <div className="absolute top-0 right-0 left-0 h-full">
+                                    <svg width="100%" height="100%" viewBox="0 0 500 800" preserveAspectRatio="none">
+                                        <motion.path
+                                            d="M 250 0 C 400 150, 100 250, 250 400 C 400 550, 100 650, 250 800"
+                                            fill="none"
+                                            stroke="hsl(var(--border))"
+                                            strokeWidth="2"
+                                            strokeDasharray="5 5"
+                                        />
+                                        <motion.path
+                                            d="M 250 0 C 400 150, 100 250, 250 400 C 400 550, 100 650, 250 800"
+                                            fill="none"
+                                            stroke="hsl(var(--primary))"
+                                            strokeWidth="2"
+                                            initial={{ pathLength: 0 }}
+                                            animate={{ pathLength: carPosition }}
+                                            transition={{ duration: 1, ease: "easeInOut" }}
+                                        />
+                                         <motion.foreignObject
+                                            width="40"
+                                            height="40"
+                                            initial={{ offsetDistance: "0%" }}
+                                            animate={{ offsetDistance: `${carPosition * 100}%` }}
+                                            transition={{ duration: 1, ease: "easeInOut" }}
+                                            style={{ offsetPath: `path("M 250 0 C 400 150, 100 250, 250 400 C 400 550, 100 650, 250 800")` }}
+                                        >
+                                            <CarIcon className="w-8 h-8 text-primary -translate-x-1/2 -translate-y-1/2" />
+                                        </motion.foreignObject>
+                                    </svg>
+                                </div>
                                 <div className="space-y-16 relative">
-                                     {roadmap.milestones.map((milestone, index) => (
-                                         <div key={milestone.id} className="flex items-center">
-                                            <div className="z-10 bg-primary w-16 h-16 rounded-full flex items-center justify-center flex-shrink-0">
-                                                <NumberIcon number={index + 1} />
-                                            </div>
-                                            <Card className="ml-6 flex-1">
-                                                 <CardContent className="p-6">
-                                                     <div className="flex justify-between items-start">
+                                     {roadmap.milestones.map((milestone, index) => {
+                                        const isEven = index % 2 === 0;
+                                        return (
+                                        <div key={milestone.id} className={cn("flex items-center", isEven ? "justify-start" : "justify-end")}>
+                                            <Card className={cn("w-[calc(50%-2rem)] flex-shrink-0", isEven ? "order-2 ml-16" : "order-1 mr-16")}>
+                                                 <CardContent className="p-4">
+                                                     <div className="flex justify-between items-start gap-2">
                                                          <div>
-                                                            <CardTitle className={cn("text-lg", milestone.completed && "line-through text-muted-foreground")}>{milestone.title}</CardTitle>
-                                                            <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{milestone.description}</p>
+                                                            <p className="text-sm font-semibold">{milestone.title}</p>
+                                                            <p className="text-xs text-muted-foreground mt-1">{milestone.description}</p>
                                                          </div>
-                                                          <button onClick={() => handleToggleMilestone(milestone.id)} className={cn("h-7 w-7 rounded-full flex items-center justify-center border-2 transition-colors flex-shrink-0", milestone.completed ? 'bg-primary text-primary-foreground border-primary' : 'bg-muted border-primary hover:bg-primary/20')}>
+                                                          <button onClick={() => handleToggleMilestone(milestone.id)} className={cn("h-6 w-6 rounded-full flex items-center justify-center border-2 transition-colors flex-shrink-0", milestone.completed ? 'bg-primary text-primary-foreground border-primary' : 'bg-muted border-primary hover:bg-primary/20')}>
                                                             {milestone.completed && <Check className="h-4 w-4" />}
                                                         </button>
                                                      </div>
-                                                    <div className="mt-4 flex gap-2 items-center">
-                                                        <Button variant="outline" size="sm" className="text-xs h-7" onClick={() => navigateToLearningLab(course.id, milestone)}>
-                                                            <Play className="mr-2 h-3 w-3" /> Start Learning
-                                                        </Button>
-                                                         <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openItemDialog('milestone', milestone)}><Edit className="h-4 w-4" /></Button>
-                                                        <AlertDialog>
-                                                            <AlertDialogTrigger asChild>
-                                                                <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
-                                                            </AlertDialogTrigger>
-                                                            <AlertDialogContent>
-                                                                <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>This will permanently delete this milestone.</AlertDialogDescription></AlertDialogHeader>
-                                                                <AlertDialogFooter>
-                                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                                    <AlertDialogAction onClick={() => handleDeleteItem('milestone', milestone.id)}>Delete</AlertDialogAction>
-                                                                </AlertDialogFooter>
-                                                            </AlertDialogContent>
-                                                        </AlertDialog>
-                                                    </div>
                                                 </CardContent>
                                             </Card>
                                         </div>
-                                     ))}
+                                     )})}
                                 </div>
                             </div>
                             <div className="lg:col-span-1">
@@ -412,13 +412,14 @@ export default function RoadmapsPage() {
                                         <Plus className="mr-2 h-4 w-4" /> Add Goal
                                     </Button>
                                 </div>
-                                <div className="grid grid-cols-2 gap-6">
+                                <div className="grid grid-cols-2 gap-4">
                                     {roadmap.goals.map((goal, index) => {
                                         const GoalIcon = getIcon(goal.icon, 'Flag');
+                                        const color = badgeColors[index % badgeColors.length];
                                         return (
                                             <Card key={goal.id} className="group text-center p-4 aspect-square flex flex-col justify-center items-center bg-card hover:bg-muted/50 transition-colors">
-                                                <div className="w-20 h-20 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center mb-4 border-4 border-green-500">
-                                                    <GoalIcon className="h-10 w-10 text-green-500" />
+                                                <div className={cn("w-20 h-20 rounded-full flex items-center justify-center mb-4 border-4", color.bg, color.border)}>
+                                                    <GoalIcon className={cn("h-10 w-10", color.text)} />
                                                 </div>
                                                 <h3 className="font-semibold text-sm">{goal.title}</h3>
                                                 <p className="text-xs text-muted-foreground line-clamp-2">{goal.description}</p>
