@@ -421,7 +421,7 @@ export default function ClientCoursePage() {
                                                             <p className="font-semibold text-amber-700">Activity:</p>
                                                             <p className="text-muted-foreground">{chapter.activity}</p>
                                                         </div>
-                                                    </>
+                                                    </div>
                                                 ) : (
                                                     <Button size="sm" variant="secondary" className="mt-2" onClick={() => handleGenerateChapterContent(unit.id, chapter.id)} disabled={isChapterContentLoading[chapter.id]}>
                                                         <Wand2 className="mr-2 h-4 w-4"/> {isChapterContentLoading[chapter.id] ? 'Generating...' : 'Generate Content with AI'}
