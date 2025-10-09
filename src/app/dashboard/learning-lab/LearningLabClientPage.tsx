@@ -24,7 +24,7 @@ import AudioPlayer from '@/components/audio-player';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { addXp, generateMiniCourse, generateQuizFromModule, generateFlashcardsFromModule, generateTutorResponse, generateChapterContent, generateMidtermExam, generateRoadmap, generateModuleContent } from '@/lib/actions';
+import { addXp, generateMiniCourse, generateQuizFromModule, generateFlashcardsFromModule, generateTutorResponse, generateChapterContent, generateMidtermExam, generateRoadmap } from '@/lib/actions';
 import { RewardContext } from '@/context/RewardContext';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import Loading from './loading';
@@ -83,8 +83,7 @@ function LearningLabComponent() {
   
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isModuleContentLoading, setIsModuleContentLoading] = useState<Record<string, boolean>>({});
-
+  const [isChapterContentLoading, setChapterContentLoading] = useState<Record<string, boolean>>({});
 
   const { toast } = useToast();
   const [user, authLoading] = useAuthState(auth);
@@ -118,6 +117,8 @@ function LearningLabComponent() {
   
   const [isStartLabDialogOpen, setStartLabDialogOpen] = useState(false);
   const [newLabCourseId, setNewLabCourseId] = useState<string | null>(null);
+  const [isCourseReadyDialogOpen, setIsCourseReadyDialogOpen] = useState(false);
+
 
   const [isRoadmapGenerating, setIsRoadmapGenerating] = useState(false);
 
@@ -233,11 +234,12 @@ function LearningLabComponent() {
             userId: user.uid,
         });
         
+        setActiveCourse({ ...course, units: newUnits });
         setSelectedCourseId(course.id);
         setCurrentModuleIndex(0);
         setCurrentChapterIndex(0);
+        setIsCourseReadyDialogOpen(true);
 
-        toast({ title: 'Course Outline Ready!', description: 'Your new learning lab structure has been generated.'});
     } catch (error) {
         console.error("Failed to generate course content:", error);
         toast({ variant: 'destructive', title: 'Generation Failed', description: 'Could not create content for this course.' });
@@ -434,6 +436,56 @@ function LearningLabComponent() {
         setFlashcardLoading(false);
     }
   };
+  
+  const handleGenerateChapterContent = async (moduleIndex: number, chapterIndex: number) => {
+    if (!activeCourse || !user || !learnerType) return false;
+    
+    const module = activeCourse.units?.[moduleIndex];
+    const chapter = module?.chapters?.[chapterIndex];
+
+    if(!module || !chapter || chapter.content) {
+        return true; // Already has content, or invalid state, just proceed
+    }
+
+    const chapterId = chapter.id;
+    setChapterContentLoading(prev => ({ ...prev, [chapterId]: true }));
+
+    try {
+        const result = await generateChapterContent({
+            courseName: activeCourse.name,
+            moduleTitle: module.title,
+            chapterTitle: chapter.title,
+            learnerType: learnerType as any,
+        });
+
+        const updatedChapter = { ...chapter, ...result };
+        
+        const updatedUnits = activeCourse.units?.map((unit, mIdx) => {
+            if (mIdx === moduleIndex) {
+                return {
+                    ...unit,
+                    chapters: unit.chapters.map((chap, cIdx) => 
+                        cIdx === chapterIndex ? updatedChapter : chap
+                    ),
+                };
+            }
+            return unit;
+        });
+
+        setActiveCourse(prev => prev ? { ...prev, units: updatedUnits } : null);
+
+        const courseRef = doc(db, 'courses', activeCourse.id);
+        await updateDoc(courseRef, { units: updatedUnits });
+        return true;
+
+    } catch (error) {
+        console.error("Failed to generate chapter content:", error);
+        toast({ variant: 'destructive', title: 'Content Generation Failed' });
+        return false;
+    } finally {
+        setChapterContentLoading(prev => ({ ...prev, [chapterId]: false }));
+    }
+  };
 
   const handleCompleteAndContinue = async () => {
     if (!activeCourse || !user) return;
@@ -441,11 +493,19 @@ function LearningLabComponent() {
     if (!module) return;
 
     if (currentChapterIndex < module.chapters.length - 1) {
-        setCurrentChapterIndex(prev => prev + 1);
+        const nextChapterIndex = currentChapterIndex + 1;
+        const generated = await handleGenerateChapterContent(currentModuleIndex, nextChapterIndex);
+        if (generated) {
+            setCurrentChapterIndex(nextChapterIndex);
+        }
     } else if (currentModuleIndex < (activeCourse.units?.length ?? 0) - 1) {
-        setCurrentModuleIndex(prev => prev + 1);
-        setCurrentChapterIndex(0);
-        toast({ title: "Module Complete!", description: "Moving to the next module." });
+        const nextModuleIndex = currentModuleIndex + 1;
+        const generated = await handleGenerateChapterContent(nextModuleIndex, 0);
+         if (generated) {
+            setCurrentModuleIndex(nextModuleIndex);
+            setCurrentChapterIndex(0);
+            toast({ title: "Module Complete!", description: "Moving to the next module." });
+        }
     } else {
         toast({ title: "Course Complete!", description: "Congratulations, you've finished the course!" });
         try {
@@ -534,92 +594,11 @@ function LearningLabComponent() {
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
-
-  const handleGenerateModuleContent = async (module: Module) => {
-    if (!activeCourse || !user || !learnerType) return;
-    
-    setIsModuleContentLoading(prev => ({...prev, [module.id]: true}));
-    toast({ title: 'Generating Module Content...', description: 'This may take a few moments.' });
-
-    try {
-        const moduleOutline = {
-            id: module.id,
-            title: module.title,
-            chapters: module.chapters.map(c => ({ id: c.id, title: c.title })),
-        };
-        
-        const { updatedModule } = await generateModuleContent({
-            courseName: activeCourse.name,
-            module: moduleOutline,
-            learnerType: learnerType as any,
-        });
-
-        const updatedUnits = activeCourse.units?.map(u => 
-            u.id === module.id ? updatedModule : u
-        );
-
-        setActiveCourse(prev => prev ? { ...prev, units: updatedUnits } : null);
-
-        const courseRef = doc(db, 'courses', activeCourse.id);
-        await updateDoc(courseRef, { units: updatedUnits });
-        toast({ title: 'Content Generated!', description: `Content for ${module.title} is ready.` });
-
-    } catch (error) {
-        console.error("Failed to generate module content:", error);
-        toast({ variant: 'destructive', title: 'Content Generation Failed' });
-    } finally {
-        setIsModuleContentLoading(prev => ({...prev, [module.id]: false}));
-    }
-  };
-
-  const handleGenerateChapterContent = async (moduleIndex: number, chapterIndex: number) => {
-    if (!activeCourse || !user || !learnerType) return;
-    
-    const module = activeCourse.units?.[moduleIndex];
-    const chapter = module?.chapters?.[chapterIndex];
-
-    if(!module || !chapter) {
-        toast({ variant: 'destructive', title: 'Error', description: 'Could not find chapter information.'});
-        return;
-    }
-
-    const chapterId = chapter.id;
-    setIsModuleContentLoading(prev => ({ ...prev, [chapterId]: true }));
-
-    try {
-        const result = await generateChapterContent({
-            courseName: activeCourse.name,
-            moduleTitle: module.title,
-            chapterTitle: chapter.title,
-            learnerType: learnerType as any,
-        });
-
-        const updatedChapter = { ...chapter, ...result };
-        
-        const updatedUnits = activeCourse.units?.map((unit, mIdx) => {
-            if (mIdx === moduleIndex) {
-                return {
-                    ...unit,
-                    chapters: unit.chapters.map((chap, cIdx) => 
-                        cIdx === chapterIndex ? updatedChapter : chap
-                    ),
-                };
-            }
-            return unit;
-        });
-
-        setActiveCourse(prev => prev ? { ...prev, units: updatedUnits } : null);
-
-        const courseRef = doc(db, 'courses', activeCourse.id);
-        await updateDoc(courseRef, { units: updatedUnits });
-
-    } catch (error) {
-        console.error("Failed to generate chapter content:", error);
-        toast({ variant: 'destructive', title: 'Content Generation Failed' });
-    } finally {
-        setIsModuleContentLoading(prev => ({ ...prev, [chapterId]: false }));
-    }
-  };
+  
+  const startFirstChapter = async () => {
+    setIsCourseReadyDialogOpen(false);
+    await handleGenerateChapterContent(0, 0);
+  }
   
   const chapterCount = activeCourse?.units?.reduce((acc, unit) => acc + (unit.chapters?.length ?? 0), 0) ?? 0;
   const progress = activeCourse && chapterCount > 0 ? (((currentModuleIndex * (currentModule?.chapters.length ?? 1)) + currentChapterIndex + 1) / chapterCount) * 100 : 0;
@@ -869,6 +848,23 @@ function LearningLabComponent() {
 
   return (
     <>
+      <Dialog open={isCourseReadyDialogOpen} onOpenChange={setIsCourseReadyDialogOpen}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Your Learning Lab is Ready!</DialogTitle>
+                <DialogDescription>
+                    We've created a custom outline for your course. Are you ready to generate the first chapter and dive in?
+                </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+                <Button variant="ghost" onClick={() => setIsCourseReadyDialogOpen(false)}>I'll start later</Button>
+                <Button onClick={startFirstChapter}>
+                    Let's Go!
+                    <Wand2 className="ml-2 h-4 w-4"/>
+                </Button>
+            </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <div className={cn("flex h-full", isFocusMode && "bg-background")}>
         <aside className={cn(
             "h-full bg-card border-r transition-all duration-300",
@@ -881,38 +877,42 @@ function LearningLabComponent() {
                     <Progress value={progress} className="mt-2 h-2" />
                 </div>
                  <Accordion type="multiple" defaultValue={activeCourse?.units?.map(u => u.id)} className="w-full flex-1 overflow-y-auto">
-                    {activeCourse?.units?.map((unit, mIndex) => {
-                        const isModuleGenerated = unit.chapters.every(c => c.content);
-                        return (
+                    {activeCourse?.units?.map((unit, mIndex) => (
                         <AccordionItem key={unit.id} value={unit.id}>
                             <AccordionTrigger className="text-md font-semibold">{unit.title}</AccordionTrigger>
                             <AccordionContent>
-                                {!isModuleGenerated && (
-                                    <div className="p-2 mb-2">
-                                        <Button size="sm" className="w-full" onClick={() => handleGenerateModuleContent(unit)} disabled={isModuleContentLoading[unit.id]}>
-                                            <Wand2 className="mr-2 h-4 w-4"/> {isModuleContentLoading[unit.id] ? 'Generating...' : 'Generate Module Content'}
-                                        </Button>
-                                    </div>
-                                )}
                                 <ul className="space-y-1 pl-4">
-                                    {unit.chapters.map((chapter, cIndex) => (
+                                    {unit.chapters.map((chapter, cIndex) => {
+                                        const isCurrent = currentModuleIndex === mIndex && currentChapterIndex === cIndex;
+                                        const isCompleted = currentModuleIndex > mIndex || (currentModuleIndex === mIndex && currentChapterIndex > cIndex);
+                                        const isLocked = !chapter.content && !isCurrent;
+                                        
+                                        return (
                                         <li key={chapter.id}>
                                             <button 
-                                                onClick={() => { setCurrentModuleIndex(mIndex); setCurrentChapterIndex(cIndex); }}
+                                                onClick={() => {
+                                                    if (isLocked) {
+                                                        toast({ variant: 'destructive', description: "Complete the previous chapter to unlock this one." });
+                                                    } else {
+                                                        setCurrentModuleIndex(mIndex);
+                                                        setCurrentChapterIndex(cIndex);
+                                                    }
+                                                }}
                                                 className={cn(
                                                     "w-full text-left p-2 rounded-md text-sm flex items-center gap-2",
-                                                    currentModuleIndex === mIndex && currentChapterIndex === cIndex ? "bg-primary/10 text-primary font-semibold" : "hover:bg-muted"
+                                                    isCurrent ? "bg-primary/10 text-primary font-semibold" : (isLocked ? "text-muted-foreground/50 cursor-not-allowed" : "hover:bg-muted")
                                                 )}
+                                                disabled={isLocked}
                                             >
-                                                <CheckCircle size={14} className={cn(currentModuleIndex > mIndex || (currentModuleIndex === mIndex && currentChapterIndex > cIndex) ? "text-green-500" : "text-muted-foreground/50")} />
+                                                <CheckCircle size={14} className={cn(isCompleted ? "text-green-500" : "text-muted-foreground/50")} />
                                                 {chapter.title}
                                             </button>
                                         </li>
-                                    ))}
+                                    )})}
                                 </ul>
                             </AccordionContent>
                         </AccordionItem>
-                    )})}
+                    ))}
                  </Accordion>
                  <div className="mt-4 pt-4 border-t">
                      <Button variant="outline" className="w-full" onClick={startNewCourse}>Back to Labs Overview</Button>
@@ -965,7 +965,7 @@ function LearningLabComponent() {
                                 </div>
                             )}
                         </div>
-                     ) : isModuleContentLoading[currentChapter.id] ? (
+                     ) : isChapterContentLoading[currentChapter.id] ? (
                         <div className="space-y-4">
                             <Skeleton className="h-6 w-3/4" />
                             <Skeleton className="h-4 w-full" />
@@ -974,11 +974,8 @@ function LearningLabComponent() {
                         </div>
                      ) : (
                          <div className="text-center p-8 border-2 border-dashed rounded-lg">
-                            <h3 className="text-lg font-semibold">This chapter is empty.</h3>
-                            <p className="text-muted-foreground mt-1 mb-4">Generate this chapter's content individually, or generate the entire module's content from the sidebar.</p>
-                            <Button onClick={() => handleGenerateChapterContent(currentModuleIndex, currentChapterIndex)}>
-                                <Wand2 className="mr-2 h-4 w-4" /> Generate Chapter Content
-                            </Button>
+                            <h3 className="text-lg font-semibold">This chapter's content hasn't been generated yet.</h3>
+                            <p className="text-muted-foreground mt-1 mb-4">Click "Complete and Continue" on the previous chapter to unlock this one.</p>
                         </div>
                      )}
                      
@@ -1002,7 +999,7 @@ function LearningLabComponent() {
                      <div className="p-6 bg-amber-500/10 rounded-lg border border-amber-500/20">
                         <h5 className="font-semibold flex items-center gap-2 text-amber-700"><Lightbulb size={18}/> Suggested Activity</h5>
                         <div className="text-muted-foreground mt-2">
-                             {isModuleContentLoading[currentChapter.id] && !currentChapter.activity ? <Skeleton className="h-4 w-1/2" /> : <p>{currentChapter.activity || 'Generate chapter content to see an activity.'}</p>}
+                             {isChapterContentLoading[currentChapter.id] && !currentChapter.activity ? <Skeleton className="h-4 w-1/2" /> : <p>{currentChapter.activity || 'Generate chapter content to see an activity.'}</p>}
                         </div>
                     </div>
                      
