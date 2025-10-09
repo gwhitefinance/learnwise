@@ -58,18 +58,17 @@ type Roadmap = {
     milestones: Milestone[];
 };
 
-const getIcon = (iconName: keyof typeof LucideIcons | undefined, defaultIcon: keyof typeof LucideIcons) => {
-    if (!iconName) return LucideIcons[defaultIcon] as React.ElementType;
-    const Icon = LucideIcons[iconName];
-    if (typeof Icon === 'function') {
-        return Icon;
+const getIcon = (iconName: keyof typeof LucideIcons | undefined, defaultIcon: keyof typeof LucideIcons = 'Flag') => {
+    if (!iconName) {
+        return LucideIcons[defaultIcon];
     }
-    const iconKey = Object.keys(LucideIcons).find(key => key.toLowerCase() === iconName.toLowerCase()) as keyof typeof LucideIcons;
-    if (iconKey && typeof LucideIcons[iconKey] === 'function') {
-        return LucideIcons[iconKey] as React.ElementType;
+    const iconKey = Object.keys(LucideIcons).find(key => key.toLowerCase() === iconName.toLowerCase()) as keyof typeof LucideIcons | undefined;
+    if (iconKey && LucideIcons[iconKey]) {
+        return LucideIcons[iconKey];
     }
-    return LucideIcons[defaultIcon] as React.ElementType;
+    return LucideIcons[defaultIcon];
 };
+
 
 const CarIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -415,12 +414,12 @@ export default function RoadmapsPage() {
                                 </div>
                                 <div className="grid grid-cols-2 gap-6">
                                     {roadmap.goals.map((goal, index) => {
-                                        const GoalIcon = getIcon(goal.icon, 'Flag');
+                                        const Icon = getIcon(goal.icon, 'Flag');
                                         const color = badgeColors[index % badgeColors.length];
                                         return (
                                             <Card key={goal.id} className="group text-center p-4 aspect-square flex flex-col justify-center items-center bg-card hover:bg-muted/50 transition-colors">
                                                 <div className={cn("w-24 h-24 rounded-full flex items-center justify-center mb-4 border-4", color.bg, color.border)}>
-                                                    <GoalIcon className={cn("h-12 w-12", color.text)} />
+                                                    <Icon className={cn("h-12 w-12", color.text)} />
                                                 </div>
                                                 <h3 className="font-semibold text-sm">{goal.title}</h3>
                                                 <p className="text-xs text-muted-foreground line-clamp-2">{goal.description}</p>
