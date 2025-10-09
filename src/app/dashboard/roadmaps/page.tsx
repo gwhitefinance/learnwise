@@ -324,7 +324,8 @@ export default function RoadmapsPage() {
         {authLoading ? (
              <Loading />
         ) : courses.length > 0 ? (
-            activeCourseId && courses.find((c) => c.id === activeCourseId) ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+            {activeCourseId && courses.find((c) => c.id === activeCourseId) ? (
                  (() => {
                     const course = courses.find((c) => c.id === activeCourseId)!;
                     const roadmap = roadmaps[course.id];
@@ -348,41 +349,41 @@ export default function RoadmapsPage() {
       
                     if (roadmap) {
                       const completedCount = roadmap.milestones.filter(m => m.completed).length;
-                      const carPosition = completedCount > 0 ? (completedCount / roadmap.milestones.length) : 0;
+                      const carPosition = roadmap.milestones.length > 0 ? (completedCount / roadmap.milestones.length) : 0;
                       
+                      const pathD = `M 250 0 C 400 150, 100 250, 250 400 C 400 550, 100 650, 250 800`;
+
                       return (
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-start">
-                           <div className="lg:col-span-2 relative pt-8">
-                                <div className="absolute top-0 right-0 left-0 h-full">
-                                    <svg width="100%" height="100%" viewBox="0 0 500 800" preserveAspectRatio="none">
-                                        <motion.path
-                                            d="M 250 0 C 400 150, 100 250, 250 400 C 400 550, 100 650, 250 800"
-                                            fill="none"
-                                            stroke="hsl(var(--border))"
-                                            strokeWidth="2"
-                                            strokeDasharray="5 5"
-                                        />
-                                        <motion.path
-                                            d="M 250 0 C 400 150, 100 250, 250 400 C 400 550, 100 650, 250 800"
-                                            fill="none"
-                                            stroke="hsl(var(--primary))"
-                                            strokeWidth="2"
-                                            initial={{ pathLength: 0 }}
-                                            animate={{ pathLength: carPosition }}
-                                            transition={{ duration: 1, ease: "easeInOut" }}
-                                        />
-                                         <motion.foreignObject
-                                            width="40"
-                                            height="40"
-                                            initial={{ offsetDistance: "0%" }}
-                                            animate={{ offsetDistance: `${carPosition * 100}%` }}
-                                            transition={{ duration: 1, ease: "easeInOut" }}
-                                            style={{ offsetPath: `path("M 250 0 C 400 150, 100 250, 250 400 C 400 550, 100 650, 250 800")` }}
-                                        >
-                                            <CarIcon className="w-8 h-8 text-primary -translate-x-1/2 -translate-y-1/2" />
-                                        </motion.foreignObject>
-                                    </svg>
-                                </div>
+                        <>
+                           <div className="relative pt-8">
+                                <svg className="absolute top-0 left-1/2 -translate-x-1/2 h-full w-full pointer-events-none" preserveAspectRatio="none">
+                                    <motion.path
+                                        d={pathD}
+                                        fill="none"
+                                        stroke="hsl(var(--border))"
+                                        strokeWidth="2"
+                                        strokeDasharray="5 5"
+                                    />
+                                    <motion.path
+                                        d={pathD}
+                                        fill="none"
+                                        stroke="hsl(var(--primary))"
+                                        strokeWidth="2"
+                                        initial={{ pathLength: 0 }}
+                                        animate={{ pathLength: carPosition }}
+                                        transition={{ duration: 1, ease: "easeInOut" }}
+                                    />
+                                     <motion.foreignObject
+                                        width="40"
+                                        height="40"
+                                        initial={{ offsetDistance: "0%" }}
+                                        animate={{ offsetDistance: `${carPosition * 100}%` }}
+                                        transition={{ duration: 1, ease: "easeInOut" }}
+                                        style={{ offsetPath: `path("${pathD}")` }}
+                                    >
+                                        <CarIcon className="w-8 h-8 text-primary -translate-x-1/2 -translate-y-1/2" />
+                                    </motion.foreignObject>
+                                </svg>
                                 <div className="space-y-16 relative">
                                      {roadmap.milestones.map((milestone, index) => {
                                         const isEven = index % 2 === 0;
@@ -405,21 +406,21 @@ export default function RoadmapsPage() {
                                      )})}
                                 </div>
                             </div>
-                            <div className="lg:col-span-1">
+                            <div>
                                 <div className="flex justify-between items-center mb-6">
                                     <h2 className="text-2xl font-semibold">Your Badges</h2>
                                     <Button variant="outline" size="sm" onClick={() => openItemDialog('goal')}>
                                         <Plus className="mr-2 h-4 w-4" /> Add Goal
                                     </Button>
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-2 gap-6">
                                     {roadmap.goals.map((goal, index) => {
                                         const GoalIcon = getIcon(goal.icon, 'Flag');
                                         const color = badgeColors[index % badgeColors.length];
                                         return (
                                             <Card key={goal.id} className="group text-center p-4 aspect-square flex flex-col justify-center items-center bg-card hover:bg-muted/50 transition-colors">
-                                                <div className={cn("w-20 h-20 rounded-full flex items-center justify-center mb-4 border-4", color.bg, color.border)}>
-                                                    <GoalIcon className={cn("h-10 w-10", color.text)} />
+                                                <div className={cn("w-24 h-24 rounded-full flex items-center justify-center mb-4 border-4", color.bg, color.border)}>
+                                                    <GoalIcon className={cn("h-12 w-12", color.text)} />
                                                 </div>
                                                 <h3 className="font-semibold text-sm">{goal.title}</h3>
                                                 <p className="text-xs text-muted-foreground line-clamp-2">{goal.description}</p>
@@ -428,12 +429,13 @@ export default function RoadmapsPage() {
                                     })}
                                 </div>
                             </div>
-                        </div>
+                        </>
                       );
                     }
                     return null;
                   })()
-            ) : null
+            ) : null}
+            </div>
         ) : (
           <Card className="text-center p-12">
             <h2 className="text-xl font-semibold">No Courses Found</h2>
@@ -484,8 +486,8 @@ function Loading() {
                  <Skeleton className="h-10 w-48" />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 space-y-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="space-y-8">
                     <div className="flex justify-between items-center">
                         <Skeleton className="h-8 w-32" />
                     </div>
@@ -511,3 +513,4 @@ function Loading() {
         </div>
     );
 }
+
