@@ -100,12 +100,16 @@ export default function PracticeTestPage() {
             setTestState('in-progress');
             setBreakTimeRemaining(25 * 60); 
         } else if (currentSectionKey === 'math' && currentModuleIndex === 0) {
-            setCurrentModuleIndex(1);
-            setTestState('in-progress');
+             // After Math Module 1, go straight to Module 2 (as per official SAT)
+             setCurrentModuleIndex(1);
+             setTestState('in-progress');
         }
     };
 
     const handleNext = () => {
+        const currentModule = testData?.[currentSectionKey]?.modules[currentModuleIndex];
+        if (!currentModule) return;
+
         if (currentQuestionIndex < currentModule.questions.length - 1) {
             setCurrentQuestionIndex(prev => prev + 1);
         } else {
@@ -116,7 +120,6 @@ export default function PracticeTestPage() {
                 setBreakTimeRemaining(25 * 60);
                 setTestState('break');
             } else if (currentSectionKey === 'math' && currentModuleIndex === 0) {
-                 // After Math Module 1, go straight to Module 2 (as per official SAT)
                  handleContinueFromBreak();
             } else {
                 // Finished the whole test
@@ -241,6 +244,10 @@ export default function PracticeTestPage() {
     const totalQuestionsInSection = currentSection.modules.reduce((acc, mod) => acc + mod.questions.length, 0);
     const questionsAnsweredInSection = Object.keys(userAnswers).filter(qid => currentSection.modules.flatMap(m => m.questions).some(q => q.id === qid)).length;
     const progress = (questionsAnsweredInSection / totalQuestionsInSection) * 100;
+    
+    if (!currentQuestion) {
+       return <div className="flex justify-center items-center h-full"><Loader2 className="h-8 w-8 animate-spin" /></div>;
+    }
 
     return (
         <div className="max-w-4xl mx-auto p-4">
