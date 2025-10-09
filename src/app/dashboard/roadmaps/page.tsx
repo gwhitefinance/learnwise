@@ -351,12 +351,12 @@ export default function RoadmapsPage() {
                       const completedCount = roadmap.milestones.filter(m => m.completed).length;
                       const carPosition = roadmap.milestones.length > 0 ? (completedCount / roadmap.milestones.length) : 0;
                       
-                      const pathD = `M 250 0 C 400 150, 100 250, 250 400 C 400 550, 100 650, 250 800`;
+                      const pathD = `M 0 60 C 200 60, 200 250, 400 250 S 600 250, 600 440`;
 
                       return (
                         <>
-                           <div className="relative pt-8">
-                                <svg className="absolute top-0 left-1/2 -translate-x-1/2 h-full w-full pointer-events-none" preserveAspectRatio="none">
+                            <div className="relative pt-8">
+                                <svg className="absolute top-0 left-1/2 -translate-x-1/2 h-full w-full pointer-events-none" preserveAspectRatio="none" viewBox="0 0 600 800">
                                     <motion.path
                                         d={pathD}
                                         fill="none"
@@ -373,23 +373,27 @@ export default function RoadmapsPage() {
                                         animate={{ pathLength: carPosition }}
                                         transition={{ duration: 1, ease: "easeInOut" }}
                                     />
-                                     <motion.foreignObject
-                                        width="40"
-                                        height="40"
+                                    <motion.g
                                         initial={{ offsetDistance: "0%" }}
                                         animate={{ offsetDistance: `${carPosition * 100}%` }}
                                         transition={{ duration: 1, ease: "easeInOut" }}
                                         style={{ offsetPath: `path("${pathD}")` }}
                                     >
-                                        <CarIcon className="w-8 h-8 text-primary -translate-x-1/2 -translate-y-1/2" />
-                                    </motion.foreignObject>
+                                        <foreignObject
+                                            width="40"
+                                            height="40"
+                                            style={{
+                                                transform: 'translate(-20px, -20px)',
+                                            }}
+                                        >
+                                            <CarIcon className="w-8 h-8 text-primary" />
+                                        </foreignObject>
+                                    </motion.g>
                                 </svg>
                                 <div className="space-y-16 relative">
-                                     {roadmap.milestones.map((milestone, index) => {
-                                        const isEven = index % 2 === 0;
-                                        return (
-                                        <div key={milestone.id} className={cn("flex items-center", isEven ? "justify-start" : "justify-end")}>
-                                            <Card className={cn("w-[calc(50%-2rem)] flex-shrink-0", isEven ? "order-2 ml-16" : "order-1 mr-16")}>
+                                     {roadmap.milestones.map((milestone, index) => (
+                                        <div key={milestone.id} className={cn("flex items-center", index % 2 === 0 ? "justify-start" : "justify-end")}>
+                                            <Card className={cn("w-[calc(50%-2rem)] flex-shrink-0", index % 2 === 0 ? "order-2 ml-16" : "order-1 mr-16")}>
                                                  <CardContent className="p-4">
                                                      <div className="flex justify-between items-start gap-2">
                                                          <div>
@@ -403,7 +407,7 @@ export default function RoadmapsPage() {
                                                 </CardContent>
                                             </Card>
                                         </div>
-                                     )})}
+                                     ))}
                                 </div>
                             </div>
                             <div>
@@ -513,4 +517,3 @@ function Loading() {
         </div>
     );
 }
-
