@@ -916,7 +916,15 @@ function LearningLabComponent() {
                     <Progress value={progress} className="mt-2 h-2" />
                 </div>
                  <Accordion type="multiple" defaultValue={activeCourse?.units?.map(u => u.id)} className="w-full flex-1 overflow-y-auto">
-                    {activeCourse?.units?.map((unit, mIndex) => (
+                    {activeCourse?.units?.map((unit, mIndex) => {
+                        let lastCompletedChapterIndex = -1;
+                        unit.chapters.forEach((chap, cIdx) => {
+                            if (activeCourse.completedChapters?.includes(chap.id)) {
+                                lastCompletedChapterIndex = cIdx;
+                            }
+                        });
+
+                        return (
                         <AccordionItem key={unit.id} value={unit.id}>
                             <AccordionTrigger className="text-md font-semibold">{unit.title}</AccordionTrigger>
                             <AccordionContent>
@@ -924,6 +932,7 @@ function LearningLabComponent() {
                                     {unit.chapters.map((chapter, cIndex) => {
                                         const isCurrent = currentModuleIndex === mIndex && currentChapterIndex === cIndex;
                                         const isCompleted = activeCourse.completedChapters?.includes(chapter.id) ?? false;
+                                        const isLocked = cIndex > lastCompletedChapterIndex + 1;
                                         
                                         return (
                                         <li key={chapter.id}>
@@ -932,9 +941,11 @@ function LearningLabComponent() {
                                                     setCurrentModuleIndex(mIndex);
                                                     setCurrentChapterIndex(cIndex);
                                                 }}
+                                                disabled={isLocked}
                                                 className={cn(
                                                     "w-full text-left p-2 rounded-md text-sm flex items-center gap-2",
-                                                    isCurrent ? "bg-primary/10 text-primary font-semibold" : "hover:bg-muted"
+                                                    isCurrent ? "bg-primary/10 text-primary font-semibold" : "hover:bg-muted",
+                                                    isLocked ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
                                                 )}
                                             >
                                                 <CheckCircle size={14} className={cn(isCompleted ? "text-green-500" : "text-muted-foreground/50")} />
@@ -945,7 +956,7 @@ function LearningLabComponent() {
                                 </ul>
                             </AccordionContent>
                         </AccordionItem>
-                    ))}
+                    )})}
                  </Accordion>
                  <div className="mt-4 pt-4 border-t">
                      <Button variant="outline" className="w-full" onClick={startNewCourse}>Back to Labs Overview</Button>
