@@ -27,7 +27,7 @@ import { generateMidtermExam } from '@/ai/flows/midterm-exam-flow';
 import { generateModuleContent } from '@/ai/flows/module-content-flow';
 import { generateImage } from '@/ai/flows/image-generation-flow';
 import { generateVideo } from '@/ai/flows/video-generation-flow';
-import { generatePodcast } from '@/ai/flows/podcast-flow';
+import { generatePodcastEpisode } from '@/ai/flows/podcast-flow';
 
 
 // Re-exporting all AI functions as Server Actions
@@ -55,7 +55,7 @@ export {
     generateModuleContent,
     generateImage,
     generateVideo,
-    generatePodcast
+    generatePodcastEpisode
 };
 
 export async function addXp(userId: string, xp: number) {
