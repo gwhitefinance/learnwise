@@ -33,7 +33,7 @@ type EpisodeState = {
     script: string;
 };
 
-const EpisodePlayer = ({ script, onPlay, onPause, isPlaying, isGeneratingScript }: { script?: string; onPlay: () => void; onPause: () => void; isPlaying: boolean; isGeneratingScript: boolean; }) => {
+const EpisodePlayer = ({ script, onPlay, onPause, onResume, isPlaying, isPaused, isGeneratingScript }: { script?: string; onPlay: () => void; onPause: () => void; onResume: () => void; isPlaying: boolean; isPaused: boolean; isGeneratingScript: boolean; }) => {
     return (
         <div className="flex flex-col items-center justify-center text-center p-8 bg-muted rounded-lg">
              <motion.div
@@ -59,7 +59,7 @@ const EpisodePlayer = ({ script, onPlay, onPause, isPlaying, isGeneratingScript 
                     }}
                 />
             </motion.div>
-            <Button onClick={isPlaying ? onPause : onPlay} className="mt-8 rounded-full h-16 w-16" size="icon" disabled={isGeneratingScript || !script}>
+            <Button onClick={isPlaying ? onPause : (isPaused ? onResume : onPlay)} className="mt-8 rounded-full h-16 w-16" size="icon" disabled={isGeneratingScript || !script}>
                 {isGeneratingScript ? <Loader2 className="h-8 w-8 animate-spin" /> : isPlaying ? <Pause className="h-8 w-8" /> : <Play className="h-8 w-8" />}
             </Button>
         </div>
@@ -76,6 +76,7 @@ export default function PodcastsClientPage() {
     const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
     const [activeUnitId, setActiveUnitId] = useState<string | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
+    const [isPaused, setIsPaused] = useState(false);
     const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
 
     const { toast } = useToast();
@@ -83,7 +84,7 @@ export default function PodcastsClientPage() {
     
     useEffect(() => {
         const loadVoices = () => {
-            const availableVoices = speechSynthesis.getVoices();
+            const availableVoices = window.speechSynthesis.getVoices();
             if (availableVoices.length > 0) {
                 setVoices(availableVoices);
             }
@@ -91,7 +92,10 @@ export default function PodcastsClientPage() {
 
         if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
             loadVoices();
-            speechSynthesis.onvoiceschanged = loadVoices;
+            // onvoiceschanged is not always reliable, especially on first load.
+            if (window.speechSynthesis.onvoiceschanged !== undefined) {
+                 window.speechSynthesis.onvoiceschanged = loadVoices;
+            }
         }
     }, []);
 
@@ -162,7 +166,6 @@ export default function PodcastsClientPage() {
 
         const utterance = new SpeechSynthesisUtterance(episode.script);
         
-        // Find a more natural voice
         const preferredVoice = voices.find(voice => voice.name === 'Google US English') || voices.find(voice => voice.lang.startsWith('en-US'));
         if (preferredVoice) {
             utterance.voice = preferredVoice;
@@ -172,15 +175,23 @@ export default function PodcastsClientPage() {
 
         utterance.onstart = () => {
             setIsPlaying(true);
+            setIsPaused(false);
             setActiveUnitId(unitId);
         };
         utterance.onend = () => {
             setIsPlaying(false);
+            setIsPaused(false);
             setActiveUnitId(null);
             utteranceRef.current = null;
         };
-        utterance.onpause = () => setIsPlaying(false);
-        utterance.onresume = () => setIsPlaying(true);
+        utterance.onpause = () => {
+            setIsPlaying(false);
+            setIsPaused(true);
+        };
+        utterance.onresume = () => {
+            setIsPlaying(true);
+            setIsPaused(false);
+        };
 
         speechSynthesis.speak(utterance);
     };
@@ -190,7 +201,7 @@ export default function PodcastsClientPage() {
             speechSynthesis.pause();
         }
     };
-
+    
     const handleResume = () => {
         if (typeof window !== 'undefined' && 'speechSynthesis' in window && speechSynthesis.paused) {
             speechSynthesis.resume();
@@ -239,8 +250,10 @@ export default function PodcastsClientPage() {
                                 {selectedCourse.units.map(unit => {
                                     const episode = episodes[unit.id];
                                     const isGeneratingScript = generatingScriptId === unit.id;
-                                    const isCurrentEpisodePlaying = isPlaying && activeUnitId === unit.id;
-                                    const isCurrentEpisodePaused = !isPlaying && activeUnitId === unit.id && typeof window !== 'undefined' && 'speechSynthesis' in window && speechSynthesis.paused;
+                                    const isCurrentEpisode = activeUnitId === unit.id;
+                                    const isCurrentEpisodePlaying = isPlaying && isCurrentEpisode;
+                                    const isCurrentEpisodePaused = isPaused && isCurrentEpisode;
+                                    
 
                                     return (
                                         <AccordionItem key={unit.id} value={unit.id}>
@@ -262,8 +275,10 @@ export default function PodcastsClientPage() {
                                                     <EpisodePlayer 
                                                         script={episode.script}
                                                         isPlaying={isCurrentEpisodePlaying}
-                                                        onPlay={() => isCurrentEpisodePaused ? handleResume() : handlePlay(unit.id)}
+                                                        isPaused={isCurrentEpisodePaused}
+                                                        onPlay={() => handlePlay(unit.id)}
                                                         onPause={handlePause}
+                                                        onResume={handleResume}
                                                         isGeneratingScript={isGeneratingScript}
                                                     />
                                                 )}
