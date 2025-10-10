@@ -63,16 +63,16 @@ const generateChapterContentFlow = ai.defineFlow(
             return output; // Success
         } catch (error: any) {
             lastError = error;
-            if (error.message.includes('503') && attempt < maxRetries - 1) {
-                console.warn(`Chapter content generation failed with 503, retrying... (Attempt ${attempt + 1})`);
-                await new Promise(resolve => setTimeout(resolve, 2000 * (attempt + 1))); // Wait longer each retry
-            } else {
-                // For non-503 errors or if retries are exhausted, break the loop
-                break;
+            console.warn(`Chapter content generation failed (Attempt ${attempt + 1}/${maxRetries}):`, error.message);
+            if (attempt < maxRetries - 1) {
+                const waitTime = 2000 * (attempt + 1); // Wait longer each retry
+                console.log(`Retrying in ${waitTime / 1000}s...`);
+                await new Promise(resolve => setTimeout(resolve, waitTime));
             }
         }
     }
     // If the loop finished without returning, it means all retries failed.
+    console.error("Chapter content generation failed after all retries.", { input, lastError });
     throw lastError;
   }
 );
