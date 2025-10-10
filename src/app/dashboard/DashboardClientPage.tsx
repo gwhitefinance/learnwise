@@ -253,7 +253,6 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
     const { showReward } = useContext(RewardContext);
 
     // Add Course Dialog State
-    const [addCourseStep, setAddCourseStep] = useState(1);
     const [isNewTopic, setIsNewTopic] = useState<boolean | null>(null);
 
      useEffect(() => {
@@ -420,7 +419,6 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
     };
 
     const resetAddCourseDialog = () => {
-        setAddCourseStep(1);
         setIsNewTopic(null);
         setNewCourse({ name: '', instructor: '', credits: '', url: '', description: '' });
     };
@@ -431,7 +429,7 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
             return;
         }
         if (isNewTopic === null) {
-            toast({ variant: 'destructive', title: 'Missing Information', description: 'Please specify if this is a new topic.' });
+            toast({ variant: 'destructive', title: 'Missing Information', description: 'Please specify if you are currently in this course.' });
             return;
         }
         if (!user) return;
@@ -764,71 +762,52 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                         <DialogHeader>
                             <DialogTitle>Add a New Course</DialogTitle>
                             <DialogDescription>
-                                {addCourseStep === 1 ? "First, provide some details about your course." : "Next, tell us about your relationship with this course."}
+                                First, provide some details about your course.
                             </DialogDescription>
                         </DialogHeader>
-                        {addCourseStep === 1 && (
-                            <div className="grid gap-4 py-4">
-                                <div className="grid gap-2">
-                                    <Label htmlFor="name">Course Name</Label>
-                                    <Input id="name" name="name" value={newCourse.name} onChange={handleInputChange} placeholder="e.g., Introduction to AI"/>
-                                </div>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="description">Description (Optional)</Label>
-                                    <Textarea id="description" name="description" value={newCourse.description} onChange={handleInputChange} placeholder="A brief summary of the course"/>
-                                </div>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="url">Course URL (Optional)</Label>
-                                    <Input id="url" name="url" value={newCourse.url} onChange={handleInputChange} placeholder="https://example.com/course-link"/>
-                                </div>
-                                {gradeLevel !== 'Other' && (
-                                    <>
-                                        <div className="grid gap-2">
-                                            <Label htmlFor="instructor">Instructor</Label>
-                                            <Input id="instructor" name="instructor" value={newCourse.instructor} onChange={handleInputChange} placeholder="e.g., Dr. Alan Turing"/>
-                                        </div>
-                                        <div className="grid gap-2">
-                                            <Label htmlFor="credits">Credits</Label>
-                                            <Input id="credits" name="credits" type="number" value={newCourse.credits} onChange={handleInputChange} placeholder="e.g., 3"/>
-                                        </div>
-                                    </>
-                                )}
+                        <div className="grid gap-4 py-4">
+                            <div className="grid gap-2">
+                                <Label htmlFor="name">Course Name</Label>
+                                <Input id="name" name="name" value={newCourse.name} onChange={handleInputChange} placeholder="e.g., Introduction to AI"/>
                             </div>
-                        )}
-                        {addCourseStep === 2 && (
-                             <div className="grid gap-4 py-4">
-                                <RadioGroup onValueChange={(val) => setIsNewTopic(val === 'true')}>
-                                    <Label htmlFor="new-topic" className={cn("flex items-start gap-4 p-4 rounded-lg border transition-all cursor-pointer", isNewTopic === true && "border-primary bg-primary/10")}>
-                                        <RadioGroupItem value="true" id="new-topic" className="mt-1"/>
-                                        <div className="flex-1">
-                                            <p className="font-semibold">I'm learning something new</p>
-                                            <p className="text-sm text-muted-foreground">Tutorin will generate a course structure and content for you.</p>
-                                        </div>
-                                    </Label>
-                                     <Label htmlFor="existing-course" className={cn("flex items-start gap-4 p-4 rounded-lg border transition-all cursor-pointer", isNewTopic === false && "border-primary bg-primary/10")}>
-                                        <RadioGroupItem value="false" id="existing-course" className="mt-1"/>
-                                        <div className="flex-1">
-                                            <p className="font-semibold">I'm already in this course</p>
-                                            <p className="text-sm text-muted-foreground">You can manually add your own units and chapters.</p>
-                                        </div>
-                                    </Label>
-                                </RadioGroup>
+                            <div className="grid gap-2">
+                                <Label htmlFor="description">Description (Optional)</Label>
+                                <Textarea id="description" name="description" value={newCourse.description} onChange={handleInputChange} placeholder="A brief summary of the course"/>
                             </div>
-                        )}
-                        <DialogFooter>
-                             {addCourseStep === 1 ? (
+                             <div className="grid gap-2">
+                                <Label htmlFor="is-new-topic">Are you currently in this course?</Label>
+                                <Select onValueChange={(value) => setIsNewTopic(value === 'false')}>
+                                    <SelectTrigger id="is-new-topic">
+                                        <SelectValue placeholder="Select an option" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="true">Yes</SelectItem>
+                                        <SelectItem value="false">No, I'm learning something new</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="url">Course URL (Optional)</Label>
+                                <Input id="url" name="url" value={newCourse.url} onChange={handleInputChange} placeholder="https://example.com/course-link"/>
+                            </div>
+                            {gradeLevel !== 'Other' && (
                                 <>
-                                    <Button variant="ghost" onClick={() => setAddCourseOpen(false)}>Cancel</Button>
-                                    <Button onClick={() => setAddCourseStep(2)} disabled={!newCourse.name}>Next</Button>
-                                </>
-                            ) : (
-                                <>
-                                    <Button variant="ghost" onClick={() => setAddCourseStep(1)}>Back</Button>
-                                    <Button onClick={handleAddCourse} disabled={isSavingCourse || isNewTopic === null}>
-                                        {isSavingCourse ? 'Saving...' : 'Add Course'}
-                                    </Button>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="instructor">Instructor</Label>
+                                        <Input id="instructor" name="instructor" value={newCourse.instructor} onChange={handleInputChange} placeholder="e.g., Dr. Alan Turing"/>
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="credits">Credits</Label>
+                                        <Input id="credits" name="credits" type="number" value={newCourse.credits} onChange={handleInputChange} placeholder="e.g., 3"/>
+                                    </div>
                                 </>
                             )}
+                        </div>
+                        <DialogFooter>
+                            <Button variant="ghost" onClick={() => { setAddCourseOpen(false); resetAddCourseDialog();}}>Cancel</Button>
+                            <Button onClick={handleAddCourse} disabled={isSavingCourse || isNewTopic === null}>
+                                {isSavingCourse ? 'Saving...' : 'Add Course'}
+                            </Button>
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
