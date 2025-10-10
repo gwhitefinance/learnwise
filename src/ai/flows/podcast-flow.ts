@@ -5,7 +5,6 @@ import { ai } from '@/ai/genkit';
 import { googleAI } from '@genkit-ai/googleai';
 import { GeneratePodcastEpisodeInput, GeneratePodcastEpisodeInputSchema, GeneratePodcastEpisodeOutput, GeneratePodcastEpisodeOutputSchema, podcastScriptSchema } from '@/ai/schemas/podcast-schema';
 import { generateAudio } from './text-to-speech-flow';
-import { z } from 'zod';
 
 const podcastPrompt = ai.definePrompt({
     name: 'podcastEpisodeGenerationPrompt',
@@ -43,10 +42,12 @@ const generatePodcastEpisodeFlow = ai.defineFlow(
             throw new Error('Failed to generate podcast script.');
         }
 
-        // 2. Split the script into paragraphs to be sent to the client
-        const textSegments = scriptOutput.script.split('\n').filter(s => s.trim() !== '');
+        // 2. Generate audio for the entire script
+        const audioResult = await generateAudio({ text: scriptOutput.script });
         
-        return { textSegments };
+        return { 
+            audioDataUri: audioResult.audioDataUri 
+        };
     }
 );
 

@@ -10,9 +10,10 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
-import { generatePodcastEpisode, generateAudio } from '@/lib/actions';
+import { generatePodcastEpisode } from '@/lib/actions';
 import Loading from './loading';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { motion } from 'framer-motion';
 
 type Course = {
     id: string;
@@ -29,26 +30,42 @@ type Course = {
 };
 
 type EpisodeState = {
-    textSegments: string[];
-    currentlyPlayingSegment: number | null;
+    audioDataUri: string;
+    isPlaying: boolean;
 };
 
-const SegmentPlayer = ({ segment, onPlay, isPlaying, isLoading }: { segment: string; onPlay: () => void; isPlaying: boolean; isLoading: boolean }) => {
+const EpisodePlayer = ({ onPlay, isPlaying }: { onPlay: () => void; isPlaying: boolean; }) => {
     return (
-        <div className="p-3 rounded-lg bg-background border flex items-center justify-between gap-4">
-            <p className="text-sm text-muted-foreground flex-1">{segment}</p>
-            <Button onClick={onPlay} variant="outline" size="icon" disabled={isLoading}>
-                {isLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                ) : isPlaying ? (
-                    <Pause className="h-4 w-4" />
-                ) : (
-                    <Play className="h-4 w-4" />
-                )}
+        <div className="flex flex-col items-center justify-center text-center p-8 bg-muted rounded-lg">
+             <motion.div
+                className="w-48 h-48 rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 shadow-2xl flex items-center justify-center"
+                animate={{
+                    scale: isPlaying ? [1, 1.05, 1] : 1,
+                }}
+                transition={{
+                    duration: 1.5,
+                    repeat: Infinity,
+                    ease: 'easeInOut'
+                }}
+            >
+                <motion.div 
+                    className="w-40 h-40 rounded-full bg-gradient-to-tl from-blue-300 to-indigo-500"
+                    animate={{
+                        rotate: 360,
+                    }}
+                    transition={{
+                        duration: 30,
+                        repeat: Infinity,
+                        ease: 'linear'
+                    }}
+                />
+            </motion.div>
+            <Button onClick={onPlay} className="mt-8 rounded-full h-16 w-16" size="icon">
+                {isPlaying ? <Pause className="h-8 w-8" /> : <Play className="h-8 w-8" />}
             </Button>
         </div>
     );
-}
+};
 
 export default function PodcastsClientPage() {
     const [courses, setCourses] = useState<Course[]>([]);
@@ -56,10 +73,9 @@ export default function PodcastsClientPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [generatingEpisodeId, setGeneratingEpisodeId] = useState<string | null>(null);
     
-    // Player State
     const [episodes, setEpisodes] = useState<Record<string, EpisodeState>>({});
-    const [activeAudio, setActiveAudio] = useState<{ audio: HTMLAudioElement; unitId: string; segmentIndex: number } | null>(null);
-    const [loadingSegment, setLoadingSegment] = useState<{ unitId: string; segmentIndex: number } | null>(null);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
+    const [activeUnitId, setActiveUnitId] = useState<string | null>(null);
 
     const { toast } = useToast();
     const [user, authLoading] = useAuthState(auth);
@@ -78,11 +94,13 @@ export default function PodcastsClientPage() {
     }, [user, authLoading]);
     
     useEffect(() => {
-        // Cleanup audio on component unmount
         return () => {
-          activeAudio?.audio.pause();
+          if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current = null;
+          }
         };
-      }, [activeAudio]);
+      }, []);
 
 
     const handleGenerateEpisode = async (course: Course, unitId: string) => {
@@ -109,8 +127,8 @@ export default function PodcastsClientPage() {
             setEpisodes(prev => ({
                 ...prev,
                 [unitId]: {
-                    textSegments: result.textSegments,
-                    currentlyPlayingSegment: null,
+                    audioDataUri: result.audioDataUri,
+                    isPlaying: false
                 }
             }));
 
@@ -122,42 +140,39 @@ export default function PodcastsClientPage() {
         }
     };
     
-    const playSegment = async (unitId: string, segmentIndex: number) => {
-        // If another segment is playing, stop it.
-        if (activeAudio) {
-            activeAudio.audio.pause();
-            if (activeAudio.unitId === unitId && activeAudio.segmentIndex === segmentIndex) {
-                 // It's the same button, so we just pause and return.
-                 setActiveAudio(null);
-                 setEpisodes(prev => ({ ...prev, [unitId]: { ...prev[unitId], currentlyPlayingSegment: null } }));
-                 return;
+    const togglePlay = (unitId: string, audioDataUri: string) => {
+        if (audioRef.current && activeUnitId === unitId) {
+            // It's the same episode, so toggle play/pause
+            if (audioRef.current.paused) {
+                audioRef.current.play();
+                setEpisodes(prev => ({ ...prev, [unitId]: { ...prev[unitId], isPlaying: true } }));
+            } else {
+                audioRef.current.pause();
+                setEpisodes(prev => ({ ...prev, [unitId]: { ...prev[unitId], isPlaying: false } }));
             }
-            // It's a different segment, so we stop the old one and continue to play the new one.
-             setEpisodes(prev => ({ ...prev, [activeAudio.unitId]: { ...prev[activeAudio.unitId], currentlyPlayingSegment: null } }));
-        }
+        } else {
+            // It's a new episode or the first play
+            if (audioRef.current) {
+                audioRef.current.pause();
+                if (activeUnitId) {
+                    setEpisodes(prev => ({ ...prev, [activeUnitId]: { ...prev[activeUnitId], isPlaying: false } }));
+                }
+            }
 
-        setLoadingSegment({ unitId, segmentIndex });
-
-        try {
-            const segmentText = episodes[unitId].textSegments[segmentIndex];
-            const audioResult = await generateAudio({ text: segmentText });
-            const newAudio = new Audio(audioResult.audioDataUri);
-            
-            newAudio.onended = () => {
-                setEpisodes(prev => ({ ...prev, [unitId]: { ...prev[unitId], currentlyPlayingSegment: null } }));
-                setActiveAudio(null);
-            };
+            const newAudio = new Audio(audioDataUri);
+            audioRef.current = newAudio;
+            setActiveUnitId(unitId);
 
             newAudio.play();
-            setActiveAudio({ audio: newAudio, unitId, segmentIndex });
-            setEpisodes(prev => ({ ...prev, [unitId]: { ...prev[unitId], currentlyPlayingSegment: segmentIndex } }));
+            setEpisodes(prev => ({ ...prev, [unitId]: { ...prev[unitId], isPlaying: true } }));
 
-        } catch (e) {
-            toast({ variant: 'destructive', title: 'Audio Error', description: 'Could not play audio.' });
-        } finally {
-            setLoadingSegment(null);
+            newAudio.onended = () => {
+                setEpisodes(prev => ({ ...prev, [unitId]: { ...prev[unitId], isPlaying: false } }));
+                setActiveUnitId(null);
+                audioRef.current = null;
+            };
         }
-    }
+    };
 
 
     const selectedCourse = courses.find(c => c.id === selectedCourseId);
@@ -220,17 +235,10 @@ export default function PodcastsClientPage() {
                                                         </Button>
                                                     </div>
                                                 ) : (
-                                                    <div className="space-y-2">
-                                                        {episode.textSegments.map((segment, index) => (
-                                                            <SegmentPlayer
-                                                                key={index}
-                                                                segment={segment}
-                                                                onPlay={() => playSegment(unit.id, index)}
-                                                                isPlaying={episode.currentlyPlayingSegment === index}
-                                                                isLoading={loadingSegment?.unitId === unit.id && loadingSegment?.segmentIndex === index}
-                                                            />
-                                                        ))}
-                                                    </div>
+                                                    <EpisodePlayer 
+                                                        isPlaying={episode.isPlaying}
+                                                        onPlay={() => togglePlay(unit.id, episode.audioDataUri)}
+                                                    />
                                                 )}
                                             </AccordionContent>
                                         </AccordionItem>
