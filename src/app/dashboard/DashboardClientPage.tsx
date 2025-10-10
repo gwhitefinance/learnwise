@@ -74,6 +74,7 @@ import AudioPlayer from '@/components/audio-player';
 import type { GenerateExplanationOutput } from '@/ai/schemas/quiz-explanation-schema';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { RewardContext } from '@/context/RewardContext';
+import { Textarea } from '@/components/ui/textarea';
 
   type CourseFile = {
       id: string;
@@ -99,6 +100,7 @@ import { RewardContext } from '@/context/RewardContext';
     files: number; // This might be a count or can be removed if we calculate it
     userId?: string;
     units?: Unit[];
+    isNewTopic?: boolean;
   };
 
   type FirestoreProject = {
@@ -227,7 +229,7 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
     const [recentFiles, setRecentFiles] = useState<DisplayFile[]>([]);
     const [isAddCourseOpen, setAddCourseOpen] = useState(false);
     const [isSavingCourse, setIsSavingCourse] = useState(false);
-    const [newCourse, setNewCourse] = useState({ name: '', instructor: '', credits: '', url: ''});
+    const [newCourse, setNewCourse] = useState({ name: '', instructor: '', credits: '', url: '', description: '' });
     const { toast } = useToast();
     const [files, setFiles] = useState<FileList | null>(null);
     const [isDragging, setIsDragging] = useState(false);
@@ -249,6 +251,10 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
     const [learnerType, setLearnerType] = useState<string | null>(null);
     const [gradeLevel, setGradeLevel] = useState<string | null>(null);
     const { showReward } = useContext(RewardContext);
+
+    // Add Course Dialog State
+    const [addCourseStep, setAddCourseStep] = useState(1);
+    const [isNewTopic, setIsNewTopic] = useState<boolean | null>(null);
 
      useEffect(() => {
         if (!user) return;
@@ -408,50 +414,56 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
         }
     };
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setNewCourse(prev => ({ ...prev, [name]: value }));
     };
 
+    const resetAddCourseDialog = () => {
+        setAddCourseStep(1);
+        setIsNewTopic(null);
+        setNewCourse({ name: '', instructor: '', credits: '', url: '', description: '' });
+    };
+
     const handleAddCourse = async () => {
         if (!newCourse.name) {
-            toast({
-                variant: 'destructive',
-                title: 'Missing Fields',
-                description: 'Please enter a course name.'
-            });
+            toast({ variant: 'destructive', title: 'Missing Fields', description: 'Please enter a course name.' });
+            return;
+        }
+        if (isNewTopic === null) {
+            toast({ variant: 'destructive', title: 'Missing Information', description: 'Please specify if this is a new topic.' });
             return;
         }
         if (!user) return;
-
+  
         setIsSavingCourse(true);
-        setAddCourseOpen(false); // Close dialog immediately
-
+  
         const courseToAdd = {
             name: newCourse.name,
             instructor: newCourse.instructor || 'N/A',
             credits: parseInt(newCourse.credits, 10) || 0,
             url: newCourse.url,
+            description: newCourse.description || `A course on ${newCourse.name}`,
             userId: user.uid,
-            description: `A course on ${newCourse.name}.`,
+            isNewTopic: isNewTopic,
+            units: [],
+            completedChapters: [],
             progress: 0,
             files: 0,
         };
-        
+  
         try {
             await addDoc(collection(db, "courses"), courseToAdd);
             toast({
                 title: 'Course Added!',
-                description: `${courseToAdd.name} has been added to your list.`
+                description: `${courseToAdd.name} has been added to your list.`,
             });
+            setAddCourseOpen(false);
+            resetAddCourseDialog();
         } catch(error) {
-             toast({
-                variant: 'destructive',
-                title: 'Error',
-                description: 'Could not add course. Please try again.',
-            });
+            console.error("Error adding document: ", error);
+            toast({ variant: 'destructive', title: 'Error', description: 'Could not add course.' });
         } finally {
-            setNewCourse({ name: '', instructor: '', credits: '', url: '' });
             setIsSavingCourse(false);
         }
     };
@@ -741,44 +753,82 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                     </DialogContent>
                 </Dialog>
                 
-                <Dialog open={isAddCourseOpen} onOpenChange={setAddCourseOpen}>
+                <Dialog open={isAddCourseOpen} onOpenChange={(open) => { if (!open) resetAddCourseDialog(); setAddCourseOpen(open); }}>
                     <DialogTrigger asChild>
                         <Button className="rounded-2xl">
                           <Plus className="mr-2 h-4 w-4" />
                           New Course
                         </Button>
                     </DialogTrigger>
-                    <DialogContent>
+                     <DialogContent>
                         <DialogHeader>
                             <DialogTitle>Add a New Course</DialogTitle>
+                            <DialogDescription>
+                                {addCourseStep === 1 ? "First, provide some details about your course." : "Next, tell us about your relationship with this course."}
+                            </DialogDescription>
                         </DialogHeader>
-                        <div className="grid gap-4 py-4">
-                            <div className="grid gap-2">
-                                <Label htmlFor="name">Course Name</Label>
-                                <Input id="name" name="name" value={newCourse.name} onChange={handleInputChange} placeholder="e.g., Introduction to AI"/>
+                        {addCourseStep === 1 && (
+                            <div className="grid gap-4 py-4">
+                                <div className="grid gap-2">
+                                    <Label htmlFor="name">Course Name</Label>
+                                    <Input id="name" name="name" value={newCourse.name} onChange={handleInputChange} placeholder="e.g., Introduction to AI"/>
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="description">Description (Optional)</Label>
+                                    <Textarea id="description" name="description" value={newCourse.description} onChange={handleInputChange} placeholder="A brief summary of the course"/>
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="url">Course URL (Optional)</Label>
+                                    <Input id="url" name="url" value={newCourse.url} onChange={handleInputChange} placeholder="https://example.com/course-link"/>
+                                </div>
+                                {gradeLevel !== 'Other' && (
+                                    <>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="instructor">Instructor</Label>
+                                            <Input id="instructor" name="instructor" value={newCourse.instructor} onChange={handleInputChange} placeholder="e.g., Dr. Alan Turing"/>
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="credits">Credits</Label>
+                                            <Input id="credits" name="credits" type="number" value={newCourse.credits} onChange={handleInputChange} placeholder="e.g., 3"/>
+                                        </div>
+                                    </>
+                                )}
                             </div>
-                            {gradeLevel !== 'Other' && (
+                        )}
+                        {addCourseStep === 2 && (
+                             <div className="grid gap-4 py-4">
+                                <RadioGroup onValueChange={(val) => setIsNewTopic(val === 'true')}>
+                                    <Label htmlFor="new-topic" className={cn("flex items-start gap-4 p-4 rounded-lg border transition-all cursor-pointer", isNewTopic === true && "border-primary bg-primary/10")}>
+                                        <RadioGroupItem value="true" id="new-topic" className="mt-1"/>
+                                        <div className="flex-1">
+                                            <p className="font-semibold">I'm learning something new</p>
+                                            <p className="text-sm text-muted-foreground">Tutorin will generate a course structure and content for you.</p>
+                                        </div>
+                                    </Label>
+                                     <Label htmlFor="existing-course" className={cn("flex items-start gap-4 p-4 rounded-lg border transition-all cursor-pointer", isNewTopic === false && "border-primary bg-primary/10")}>
+                                        <RadioGroupItem value="false" id="existing-course" className="mt-1"/>
+                                        <div className="flex-1">
+                                            <p className="font-semibold">I'm already in this course</p>
+                                            <p className="text-sm text-muted-foreground">You can manually add your own units and chapters.</p>
+                                        </div>
+                                    </Label>
+                                </RadioGroup>
+                            </div>
+                        )}
+                        <DialogFooter>
+                             {addCourseStep === 1 ? (
                                 <>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="instructor">Instructor</Label>
-                                        <Input id="instructor" name="instructor" value={newCourse.instructor} onChange={handleInputChange} placeholder="e.g., Dr. Alan Turing"/>
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="credits">Credits</Label>
-                                        <Input id="credits" name="credits" type="number" value={newCourse.credits} onChange={handleInputChange} placeholder="e.g., 3"/>
-                                    </div>
+                                    <Button variant="ghost" onClick={() => setAddCourseOpen(false)}>Cancel</Button>
+                                    <Button onClick={() => setAddCourseStep(2)} disabled={!newCourse.name}>Next</Button>
+                                </>
+                            ) : (
+                                <>
+                                    <Button variant="ghost" onClick={() => setAddCourseStep(1)}>Back</Button>
+                                    <Button onClick={handleAddCourse} disabled={isSavingCourse || isNewTopic === null}>
+                                        {isSavingCourse ? 'Saving...' : 'Add Course'}
+                                    </Button>
                                 </>
                             )}
-                            <div className="grid gap-2">
-                                <Label htmlFor="url">Course URL (Optional)</Label>
-                                <Input id="url" name="url" value={newCourse.url} onChange={handleInputChange} placeholder="https://example.com/course-link"/>
-                            </div>
-                        </div>
-                         <DialogFooter>
-                            <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
-                            <Button onClick={handleAddCourse} disabled={isSavingCourse}>
-                                {isSavingCourse ? 'Saving...' : 'Add Course'}
-                            </Button>
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
@@ -1361,5 +1411,3 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
 }
 
 export default DashboardClientPage;
-
-    
