@@ -796,14 +796,15 @@ function CoursesComponent() {
                                         </DropdownMenuContent>
                                     </DropdownMenu>
                                 </div>
-                                <CardDescription>{totalChapters > 0 ? `${totalChapters} chapters` : 'No content generated'}</CardDescription>
+                                <CardDescription>{course.description || (totalChapters > 0 ? `${totalChapters} chapters` : 'No content generated')}</CardDescription>
                             </CardHeader>
                             <CardContent className="flex-grow">
-                                <p className="text-sm text-muted-foreground line-clamp-2 mb-4">{course.description}</p>
-                                <div className="space-y-1">
-                                    <p className="text-xs text-muted-foreground">{Math.round(courseProgress)}% Complete</p>
-                                    <Progress value={courseProgress} className="h-2" />
-                                </div>
+                                {totalChapters > 0 && (
+                                    <div className="space-y-1">
+                                        <p className="text-xs text-muted-foreground">{Math.round(courseProgress)}% Complete</p>
+                                        <Progress value={courseProgress} className="h-2" />
+                                    </div>
+                                )}
                             </CardContent>
                             <CardFooter className="flex flex-col sm:flex-row gap-2">
                                 {course.units && course.units.length > 0 ? (
