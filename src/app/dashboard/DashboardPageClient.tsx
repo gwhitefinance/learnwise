@@ -814,7 +814,7 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                              <div className="mt-4 flex gap-2">
                                 <Link href="/dashboard/courses">
                                     <Button variant="outline" className="bg-white/20 text-white hover:bg-white/30 rounded-xl">
-                                        Go to courses
+                                        Start Tutorin
                                         <ArrowRight className="ml-2 h-4 w-4" />
                                     </Button>
                                 </Link>
