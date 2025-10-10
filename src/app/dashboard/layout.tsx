@@ -114,8 +114,6 @@ type SidebarItem = {
   children?: SidebarChild[];
 };
 
-
-// Sample data for sidebar navigation
 const sidebarItems: SidebarItem[] = [
     {
       title: "Home",
@@ -139,12 +137,6 @@ const sidebarItems: SidebarItem[] = [
             icon: <GitMerge />,
             href: "/dashboard/roadmaps",
             id: "roadmaps-link",
-          },
-          {
-            title: "Learning Lab",
-            icon: <FlaskConical />,
-            href: "/dashboard/learning-lab",
-            id: "learning-lab-link",
           },
           {
             title: "Calendar",
@@ -229,13 +221,28 @@ const satPrepItem: SidebarItem = {
 const SidebarNavItem = ({ item, pathname, setMobileMenuOpen }: { item: SidebarItem, pathname: string, setMobileMenuOpen: (open: boolean) => void }) => {
     const [isOpen, setIsOpen] = useState(false);
     const hasChildren = item.children && item.children.length > 0;
-    const isActive = hasChildren ? item.children.some((child) => child.href === pathname || pathname.startsWith(child.href + '/')) : item.href === pathname;
 
+    const getIsActive = (item: SidebarItem): boolean => {
+        if (!item.href && !item.children) return false;
+        
+        if (item.href) {
+            return pathname === item.href || pathname.startsWith(item.href + '/');
+        }
+        
+        if (item.children) {
+            return item.children.some(child => pathname === child.href || pathname.startsWith(child.href + '/'));
+        }
+        
+        return false;
+    };
+
+    const isActive = getIsActive(item);
+    
     useEffect(() => {
         if (isActive) {
             setIsOpen(true);
         }
-    }, [isActive]);
+    }, [isActive, item.children, pathname]);
 
     if (hasChildren) {
         return (

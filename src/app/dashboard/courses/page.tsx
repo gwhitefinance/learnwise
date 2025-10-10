@@ -1,11 +1,14 @@
 
-import CoursesTable from './courses-table';
+'use client';
+
+import dynamic from 'next/dynamic';
+import Loading from './loading';
+
+const CoursesClientPage = dynamic(() => import('./CoursesClientPage'), {
+  ssr: false,
+  loading: () => <Loading />,
+});
 
 export default function CoursesPage() {
-    return (
-        <div className="space-y-4">
-            {/* The CoursesTable component now handles its own data fetching. */}
-            <CoursesTable initialCourses={[]} />
-        </div>
-    );
+    return <CoursesClientPage />;
 }

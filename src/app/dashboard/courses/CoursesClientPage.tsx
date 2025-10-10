@@ -23,7 +23,7 @@ import AudioPlayer from '@/components/audio-player';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { generateMiniCourse, generateQuizFromModule, generateFlashcardsFromModule, generateTutorResponse, generateChapterContent, generateMidtermExam, generateRoadmap } from '@/lib/actions';
+import { generateMiniCourse, generateQuizFromModule, generateFlashcardsFromModule, generateTutorResponse, generateChapterContent, generateMidtermExam, generateRoadmap, generateCourseFromUrl } from '@/lib/actions';
 import { RewardContext } from '@/context/RewardContext';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import Loading from './loading';
@@ -34,11 +34,13 @@ import Image from 'next/image';
 type Course = {
     id: string;
     name: string;
-    description: string;
+    description?: string;
     url?: string;
     userId?: string;
     units?: Module[];
     completedChapters?: string[];
+    instructor?: string;
+    credits?: number;
 };
 
 type Module = {
@@ -81,7 +83,7 @@ type QuizResult = {
 }
 
 
-function LearningLabComponent() {
+function CoursesComponent() {
   const searchParams = useSearchParams();
   const [courses, setCourses] = useState<Course[]>([]);
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
@@ -125,9 +127,12 @@ function LearningLabComponent() {
   const [isFocusMode, setIsFocusMode] = useState(false);
   
   const [isStartLabDialogOpen, setStartLabDialogOpen] = useState(false);
-  const [newLabCourseId, setNewLabCourseId] = useState<string | null>(null);
   const [isCourseReadyDialogOpen, setIsCourseReadyDialogOpen] = useState(false);
 
+  const [newCourse, setNewCourse] = useState({ name: '', instructor: '', credits: '', url: '', description: '' });
+  const [isSaving, setIsSaving] = useState(false);
+  const [isAddCourseOpen, setAddCourseOpen] = useState(false);
+  const [gradeLevel, setGradeLevel] = useState<string | null>(null);
 
   const [isRoadmapGenerating, setIsRoadmapGenerating] = useState(false);
 
@@ -144,6 +149,8 @@ function LearningLabComponent() {
 
     const storedLearnerType = localStorage.getItem('learnerType');
     setLearnerType(storedLearnerType ?? 'Unknown');
+    const storedGradeLevel = localStorage.getItem('onboardingGradeLevel');
+    setGradeLevel(storedGradeLevel);
     
     const courseIdFromUrl = searchParams.get('courseId');
 
@@ -233,26 +240,25 @@ function LearningLabComponent() {
   const currentModule = activeCourse?.units?.[currentModuleIndex];
   const currentChapter = currentModule?.chapters[currentChapterIndex];
 
-  const handleGenerateCourse = async () => {
-    if (!newLabCourseId || !user) return;
+  const handleGenerateCourse = async (courseToGenerate: Course) => {
+    if (!user) return;
     
-    const course = courses.find(c => c.id === newLabCourseId);
-    if (!course) {
-        toast({ variant: 'destructive', title: 'Course not found.' });
-        return;
-    }
-
     setIsGenerating(true);
     setStartLabDialogOpen(false);
     toast({ title: 'Generating Course Outline...', description: `This might take a minute...` });
 
     try {
         const learnerType = localStorage.getItem('learnerType') as any || 'Reading/Writing';
-        const result = await generateMiniCourse({
-            courseName: course.name,
-            courseDescription: course.description || `An in-depth course on ${course.name}`,
+        
+        const generationInput = {
+            courseName: courseToGenerate.name,
+            courseDescription: courseToGenerate.description || `An in-depth course on ${courseToGenerate.name}`,
             learnerType,
-        });
+            courseUrl: courseToGenerate.url || '',
+            webContent: '', // this will be handled by the flow if URL exists
+        };
+
+        const result = await (courseToGenerate.url ? generateCourseFromUrl(generationInput) : generateMiniCourse(generationInput));
 
         const newUnits = result.modules.map(module => ({
             id: crypto.randomUUID(),
@@ -267,15 +273,14 @@ function LearningLabComponent() {
             throw new Error("AI did not generate any modules.");
         }
         
-        const courseRef = doc(db, 'courses', course.id);
+        const courseRef = doc(db, 'courses', courseToGenerate.id);
         await updateDoc(courseRef, { 
             units: newUnits,
-            userId: user.uid,
             completedChapters: [],
         });
         
-        setActiveCourse({ ...course, units: newUnits, completedChapters: [] });
-        setSelectedCourseId(course.id);
+        setActiveCourse({ ...courseToGenerate, units: newUnits, completedChapters: [] });
+        setSelectedCourseId(courseToGenerate.id);
         setCurrentModuleIndex(0);
         setCurrentChapterIndex(0);
         setIsCourseReadyDialogOpen(true);
@@ -285,7 +290,6 @@ function LearningLabComponent() {
         toast({ variant: 'destructive', title: 'Generation Failed', description: 'Could not create content for this course.' });
     } finally {
         setIsGenerating(false);
-        setNewLabCourseId(null);
     }
   };
 
@@ -585,17 +589,16 @@ function LearningLabComponent() {
     window.history.pushState({}, '', url.toString());
   }
 
-  const handleDeleteLab = async (courseId: string) => {
+  const handleDeleteCourse = async (courseId: string) => {
     if (!user) return;
     try {
-        const courseRef = doc(db, 'courses', courseId);
-        await updateDoc(courseRef, {
-            units: [],
-            completedChapters: []
-        });
-        toast({ title: 'Learning Lab Deleted', description: 'The generated content for this course has been removed.' });
+        await deleteDoc(doc(db, 'courses', courseId));
+        toast({ title: 'Course Deleted', description: 'The course has been removed.' });
+        if(selectedCourseId === courseId) {
+            startNewCourse();
+        }
     } catch (error) {
-        console.error("Error deleting lab:", error);
+        console.error("Error deleting course:", error);
         toast({ variant: 'destructive', title: 'Deletion Failed' });
     }
   };
@@ -647,7 +650,47 @@ function LearningLabComponent() {
     setIsCourseReadyDialogOpen(false);
     await handleGenerateChapterContent(0, 0);
   }
-  
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setNewCourse(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleAddCourse = async () => {
+      if (!newCourse.name) {
+          toast({ variant: 'destructive', title: 'Missing Fields', description: 'Please enter a course name.' });
+          return;
+      }
+      if (!user) return;
+
+      setIsSaving(true);
+      setAddCourseOpen(false);
+
+      const courseToAdd: Omit<Course, 'id' | 'units' | 'completedChapters'> = {
+          name: newCourse.name,
+          instructor: newCourse.instructor || 'N/A',
+          credits: parseInt(newCourse.credits, 10) || 0,
+          url: newCourse.url,
+          description: newCourse.description || `A course on ${newCourse.name}`,
+          userId: user.uid,
+      };
+
+      try {
+          const docRef = await addDoc(collection(db, "courses"), courseToAdd);
+          toast({
+              title: 'Course Added!',
+              description: `${courseToAdd.name} has been added. You can now generate a learning lab for it.`,
+          });
+          setSelectedCourseId(docRef.id);
+      } catch(error) {
+          console.error("Error adding document: ", error);
+          toast({ variant: 'destructive', title: 'Error', description: 'Could not add course.' });
+      } finally {
+          setNewCourse({ name: '', instructor: '', credits: '', url: '', description: '' });
+          setIsSaving(false);
+      }
+  };
+
   const chapterCount = activeCourse?.units?.reduce((acc, unit) => acc + (unit.chapters?.length ?? 0), 0) ?? 0;
   const completedChaptersCount = activeCourse?.completedChapters?.length ?? 0;
   const progress = chapterCount > 0 ? (completedChaptersCount / chapterCount) * 100 : 0;
@@ -657,52 +700,64 @@ function LearningLabComponent() {
   }
 
   if (!selectedCourseId || !activeCourse) {
-      const coursesWithLabs = courses.filter(c => c.units && c.units.length > 0);
       return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Learning Lab</h1>
-                    <p className="text-muted-foreground">Hands-on, interactive learning sessions for your courses.</p>
+                    <h1 className="text-3xl font-bold tracking-tight">Courses</h1>
+                    <p className="text-muted-foreground">Manage your courses and generate interactive learning labs.</p>
                 </div>
-                 <Dialog open={isStartLabDialogOpen} onOpenChange={setStartLabDialogOpen}>
+                 <Dialog open={isAddCourseOpen} onOpenChange={setAddCourseOpen}>
                     <DialogTrigger asChild>
-                        <Button disabled={isGenerating}>
-                            <Plus className="mr-2 h-4 w-4"/> Start a New Learning Lab
+                        <Button disabled={isSaving}>
+                            <Plus className="mr-2 h-4 w-4"/> Add Course
                         </Button>
                     </DialogTrigger>
                     <DialogContent>
                         <DialogHeader>
-                            <DialogTitle>Start a New Learning Lab</DialogTitle>
+                            <DialogTitle>Add a New Course</DialogTitle>
                             <DialogDescription>
-                                Select a course to generate a new interactive learning lab. This will create a structured set of modules and chapters for you to work through.
+                                Add a new course manually, or provide a URL to have AI generate the course content for you.
                             </DialogDescription>
                         </DialogHeader>
-                        <div className="py-4 space-y-4">
-                            <Label htmlFor="course-select">Select a Course</Label>
-                            <Select onValueChange={setNewLabCourseId}>
-                                <SelectTrigger id="course-select">
-                                    <SelectValue placeholder="Choose a course..." />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {courses.map(course => (
-                                        <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                        <div className="grid gap-4 py-4">
+                            <div className="grid gap-2">
+                                <Label htmlFor="name">Course Name</Label>
+                                <Input id="name" name="name" value={newCourse.name} onChange={handleInputChange} placeholder="e.g., Introduction to AI"/>
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="description">Description (Optional)</Label>
+                                <Input id="description" name="description" value={newCourse.description} onChange={handleInputChange} placeholder="A brief summary of the course"/>
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="url">Course URL (Optional)</Label>
+                                <Input id="url" name="url" value={newCourse.url} onChange={handleInputChange} placeholder="https://example.com/course-link"/>
+                            </div>
+                             {gradeLevel !== 'Other' && (
+                                <>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="instructor">Instructor</Label>
+                                        <Input id="instructor" name="instructor" value={newCourse.instructor} onChange={handleInputChange} placeholder="e.g., Dr. Alan Turing"/>
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="credits">Credits</Label>
+                                        <Input id="credits" name="credits" type="number" value={newCourse.credits} onChange={handleInputChange} placeholder="e.g., 3"/>
+                                    </div>
+                                </>
+                            )}
                         </div>
                         <DialogFooter>
                             <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
-                            <Button onClick={handleGenerateCourse} disabled={!newLabCourseId || isGenerating}>
-                                {isGenerating ? 'Generating...' : 'Generate & Start Lab'}
+                            <Button onClick={handleAddCourse} disabled={isSaving}>
+                                {isSaving ? 'Saving...' : 'Add Course'}
                             </Button>
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
             </div>
-            {coursesWithLabs.length > 0 ? (
+            {courses.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {coursesWithLabs.map(course => {
+                    {courses.map(course => {
                         const totalChapters = course.units?.reduce((acc, unit) => acc + (unit.chapters?.length ?? 0), 0) ?? 0;
                         const completedCount = course.completedChapters?.length ?? 0;
                         const courseProgress = totalChapters > 0 ? (completedCount / totalChapters) * 100 : 0;
@@ -722,26 +777,26 @@ function LearningLabComponent() {
                                             <AlertDialog>
                                                 <AlertDialogTrigger asChild>
                                                      <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
-                                                        <Trash2 className="mr-2 h-4 w-4"/> Delete Lab
+                                                        <Trash2 className="mr-2 h-4 w-4"/> Delete Course
                                                     </DropdownMenuItem>
                                                 </AlertDialogTrigger>
                                                 <AlertDialogContent>
                                                     <AlertDialogHeader>
                                                         <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                                                         <AlertDialogDescription>
-                                                            This will delete all generated modules and chapters for this lab. Your original course will not be affected.
+                                                            This will permanently delete this course and all its associated content.
                                                         </AlertDialogDescription>
                                                     </AlertDialogHeader>
                                                     <AlertDialogFooter>
                                                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                        <AlertDialogAction onClick={() => handleDeleteLab(course.id)}>Delete</AlertDialogAction>
+                                                        <AlertDialogAction onClick={() => handleDeleteCourse(course.id)}>Delete</AlertDialogAction>
                                                     </AlertDialogFooter>
                                                 </AlertDialogContent>
                                             </AlertDialog>
                                         </DropdownMenuContent>
                                     </DropdownMenu>
                                 </div>
-                                <CardDescription>{totalChapters} chapters</CardDescription>
+                                <CardDescription>{totalChapters > 0 ? `${totalChapters} chapters` : 'No content generated'}</CardDescription>
                             </CardHeader>
                             <CardContent className="flex-grow">
                                 <p className="text-sm text-muted-foreground line-clamp-2 mb-4">{course.description}</p>
@@ -750,10 +805,17 @@ function LearningLabComponent() {
                                     <Progress value={courseProgress} className="h-2" />
                                 </div>
                             </CardContent>
-                            <CardFooter>
-                                <Button className="w-full" onClick={() => setSelectedCourseId(course.id)}>
-                                    Continue Learning
-                                </Button>
+                            <CardFooter className="flex flex-col sm:flex-row gap-2">
+                                {course.units && course.units.length > 0 ? (
+                                    <Button className="w-full" onClick={() => setSelectedCourseId(course.id)}>
+                                        Continue Learning
+                                    </Button>
+                                ) : (
+                                    <Button className="w-full" onClick={() => handleGenerateCourse(course)} disabled={isGenerating}>
+                                        <Wand2 className="mr-2 h-4 w-4" />
+                                        {isGenerating ? 'Generating...' : 'Generate Lab'}
+                                    </Button>
+                                )}
                             </CardFooter>
                         </Card>
                     )})}
@@ -761,9 +823,9 @@ function LearningLabComponent() {
             ) : (
                 <Card className="text-center p-12">
                    <FlaskConical className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                  <h2 className="text-xl font-semibold">No Learning Labs Created Yet</h2>
+                  <h2 className="text-xl font-semibold">No Courses Created Yet</h2>
                   <p className="text-muted-foreground mt-2 mb-6 max-w-md mx-auto">
-                    Click "Start a New Learning Lab" to generate your first interactive course.
+                    Click "Add Course" to create your first course and generate an interactive learning lab.
                   </p>
                 </Card>
             )}
@@ -959,7 +1021,7 @@ function LearningLabComponent() {
                     )})}
                  </Accordion>
                  <div className="mt-4 pt-4 border-t">
-                     <Button variant="outline" className="w-full" onClick={startNewCourse}>Back to Labs Overview</Button>
+                     <Button variant="outline" className="w-full" onClick={startNewCourse}>Back to Courses Overview</Button>
                  </div>
              </div>
         </aside>
@@ -1097,10 +1159,10 @@ function LearningLabComponent() {
   );
 }
 
-export default function LearningLabClientPage() {
+export default function CoursesClientPage() {
     return (
         <Suspense fallback={<Loading />}>
-            <LearningLabComponent />
+            <CoursesComponent />
         </Suspense>
     )
 }
