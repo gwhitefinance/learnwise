@@ -6,7 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Play, Pause, ChevronLeft, ChevronRight, Wand2, FlaskConical, Lightbulb, Copy, RefreshCw, Check, Star, CheckCircle, Send, Bot, User, GitMerge, PanelLeft, Minimize, Maximize, Loader2, Plus, Trash2, MoreVertical, XCircle, ArrowRight, RotateCcw, Video, Image as ImageIcon } from 'lucide-react';
+import { Play, Pause, ChevronLeft, ChevronRight, Wand2, FlaskConical, Lightbulb, Copy, RefreshCw, Check, Star, CheckCircle, Send, Bot, User, GitMerge, PanelLeft, Minimize, Maximize, Loader2, Plus, Trash2, MoreVertical, XCircle, ArrowRight, RotateCcw, Video, Image as ImageIcon, BookCopy, Link } from 'lucide-react';
 import Link from 'next/link';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
@@ -30,6 +30,7 @@ import Loading from './loading';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import Image from 'next/image';
+import { Textarea } from '@/components/ui/textarea';
 
 type Course = {
     id: string;
@@ -41,6 +42,7 @@ type Course = {
     completedChapters?: string[];
     instructor?: string;
     credits?: number;
+    isNewTopic?: boolean;
 };
 
 type Module = {
@@ -126,16 +128,22 @@ function CoursesComponent() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isFocusMode, setIsFocusMode] = useState(false);
   
-  const [isStartLabDialogOpen, setStartLabDialogOpen] = useState(false);
   const [isCourseReadyDialogOpen, setIsCourseReadyDialogOpen] = useState(false);
 
   const [newCourse, setNewCourse] = useState({ name: '', instructor: '', credits: '', url: '', description: '' });
   const [isSaving, setIsSaving] = useState(false);
   const [isAddCourseOpen, setAddCourseOpen] = useState(false);
   const [gradeLevel, setGradeLevel] = useState<string | null>(null);
+  const [addCourseStep, setAddCourseStep] = useState(1);
+  const [isNewTopic, setIsNewTopic] = useState<boolean | null>(null);
 
   const [isRoadmapGenerating, setIsRoadmapGenerating] = useState(false);
 
+  // Manual unit creation state
+  const [isAddUnitOpen, setIsAddUnitOpen] = useState(false);
+  const [newUnitTitle, setNewUnitTitle] = useState('');
+  const [isAddUnitFromUrlOpen, setIsAddUnitFromUrlOpen] = useState(false);
+  const [newUnitsUrl, setNewUnitsUrl] = useState('');
 
   useEffect(() => {
     if (authLoading || !user) return;
@@ -244,7 +252,6 @@ function CoursesComponent() {
     if (!user) return;
     
     setIsGenerating(true);
-    setStartLabDialogOpen(false);
     toast({ title: 'Generating Course Outline...', description: `This might take a minute...` });
 
     try {
@@ -279,7 +286,7 @@ function CoursesComponent() {
             completedChapters: [],
         });
         
-        setActiveCourse({ ...courseToGenerate, units: newUnits, completedChapters: [] });
+        setActiveCourse(prev => prev ? { ...prev, units: newUnits, completedChapters: [] } : null);
         setSelectedCourseId(courseToGenerate.id);
         setCurrentModuleIndex(0);
         setCurrentChapterIndex(0);
@@ -648,8 +655,6 @@ function CoursesComponent() {
   
   const handleStartTutorin = async () => {
     setIsCourseReadyDialogOpen(false);
-    // No need to generate content here anymore, just navigate
-    // The main useEffect will handle loading the first chapter content
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -657,40 +662,116 @@ function CoursesComponent() {
     setNewCourse(prev => ({ ...prev, [name]: value }));
   };
 
+  const resetAddCourseDialog = () => {
+    setAddCourseStep(1);
+    setIsNewTopic(null);
+    setNewCourse({ name: '', instructor: '', credits: '', url: '', description: '' });
+  };
+  
   const handleAddCourse = async () => {
       if (!newCourse.name) {
           toast({ variant: 'destructive', title: 'Missing Fields', description: 'Please enter a course name.' });
           return;
       }
+      if (isNewTopic === null) {
+          toast({ variant: 'destructive', title: 'Missing Information', description: 'Please specify if this is a new topic.' });
+          return;
+      }
       if (!user) return;
 
       setIsSaving(true);
-      setAddCourseOpen(false);
 
-      const courseToAdd: Omit<Course, 'id' | 'units' | 'completedChapters'> = {
+      const courseToAdd = {
           name: newCourse.name,
           instructor: newCourse.instructor || 'N/A',
           credits: parseInt(newCourse.credits, 10) || 0,
           url: newCourse.url,
           description: newCourse.description || `A course on ${newCourse.name}`,
           userId: user.uid,
+          isNewTopic: isNewTopic,
+          units: [],
+          completedChapters: [],
       };
 
       try {
           await addDoc(collection(db, "courses"), courseToAdd);
           toast({
               title: 'Course Added!',
-              description: `${courseToAdd.name} has been added. You can now generate a learning lab for it.`,
+              description: `${courseToAdd.name} has been added.`,
           });
+          setAddCourseOpen(false);
+          resetAddCourseDialog();
           setSelectedCourseId(null);
       } catch(error) {
           console.error("Error adding document: ", error);
           toast({ variant: 'destructive', title: 'Error', description: 'Could not add course.' });
       } finally {
-          setNewCourse({ name: '', instructor: '', credits: '', url: '', description: '' });
           setIsSaving(false);
       }
   };
+
+  const handleManualAddUnit = async () => {
+    if (!newUnitTitle.trim() || !activeCourse) return;
+    
+    const newUnit: Module = {
+        id: crypto.randomUUID(),
+        title: newUnitTitle,
+        chapters: []
+    };
+
+    const updatedUnits = [...(activeCourse.units || []), newUnit];
+    const courseRef = doc(db, 'courses', activeCourse.id);
+
+    try {
+        await updateDoc(courseRef, { units: updatedUnits });
+        setActiveCourse(prev => prev ? {...prev, units: updatedUnits} : null);
+        toast({ title: 'Unit Added!' });
+        setNewUnitTitle('');
+        setIsAddUnitOpen(false);
+    } catch(e) {
+        toast({ variant: 'destructive', title: 'Error adding unit.'});
+    }
+  };
+
+  const handleAddUnitsFromUrl = async () => {
+    if (!newUnitsUrl.trim() || !activeCourse || !user) return;
+    setIsGenerating(true);
+    setIsAddUnitFromUrlOpen(false);
+    toast({ title: "Generating units from URL...", description: "This might take a moment." });
+
+    try {
+      const learnerType = localStorage.getItem('learnerType') as any || 'Reading/Writing';
+      const result = await generateCourseFromUrl({
+        courseName: activeCourse.name,
+        courseDescription: activeCourse.description,
+        courseUrl: newUnitsUrl,
+        learnerType,
+      });
+
+      const newUnits = result.modules.map(module => ({
+        id: crypto.randomUUID(),
+        title: module.title,
+        chapters: module.chapters.map(chapter => ({
+          ...chapter,
+          id: crypto.randomUUID(),
+        }))
+      }));
+
+      const updatedUnits = [...(activeCourse.units || []), ...newUnits];
+      const courseRef = doc(db, 'courses', activeCourse.id);
+      await updateDoc(courseRef, { units: updatedUnits });
+      
+      setActiveCourse(prev => prev ? {...prev, units: updatedUnits} : null);
+      toast({ title: 'Units Added Successfully!' });
+
+    } catch (e) {
+      toast({ variant: 'destructive', title: 'Failed to generate units from URL.'});
+    } finally {
+      setIsGenerating(false);
+      setNewUnitsUrl('');
+    }
+  };
+
 
   const chapterCount = activeCourse?.units?.reduce((acc, unit) => acc + (unit.chapters?.length ?? 0), 0) ?? 0;
   const completedChaptersCount = activeCourse?.completedChapters?.length ?? 0;
@@ -708,7 +789,7 @@ function CoursesComponent() {
                     <h1 className="text-3xl font-bold tracking-tight">Courses</h1>
                     <p className="text-muted-foreground">Manage your courses and generate interactive learning labs.</p>
                 </div>
-                 <Dialog open={isAddCourseOpen} onOpenChange={setAddCourseOpen}>
+                 <Dialog open={isAddCourseOpen} onOpenChange={(open) => { if (!open) resetAddCourseDialog(); setAddCourseOpen(open); }}>
                     <DialogTrigger asChild>
                         <Button disabled={isSaving}>
                             <Plus className="mr-2 h-4 w-4"/> Add Course
@@ -718,40 +799,71 @@ function CoursesComponent() {
                         <DialogHeader>
                             <DialogTitle>Add a New Course</DialogTitle>
                             <DialogDescription>
-                                Add a new course manually, or provide a URL to have AI generate the course content for you.
+                                {addCourseStep === 1 ? "First, provide some details about your course." : "Next, tell us about your relationship with this course."}
                             </DialogDescription>
                         </DialogHeader>
-                        <div className="grid gap-4 py-4">
-                            <div className="grid gap-2">
-                                <Label htmlFor="name">Course Name</Label>
-                                <Input id="name" name="name" value={newCourse.name} onChange={handleInputChange} placeholder="e.g., Introduction to AI"/>
+                        {addCourseStep === 1 && (
+                            <div className="grid gap-4 py-4">
+                                <div className="grid gap-2">
+                                    <Label htmlFor="name">Course Name</Label>
+                                    <Input id="name" name="name" value={newCourse.name} onChange={handleInputChange} placeholder="e.g., Introduction to AI"/>
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="description">Description (Optional)</Label>
+                                    <Textarea id="description" name="description" value={newCourse.description} onChange={handleInputChange} placeholder="A brief summary of the course"/>
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="url">Course URL (Optional)</Label>
+                                    <Input id="url" name="url" value={newCourse.url} onChange={handleInputChange} placeholder="https://example.com/course-link"/>
+                                </div>
+                                {gradeLevel !== 'Other' && (
+                                    <>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="instructor">Instructor</Label>
+                                            <Input id="instructor" name="instructor" value={newCourse.instructor} onChange={handleInputChange} placeholder="e.g., Dr. Alan Turing"/>
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="credits">Credits</Label>
+                                            <Input id="credits" name="credits" type="number" value={newCourse.credits} onChange={handleInputChange} placeholder="e.g., 3"/>
+                                        </div>
+                                    </>
+                                )}
                             </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="description">Description (Optional)</Label>
-                                <Input id="description" name="description" value={newCourse.description} onChange={handleInputChange} placeholder="A brief summary of the course"/>
+                        )}
+                        {addCourseStep === 2 && (
+                             <div className="grid gap-4 py-4">
+                                <RadioGroup onValueChange={(val) => setIsNewTopic(val === 'true')}>
+                                    <Label htmlFor="new-topic" className={cn("flex items-start gap-4 p-4 rounded-lg border transition-all cursor-pointer", isNewTopic === true && "border-primary bg-primary/10")}>
+                                        <RadioGroupItem value="true" id="new-topic" className="mt-1"/>
+                                        <div className="flex-1">
+                                            <p className="font-semibold">I'm learning something new</p>
+                                            <p className="text-sm text-muted-foreground">Tutorin will generate a course structure and content for you.</p>
+                                        </div>
+                                    </Label>
+                                     <Label htmlFor="existing-course" className={cn("flex items-start gap-4 p-4 rounded-lg border transition-all cursor-pointer", isNewTopic === false && "border-primary bg-primary/10")}>
+                                        <RadioGroupItem value="false" id="existing-course" className="mt-1"/>
+                                        <div className="flex-1">
+                                            <p className="font-semibold">I'm already in this course</p>
+                                            <p className="text-sm text-muted-foreground">You can manually add your own units and chapters.</p>
+                                        </div>
+                                    </Label>
+                                </RadioGroup>
                             </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="url">Course URL (Optional)</Label>
-                                <Input id="url" name="url" value={newCourse.url} onChange={handleInputChange} placeholder="https://example.com/course-link"/>
-                            </div>
-                             {gradeLevel !== 'Other' && (
+                        )}
+                        <DialogFooter>
+                             {addCourseStep === 1 ? (
                                 <>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="instructor">Instructor</Label>
-                                        <Input id="instructor" name="instructor" value={newCourse.instructor} onChange={handleInputChange} placeholder="e.g., Dr. Alan Turing"/>
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="credits">Credits</Label>
-                                        <Input id="credits" name="credits" type="number" value={newCourse.credits} onChange={handleInputChange} placeholder="e.g., 3"/>
-                                    </div>
+                                    <Button variant="ghost" onClick={() => setAddCourseOpen(false)}>Cancel</Button>
+                                    <Button onClick={() => setAddCourseStep(2)} disabled={!newCourse.name}>Next</Button>
+                                </>
+                            ) : (
+                                <>
+                                    <Button variant="ghost" onClick={() => setAddCourseStep(1)}>Back</Button>
+                                    <Button onClick={handleAddCourse} disabled={isSaving || isNewTopic === null}>
+                                        {isSaving ? 'Saving...' : 'Add Course'}
+                                    </Button>
                                 </>
                             )}
-                        </div>
-                        <DialogFooter>
-                            <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
-                            <Button onClick={handleAddCourse} disabled={isSaving}>
-                                {isSaving ? 'Saving...' : 'Add Course'}
-                            </Button>
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
@@ -812,10 +924,15 @@ function CoursesComponent() {
                                     <Button className="w-full" onClick={() => setSelectedCourseId(course.id)}>
                                         Continue Learning
                                     </Button>
-                                ) : (
+                                ) : course.isNewTopic ? (
                                     <Button className="w-full" onClick={() => handleGenerateCourse(course)} disabled={isGenerating}>
                                         <Wand2 className="mr-2 h-4 w-4" />
                                         {isGenerating ? 'Generating...' : 'Generate Lab'}
+                                    </Button>
+                                ) : (
+                                    <Button className="w-full" onClick={() => setSelectedCourseId(course.id)} variant="secondary">
+                                        <BookCopy className="mr-2 h-4 w-4" />
+                                        Manage Course
                                     </Button>
                                 )}
                             </CardFooter>
@@ -975,9 +1092,33 @@ function CoursesComponent() {
         )}>
              <div className="flex flex-col h-full">
                 <div className="mb-4">
-                    <h2 className="text-lg font-bold">{activeCourse?.name}</h2>
-                    <p className="text-sm text-muted-foreground">{chapterCount} Chapters</p>
-                    <Progress value={progress} className="mt-2 h-2" />
+                    <div className="flex items-center justify-between">
+                        <div className="flex-1 overflow-hidden">
+                             <h2 className="text-lg font-bold truncate">{activeCourse?.name}</h2>
+                            <p className="text-sm text-muted-foreground">{chapterCount > 0 ? `${chapterCount} Chapters` : 'No units created'}</p>
+                        </div>
+                         {!activeCourse?.isNewTopic && (
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0"><Plus/></Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent>
+                                    <DialogTrigger asChild>
+                                         <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setIsAddUnitOpen(true);}}>
+                                            <BookCopy className="mr-2 h-4 w-4"/> Add Unit Manually
+                                        </DropdownMenuItem>
+                                    </DialogTrigger>
+                                     <DialogTrigger asChild>
+                                         <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setIsAddUnitFromUrlOpen(true);}}>
+                                            <Link className="mr-2 h-4 w-4"/> Add from URL
+                                        </DropdownMenuItem>
+                                    </DialogTrigger>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        )}
+                    </div>
+                    
+                    {chapterCount > 0 && <Progress value={progress} className="mt-2 h-2" />}
                 </div>
                  <Accordion type="multiple" defaultValue={activeCourse?.units?.map(u => u.id)} className="w-full flex-1 overflow-y-auto">
                     {activeCourse?.units?.map((unit, mIndex) => {
@@ -996,7 +1137,7 @@ function CoursesComponent() {
                                     {unit.chapters.map((chapter, cIndex) => {
                                         const isCurrent = currentModuleIndex === mIndex && currentChapterIndex === cIndex;
                                         const isCompleted = activeCourse.completedChapters?.includes(chapter.id) ?? false;
-                                        const isLocked = cIndex > lastCompletedChapterIndex + 1;
+                                        const isLocked = activeCourse.isNewTopic && cIndex > lastCompletedChapterIndex + 1;
                                         
                                         return (
                                         <li key={chapter.id}>
@@ -1038,9 +1179,11 @@ function CoursesComponent() {
                         {isFocusMode ? <Minimize className="mr-2 h-4 w-4"/> : <Maximize className="mr-2 h-4 w-4"/>}
                         {isFocusMode ? "Exit Focus Mode" : "Focus Mode"}
                     </Button>
-                    <Button onClick={handleCompleteAndContinue}>
-                        {currentChapter?.title.includes('Quiz') ? 'Continue' : 'Complete & Continue'} <ChevronRight className="ml-2 h-4 w-4"/>
-                    </Button>
+                     {activeCourse.isNewTopic && (
+                        <Button onClick={handleCompleteAndContinue}>
+                            {currentChapter?.title.includes('Quiz') ? 'Continue' : 'Complete & Continue'} <ChevronRight className="ml-2 h-4 w-4"/>
+                        </Button>
+                    )}
                 </div>
             </div>
 
@@ -1084,7 +1227,7 @@ function CoursesComponent() {
                      ) : (
                          <div className="text-center p-8 border-2 border-dashed rounded-lg">
                             <h3 className="text-lg font-semibold">This chapter's content hasn't been generated yet.</h3>
-                            <p className="text-muted-foreground mt-1 mb-4">Click "Complete and Continue" on the previous chapter to unlock this one.</p>
+                             {activeCourse.isNewTopic && <p className="text-muted-foreground mt-1 mb-4">Click "Complete and Continue" on the previous chapter to unlock this one.</p>}
                         </div>
                      )}
                      
@@ -1152,7 +1295,46 @@ function CoursesComponent() {
                  </div>
             ) : (
                 <div className="text-center py-20">
-                    <p className="text-muted-foreground">Select a chapter to begin.</p>
+                    {activeCourse.isNewTopic ? (
+                        <p className="text-muted-foreground">Select a chapter to begin.</p>
+                    ) : (
+                        <Card className="max-w-md mx-auto p-8">
+                            <CardTitle>Manage Your Course</CardTitle>
+                            <CardDescription className="mt-2 mb-6">This is an existing course. You can add units manually or generate them from a URL.</CardDescription>
+                            <div className="flex flex-col gap-4">
+                                <Dialog open={isAddUnitOpen} onOpenChange={setIsAddUnitOpen}>
+                                    <DialogTrigger asChild><Button><BookCopy className="mr-2 h-4 w-4"/> Add Unit Manually</Button></DialogTrigger>
+                                    <DialogContent>
+                                        <DialogHeader>
+                                            <DialogTitle>Add a New Unit</DialogTitle>
+                                            <Label htmlFor="unit-title">Unit Title</Label>
+                                            <Input id="unit-title" value={newUnitTitle} onChange={(e) => setNewUnitTitle(e.target.value)} placeholder="e.g., Unit 1: Introduction"/>
+                                        </DialogHeader>
+                                        <DialogFooter>
+                                            <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
+                                            <Button onClick={handleManualAddUnit}>Add Unit</Button>
+                                        </DialogFooter>
+                                    </DialogContent>
+                                </Dialog>
+                                 <Dialog open={isAddUnitFromUrlOpen} onOpenChange={setIsAddUnitFromUrlOpen}>
+                                    <DialogTrigger asChild><Button variant="outline"><Link className="mr-2 h-4 w-4"/> Add Units from URL</Button></DialogTrigger>
+                                     <DialogContent>
+                                        <DialogHeader>
+                                            <DialogTitle>Generate Units from URL</DialogTitle>
+                                            <Label htmlFor="units-url">Content URL</Label>
+                                            <Input id="units-url" value={newUnitsUrl} onChange={(e) => setNewUnitsUrl(e.target.value)} placeholder="https://example.com/course-syllabus"/>
+                                        </DialogHeader>
+                                        <DialogFooter>
+                                            <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
+                                            <Button onClick={handleAddUnitsFromUrl} disabled={isGenerating}>
+                                                {isGenerating ? "Generating..." : "Generate Units"}
+                                            </Button>
+                                        </DialogFooter>
+                                    </DialogContent>
+                                </Dialog>
+                            </div>
+                        </Card>
+                    )}
                 </div>
             )}
         </main>
