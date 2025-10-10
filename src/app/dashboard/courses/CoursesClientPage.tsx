@@ -676,12 +676,12 @@ function CoursesComponent() {
       };
 
       try {
-          const docRef = await addDoc(collection(db, "courses"), courseToAdd);
+          await addDoc(collection(db, "courses"), courseToAdd);
           toast({
               title: 'Course Added!',
               description: `${courseToAdd.name} has been added. You can now generate a learning lab for it.`,
           });
-          setSelectedCourseId(docRef.id);
+          setSelectedCourseId(null);
       } catch(error) {
           console.error("Error adding document: ", error);
           toast({ variant: 'destructive', title: 'Error', description: 'Could not add course.' });
