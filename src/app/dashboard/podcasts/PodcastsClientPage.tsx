@@ -76,10 +76,25 @@ export default function PodcastsClientPage() {
     const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
     const [activeUnitId, setActiveUnitId] = useState<string | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
+    const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
 
     const { toast } = useToast();
     const [user, authLoading] = useAuthState(auth);
     
+    useEffect(() => {
+        const loadVoices = () => {
+            const availableVoices = speechSynthesis.getVoices();
+            if (availableVoices.length > 0) {
+                setVoices(availableVoices);
+            }
+        };
+
+        if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+            loadVoices();
+            speechSynthesis.onvoiceschanged = loadVoices;
+        }
+    }, []);
+
     useEffect(() => {
         if (authLoading || !user) return;
         
@@ -92,7 +107,7 @@ export default function PodcastsClientPage() {
 
         // Cleanup function for speech synthesis
         const cleanup = () => {
-            if (speechSynthesis.speaking) {
+            if (typeof window !== 'undefined' && 'speechSynthesis' in window && speechSynthesis.speaking) {
                 speechSynthesis.cancel();
             }
         };
@@ -141,12 +156,18 @@ export default function PodcastsClientPage() {
         const episode = episodes[unitId];
         if (!episode || typeof window === 'undefined' || !('speechSynthesis' in window)) return;
         
-        // If another track is playing, stop it
         if (speechSynthesis.speaking) {
             speechSynthesis.cancel();
         }
 
         const utterance = new SpeechSynthesisUtterance(episode.script);
+        
+        // Find a more natural voice
+        const preferredVoice = voices.find(voice => voice.name === 'Google US English') || voices.find(voice => voice.lang.startsWith('en-US'));
+        if (preferredVoice) {
+            utterance.voice = preferredVoice;
+        }
+
         utteranceRef.current = utterance;
 
         utterance.onstart = () => {
@@ -165,13 +186,13 @@ export default function PodcastsClientPage() {
     };
 
     const handlePause = () => {
-        if (speechSynthesis.speaking) {
+        if (typeof window !== 'undefined' && 'speechSynthesis' in window && speechSynthesis.speaking) {
             speechSynthesis.pause();
         }
     };
 
     const handleResume = () => {
-        if (speechSynthesis.paused) {
+        if (typeof window !== 'undefined' && 'speechSynthesis' in window && speechSynthesis.paused) {
             speechSynthesis.resume();
         }
     };
@@ -219,7 +240,7 @@ export default function PodcastsClientPage() {
                                     const episode = episodes[unit.id];
                                     const isGeneratingScript = generatingScriptId === unit.id;
                                     const isCurrentEpisodePlaying = isPlaying && activeUnitId === unit.id;
-                                    const isCurrentEpisodePaused = !isPlaying && activeUnitId === unit.id && speechSynthesis.paused;
+                                    const isCurrentEpisodePaused = !isPlaying && activeUnitId === unit.id && typeof window !== 'undefined' && 'speechSynthesis' in window && speechSynthesis.paused;
 
                                     return (
                                         <AccordionItem key={unit.id} value={unit.id}>
