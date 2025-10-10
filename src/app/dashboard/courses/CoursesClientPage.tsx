@@ -6,7 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Play, Pause, ChevronLeft, ChevronRight, Wand2, FlaskConical, Lightbulb, Copy, RefreshCw, Check, Star, CheckCircle, Send, Bot, User, GitMerge, PanelLeft, Minimize, Maximize, Loader2, Plus, Trash2, MoreVertical, XCircle, ArrowRight, RotateCcw, Video, Image as ImageIcon, BookCopy, Link } from 'lucide-react';
+import { Play, Pause, ChevronLeft, ChevronRight, Wand2, FlaskConical, Lightbulb, Copy, RefreshCw, Check, Star, CheckCircle, Send, Bot, User, GitMerge, PanelLeft, Minimize, Maximize, Loader2, Plus, Trash2, MoreVertical, XCircle, ArrowRight, RotateCcw, Video, Image as ImageIcon, BookCopy, Link as LinkIcon } from 'lucide-react';
 import Link from 'next/link';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
@@ -653,7 +653,7 @@ function CoursesComponent() {
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
   
-  const handleStartTutorin = async () => {
+  const handleStartTutorin = () => {
     setIsCourseReadyDialogOpen(false);
   }
 
@@ -694,7 +694,7 @@ function CoursesComponent() {
       };
 
       try {
-          await addDoc(collection(db, "courses"), courseToAdd);
+          const docRef = await addDoc(collection(db, "courses"), courseToAdd);
           toast({
               title: 'Course Added!',
               description: `${courseToAdd.name} has been added.`,
@@ -1110,7 +1110,7 @@ function CoursesComponent() {
                                     </DialogTrigger>
                                      <DialogTrigger asChild>
                                          <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setIsAddUnitFromUrlOpen(true);}}>
-                                            <Link className="mr-2 h-4 w-4"/> Add from URL
+                                            <LinkIcon className="mr-2 h-4 w-4"/> Add from URL
                                         </DropdownMenuItem>
                                     </DialogTrigger>
                                 </DropdownMenuContent>
@@ -1317,7 +1317,7 @@ function CoursesComponent() {
                                     </DialogContent>
                                 </Dialog>
                                  <Dialog open={isAddUnitFromUrlOpen} onOpenChange={setIsAddUnitFromUrlOpen}>
-                                    <DialogTrigger asChild><Button variant="outline"><Link className="mr-2 h-4 w-4"/> Add Units from URL</Button></DialogTrigger>
+                                    <DialogTrigger asChild><Button variant="outline"><LinkIcon className="mr-2 h-4 w-4"/> Add Units from URL</Button></DialogTrigger>
                                      <DialogContent>
                                         <DialogHeader>
                                             <DialogTitle>Generate Units from URL</DialogTitle>
@@ -1350,3 +1350,5 @@ export default function CoursesClientPage() {
         </Suspense>
     )
 }
+
+    
