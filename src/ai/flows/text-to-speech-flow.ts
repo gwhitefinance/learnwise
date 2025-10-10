@@ -44,33 +44,50 @@ const generateAudioFlow = ai.defineFlow(
     outputSchema: TextToSpeechOutputSchema,
   },
   async ({ text }) => {
-    const { media } = await ai.generate({
-      model: googleAI.model('gemini-2.5-flash-preview-tts'),
-      config: {
-        responseModalities: ['AUDIO'],
-        speechConfig: {
-          voiceConfig: {
-            prebuiltVoiceConfig: { voiceName: 'Algenib' }, // A calm, clear voice
-          },
-        },
-      },
-      prompt: text,
-    });
     
-    if (!media) {
-      throw new Error('No audio was generated.');
+    const maxRetries = 3;
+    for (let i = 0; i < maxRetries; i++) {
+        try {
+            const { media } = await ai.generate({
+              model: googleAI.model('gemini-2.5-flash-preview-tts'),
+              config: {
+                responseModalities: ['AUDIO'],
+                speechConfig: {
+                  voiceConfig: {
+                    prebuiltVoiceConfig: { voiceName: 'Algenib' }, // A calm, clear voice
+                  },
+                },
+              },
+              prompt: text,
+            });
+            
+            if (!media) {
+              throw new Error('No audio was generated.');
+            }
+            
+            const audioBuffer = Buffer.from(
+              media.url.substring(media.url.indexOf(',') + 1),
+              'base64'
+            );
+            
+            const wavBase64 = await toWav(audioBuffer);
+
+            return {
+              audioDataUri: 'data:audio/wav;base64,' + wavBase64,
+            };
+        } catch (error: any) {
+            if (i === maxRetries - 1) {
+                // If it's the last retry, throw the error
+                console.error(`Audio generation failed after ${maxRetries} attempts for text: "${text}"`, error);
+                throw error;
+            }
+            // Wait for a bit before retrying
+            await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+        }
     }
     
-    const audioBuffer = Buffer.from(
-      media.url.substring(media.url.indexOf(',') + 1),
-      'base64'
-    );
-    
-    const wavBase64 = await toWav(audioBuffer);
-
-    return {
-      audioDataUri: 'data:audio/wav;base64,' + wavBase64,
-    };
+    // This part should be unreachable if maxRetries > 0, but as a fallback:
+    throw new Error('Audio generation failed after all retries.');
   }
 );
 
