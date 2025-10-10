@@ -46,12 +46,14 @@ const generatePodcastEpisodeFlow = ai.defineFlow(
         // 2. Split the script into paragraphs to generate audio in chunks
         const segments = scriptOutput.script.split('\n').filter(s => s.trim() !== '');
 
-        // 3. Generate audio for each segment in parallel
-        const audioPromises = segments.map(segment => 
-            generateAudio({ text: segment }).then(result => result.audioDataUri)
-        );
-
-        const audioDataUris = await Promise.all(audioPromises);
+        // 3. Generate audio for each segment sequentially to avoid rate limiting
+        const audioDataUris: string[] = [];
+        for (const segment of segments) {
+            if (segment) {
+                const result = await generateAudio({ text: segment });
+                audioDataUris.push(result.audioDataUri);
+            }
+        }
         
         return { audioDataUris };
     }
