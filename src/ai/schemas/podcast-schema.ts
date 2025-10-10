@@ -9,11 +9,6 @@ export const GeneratePodcastEpisodeInputSchema = z.object({
 export type GeneratePodcastEpisodeInput = z.infer<typeof GeneratePodcastEpisodeInputSchema>;
 
 export const GeneratePodcastEpisodeOutputSchema = z.object({
-  audioDataUri: z.string().describe('The generated audio for the entire episode as a data URI.'),
-});
-export type GeneratePodcastEpisodeOutput = z.infer<typeof GeneratePodcastEpisodeOutputSchema>;
-
-// This schema is used as an intermediate step within the flow.
-export const podcastScriptSchema = z.object({
   script: z.string().describe('The generated podcast script, formatted for conversational delivery.'),
 });
+export type GeneratePodcastEpisodeOutput = z.infer<typeof GeneratePodcastEpisodeOutputSchema>;

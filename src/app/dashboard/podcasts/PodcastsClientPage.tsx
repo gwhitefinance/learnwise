@@ -10,7 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
-import { generatePodcastEpisode } from '@/lib/actions';
+import { generatePodcastEpisode, generateAudio } from '@/lib/actions';
 import Loading from './loading';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { motion } from 'framer-motion';
@@ -30,11 +30,13 @@ type Course = {
 };
 
 type EpisodeState = {
-    audioDataUri: string;
+    script: string;
+    audioDataUri?: string;
     isPlaying: boolean;
+    isGeneratingAudio: boolean;
 };
 
-const EpisodePlayer = ({ onPlay, isPlaying }: { onPlay: () => void; isPlaying: boolean; }) => {
+const EpisodePlayer = ({ onPlay, isPlaying, isGeneratingAudio }: { onPlay: () => void; isPlaying: boolean; isGeneratingAudio: boolean; }) => {
     return (
         <div className="flex flex-col items-center justify-center text-center p-8 bg-muted rounded-lg">
              <motion.div
@@ -60,8 +62,8 @@ const EpisodePlayer = ({ onPlay, isPlaying }: { onPlay: () => void; isPlaying: b
                     }}
                 />
             </motion.div>
-            <Button onClick={onPlay} className="mt-8 rounded-full h-16 w-16" size="icon">
-                {isPlaying ? <Pause className="h-8 w-8" /> : <Play className="h-8 w-8" />}
+            <Button onClick={onPlay} className="mt-8 rounded-full h-16 w-16" size="icon" disabled={isGeneratingAudio}>
+                {isGeneratingAudio ? <Loader2 className="h-8 w-8 animate-spin" /> : isPlaying ? <Pause className="h-8 w-8" /> : <Play className="h-8 w-8" />}
             </Button>
         </div>
     );
@@ -71,7 +73,7 @@ export default function PodcastsClientPage() {
     const [courses, setCourses] = useState<Course[]>([]);
     const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [generatingEpisodeId, setGeneratingEpisodeId] = useState<string | null>(null);
+    const [generatingScriptId, setGeneratingScriptId] = useState<string | null>(null);
     
     const [episodes, setEpisodes] = useState<Record<string, EpisodeState>>({});
     const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -103,7 +105,7 @@ export default function PodcastsClientPage() {
       }, []);
 
 
-    const handleGenerateEpisode = async (course: Course, unitId: string) => {
+    const handleGenerateEpisodeScript = async (course: Course, unitId: string) => {
         const unit = course.units?.find(u => u.id === unitId);
         if (!unit) return;
 
@@ -114,8 +116,8 @@ export default function PodcastsClientPage() {
             return;
         }
         
-        setGeneratingEpisodeId(unitId);
-        toast({ title: `Generating Episode: ${unit.title}`, description: 'This may take a moment...' });
+        setGeneratingScriptId(unitId);
+        toast({ title: `Generating Episode Script: ${unit.title}`, description: 'This should be quick...' });
 
         try {
             const result = await generatePodcastEpisode({
@@ -127,53 +129,91 @@ export default function PodcastsClientPage() {
             setEpisodes(prev => ({
                 ...prev,
                 [unitId]: {
-                    audioDataUri: result.audioDataUri,
-                    isPlaying: false
+                    script: result.script,
+                    isPlaying: false,
+                    isGeneratingAudio: false,
                 }
             }));
+            toast({ title: 'Script Ready!', description: 'Click play to generate and listen to the audio.'});
 
         } catch (error) {
             console.error(error);
-            toast({ variant: 'destructive', title: 'Generation Failed', description: 'Could not create the podcast episode.' });
+            toast({ variant: 'destructive', title: 'Generation Failed', description: 'Could not create the podcast script.' });
         } finally {
-            setGeneratingEpisodeId(null);
+            setGeneratingScriptId(null);
         }
     };
     
-    const togglePlay = (unitId: string, audioDataUri: string) => {
-        if (audioRef.current && activeUnitId === unitId) {
-            // It's the same episode, so toggle play/pause
-            if (audioRef.current.paused) {
-                audioRef.current.play();
-                setEpisodes(prev => ({ ...prev, [unitId]: { ...prev[unitId], isPlaying: true } }));
-            } else {
-                audioRef.current.pause();
-                setEpisodes(prev => ({ ...prev, [unitId]: { ...prev[unitId], isPlaying: false } }));
-            }
-        } else {
-            // It's a new episode or the first play
-            if (audioRef.current) {
-                audioRef.current.pause();
-                if (activeUnitId) {
-                    setEpisodes(prev => ({ ...prev, [activeUnitId]: { ...prev[activeUnitId], isPlaying: false } }));
-                }
-            }
+    const handlePlay = async (unitId: string) => {
+        const episode = episodes[unitId];
+        if (!episode) return;
+        
+        // If already playing, pause it.
+        if (isPlaying && activeUnitId === unitId) {
+            audioRef.current?.pause();
+            setIsPlaying(false);
+            return;
+        }
+        
+        // If paused, resume it.
+        if (!isPlaying && activeUnitId === unitId && audioRef.current) {
+            audioRef.current.play();
+            setIsPlaying(true);
+            return;
+        }
+        
+        // If there's audio, just play it.
+        if (episode.audioDataUri) {
+            playAudio(unitId, episode.audioDataUri);
+            return;
+        }
 
-            const newAudio = new Audio(audioDataUri);
-            audioRef.current = newAudio;
-            setActiveUnitId(unitId);
-
-            newAudio.play();
-            setEpisodes(prev => ({ ...prev, [unitId]: { ...prev[unitId], isPlaying: true } }));
-
-            newAudio.onended = () => {
-                setEpisodes(prev => ({ ...prev, [unitId]: { ...prev[unitId], isPlaying: false } }));
-                setActiveUnitId(null);
-                audioRef.current = null;
-            };
+        // If no audio, generate it.
+        setEpisodes(prev => ({...prev, [unitId]: {...prev[unitId], isGeneratingAudio: true}}));
+        toast({ title: 'Generating audio...', description: 'This may take a moment.'});
+        try {
+            const audioResult = await generateAudio({ text: episode.script });
+            const audioDataUri = audioResult.audioDataUri;
+            
+            setEpisodes(prev => ({...prev, [unitId]: {...prev[unitId], audioDataUri, isGeneratingAudio: false}}));
+            playAudio(unitId, audioDataUri);
+            
+        } catch (error) {
+            console.error("Audio generation failed: ", error);
+            toast({ variant: 'destructive', title: 'Audio Generation Failed'});
+            setEpisodes(prev => ({...prev, [unitId]: {...prev[unitId], isGeneratingAudio: false}}));
         }
     };
 
+    const [isPlaying, setIsPlaying] = useState(false);
+
+    const playAudio = (unitId: string, audioDataUri: string) => {
+        if(activeUnitId && activeUnitId !== unitId) {
+            const oldEpisode = episodes[activeUnitId];
+            if (oldEpisode) setEpisodes(prev => ({...prev, [activeUnitId!]: {...oldEpisode, isPlaying: false}}));
+        }
+        
+        if (audioRef.current) {
+            audioRef.current.pause();
+        }
+
+        const newAudio = new Audio(audioDataUri);
+        audioRef.current = newAudio;
+        setActiveUnitId(unitId);
+        
+        newAudio.play();
+        setIsPlaying(true);
+
+        newAudio.onplay = () => setIsPlaying(true);
+        newAudio.onpause = () => setIsPlaying(false);
+        newAudio.onended = () => {
+            setIsPlaying(false);
+            setActiveUnitId(null);
+            audioRef.current = null;
+        };
+    }
+
+    const isCurrentlyPlaying = (unitId: string) => isPlaying && activeUnitId === unitId;
 
     const selectedCourse = courses.find(c => c.id === selectedCourseId);
 
@@ -216,7 +256,7 @@ export default function PodcastsClientPage() {
                              <Accordion type="single" collapsible className="w-full">
                                 {selectedCourse.units.map(unit => {
                                     const episode = episodes[unit.id];
-                                    const isGenerating = generatingEpisodeId === unit.id;
+                                    const isGeneratingScript = generatingScriptId === unit.id;
                                     
                                     return (
                                         <AccordionItem key={unit.id} value={unit.id}>
@@ -229,15 +269,16 @@ export default function PodcastsClientPage() {
                                             <AccordionContent className="p-4 space-y-4">
                                                 {!episode ? (
                                                     <div className="flex flex-col items-center justify-center text-center p-8 bg-muted rounded-lg">
-                                                        <p className="mb-4 text-muted-foreground">This episode hasn't been generated yet.</p>
-                                                        <Button onClick={() => handleGenerateEpisode(selectedCourse, unit.id)} disabled={isGenerating}>
-                                                            {isGenerating ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating Episode...</> : <><Wand2 className="mr-2 h-4 w-4" /> Generate Episode</>}
+                                                        <p className="mb-4 text-muted-foreground">Generate the script for this episode first.</p>
+                                                        <Button onClick={() => handleGenerateEpisodeScript(selectedCourse, unit.id)} disabled={isGeneratingScript}>
+                                                            {isGeneratingScript ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating Script...</> : <><Wand2 className="mr-2 h-4 w-4" /> Generate Script</>}
                                                         </Button>
                                                     </div>
                                                 ) : (
                                                     <EpisodePlayer 
-                                                        isPlaying={episode.isPlaying}
-                                                        onPlay={() => togglePlay(unit.id, episode.audioDataUri)}
+                                                        isPlaying={isCurrentlyPlaying(unit.id)}
+                                                        isGeneratingAudio={episode.isGeneratingAudio}
+                                                        onPlay={() => handlePlay(unit.id)}
                                                     />
                                                 )}
                                             </AccordionContent>

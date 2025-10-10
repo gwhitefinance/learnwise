@@ -3,15 +3,14 @@
 
 import { ai } from '@/ai/genkit';
 import { googleAI } from '@genkit-ai/googleai';
-import { GeneratePodcastEpisodeInput, GeneratePodcastEpisodeInputSchema, GeneratePodcastEpisodeOutput, GeneratePodcastEpisodeOutputSchema, podcastScriptSchema } from '@/ai/schemas/podcast-schema';
-import { generateAudio } from './text-to-speech-flow';
+import { GeneratePodcastEpisodeInput, GeneratePodcastEpisodeInputSchema, GeneratePodcastEpisodeOutput, GeneratePodcastEpisodeOutputSchema } from '@/ai/schemas/podcast-schema';
 
 const podcastPrompt = ai.definePrompt({
     name: 'podcastEpisodeGenerationPrompt',
     model: googleAI.model('gemini-2.5-flash'),
     input: { schema: GeneratePodcastEpisodeInputSchema },
-    output: { schema: podcastScriptSchema },
-    prompt: `You are an engaging podcast host named "AI Buddy". Your task is to convert the following educational material into a single, conversational, and informative podcast episode.
+    output: { schema: GeneratePodcastEpisodeOutputSchema },
+    prompt: `You are an engaging podcast host named "AI Buddy". Your task is to convert the following educational material into a single, conversational, and informative podcast episode script.
 
     Course Name: {{courseName}}
     Episode Title: {{episodeTitle}}
@@ -42,11 +41,8 @@ const generatePodcastEpisodeFlow = ai.defineFlow(
             throw new Error('Failed to generate podcast script.');
         }
 
-        // 2. Generate audio for the entire script
-        const audioResult = await generateAudio({ text: scriptOutput.script });
-        
         return { 
-            audioDataUri: audioResult.audioDataUri 
+            script: scriptOutput.script,
         };
     }
 );
