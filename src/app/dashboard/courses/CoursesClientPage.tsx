@@ -646,9 +646,10 @@ function CoursesComponent() {
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
   
-  const startFirstChapter = async () => {
+  const handleStartTutorin = async () => {
     setIsCourseReadyDialogOpen(false);
-    await handleGenerateChapterContent(0, 0);
+    // No need to generate content here anymore, just navigate
+    // The main useEffect will handle loading the first chapter content
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -955,13 +956,13 @@ function CoursesComponent() {
             <DialogHeader>
                 <DialogTitle>Your Learning Lab is Ready!</DialogTitle>
                 <DialogDescription>
-                    We've created a custom outline for your course. Are you ready to generate the first chapter and dive in?
+                    We've created a custom outline for your course. Are you ready to dive in?
                 </DialogDescription>
             </DialogHeader>
             <DialogFooter>
                 <Button variant="ghost" onClick={() => setIsCourseReadyDialogOpen(false)}>I'll start later</Button>
-                <Button onClick={startFirstChapter}>
-                    Let's Go!
+                <Button onClick={handleStartTutorin}>
+                    Start Tutorin
                     <Wand2 className="ml-2 h-4 w-4"/>
                 </Button>
             </DialogFooter>
