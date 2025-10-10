@@ -5,14 +5,13 @@ import { useState, useEffect, useRef } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Podcast, Wand2, Loader2, Play, Pause, SkipForward, SkipBack } from 'lucide-react';
+import { Podcast, Wand2, Loader2, Play, Pause } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
-import { generatePodcastEpisode } from '@/lib/actions';
+import { generatePodcastEpisode, generateAudio } from '@/lib/actions';
 import Loading from './loading';
-import { Slider } from '@/components/ui/slider';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 type Course = {
@@ -29,12 +28,27 @@ type Course = {
     }[];
 };
 
-type EpisodePlayerState = {
-    audioUrls: string[];
-    currentTrackIndex: number;
-    isPlaying: boolean;
-    playbackProgress: number;
+type EpisodeState = {
+    textSegments: string[];
+    currentlyPlayingSegment: number | null;
 };
+
+const SegmentPlayer = ({ segment, onPlay, isPlaying, isLoading }: { segment: string; onPlay: () => void; isPlaying: boolean; isLoading: boolean }) => {
+    return (
+        <div className="p-3 rounded-lg bg-background border flex items-center justify-between gap-4">
+            <p className="text-sm text-muted-foreground flex-1">{segment}</p>
+            <Button onClick={onPlay} variant="outline" size="icon" disabled={isLoading}>
+                {isLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                ) : isPlaying ? (
+                    <Pause className="h-4 w-4" />
+                ) : (
+                    <Play className="h-4 w-4" />
+                )}
+            </Button>
+        </div>
+    );
+}
 
 export default function PodcastsClientPage() {
     const [courses, setCourses] = useState<Course[]>([]);
@@ -43,9 +57,10 @@ export default function PodcastsClientPage() {
     const [generatingEpisodeId, setGeneratingEpisodeId] = useState<string | null>(null);
     
     // Player State
-    const [playerState, setPlayerState] = useState<Record<string, EpisodePlayerState>>({});
+    const [episodes, setEpisodes] = useState<Record<string, EpisodeState>>({});
+    const [activeAudio, setActiveAudio] = useState<{ audio: HTMLAudioElement; unitId: string; segmentIndex: number } | null>(null);
+    const [loadingSegment, setLoadingSegment] = useState<{ unitId: string; segmentIndex: number } | null>(null);
 
-    const audioRef = useRef<HTMLAudioElement | null>(null);
     const { toast } = useToast();
     const [user, authLoading] = useAuthState(auth);
     
@@ -62,18 +77,12 @@ export default function PodcastsClientPage() {
         return () => unsubscribe();
     }, [user, authLoading]);
     
-     useEffect(() => {
-        const activeEpisodeId = Object.keys(playerState).find(id => playerState[id]?.isPlaying);
-        if (audioRef.current && activeEpisodeId) {
-            const episode = playerState[activeEpisodeId];
-            if (episode) {
-                audioRef.current.src = episode.audioUrls[episode.currentTrackIndex];
-                if (episode.isPlaying) {
-                    audioRef.current.play().catch(e => console.error("Audio play error:", e));
-                }
-            }
-        }
-    }, [playerState]);
+    useEffect(() => {
+        // Cleanup audio on component unmount
+        return () => {
+          activeAudio?.audio.pause();
+        };
+      }, [activeAudio]);
 
 
     const handleGenerateEpisode = async (course: Course, unitId: string) => {
@@ -97,13 +106,11 @@ export default function PodcastsClientPage() {
                 episodeContent: content,
             });
 
-            setPlayerState(prev => ({
+            setEpisodes(prev => ({
                 ...prev,
                 [unitId]: {
-                    audioUrls: result.audioDataUris,
-                    currentTrackIndex: 0,
-                    isPlaying: true,
-                    playbackProgress: 0,
+                    textSegments: result.textSegments,
+                    currentlyPlayingSegment: null,
                 }
             }));
 
@@ -115,81 +122,43 @@ export default function PodcastsClientPage() {
         }
     };
     
-    const updatePlayerState = (unitId: string, updates: Partial<EpisodePlayerState>) => {
-        setPlayerState(prev => ({
-            ...prev,
-            [unitId]: {
-                ...prev[unitId],
-                ...updates,
+    const playSegment = async (unitId: string, segmentIndex: number) => {
+        // If another segment is playing, stop it.
+        if (activeAudio) {
+            activeAudio.audio.pause();
+            if (activeAudio.unitId === unitId && activeAudio.segmentIndex === segmentIndex) {
+                 // It's the same button, so we just pause and return.
+                 setActiveAudio(null);
+                 setEpisodes(prev => ({ ...prev, [unitId]: { ...prev[unitId], currentlyPlayingSegment: null } }));
+                 return;
             }
-        }));
-    };
+            // It's a different segment, so we stop the old one and continue to play the new one.
+             setEpisodes(prev => ({ ...prev, [activeAudio.unitId]: { ...prev[activeAudio.unitId], currentlyPlayingSegment: null } }));
+        }
 
-    const togglePlay = (unitId: string) => {
-        const episode = playerState[unitId];
-        if (!audioRef.current || !episode) return;
-        
-        const isCurrentlyPlaying = episode.isPlaying;
+        setLoadingSegment({ unitId, segmentIndex });
 
-        // Pause all other episodes
-        const newState = { ...playerState };
-        Object.keys(newState).forEach(id => {
-            if (id !== unitId) {
-                newState[id].isPlaying = false;
-            }
-        });
-        
-        if (isCurrentlyPlaying) {
-            audioRef.current.pause();
-            newState[unitId].isPlaying = false;
-        } else {
-            audioRef.current.src = episode.audioUrls[episode.currentTrackIndex];
-            audioRef.current.play().catch(e => console.error("Audio play error:", e));
-            newState[unitId].isPlaying = true;
-        }
-        setPlayerState(newState);
-    };
+        try {
+            const segmentText = episodes[unitId].textSegments[segmentIndex];
+            const audioResult = await generateAudio({ text: segmentText });
+            const newAudio = new Audio(audioResult.audioDataUri);
+            
+            newAudio.onended = () => {
+                setEpisodes(prev => ({ ...prev, [unitId]: { ...prev[unitId], currentlyPlayingSegment: null } }));
+                setActiveAudio(null);
+            };
 
-    const handleNextTrack = (unitId: string) => {
-        const episode = playerState[unitId];
-        if (episode && episode.currentTrackIndex < episode.audioUrls.length - 1) {
-            updatePlayerState(unitId, { currentTrackIndex: episode.currentTrackIndex + 1 });
-        }
-    };
+            newAudio.play();
+            setActiveAudio({ audio: newAudio, unitId, segmentIndex });
+            setEpisodes(prev => ({ ...prev, [unitId]: { ...prev[unitId], currentlyPlayingSegment: segmentIndex } }));
 
-    const handlePrevTrack = (unitId: string) => {
-        const episode = playerState[unitId];
-        if (episode && episode.currentTrackIndex > 0) {
-            updatePlayerState(unitId, { currentTrackIndex: episode.currentTrackIndex - 1 });
+        } catch (e) {
+            toast({ variant: 'destructive', title: 'Audio Error', description: 'Could not play audio.' });
+        } finally {
+            setLoadingSegment(null);
         }
-    };
-    
-    const handleTimeUpdate = () => {
-        const activeEpisodeId = Object.keys(playerState).find(id => playerState[id]?.isPlaying);
-        if (audioRef.current && activeEpisodeId) {
-            const progress = (audioRef.current.currentTime / audioRef.current.duration) * 100;
-            updatePlayerState(activeEpisodeId, { playbackProgress: isNaN(progress) ? 0 : progress });
-        }
-    };
+    }
 
-    const handleSeek = (unitId: string, value: number[]) => {
-        const episode = playerState[unitId];
-        if (audioRef.current && episode) {
-            audioRef.current.currentTime = (value[0] / 100) * audioRef.current.duration;
-        }
-    };
-    
-    const handleTrackEnd = () => {
-        const activeEpisodeId = Object.keys(playerState).find(id => playerState[id]?.isPlaying);
-        if (activeEpisodeId) {
-            const episode = playerState[activeEpisodeId];
-            if (episode.currentTrackIndex < episode.audioUrls.length - 1) {
-                handleNextTrack(activeEpisodeId);
-            } else {
-                updatePlayerState(activeEpisodeId, { isPlaying: false });
-            }
-        }
-    };
 
     const selectedCourse = courses.find(c => c.id === selectedCourseId);
 
@@ -199,11 +168,6 @@ export default function PodcastsClientPage() {
 
     return (
         <div className="space-y-6">
-            <audio 
-                ref={audioRef} 
-                onTimeUpdate={handleTimeUpdate} 
-                onEnded={handleTrackEnd} 
-            />
             <div>
                 <h1 className="text-3xl font-bold tracking-tight">AI Podcast Generator</h1>
                 <p className="text-muted-foreground">Turn your course materials into on-the-go audio episodes.</p>
@@ -236,7 +200,7 @@ export default function PodcastsClientPage() {
                         {selectedCourse.units && selectedCourse.units.length > 0 ? (
                              <Accordion type="single" collapsible className="w-full">
                                 {selectedCourse.units.map(unit => {
-                                    const episode = playerState[unit.id];
+                                    const episode = episodes[unit.id];
                                     const isGenerating = generatingEpisodeId === unit.id;
                                     
                                     return (
@@ -256,25 +220,16 @@ export default function PodcastsClientPage() {
                                                         </Button>
                                                     </div>
                                                 ) : (
-                                                    <div className="flex flex-col items-center gap-4 p-4 bg-muted rounded-lg">
-                                                        <p className="text-sm text-muted-foreground">Segment {episode.currentTrackIndex + 1} of {episode.audioUrls.length}</p>
-                                                         <Slider
-                                                            value={[episode.playbackProgress]}
-                                                            onValueChange={(val) => handleSeek(unit.id, val)}
-                                                            max={100}
-                                                            step={1}
-                                                        />
-                                                        <div className="flex items-center justify-center gap-4">
-                                                            <Button onClick={() => handlePrevTrack(unit.id)} variant="ghost" size="icon" disabled={episode.currentTrackIndex === 0}>
-                                                                <SkipBack />
-                                                            </Button>
-                                                            <Button onClick={() => togglePlay(unit.id)} size="lg" className="rounded-full w-16 h-16">
-                                                                {episode.isPlaying ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6 ml-1" />}
-                                                            </Button>
-                                                            <Button onClick={() => handleNextTrack(unit.id)} variant="ghost" size="icon" disabled={episode.currentTrackIndex === episode.audioUrls.length - 1}>
-                                                                <SkipForward />
-                                                            </Button>
-                                                        </div>
+                                                    <div className="space-y-2">
+                                                        {episode.textSegments.map((segment, index) => (
+                                                            <SegmentPlayer
+                                                                key={index}
+                                                                segment={segment}
+                                                                onPlay={() => playSegment(unit.id, index)}
+                                                                isPlaying={episode.currentlyPlayingSegment === index}
+                                                                isLoading={loadingSegment?.unitId === unit.id && loadingSegment?.segmentIndex === index}
+                                                            />
+                                                        ))}
                                                     </div>
                                                 )}
                                             </AccordionContent>

@@ -43,19 +43,10 @@ const generatePodcastEpisodeFlow = ai.defineFlow(
             throw new Error('Failed to generate podcast script.');
         }
 
-        // 2. Split the script into paragraphs to generate audio in chunks
-        const segments = scriptOutput.script.split('\n').filter(s => s.trim() !== '');
-
-        // 3. Generate audio for each segment sequentially to avoid rate limiting
-        const audioDataUris: string[] = [];
-        for (const segment of segments) {
-            if (segment) {
-                const result = await generateAudio({ text: segment });
-                audioDataUris.push(result.audioDataUri);
-            }
-        }
+        // 2. Split the script into paragraphs to be sent to the client
+        const textSegments = scriptOutput.script.split('\n').filter(s => s.trim() !== '');
         
-        return { audioDataUris };
+        return { textSegments };
     }
 );
 
