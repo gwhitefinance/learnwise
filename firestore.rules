@@ -110,20 +110,10 @@ service cloud.firestore {
 
     // SQUADS collection
     match /squads/{squadId} {
-      // Any authenticated user can create a squad. The owner is set to their own ID.
       allow create: if request.auth != null && request.resource.data.ownerId == request.auth.uid;
-
-      // A user can read a squad's details if they are in the 'members' list.
-      allow read: if request.auth != null && request.auth.uid in resource.data.members;
-
-      // A user can update a squad if they are a member.
-      allow update: if request.auth != null && request.auth.uid in resource.data.members;
-
-      // A user can delete a squad ONLY if they are the owner.
+      allow read, update: if request.auth != null && request.auth.uid in resource.data.members;
       allow delete: if request.auth != null && request.auth.uid == resource.data.ownerId;
-
-      // A user can LIST squads ONLY if the query is filtering for squads where they are a member.
-      allow list: if request.auth != null && request.query.where.get('members', [])[2] == request.auth.uid;
+      allow list: if request.auth != null;
     }
 
     // TODO collection

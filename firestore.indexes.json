@@ -120,10 +120,6 @@
         {
           "fieldPath": "members",
           "arrayConfig": "CONTAINS"
-        },
-        {
-          "fieldPath": "createdAt",
-          "order": "DESCENDING"
         }
       ]
     }
