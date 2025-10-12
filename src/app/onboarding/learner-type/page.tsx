@@ -11,7 +11,10 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { ArrowRight, Loader2 } from 'lucide-react';
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { auth } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
+import { generateMiniCourse, generateChapterContent } from '@/lib/actions';
+import { collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
+
 
 const questions = [
   {
@@ -111,14 +114,78 @@ export default function LearnerTypeQuizPage() {
 
         const dominantStyle = Object.keys(counts).reduce((a, b) =>
             counts[a as keyof typeof counts] > counts[b as keyof typeof counts] ? a : b
-        ) as "Visual" | "Auditory" | "Kinesthetic" | "Reading/Writing" | "Unknown";
+        ) as "Visual" | "Auditory" | "Kinesthetic" | "Reading/Writing";
 
         localStorage.setItem('learnerType', dominantStyle);
-        // Set the flag to trigger the welcome popup on the dashboard
-        localStorage.setItem('quizCompleted', 'true');
-        
-        toast({ title: 'All set!', description: 'Redirecting to your personalized dashboard.' });
-        router.push('/dashboard');
+        toast({
+            title: 'Finalizing your setup...',
+            description: `You are a ${dominantStyle} learner. Generating your courses...`,
+        });
+
+        if (!user) {
+            toast({ variant: 'destructive', title: 'User not found!'});
+            router.push('/login');
+            return;
+        }
+
+        try {
+            // Fetch the courses created during onboarding
+            const coursesQuery = query(collection(db, 'courses'), where('userId', '==', user.uid), where('units', '==', []));
+            const querySnapshot = await getDocs(coursesQuery);
+            const userCourses = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
+
+            for (const course of userCourses) {
+                // 1. Generate the course outline
+                const miniCourseResult = await generateMiniCourse({
+                    courseName: course.name,
+                    courseDescription: course.description,
+                    learnerType: dominantStyle,
+                });
+
+                const newUnits = miniCourseResult.modules.map(module => ({
+                    id: crypto.randomUUID(),
+                    title: module.title,
+                    chapters: module.chapters.map(chapter => ({ ...chapter, id: crypto.randomUUID() })),
+                }));
+
+                // 2. Generate content for the first chapter
+                if (newUnits.length > 0 && newUnits[0].chapters.length > 0) {
+                    const firstModule = newUnits[0];
+                    const firstChapter = firstModule.chapters[0];
+                    
+                    const chapterContentResult = await generateChapterContent({
+                        courseName: course.name,
+                        moduleTitle: firstModule.title,
+                        chapterTitle: firstChapter.title,
+                        learnerType: dominantStyle,
+                    });
+                    
+                    // Add the generated content to the chapter object
+                    newUnits[0].chapters[0] = { ...firstChapter, ...chapterContentResult };
+                }
+
+                // 3. Update the course in Firestore
+                const courseRef = doc(db, 'courses', course.id);
+                await updateDoc(courseRef, { 
+                    units: newUnits,
+                    isNewTopic: true, // Mark as a newly generated topic
+                    completedChapters: [],
+                });
+            }
+            
+            // Set the flag to trigger the welcome popup on the dashboard
+            localStorage.setItem('quizCompleted', 'true');
+            
+            toast({ title: 'All set!', description: 'Redirecting to your personalized dashboard.' });
+            router.push('/dashboard');
+
+        } catch (error) {
+            console.error("Course generation failed:", error);
+            toast({ variant: 'destructive', title: 'Setup Failed', description: 'Could not generate course content. You can generate it later from the dashboard.'});
+            router.push('/dashboard'); // Still go to dashboard
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
@@ -167,3 +234,4 @@ export default function LearnerTypeQuizPage() {
         </div>
     );
 }
+
