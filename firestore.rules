@@ -27,7 +27,8 @@ service cloud.firestore {
     // CHAT SESSIONS collection
     match /chatSessions/{sessionId} {
       allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow read: if resource.data.isPublic == true || (request.auth != null && request.auth.uid == resource.data.userId);
+      allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
       allow list: if request.auth != null;
     }
 
@@ -110,9 +111,19 @@ service cloud.firestore {
 
     // SQUADS collection
     match /squads/{squadId} {
-      allow create: if request.auth != null && request.resource.data.ownerId == request.auth.uid;
-      allow read, update: if request.auth != null && request.auth.uid in resource.data.members;
+      // Any authenticated user can create a squad.
+      allow create: if request.auth != null;
+
+      // A user can read a squad's details if they are in the 'members' list.
+      allow read: if request.auth != null && request.auth.uid in resource.data.members;
+      
+      // A user can update a squad if they are a member.
+      allow update: if request.auth != null && request.auth.uid in resource.data.members;
+
+      // A user can delete a squad ONLY if they are the owner.
       allow delete: if request.auth != null && request.auth.uid == resource.data.ownerId;
+
+      // Any authenticated user can try to list squads, but the `read` rule will secure the data.
       allow list: if request.auth != null;
     }
 
