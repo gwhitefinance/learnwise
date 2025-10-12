@@ -18,6 +18,7 @@ export type UserProfile = {
     displayName: string;
     email: string;
     coins: number;
+    photoURL?: string;
 };
 
 export default function LeaderboardPage() {
@@ -91,7 +92,7 @@ export default function LeaderboardPage() {
                                             <TableCell>
                                                 <div className="flex items-center gap-4">
                                                     <Avatar>
-                                                        <AvatarImage src={`https://i.pravatar.cc/150?u=${user.uid}`} />
+                                                        <AvatarImage src={user.photoURL} />
                                                         <AvatarFallback>{user.displayName?.[0]}</AvatarFallback>
                                                     </Avatar>
                                                     <span className="font-medium">{user.displayName}</span>

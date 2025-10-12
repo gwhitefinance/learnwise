@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
 import { getAuth, createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
 import { app, db } from "@/lib/firebase"
-import { doc, setDoc, serverTimestamp, collection, query, where, getDocs, updateDoc, arrayUnion } from "firebase/firestore"
+import { doc, setDoc, serverTimestamp, collection, query, where, getDocs, updateDoc, arrayUnion, writeBatch } from "firebase/firestore"
 import Link from "next/link"
 import AIBuddy from "@/components/ai-buddy"
 
@@ -173,15 +173,15 @@ export default function SignUpPage() {
         const auth = getAuth(app);
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
+        const displayName = `${firstName} ${lastName}`;
 
-        await updateProfile(user, {
-            displayName: `${firstName} ${lastName}`
-        });
+        await updateProfile(user, { displayName });
 
         await setDoc(doc(db, "users", user.uid), {
             uid: user.uid,
-            displayName: `${firstName} ${lastName}`,
+            displayName,
             email: user.email,
+            photoURL: user.photoURL,
             createdAt: serverTimestamp(),
             coins: 0,
         });
@@ -195,9 +195,26 @@ export default function SignUpPage() {
 
             if (!querySnapshot.empty) {
                 const squadDoc = querySnapshot.docs[0];
-                await updateDoc(squadDoc.ref, {
+                const squadId = squadDoc.id;
+                
+                const batch = writeBatch(db);
+
+                // Add user to members array
+                const squadRef = doc(db, 'squads', squadId);
+                batch.update(squadRef, {
                     members: arrayUnion(user.uid)
                 });
+                
+                // Add user public info to memberDetails subcollection
+                const memberDetailRef = doc(db, 'squads', squadId, 'memberDetails', user.uid);
+                batch.set(memberDetailRef, {
+                    uid: user.uid,
+                    displayName: displayName,
+                    photoURL: user.photoURL || null
+                });
+
+                await batch.commit();
+
                 toast({ title: "Squad Joined!", description: `You've been added to ${squadDoc.data().name}.`});
             }
             localStorage.removeItem('squadInviteCode');

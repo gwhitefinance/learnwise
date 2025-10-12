@@ -25,6 +25,7 @@ export async function getLeaderboard(): Promise<UserProfile[]> {
                 displayName: data.displayName || 'Anonymous',
                 email: data.email,
                 coins: data.coins || 0,
+                photoURL: data.photoURL,
             });
         });
         return users;

@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
-import { doc, onSnapshot, getDoc, collection, query, where, updateDoc, arrayRemove } from 'firebase/firestore';
+import { doc, onSnapshot, getDoc, collection, query, where, updateDoc, arrayRemove, deleteDoc, writeBatch } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Users, Link as LinkIcon, Trash2, Shield, MoreVertical, Copy, Check, Settings } from 'lucide-react';
 import Loading from './loading';
@@ -46,9 +46,9 @@ export default function SquadManagementPage() {
     const [copied, setCopied] = useState(false);
 
     useEffect(() => {
-        if (authLoading) return;
+        if (authLoading || !user) return;
 
-        if (!user) {
+        if (!user && !authLoading) {
             router.push('/login');
             return;
         }
@@ -60,29 +60,11 @@ export default function SquadManagementPage() {
 
         const squadDocRef = doc(db, 'squads', squadId);
         
-        const unsubscribe = onSnapshot(squadDocRef, async (docSnap) => {
+        const unsubscribeSquad = onSnapshot(squadDocRef, (docSnap) => {
              if (docSnap.exists()) {
                 const squadData = { id: docSnap.id, ...docSnap.data() } as Squad;
                 if (squadData.members.includes(user.uid)) {
                     setSquad(squadData);
-                    
-                    const memberPromises = squadData.members.map(async (memberId) => {
-                        const userDocRef = doc(db, 'users', memberId);
-                        const userDocSnap = await getDoc(userDocRef);
-                        if (userDocSnap.exists()) {
-                            const userData = userDocSnap.data();
-                            return {
-                                uid: memberId,
-                                displayName: userData.displayName || 'Anonymous',
-                                photoURL: userData.photoURL
-                            } as Member;
-                        }
-                        // Fallback for cases where user doc might not be readable, though rules should prevent this if correct
-                        return { uid: memberId, displayName: memberId, photoURL: '' }; 
-                    });
-                    
-                    const membersData = await Promise.all(memberPromises);
-                    setMembers(membersData);
                 } else {
                     setSquad(null); // User is not a member, access denied
                 }
@@ -97,7 +79,17 @@ export default function SquadManagementPage() {
             setLoading(false);
         });
 
-        return () => unsubscribe();
+        // Listen to memberDetails subcollection
+        const memberDetailsColRef = collection(db, 'squads', squadId, 'memberDetails');
+        const unsubscribeMembers = onSnapshot(memberDetailsColRef, (snapshot) => {
+            const membersData = snapshot.docs.map(doc => doc.data() as Member);
+            setMembers(membersData);
+        });
+
+        return () => {
+            unsubscribeSquad();
+            unsubscribeMembers();
+        };
     }, [user, authLoading, squadId, router, toast]);
     
     const copyInviteLink = () => {
@@ -113,17 +105,36 @@ export default function SquadManagementPage() {
     const removeMember = async (memberId: string) => {
         if (!squad || user?.uid !== squad.ownerId) return;
 
+        const batch = writeBatch(db);
         const squadRef = doc(db, 'squads', squad.id);
+        const memberDetailRef = doc(db, 'squads', squad.id, 'memberDetails', memberId);
+
+        batch.update(squadRef, {
+            members: arrayRemove(memberId)
+        });
+        batch.delete(memberDetailRef);
+        
         try {
-            await updateDoc(squadRef, {
-                members: arrayRemove(memberId)
-            });
+            await batch.commit();
             toast({ title: "Member removed" });
         } catch (error) {
             console.error("Error removing member:", error);
             toast({ variant: 'destructive', title: "Failed to remove member" });
         }
     };
+    
+    const handleDeleteSquad = async () => {
+        if (!squad || user?.uid !== squad.ownerId) return;
+
+        try {
+            await deleteDoc(doc(db, 'squads', squad.id));
+            toast({ title: "Squad Deleted", description: "The squad has been permanently removed."});
+            router.push('/dashboard/learning-squad');
+        } catch (error) {
+            console.error("Error deleting squad:", error);
+            toast({ variant: 'destructive', title: "Deletion Failed"});
+        }
+    }
 
     const isOwner = user?.uid === squad?.ownerId;
 
@@ -256,7 +267,23 @@ export default function SquadManagementPage() {
                             <CardTitle className="flex items-center gap-2 text-destructive">Danger Zone</CardTitle>
                         </CardHeader>
                         <CardContent>
-                             <Button variant="destructive" className="w-full" disabled={!isOwner}>Delete Squad</Button>
+                            <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button variant="destructive" className="w-full" disabled={!isOwner}>Delete Squad</Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            This action cannot be undone. This will permanently delete the squad and all of its data.
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction onClick={handleDeleteSquad}>Delete Squad</AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
                         </CardContent>
                     </Card>
                 </div>

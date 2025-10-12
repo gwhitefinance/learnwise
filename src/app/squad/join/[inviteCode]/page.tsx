@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
-import { collection, query, where, getDocs, updateDoc, arrayUnion } from 'firebase/firestore';
+import { collection, query, where, getDocs, updateDoc, arrayUnion, doc, writeBatch } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 
@@ -39,10 +39,26 @@ export default function JoinSquadPage() {
                 const querySnapshot = await getDocs(q);
                 if (!querySnapshot.empty) {
                     const squadDoc = querySnapshot.docs[0];
-                    // Add the user to the members array
-                    await updateDoc(squadDoc.ref, {
+                    const squadId = squadDoc.id;
+
+                    const batch = writeBatch(db);
+
+                    // Add user to members array
+                    const squadRef = doc(db, 'squads', squadId);
+                    batch.update(squadRef, {
                         members: arrayUnion(user.uid)
                     });
+                    
+                    // Add user public info to memberDetails subcollection
+                    const memberDetailRef = doc(db, 'squads', squadId, 'memberDetails', user.uid);
+                    batch.set(memberDetailRef, {
+                        uid: user.uid,
+                        displayName: user.displayName,
+                        photoURL: user.photoURL || null
+                    });
+
+                    await batch.commit();
+                    
                     toast({ title: "Squad Joined!", description: `Welcome to ${squadDoc.data().name}!` });
                 } else {
                     toast({ variant: 'destructive', title: 'Invalid Invite Code', description: 'This squad does not exist.' });

@@ -8,8 +8,13 @@ import * as admin from 'firebase-admin';
 let db: admin.firestore.Firestore;
 let auth: admin.auth.Auth;
 
-try {
-    if (admin.apps.length === 0 && process.env.FIREBASE_PRIVATE_KEY) {
+function initializeAdmin() {
+  if (admin.apps.length > 0) {
+    return;
+  }
+  
+  try {
+    if (process.env.FIREBASE_PRIVATE_KEY) {
         admin.initializeApp({
             credential: admin.credential.cert({
                 projectId: process.env.FIREBASE_PROJECT_ID,
@@ -17,12 +22,16 @@ try {
                 privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
             }),
         });
+        db = admin.firestore();
+        auth = admin.auth();
+    } else {
+        console.warn('Firebase Admin SDK environment variables not set. Some server-side features may not work.');
     }
-    db = admin.firestore();
-    auth = admin.auth();
-} catch (error) {
-    console.error('Firebase Admin SDK initialization error:', error);
+  } catch (error) {
+      console.error('Firebase Admin SDK initialization error:', error);
+  }
 }
 
+initializeAdmin();
 
 export { db, auth as adminAuth };
