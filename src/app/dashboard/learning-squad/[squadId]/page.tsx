@@ -2,7 +2,7 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { doc, onSnapshot, getDoc, collection, query, where, updateDoc, arrayRemove, deleteDoc, writeBatch, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -19,6 +19,7 @@ import { Input } from '@/components/ui/input';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog"
 import { Textarea } from '@/components/ui/textarea';
+import { CallContext } from '@/context/CallContext';
 
 
 type Squad = {
@@ -59,16 +60,12 @@ export default function SquadManagementPage() {
     const [projects, setProjects] = useState<GroupProject[]>([]);
     const [loading, setLoading] = useState(true);
     const [copied, setCopied] = useState(false);
+    const { startCall, endCall, isInCall } = useContext(CallContext);
 
     // Dialog state for new project
     const [isProjectDialogOpen, setIsProjectDialogOpen] = useState(false);
     const [newProjectName, setNewProjectName] = useState('');
     const [newProjectDescription, setNewProjectDescription] = useState('');
-
-    // Calling feature state
-    const [isInCall, setIsInCall] = useState(false);
-    const [isMuted, setIsMuted] = useState(false);
-    const [isCameraOff, setIsCameraOff] = useState(false);
 
     useEffect(() => {
         if (authLoading || !user) return;
@@ -366,28 +363,9 @@ export default function SquadManagementPage() {
                             <CardTitle className="flex items-center gap-2"><Phone />Squad Call</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                             {isInCall ? (
-                                <div className="space-y-4">
-                                    <div className="p-4 bg-muted rounded-lg aspect-video flex items-center justify-center">
-                                        <p className="text-muted-foreground">Video call in progress...</p>
-                                    </div>
-                                    <div className="flex justify-center gap-2">
-                                        <Button variant={isMuted ? 'destructive' : 'secondary'} size="icon" onClick={() => setIsMuted(!isMuted)}>
-                                            {isMuted ? <MicOff/> : <Mic/>}
-                                        </Button>
-                                         <Button variant={isCameraOff ? 'destructive' : 'secondary'} size="icon" onClick={() => setIsCameraOff(!isCameraOff)}>
-                                            {isCameraOff ? <VideoOff/> : <Video/>}
-                                        </Button>
-                                        <Button variant="destructive" size="icon" onClick={() => setIsInCall(false)}>
-                                            <PhoneOff />
-                                        </Button>
-                                    </div>
-                                </div>
-                             ) : (
-                                <Button className="w-full" onClick={() => setIsInCall(true)}>
-                                    <Phone className="mr-2 h-4 w-4"/> Start Call
-                                </Button>
-                             )}
+                            <Button className="w-full" onClick={() => startCall(members)} disabled={isInCall}>
+                                <Phone className="mr-2 h-4 w-4"/> Start Call
+                            </Button>
                         </CardContent>
                     </Card>
                     <Card>

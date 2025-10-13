@@ -98,6 +98,8 @@ import FloatingChat from '@/components/floating-chat';
 import { useToast } from '@/hooks/use-toast';
 import Logo from '@/components/Logo';
 import DashboardLoading from './loading';
+import { CallProvider } from '@/context/CallContext';
+import CallView from '@/components/CallView';
 
 type SidebarChild = {
   title: string;
@@ -479,7 +481,7 @@ function DashboardLayoutContent({
 
 
   return (
-    <>
+    <CallProvider>
       <div className={cn(
           "relative min-h-screen overflow-hidden bg-background",
           isHalloweenTheme && 'halloween-bg'
@@ -714,8 +716,9 @@ function DashboardLayoutContent({
       </div>
       <FloatingChat />
       <RewardPopup />
+      <CallView />
       <Toaster />
-    </>
+    </CallProvider>
   );
 }
 
