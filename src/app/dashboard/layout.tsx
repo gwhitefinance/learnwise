@@ -168,18 +168,6 @@ const sidebarItems: SidebarItem[] = [
             id: "practice-quiz-link",
         },
         {
-            title: "Podcasts",
-            icon: <Podcast />,
-            href: "/dashboard/podcasts",
-            id: "podcasts-link",
-        },
-        {
-            title: "Upload",
-            icon: <UploadCloud />,
-            href: "/dashboard/upload",
-            id: "upload-link",
-        },
-        {
             title: "Whiteboard",
             icon: <PenSquare />,
             href: "/dashboard/whiteboard",
@@ -209,6 +197,18 @@ const sidebarItems: SidebarItem[] = [
             icon: <BarChart3 />,
             href: "/dashboard/analysis",
             id: "analysis-link",
+        },
+        {
+            title: "Podcasts",
+            icon: <Podcast />,
+            href: "/dashboard/podcasts",
+            id: "podcasts-link",
+        },
+        {
+            title: "Upload",
+            icon: <UploadCloud />,
+            href: "/dashboard/upload",
+            id: "upload-link",
         },
       ]
     }
