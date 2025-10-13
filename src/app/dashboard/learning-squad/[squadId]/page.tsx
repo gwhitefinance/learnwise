@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
@@ -112,7 +113,7 @@ export default function SquadManagementPage() {
         
         // Listen to projects subcollection
         const projectsColRef = collection(db, 'squads', squadId, 'projects');
-        const unsubscribeProjects = onSnapshot(query(projectsColRef, where("squadId", "==", squadId)), (snapshot) => {
+        const unsubscribeProjects = onSnapshot(query(projectsColRef), (snapshot) => {
             const projectsData = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()} as GroupProject));
             setProjects(projectsData);
         });
