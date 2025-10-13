@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useContext, useEffect, useRef } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Phone, Mic, MicOff, Video, VideoOff, Minimize2, Maximize2, PhoneOff, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,14 +10,16 @@ import { CallContext, CallParticipant } from '@/context/CallContext';
 import { cn } from '@/lib/utils';
 import Draggable from 'react-draggable';
 
-const ParticipantVideo = ({ participant, isLocalUser, videoRef }: { participant: CallParticipant, isLocalUser: boolean, videoRef?: React.RefObject<HTMLVideoElement> }) => (
+const ParticipantVideo = ({ participant, isLocalUser, videoRef, isCameraOn }: { participant: CallParticipant, isLocalUser: boolean, videoRef?: React.RefObject<HTMLVideoElement>, isCameraOn?: boolean }) => (
     <div className="relative aspect-video bg-muted rounded-lg overflow-hidden flex items-center justify-center border">
         {isLocalUser ? (
              <div className="w-full h-full bg-black flex items-center justify-center">
                 <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
-                <div className="absolute inset-0 flex items-center justify-center">
-                    <User className="h-20 w-20 text-muted-foreground" />
-                </div>
+                 {!isCameraOn && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <User className="h-20 w-20 text-muted-foreground" />
+                    </div>
+                )}
              </div>
         ) : (
              <Avatar className="h-20 w-20">
@@ -104,7 +106,7 @@ export default function CallView() {
                                 "flex-1 grid gap-4",
                                 isMinimized ? "grid-cols-2" : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
                             )}>
-                                {localParticipant && <ParticipantVideo participant={localParticipant} isLocalUser={true} videoRef={videoRef} />}
+                                {localParticipant && <ParticipantVideo participant={localParticipant} isLocalUser={true} videoRef={videoRef} isCameraOn={!isCameraOff} />}
                                 {participants.map(p => (
                                     <ParticipantVideo key={p.uid} participant={p} isLocalUser={false} />
                                 ))}
