@@ -246,8 +246,10 @@ export default function SquadManagementPage() {
                                                 <AvatarFallback>{member.displayName?.[0]}</AvatarFallback>
                                             </Avatar>
                                             <div>
-                                                <p className="font-semibold">{member.displayName} {member.uid === user?.uid && <span className="font-normal text-muted-foreground">(You)</span>}</p>
-                                                <p className="text-xs text-muted-foreground">{member.uid === squad.ownerId ? 'Owner' : 'Member'}</p>
+                                                <p className="font-semibold">{member.displayName}</p>
+                                                <p className="text-xs text-muted-foreground">
+                                                   {member.uid === squad.ownerId ? 'Owner' : 'Member'} {member.uid === user?.uid && <span className="font-normal text-muted-foreground">(You)</span>}
+                                                </p>
                                             </div>
                                         </div>
                                         {isOwner && member.uid !== user?.uid && (
