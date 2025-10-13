@@ -86,18 +86,23 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
   const ringParticipant = useCallback((uid: string) => {
     setParticipants(prev => prev.map(p => p.uid === uid ? { ...p, status: 'Ringing' } : p));
     
-    // Simulate another user receiving a call.
-    // In a real app, this would be a push notification or websocket event.
+    // In a real app, this event would be sent over a server to the specific user.
+    // Here we dispatch it globally for simulation purposes.
     if (localParticipant) {
          window.dispatchEvent(new CustomEvent('incoming-call-simulation', {
-            detail: { caller: localParticipant }
+            detail: { caller: localParticipant, recipientId: uid }
         }));
     }
 
-    // Simulate user accepting the call
+    // Simulate user accepting the call after a delay
     setTimeout(() => {
-      setParticipants(prev => prev.map(p => p.uid === uid ? { ...p, status: 'In Call' } : p));
-    }, 5000); // Simulate connection time
+      setParticipants(prev => prev.map(p => {
+        if (p.uid === uid && p.status === 'Ringing') {
+          return { ...p, status: 'In Call' };
+        }
+        return p;
+      }));
+    }, 8000); // Increased delay to allow for "answering"
   }, [localParticipant]);
 
   const endCall = useCallback(() => {
@@ -110,7 +115,13 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
     if (!incomingCall || !user) return;
     
     setIsInCall(true);
-    setParticipants(prev => [...prev, {...incomingCall, status: 'In Call'}]); 
+    setParticipants(prev => {
+        // Avoid adding the caller if they are already in the participants list from another context
+        if (prev.some(p => p.uid === incomingCall.uid)) {
+            return prev.map(p => p.uid === incomingCall.uid ? {...p, status: 'In Call'} : p);
+        }
+        return [...prev, {...incomingCall, status: 'In Call'}];
+    }); 
     setLocalParticipant({
         uid: user.uid,
         displayName: user.displayName || 'You',
@@ -139,14 +150,20 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
   // This is a simulation effect for receiving a call
   useEffect(() => {
     const handleIncomingCall = (event: any) => {
-        // Prevent showing incoming call notification if already in a call with that person
+        if (!user || event.detail.caller.uid === user.uid) {
+            // Don't show incoming call notification to the person who initiated it.
+            return;
+        }
+
+        // Only show if the event is meant for this user (in a real app this would be targeted).
+        // For simulation, we assume if you're not the caller, you're a potential recipient.
         if (!isInCall || !participants.some(p => p.uid === event.detail.caller.uid)) {
            setIncomingCall(event.detail.caller);
         }
     };
     window.addEventListener('incoming-call-simulation', handleIncomingCall);
     return () => window.removeEventListener('incoming-call-simulation', handleIncomingCall);
-  }, [isInCall, participants]);
+  }, [isInCall, participants, user]);
 
   return (
     <CallContext.Provider value={{
