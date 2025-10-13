@@ -12,14 +12,16 @@ service cloud.firestore {
       // Any authenticated user can create a squad.
       allow create: if request.auth != null;
 
-      // Users can read/update a squad if they are in the members list.
-      allow read, update: if request.auth != null && request.auth.uid in resource.data.members;
+      // Allow a user to read a squad if their UID is in the 'members' list.
+      allow read: if request.auth != null && request.auth.uid in resource.data.members;
+      
+      // Allow a user to update a squad if they are a member.
+      allow update: if request.auth != null && request.auth.uid in resource.data.members;
 
       // Only the owner can delete the squad.
       allow delete: if request.auth != null && request.auth.uid == resource.data.ownerId;
 
-      // Any authenticated user can query the list of squads.
-      // The 'read' rule above will secure the actual data access.
+      // Any authenticated user can list squads, but the 'read' rule will secure the actual data access.
       allow list: if request.auth != null;
 
       // MEMBER DETAILS subcollection
@@ -33,23 +35,24 @@ service cloud.firestore {
           request.auth.uid == get(/databases/$(database)/documents/squads/$(squadId)).data.ownerId
         );
       }
-      
+
       // PROJECTS subcollection
       match /projects/{projectId} {
-        // Any member of the parent squad can read, create, update and delete projects.
+        // Allow members to read and write individual project documents.
         allow read, write: if request.auth != null && request.auth.uid in get(/databases/$(database)/documents/squads/$(squadId)).data.members;
+        // Allow members to list the projects for the squad.
+        allow list: if request.auth != null && request.auth.uid in get(/databases/$(database)/documents/squads/$(squadId)).data.members;
       }
     }
 
     // Other collections... (These are standard user-private rules)
-    match /ai-chat-app/{chatId} {
-      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
-    }
     match /calendarEvents/{eventId} {
       allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
     }
     match /chatSessions/{sessionId} {
-      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
+      // Publicly shared chats can be read by anyone.
+      allow read: if resource.data.isPublic == true || (request.auth != null && request.auth.uid == resource.data.userId);
+      allow write: if request.auth != null && request.auth.uid == resource.data.userId;
     }
     match /courses/{courseId} {
       allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
