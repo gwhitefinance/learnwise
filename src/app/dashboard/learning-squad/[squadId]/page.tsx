@@ -1,15 +1,14 @@
-
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
-import { doc, onSnapshot, getDoc, collection, query, where, updateDoc, arrayRemove, deleteDoc, writeBatch } from 'firebase/firestore';
+import { doc, onSnapshot, getDoc, collection, query, where, updateDoc, arrayRemove, deleteDoc, writeBatch, addDoc, serverTimestamp } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Users, Link as LinkIcon, Trash2, Shield, MoreVertical, Copy, Check, Settings } from 'lucide-react';
+import { ArrowLeft, Users, Link as LinkIcon, Trash2, Shield, MoreVertical, Copy, Check, Settings, Plus, Briefcase, Phone, PhoneOff, Mic, MicOff, Video, VideoOff } from 'lucide-react';
 import Loading from './loading';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
@@ -17,6 +16,8 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog"
+import { Textarea } from '@/components/ui/textarea';
 
 
 type Squad = {
@@ -26,6 +27,10 @@ type Squad = {
     members: string[];
     inviteCode: string;
     createdAt: any;
+    permissions?: {
+        allowWhiteboard?: boolean;
+        allowCalendar?: boolean;
+    }
 };
 
 type Member = {
@@ -33,6 +38,14 @@ type Member = {
     displayName: string;
     photoURL?: string;
 };
+
+type GroupProject = {
+    id: string;
+    name: string;
+    description: string;
+    createdBy: string;
+    createdAt: any;
+}
 
 export default function SquadManagementPage() {
     const params = useParams();
@@ -42,8 +55,19 @@ export default function SquadManagementPage() {
     const [user, authLoading] = useAuthState(auth);
     const [squad, setSquad] = useState<Squad | null>(null);
     const [members, setMembers] = useState<Member[]>([]);
+    const [projects, setProjects] = useState<GroupProject[]>([]);
     const [loading, setLoading] = useState(true);
     const [copied, setCopied] = useState(false);
+
+    // Dialog state for new project
+    const [isProjectDialogOpen, setIsProjectDialogOpen] = useState(false);
+    const [newProjectName, setNewProjectName] = useState('');
+    const [newProjectDescription, setNewProjectDescription] = useState('');
+
+    // Calling feature state
+    const [isInCall, setIsInCall] = useState(false);
+    const [isMuted, setIsMuted] = useState(false);
+    const [isCameraOff, setIsCameraOff] = useState(false);
 
     useEffect(() => {
         if (authLoading || !user) return;
@@ -85,10 +109,18 @@ export default function SquadManagementPage() {
             const membersData = snapshot.docs.map(doc => doc.data() as Member);
             setMembers(membersData);
         });
+        
+        // Listen to projects subcollection
+        const projectsColRef = collection(db, 'squads', squadId, 'projects');
+        const unsubscribeProjects = onSnapshot(query(projectsColRef, where("squadId", "==", squadId)), (snapshot) => {
+            const projectsData = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()} as GroupProject));
+            setProjects(projectsData);
+        });
 
         return () => {
             unsubscribeSquad();
             unsubscribeMembers();
+            unsubscribeProjects();
         };
     }, [user, authLoading, squadId, router, toast]);
     
@@ -133,6 +165,40 @@ export default function SquadManagementPage() {
         } catch (error) {
             console.error("Error deleting squad:", error);
             toast({ variant: 'destructive', title: "Deletion Failed"});
+        }
+    }
+    
+    const handleTogglePermission = async (permission: 'allowWhiteboard' | 'allowCalendar', value: boolean) => {
+        if (!squad || user?.uid !== squad.ownerId) return;
+        const squadRef = doc(db, 'squads', squad.id);
+        try {
+            await updateDoc(squadRef, {
+                [`permissions.${permission}`]: value
+            });
+        } catch (error) {
+            console.error(`Failed to update ${permission}`, error);
+            toast({ variant: 'destructive', title: 'Update Failed' });
+        }
+    }
+
+    const handleAddProject = async () => {
+        if (!newProjectName.trim() || !squad || !user) return;
+        
+        try {
+            await addDoc(collection(db, 'squads', squad.id, 'projects'), {
+                name: newProjectName,
+                description: newProjectDescription,
+                createdBy: user.uid,
+                squadId: squad.id,
+                createdAt: serverTimestamp(),
+            });
+            toast({ title: 'Project Added!' });
+            setNewProjectName('');
+            setNewProjectDescription('');
+            setIsProjectDialogOpen(false);
+        } catch (error) {
+            console.error('Error adding project:', error);
+            toast({ variant: 'destructive', title: 'Could not add project' });
         }
     }
 
@@ -222,32 +288,107 @@ export default function SquadManagementPage() {
                             </div>
                         </CardContent>
                     </Card>
+                     <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2"><Briefcase />Group Projects</CardTitle>
+                            <CardDescription>Shared projects for the squad.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                             {projects.length > 0 ? (
+                                <div className="space-y-4">
+                                    {projects.map(project => (
+                                        <div key={project.id} className="p-3 rounded-lg bg-muted">
+                                            <p className="font-semibold">{project.name}</p>
+                                            <p className="text-sm text-muted-foreground">{project.description}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-sm text-muted-foreground text-center py-4">No group projects yet.</p>
+                            )}
+                        </CardContent>
+                        <CardFooter>
+                            <Dialog open={isProjectDialogOpen} onOpenChange={setIsProjectDialogOpen}>
+                                <DialogTrigger asChild>
+                                    <Button variant="outline" className="w-full">
+                                        <Plus className="h-4 w-4 mr-2"/> Add Project
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>Add a New Group Project</DialogTitle>
+                                    </DialogHeader>
+                                    <div className="grid gap-4 py-4">
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="project-name">Project Name</Label>
+                                            <Input id="project-name" value={newProjectName} onChange={(e) => setNewProjectName(e.target.value)} placeholder="e.g., Q3 Marketing Plan"/>
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="project-desc">Description</Label>
+                                            <Textarea id="project-desc" value={newProjectDescription} onChange={(e) => setNewProjectDescription(e.target.value)} placeholder="A brief description of the project goals."/>
+                                        </div>
+                                    </div>
+                                    <DialogFooter>
+                                        <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
+                                        <Button onClick={handleAddProject}>Add Project</Button>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
+                        </CardFooter>
+                    </Card>
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2"><Settings />Permissions</CardTitle>
                             <CardDescription>Control what members can do in this squad.</CardDescription>
                         </CardHeader>
-                        <CardContent>
-                            <div className="space-y-4">
+                        <CardContent className="space-y-4">
                                <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
                                     <div>
-                                        <Label htmlFor="edit-permission" className="font-semibold">Allow members to edit course content</Label>
-                                        <p className="text-xs text-muted-foreground">Allows members to add/remove units and chapters.</p>
+                                        <Label htmlFor="whiteboard-permission" className="font-semibold">Shared Whiteboard</Label>
+                                        <p className="text-xs text-muted-foreground">Allow members to use a collaborative whiteboard.</p>
                                     </div>
-                                    <Switch id="edit-permission" disabled={!isOwner} />
+                                    <Switch id="whiteboard-permission" checked={squad.permissions?.allowWhiteboard ?? false} onCheckedChange={(val) => handleTogglePermission('allowWhiteboard', val)} disabled={!isOwner} />
                                </div>
                                <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
                                     <div>
-                                        <Label htmlFor="note-permission" className="font-semibold">Allow members to add notes</Label>
-                                        <p className="text-xs text-muted-foreground">Allows members to create new notes linked to the squad.</p>
+                                        <Label htmlFor="calendar-permission" className="font-semibold">Shared Calendar</Label>
+                                        <p className="text-xs text-muted-foreground">Allow members to view and add to a shared squad calendar.</p>
                                     </div>
-                                    <Switch id="note-permission" disabled={!isOwner} />
+                                    <Switch id="calendar-permission" checked={squad.permissions?.allowCalendar ?? false} onCheckedChange={(val) => handleTogglePermission('allowCalendar', val)} disabled={!isOwner} />
                                </div>
-                            </div>
                         </CardContent>
                     </Card>
                 </div>
                 <div className="space-y-6">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2"><Phone />Squad Call</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                             {isInCall ? (
+                                <div className="space-y-4">
+                                    <div className="p-4 bg-muted rounded-lg aspect-video flex items-center justify-center">
+                                        <p className="text-muted-foreground">Video call in progress...</p>
+                                    </div>
+                                    <div className="flex justify-center gap-2">
+                                        <Button variant={isMuted ? 'destructive' : 'secondary'} size="icon" onClick={() => setIsMuted(!isMuted)}>
+                                            {isMuted ? <MicOff/> : <Mic/>}
+                                        </Button>
+                                         <Button variant={isCameraOff ? 'destructive' : 'secondary'} size="icon" onClick={() => setIsCameraOff(!isCameraOff)}>
+                                            {isCameraOff ? <VideoOff/> : <Video/>}
+                                        </Button>
+                                        <Button variant="destructive" size="icon" onClick={() => setIsInCall(false)}>
+                                            <PhoneOff />
+                                        </Button>
+                                    </div>
+                                </div>
+                             ) : (
+                                <Button className="w-full" onClick={() => setIsInCall(true)}>
+                                    <Phone className="mr-2 h-4 w-4"/> Start Call
+                                </Button>
+                             )}
+                        </CardContent>
+                    </Card>
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2"><LinkIcon />Invite Link</CardTitle>
