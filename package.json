@@ -50,6 +50,7 @@
     "firebase-admin": "^12.2.0",
     "framer-motion": "^11.5.1",
     "genkit": "1.13.0",
+    "googleapis": "^140.0.1",
     "jsdom": "^24.1.0",
     "lucide-react": "^0.475.0",
     "nanoid": "^5.0.7",
