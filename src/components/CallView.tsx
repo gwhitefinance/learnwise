@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useContext } from 'react';
+import React, { useContext } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Phone, Mic, MicOff, Video, VideoOff, Minimize2, Maximize2, PhoneOff } from 'lucide-react';
 import { Card } from '@/components/ui/card';
@@ -90,4 +90,3 @@ export default function CallView() {
         </AnimatePresence>
     );
 }
-
