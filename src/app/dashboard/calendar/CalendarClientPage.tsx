@@ -35,7 +35,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth, db } from "@/lib/firebase";
 import { collection, addDoc, query, where, getDocs, deleteDoc, doc, updateDoc, onSnapshot, orderBy } from "firebase/firestore";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { format, eachDayOfInterval, startOfWeek, endOfWeek, startOfMonth, endOfMonth, getDay, isToday, isEqual, addMonths, subMonths, eachWeekOfInterval, addDays, getWeek } from 'date-fns';
 import AIBuddy from "@/components/ai-buddy";
 
@@ -141,6 +141,7 @@ export default function CalendarClientPage() {
   const [isDateInitialized, setIsDateInitialized] = useState(false);
 
   // Google Calendar Integration
+  const searchParams = useSearchParams();
   const [isGCalConnected, setIsGCalConnected] = useState(false);
 
   useEffect(() => {
@@ -197,10 +198,18 @@ export default function CalendarClientPage() {
         setCustomizations(JSON.parse(savedCustomizations));
     }
 
-    const gcalConnected = localStorage.getItem('gcalConnected') === 'true';
-    setIsGCalConnected(gcalConnected);
+    const gcalConnected = searchParams.get('gcal_connected') === 'true';
+    if(gcalConnected) {
+        setIsGCalConnected(true);
+        localStorage.setItem('gcalConnected', 'true');
+        toast({ title: 'Success!', description: 'Google Calendar has been connected.' });
+        router.replace('/dashboard/calendar');
+    } else {
+        const storedGCal = localStorage.getItem('gcalConnected') === 'true';
+        setIsGCalConnected(storedGCal);
+    }
 
-  }, [user, loading, router]);
+  }, [user, loading, router, searchParams, toast]);
 
 
   const scheduleReminder = (event: Event) => {
@@ -445,7 +454,7 @@ export default function CalendarClientPage() {
     };
 
     const handleConnectGCal = () => {
-        router.push('/api/auth/google/connect');
+         window.location.href = '/api/auth/google/connect';
     };
     
     const colorOptions = [
@@ -560,30 +569,10 @@ export default function CalendarClientPage() {
                 </button>
             )}
         </div>
-         <Dialog>
-            <DialogTrigger asChild>
-                 <Button variant="outline" className={`rounded-full ${textClass} ${bgClass} border ${borderClass} hover:bg-white/20`}>
-                    <GoogleIcon className="h-5 w-5 mr-2"/>
-                    {isGCalConnected ? 'Disconnect' : 'Connect'} Google Calendar
-                </Button>
-            </DialogTrigger>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Google Calendar Integration</DialogTitle>
-                    <DialogDescription>
-                        {isGCalConnected ? 
-                        "Are you sure you want to disconnect your Google Calendar? Your events will no longer be synced." :
-                        "Connect your Google Calendar to seamlessly sync your events with Tutorin."}
-                    </DialogDescription>
-                </DialogHeader>
-                <DialogFooter>
-                    <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
-                    <Button onClick={handleConnectGCal} variant={isGCalConnected ? 'destructive' : 'default'}>
-                        {isGCalConnected ? 'Disconnect' : 'Connect Now'}
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+         <Button variant="outline" onClick={handleConnectGCal} className={`rounded-full ${textClass} ${bgClass} border ${borderClass} hover:bg-white/20`}>
+                <GoogleIcon className="h-5 w-5 mr-2"/>
+                {isGCalConnected ? 'Syncing' : 'Connect'} Google Calendar
+            </Button>
       </header>
 
       <main className="relative h-screen w-full pt-20 flex">
@@ -1003,3 +992,5 @@ export default function CalendarClientPage() {
     </div>
   )
 }
+
+    
