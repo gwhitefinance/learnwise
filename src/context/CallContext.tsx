@@ -86,11 +86,19 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
   const ringParticipant = useCallback((uid: string) => {
     setParticipants(prev => prev.map(p => p.uid === uid ? { ...p, status: 'Ringing' } : p));
     
+    // Simulate another user receiving a call.
+    // In a real app, this would be a push notification or websocket event.
+    if (localParticipant) {
+         window.dispatchEvent(new CustomEvent('incoming-call-simulation', {
+            detail: { caller: localParticipant }
+        }));
+    }
+
     // Simulate user accepting the call
     setTimeout(() => {
       setParticipants(prev => prev.map(p => p.uid === uid ? { ...p, status: 'In Call' } : p));
-    }, 3000); // Simulate connection time
-  }, []);
+    }, 5000); // Simulate connection time
+  }, [localParticipant]);
 
   const endCall = useCallback(() => {
     setIsInCall(false);
@@ -99,10 +107,16 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
   }, []);
   
   const answerCall = () => {
-    if (!incomingCall) return;
+    if (!incomingCall || !user) return;
+    
     setIsInCall(true);
-    // In a real app, you'd add the caller to the participants list
-    setParticipants([{...incomingCall, status: 'In Call'}]); 
+    setParticipants(prev => [...prev, {...incomingCall, status: 'In Call'}]); 
+    setLocalParticipant({
+        uid: user.uid,
+        displayName: user.displayName || 'You',
+        photoURL: user.photoURL || undefined,
+        status: 'In Call'
+    });
     setIncomingCall(null);
   };
   
@@ -125,11 +139,14 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
   // This is a simulation effect for receiving a call
   useEffect(() => {
     const handleIncomingCall = (event: any) => {
-        setIncomingCall(event.detail.caller);
+        // Prevent showing incoming call notification if already in a call with that person
+        if (!isInCall || !participants.some(p => p.uid === event.detail.caller.uid)) {
+           setIncomingCall(event.detail.caller);
+        }
     };
     window.addEventListener('incoming-call-simulation', handleIncomingCall);
     return () => window.removeEventListener('incoming-call-simulation', handleIncomingCall);
-  }, []);
+  }, [isInCall, participants]);
 
   return (
     <CallContext.Provider value={{
