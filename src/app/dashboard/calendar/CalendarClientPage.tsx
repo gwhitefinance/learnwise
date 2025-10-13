@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useEffect, useRef, ChangeEvent } from "react";
@@ -446,15 +445,7 @@ export default function CalendarClientPage() {
     };
 
     const handleConnectGCal = () => {
-        // In a real app, this would trigger the Google OAuth flow.
-        // For this simulation, we'll just toggle the state.
-        const newState = !isGCalConnected;
-        setIsGCalConnected(newState);
-        localStorage.setItem('gcalConnected', String(newState));
-        toast({
-            title: newState ? 'Google Calendar Connected!' : 'Google Calendar Disconnected',
-            description: newState ? 'Your events will now be synced.' : 'Syncing has been disabled.',
-        });
+        router.push('/api/auth/google/connect');
     };
     
     const colorOptions = [
