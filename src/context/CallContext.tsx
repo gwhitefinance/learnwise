@@ -149,20 +149,19 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
   // This is a simulation effect for receiving a call
   useEffect(() => {
     const handleIncomingCall = (event: any) => {
-        if (!user || event.detail.caller.uid === user.uid) {
-            // Don't show incoming call notification to the person who initiated it.
+        if (!user || event.detail.caller.uid === user.uid || event.detail.recipientId !== user.uid) {
+            // Don't show incoming call notification to the person who initiated it or if it's not for me.
             return;
         }
 
-        // Only show if the event is meant for this user (in a real app this would be targeted).
-        // For simulation, we assume if you're not the caller, you're a potential recipient.
-        if (!isInCall || !participants.some(p => p.uid === event.detail.caller.uid)) {
+        // Only show if the event is meant for this user
+        if (!isInCall) {
            setIncomingCall(event.detail.caller);
         }
     };
     window.addEventListener('incoming-call-simulation', handleIncomingCall);
     return () => window.removeEventListener('incoming-call-simulation', handleIncomingCall);
-  }, [isInCall, participants, user]);
+  }, [isInCall, user]);
 
   return (
     <CallContext.Provider value={{
