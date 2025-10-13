@@ -20,7 +20,7 @@ env:
     availability:
       - BUILD
       - RUNTIME
-  - variable: GOOGLE_CLIENT_ID
+  - variable: NEXT_PUBLIC_GOOGLE_CLIENT_ID
     secret: GOOGLE_CLIENT_ID
     availability:
       - BUILD
@@ -29,7 +29,7 @@ env:
     secret: GOOGLE_CLIENT_SECRET
     availability:
       - RUNTIME # Secret is only needed at runtime for OAuth
-  - variable: GOOGLE_REDIRECT_URI
+  - variable: NEXT_PUBLIC_GOOGLE_REDIRECT_URI
     secret: GOOGLE_REDIRECT_URI
     availability:
       - BUILD
