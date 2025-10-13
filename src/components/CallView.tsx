@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useContext, useEffect, useRef, useState } from 'react';
@@ -10,7 +11,7 @@ import { CallContext, CallParticipant } from '@/context/CallContext';
 import { cn } from '@/lib/utils';
 import Draggable from 'react-draggable';
 
-const ParticipantVideo = ({ participant, isLocalUser, videoRef, isCameraOn }: { participant: CallParticipant, isLocalUser: boolean, videoRef?: React.RefObject<HTMLVideoElement>, isCameraOn?: boolean }) => (
+const ParticipantVideo = ({ participant, isLocalUser, videoRef, isCameraOn, onRing }: { participant: CallParticipant, isLocalUser: boolean, videoRef?: React.RefObject<HTMLVideoElement>, isCameraOn?: boolean, onRing?: (uid: string) => void }) => (
     <div className="relative aspect-video bg-muted rounded-lg overflow-hidden flex items-center justify-center border">
         {isLocalUser ? (
              <div className="w-full h-full bg-black flex items-center justify-center">
@@ -30,9 +31,16 @@ const ParticipantVideo = ({ participant, isLocalUser, videoRef, isCameraOn }: { 
         <div className="absolute bottom-2 left-2 bg-black/50 text-white text-xs px-2 py-1 rounded-md">
             {participant.displayName} {isLocalUser && "(You)"}
         </div>
-        {participant.status !== 'In Call' && (
+        {participant.status && participant.status !== 'Online' && (
             <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
                 <p className="text-white font-semibold animate-pulse">{participant.status}...</p>
+            </div>
+        )}
+        {!isLocalUser && participant.status === 'Online' && onRing && (
+            <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                <Button onClick={() => onRing(participant.uid)} size="lg" className="rounded-full h-16 w-16 bg-green-500 hover:bg-green-600">
+                    <Phone className="h-8 w-8" />
+                </Button>
             </div>
         )}
     </div>
@@ -50,7 +58,8 @@ export default function CallView() {
         toggleMute,
         toggleCamera,
         endCall,
-        toggleMinimize
+        toggleMinimize,
+        ringParticipant,
     } = useContext(CallContext);
     
     const nodeRef = React.useRef(null);
@@ -60,14 +69,13 @@ export default function CallView() {
         if (isInCall && !isCameraOff) {
             const getCameraStream = async () => {
                 try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: !isMuted });
                     if (videoRef.current) {
                         videoRef.current.srcObject = stream;
                     }
                 } catch (err) {
                     console.error("Error accessing camera:", err);
-                    // Optionally, you can add a toast notification here to inform the user
-                    toggleCamera(); // Turn camera off if permission is denied
+                    toggleCamera(); 
                 }
             };
             getCameraStream();
@@ -75,7 +83,7 @@ export default function CallView() {
             (videoRef.current.srcObject as MediaStream).getTracks().forEach(track => track.stop());
             videoRef.current.srcObject = null;
         }
-    }, [isInCall, isCameraOff, toggleCamera]);
+    }, [isInCall, isCameraOff, toggleCamera, isMuted]);
 
     return (
         <AnimatePresence>
@@ -108,7 +116,7 @@ export default function CallView() {
                             )}>
                                 {localParticipant && <ParticipantVideo participant={localParticipant} isLocalUser={true} videoRef={videoRef} isCameraOn={!isCameraOff} />}
                                 {participants.map(p => (
-                                    <ParticipantVideo key={p.uid} participant={p} isLocalUser={false} />
+                                    <ParticipantVideo key={p.uid} participant={p} isLocalUser={false} onRing={ringParticipant} />
                                 ))}
                             </div>
                         </div>

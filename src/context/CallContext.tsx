@@ -9,7 +9,7 @@ export type CallParticipant = {
     uid: string;
     displayName: string;
     photoURL?: string;
-    status?: 'Ringing' | 'In Call';
+    status?: 'Ringing' | 'In Call' | 'Online';
 };
 
 interface CallContextType {
@@ -24,6 +24,7 @@ interface CallContextType {
   toggleMute: () => void;
   toggleCamera: () => void;
   toggleMinimize: () => void;
+  ringParticipant: (uid: string) => void;
 }
 
 export const CallContext = createContext<CallContextType>({
@@ -38,6 +39,7 @@ export const CallContext = createContext<CallContextType>({
   toggleMute: () => {},
   toggleCamera: () => {},
   toggleMinimize: () => {},
+  ringParticipant: () => {},
 });
 
 export const CallProvider = ({ children }: { children: ReactNode }) => {
@@ -52,7 +54,6 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
   const startCall = useCallback((callParticipants: CallParticipant[]) => {
     if (!user) return;
     
-    // Set up the local user
     setLocalParticipant({
         uid: user.uid,
         displayName: user.displayName || 'You',
@@ -60,28 +61,26 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
         status: 'In Call',
     });
 
-    // Set up remote participants with "Ringing" status, excluding the local user
     const remoteParticipants = callParticipants
         .filter(p => p.uid !== user.uid)
-        .map(p => ({ ...p, status: 'Ringing' as const }));
+        .map(p => ({ ...p, status: 'Online' as const }));
 
     setParticipants(remoteParticipants);
     
     setIsInCall(true);
     setIsMinimized(false);
-    setIsCameraOff(false); // Automatically turn camera on
+    setIsCameraOff(false);
     setIsMuted(false);
 
-    // Simulate participants joining the call one by one
-    remoteParticipants.forEach((p, index) => {
-        setTimeout(() => {
-            setParticipants(prev => prev.map(participant => 
-                participant.uid === p.uid ? { ...participant, status: 'In Call' } : participant
-            ));
-        }, (index + 1) * 1500 + 1000); // Stagger joining times
-    });
-
   }, [user]);
+
+  const ringParticipant = useCallback((uid: string) => {
+    setParticipants(prev => prev.map(p => p.uid === uid ? { ...p, status: 'Ringing' } : p));
+    
+    setTimeout(() => {
+      setParticipants(prev => prev.map(p => p.uid === uid ? { ...p, status: 'In Call' } : p));
+    }, 2000); // Simulate connection time
+  }, []);
 
   const endCall = useCallback(() => {
     setIsInCall(false);
@@ -113,7 +112,8 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
       endCall,
       toggleMute,
       toggleCamera,
-      toggleMinimize
+      toggleMinimize,
+      ringParticipant
     }}>
       {children}
     </CallContext.Provider>
