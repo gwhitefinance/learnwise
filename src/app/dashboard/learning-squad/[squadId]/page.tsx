@@ -237,8 +237,8 @@ export default function SquadManagementPage() {
                             <CardDescription>View and manage who is in your squad.</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div className="space-y-4">
-                                {members.map(member => (
+                             <div className="space-y-4">
+                                {members.length > 0 ? members.map(member => (
                                     <div key={member.uid} className="flex items-center justify-between p-3 rounded-lg bg-muted">
                                         <div className="flex items-center gap-3">
                                             <Avatar>
@@ -260,7 +260,7 @@ export default function SquadManagementPage() {
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent align="end">
                                                         <AlertDialogTrigger asChild>
-                                                            <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
+                                                             <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
                                                                 <Trash2 className="mr-2 h-4 w-4" /> Remove Member
                                                             </DropdownMenuItem>
                                                         </AlertDialogTrigger>
@@ -281,7 +281,7 @@ export default function SquadManagementPage() {
                                             </AlertDialog>
                                         )}
                                     </div>
-                                ))}
+                                )) : <p className="text-sm text-muted-foreground text-center py-4">No other members have joined yet.</p>}
                             </div>
                         </CardContent>
                     </Card>
