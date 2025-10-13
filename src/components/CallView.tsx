@@ -3,25 +3,36 @@
 
 import React, { useContext } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Phone, Mic, MicOff, Video, VideoOff, Minimize2, Maximize2, PhoneOff } from 'lucide-react';
-import { Card } from '@/components/ui/card';
+import { Phone, Mic, MicOff, Video, VideoOff, Minimize2, Maximize2, PhoneOff, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { CallContext, CallParticipant } from '@/context/CallContext';
 import { cn } from '@/lib/utils';
 import Draggable from 'react-draggable';
 
-const ParticipantVideo = ({ participant }: { participant: CallParticipant }) => (
-    <div className="relative aspect-video bg-muted rounded-lg overflow-hidden flex items-center justify-center">
-        <Avatar className="h-20 w-20">
-            <AvatarImage src={participant.photoURL} />
-            <AvatarFallback>{participant.displayName?.[0]}</AvatarFallback>
-        </Avatar>
-        <div className="absolute bottom-2 left-2 bg-black/50 text-white text-xs px-2 py-1 rounded">
-            {participant.displayName}
+const ParticipantVideo = ({ participant, isLocalUser }: { participant: CallParticipant, isLocalUser: boolean }) => (
+    <div className="relative aspect-video bg-muted rounded-lg overflow-hidden flex items-center justify-center border">
+        {isLocalUser ? (
+             <div className="w-full h-full bg-black flex items-center justify-center">
+                <User className="h-20 w-20 text-muted-foreground" />
+             </div>
+        ) : (
+             <Avatar className="h-20 w-20">
+                <AvatarImage src={participant.photoURL} />
+                <AvatarFallback>{participant.displayName?.[0]}</AvatarFallback>
+            </Avatar>
+        )}
+        <div className="absolute bottom-2 left-2 bg-black/50 text-white text-xs px-2 py-1 rounded-md">
+            {participant.displayName} {isLocalUser && "(You)"}
         </div>
+        {participant.status !== 'In Call' && (
+            <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                <p className="text-white font-semibold animate-pulse">{participant.status}...</p>
+            </div>
+        )}
     </div>
 );
+
 
 export default function CallView() {
     const {
@@ -30,6 +41,7 @@ export default function CallView() {
         isCameraOff,
         isMinimized,
         participants,
+        localParticipant,
         toggleMute,
         toggleCamera,
         endCall,
@@ -67,8 +79,9 @@ export default function CallView() {
                                 "flex-1 grid gap-4",
                                 isMinimized ? "grid-cols-2" : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
                             )}>
+                                {localParticipant && <ParticipantVideo participant={localParticipant} isLocalUser={true} />}
                                 {participants.map(p => (
-                                    <ParticipantVideo key={p.uid} participant={p} />
+                                    <ParticipantVideo key={p.uid} participant={p} isLocalUser={false} />
                                 ))}
                             </div>
                         </div>
