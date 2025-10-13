@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useEffect, useState, useRef, createContext, useContext, Suspense, useCallback } from 'react';
@@ -100,6 +101,7 @@ import Logo from '@/components/Logo';
 import DashboardLoading from './loading';
 import { CallProvider } from '@/context/CallContext';
 import CallView from '@/components/CallView';
+import IncomingCall from '@/components/IncomingCall';
 
 type SidebarChild = {
   title: string;
@@ -717,6 +719,7 @@ function DashboardLayoutContent({
       <FloatingChat />
       <RewardPopup />
       <CallView />
+      <IncomingCall />
       <Toaster />
     </CallProvider>
   );

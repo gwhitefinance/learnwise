@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { createContext, useState, useCallback, ReactNode, useEffect } from 'react';
@@ -19,12 +20,15 @@ interface CallContextType {
   isMinimized: boolean;
   participants: CallParticipant[];
   localParticipant: CallParticipant | null;
+  incomingCall: CallParticipant | null;
   startCall: (participants: CallParticipant[]) => void;
   endCall: () => void;
   toggleMute: () => void;
   toggleCamera: () => void;
   toggleMinimize: () => void;
   ringParticipant: (uid: string) => void;
+  answerCall: () => void;
+  declineCall: () => void;
 }
 
 export const CallContext = createContext<CallContextType>({
@@ -34,12 +38,15 @@ export const CallContext = createContext<CallContextType>({
   isMinimized: false,
   participants: [],
   localParticipant: null,
+  incomingCall: null,
   startCall: () => {},
   endCall: () => {},
   toggleMute: () => {},
   toggleCamera: () => {},
   toggleMinimize: () => {},
   ringParticipant: () => {},
+  answerCall: () => {},
+  declineCall: () => {},
 });
 
 export const CallProvider = ({ children }: { children: ReactNode }) => {
@@ -50,6 +57,8 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
   const [isMinimized, setIsMinimized] = useState(false);
   const [participants, setParticipants] = useState<CallParticipant[]>([]);
   const [localParticipant, setLocalParticipant] = useState<CallParticipant | null>(null);
+  const [incomingCall, setIncomingCall] = useState<CallParticipant | null>(null);
+
 
   const startCall = useCallback((callParticipants: CallParticipant[]) => {
     if (!user) return;
@@ -77,9 +86,10 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
   const ringParticipant = useCallback((uid: string) => {
     setParticipants(prev => prev.map(p => p.uid === uid ? { ...p, status: 'Ringing' } : p));
     
+    // Simulate user accepting the call
     setTimeout(() => {
       setParticipants(prev => prev.map(p => p.uid === uid ? { ...p, status: 'In Call' } : p));
-    }, 2000); // Simulate connection time
+    }, 3000); // Simulate connection time
   }, []);
 
   const endCall = useCallback(() => {
@@ -87,6 +97,18 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
     setParticipants([]);
     setLocalParticipant(null);
   }, []);
+  
+  const answerCall = () => {
+    if (!incomingCall) return;
+    setIsInCall(true);
+    // In a real app, you'd add the caller to the participants list
+    setParticipants([{...incomingCall, status: 'In Call'}]); 
+    setIncomingCall(null);
+  };
+  
+  const declineCall = () => {
+      setIncomingCall(null);
+  };
 
   const toggleMute = useCallback(() => {
     setIsMuted(prev => !prev);
@@ -99,6 +121,15 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
   const toggleMinimize = useCallback(() => {
     setIsMinimized(prev => !prev);
   }, []);
+  
+  // This is a simulation effect for receiving a call
+  useEffect(() => {
+    const handleIncomingCall = (event: any) => {
+        setIncomingCall(event.detail.caller);
+    };
+    window.addEventListener('incoming-call-simulation', handleIncomingCall);
+    return () => window.removeEventListener('incoming-call-simulation', handleIncomingCall);
+  }, []);
 
   return (
     <CallContext.Provider value={{
@@ -108,12 +139,15 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
       isMinimized,
       participants,
       localParticipant,
+      incomingCall,
       startCall,
       endCall,
       toggleMute,
       toggleCamera,
       toggleMinimize,
-      ringParticipant
+      ringParticipant,
+      answerCall,
+      declineCall,
     }}>
       {children}
     </CallContext.Provider>

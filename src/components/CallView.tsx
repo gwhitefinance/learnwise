@@ -15,7 +15,7 @@ const ParticipantVideo = ({ participant, isLocalUser, videoRef, isCameraOn, onRi
     <div className="relative aspect-video bg-muted rounded-lg overflow-hidden flex items-center justify-center border">
         {isLocalUser ? (
              <div className="w-full h-full bg-black flex items-center justify-center">
-                <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
+                <video ref={videoRef} className={cn("w-full h-full object-cover", !isCameraOn && "hidden")} autoPlay muted playsInline />
                  {!isCameraOn && (
                     <div className="absolute inset-0 flex items-center justify-center">
                         <User className="h-20 w-20 text-muted-foreground" />
@@ -31,7 +31,7 @@ const ParticipantVideo = ({ participant, isLocalUser, videoRef, isCameraOn, onRi
         <div className="absolute bottom-2 left-2 bg-black/50 text-white text-xs px-2 py-1 rounded-md">
             {participant.displayName} {isLocalUser && "(You)"}
         </div>
-        {participant.status && participant.status !== 'Online' && (
+        {participant.status && participant.status !== 'Online' && !isLocalUser && (
             <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
                 <p className="text-white font-semibold animate-pulse">{participant.status}...</p>
             </div>
