@@ -1,112 +1,10 @@
-
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // USERS collection
+    // USERS collection - Users can only read and write their own profile.
     match /users/{userId} {
-      allow read: if request.auth != null && request.auth.uid == userId;
-      allow list: if request.auth != null;
-      allow write: if request.auth != null && request.auth.uid == userId;
-    }
-
-    // AI CHAT APP collection
-    match /ai-chat-app/{chatId} {
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow list: if request.auth != null;
-    }
-
-    // CALENDAR collection
-    match /calendarEvents/{calendarEventsId} {
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow list: if request.auth != null;
-    }
-
-    // CHAT SESSIONS collection
-    match /chatSessions/{sessionId} {
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow read: if resource.data.isPublic == true || (request.auth != null && request.auth.uid == resource.data.userId);
-      allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow list: if request.auth != null;
-    }
-
-    // COURSES collection
-    match /courses/{courseId} {
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow list: if request.auth != null;
-    }
-
-    // LEADERBOARD collection
-    match /leaderBoard/{leaderBoardId} {
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow list: if request.auth != null;
-    }
-
-    // LEARNING LAB collection
-    match /learningLab/{labId} {
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow list: if request.auth != null;
-    }
-
-    // LEARNING SQUAD collection
-    match /learningSquad/{squadId} {
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.ownerId;
-      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.ownerId;
-      allow list: if request.auth != null;
-    }
-
-    // NOTES collection
-    match /notes/{noteId} {
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow list: if request.auth != null;
-    }
-
-    // PROJECTS collection
-    match /projects/{projectId} {
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow list: if request.auth != null;
-    }
-
-    // QUIZ ATTEMPTS collection
-    match /quizAttempts/{attemptId} {
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow list: if request.auth != null;
-    }
-
-    // QUIZ RESULTS collection
-    match /quizResults/{resultId} {
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow list: if request.auth != null;
-    }
-
-    // RECENT FILES collection
-    match /recentFiles/{fileId} {
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow list: if request.auth != null;
-    }
-
-    // ROADMAPS collection
-    match /roadmaps/{roadmapsId} {
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow list: if request.auth != null;
-    }
-
-    // SAT TEST RESULTS collection
-    match /satTestResults/{resultId} {
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow list: if request.auth != null;
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
     // SQUADS collection
@@ -114,24 +12,68 @@ service cloud.firestore {
       // Any authenticated user can create a squad.
       allow create: if request.auth != null;
 
-      // A user can read a squad's details if they are in the 'members' list.
-      allow read: if request.auth != null && request.auth.uid in resource.data.members;
-      
-      // A user can update a squad if they are a member.
-      allow update: if request.auth != null && request.auth.uid in resource.data.members;
+      // Users can read/update a squad if they are in the members list.
+      allow read, update: if request.auth != null && request.auth.uid in resource.data.members;
 
-      // A user can delete a squad ONLY if they are the owner.
+      // Only the owner can delete the squad.
       allow delete: if request.auth != null && request.auth.uid == resource.data.ownerId;
 
-      // Any authenticated user can try to list squads, but the `read` rule will secure the data.
+      // Any authenticated user can query the list of squads.
+      // The 'read' rule above will secure the actual data access.
       allow list: if request.auth != null;
+
+      // MEMBER DETAILS subcollection
+      match /memberDetails/{memberId} {
+        // Any member of the parent squad can read the public details of other members.
+        allow read: if request.auth != null && request.auth.uid in get(/databases/$(database)/documents/squads/$(squadId)).data.members;
+        
+        // A user can add or update their own details. Only owner can remove others.
+        allow write: if request.auth != null && (
+          request.auth.uid == memberId ||
+          request.auth.uid == get(/databases/$(database)/documents/squads/$(squadId)).data.ownerId
+        );
+      }
+      
+      // PROJECTS subcollection
+      match /projects/{projectId} {
+        // Any member of the parent squad can read, create, update and delete projects.
+        allow read, write: if request.auth != null && request.auth.uid in get(/databases/$(database)/documents/squads/$(squadId)).data.members;
+      }
     }
 
-    // TODO collection
-    match /toDo/{toDoId} {
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow list: if request.auth != null;
+    // Other collections... (These are standard user-private rules)
+    match /ai-chat-app/{chatId} {
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+    match /calendarEvents/{eventId} {
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+    match /chatSessions/{sessionId} {
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+    match /courses/{courseId} {
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+    match /notes/{noteId} {
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+    match /projects/{projectId} {
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+    match /quizAttempts/{attemptId} {
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+    match /quizResults/{resultId} {
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+    match /recentFiles/{fileId} {
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+    match /roadmaps/{roadmapId} {
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+    match /satTestResults/{resultId} {
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
     }
   }
 }
