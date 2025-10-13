@@ -61,17 +61,25 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
     });
 
     // Set up remote participants with "Ringing" status
-    setParticipants(callParticipants.filter(p => p.uid !== user.uid).map(p => ({ ...p, status: 'Ringing' })));
+    const remoteParticipants = callParticipants
+        .filter(p => p.uid !== user.uid)
+        .map(p => ({ ...p, status: 'Ringing' as const }));
+
+    setParticipants(remoteParticipants);
     
     setIsInCall(true);
     setIsMinimized(false);
     setIsCameraOff(false); // Automatically turn camera on
     setIsMuted(false);
 
-    // Simulate participants joining the call
-    setTimeout(() => {
-        setParticipants(prev => prev.map(p => ({ ...p, status: 'In Call' })));
-    }, 3000); // After 3 seconds
+    // Simulate participants joining the call one by one
+    remoteParticipants.forEach((p, index) => {
+        setTimeout(() => {
+            setParticipants(prev => prev.map(participant => 
+                participant.uid === p.uid ? { ...participant, status: 'In Call' } : participant
+            ));
+        }, (index + 1) * 1500 + 1000); // Stagger joining times
+    });
 
   }, [user]);
 

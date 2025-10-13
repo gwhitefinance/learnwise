@@ -363,26 +363,10 @@ export default function SquadManagementPage() {
                             <CardTitle className="flex items-center gap-2"><Phone />Squad Call</CardTitle>
                             <CardDescription>Start a video call with your squad members.</CardDescription>
                         </CardHeader>
-                        <CardContent className="space-y-3">
-                            {members.map(member => (
-                                <div key={member.uid} className="flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <Avatar className="h-10 w-10">
-                                            <AvatarImage src={member.photoURL} />
-                                            <AvatarFallback>{member.displayName?.[0]}</AvatarFallback>
-                                        </Avatar>
-                                        <div>
-                                            <p className="font-semibold">{member.displayName}</p>
-                                            <p className="text-xs text-green-500">Online</p>
-                                        </div>
-                                    </div>
-                                    {member.uid !== user?.uid && (
-                                        <Button variant="ghost" size="icon" onClick={() => startCall(members)} disabled={isInCall}>
-                                            <Phone className="h-5 w-5 text-primary" />
-                                        </Button>
-                                    )}
-                                </div>
-                            ))}
+                        <CardContent>
+                           <Button onClick={() => startCall(members)} disabled={isInCall} className="w-full">
+                                {isInCall ? "You are already in a call" : "Start Squad Call"}
+                           </Button>
                         </CardContent>
                     </Card>
                     <Card>
