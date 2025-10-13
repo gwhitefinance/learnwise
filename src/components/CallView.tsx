@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useContext } from 'react';
+import React, { useContext, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Phone, Mic, MicOff, Video, VideoOff, Minimize2, Maximize2, PhoneOff, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,11 +10,14 @@ import { CallContext, CallParticipant } from '@/context/CallContext';
 import { cn } from '@/lib/utils';
 import Draggable from 'react-draggable';
 
-const ParticipantVideo = ({ participant, isLocalUser }: { participant: CallParticipant, isLocalUser: boolean }) => (
+const ParticipantVideo = ({ participant, isLocalUser, videoRef }: { participant: CallParticipant, isLocalUser: boolean, videoRef?: React.RefObject<HTMLVideoElement> }) => (
     <div className="relative aspect-video bg-muted rounded-lg overflow-hidden flex items-center justify-center border">
         {isLocalUser ? (
              <div className="w-full h-full bg-black flex items-center justify-center">
-                <User className="h-20 w-20 text-muted-foreground" />
+                <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
+                <div className="absolute inset-0 flex items-center justify-center">
+                    <User className="h-20 w-20 text-muted-foreground" />
+                </div>
              </div>
         ) : (
              <Avatar className="h-20 w-20">
@@ -49,6 +52,28 @@ export default function CallView() {
     } = useContext(CallContext);
     
     const nodeRef = React.useRef(null);
+    const videoRef = useRef<HTMLVideoElement>(null);
+
+     useEffect(() => {
+        if (isInCall && !isCameraOff) {
+            const getCameraStream = async () => {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                    if (videoRef.current) {
+                        videoRef.current.srcObject = stream;
+                    }
+                } catch (err) {
+                    console.error("Error accessing camera:", err);
+                    // Optionally, you can add a toast notification here to inform the user
+                    toggleCamera(); // Turn camera off if permission is denied
+                }
+            };
+            getCameraStream();
+        } else if (videoRef.current && videoRef.current.srcObject) {
+            (videoRef.current.srcObject as MediaStream).getTracks().forEach(track => track.stop());
+            videoRef.current.srcObject = null;
+        }
+    }, [isInCall, isCameraOff, toggleCamera]);
 
     return (
         <AnimatePresence>
@@ -79,7 +104,7 @@ export default function CallView() {
                                 "flex-1 grid gap-4",
                                 isMinimized ? "grid-cols-2" : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
                             )}>
-                                {localParticipant && <ParticipantVideo participant={localParticipant} isLocalUser={true} />}
+                                {localParticipant && <ParticipantVideo participant={localParticipant} isLocalUser={true} videoRef={videoRef} />}
                                 {participants.map(p => (
                                     <ParticipantVideo key={p.uid} participant={p} isLocalUser={false} />
                                 ))}

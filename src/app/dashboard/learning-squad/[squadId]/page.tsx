@@ -187,7 +187,6 @@ export default function SquadManagementPage() {
                 name: newProjectName,
                 description: newProjectDescription,
                 createdBy: user.uid,
-                squadId: squad.id,
                 createdAt: serverTimestamp(),
             });
             toast({ title: 'Project Added!' });

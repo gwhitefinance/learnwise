@@ -60,7 +60,7 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
         status: 'In Call',
     });
 
-    // Set up remote participants with "Ringing" status
+    // Set up remote participants with "Ringing" status, excluding the local user
     const remoteParticipants = callParticipants
         .filter(p => p.uid !== user.uid)
         .map(p => ({ ...p, status: 'Ringing' as const }));
