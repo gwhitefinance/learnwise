@@ -38,7 +38,6 @@ import { collection, addDoc, query, where, getDocs, deleteDoc, doc, updateDoc, o
 import { useRouter, useSearchParams } from "next/navigation";
 import { format, eachDayOfInterval, startOfWeek, endOfWeek, startOfMonth, endOfMonth, getDay, isToday, isEqual, addMonths, subMonths, eachWeekOfInterval, addDays, getWeek } from 'date-fns';
 import AIBuddy from "@/components/ai-buddy";
-import { google } from 'googleapis';
 
 
 type Event = {
@@ -455,22 +454,7 @@ export default function CalendarClientPage() {
     };
 
     const handleConnectGCal = () => {
-        const oauth2Client = new google.auth.OAuth2(
-            process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
-            undefined, // Client secret is not used on the client-side
-            process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI
-        );
-
-        const scopes = [
-            'https://www.googleapis.com/auth/calendar.events.readonly'
-        ];
-
-        const url = oauth2Client.generateAuthUrl({
-            access_type: 'offline',
-            scope: scopes,
-        });
-
-        window.location.href = url;
+        router.push('/api/auth/google/connect');
     };
     
     const colorOptions = [
