@@ -41,6 +41,7 @@ interface ChatSession {
     timestamp: number;
     courseId?: string;
     courseContext?: string;
+    titleGenerated?: boolean;
     userId?: string;
     isPublic?: boolean;
 }
@@ -52,6 +53,7 @@ interface FirestoreChatSession {
     timestamp: Timestamp;
     courseId?: string;
     courseContext?: string;
+    titleGenerated?: boolean;
     userId?: string;
     isPublic?: boolean;
 }
@@ -541,8 +543,6 @@ export default function FloatingChat() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('home');
-  const [isCreatingSession, setIsCreatingSession] = useState(false);
-
   
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -602,7 +602,7 @@ export default function FloatingChat() {
 
         if (!activeSessionId && userSessions.length > 0) {
             setActiveSessionId(userSessions[0].id);
-        } else if (userSessions.length === 0 && activeTab === 'conversation' && !isCreatingSession) {
+        } else if (userSessions.length === 0 && activeTab !== 'home') {
             createNewSession();
         }
     });
@@ -618,7 +618,7 @@ export default function FloatingChat() {
         unsubscribeCourses();
     }
 
-  }, [isOpen, user, activeSessionId, activeTab, isCreatingSession]);
+  }, [isOpen, user, activeSessionId]);
 
 
    useEffect(() => {
@@ -627,14 +627,14 @@ export default function FloatingChat() {
     }
   }, [activeSession?.messages, isOpen]);
 
-  const createNewSession = async (): Promise<string> => {
-    if (!user || isCreatingSession) return '';
-    setIsCreatingSession(true);
+  const createNewSession = async (prompt?: string): Promise<string> => {
+    if (!user) return '';
     
     const newSessionData = {
-        title: "New Chat",
+        title: prompt ? "New Chat" : "New Chat",
         messages: [{ role: 'ai', content: `Hey ${user.displayName?.split(' ')[0] || 'there'}! How can I help?` }],
         timestamp: Timestamp.now(),
+        titleGenerated: !!prompt,
         userId: user.uid,
         isPublic: false,
     };
@@ -647,8 +647,6 @@ export default function FloatingChat() {
     } catch(e) {
         toast({ variant: 'destructive', title: 'Error', description: 'Could not start a new chat.'})
         return '';
-    } finally {
-        setIsCreatingSession(false);
     }
   }
 
@@ -658,16 +656,16 @@ export default function FloatingChat() {
     
     let currentSessionId = activeSessionId;
     let currentMessages: Message[] = [];
-    let isNewSession = false;
 
+    // If there is no active session, create one first.
     if (!activeSession) {
-        isNewSession = true;
-        const newId = await createNewSession();
-        if (!newId) return; 
+        const newId = await createNewSession(messageContent);
+        if (!newId) return; // Stop if session creation failed
         currentSessionId = newId;
-        currentMessages = [{ role: 'ai', content: `Hey ${user.displayName?.split(' ')[0] || 'there'}! How can I help?` }];
+        // The messages array will be the default one from createNewSession
+        const newSession = sessions.find(s => s.id === newId);
+        currentMessages = newSession ? newSession.messages : [{ role: 'ai', content: `Hey ${user.displayName?.split(' ')[0] || 'there'}! How can I help?` }];
     } else {
-        isNewSession = activeSession.messages.length <= 1;
         currentMessages = activeSession.messages;
     }
     
@@ -710,9 +708,9 @@ export default function FloatingChat() {
       const sessionRef = doc(db, "chatSessions", currentSessionId);
       await updateDoc(sessionRef, { messages: finalMessages, timestamp: Timestamp.now() });
 
-       if (isNewSession) {
+       if (!activeSession?.titleGenerated && updatedMessages.length <= 2) {
           const { title } = await generateChatTitle({ messages: finalMessages });
-          await updateDoc(sessionRef, { title });
+          await updateDoc(sessionRef, { title, titleGenerated: true });
       }
 
     } catch (error) {
@@ -725,8 +723,9 @@ export default function FloatingChat() {
 
   const handleStartChatWithPrompt = async (prompt: string) => {
     setActiveTab('conversation');
-    const newSessionId = await createNewSession();
+    const newSessionId = await createNewSession(prompt);
     if (newSessionId) {
+        // Use a short delay to ensure state updates before sending message
         setTimeout(() => handleSendMessage(prompt), 100);
     }
   };
