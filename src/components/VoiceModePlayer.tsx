@@ -58,7 +58,10 @@ export default function VoiceModePlayer({ initialContent, onClose }: VoiceModePl
         }
 
         const utterance = new SpeechSynthesisUtterance(initialContent);
+        
         utterance.voice = selectedVoice;
+        utteranceRef.current = utterance;
+
         utterance.onstart = () => {
             setIsPlaying(true);
             setIsPaused(false);
@@ -81,29 +84,32 @@ export default function VoiceModePlayer({ initialContent, onClose }: VoiceModePl
             toast({ variant: 'destructive', title: 'Audio Error' });
         }
 
-        utteranceRef.current = utterance;
         speechSynthesis.speak(utterance);
 
     }, [initialContent, selectedVoice, toast]);
     
     useEffect(() => {
-        handlePlay(); // Auto-play when component mounts with content
+        // Only start playing once a voice has been selected.
+        if (selectedVoice) {
+            handlePlay();
+        }
         
         return () => {
-            if (speechSynthesis.speaking) {
+            if (typeof window !== 'undefined' && 'speechSynthesis' in window && speechSynthesis.speaking) {
                 speechSynthesis.cancel();
             }
         }
-    }, [handlePlay]);
+    }, [selectedVoice, handlePlay]);
+
 
     const handlePause = () => {
-        if (speechSynthesis.speaking && !speechSynthesis.paused) {
+        if (typeof window !== 'undefined' && 'speechSynthesis' in window && speechSynthesis.speaking) {
             speechSynthesis.pause();
         }
     };
     
     const handleResume = () => {
-         if (speechSynthesis.paused) {
+         if (typeof window !== 'undefined' && 'speechSynthesis' in window && speechSynthesis.paused) {
             speechSynthesis.resume();
         }
     }
