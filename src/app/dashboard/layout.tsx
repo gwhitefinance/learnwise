@@ -452,7 +452,7 @@ function DashboardLayoutContent({
       return { ...item, children: filteredChildren };
     }
     if (item.title.toLowerCase().includes(searchQuery.toLowerCase())) {
-        return item; // Keep the parent if it matches
+        return { ...item, children: [] };
     }
     return null;
   }).filter((item): item is SidebarItem => item !== null);
