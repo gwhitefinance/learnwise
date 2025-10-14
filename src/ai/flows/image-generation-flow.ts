@@ -4,7 +4,7 @@
  * @fileOverview A flow for generating images from text prompts.
  */
 import { ai } from '@/ai/genkit';
-import { googleAI } from '@genkit-ai/googleai';
+import { googleAI } from '@genkit-ai/google-genai';
 import { GenerateImageInput, GenerateImageInputSchema, GenerateImageOutput, GenerateImageOutputSchema } from '@/ai/schemas/image-generation-schema';
 
 const generateImageFlow = ai.defineFlow(

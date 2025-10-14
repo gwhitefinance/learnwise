@@ -1,5 +1,4 @@
 
-
 'use server';
 /**
  * @fileOverview A simple AI flow for creating study plans.
@@ -7,7 +6,7 @@
  * - studyPlannerFlow - A function that takes a user prompt and returns a study plan.
  */
 import { ai } from '@/ai/genkit';
-import { googleAI } from '@genkit-ai/googleai';
+import { googleAI } from '@genkit-ai/google-genai';
 import { getCoursesTool } from '@/ai/tools/course-tool';
 import { z } from 'zod';
 
@@ -37,7 +36,6 @@ const StudyPlannerInputSchema = z.object({
 const prompt = ai.definePrompt({
     name: 'studyPlannerPrompt',
     model: googleAI.model('gemini-2.5-flash'),
-    input: { schema: StudyPlannerInputSchema },
     tools: [getCoursesTool],
     prompt: `You are a friendly and conversational AI study partner named Tutorin. Your goal is to help users learn and plan their studies. 
     

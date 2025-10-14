@@ -6,7 +6,7 @@
  * - generateMidtermExam - A function that generates a 35-question quiz based on the first half of a course.
  */
 import { ai } from '@/ai/genkit';
-import { googleAI } from '@genkit-ai/googleai';
+import { googleAI } from '@genkit-ai/google-genai';
 import { GenerateMidtermExamInput, GenerateMidtermExamInputSchema } from '@/ai/schemas/midterm-exam-schema';
 import { GenerateQuizOutput, GenerateQuizOutputSchema } from '@/ai/schemas/quiz-schema';
 

@@ -6,7 +6,7 @@
  * - generateRoadmap - A function that generates goals and milestones for a course.
  */
 import { ai } from '@/ai/genkit';
-import { googleAI } from '@genkit-ai/googleai';
+import { googleAI } from '@genkit-ai/google-genai';
 import { GenerateRoadmapInputSchema, GenerateRoadmapOutputSchema, GenerateRoadmapInput, GenerateRoadmapOutput } from '@/ai/schemas/roadmap-schema';
 import { scrapeWebpageTool } from '@/ai/tools/web-scraper-tool';
 

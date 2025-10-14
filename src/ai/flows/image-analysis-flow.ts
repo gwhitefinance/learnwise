@@ -4,7 +4,7 @@
  * @fileOverview A flow for analyzing and summarizing content from an image.
  */
 import { ai } from '@/ai/genkit';
-import { googleAI } from '@genkit-ai/googleai';
+import { googleAI } from '@genkit-ai/google-genai';
 import { AnalyzeImageInput, AnalyzeImageInputSchema, AnalyzeImageOutput, AnalyzeImageOutputSchema } from '@/ai/schemas/image-analysis-schema';
 
 const analysisPrompt = ai.definePrompt({

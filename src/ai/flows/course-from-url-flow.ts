@@ -6,7 +6,7 @@
  * - generateCourseFromUrl - A function that scrapes a URL and generates a course with modules and chapters.
  */
 import { ai } from '@/ai/genkit';
-import { googleAI } from '@genkit-ai/googleai';
+import { googleAI } from '@genkit-ai/google-genai';
 import { scrapeWebpageTool } from '@/ai/tools/web-scraper-tool';
 import { GenerateCourseFromUrlInput, GenerateCourseFromUrlInputSchema, GenerateCourseFromUrlOutput, GenerateCourseFromUrlOutputSchema } from '@/ai/schemas/course-from-url-schema';
 

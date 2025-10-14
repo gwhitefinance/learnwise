@@ -2,7 +2,7 @@
 'use server';
 
 import { ai } from '@/ai/genkit';
-import { googleAI } from '@genkit-ai/googleai';
+import { googleAI } from '@genkit-ai/google-genai';
 import { GeneratePodcastEpisodeInput, GeneratePodcastEpisodeInputSchema, GeneratePodcastEpisodeOutput, GeneratePodcastEpisodeOutputSchema } from '@/ai/schemas/podcast-schema';
 
 const podcastPrompt = ai.definePrompt({

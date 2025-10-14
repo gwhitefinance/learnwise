@@ -4,7 +4,7 @@
  * @fileOverview A flow for providing an AI-powered tutoring session based on an image.
  */
 import { ai } from '@/ai/genkit';
-import { googleAI } from '@genkit-ai/googleai';
+import { googleAI } from '@genkit-ai/google-genai';
 import { TutoringSessionInputSchema, TutoringSessionOutputSchema, TutoringSessionInput, TutoringSessionOutput } from '@/ai/schemas/image-tutoring-schema';
 import { generateFlashcardsFromNote } from './note-to-flashcard-flow';
 import { generateQuizFromNote } from './note-to-quiz-flow';

@@ -6,7 +6,7 @@
  * - generateQuizFromNote - A function that generates a quiz based on note content and learner type.
  */
 import { ai } from '@/ai/genkit';
-import { googleAI } from '@genkit-ai/googleai';
+import { googleAI } from '@genkit-ai/google-genai';
 import { GenerateNoteQuizInputSchema, GenerateNoteQuizInput } from '@/ai/schemas/note-to-quiz-schema';
 import { GenerateQuizOutput, GenerateQuizOutputSchema } from '@/ai/schemas/quiz-schema';
 

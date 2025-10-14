@@ -6,7 +6,7 @@
  * - generateQuizFromModule - A function that generates a quiz based on module content.
  */
 import { ai } from '@/ai/genkit';
-import { googleAI } from '@genkit-ai/googleai';
+import { googleAI } from '@genkit-ai/google-genai';
 import { GenerateModuleQuizInputSchema, GenerateModuleQuizInput } from '@/ai/schemas/module-quiz-schema';
 import { GenerateQuizOutput, GenerateQuizOutputSchema } from '@/ai/schemas/quiz-schema';
 

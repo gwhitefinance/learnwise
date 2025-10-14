@@ -4,7 +4,7 @@
  * @fileOverview A flow for generating a daily SAT practice question.
  */
 import { ai } from '@/ai/genkit';
-import { googleAI } from '@genkit-ai/googleai';
+import { googleAI } from '@genkit-ai/google-genai';
 import { z } from 'zod';
 import { SatQuestionSchema, GenerateSatQuestionInputSchema, GenerateSatQuestionInput } from '@/ai/schemas/sat-question-schema';
 

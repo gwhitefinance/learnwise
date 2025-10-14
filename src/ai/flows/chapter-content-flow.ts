@@ -4,7 +4,7 @@
  * @fileOverview A flow for generating detailed content for a single course chapter, including prompts for multimedia.
  */
 import { ai } from '@/ai/genkit';
-import { googleAI } from '@genkit-ai/googleai';
+import { googleAI } from '@genkit-ai/google-genai';
 import { GenerateChapterContentInput, GenerateChapterContentInputSchema, GenerateChapterContentOutput, GenerateChapterContentOutputSchema } from '@/ai/schemas/chapter-content-schema';
 
 const prompt = ai.definePrompt({

@@ -4,7 +4,7 @@
  * @fileOverview A flow for generating summaries of notes.
  */
 import { ai } from '@/ai/genkit';
-import { googleAI } from '@genkit-ai/googleai';
+import { googleAI } from '@genkit-ai/google-genai';
 import { z } from 'zod';
 import { GenerateSummaryInputSchema, GenerateSummaryOutputSchema, GenerateSummaryInput, GenerateSummaryOutput } from '@/ai/schemas/note-summary-schema';
 

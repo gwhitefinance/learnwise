@@ -6,7 +6,7 @@
  * - generateFlashcardsFromModule - A function that generates flashcards based on module content.
  */
 import { ai } from '@/ai/genkit';
-import { googleAI } from '@genkit-ai/googleai';
+import { googleAI } from '@genkit-ai/google-genai';
 import { GenerateFlashcardsOutputSchema, GenerateFlashcardsOutput } from '@/ai/schemas/note-to-flashcard-schema';
 import { GenerateModuleFlashcardsInputSchema, GenerateModuleFlashcardsInput } from '@/ai/schemas/module-flashcard-schema';
 

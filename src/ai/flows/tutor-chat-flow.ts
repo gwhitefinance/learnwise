@@ -6,7 +6,7 @@
  * - generateTutorResponse - A function that generates an answer based on chapter content and a user's question.
  */
 import { ai } from '@/ai/genkit';
-import { googleAI } from '@genkit-ai/googleai';
+import { googleAI } from '@genkit-ai/google-genai';
 import { TutorChatInputSchema, TutorChatOutputSchema, TutorChatInput, TutorChatOutput } from '@/ai/schemas/tutor-chat-schema';
 
 const prompt = ai.definePrompt({
