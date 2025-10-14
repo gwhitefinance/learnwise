@@ -1,12 +1,12 @@
 
 'use client';
 
-import { useState, useEffect, useContext, Suspense } from 'react';
+import { useState, useEffect, useContext, Suspense, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Play, Pause, ChevronLeft, ChevronRight, Wand2, FlaskConical, Lightbulb, Copy, RefreshCw, Check, Star, CheckCircle, Send, Bot, User, GitMerge, PanelLeft, Minimize, Maximize, Loader2, Plus, Trash2, MoreVertical, XCircle, ArrowRight, RotateCcw, Video, Image as ImageIcon, BookCopy, Link as LinkIcon } from 'lucide-react';
+import { Play, Pause, ChevronLeft, ChevronRight, Wand2, FlaskConical, Lightbulb, Copy, RefreshCw, Check, Star, CheckCircle, Send, Bot, User, GitMerge, PanelLeft, Minimize, Maximize, Loader2, Plus, Trash2, MoreVertical, XCircle, ArrowRight, RotateCcw, Video, Image as ImageIcon, BookCopy, Link as LinkIcon, Headphones } from 'lucide-react';
 import Link from 'next/link';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
@@ -31,6 +31,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import Image from 'next/image';
 import { Textarea } from '@/components/ui/textarea';
+import VoiceModePlayer from '@/components/VoiceModePlayer';
 
 type Course = {
     id: string;
@@ -124,6 +125,7 @@ function CoursesComponent() {
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState('');
   const [isTutorLoading, setIsTutorLoading] = useState(false);
+  const chatInputRef = useRef<HTMLInputElement>(null);
   
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isFocusMode, setIsFocusMode] = useState(false);
@@ -144,6 +146,9 @@ function CoursesComponent() {
   const [newUnitTitle, setNewUnitTitle] = useState('');
   const [isAddUnitFromUrlOpen, setIsAddUnitFromUrlOpen] = useState(false);
   const [newUnitsUrl, setNewUnitsUrl] = useState('');
+
+  // Voice mode state
+  const [isVoiceModeOpen, setIsVoiceModeOpen] = useState(false);
 
   useEffect(() => {
     if (authLoading || !user) return;
@@ -644,6 +649,14 @@ function CoursesComponent() {
         document.exitFullscreen();
     }
   };
+
+    const handleRaiseHand = () => {
+        setIsVoiceModeOpen(false); // Close the voice player
+        setTimeout(() => {
+            chatInputRef.current?.focus();
+        }, 100);
+    };
+
   
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -1068,6 +1081,13 @@ function CoursesComponent() {
 
   return (
     <>
+      {isVoiceModeOpen && (
+        <VoiceModePlayer
+            textToPlay={currentChapter?.content || 'No content available to read.'}
+            onClose={() => setIsVoiceModeOpen(false)}
+            onRaiseHand={handleRaiseHand}
+        />
+      )}
       <Dialog open={isCourseReadyDialogOpen} onOpenChange={setIsCourseReadyDialogOpen}>
         <DialogContent>
             <DialogHeader>
@@ -1177,6 +1197,9 @@ function CoursesComponent() {
                     <PanelLeft className="h-5 w-5" />
                 </Button>
                 <div className="flex items-center gap-2">
+                    <Button variant="outline" onClick={() => setIsVoiceModeOpen(true)} disabled={!currentChapter?.content}>
+                        <Headphones className="mr-2 h-4 w-4"/> Listen
+                    </Button>
                     <Button variant="outline" onClick={toggleFocusMode}>
                         {isFocusMode ? <Minimize className="mr-2 h-4 w-4"/> : <Maximize className="mr-2 h-4 w-4"/>}
                         {isFocusMode ? "Exit Focus Mode" : "Focus Mode"}
@@ -1282,6 +1305,7 @@ function CoursesComponent() {
                             </div>
                             <div className="mt-4 flex gap-2">
                                 <Input 
+                                    ref={chatInputRef}
                                     placeholder="Ask a question about this chapter..."
                                     value={chatInput}
                                     onChange={(e) => setChatInput(e.target.value)}
@@ -1352,4 +1376,3 @@ export default function CoursesClientPage() {
         </Suspense>
     )
 }
-
