@@ -121,8 +121,14 @@ export default function VoiceModePlayer({ initialContent, onClose }: VoiceModePl
             setChatHistory(newHistory);
 
             try {
+                // Prepend the initial chapter content as system context for the AI
+                const historyWithContext = [
+                    { role: 'ai', content: `CONTEXT: ${initialContent}` },
+                    ...newHistory
+                ] as Message[];
+
                 const aiResponse = await studyPlannerFlow({
-                    history: newHistory,
+                    history: historyWithContext,
                     userName: user?.displayName || undefined,
                 });
                 const aiMessage: Message = { role: 'ai', content: aiResponse };
@@ -140,7 +146,7 @@ export default function VoiceModePlayer({ initialContent, onClose }: VoiceModePl
 
         recognitionRef.current = recognition;
         recognition.start();
-    }, [isListening, chatHistory, user, speak, toast]);
+    }, [isListening, chatHistory, user, speak, toast, initialContent]);
 
 
     const handlePlayPause = () => {
@@ -150,10 +156,7 @@ export default function VoiceModePlayer({ initialContent, onClose }: VoiceModePl
             speechSynthesis.pause();
         } else if (isPaused) {
             speechSynthesis.resume();
-        } else if (utteranceRef.current) {
-            speechSynthesis.speak(utteranceRef.current);
         } else {
-            // Replay the last AI message if nothing is playing
             const lastAiMessage = [...chatHistory].reverse().find(m => m.role === 'ai');
             if (lastAiMessage) {
                 speak(lastAiMessage.content);
@@ -163,7 +166,9 @@ export default function VoiceModePlayer({ initialContent, onClose }: VoiceModePl
     
     const handleRaiseHand = () => {
         if (typeof window !== 'undefined' && 'speechSynthesis' in window && speechSynthesis.speaking) {
-            speechSynthesis.pause();
+            speechSynthesis.cancel(); // Stop speaking immediately
+            setIsPlaying(false);
+            setIsPaused(false);
         }
         activateVoiceInput();
     };
