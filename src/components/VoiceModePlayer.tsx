@@ -30,11 +30,11 @@ export default function VoiceModePlayer({ initialContent, onClose }: VoiceModePl
     const [isPaused, setIsPaused] = useState(false);
     const [isListening, setIsListening] = useState(false);
     const [isThinking, setIsThinking] = useState(false);
-    const [chatHistory, setChatHistory] = useState<Message[]>([{ role: 'ai', content: initialContent }]);
     
     const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
     const [selectedVoice, setSelectedVoice] = useState<SpeechSynthesisVoice | null>(null);
     const [showSettings, setShowSettings] = useState(false);
+    const [currentSpokenText, setCurrentSpokenText] = useState(initialContent);
     
     const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
     const recognitionRef = useRef<any>(null);
@@ -71,6 +71,7 @@ export default function VoiceModePlayer({ initialContent, onClose }: VoiceModePl
         if (speechSynthesis.speaking) {
             speechSynthesis.cancel();
         }
+        setCurrentSpokenText(text);
 
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.voice = selectedVoice;
@@ -99,7 +100,6 @@ export default function VoiceModePlayer({ initialContent, onClose }: VoiceModePl
     }, [toast, selectedVoice]);
     
     useEffect(() => {
-        // Speak initial content only once when component mounts and voice is ready
         if (initialContent && selectedVoice) {
             speak(initialContent);
         }
@@ -110,7 +110,7 @@ export default function VoiceModePlayer({ initialContent, onClose }: VoiceModePl
             }
         };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedVoice]); // Run only when selectedVoice is ready
+    }, [initialContent, selectedVoice]);
 
     const activateVoiceInput = useCallback(() => {
         // @ts-ignore
@@ -143,28 +143,17 @@ export default function VoiceModePlayer({ initialContent, onClose }: VoiceModePl
             setIsListening(false);
             setIsThinking(true);
             
-            const userMessage: Message = { role: 'user', content: transcript };
-            const newHistory = [...chatHistory, userMessage];
-            setChatHistory(newHistory);
-
+            const conversationHistory: Message[] = [{role: 'ai', content: initialContent}, {role: 'user', content: transcript}];
+            
             try {
-                // Prepend the initial chapter content as system context for the AI
-                const historyWithContext = [
-                    { role: 'ai', content: `CONTEXT: ${initialContent}` },
-                    ...newHistory
-                ] as Message[];
-
                 const aiResponse = await studyPlannerFlow({
-                    history: historyWithContext,
+                    history: conversationHistory,
                     userName: user?.displayName || undefined,
                 });
-                const aiMessage: Message = { role: 'ai', content: aiResponse };
-                setChatHistory(prev => [...prev, aiMessage]);
                 speak(aiResponse);
             } catch (error) {
                 console.error("AI response error:", error);
                 const errorMessage = "Sorry, I ran into a problem. Please try again.";
-                setChatHistory(prev => [...prev, { role: 'ai', content: errorMessage }]);
                 speak(errorMessage);
             } finally {
                 setIsThinking(false);
@@ -173,7 +162,7 @@ export default function VoiceModePlayer({ initialContent, onClose }: VoiceModePl
 
         recognitionRef.current = recognition;
         recognition.start();
-    }, [isListening, chatHistory, user, speak, toast, initialContent]);
+    }, [isListening, user, speak, toast, initialContent]);
 
 
     const handlePlayPause = () => {
@@ -184,10 +173,7 @@ export default function VoiceModePlayer({ initialContent, onClose }: VoiceModePl
         } else if (isPaused) {
             speechSynthesis.resume();
         } else {
-            const lastAiMessage = [...chatHistory].reverse().find(m => m.role === 'ai');
-            if (lastAiMessage) {
-                speak(lastAiMessage.content);
-            }
+            speak(currentSpokenText);
         }
     };
     
@@ -270,7 +256,7 @@ export default function VoiceModePlayer({ initialContent, onClose }: VoiceModePl
                                 <Button size="icon" className="rounded-full h-16 w-16" onClick={handlePlayPause}>
                                     {isPlaying ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6" />}
                                 </Button>
-                                <Button variant="outline" size="lg" className="rounded-full flex-1" onClick={handleRaiseHand}>
+                                <Button variant="outline" size="lg" className={cn("rounded-full flex-1", isListening && "bg-destructive/20 border-destructive text-destructive")} onClick={handleRaiseHand}>
                                     {isListening ? <MicOff className="mr-2 h-4 w-4" /> : <Hand className="mr-2 h-4 w-4" />}
                                     {isListening ? "Stop" : "Talk"}
                                 </Button>
