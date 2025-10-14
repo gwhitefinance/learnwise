@@ -5,12 +5,12 @@ import { useEffect, useRef, useState, useCallback, useContext } from 'react';
 import { motion } from 'framer-motion';
 import Draggable from 'react-draggable';
 import { Button } from './ui/button';
-import { Hand, Pause, Play, X } from 'lucide-react';
+import { Hand, Pause, Play, X, Mic, MicOff, Video, VideoOff } from 'lucide-react';
 import AnimatedOrb from './AnimatedOrb';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { FloatingChatContext } from '@/components/floating-chat';
-
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
 interface VoiceModePlayerProps {
     initialContent: string;
@@ -20,6 +20,8 @@ interface VoiceModePlayerProps {
 export default function VoiceModePlayer({ initialContent, onClose }: VoiceModePlayerProps) {
     const [isPlaying, setIsPlaying] = useState(false);
     const [isPaused, setIsPaused] = useState(false);
+    const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+    const [selectedVoice, setSelectedVoice] = useState<SpeechSynthesisVoice | null>(null);
     
     const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
     const nodeRef = useRef(null);
@@ -27,6 +29,26 @@ export default function VoiceModePlayer({ initialContent, onClose }: VoiceModePl
     const { toast } = useToast();
     const floatingChatContext = useContext(FloatingChatContext);
     
+    const populateVoiceList = useCallback(() => {
+        if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+            const availableVoices = window.speechSynthesis.getVoices();
+            if (availableVoices.length > 0) {
+                setVoices(availableVoices);
+                if (!selectedVoice) {
+                    const defaultVoice = availableVoices.find(voice => voice.name === 'Google US English') || availableVoices.find(voice => voice.lang.startsWith('en-US')) || availableVoices[0];
+                    setSelectedVoice(defaultVoice);
+                }
+            }
+        }
+    }, [selectedVoice]);
+
+    useEffect(() => {
+        populateVoiceList();
+        if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+            window.speechSynthesis.onvoiceschanged = populateVoiceList;
+        }
+    }, [populateVoiceList]);
+
     const stopPlayback = useCallback(() => {
       if (typeof window !== 'undefined' && window.speechSynthesis) {
         window.speechSynthesis.cancel();
@@ -36,8 +58,8 @@ export default function VoiceModePlayer({ initialContent, onClose }: VoiceModePl
     }, []);
 
     const handlePlay = useCallback(() => {
-      if (typeof window === 'undefined' || !window.speechSynthesis) {
-          toast({ variant: 'destructive', title: 'TTS not supported in this browser.' });
+      if (typeof window === 'undefined' || !window.speechSynthesis || !selectedVoice) {
+          toast({ variant: 'destructive', title: 'TTS not supported or no voice selected.' });
           return;
       }
       
@@ -45,6 +67,7 @@ export default function VoiceModePlayer({ initialContent, onClose }: VoiceModePl
 
       const utterance = new SpeechSynthesisUtterance(initialContent);
       utteranceRef.current = utterance;
+      utterance.voice = selectedVoice;
 
       utterance.onstart = () => {
           setIsPlaying(true);
@@ -68,16 +91,17 @@ export default function VoiceModePlayer({ initialContent, onClose }: VoiceModePl
       };
 
       window.speechSynthesis.speak(utterance);
-    }, [initialContent, toast, stopPlayback]);
+    }, [initialContent, toast, stopPlayback, selectedVoice]);
     
-    // Start reading the initial content when the component mounts
     useEffect(() => {
-        handlePlay();
+        if (selectedVoice) {
+            handlePlay();
+        }
         
         return () => {
             stopPlayback();
         };
-    }, [handlePlay, stopPlayback]);
+    }, [handlePlay, selectedVoice, stopPlayback]);
 
     const handlePauseResume = () => {
         if (typeof window === 'undefined' || !window.speechSynthesis) return;
@@ -126,6 +150,27 @@ export default function VoiceModePlayer({ initialContent, onClose }: VoiceModePl
                         Now reading the current chapter. Raise your hand to interrupt and ask a question.
                     </p>
                     
+                    <div className="mt-4 w-full">
+                         <Select 
+                            value={selectedVoice?.name}
+                            onValueChange={(name) => {
+                                const voice = voices.find(v => v.name === name);
+                                if (voice) setSelectedVoice(voice);
+                            }}
+                         >
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select a voice..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {voices.map(voice => (
+                                    <SelectItem key={voice.name} value={voice.name}>
+                                        {voice.name} ({voice.lang})
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+
                     <div className="flex items-center justify-center gap-4 mt-6 w-full">
                         <Button 
                             size="lg" 
