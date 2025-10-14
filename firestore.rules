@@ -1,70 +1,77 @@
 
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Helper functions
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    function isOwner(userId) {
-      return request.auth.uid == userId;
-    }
-    
-    // Public User Profiles
     match /users/{userId} {
-      allow read;
-      allow write: if isOwner(userId);
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
-    
-    // Courses
+
     match /courses/{courseId} {
-      // Anyone can read a course, but only the owner can create, update, or delete it.
-      allow read;
-      allow create: if isSignedIn() && isOwner(request.resource.data.userId);
-      allow update, delete: if isSignedIn() && isOwner(resource.data.userId);
-
-      // Subcollections for a course can follow the same ownership rules
-      match /{allChildren=**} {
-        allow read, write: if isSignedIn() && isOwner(get(/databases/$(database)/documents/courses/$(courseId)).data.userId);
-      }
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
 
-    // Roadmaps
     match /roadmaps/{roadmapId} {
-        allow read, create, update, delete: if isSignedIn() && isOwner(request.resource.data.userId);
+      allow read, write: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
     }
 
-    // Notes, Calendar Events, Projects, etc.
-    match /{collection}/{docId} {
-      // Generic rule: Allow full access if the document has a userId field matching the user.
-      allow read, write: if isSignedIn() && isOwner(resource.data.userId);
+    match /notes/{noteId} {
+      allow read, write: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
     }
     
-    // Chat sessions can be read if public, otherwise only by the owner
+    match /projects/{projectId} {
+      allow read, write: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+    }
+
+    match /recentFiles/{fileId} {
+      allow read, write: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+    }
+
+    match /calendarEvents/{eventId} {
+      allow read, write: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+    }
+    
     match /chatSessions/{sessionId} {
-      allow read: if resource.data.isPublic == true || (isSignedIn() && isOwner(resource.data.userId));
-      allow write: if isSignedIn() && isOwner(resource.data.userId);
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+    }
+
+    match /quizResults/{resultId} {
+      allow read, write: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
     }
     
-    // Squads
-    match /squads/{squadId} {
-      allow read: if isSignedIn() && resource.data.members.hasAny([request.auth.uid]);
-      allow create: if isSignedIn();
-      allow update: if isSignedIn() && (isOwner(resource.data.ownerId) || resource.data.members.hasAny([request.auth.uid]));
-      allow delete: if isSignedIn() && isOwner(resource.data.ownerId);
+    match /quizAttempts/{attemptId} {
+      allow read, write: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+    }
 
-      // Members can be read by other members. Only owner can add/remove.
+     match /squads/{squadId} {
+      allow read: if request.auth != null && resource.data.members.hasAny([request.auth.uid]);
+      allow create: if request.auth != null && request.resource.data.ownerId == request.auth.uid;
+      allow update: if request.auth != null && resource.data.ownerId == request.auth.uid;
+      allow delete: if request.auth != null && resource.data.ownerId == request.auth.uid;
+
       match /memberDetails/{memberId} {
-          allow read: if isSignedIn() && resource.data.members.hasAny([request.auth.uid]);
-          allow write: if isSignedIn() && isOwner(get(/databases/$(database)/documents/squads/$(squadId)).data.ownerId);
+        allow read: if request.auth != null && get(/databases/$(database)/documents/squads/$(squadId)).data.members.hasAny([request.auth.uid]);
+        allow create, update: if request.auth != null && request.auth.uid == memberId;
+        allow delete: if request.auth != null && (request.auth.uid == memberId || get(/databases/$(database)/documents/squads/$(squadId)).data.ownerId == request.auth.uid);
       }
       
       match /projects/{projectId} {
-         allow read, write: if isSignedIn() && get(/databases/$(database)/documents/squads/$(squadId)).data.members.hasAny([request.auth.uid]);
+        allow read, create, update, delete: if request.auth != null && get(/databases/$(database)/documents/squads/$(squadId)).data.members.hasAny([request.auth.uid]);
       }
     }
+
+    match /satTestResults/{resultId} {
+      allow read, create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+    }
+
   }
 }
