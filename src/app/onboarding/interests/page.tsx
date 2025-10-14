@@ -98,6 +98,7 @@ export default function InterestsPage() {
                         files: 0,
                         userId: user.uid,
                         units: [],
+                        isNewTopic: true,
                     })
                 )
             );
