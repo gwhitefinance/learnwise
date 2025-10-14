@@ -33,7 +33,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import Image from 'next/image';
 import { Textarea } from '@/components/ui/textarea';
 import VoiceModePlayer from '@/components/VoiceModePlayer';
-import { FloatingChatContext } from '@/components/floating-chat';
 
 type Course = {
     id: string;
@@ -103,7 +102,6 @@ function CoursesComponent() {
   const { toast } = useToast();
   const [user, authLoading] = useAuthState(auth);
   const { showReward } = useContext(RewardContext);
-  const chatContext = useContext(FloatingChatContext);
 
   const [currentModuleIndex, setCurrentModuleIndex] = useState(0);
   const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
@@ -128,7 +126,6 @@ function CoursesComponent() {
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState('');
   const [isTutorLoading, setIsTutorLoading] = useState(false);
-  const chatInputRef = useRef<HTMLInputElement>(null);
   
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isFocusMode, setIsFocusMode] = useState(false);
@@ -652,18 +649,6 @@ function CoursesComponent() {
         document.exitFullscreen();
     }
   };
-
-    const handleRaiseHand = () => {
-        setIsVoiceModeOpen(false); // Close the voice player
-        setTimeout(() => {
-           if(chatContext?.activateVoiceInput) {
-               chatContext.activateVoiceInput();
-           } else {
-               chatInputRef.current?.focus();
-           }
-        }, 100);
-    };
-
   
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -1090,9 +1075,8 @@ function CoursesComponent() {
     <>
       {isVoiceModeOpen && (
         <VoiceModePlayer
-            textToPlay={currentChapter?.content || 'No content available to read.'}
+            initialContent={currentChapter?.content || 'No content available to read.'}
             onClose={() => setIsVoiceModeOpen(false)}
-            onRaiseHand={handleRaiseHand}
         />
       )}
       <Dialog open={isCourseReadyDialogOpen} onOpenChange={setIsCourseReadyDialogOpen}>
@@ -1312,7 +1296,6 @@ function CoursesComponent() {
                             </div>
                             <div className="mt-4 flex gap-2">
                                 <Input 
-                                    ref={chatInputRef}
                                     placeholder="Ask a question about this chapter..."
                                     value={chatInput}
                                     onChange={(e) => setChatInput(e.target.value)}
