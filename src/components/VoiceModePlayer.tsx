@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
@@ -73,12 +74,9 @@ export default function VoiceModePlayer({ textToPlay, onClose, onRaiseHand }: Vo
             speechSynthesis.pause();
         } else if (isPaused) {
             speechSynthesis.resume();
-        } else {
-             // Re-create and play if it ended
-            const utterance = new SpeechSynthesisUtterance(textToPlay);
-            utteranceRef.current = utterance;
-            utterance.onend = () => { setIsPlaying(false); setIsPaused(false); };
-            speechSynthesis.speak(utterance);
+        } else if (utteranceRef.current) {
+            // If it ended and we want to replay
+            speechSynthesis.speak(utteranceRef.current);
         }
     };
     

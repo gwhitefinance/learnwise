@@ -2,9 +2,9 @@
 
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, createContext, useContext } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, X, MessageSquare, Loader2, Plus, Edit, Trash2, FileText, Home, Phone, ChevronRight, HelpCircle, Search, Calendar, Lightbulb, Sparkles, Upload, User, Award, Gem, Copy, RefreshCw, ChevronLeft, CheckCircle, XCircle, ArrowRight, BrainCircuit, Bot, MoreVertical, Link as LinkIcon, Share2, Maximize, Minimize, NotebookText, Download, Eraser } from 'lucide-react';
+import { Send, X, MessageSquare, Loader2, Plus, Edit, Trash2, FileText, Home, Phone, ChevronRight, HelpCircle, Search, Calendar, Lightbulb, Sparkles, Upload, User, Award, Gem, Copy, RefreshCw, ChevronLeft, CheckCircle, XCircle, ArrowRight, BrainCircuit, Bot, MoreVertical, Link as LinkIcon, Share2, Maximize, Minimize, NotebookText, Download, Eraser, Mic } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -28,6 +28,7 @@ import type { GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuPortal } from './ui/dropdown-menu';
 
+export const FloatingChatContext = createContext<{ activateVoiceInput: () => void } | undefined>(undefined);
 
 interface Message {
   role: 'user' | 'ai';
@@ -537,7 +538,7 @@ const MyStatsTab = () => {
 
 export default function FloatingChat() {
   const [isOpen, setIsOpen] = useState(false);
-  const [showWelcome, setShowWelcome] =useState(true);
+  const [showWelcome, setShowWelcome] = useState(true);
   
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
@@ -567,6 +568,10 @@ export default function FloatingChat() {
   const [selectedNoteCourseId, setSelectedNoteCourseId] = useState<string | undefined>(undefined);
 
   const [isFullscreen, setIsFullscreen] = useState(false);
+  
+  // Voice input state
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef<any>(null);
 
   const activeSession = sessions.find(s => s.id === activeSessionId);
 
@@ -588,6 +593,8 @@ export default function FloatingChat() {
 
     return () => clearTimeout(welcomeTimer);
   }, [user]);
+  
+  const [isSessionCreating, setIsSessionCreating] = useState(false);
 
   useEffect(() => {
     if (!isOpen || !user) return;
@@ -600,10 +607,10 @@ export default function FloatingChat() {
         });
         setSessions(userSessions);
 
-        if (!activeSessionId && userSessions.length > 0) {
-            setActiveSessionId(userSessions[0].id);
-        } else if (userSessions.length === 0 && activeTab !== 'home') {
+        if (userSessions.length === 0 && !activeSessionId && !isSessionCreating && activeTab !== 'home') {
             createNewSession();
+        } else if (!activeSessionId && userSessions.length > 0) {
+            setActiveSessionId(userSessions[0].id);
         }
     });
     
@@ -618,7 +625,7 @@ export default function FloatingChat() {
         unsubscribeCourses();
     }
 
-  }, [isOpen, user, activeSessionId]);
+  }, [isOpen, user, activeSessionId, isSessionCreating, activeTab]);
 
 
    useEffect(() => {
@@ -628,7 +635,8 @@ export default function FloatingChat() {
   }, [activeSession?.messages, isOpen]);
 
   const createNewSession = async (prompt?: string): Promise<string> => {
-    if (!user) return '';
+    if (!user || isSessionCreating) return '';
+    setIsSessionCreating(true);
     
     const newSessionData = {
         title: prompt ? "New Chat" : "New Chat",
@@ -647,6 +655,8 @@ export default function FloatingChat() {
     } catch(e) {
         toast({ variant: 'destructive', title: 'Error', description: 'Could not start a new chat.'})
         return '';
+    } finally {
+        setIsSessionCreating(false);
     }
   }
 
@@ -911,6 +921,50 @@ export default function FloatingChat() {
     }
   };
   
+   const activateVoiceInput = () => {
+    // @ts-ignore
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      toast({ variant: 'destructive', title: 'Voice input not supported in this browser.' });
+      return;
+    }
+
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'en-US';
+
+    recognition.onstart = () => {
+      setIsListening(true);
+    };
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setInput(transcript);
+      handleSendMessage(transcript);
+      setIsListening(false);
+    };
+
+    recognition.onerror = (event: any) => {
+      console.error('Speech recognition error', event.error);
+      toast({ variant: 'destructive', title: 'Voice recognition error.' });
+      setIsListening(false);
+    };
+    
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    recognitionRef.current = recognition;
+    recognition.start();
+  };
+  
   const TabButton = ({ name, icon, currentTab, setTab }: {name: string, icon: React.ReactNode, currentTab: string, setTab: (tab:string) => void}) => (
     <button onClick={() => setTab(name.toLowerCase())} className={cn(
         "flex flex-col items-center gap-1 p-2 flex-1 rounded-lg transition-colors",
@@ -923,295 +977,278 @@ export default function FloatingChat() {
 
 
   return (
-    <div className={cn(
-        "fixed bottom-6 right-6 z-50",
-        isFullscreen && "inset-0 bottom-0 right-0 w-full h-full"
-    )}>
-        <AnimatePresence>
-            {isOpen && (
-                 <motion.div
-                    initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 20, scale: 0.95 }}
-                    transition={{ duration: 0.2 }}
-                    className={cn(
-                        "bg-card rounded-2xl shadow-2xl border flex flex-col origin-bottom-right",
-                        isFullscreen ? "w-full h-full" : "w-96 h-[600px]"
-                    )}
-                >
-                    <div className="flex-1 overflow-hidden flex flex-col">
-                        {activeTab === 'home' && <ChatHomeScreen sessions={sessions} onNavigate={setActiveTab} onStartNewChat={createNewSession} onSelectSession={(id) => { setActiveSessionId(id); setActiveTab('conversation'); }} onStartChatWithPrompt={handleStartChatWithPrompt} customizations={customizations} />}
-                        {activeTab === 'ai tools' && <AIToolsTab onStartChatWithPrompt={handleStartChatWithPrompt} />}
-                        {activeTab === 'my stats' && <MyStatsTab />}
-                        {activeTab === 'conversation' && (
-                            <div className="flex-1 flex flex-row h-full overflow-hidden">
-                                <div className="flex-1 flex flex-col min-w-0">
-                                    <header className="p-2 border-b flex items-center justify-between gap-2">
-                                        <div className="flex-1 flex items-center gap-2 overflow-hidden">
-                                            <div className="flex-1 truncate">
-                                                <h3 className="font-semibold text-sm truncate">{activeSession?.title || 'AI Buddy'}</h3>
-                                                {activeSession?.courseContext && <p className="text-xs text-muted-foreground truncate">Focus: {courses.find(c => c.id === activeSession.courseId)?.name}</p>}
-                                            </div>
-                                        </div>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsFullscreen(!isFullscreen)}>
-                                            {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
-                                        </Button>
-                                         <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
-                                                    <MoreVertical className="h-4 w-4" />
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                                 <DropdownMenuSub>
-                                                    <DropdownMenuSubTrigger>
-                                                        <BrainCircuit className="mr-2 h-4 w-4" />
-                                                        <span>Focus on Course</span>
-                                                    </DropdownMenuSubTrigger>
-                                                    <DropdownMenuPortal>
-                                                        <DropdownMenuSubContent>
-                                                            <DropdownMenuItem onSelect={() => handleSetCourseFocus(null)}>
-                                                                { !activeSession?.courseId && <CheckCircle className="mr-2 h-4 w-4" />}
-                                                                <span>None</span>
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuSeparator />
-                                                            {courses.map(course => (
-                                                                <DropdownMenuItem key={course.id} onSelect={() => handleSetCourseFocus(course)}>
-                                                                    { activeSession?.courseId === course.id && <CheckCircle className="mr-2 h-4 w-4" />}
-                                                                    {course.name}
-                                                                </DropdownMenuItem>
-                                                            ))}
-                                                        </DropdownMenuSubContent>
-                                                    </DropdownMenuPortal>
-                                                </DropdownMenuSub>
-                                                 <DropdownMenuItem onSelect={handleExportConversation}>
-                                                    <Download className="mr-2 h-4 w-4" />
-                                                    <span>Export Conversation</span>
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem onSelect={handleOpenNoteDialog}>
-                                                    <NotebookText className="mr-2 h-4 w-4" />
-                                                    <span>Save as Note</span>
-                                                </DropdownMenuItem>
-                                                <DropdownMenuSeparator />
-                                                <AlertDialog>
-                                                    <AlertDialogTrigger asChild>
-                                                         <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                                            <Eraser className="mr-2 h-4 w-4"/> Clear Conversation
-                                                        </DropdownMenuItem>
-                                                    </AlertDialogTrigger>
-                                                    <AlertDialogContent>
-                                                        <AlertDialogHeader><AlertDialogTitle>Clear Conversation?</AlertDialogTitle><AlertDialogDescription>This will remove all messages from this chat session.</AlertDialogDescription></AlertDialogHeader>
-                                                        <AlertDialogFooter>
-                                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                            <AlertDialogAction onClick={handleClearConversation}>Clear</AlertDialogAction>
-                                                        </AlertDialogFooter>
-                                                    </AlertDialogContent>
-                                                </AlertDialog>
-                                                <AlertDialog>
-                                                    <AlertDialogTrigger asChild>
-                                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
-                                                            <Trash2 className="mr-2 h-4 w-4"/> Delete Chat
-                                                        </DropdownMenuItem>
-                                                    </AlertDialogTrigger>
-                                                    <AlertDialogContent>
-                                                        <AlertDialogHeader>
-                                                            <AlertDialogTitle>Are you sure you want to delete this chat?</AlertDialogTitle>
-                                                            <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
-                                                        </AlertDialogHeader>
-                                                        <AlertDialogFooter>
-                                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                            <AlertDialogAction onClick={() => activeSessionId && handleDeleteSession(activeSessionId)}>Delete</AlertDialogAction>
-                                                        </AlertDialogFooter>
-                                                    </AlertDialogContent>
-                                                </AlertDialog>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    </header>
-                                    <ScrollArea className="flex-1" ref={scrollAreaRef}>
-                                        <div className="p-4 space-y-4">
-                                            {activeSession?.messages.map((msg, index) => (
-                                                <div key={index} className={cn("flex items-end gap-2", msg.role === 'user' ? 'justify-end' : '')}>
-                                                    {msg.role === 'ai' && (
-                                                         <Avatar className="h-10 w-10">
-                                                            <AIBuddy
-                                                                className="w-full h-full"
-                                                                color={customizations.color}
-                                                                hat={customizations.hat}
-                                                                shirt={customizations.shirt}
-                                                                shoes={customizations.shoes}
-                                                            />
-                                                        </Avatar>
-                                                    )}
-                                                    <div className={cn(
-                                                        "p-3 rounded-2xl max-w-[80%] text-sm",
-                                                        msg.role === 'user' ? "bg-primary text-primary-foreground rounded-br-none" : "bg-muted rounded-bl-none"
-                                                    )}>
-                                                        <p className="whitespace-pre-wrap">{msg.content}</p>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                            {isLoading && (
-                                                <div className="flex items-end gap-2">
-                                                    <Avatar className="h-10 w-10">
-                                                        <AIBuddy
-                                                            className="w-full h-full"
-                                                            color={customizations.color}
-                                                            hat={customizations.hat}
-                                                            shirt={customizations.shirt}
-                                                            shoes={customizations.shoes}
-                                                        />
-                                                    </Avatar>
-                                                    <div className="p-3 rounded-2xl max-w-[80%] text-sm bg-muted rounded-bl-none animate-pulse">
-                                                        Thinking...
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </ScrollArea>
-                                    <footer className="p-4 border-t">
-                                        <div className="relative">
-                                            <Input 
-                                                placeholder="Ask anything..."
-                                                className="pr-20 rounded-full"
-                                                value={input}
-                                                onChange={e => setInput(e.target.value)}
-                                                onKeyDown={e => e.key === 'Enter' && handleSendMessage()}
-                                                disabled={isLoading}
-                                            />
-                                            <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                                                <Dialog open={isUploadOpen} onOpenChange={setUploadOpen}>
-                                                    <DialogTrigger asChild>
-                                                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full"><Upload className="h-4 w-4"/></Button>
-                                                    </DialogTrigger>
-                                                    <DialogContent onDragEnter={handleDragEnter} onDragLeave={handleDragLeave} onDragOver={handleDragOver} onDrop={handleDrop}>
-                                                        <DialogHeader>
-                                                            <DialogTitle>Upload File</DialogTitle>
-                                                            <DialogDescription>Upload an image file to discuss it with the AI.</DialogDescription>
-                                                        </DialogHeader>
-                                                        <div className={cn("relative flex flex-col items-center justify-center w-full p-12 border-2 border-dashed rounded-lg cursor-pointer transition-colors", isDragging ? "border-primary bg-primary/10" : "border-border hover:border-primary/50")} onClick={() => document.getElementById('chat-file-upload')?.click()}>
-                                                            <input id="chat-file-upload" type="file" className="hidden" onChange={(e) => setFileToUpload(e.target.files?.[0] || null)} accept="image/*" />
-                                                            <Upload className="w-10 h-10 mb-4 text-muted-foreground" />
-                                                            <p className="mb-2 text-lg font-semibold">Drag and drop your file here</p>
-                                                            <p className="text-sm text-muted-foreground">Or click to browse</p>
-                                                        </div>
-                                                        {fileToUpload && <p className="text-sm text-muted-foreground">Selected: {fileToUpload.name}</p>}
-                                                        <DialogFooter>
-                                                            <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
-                                                            <Button onClick={handleUpload} disabled={!fileToUpload}>Upload & Analyze</Button>
-                                                        </DialogFooter>
-                                                    </DialogContent>
-                                                </Dialog>
-                                                <Button size="icon" className="h-8 w-8 rounded-full" onClick={() => handleSendMessage()} disabled={isLoading}>
-                                                    <Send className="h-4 w-4"/>
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    </footer>
-                                </div>
-                            </div>
-                        )}
-                    </div>
+    <FloatingChatContext.Provider value={{ activateVoiceInput }}>
+      <div className={cn(
+          "fixed bottom-6 right-6 z-50",
+          isFullscreen && "inset-0 bottom-0 right-0 w-full h-full"
+      )}>
+          <AnimatePresence>
+              {isOpen && (
+                   <motion.div
+                      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 20, scale: 0.95 }}
+                      transition={{ duration: 0.2 }}
+                      className={cn(
+                          "bg-card rounded-2xl shadow-2xl border flex flex-col origin-bottom-right",
+                          isFullscreen ? "w-full h-full" : "w-96 h-[600px]"
+                      )}
+                  >
+                      <div className="flex-1 overflow-hidden flex flex-col">
+                          {activeTab === 'home' && <ChatHomeScreen sessions={sessions} onNavigate={setActiveTab} onStartNewChat={createNewSession} onSelectSession={(id) => { setActiveSessionId(id); setActiveTab('conversation'); }} onStartChatWithPrompt={handleStartChatWithPrompt} customizations={customizations} />}
+                          {activeTab === 'ai tools' && <AIToolsTab onStartChatWithPrompt={handleStartChatWithPrompt} />}
+                          {activeTab === 'my stats' && <MyStatsTab />}
+                          {activeTab === 'conversation' && (
+                              <div className="flex-1 flex flex-row h-full overflow-hidden">
+                                  <div className="flex-1 flex flex-col min-w-0">
+                                      <header className="p-2 border-b flex items-center justify-between gap-2">
+                                          <div className="flex-1 flex items-center gap-2 overflow-hidden">
+                                              <div className="flex-1 truncate">
+                                                  <h3 className="font-semibold text-sm truncate">{activeSession?.title || 'AI Buddy'}</h3>
+                                                  {activeSession?.courseContext && <p className="text-xs text-muted-foreground truncate">Focus: {courses.find(c => c.id === activeSession.courseId)?.name}</p>}
+                                              </div>
+                                          </div>
+                                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsFullscreen(!isFullscreen)}>
+                                              {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+                                          </Button>
+                                           <DropdownMenu>
+                                              <DropdownMenuTrigger asChild>
+                                                  <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+                                                      <MoreVertical className="h-4 w-4" />
+                                                  </Button>
+                                              </DropdownMenuTrigger>
+                                              <DropdownMenuContent align="end">
+                                                   <DropdownMenuSub>
+                                                      <DropdownMenuSubTrigger>
+                                                          <BrainCircuit className="mr-2 h-4 w-4" />
+                                                          <span>Focus on Course</span>
+                                                      </DropdownMenuSubTrigger>
+                                                      <DropdownMenuPortal>
+                                                          <DropdownMenuSubContent>
+                                                              <DropdownMenuItem onSelect={() => handleSetCourseFocus(null)}>
+                                                                  { !activeSession?.courseId && <CheckCircle className="mr-2 h-4 w-4" />}
+                                                                  <span>None</span>
+                                                              </DropdownMenuItem>
+                                                              <DropdownMenuSeparator />
+                                                              {courses.map(course => (
+                                                                  <DropdownMenuItem key={course.id} onSelect={() => handleSetCourseFocus(course)}>
+                                                                      { activeSession?.courseId === course.id && <CheckCircle className="mr-2 h-4 w-4" />}
+                                                                      {course.name}
+                                                                  </DropdownMenuItem>
+                                                              ))}
+                                                          </DropdownMenuSubContent>
+                                                      </DropdownMenuPortal>
+                                                  </DropdownMenuSub>
+                                                   <DropdownMenuItem onSelect={handleExportConversation}>
+                                                      <Download className="mr-2 h-4 w-4" />
+                                                      <span>Export Conversation</span>
+                                                  </DropdownMenuItem>
+                                                  <DropdownMenuItem onSelect={handleOpenNoteDialog}>
+                                                      <NotebookText className="mr-2 h-4 w-4" />
+                                                      <span>Save as Note</span>
+                                                  </DropdownMenuItem>
+                                                  <DropdownMenuSeparator />
+                                                  <AlertDialog>
+                                                      <AlertDialogTrigger asChild>
+                                                           <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                                              <Eraser className="mr-2 h-4 w-4"/> Clear Conversation
+                                                          </DropdownMenuItem>
+                                                      </AlertDialogTrigger>
+                                                      <AlertDialogContent>
+                                                          <AlertDialogHeader><AlertDialogTitle>Clear Conversation?</AlertDialogTitle><AlertDialogDescription>This will remove all messages from this chat session.</AlertDialogDescription></AlertDialogHeader>
+                                                          <AlertDialogFooter>
+                                                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                              <AlertDialogAction onClick={handleClearConversation}>Clear</AlertDialogAction>
+                                                          </AlertDialogFooter>
+                                                      </AlertDialogContent>
+                                                  </AlertDialog>
+                                                  <AlertDialog>
+                                                      <AlertDialogTrigger asChild>
+                                                          <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
+                                                              <Trash2 className="mr-2 h-4 w-4"/> Delete Chat
+                                                          </DropdownMenuItem>
+                                                      </AlertDialogTrigger>
+                                                      <AlertDialogContent>
+                                                          <AlertDialogHeader>
+                                                              <AlertDialogTitle>Are you sure you want to delete this chat?</AlertDialogTitle>
+                                                              <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
+                                                          </AlertDialogHeader>
+                                                          <AlertDialogFooter>
+                                                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                              <AlertDialogAction onClick={() => activeSessionId && handleDeleteSession(activeSessionId)}>Delete</AlertDialogAction>
+                                                          </AlertDialogFooter>
+                                                      </AlertDialogContent>
+                                                  </AlertDialog>
+                                              </DropdownMenuContent>
+                                          </DropdownMenu>
+                                      </header>
+                                      <ScrollArea className="flex-1" ref={scrollAreaRef}>
+                                          <div className="p-4 space-y-4">
+                                              {activeSession?.messages.map((msg, index) => (
+                                                  <div key={index} className={cn("flex items-end gap-2", msg.role === 'user' ? 'justify-end' : '')}>
+                                                      {msg.role === 'ai' && (
+                                                           <Avatar className="h-10 w-10">
+                                                              <AIBuddy
+                                                                  className="w-full h-full"
+                                                                  color={customizations.color}
+                                                                  hat={customizations.hat}
+                                                                  shirt={customizations.shirt}
+                                                                  shoes={customizations.shoes}
+                                                              />
+                                                          </Avatar>
+                                                      )}
+                                                      <div className={cn(
+                                                          "p-3 rounded-2xl max-w-[80%] text-sm",
+                                                          msg.role === 'user' ? "bg-primary text-primary-foreground rounded-br-none" : "bg-muted rounded-bl-none"
+                                                      )}>
+                                                          <p className="whitespace-pre-wrap">{msg.content}</p>
+                                                      </div>
+                                                  </div>
+                                              ))}
+                                              {isLoading && (
+                                                  <div className="flex items-end gap-2">
+                                                      <Avatar className="h-10 w-10">
+                                                          <AIBuddy
+                                                              className="w-full h-full"
+                                                              color={customizations.color}
+                                                              hat={customizations.hat}
+                                                              shirt={customizations.shirt}
+                                                              shoes={customizations.shoes}
+                                                          />
+                                                      </Avatar>
+                                                      <div className="p-3 rounded-2xl max-w-[80%] text-sm bg-muted rounded-bl-none animate-pulse">
+                                                          Thinking...
+                                                      </div>
+                                                  </div>
+                                              )}
+                                          </div>
+                                      </ScrollArea>
+                                      <footer className="p-4 border-t">
+                                          <div className="relative">
+                                              <Input 
+                                                  placeholder="Ask anything..."
+                                                  className="pr-20 rounded-full"
+                                                  value={input}
+                                                  onChange={e => setInput(e.target.value)}
+                                                  onKeyDown={e => e.key === 'Enter' && handleSendMessage()}
+                                                  disabled={isLoading}
+                                              />
+                                              <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                                                  <Button variant="ghost" size="icon" className={cn("h-8 w-8 rounded-full", isListening && "bg-red-500/20 text-red-500")} onClick={activateVoiceInput}>
+                                                      <Mic className="h-4 w-4"/>
+                                                  </Button>
+                                                  <Button size="icon" className="h-8 w-8 rounded-full" onClick={() => handleSendMessage()} disabled={isLoading}>
+                                                      <Send className="h-4 w-4"/>
+                                                  </Button>
+                                              </div>
+                                          </div>
+                                      </footer>
+                                  </div>
+                              </div>
+                          )}
+                      </div>
 
-                    <div className="border-t p-2 flex justify-around bg-card rounded-b-2xl">
-                       <TabButton name="Home" icon={<Home />} currentTab={activeTab} setTab={setActiveTab} />
-                       <TabButton name="Conversation" icon={<MessageSquare />} currentTab={activeTab} setTab={setActiveTab} />
-                       <TabButton name="AI Tools" icon={<Sparkles />} currentTab={activeTab} setTab={setActiveTab} />
-                       <TabButton name="My Stats" icon={<Award />} currentTab={activeTab} setTab={setActiveTab} />
-                    </div>
+                      <div className="border-t p-2 flex justify-around bg-card rounded-b-2xl">
+                         <TabButton name="Home" icon={<Home />} currentTab={activeTab} setTab={setActiveTab} />
+                         <TabButton name="Conversation" icon={<MessageSquare />} currentTab={activeTab} setTab={setActiveTab} />
+                         <TabButton name="AI Tools" icon={<Sparkles />} currentTab={activeTab} setTab={setActiveTab} />
+                         <TabButton name="My Stats" icon={<Award />} currentTab={activeTab} setTab={setActiveTab} />
+                      </div>
 
-                </motion.div>
-            )}
-        </AnimatePresence>
+                  </motion.div>
+              )}
+          </AnimatePresence>
 
-        <div className="relative mt-4 flex items-end justify-end">
-             <AnimatePresence>
-                {showWelcome && !isOpen && user && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 10, scale: 0.9 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, x: 20, transition: { duration: 0.2 } }}
-                        className="flex items-end gap-2"
-                    >
-                         <div className="bg-card border p-4 rounded-xl shadow-lg mb-2 relative">
-                            <p className="font-semibold">Hello {user.displayName?.split(' ')[0] || 'there'}!</p>
-                            <p className="text-sm text-muted-foreground">Chat with me at any time.</p>
-                             <div className="absolute right-[-9px] bottom-4 w-3 h-3 bg-card border-b border-r transform rotate-45"></div>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-            
-            <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={() => setIsOpen(!isOpen)}
-                className="w-24 h-24 rounded-full flex items-center justify-center relative bg-transparent"
-                aria-label="Toggle Chat"
-            >
-                 <AnimatePresence>
-                    {isOpen ? (
-                        <motion.div
-                            key="close-icon"
-                            initial={{ scale: 0, rotate: -45 }}
-                            animate={{ scale: 1, rotate: 0 }}
-                            exit={{ scale: 0, rotate: 45 }}
-                            className="text-white bg-primary rounded-full p-4"
-                        >
-                            <X className="w-8 h-8" />
-                        </motion.div>
-                    ) : (
-                        <motion.div
-                            key="buddy-icon"
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            exit={{ scale: 0 }}
-                            className="text-primary-foreground w-24 h-24"
-                        >
-                            <AIBuddy {...customizations} />
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-            </motion.button>
-        </div>
-         <Dialog open={isNoteDialogOpen} onOpenChange={setNoteDialogOpen}>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Save Chat as Note</DialogTitle>
-                    <DialogDescription>Review the generated note and assign it to a course.</DialogDescription>
-                </DialogHeader>
-                 {noteGenerationLoading ? (
-                    <div className="py-4"><Loader2 className="w-6 h-6 animate-spin mx-auto"/></div>
-                ) : (
-                    <div className="grid gap-4 py-4">
-                        <div className="grid gap-2">
-                            <Label htmlFor="note-title">Title</Label>
-                            <Input id="note-title" value={generatedNoteTitle} onChange={(e) => setGeneratedNoteTitle(e.target.value)} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="note-content">Content</Label>
-                            <Textarea id="note-content" value={generatedNoteContent} onChange={(e) => setGeneratedNoteContent(e.target.value)} className="h-32"/>
-                        </div>
-                         <div className="grid gap-2">
-                            <Label htmlFor="note-course">Assign to Course (Optional)</Label>
-                            <Select value={selectedNoteCourseId} onValueChange={setSelectedNoteCourseId}>
-                                <SelectTrigger id="note-course">
-                                    <SelectValue placeholder="Select a course"/>
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {courses.map(course => (
-                                        <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-                )}
-                <DialogFooter>
-                    <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
-                    <Button onClick={handleSaveNote} disabled={noteGenerationLoading}>Save Note</Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-    </div>
+          <div className="relative mt-4 flex items-end justify-end">
+               <AnimatePresence>
+                  {showWelcome && !isOpen && user && (
+                      <motion.div
+                          initial={{ opacity: 0, y: 10, scale: 0.9 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, x: 20, transition: { duration: 0.2 } }}
+                          className="flex items-end gap-2"
+                      >
+                           <div className="bg-card border p-4 rounded-xl shadow-lg mb-2 relative">
+                              <p className="font-semibold">Hello {user.displayName?.split(' ')[0] || 'there'}!</p>
+                              <p className="text-sm text-muted-foreground">Chat with me at any time.</p>
+                               <div className="absolute right-[-9px] bottom-4 w-3 h-3 bg-card border-b border-r transform rotate-45"></div>
+                          </div>
+                      </motion.div>
+                  )}
+              </AnimatePresence>
+              
+              <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => setIsOpen(!isOpen)}
+                  className="w-24 h-24 rounded-full flex items-center justify-center relative bg-transparent"
+                  aria-label="Toggle Chat"
+              >
+                   <AnimatePresence>
+                      {isOpen ? (
+                          <motion.div
+                              key="close-icon"
+                              initial={{ scale: 0, rotate: -45 }}
+                              animate={{ scale: 1, rotate: 0 }}
+                              exit={{ scale: 0, rotate: 45 }}
+                              className="text-white bg-primary rounded-full p-4"
+                          >
+                              <X className="w-8 h-8" />
+                          </motion.div>
+                      ) : (
+                          <motion.div
+                              key="buddy-icon"
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              exit={{ scale: 0 }}
+                              className="text-primary-foreground w-24 h-24"
+                          >
+                              <AIBuddy {...customizations} />
+                          </motion.div>
+                      )}
+                  </AnimatePresence>
+              </motion.button>
+          </div>
+           <Dialog open={isNoteDialogOpen} onOpenChange={setNoteDialogOpen}>
+              <DialogContent>
+                  <DialogHeader>
+                      <DialogTitle>Save Chat as Note</DialogTitle>
+                      <DialogDescription>Review the generated note and assign it to a course.</DialogDescription>
+                  </DialogHeader>
+                   {noteGenerationLoading ? (
+                      <div className="py-4"><Loader2 className="w-6 h-6 animate-spin mx-auto"/></div>
+                  ) : (
+                      <div className="grid gap-4 py-4">
+                          <div className="grid gap-2">
+                              <Label htmlFor="note-title">Title</Label>
+                              <Input id="note-title" value={generatedNoteTitle} onChange={(e) => setGeneratedNoteTitle(e.target.value)} />
+                          </div>
+                          <div className="grid gap-2">
+                              <Label htmlFor="note-content">Content</Label>
+                              <Textarea id="note-content" value={generatedNoteContent} onChange={(e) => setGeneratedNoteContent(e.target.value)} className="h-32"/>
+                          </div>
+                           <div className="grid gap-2">
+                              <Label htmlFor="note-course">Assign to Course (Optional)</Label>
+                              <Select value={selectedNoteCourseId} onValueChange={setSelectedNoteCourseId}>
+                                  <SelectTrigger id="note-course">
+                                      <SelectValue placeholder="Select a course"/>
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                      {courses.map(course => (
+                                          <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>
+                                      ))}
+                                  </SelectContent>
+                              </Select>
+                          </div>
+                      </div>
+                  )}
+                  <DialogFooter>
+                      <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
+                      <Button onClick={handleSaveNote} disabled={noteGenerationLoading}>Save Note</Button>
+                  </DialogFooter>
+              </DialogContent>
+          </Dialog>
+      </div>
+    </FloatingChatContext.Provider>
   );
 }

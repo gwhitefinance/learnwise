@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useContext, Suspense, useRef } from 'react';
@@ -32,6 +33,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import Image from 'next/image';
 import { Textarea } from '@/components/ui/textarea';
 import VoiceModePlayer from '@/components/VoiceModePlayer';
+import { FloatingChatContext } from '@/components/floating-chat';
 
 type Course = {
     id: string;
@@ -101,6 +103,7 @@ function CoursesComponent() {
   const { toast } = useToast();
   const [user, authLoading] = useAuthState(auth);
   const { showReward } = useContext(RewardContext);
+  const chatContext = useContext(FloatingChatContext);
 
   const [currentModuleIndex, setCurrentModuleIndex] = useState(0);
   const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
@@ -653,7 +656,11 @@ function CoursesComponent() {
     const handleRaiseHand = () => {
         setIsVoiceModeOpen(false); // Close the voice player
         setTimeout(() => {
-            chatInputRef.current?.focus();
+           if(chatContext?.activateVoiceInput) {
+               chatContext.activateVoiceInput();
+           } else {
+               chatInputRef.current?.focus();
+           }
         }, 100);
     };
 
