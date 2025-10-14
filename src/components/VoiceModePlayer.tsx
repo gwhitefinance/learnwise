@@ -5,19 +5,11 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Draggable from 'react-draggable';
 import { Button } from './ui/button';
-import { Hand, Pause, Play, X, Loader2, Mic, MicOff, Settings } from 'lucide-react';
+import { Hand, Pause, Play, X, Loader2, Settings } from 'lucide-react';
 import AnimatedOrb from './AnimatedOrb';
 import { useToast } from '@/hooks/use-toast';
-import { studyPlannerFlow } from '@/lib/actions';
-import { useAuthState } from 'react-firebase-hooks/auth';
-import { auth } from '@/lib/firebase';
+import { generateAudio } from '@/lib/actions';
 import { cn } from '@/lib/utils';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
-
-interface Message {
-  role: 'user' | 'ai';
-  content: string;
-}
 
 interface VoiceModePlayerProps {
     initialContent: string;
@@ -25,166 +17,68 @@ interface VoiceModePlayerProps {
 }
 
 export default function VoiceModePlayer({ initialContent, onClose }: VoiceModePlayerProps) {
-    const [user] = useAuthState(auth);
     const [isPlaying, setIsPlaying] = useState(false);
-    const [isPaused, setIsPaused] = useState(false);
-    const [isListening, setIsListening] = useState(false);
-    const [isThinking, setIsThinking] = useState(false);
-    
-    const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
-    const [selectedVoice, setSelectedVoice] = useState<SpeechSynthesisVoice | null>(null);
-    const [showSettings, setShowSettings] = useState(false);
-    const [currentSpokenText, setCurrentSpokenText] = useState(initialContent);
-    
-    const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
-    const recognitionRef = useRef<any>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
+
     const nodeRef = useRef(null);
     const { toast } = useToast();
 
-    useEffect(() => {
-        const loadVoices = () => {
-            const availableVoices = window.speechSynthesis.getVoices();
-            if (availableVoices.length > 0) {
-                const englishVoices = availableVoices.filter(v => v.lang.startsWith('en-US'));
-                setVoices(englishVoices);
-
-                if (!selectedVoice) {
-                    const defaultMaleVoice = englishVoices.find(voice => voice.name.includes('Google') && voice.name.includes('Male')) || englishVoices.find(voice => voice.name.includes('Male')) || englishVoices.find(voice => voice.name === 'Google US English');
-                    setSelectedVoice(defaultMaleVoice || englishVoices[0]);
-                }
-            }
-        };
-
-        if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-            loadVoices();
-            if (window.speechSynthesis.onvoiceschanged !== undefined) {
-                 window.speechSynthesis.onvoiceschanged = loadVoices;
-            }
-        }
-    }, [selectedVoice]);
-
-    const speak = useCallback((text: string) => {
-        if (typeof window === 'undefined' || !('speechSynthesis' in window) || !selectedVoice) {
-            toast({ variant: 'destructive', title: 'Text-to-speech not supported or no voice selected.' });
+    const handlePlay = useCallback(async () => {
+        if (isPlaying && audio) {
+            audio.pause();
+            setIsPlaying(false);
             return;
         }
-        if (speechSynthesis.speaking) {
-            speechSynthesis.cancel();
+
+        if (audio) {
+            audio.play();
+            setIsPlaying(true);
+            return;
         }
-        setCurrentSpokenText(text);
 
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.voice = selectedVoice;
-        utteranceRef.current = utterance;
+        setIsLoading(true);
+        try {
+            const response = await generateAudio({ text: initialContent });
+            const newAudio = new Audio(response.audioDataUri);
+            
+            newAudio.onplay = () => setIsPlaying(true);
+            newAudio.onpause = () => setIsPlaying(false);
+            newAudio.onended = () => {
+                setIsPlaying(false);
+                setAudio(null); // Reset for next play
+            };
+            
+            newAudio.play();
+            setAudio(newAudio);
 
-        utterance.onstart = () => {
-            setIsPlaying(true);
-            setIsPaused(false);
-            setIsThinking(false);
-        };
-        utterance.onend = () => {
-            setIsPlaying(false);
-            setIsPaused(false);
-            utteranceRef.current = null;
-        };
-        utterance.onpause = () => {
-            setIsPlaying(false);
-            setIsPaused(true);
-        };
-        utterance.onresume = () => {
-            setIsPlaying(true);
-            setIsPaused(false);
-        };
+        } catch (error) {
+            console.error('Failed to generate or play audio:', error);
+            toast({
+                variant: 'destructive',
+                title: 'Audio Error',
+                description: 'Could not play the audio for this section.',
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    }, [isPlaying, audio, initialContent, toast]);
 
-        speechSynthesis.speak(utterance);
-    }, [toast, selectedVoice]);
-    
+    // Automatically play when the component mounts with content
     useEffect(() => {
-        if (initialContent && selectedVoice) {
-            speak(initialContent);
+        if (initialContent) {
+            handlePlay();
         }
 
+        // Cleanup on unmount
         return () => {
-            if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-                speechSynthesis.cancel();
+            if (audio) {
+                audio.pause();
             }
         };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [initialContent, selectedVoice]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [initialContent]);
 
-    const activateVoiceInput = useCallback(() => {
-        // @ts-ignore
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRecognition) {
-            toast({ variant: 'destructive', title: 'Voice input not supported.' });
-            return;
-        }
-
-        if (isListening) {
-            recognitionRef.current?.stop();
-            setIsListening(false);
-            return;
-        }
-
-        const recognition = new SpeechRecognition();
-        recognition.continuous = false;
-        recognition.interimResults = false;
-        recognition.lang = 'en-US';
-
-        recognition.onstart = () => setIsListening(true);
-        recognition.onend = () => setIsListening(false);
-        recognition.onerror = (event: any) => {
-            console.error('Speech recognition error', event.error);
-            setIsListening(false);
-        };
-
-        recognition.onresult = async (event: any) => {
-            const transcript = event.results[0][0].transcript;
-            setIsListening(false);
-            setIsThinking(true);
-            
-            const conversationHistory: Message[] = [{role: 'ai', content: initialContent}, {role: 'user', content: transcript}];
-            
-            try {
-                const aiResponse = await studyPlannerFlow({
-                    history: conversationHistory,
-                    userName: user?.displayName || undefined,
-                });
-                speak(aiResponse);
-            } catch (error) {
-                console.error("AI response error:", error);
-                const errorMessage = "Sorry, I ran into a problem. Please try again.";
-                speak(errorMessage);
-            } finally {
-                setIsThinking(false);
-            }
-        };
-
-        recognitionRef.current = recognition;
-        recognition.start();
-    }, [isListening, user, speak, toast, initialContent]);
-
-
-    const handlePlayPause = () => {
-        if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-
-        if (isPlaying) {
-            speechSynthesis.pause();
-        } else if (isPaused) {
-            speechSynthesis.resume();
-        } else {
-            speak(currentSpokenText);
-        }
-    };
-    
-    const handleRaiseHand = () => {
-        if (typeof window !== 'undefined' && 'speechSynthesis' in window && speechSynthesis.speaking) {
-            speechSynthesis.cancel(); // Stop speaking immediately
-            setIsPlaying(false);
-            setIsPaused(false);
-        }
-        activateVoiceInput();
-    };
 
     return (
         <Draggable nodeRef={nodeRef} handle=".drag-handle">
@@ -196,74 +90,29 @@ export default function VoiceModePlayer({ initialContent, onClose }: VoiceModePl
                 className="fixed bottom-8 right-8 z-[100] w-96 bg-background/80 backdrop-blur-lg border rounded-2xl shadow-2xl flex flex-col items-center p-6 cursor-grab"
             >
                 <div className="drag-handle w-full flex justify-between items-center pb-4">
-                    <Button variant="ghost" size="icon" className="cursor-pointer" onClick={() => setShowSettings(s => !s)}>
-                        <Settings className="w-5 h-5 text-muted-foreground" />
-                    </Button>
+                     <div className="w-8 h-8"></div>
                     <div className="w-12 h-1.5 bg-muted rounded-full"></div>
-                     <Button variant="ghost" size="icon" className="cursor-pointer" onClick={onClose}>
+                     <Button variant="ghost" size="icon" className="cursor-pointer h-8 w-8" onClick={onClose}>
                         <X className="w-5 h-5 text-muted-foreground" />
                     </Button>
                 </div>
 
-                <AnimatePresence mode="wait">
-                    {showSettings ? (
-                        <motion.div
-                            key="settings"
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
-                            className="w-full space-y-4"
-                        >
-                            <h3 className="text-lg font-semibold text-center">Voice Settings</h3>
-                            <Select
-                                value={selectedVoice?.name}
-                                onValueChange={(voiceName) => {
-                                    const voice = voices.find(v => v.name === voiceName);
-                                    if (voice) setSelectedVoice(voice);
-                                }}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select a voice..." />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {voices.map(voice => (
-                                        <SelectItem key={voice.name} value={voice.name}>
-                                            {voice.name} ({voice.lang})
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <Button className="w-full" onClick={() => setShowSettings(false)}>Done</Button>
-                        </motion.div>
-                    ) : (
-                         <motion.div
-                            key="player"
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
-                            className="w-full flex flex-col items-center"
-                        >
-                            <AnimatedOrb isPlaying={isPlaying || isListening || isThinking} />
-                            
-                            <h3 className="font-semibold text-lg mt-6">
-                                {isListening ? "Listening..." : isThinking ? "Thinking..." : isPlaying ? "Speaking..." : "Voice Mode"}
-                            </h3>
-                            <p className="text-sm text-muted-foreground text-center h-4">
-                                {isListening ? "Ask me anything." : ""}
-                            </p>
+                <div className="w-full flex flex-col items-center">
+                    <AnimatedOrb isPlaying={isPlaying || isLoading} />
+                    
+                    <h3 className="font-semibold text-lg mt-6">
+                        {isLoading ? "Generating Audio..." : isPlaying ? "Speaking..." : "Voice Mode"}
+                    </h3>
+                    <p className="text-sm text-muted-foreground text-center h-4">
+                        Now reading the current chapter.
+                    </p>
 
-                            <div className="flex items-center justify-center gap-4 mt-6 w-full">
-                                <Button size="icon" className="rounded-full h-16 w-16" onClick={handlePlayPause}>
-                                    {isPlaying ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6" />}
-                                </Button>
-                                <Button variant="outline" size="lg" className={cn("rounded-full flex-1", isListening && "bg-destructive/20 border-destructive text-destructive")} onClick={handleRaiseHand}>
-                                    {isListening ? <MicOff className="mr-2 h-4 w-4" /> : <Hand className="mr-2 h-4 w-4" />}
-                                    {isListening ? "Stop" : "Talk"}
-                                </Button>
-                            </div>
-                         </motion.div>
-                    )}
-                </AnimatePresence>
+                    <div className="flex items-center justify-center gap-4 mt-6 w-full">
+                        <Button size="icon" className="rounded-full h-16 w-16" onClick={handlePlay} disabled={isLoading}>
+                             {isLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : isPlaying ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6" />}
+                        </Button>
+                    </div>
+                </div>
             </motion.div>
         </Draggable>
     );
