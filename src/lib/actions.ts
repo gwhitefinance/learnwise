@@ -12,7 +12,6 @@ import { generateMiniCourse } from '@/ai/flows/mini-course-flow';
 import { generateQuizFromModule } from '@/ai/flows/module-quiz-flow';
 import { generateFlashcardsFromModule } from '@/ai/flows/module-flashcard-flow';
 import { generateTutoringSession } from '@/ai/flows/image-tutoring-flow';
-import { generateAudio } from '@/ai/flows/text-to-speech-flow';
 import { studyPlannerFlow } from '@/ai/flows/study-planner-flow';
 import { generateChatTitle } from '@/ai/flows/chat-title-flow';
 import { generateRoadmap } from '@/ai/flows/roadmap-flow';
@@ -41,7 +40,6 @@ export {
     generateQuizFromModule,
     generateFlashcardsFromModule,
     generateTutoringSession,
-    generateAudio,
     studyPlannerFlow,
     generateChatTitle,
     generateRoadmap,

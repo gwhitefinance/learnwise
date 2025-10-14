@@ -483,7 +483,6 @@ function DashboardLayoutContent({
 
 
   return (
-    <CallProvider>
       <div className={cn(
           "relative min-h-screen overflow-hidden bg-background",
           isHalloweenTheme && 'halloween-bg'
@@ -712,11 +711,12 @@ function DashboardLayoutContent({
             </header>
 
             <main className="flex-1 flex flex-col relative p-4 md:p-6">
+              <FloatingChat>
                 {React.cloneElement(children as React.ReactElement, { isHalloweenTheme })}
+              </FloatingChat>
             </main>
         </div>
       </div>
-      <FloatingChat />
       <RewardPopup />
       <CallView />
       <IncomingCall />

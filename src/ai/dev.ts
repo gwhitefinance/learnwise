@@ -12,7 +12,6 @@ import './flows/module-quiz-flow';
 import './flows/module-flashcard-flow';
 import './flows/chat-title-flow';
 import './flows/image-tutoring-flow';
-import './flows/text-to-speech-flow';
 import './flows/onboarding-course-flow';
 import './flows/course-from-url-flow';
 import './flows/chapter-content-flow';

@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect, useRef, createContext, useContext } from 'react';
@@ -536,7 +535,7 @@ const MyStatsTab = () => {
 };
 
 
-export default function FloatingChat() {
+export default function FloatingChat({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
   
@@ -922,6 +921,9 @@ export default function FloatingChat() {
   };
   
    const activateVoiceInput = () => {
+    setIsOpen(true);
+    setActiveTab('conversation');
+
     // @ts-ignore
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
@@ -978,6 +980,7 @@ export default function FloatingChat() {
 
   return (
     <FloatingChatContext.Provider value={{ activateVoiceInput }}>
+      {children}
       <div className={cn(
           "fixed bottom-6 right-6 z-50",
           isFullscreen && "inset-0 bottom-0 right-0 w-full h-full"
