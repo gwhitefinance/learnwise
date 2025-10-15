@@ -39,6 +39,7 @@ import {
   Play,
   Pause,
   RotateCcw,
+  Clock,
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -257,6 +258,7 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
     const [learnerType, setLearnerType] = useState<string | null>(null);
     const [gradeLevel, setGradeLevel] = useState<string | null>(null);
     const { showReward } = useContext(RewardContext);
+    const [showTimer, setShowTimer] = useState(false);
 
     // Add Course Dialog State
     const [isNewTopic, setIsNewTopic] = useState<boolean | null>(null);
@@ -845,7 +847,7 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                             <p className="max-w-md text-white/80">
                                 This is your central hub for all your learning activities. Let's make today a productive one!
                             </p>
-                             <div className="mt-4 flex gap-2">
+                             <div className="mt-4 flex gap-4">
                                 <div className="animated-button-container group">
                                   <Spotlight />
                                     <Button asChild variant="outline" className="relative w-full bg-white text-black hover:bg-gray-100 rounded-xl font-semibold flex items-center gap-2 overflow-hidden">
@@ -855,10 +857,14 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                       </Link>
                                     </Button>
                                 </div>
+                                <Button variant="secondary" className="rounded-xl" onClick={() => setShowTimer(!showTimer)}>
+                                    <Clock className="w-4 h-4 mr-2" />
+                                    Timer
+                                </Button>
                             </div>
                         </div>
                          <div className="relative hidden lg:flex items-center justify-center gap-8">
-                            <PomodoroTimer />
+                            {showTimer && <PomodoroTimer onHide={() => setShowTimer(false)} />}
                             <AIBuddy 
                                 className="w-32 h-32"
                                 color={customizations.color}
