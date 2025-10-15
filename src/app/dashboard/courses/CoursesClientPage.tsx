@@ -822,7 +822,7 @@ function CoursesComponent() {
     if (selection && selection.rangeCount > 0 && selection.toString().trim().length > 0) {
       const range = selection.getRangeAt(0);
       if (contentRef.current.contains(range.commonAncestorContainer)) {
-        setSelection(range.cloneRange()); // Clone the range to preserve it
+        setSelection(range.cloneRange());
         const rect = range.getBoundingClientRect();
         const contentRect = contentRef.current.getBoundingClientRect();
         setPopoverPosition({
