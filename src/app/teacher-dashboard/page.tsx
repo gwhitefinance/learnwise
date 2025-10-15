@@ -27,10 +27,10 @@ const studentsData = [
 ];
 
 const learningStylesData = [
-  { style: 'Visual', students: 55, fill: '#60a5fa' },
-  { style: 'Auditory', students: 30, fill: '#a78bfa' },
-  { style: 'Kinesthetic', students: 25, fill: '#34d399' },
-  { style: 'Reading/Writing', students: 18, fill: '#fbbf24' },
+  { style: 'Visual', students: 55, fill: '#60a5fa', className: 'bg-blue-400' },
+  { style: 'Auditory', students: 30, fill: '#a78bfa', className: 'bg-purple-400' },
+  { style: 'Kinesthetic', students: 25, fill: '#34d399', className: 'bg-emerald-400' },
+  { style: 'Reading/Writing', students: 18, fill: '#fbbf24', className: 'bg-amber-400' },
 ];
 
 const heatmapData = {
@@ -180,7 +180,7 @@ export default function TeacherDashboardPage() {
                              <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
                                 {learningStylesData.map(item => (
                                     <div key={item.style} className="flex items-center gap-2">
-                                        <div className="h-3 w-3 rounded-full" style={{ backgroundColor: item.fill }}></div>
+                                        <div className={cn("h-3 w-3 rounded-full", item.className)}></div>
                                         <span className="font-medium text-muted-foreground">{item.style}</span>
                                     </div>
                                 ))}
