@@ -5,7 +5,7 @@ import React from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
-import { Home, Users, BookOpen, BarChart3, LogOut, PanelLeft, Bell, Settings, FilePlus, ChevronRight, MessageSquare, Podcast, ClipboardCheck, Award, Share2 } from 'lucide-react';
+import { Home, Users, BookOpen, BarChart3, LogOut, PanelLeft, Bell, Settings, FilePlus, ChevronRight, MessageSquare, Podcast, ClipboardCheck, Award, Share2, Briefcase } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Link from 'next/link';
@@ -32,44 +32,23 @@ type SidebarItem = {
 const sidebarItems: SidebarItem[] = [
     { title: "Dashboard", icon: <Home className="h-5 w-5" />, href: "/teacher-dashboard" },
     { 
-        title: "Students", 
-        icon: <Users className="h-5 w-5" />, 
-        href: "/teacher-dashboard/students",
-    },
-    { 
-        title: "Content", 
-        icon: <FilePlus className="h-5 w-5" />, 
-        href: "/teacher-dashboard/content" 
-    },
-    { 
-        title: "Classes", 
-        icon: <BookOpen className="h-5 w-5" />, 
-        href: "/teacher-dashboard/classes" 
+        title: "Workspace", 
+        icon: <Briefcase className="h-5 w-5" />,
+        children: [
+            { title: "Students", href: "/teacher-dashboard/students" },
+            { title: "Content", href: "/teacher-dashboard/content" },
+            { title: "Classes", href: "/teacher-dashboard/classes" },
+            { title: "Assessments", href: "/teacher-dashboard/assessments" },
+        ]
     },
     {
-        title: "Assessments",
-        icon: <ClipboardCheck className="h-5 w-5" />,
-        href: "/teacher-dashboard/assessments",
-    },
-    {
-        title: "Incentives",
-        icon: <Award className="h-5 w-5" />,
-        href: "/teacher-dashboard/incentives",
-    },
-    {
-        title: "Communication",
-        icon: <MessageSquare className="h-5 w-5" />,
-        href: "/teacher-dashboard/communication",
-    },
-    {
-        title: "Podcasts",
-        icon: <Podcast className="h-5 w-5" />,
-        href: "/teacher-dashboard/podcasts",
-    },
-    {
-        title: "Collaboration",
+        title: "Engagement",
         icon: <Users className="h-5 w-5" />,
-        href: "/teacher-dashboard/collaboration",
+        children: [
+            { title: "Incentives", href: "/teacher-dashboard/incentives" },
+            { title: "Communication", href: "/teacher-dashboard/communication" },
+            { title: "Collaboration", href: "/teacher-dashboard/collaboration" },
+        ]
     },
     { 
         title: "Analytics", 
