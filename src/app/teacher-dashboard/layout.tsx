@@ -5,7 +5,7 @@ import React from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
-import { Home, Users, BookOpen, BarChart3, LogOut, PanelLeft, Bell, Settings, FilePlus, ChevronRight, MessageSquare, Podcast, ClipboardCheck, Award, Share2, Briefcase } from 'lucide-react';
+import { Home, Users, BookOpen, BarChart3, LogOut, PanelLeft, Bell, Settings, FilePlus, ChevronRight, MessageSquare, Podcast, ClipboardCheck, Award, Share2, Briefcase, GraduationCap, Link as LinkIcon, Folder, GitMerge, BrainCircuit, Lightbulb } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Link from 'next/link';
@@ -16,10 +16,14 @@ import DashboardLoading from '@/app/dashboard/loading';
 import Logo from '@/components/Logo';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Input } from '@/components/ui/input';
+import { Search } from 'lucide-react';
+
 
 type SidebarChild = {
   title: string;
   href: string;
+  icon: React.ReactElement;
 };
 
 type SidebarItem = {
@@ -35,19 +39,19 @@ const sidebarItems: SidebarItem[] = [
         title: "Workspace", 
         icon: <Briefcase className="h-5 w-5" />,
         children: [
-            { title: "Students", href: "/teacher-dashboard/students" },
-            { title: "Content", href: "/teacher-dashboard/content" },
-            { title: "Classes", href: "/teacher-dashboard/classes" },
-            { title: "Assessments", href: "/teacher-dashboard/assessments" },
+            { title: "Students", href: "/teacher-dashboard/students", icon: <Users className="h-5 w-5" /> },
+            { title: "Content", href: "/teacher-dashboard/content", icon: <BookOpen className="h-5 w-5" /> },
+            { title: "Classes", href: "/teacher-dashboard/classes", icon: <GraduationCap className="h-5 w-5" /> },
+            { title: "Assessments", href: "/teacher-dashboard/assessments", icon: <ClipboardCheck className="h-5 w-5" /> },
         ]
     },
     {
         title: "Engagement",
-        icon: <Users className="h-5 w-5" />,
+        icon: <Sparkles className="h-5 w-5" />,
         children: [
-            { title: "Incentives", href: "/teacher-dashboard/incentives" },
-            { title: "Communication", href: "/teacher-dashboard/communication" },
-            { title: "Collaboration", href: "/teacher-dashboard/collaboration" },
+            { title: "Incentives", href: "/teacher-dashboard/incentives", icon: <Award className="h-5 w-5" /> },
+            { title: "Communication", href: "/teacher-dashboard/communication", icon: <MessageSquare className="h-5 w-5" /> },
+            { title: "Collaboration", href: "/teacher-dashboard/collaboration", icon: <Users className="h-5 w-5" /> },
         ]
     },
     { 
@@ -81,8 +85,8 @@ const SidebarNavItem = ({ item, pathname }: { item: SidebarItem, pathname: strin
             <Collapsible open={isOpen} onOpenChange={setIsOpen}>
                  <CollapsibleTrigger asChild>
                     <button className={cn(
-                          "flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                          isActive ? "bg-muted text-primary" : "hover:bg-muted text-muted-foreground"
+                          "flex w-full items-center justify-between rounded-2xl px-3 py-2 text-sm font-medium transition-colors",
+                          isActive ? "bg-primary/10 text-primary" : "hover:bg-muted"
                         )}>
                         <div className="flex items-center gap-3">
                             {item.icon}
@@ -98,10 +102,11 @@ const SidebarNavItem = ({ item, pathname }: { item: SidebarItem, pathname: strin
                                 key={child.href}
                                 href={child.href || '#'}
                                 className={cn(
-                                "flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium",
+                                "flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm font-medium",
                                 pathname.startsWith(child.href) ? "text-primary" : "hover:bg-muted text-muted-foreground",
                                 )}
                             >
+                                {child.icon}
                                 <span>{child.title}</span>
                             </Link>
                         ))}
@@ -114,8 +119,8 @@ const SidebarNavItem = ({ item, pathname }: { item: SidebarItem, pathname: strin
     return (
         <Link href={item.href || '#'} >
             <div className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
-                pathname === item.href && "bg-muted text-primary"
+                "flex items-center gap-3 rounded-2xl px-3 py-2 text-sm font-medium transition-all hover:bg-muted",
+                pathname === item.href && "bg-primary/10 text-primary"
             )}>
                 {item.icon}
                 {item.title}
@@ -150,12 +155,18 @@ export default function TeacherDashboardLayout({ children }: { children: React.R
                     <div className="p-4">
                         <div className="flex items-center gap-3">
                         <div>
-                            <h2 className="font-semibold">Teacher Portal</h2>
-                            <p className="text-xs text-muted-foreground">Tutorin for Educators</p>
+                            <h2 className="font-semibold">Tutorin</h2>
+                            <p className="text-xs text-muted-foreground">Teacher Portal</p>
                         </div>
                         <div className="flex aspect-square size-10 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-600 to-blue-600 text-white">
                             <Logo className="size-5" />
                         </div>
+                        </div>
+                    </div>
+                     <div className="px-3 py-2">
+                        <div className="relative">
+                            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                            <Input type="search" placeholder="Search..." className="w-full rounded-2xl bg-muted pl-9 pr-4 py-2" />
                         </div>
                     </div>
                     <ScrollArea className="flex-1 px-3 py-2">
@@ -166,9 +177,21 @@ export default function TeacherDashboardLayout({ children }: { children: React.R
                         </nav>
                     </ScrollArea>
                      <div className="border-t p-3">
-                        <Button onClick={() => auth.signOut()} className="w-full justify-start">
-                            <LogOut className="mr-2 h-4 w-4" /> Sign Out
-                        </Button>
+                         <div className="space-y-2">
+                            <Button onClick={() => auth.signOut()} className="flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm font-medium">
+                                <LogOut className="h-5 w-5" /> 
+                                <span>Sign Out</span>
+                            </Button>
+                            <div className="w-full p-2 rounded-2xl hover:bg-muted cursor-pointer">
+                                <div className="flex items-center gap-3">
+                                    <Avatar className="h-10 w-10">
+                                        <AvatarImage src={user?.photoURL ?? undefined} />
+                                        <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <p className="font-semibold text-sm truncate">{user?.displayName}</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </aside>
@@ -180,7 +203,6 @@ export default function TeacherDashboardLayout({ children }: { children: React.R
                     <Button variant="ghost" size="icon" className="md:flex" onClick={() => setSidebarOpen(!sidebarOpen)}>
                         <PanelLeft className="h-5 w-5" />
                     </Button>
-                    <h1 className="text-xl font-semibold">Dashboard</h1>
                     <div className="ml-auto flex items-center gap-3">
                         <Button variant="ghost" size="icon" className="rounded-full">
                             <Bell className="h-5 w-5"/>
