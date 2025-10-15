@@ -7,7 +7,7 @@ import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Play, Pause, ChevronLeft, ChevronRight, Wand2, FlaskConical, Lightbulb, Copy, RefreshCw, Check, Star, CheckCircle, Send, Bot, User, GitMerge, PanelLeft, Minimize, Maximize, Loader2, Plus, Trash2, MoreVertical, XCircle, ArrowRight, RotateCcw, Video, Image as ImageIcon, BookCopy, Link as LinkIcon, Headphones } from 'lucide-react';
+import { Play, Pause, ChevronLeft, ChevronRight, Wand2, FlaskConical, Lightbulb, Copy, RefreshCw, Check, Star, CheckCircle, Send, Bot, User, GitMerge, PanelLeft, Minimize, Maximize, Loader2, Plus, Trash2, MoreVertical, XCircle, ArrowRight, RotateCcw, Video, Image as ImageIcon, BookCopy, Link as LinkIcon, Headphones, Underline, Highlighter } from 'lucide-react';
 import Link from 'next/link';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
@@ -19,7 +19,7 @@ import type { GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
 import { cn } from '@/lib/utils';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
-import { collection, query, where, onSnapshot, doc, updateDoc, getDoc, getDocs, addDoc, serverTimestamp, increment, deleteDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs, deleteDoc, doc, updateDoc, onSnapshot, serverTimestamp, increment, arrayUnion, arrayRemove } from 'firebase/firestore';
 import AudioPlayer from '@/components/audio-player';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -33,6 +33,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import Image from 'next/image';
 import { Textarea } from '@/components/ui/textarea';
 import VoiceModePlayer from '@/components/VoiceModePlayer';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+
 
 type Course = {
     id: string;
@@ -85,6 +87,15 @@ type QuizResult = {
     answers: AnswerFeedback[];
     timestamp: any;
 }
+
+type Highlight = {
+    id: string;
+    text: string;
+    start: number;
+    end: number;
+    color: string;
+    underlineStyle: string;
+};
 
 
 function CoursesComponent() {
@@ -149,6 +160,15 @@ function CoursesComponent() {
 
   // Voice mode state
   const [isVoiceModeOpen, setIsVoiceModeOpen] = useState(false);
+  
+  // Highlighting and note-taking state
+  const [selection, setSelection] = useState<Range | null>(null);
+  const [popoverPosition, setPopoverPosition] = useState({ top: 0, left: 0 });
+  const [highlights, setHighlights] = useState<Highlight[]>([]);
+  const [isNoteFromHighlightOpen, setIsNoteFromHighlightOpen] = useState(false);
+  const [noteContent, setNoteContent] = useState('');
+  const contentRef = useRef<HTMLDivElement>(null);
+
 
   useEffect(() => {
     if (authLoading || !user) return;
@@ -249,6 +269,26 @@ function CoursesComponent() {
     setChatHistory([]);
     setChatInput('');
   }, [currentChapterIndex, currentModuleIndex]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+        if (selection && !isDescendant(event.target as Node, 'text-selection-popover')) {
+            setSelection(null);
+        }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [selection]);
+
+  const isDescendant = (child: Node, parentId: string) => {
+    let node = child.parentNode;
+    while(node != null){
+        if((node as HTMLElement).id === parentId) return true;
+        node = node.parentNode;
+    }
+    return false;
+  };
+
   
   const currentModule = activeCourse?.units?.[currentModuleIndex];
   const currentChapter = currentModule?.chapters[currentChapterIndex];
@@ -777,6 +817,61 @@ function CoursesComponent() {
     }
   };
 
+  const handleMouseUp = () => {
+    const selection = window.getSelection();
+    if (selection && selection.toString().trim().length > 0) {
+        const range = selection.getRangeAt(0);
+        setSelection(range);
+        const rect = range.getBoundingClientRect();
+        setPopoverPosition({ top: rect.top - 50, left: rect.left + rect.width / 2 - 80 });
+    } else {
+        setSelection(null);
+    }
+  };
+
+  const applyHighlight = (color: string) => {
+    if (!selection) return;
+    const mark = document.createElement('mark');
+    mark.className = `highlight-${color}`;
+    try {
+        selection.surroundContents(mark);
+    } catch (e) {
+        console.error("Cannot wrap the selection, it may span across multiple elements.");
+        toast({ variant: "destructive", title: "Highlight failed", description: "You can only highlight text within a single block."})
+    }
+    setSelection(null);
+  };
+  
+  const saveAsNote = () => {
+    if (!selection) return;
+    setNoteContent(selection.toString());
+    setIsNoteFromHighlightOpen(true);
+    setSelection(null);
+  };
+  
+  const handleSaveNoteFromHighlight = async () => {
+      if(!user || !activeCourse || !currentModule || !noteContent) return;
+      try {
+        await addDoc(collection(db, "notes"), {
+            title: `Note from ${currentChapter?.title}`,
+            content: noteContent,
+            date: Timestamp.now(),
+            color: 'bg-indigo-100 dark:bg-indigo-900/20',
+            isImportant: false,
+            isCompleted: false,
+            userId: user.uid,
+            courseId: activeCourse.id,
+            unitId: currentModule.id,
+        });
+        toast({ title: "Note Saved!", description: "A new note was created from your highlight." });
+        setIsNoteFromHighlightOpen(false);
+        setNoteContent('');
+      } catch (e) {
+          console.error(e);
+          toast({ variant: "destructive", title: "Error", description: "Could not save the note." });
+      }
+  }
+
 
   const chapterCount = activeCourse?.units?.reduce((acc, unit) => acc + (unit.chapters?.length ?? 0), 0) ?? 0;
   const completedChaptersCount = activeCourse?.completedChapters?.length ?? 0;
@@ -1071,8 +1166,52 @@ function CoursesComponent() {
     )
   }
 
+  const TextSelectionMenu = () => (
+    <div 
+        id="text-selection-popover"
+        style={{ top: popoverPosition.top, left: popoverPosition.left }}
+        className="absolute z-10 bg-card p-2 rounded-lg shadow-lg border flex gap-1 items-center"
+    >
+        <button onClick={() => applyHighlight('yellow')} className="h-6 w-6 rounded-full bg-yellow-300 border-2 border-transparent hover:border-primary"></button>
+        <button onClick={() => applyHighlight('blue')} className="h-6 w-6 rounded-full bg-blue-300 border-2 border-transparent hover:border-primary"></button>
+        <button onClick={() => applyHighlight('pink')} className="h-6 w-6 rounded-full bg-pink-300 border-2 border-transparent hover:border-primary"></button>
+        <Popover>
+            <PopoverTrigger asChild>
+                <button className="p-1 rounded-md hover:bg-muted"><Underline className="h-5 w-5" /></button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-1">
+                <div className="flex flex-col gap-1">
+                    <button onClick={() => applyHighlight('underline-solid')} className="p-2 hover:bg-muted rounded-md text-sm w-full text-left">Solid</button>
+                    <button onClick={() => applyHighlight('underline-dashed')} className="p-2 hover:bg-muted rounded-md text-sm w-full text-left">Dashed</button>
+                    <button onClick={() => applyHighlight('underline-dotted')} className="p-2 hover:bg-muted rounded-md text-sm w-full text-left">Dotted</button>
+                </div>
+            </PopoverContent>
+        </Popover>
+        <button className="p-1 rounded-md hover:bg-muted"><Trash2 className="h-5 w-5" /></button>
+        <div className="w-px h-6 bg-border mx-1"></div>
+        <button onClick={saveAsNote} className="p-1 rounded-md hover:bg-muted"><Plus className="h-5 w-5" /></button>
+    </div>
+);
+
+
   return (
     <>
+      {selection && <TextSelectionMenu />}
+      <Dialog open={isNoteFromHighlightOpen} onOpenChange={setIsNoteFromHighlightOpen}>
+         <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Save Highlight as Note</DialogTitle>
+            </DialogHeader>
+            <div className="py-4 space-y-4">
+                <Textarea value={noteContent} readOnly className="h-32 bg-muted"/>
+                <p className="text-sm text-muted-foreground">This note will be saved under the current course: <strong>{activeCourse?.name}</strong>.</p>
+            </div>
+            <DialogFooter>
+                <Button variant="ghost" onClick={() => setIsNoteFromHighlightOpen(false)}>Cancel</Button>
+                <Button onClick={handleSaveNoteFromHighlight}>Save Note</Button>
+            </DialogFooter>
+        </DialogContent>
+      </Dialog>
       {isVoiceModeOpen && (
         <VoiceModePlayer
             initialContent={currentChapter?.content || 'No content available to read.'}
@@ -1182,7 +1321,7 @@ function CoursesComponent() {
              </div>
         </aside>
         
-        <main className="flex-1 p-6 overflow-y-auto">
+        <main className="flex-1 p-6 overflow-y-auto" onMouseUp={handleMouseUp} ref={contentRef}>
              <div className="flex items-center justify-between mb-4">
                 <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
                     <PanelLeft className="h-5 w-5" />
@@ -1222,7 +1361,7 @@ function CoursesComponent() {
                                     <Image src={currentChapter.imageUrl} alt={`Header for ${currentChapter.title}`} layout="fill" objectFit="cover" />
                                 </div>
                             )}
-                            <p className="text-muted-foreground text-lg whitespace-pre-wrap leading-relaxed">{currentChapter.content}</p>
+                            <p className="text-muted-foreground text-lg whitespace-pre-wrap leading-relaxed" dangerouslySetInnerHTML={{ __html: currentChapter.content }}/>
                             {currentChapter.diagramUrl && (
                                 <div className="mt-4 p-4 bg-muted/50 rounded-lg">
                                     <h5 className="font-semibold text-sm mb-2 flex items-center gap-2"><ImageIcon size={16} /> Diagram</h5>

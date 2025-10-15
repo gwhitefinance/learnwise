@@ -1,4 +1,5 @@
 
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -55,6 +56,13 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  mark.highlight-yellow { background-color: rgba(250, 243, 131, 0.7); }
+  mark.highlight-blue { background-color: rgba(181, 226, 252, 0.7); }
+  mark.highlight-pink { background-color: rgba(255, 192, 203, 0.7); }
+  mark.underline-solid { text-decoration: underline; text-decoration-style: solid; background-color: transparent;}
+  mark.underline-dashed { text-decoration: underline; text-decoration-style: dashed; background-color: transparent;}
+  mark.underline-dotted { text-decoration: underline; text-decoration-style: dotted; background-color: transparent;}
 }
 
 @layer utilities {
