@@ -163,7 +163,6 @@ function CoursesComponent() {
   // Highlighting and note-taking state
   const [selection, setSelection] = useState<Range | null>(null);
   const [popoverPosition, setPopoverPosition] = useState({ top: 0, left: 0 });
-  const [highlights, setHighlights] = useState<Highlight[]>([]);
   const [isNoteFromHighlightOpen, setIsNoteFromHighlightOpen] = useState(false);
   const [noteContent, setNoteContent] = useState('');
   const contentRef = useRef<HTMLDivElement>(null);
@@ -271,23 +270,13 @@ function CoursesComponent() {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-        if (selection && !isDescendant(event.target as Node, 'text-selection-popover')) {
+        if (selection) {
             setSelection(null);
         }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
   }, [selection]);
-
-  const isDescendant = (child: Node, parentId: string) => {
-    let node = child.parentNode;
-    while(node != null){
-        if((node as HTMLElement).id === parentId) return true;
-        node = node.parentNode;
-    }
-    return false;
-  };
-
   
   const currentModule = activeCourse?.units?.[currentModuleIndex];
   const currentChapter = currentModule?.chapters[currentChapterIndex];
@@ -816,18 +805,17 @@ function CoursesComponent() {
     }
   };
 
-  const handleMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!contentRef.current) return;
-    const selection = window.getSelection();
-    if (selection && selection.rangeCount > 0 && selection.toString().trim().length > 0) {
-      const range = selection.getRangeAt(0);
-      if (contentRef.current.contains(range.commonAncestorContainer)) {
-        setSelection(range.cloneRange());
+ const handleMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (contentRef.current?.contains(e.target as Node)) {
+      const selection = window.getSelection();
+      if (selection && !selection.isCollapsed) {
+        const range = selection.getRangeAt(0);
+        setSelection(range);
         const rect = range.getBoundingClientRect();
         const contentRect = contentRef.current.getBoundingClientRect();
         setPopoverPosition({
-          top: rect.top - contentRect.top - 50,
-          left: rect.left - contentRect.left + rect.width / 2,
+            top: rect.top - contentRect.top + window.scrollY - 50,
+            left: rect.left - contentRect.left + window.scrollX + rect.width / 2,
         });
       } else {
         setSelection(null);
@@ -837,28 +825,25 @@ function CoursesComponent() {
     }
   };
 
-  const applyHighlight = (style: string) => {
-    if (!selection || !contentRef.current) return;
-    
-    const range = selection;
-    const preSelectionRange = document.createRange();
-    preSelectionRange.selectNodeContents(contentRef.current);
-    preSelectionRange.setEnd(range.startContainer, range.startOffset);
-    const start = preSelectionRange.toString().length;
+  const applyStyle = (style: string) => {
+    if (!selection) return;
 
-    const newHighlight: Highlight = {
-        id: crypto.randomUUID(),
-        text: range.toString(),
-        start: start,
-        end: start + range.toString().length,
-        color: style,
-    };
+    const mark = document.createElement('mark');
+    mark.className = style;
     
-    setHighlights(prev => [...prev, newHighlight]);
-    window.getSelection()?.removeAllRanges();
+    try {
+      selection.surroundContents(mark);
+    } catch(e) {
+      // Fallback for selections that span multiple elements
+      mark.appendChild(selection.extractContents());
+      selection.insertNode(mark);
+      console.warn("Used fallback for highlighting:", e);
+    }
+
     setSelection(null);
+    window.getSelection()?.removeAllRanges();
   };
-  
+
   const saveAsNote = () => {
     if (!selection) return;
     setNoteContent(selection.toString());
@@ -889,22 +874,6 @@ function CoursesComponent() {
           toast({ variant: "destructive", title: "Error", description: "Could not save the note." });
       }
   }
-  
-    const renderContentWithHighlights = () => {
-        if (!currentChapter?.content) return '';
-
-        let content = currentChapter.content;
-        const sortedHighlights = [...highlights].sort((a, b) => b.start - a.start);
-
-        sortedHighlights.forEach(hl => {
-            const before = content.substring(0, hl.start);
-            const highlighted = content.substring(hl.start, hl.end);
-            const after = content.substring(hl.end);
-            content = `${before}<mark class="${hl.color}">${highlighted}</mark>${after}`;
-        });
-        return content;
-    };
-
 
   const chapterCount = activeCourse?.units?.reduce((acc, unit) => acc + (unit.chapters?.length ?? 0), 0) ?? 0;
   const completedChaptersCount = activeCourse?.completedChapters?.length ?? 0;
@@ -1200,6 +1169,8 @@ function CoursesComponent() {
   }
 
   const TextSelectionMenu = () => {
+    if (!selection) return null;
+
     const popoverStyle = {
       position: 'absolute' as const,
       top: `${popoverPosition.top}px`,
@@ -1212,19 +1183,20 @@ function CoursesComponent() {
             id="text-selection-popover"
             style={popoverStyle}
             className="z-10 bg-card p-1 rounded-lg shadow-lg border flex gap-1 items-center"
+            onClick={(e) => e.stopPropagation()}
         >
-            <button onClick={() => applyHighlight('highlight-yellow')} className="h-6 w-6 rounded-full bg-yellow-300 border-2 border-transparent hover:border-primary"></button>
-            <button onClick={() => applyHighlight('highlight-blue')} className="h-6 w-6 rounded-full bg-blue-300 border-2 border-transparent hover:border-primary"></button>
-            <button onClick={() => applyHighlight('highlight-pink')} className="h-6 w-6 rounded-full bg-pink-300 border-2 border-transparent hover:border-primary"></button>
+            <button onClick={() => applyStyle('highlight-yellow')} className="h-6 w-6 rounded-full bg-yellow-300 border-2 border-transparent hover:border-primary"></button>
+            <button onClick={() => applyStyle('highlight-blue')} className="h-6 w-6 rounded-full bg-blue-300 border-2 border-transparent hover:border-primary"></button>
+            <button onClick={() => applyStyle('highlight-pink')} className="h-6 w-6 rounded-full bg-pink-300 border-2 border-transparent hover:border-primary"></button>
             <Popover>
                 <PopoverTrigger asChild>
                     <button className="p-1 rounded-md hover:bg-muted"><Underline className="h-5 w-5" /></button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-1">
                     <div className="flex flex-col gap-1">
-                        <button onClick={() => applyHighlight('underline-solid')} className="p-2 hover:bg-muted rounded-md text-sm w-full text-left">Solid</button>
-                        <button onClick={() => applyHighlight('underline-dashed')} className="p-2 hover:bg-muted rounded-md text-sm w-full text-left">Dashed</button>
-                        <button onClick={() => applyHighlight('underline-dotted')} className="p-2 hover:bg-muted rounded-md text-sm w-full text-left">Dotted</button>
+                        <button onClick={() => applyStyle('underline-solid')} className="p-2 hover:bg-muted rounded-md text-sm w-full text-left">Solid</button>
+                        <button onClick={() => applyStyle('underline-dashed')} className="p-2 hover:bg-muted rounded-md text-sm w-full text-left">Dashed</button>
+                        <button onClick={() => applyStyle('underline-dotted')} className="p-2 hover:bg-muted rounded-md text-sm w-full text-left">Dotted</button>
                     </div>
                 </PopoverContent>
             </Popover>
@@ -1234,9 +1206,9 @@ function CoursesComponent() {
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-1">
                     <div className="flex flex-col gap-1">
-                        <button onClick={() => applyHighlight('highlight-yellow')} className="p-2 hover:bg-muted rounded-md text-sm w-full text-left">Yellow</button>
-                        <button onClick={() => applyHighlight('highlight-blue')} className="p-2 hover:bg-muted rounded-md text-sm w-full text-left">Blue</button>
-                        <button onClick={() => applyHighlight('highlight-pink')} className="p-2 hover:bg-muted rounded-md text-sm w-full text-left">Pink</button>
+                        <button onClick={() => applyStyle('highlight-yellow')} className="p-2 hover:bg-muted rounded-md text-sm w-full text-left">Yellow</button>
+                        <button onClick={() => applyStyle('highlight-blue')} className="p-2 hover:bg-muted rounded-md text-sm w-full text-left">Blue</button>
+                        <button onClick={() => applyStyle('highlight-pink')} className="p-2 hover:bg-muted rounded-md text-sm w-full text-left">Pink</button>
                     </div>
                 </PopoverContent>
             </Popover>
@@ -1244,12 +1216,11 @@ function CoursesComponent() {
             <button onClick={saveAsNote} className="p-1 rounded-md hover:bg-muted"><Plus className="h-5 w-5" /></button>
         </div>
     );
-};
+  };
 
 
   return (
     <>
-      {selection && <TextSelectionMenu />}
       <Dialog open={isNoteFromHighlightOpen} onOpenChange={setIsNoteFromHighlightOpen}>
          <DialogContent>
             <DialogHeader>
@@ -1374,7 +1345,7 @@ function CoursesComponent() {
              </div>
         </aside>
         
-        <main className="flex-1 p-6 overflow-y-auto">
+        <main className="flex-1 p-6 overflow-y-auto" onMouseUp={handleMouseUp}>
              <div className="flex items-center justify-between mb-4">
                 <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
                     <PanelLeft className="h-5 w-5" />
@@ -1396,7 +1367,8 @@ function CoursesComponent() {
             </div>
 
             {currentChapter && currentModule ? (
-                 <div className="max-w-4xl mx-auto space-y-8">
+                 <div className="max-w-4xl mx-auto space-y-8 relative">
+                     {selection && <TextSelectionMenu />}
                      <h1 className="text-4xl font-bold">{currentChapter.title}</h1>
                      
                       {isChapterContentLoading[currentChapter.id] ? (
@@ -1415,11 +1387,9 @@ function CoursesComponent() {
                                 </div>
                             )}
                              <div 
-                                onMouseUp={handleMouseUp}
                                 ref={contentRef}
                                 className="text-muted-foreground text-lg whitespace-pre-wrap leading-relaxed" 
-                                dangerouslySetInnerHTML={{ __html: renderContentWithHighlights() }} 
-                             />
+                             >{currentChapter.content}</div>
                             {currentChapter.diagramUrl && (
                                 <div className="mt-4 p-4 bg-muted/50 rounded-lg">
                                     <h5 className="font-semibold text-sm mb-2 flex items-center gap-2"><ImageIcon size={16} /> Diagram</h5>
