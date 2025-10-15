@@ -75,6 +75,7 @@ import type { GenerateExplanationOutput } from '@/ai/schemas/quiz-explanation-sc
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { RewardContext } from '@/context/RewardContext';
 import { Textarea } from '@/components/ui/textarea';
+import Logo from '@/components/Logo';
 
   type CourseFile = {
       id: string;
@@ -840,10 +841,10 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                 This is your central hub for all your learning activities. Let's make today a productive one!
                             </p>
                              <div className="mt-4 flex gap-2">
-                                <Link href="/dashboard/courses">
-                                    <Button variant="outline" className="bg-white/20 text-white hover:bg-white/30 rounded-xl">
+                                <Link href="/dashboard/courses" className="animated-button-container">
+                                    <Button variant="outline" className="relative w-full bg-white text-black hover:bg-gray-100 rounded-xl font-semibold flex items-center gap-2">
+                                        <Logo className="w-5 h-5"/>
                                         Start Tutorin
-                                        <ArrowRight className="ml-2 h-4 w-4" />
                                     </Button>
                                 </Link>
                             </div>
