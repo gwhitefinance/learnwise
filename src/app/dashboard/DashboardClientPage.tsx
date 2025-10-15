@@ -76,6 +76,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { RewardContext } from '@/context/RewardContext';
 import { Textarea } from '@/components/ui/textarea';
 import Logo from '@/components/Logo';
+import Spotlight from '@/components/ui/spotlight';
 
   type CourseFile = {
       id: string;
@@ -841,12 +842,15 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                 This is your central hub for all your learning activities. Let's make today a productive one!
                             </p>
                              <div className="mt-4 flex gap-2">
-                                <Link href="/dashboard/courses" className="animated-button-container">
-                                    <Button variant="outline" className="relative w-full bg-white text-black hover:bg-gray-100 rounded-xl font-semibold flex items-center gap-2">
+                                <div className="animated-button-container group">
+                                  <Spotlight />
+                                    <Button asChild variant="outline" className="relative w-full bg-white text-black hover:bg-gray-100 rounded-xl font-semibold flex items-center gap-2 overflow-hidden">
+                                       <Link href="/dashboard/courses" >
                                         <Logo className="w-5 h-5"/>
                                         Start Tutorin
+                                      </Link>
                                     </Button>
-                                </Link>
+                                </div>
                             </div>
                         </div>
                          <div className="relative hidden lg:flex items-center justify-center gap-2">
