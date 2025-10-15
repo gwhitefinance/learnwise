@@ -71,8 +71,7 @@ export default function TeacherPodcastsPage() {
                                 </Button>
                             </div>
                         </Card>
-                    </Card>
-                ))}
+                    ))}
                 </CardContent>
             </Card>
         </div>
