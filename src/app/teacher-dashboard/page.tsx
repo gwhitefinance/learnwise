@@ -8,8 +8,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { PieChart, Pie, Cell } from 'recharts';
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 
@@ -164,28 +162,16 @@ export default function TeacherDashboardPage() {
                             <CardTitle>Learning Style Insights</CardTitle>
                             <CardDescription>AI-powered breakdown of your class.</CardDescription>
                         </CardHeader>
-                        <CardContent>
-                            <div className="flex items-center justify-center">
-                                <ChartContainer config={{}} className="h-40 w-40">
-                                     <PieChart>
-                                        <ChartTooltip content={<ChartTooltipContent hideLabel />} />
-                                        <Pie data={learningStylesData} dataKey="students" nameKey="style" innerRadius={25} strokeWidth={5}>
-                                            <Cell fill="#60a5fa" />
-                                            <Cell fill="#a78bfa" />
-                                            <Cell fill="#34d399" />
-                                            <Cell fill="#fbbf24" />
-                                        </Pie>
-                                    </PieChart>
-                                </ChartContainer>
-                            </div>
-                             <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
-                                {learningStylesData.map(item => (
-                                    <div key={item.style} className="flex items-center gap-2">
+                        <CardContent className="space-y-3">
+                            {learningStylesData.map(item => (
+                                <div key={item.style} className="flex items-center justify-between text-sm">
+                                    <div className="flex items-center gap-2">
                                         <div className={cn("h-3 w-3 rounded-full", item.className)}></div>
                                         <span className="font-medium text-muted-foreground">{item.style}</span>
                                     </div>
-                                ))}
-                            </div>
+                                    <span className="font-semibold">{item.students} students</span>
+                                </div>
+                            ))}
                         </CardContent>
                     </Card>
                      <Card>
