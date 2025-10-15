@@ -242,7 +242,7 @@ function CoursesComponent() {
         setIsLoading(false);
     }
     loadCourseData();
-  }, [selectedCourseId, user, toast]);
+  }, [selectedCourseId, user]);
   
 
     useEffect(() => {
@@ -831,30 +831,22 @@ function CoursesComponent() {
   };
 
   const applyHighlight = (style: string) => {
-    if (!selection) return;
-
+    if (!selection || !contentRef.current) return;
+    
     const range = selection;
-    const startNode = range.startContainer;
-    let absoluteStartOffset = 0;
-    
-    // Naive way to get offset, works for simple text nodes. Might need refinement for complex HTML.
-    if (startNode.parentNode && contentRef.current) {
-        let currentNode: Node | null = startNode;
-        while(currentNode && currentNode !== contentRef.current) {
-            let previousSibling = currentNode.previousSibling;
-            while(previousSibling) {
-                absoluteStartOffset += previousSibling.textContent?.length || 0;
-                previousSibling = previousSibling.previousSibling;
-            }
-            currentNode = currentNode.parentNode;
-        }
-    }
-    
+    const commonAncestor = range.commonAncestorContainer;
+
+    // A more robust way to calculate offset within the contentRef
+    const preSelectionRange = document.createRange();
+    preSelectionRange.selectNodeContents(contentRef.current);
+    preSelectionRange.setEnd(range.startContainer, range.startOffset);
+    const start = preSelectionRange.toString().length;
+
     const newHighlight: Highlight = {
         id: crypto.randomUUID(),
         text: range.toString(),
-        start: absoluteStartOffset + range.startOffset,
-        end: absoluteStartOffset + range.endOffset,
+        start: start,
+        end: start + range.toString().length,
         color: style,
     };
     
@@ -1408,7 +1400,7 @@ function CoursesComponent() {
                                     <Image src={currentChapter.imageUrl} alt={`Header for ${currentChapter.title}`} layout="fill" objectFit="cover" />
                                 </div>
                             )}
-                             <p className="text-muted-foreground text-lg whitespace-pre-wrap leading-relaxed" onMouseUp={handleMouseUp} dangerouslySetInnerHTML={{ __html: renderContentWithHighlights() }} />
+                             <div className="text-muted-foreground text-lg whitespace-pre-wrap leading-relaxed" onMouseUp={handleMouseUp} dangerouslySetInnerHTML={{ __html: renderContentWithHighlights() }} />
                             {currentChapter.diagramUrl && (
                                 <div className="mt-4 p-4 bg-muted/50 rounded-lg">
                                     <h5 className="font-semibold text-sm mb-2 flex items-center gap-2"><ImageIcon size={16} /> Diagram</h5>
