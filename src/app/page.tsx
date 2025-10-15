@@ -183,7 +183,7 @@ const Hero = ({ theme }: { theme: string }) => (
                     variant="outline"
                     className="w-full sm:w-auto bg-white border-white/20 text-black hover:text-black hover:bg-gray-100 rounded-2xl text-lg h-14 border-b-4 border-black/20 transform active:translate-y-px"
                 >
-                    More Info
+                    For Teachers
                 </Button>
             </div>
           </DialogTrigger>
@@ -192,23 +192,23 @@ const Hero = ({ theme }: { theme: string }) => (
                 <DialogTitle>
                     <div className="flex flex-col items-center text-center">
                         <Logo className="h-12 w-12 text-blue-500 mb-4" />
-                        <h2 className="text-3xl font-bold mb-4">What's Tutorin?</h2>
+                        <h2 className="text-3xl font-bold mb-4">Empower Your Classroom</h2>
                     </div>
                 </DialogTitle>
                 <DialogDescription className="sr-only">
-                    Tutorin is an AI-powered tutor that helps you study smarter by turning your notes into quizzes, flashcards, and personalized study plans.
+                    Tutorin for Educators provides tools to manage classes, track student progress, and create engaging assignments.
                 </DialogDescription>
             </DialogHeader>
             <p className="text-muted-foreground mb-8 text-base text-center">
-                We built Tutorin to make studying effortless and truly effective. It is an AI powered tutor that learns how you learn, helping you focus on the topics you need most. Whether it is quizzes, flashcards, or personalized study plans, Tutorin helps you study smarter, not harder.
+                Bring the power of AI to your classroom. With Tutorin for Educators, you can create assignments, monitor student progress, and provide personalized feedback at scale.
             </p>
             <div className="flex flex-col items-center">
-                 <Link href="/signup">
+                 <Link href="/teacher-dashboard">
                     <Button
                         size="lg"
                         className="w-full bg-blue-500 text-white hover:bg-blue-600 rounded-full text-lg h-14"
                     >
-                        Start for Free
+                        Explore Teacher Portal
                     </Button>
                 </Link>
             </div>
