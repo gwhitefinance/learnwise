@@ -5,7 +5,7 @@ import React from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
-import { Home, Users, BookOpen, BarChart3, LogOut, PanelLeft, Bell, Settings, FilePlus, ChevronRight, MessageSquare, Podcast, ClipboardCheck, Award, Share2, Briefcase, GraduationCap, Link as LinkIcon, Folder, GitMerge, BrainCircuit, Lightbulb } from 'lucide-react';
+import { Home, Users, BookOpen, BarChart3, LogOut, PanelLeft, Bell, Settings, FilePlus, ChevronRight, MessageSquare, Podcast, ClipboardCheck, Award, Share2, Briefcase, GraduationCap, Link as LinkIcon, Folder, GitMerge, BrainCircuit, Lightbulb, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Link from 'next/link';
