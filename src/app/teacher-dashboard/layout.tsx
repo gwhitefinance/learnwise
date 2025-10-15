@@ -5,7 +5,7 @@ import React from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
-import { Home, Users, BookOpen, BarChart3, LogOut, PanelLeft, Bell, Settings, FilePlus, ChevronRight, MessageSquare, Podcast, ClipboardCheck } from 'lucide-react';
+import { Home, Users, BookOpen, BarChart3, LogOut, PanelLeft, Bell, Settings, FilePlus, ChevronRight, MessageSquare, Podcast, ClipboardCheck, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Link from 'next/link';
@@ -50,6 +50,11 @@ const sidebarItems: SidebarItem[] = [
         title: "Assessments",
         icon: <ClipboardCheck className="h-5 w-5" />,
         href: "/teacher-dashboard/assessments",
+    },
+    {
+        title: "Incentives",
+        icon: <Award className="h-5 w-5" />,
+        href: "/teacher-dashboard/incentives",
     },
     {
         title: "Communication",
