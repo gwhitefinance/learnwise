@@ -819,14 +819,21 @@ function CoursesComponent() {
   const handleMouseUp = () => {
     if (!contentRef.current) return;
     const selection = window.getSelection();
-    if (selection && selection.toString().trim().length > 0 && contentRef.current.contains(selection.anchorNode)) {
-        const range = selection.getRangeAt(0);
-        setSelection(range);
+    if (selection && selection.rangeCount > 0 && selection.toString().trim().length > 0) {
+      const range = selection.getRangeAt(0);
+      if (contentRef.current.contains(range.commonAncestorContainer)) {
+        setSelection(range.cloneRange()); // Clone the range to preserve it
         const rect = range.getBoundingClientRect();
         const contentRect = contentRef.current.getBoundingClientRect();
-        setPopoverPosition({ top: rect.top - contentRect.top - 50, left: rect.left - contentRect.left + rect.width / 2 - 80 });
-    } else {
+        setPopoverPosition({
+          top: rect.top - contentRect.top - 50,
+          left: rect.left - contentRect.left + rect.width / 2,
+        });
+      } else {
         setSelection(null);
+      }
+    } else {
+      setSelection(null);
     }
   };
 
@@ -834,9 +841,6 @@ function CoursesComponent() {
     if (!selection || !contentRef.current) return;
     
     const range = selection;
-    const commonAncestor = range.commonAncestorContainer;
-
-    // A more robust way to calculate offset within the contentRef
     const preSelectionRange = document.createRange();
     preSelectionRange.selectNodeContents(contentRef.current);
     preSelectionRange.setEnd(range.startContainer, range.startOffset);
@@ -860,6 +864,7 @@ function CoursesComponent() {
     setNoteContent(selection.toString());
     setIsNoteFromHighlightOpen(true);
     setSelection(null);
+    window.getSelection()?.removeAllRanges();
   };
   
   const handleSaveNoteFromHighlight = async () => {
@@ -1194,43 +1199,52 @@ function CoursesComponent() {
     )
   }
 
-  const TextSelectionMenu = () => (
-    <div 
-        id="text-selection-popover"
-        style={{ top: popoverPosition.top, left: popoverPosition.left }}
-        className="absolute z-10 bg-card p-1 rounded-lg shadow-lg border flex gap-1 items-center"
-    >
-        <button onClick={() => applyHighlight('highlight-yellow')} className="h-6 w-6 rounded-full bg-yellow-300 border-2 border-transparent hover:border-primary"></button>
-        <button onClick={() => applyHighlight('highlight-blue')} className="h-6 w-6 rounded-full bg-blue-300 border-2 border-transparent hover:border-primary"></button>
-        <button onClick={() => applyHighlight('highlight-pink')} className="h-6 w-6 rounded-full bg-pink-300 border-2 border-transparent hover:border-primary"></button>
-        <Popover>
-            <PopoverTrigger asChild>
-                <button className="p-1 rounded-md hover:bg-muted"><Underline className="h-5 w-5" /></button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-1">
-                <div className="flex flex-col gap-1">
-                    <button onClick={() => applyHighlight('underline-solid')} className="p-2 hover:bg-muted rounded-md text-sm w-full text-left">Solid</button>
-                    <button onClick={() => applyHighlight('underline-dashed')} className="p-2 hover:bg-muted rounded-md text-sm w-full text-left">Dashed</button>
-                    <button onClick={() => applyHighlight('underline-dotted')} className="p-2 hover:bg-muted rounded-md text-sm w-full text-left">Dotted</button>
-                </div>
-            </PopoverContent>
-        </Popover>
-        <Popover>
-             <PopoverTrigger asChild>
-                <button className="p-1 rounded-md hover:bg-muted"><Highlighter className="h-5 w-5" /></button>
-            </PopoverTrigger>
-             <PopoverContent className="w-auto p-1">
-                <div className="flex flex-col gap-1">
-                    <button onClick={() => applyHighlight('highlight-yellow')} className="p-2 hover:bg-muted rounded-md text-sm w-full text-left">Yellow</button>
-                    <button onClick={() => applyHighlight('highlight-blue')} className="p-2 hover:bg-muted rounded-md text-sm w-full text-left">Blue</button>
-                    <button onClick={() => applyHighlight('highlight-pink')} className="p-2 hover:bg-muted rounded-md text-sm w-full text-left">Pink</button>
-                </div>
-            </PopoverContent>
-        </Popover>
-        <div className="w-px h-6 bg-border mx-1"></div>
-        <button onClick={saveAsNote} className="p-1 rounded-md hover:bg-muted"><Plus className="h-5 w-5" /></button>
-    </div>
-);
+  const TextSelectionMenu = () => {
+    const popoverStyle = {
+      position: 'absolute' as const,
+      top: `${popoverPosition.top}px`,
+      left: `${popoverPosition.left}px`,
+      transform: 'translateX(-50%)',
+    };
+
+    return (
+        <div
+            id="text-selection-popover"
+            style={popoverStyle}
+            className="z-10 bg-card p-1 rounded-lg shadow-lg border flex gap-1 items-center"
+        >
+            <button onClick={() => applyHighlight('highlight-yellow')} className="h-6 w-6 rounded-full bg-yellow-300 border-2 border-transparent hover:border-primary"></button>
+            <button onClick={() => applyHighlight('highlight-blue')} className="h-6 w-6 rounded-full bg-blue-300 border-2 border-transparent hover:border-primary"></button>
+            <button onClick={() => applyHighlight('highlight-pink')} className="h-6 w-6 rounded-full bg-pink-300 border-2 border-transparent hover:border-primary"></button>
+            <Popover>
+                <PopoverTrigger asChild>
+                    <button className="p-1 rounded-md hover:bg-muted"><Underline className="h-5 w-5" /></button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-1">
+                    <div className="flex flex-col gap-1">
+                        <button onClick={() => applyHighlight('underline-solid')} className="p-2 hover:bg-muted rounded-md text-sm w-full text-left">Solid</button>
+                        <button onClick={() => applyHighlight('underline-dashed')} className="p-2 hover:bg-muted rounded-md text-sm w-full text-left">Dashed</button>
+                        <button onClick={() => applyHighlight('underline-dotted')} className="p-2 hover:bg-muted rounded-md text-sm w-full text-left">Dotted</button>
+                    </div>
+                </PopoverContent>
+            </Popover>
+            <Popover>
+                <PopoverTrigger asChild>
+                    <button className="p-1 rounded-md hover:bg-muted"><Highlighter className="h-5 w-5" /></button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-1">
+                    <div className="flex flex-col gap-1">
+                        <button onClick={() => applyHighlight('highlight-yellow')} className="p-2 hover:bg-muted rounded-md text-sm w-full text-left">Yellow</button>
+                        <button onClick={() => applyHighlight('highlight-blue')} className="p-2 hover:bg-muted rounded-md text-sm w-full text-left">Blue</button>
+                        <button onClick={() => applyHighlight('highlight-pink')} className="p-2 hover:bg-muted rounded-md text-sm w-full text-left">Pink</button>
+                    </div>
+                </PopoverContent>
+            </Popover>
+            <div className="w-px h-6 bg-border mx-1"></div>
+            <button onClick={saveAsNote} className="p-1 rounded-md hover:bg-muted"><Plus className="h-5 w-5" /></button>
+        </div>
+    );
+};
 
 
   return (
@@ -1360,7 +1374,7 @@ function CoursesComponent() {
              </div>
         </aside>
         
-        <main className="flex-1 p-6 overflow-y-auto" ref={contentRef}>
+        <main className="flex-1 p-6 overflow-y-auto" onMouseUp={handleMouseUp} ref={contentRef}>
              <div className="flex items-center justify-between mb-4">
                 <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
                     <PanelLeft className="h-5 w-5" />
@@ -1400,7 +1414,7 @@ function CoursesComponent() {
                                     <Image src={currentChapter.imageUrl} alt={`Header for ${currentChapter.title}`} layout="fill" objectFit="cover" />
                                 </div>
                             )}
-                             <div className="text-muted-foreground text-lg whitespace-pre-wrap leading-relaxed" onMouseUp={handleMouseUp} dangerouslySetInnerHTML={{ __html: renderContentWithHighlights() }} />
+                             <div className="text-muted-foreground text-lg whitespace-pre-wrap leading-relaxed" dangerouslySetInnerHTML={{ __html: renderContentWithHighlights() }} />
                             {currentChapter.diagramUrl && (
                                 <div className="mt-4 p-4 bg-muted/50 rounded-lg">
                                     <h5 className="font-semibold text-sm mb-2 flex items-center gap-2"><ImageIcon size={16} /> Diagram</h5>
