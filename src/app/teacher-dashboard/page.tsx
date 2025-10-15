@@ -27,10 +27,10 @@ const studentsData = [
 ];
 
 const learningStylesData = [
-  { style: 'Visual', students: 55, fill: '#60a5fa', className: 'bg-blue-400' },
-  { style: 'Auditory', students: 30, fill: '#a78bfa', className: 'bg-purple-400' },
-  { style: 'Kinesthetic', students: 25, fill: '#34d399', className: 'bg-emerald-400' },
-  { style: 'Reading/Writing', students: 18, fill: '#fbbf24', className: 'bg-amber-400' },
+  { style: 'Visual', students: 55, className: 'bg-blue-400' },
+  { style: 'Auditory', students: 30, className: 'bg-purple-400' },
+  { style: 'Kinesthetic', students: 25, className: 'bg-emerald-400' },
+  { style: 'Reading/Writing', students: 18, className: 'bg-amber-400' },
 ];
 
 const heatmapData = {
@@ -170,9 +170,10 @@ export default function TeacherDashboardPage() {
                                      <PieChart>
                                         <ChartTooltip content={<ChartTooltipContent hideLabel />} />
                                         <Pie data={learningStylesData} dataKey="students" nameKey="style" innerRadius={25} strokeWidth={5}>
-                                            {learningStylesData.map((entry, index) => (
-                                                <Cell key={`cell-${index}`} fill={entry.fill} />
-                                            ))}
+                                            <Cell fill="#60a5fa" />
+                                            <Cell fill="#a78bfa" />
+                                            <Cell fill="#34d399" />
+                                            <Cell fill="#fbbf24" />
                                         </Pie>
                                     </PieChart>
                                 </ChartContainer>
