@@ -816,7 +816,7 @@ function CoursesComponent() {
     }
   };
 
-  const handleMouseUp = () => {
+  const handleMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!contentRef.current) return;
     const selection = window.getSelection();
     if (selection && selection.rangeCount > 0 && selection.toString().trim().length > 0) {
@@ -1374,7 +1374,7 @@ function CoursesComponent() {
              </div>
         </aside>
         
-        <main className="flex-1 p-6 overflow-y-auto" onMouseUp={handleMouseUp} ref={contentRef}>
+        <main className="flex-1 p-6 overflow-y-auto">
              <div className="flex items-center justify-between mb-4">
                 <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
                     <PanelLeft className="h-5 w-5" />
@@ -1414,7 +1414,12 @@ function CoursesComponent() {
                                     <Image src={currentChapter.imageUrl} alt={`Header for ${currentChapter.title}`} layout="fill" objectFit="cover" />
                                 </div>
                             )}
-                             <div className="text-muted-foreground text-lg whitespace-pre-wrap leading-relaxed" dangerouslySetInnerHTML={{ __html: renderContentWithHighlights() }} />
+                             <div 
+                                onMouseUp={handleMouseUp}
+                                ref={contentRef}
+                                className="text-muted-foreground text-lg whitespace-pre-wrap leading-relaxed" 
+                                dangerouslySetInnerHTML={{ __html: renderContentWithHighlights() }} 
+                             />
                             {currentChapter.diagramUrl && (
                                 <div className="mt-4 p-4 bg-muted/50 rounded-lg">
                                     <h5 className="font-semibold text-sm mb-2 flex items-center gap-2"><ImageIcon size={16} /> Diagram</h5>
