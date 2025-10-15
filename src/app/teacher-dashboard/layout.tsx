@@ -66,6 +66,11 @@ const sidebarItems: SidebarItem[] = [
         icon: <Podcast className="h-5 w-5" />,
         href: "/teacher-dashboard/podcasts",
     },
+    {
+        title: "Collaboration",
+        icon: <Users className="h-5 w-5" />,
+        href: "/teacher-dashboard/collaboration",
+    },
     { 
         title: "Analytics", 
         icon: <BarChart3 className="h-5 w-5" />, 
