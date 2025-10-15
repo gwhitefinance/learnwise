@@ -27,10 +27,10 @@ const studentsData = [
 ];
 
 const learningStylesData = [
-  { style: 'Visual', students: 55, fill: 'hsl(var(--primary))' },
-  { style: 'Auditory', students: 30, fill: 'hsl(var(--accent-foreground))' },
-  { style: 'Kinesthetic', students: 25, fill: 'hsl(var(--secondary))' },
-  { style: 'Reading/Writing', students: 18, fill: 'hsl(var(--muted-foreground))' },
+  { style: 'Visual', students: 55, fill: '#60a5fa' },
+  { style: 'Auditory', students: 30, fill: '#a78bfa' },
+  { style: 'Kinesthetic', students: 25, fill: '#34d399' },
+  { style: 'Reading/Writing', students: 18, fill: '#fbbf24' },
 ];
 
 const heatmapData = {
