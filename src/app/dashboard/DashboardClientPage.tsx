@@ -36,6 +36,9 @@ import {
   Wand2,
   CheckCircle,
   XCircle,
+  Play,
+  Pause,
+  RotateCcw,
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -77,6 +80,7 @@ import { RewardContext } from '@/context/RewardContext';
 import { Textarea } from '@/components/ui/textarea';
 import Logo from '@/components/Logo';
 import Spotlight from '@/components/ui/spotlight';
+import PomodoroTimer from '@/components/PomodoroTimer';
 
   type CourseFile = {
       id: string;
@@ -853,7 +857,8 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                 </div>
                             </div>
                         </div>
-                         <div className="relative hidden lg:flex items-center justify-center gap-2">
+                         <div className="relative hidden lg:flex items-center justify-center gap-8">
+                            <PomodoroTimer />
                             <AIBuddy 
                                 className="w-32 h-32"
                                 color={customizations.color}
