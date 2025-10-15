@@ -5,7 +5,7 @@ import React from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
-import { Home, Users, BookOpen, BarChart3, LogOut, PanelLeft, Bell, Settings, FilePlus } from 'lucide-react';
+import { Home, Users, BookOpen, BarChart3, LogOut, PanelLeft, Bell, Settings, FilePlus, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Link from 'next/link';
@@ -14,14 +14,106 @@ import { usePathname } from 'next/navigation';
 import { Toaster } from '@/components/ui/toaster';
 import DashboardLoading from '@/app/dashboard/loading';
 import Logo from '@/components/Logo';
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
-const sidebarItems = [
+type SidebarChild = {
+  title: string;
+  href: string;
+};
+
+type SidebarItem = {
+  title: string;
+  icon: React.ReactElement;
+  href?: string;
+  children?: SidebarChild[];
+};
+
+const sidebarItems: SidebarItem[] = [
     { title: "Dashboard", icon: <Home className="h-5 w-5" />, href: "/teacher-dashboard" },
-    { title: "Students", icon: <Users className="h-5 w-5" />, href: "/teacher-dashboard/students" },
-    { title: "Classes", icon: <BookOpen className="h-5 w-5" />, href: "/teacher-dashboard/classes" },
-    { title: "Content", icon: <FilePlus className="h-5 w-5" />, href: "/teacher-dashboard/content" },
-    { title: "Analytics", icon: <BarChart3 className="h-5 w-5" />, href: "/teacher-dashboard/analytics" },
+    { 
+        title: "Students", 
+        icon: <Users className="h-5 w-5" />, 
+        href: "/teacher-dashboard/students",
+    },
+    { 
+        title: "Content", 
+        icon: <FilePlus className="h-5 w-5" />, 
+        href: "/teacher-dashboard/content"
+    },
+    { 
+        title: "Classes", 
+        icon: <BookOpen className="h-5 w-5" />, 
+        href: "/teacher-dashboard/classes" 
+    },
+    { 
+        title: "Analytics", 
+        icon: <BarChart3 className="h-5 w-5" />, 
+        href: "/teacher-dashboard/analytics" 
+    },
 ];
+
+const SidebarNavItem = ({ item, pathname }: { item: SidebarItem, pathname: string }) => {
+    const [isOpen, setIsOpen] = React.useState(false);
+    const hasChildren = item.children && item.children.length > 0;
+    
+    const isActive = hasChildren 
+        ? item.children.some(child => pathname.startsWith(child.href)) 
+        : pathname === item.href;
+
+    React.useEffect(() => {
+        if (isActive) {
+            setIsOpen(true);
+        }
+    }, [isActive, pathname]);
+
+    if (hasChildren) {
+        return (
+            <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+                 <CollapsibleTrigger asChild>
+                    <button className={cn(
+                          "flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                          isActive ? "bg-muted text-primary" : "hover:bg-muted text-muted-foreground"
+                        )}>
+                        <div className="flex items-center gap-3">
+                            {item.icon}
+                            <span>{item.title}</span>
+                        </div>
+                        <ChevronRight className={cn("h-4 w-4 transition-transform", isOpen && "rotate-90")} />
+                    </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="py-1 pl-8">
+                    <div className="flex flex-col space-y-1">
+                        {item.children.map((child: SidebarChild) => (
+                             <Link
+                                key={child.href}
+                                href={child.href || '#'}
+                                className={cn(
+                                "flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium",
+                                pathname.startsWith(child.href) ? "text-primary" : "hover:bg-muted text-muted-foreground",
+                                )}
+                            >
+                                <span>{child.title}</span>
+                            </Link>
+                        ))}
+                    </div>
+                </CollapsibleContent>
+            </Collapsible>
+        )
+    }
+
+    return (
+        <Link href={item.href || '#'} >
+            <div className={cn(
+                "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
+                pathname === item.href && "bg-muted text-primary"
+            )}>
+                {item.icon}
+                {item.title}
+            </div>
+        </Link>
+    )
+}
 
 export default function TeacherDashboardLayout({ children }: { children: React.ReactNode }) {
     const [user, loading] = useAuthState(auth);
@@ -57,19 +149,13 @@ export default function TeacherDashboardLayout({ children }: { children: React.R
                         </div>
                         </div>
                     </div>
-                    <nav className="flex-1 px-3 py-2 space-y-1">
-                        {sidebarItems.map(item => (
-                            <Link key={item.href} href={item.href}>
-                                <div className={cn(
-                                    "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
-                                    pathname === item.href && "bg-muted text-primary"
-                                )}>
-                                    {item.icon}
-                                    {item.title}
-                                </div>
-                            </Link>
-                        ))}
-                    </nav>
+                    <ScrollArea className="flex-1 px-3 py-2">
+                        <nav className="space-y-1">
+                            {sidebarItems.map(item => (
+                                <SidebarNavItem key={item.title} item={item} pathname={pathname} />
+                            ))}
+                        </nav>
+                    </ScrollArea>
                      <div className="border-t p-3">
                         <Button onClick={() => auth.signOut()} className="w-full justify-start">
                             <LogOut className="mr-2 h-4 w-4" /> Sign Out
