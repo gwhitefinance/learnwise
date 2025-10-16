@@ -41,6 +41,9 @@ import {
   Pause,
   RotateCcw,
   Clock,
+  Rabbit,
+  Snail,
+  Turtle,
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -74,7 +77,7 @@ import dynamic from 'next/dynamic';
 import AIBuddy from '@/components/ai-buddy';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import rewardsData from '@/lib/rewards.json';
-import { generateExplanation, generateMiniCourse } from '@/lib/actions';
+import { generateExplanation, generateRoadmap } from '@/lib/actions';
 import AudioPlayer from '@/components/audio-player';
 import type { GenerateExplanationOutput } from '@/ai/schemas/quiz-explanation-schema';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -166,6 +169,12 @@ import PomodoroTimer from '@/components/PomodoroTimer';
       practiceAnswer?: string;
       practiceFeedback?: 'correct' | 'incorrect';
   };
+  
+const paces = [
+  { value: "6", label: "Casual", description: "A relaxed pace for exploring.", icon: <Snail className="h-6 w-6" /> },
+  { value: "3", label: "Steady", description: "A balanced pace for consistent learning.", icon: <Turtle className="h-6 w-6" /> },
+  { value: "1", label: "Intense", description: "A fast-paced schedule for quick mastery.", icon: <Rabbit className="h-6 w-6" /> },
+];
   
   const AppCard = ({ title, description, icon, href, actionButton, id }: { title: string; description: string; icon: React.ReactNode; href: string, actionButton?: React.ReactNode, id?: string }) => (
     <motion.div
@@ -261,7 +270,11 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
     const { showReward } = useContext(RewardContext);
 
     // Add Course Dialog State
+    const [addCourseStep, setAddCourseStep] = useState(1);
     const [isNewTopic, setIsNewTopic] = useState<boolean | null>(null);
+    const [learningPace, setLearningPace] = useState<string>("3");
+    const [isRoadmapGenerating, setIsRoadmapGenerating] = useState(false);
+
 
      useEffect(() => {
         if (!user) return;
@@ -427,8 +440,10 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
     };
 
     const resetAddCourseDialog = () => {
+        setAddCourseStep(1);
         setIsNewTopic(null);
         setNewCourse({ name: '', instructor: '', credits: '', url: '', description: '' });
+        setLearningPace("3");
     };
 
     const handleAddCourse = async () => {
@@ -444,7 +459,7 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
   
         setIsSavingCourse(true);
   
-        const courseToAdd = {
+        const courseData = {
             name: newCourse.name,
             instructor: newCourse.instructor || 'N/A',
             credits: parseInt(newCourse.credits, 10) || 0,
@@ -459,18 +474,36 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
         };
   
         try {
-            await addDoc(collection(db, "courses"), courseToAdd);
+            const docRef = await addDoc(collection(db, "courses"), courseData);
             toast({
                 title: 'Course Added!',
-                description: `${courseToAdd.name} has been added to your list.`,
+                description: 'Now generating your study roadmap...',
             });
+
+            // Generate roadmap after adding course
+            setIsRoadmapGenerating(true);
+            const roadmapResult = await generateRoadmap({
+                courseName: courseData.name,
+                courseDescription: courseData.description,
+                courseUrl: courseData.url,
+                durationInMonths: parseInt(learningPace, 10),
+            });
+            const newRoadmap = {
+                goals: roadmapResult.goals.map(g => ({ ...g, id: `id-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, icon: g.icon || 'Flag' })),
+                milestones: roadmapResult.milestones.map(m => ({ ...m, id: `id-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, icon: m.icon || 'Calendar', completed: false }))
+            };
+            await addDoc(collection(db, 'roadmaps'), { ...newRoadmap, courseId: docRef.id, userId: user.uid });
+            toast({ title: 'Roadmap Generated!', description: 'Your new study plan is ready.' });
+            
             setAddCourseOpen(false);
             resetAddCourseDialog();
+
         } catch(error) {
-            console.error("Error adding document: ", error);
-            toast({ variant: 'destructive', title: 'Error', description: 'Could not add course.' });
+            console.error("Error adding course or roadmap: ", error);
+            toast({ variant: 'destructive', title: 'Error', description: 'Could not add course or generate roadmap.' });
         } finally {
             setIsSavingCourse(false);
+            setIsRoadmapGenerating(false);
         }
     };
     
@@ -770,52 +803,70 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                         <DialogHeader>
                             <DialogTitle>Add a New Course</DialogTitle>
                             <DialogDescription>
-                                First, provide some details about your course.
+                                {addCourseStep === 1 ? 'First, provide some details about your course.' : 'How quickly do you want to learn?'}
                             </DialogDescription>
                         </DialogHeader>
-                        <div className="grid gap-4 py-4">
-                            <div className="grid gap-2">
-                                <Label htmlFor="name">Course Name</Label>
-                                <Input id="name" name="name" value={newCourse.name} onChange={handleInputChange} placeholder="e.g., Introduction to AI"/>
+                        {addCourseStep === 1 ? (
+                            <div className="grid gap-4 py-4">
+                                <div className="grid gap-2">
+                                    <Label htmlFor="name">Course Name</Label>
+                                    <Input id="name" name="name" value={newCourse.name} onChange={handleInputChange} placeholder="e.g., Introduction to AI"/>
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="description">Description (Optional)</Label>
+                                    <Textarea id="description" name="description" value={newCourse.description} onChange={handleInputChange} placeholder="A brief summary of the course"/>
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="url">Course URL (Optional)</Label>
+                                    <Input id="url" name="url" value={newCourse.url} onChange={handleInputChange} placeholder="https://example.com/course-link"/>
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="is-new-topic">Are you currently in this course?</Label>
+                                    <Select onValueChange={(value) => setIsNewTopic(value === 'false')}>
+                                        <SelectTrigger id="is-new-topic">
+                                            <SelectValue placeholder="Select an option" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="true">Yes, I am</SelectItem>
+                                            <SelectItem value="false">No, I'm learning something new</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
                             </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="description">Description (Optional)</Label>
-                                <Textarea id="description" name="description" value={newCourse.description} onChange={handleInputChange} placeholder="A brief summary of the course"/>
+                        ) : (
+                            <div className="py-4">
+                                <RadioGroup value={learningPace} onValueChange={setLearningPace} className="space-y-4">
+                                    {paces.map(pace => (
+                                        <Label key={pace.value} htmlFor={`pace-${pace.value}`} className={cn("flex items-start gap-4 p-4 rounded-lg border transition-all cursor-pointer", learningPace === pace.value && "border-primary bg-primary/10 ring-2 ring-primary")}>
+                                            <RadioGroupItem value={pace.value} id={`pace-${pace.value}`} className="mt-1" />
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-2">
+                                                    {pace.icon}
+                                                    <span className="font-semibold text-lg">{pace.label}</span>
+                                                </div>
+                                                <p className="text-sm text-muted-foreground mt-1">{pace.description}</p>
+                                            </div>
+                                        </Label>
+                                    ))}
+                                </RadioGroup>
                             </div>
-                             <div className="grid gap-2">
-                                <Label htmlFor="is-new-topic">Are you currently in this course?</Label>
-                                <Select onValueChange={(value) => setIsNewTopic(value === 'false')}>
-                                    <SelectTrigger id="is-new-topic">
-                                        <SelectValue placeholder="Select an option" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="true">Yes</SelectItem>
-                                        <SelectItem value="false">No, I'm learning something new</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="url">Course URL (Optional)</Label>
-                                <Input id="url" name="url" value={newCourse.url} onChange={handleInputChange} placeholder="https://example.com/course-link"/>
-                            </div>
-                            {gradeLevel !== 'Other' && (
-                                <>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="instructor">Instructor</Label>
-                                        <Input id="instructor" name="instructor" value={newCourse.instructor} onChange={handleInputChange} placeholder="e.g., Dr. Alan Turing"/>
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="credits">Credits</Label>
-                                        <Input id="credits" name="credits" type="number" value={newCourse.credits} onChange={handleInputChange} placeholder="e.g., 3"/>
-                                    </div>
-                                </>
-                            )}
-                        </div>
+                        )}
                         <DialogFooter>
-                            <Button variant="ghost" onClick={() => { setAddCourseOpen(false); resetAddCourseDialog();}}>Cancel</Button>
-                            <Button onClick={handleAddCourse} disabled={isSavingCourse || isNewTopic === null}>
-                                {isSavingCourse ? 'Saving...' : 'Add Course'}
-                            </Button>
+                             {addCourseStep === 1 ? (
+                                <>
+                                    <Button variant="ghost" onClick={() => { setAddCourseOpen(false); resetAddCourseDialog();}}>Cancel</Button>
+                                    <Button onClick={() => setAddCourseStep(2)} disabled={isSavingCourse || isNewTopic === null || !newCourse.name}>
+                                        Next
+                                    </Button>
+                                </>
+                             ) : (
+                                <>
+                                    <Button variant="ghost" onClick={() => setAddCourseStep(1)}>Back</Button>
+                                    <Button onClick={handleAddCourse} disabled={isSavingCourse || isRoadmapGenerating}>
+                                        {isSavingCourse ? 'Saving...' : (isRoadmapGenerating ? 'Generating Roadmap...' : 'Add Course')}
+                                    </Button>
+                                </>
+                             )}
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
