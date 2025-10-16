@@ -27,30 +27,43 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ contentToRead, onClos
   const { toast } = useToast();
   const { openChatAndListen } = useContext(FloatingChatContext);
 
-  const stopPlayback = useCallback(async (): Promise<void> => {
-    return new Promise((resolve) => {
-      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-        if (speechSynthesis.speaking) {
-          // If it's already speaking, attach an event listener
-          // that resolves the promise once the current utterance has ended.
-          if (utteranceRef.current) {
-            utteranceRef.current.onend = () => {
-              utteranceRef.current = null;
-              resolve();
-            };
-          }
-          speechSynthesis.cancel();
-        } else {
-          // If not speaking, resolve immediately.
-          resolve();
-        }
-      } else {
-        resolve();
+  const stopPlayback = useCallback(() => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      if (speechSynthesis.speaking) {
+        speechSynthesis.cancel();
       }
-    });
+    }
   }, []);
 
-  const handlePlay = useCallback(async () => {
+  useEffect(() => {
+    const loadVoices = () => {
+      const availableVoices = window.speechSynthesis.getVoices();
+      if (availableVoices.length > 0) {
+        setVoices(availableVoices);
+        const englishVoice = availableVoices.find(v => v.lang.startsWith('en-US')) || availableVoices.find(v => v.lang.startsWith('en'));
+        if (englishVoice) {
+          setSelectedVoice(englishVoice.voiceURI);
+        }
+      }
+    };
+
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      loadVoices();
+      speechSynthesis.onvoiceschanged = loadVoices;
+    }
+    
+    // Cleanup function to stop speech when component unmounts or content changes
+    return () => {
+      stopPlayback();
+    };
+  }, [contentToRead, stopPlayback]);
+
+  const handlePlay = useCallback(() => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+        toast({ variant: 'destructive', title: 'Audio Error', description: 'Speech synthesis is not supported in this browser.' });
+        return;
+    }
+    
     if (isPlaying) {
       speechSynthesis.pause();
       setIsPaused(true);
@@ -60,7 +73,8 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ contentToRead, onClos
       setIsPaused(false);
       setIsPlaying(true);
     } else {
-      await stopPlayback();
+      stopPlayback(); // Ensure any previous speech is stopped
+
       const utterance = new SpeechSynthesisUtterance(contentToRead);
       utteranceRef.current = utterance;
 
@@ -87,34 +101,12 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ contentToRead, onClos
     }
   }, [isPlaying, isPaused, contentToRead, selectedVoice, voices, stopPlayback, toast]);
   
-  const handleRaiseHand = async () => {
-    await stopPlayback();
+  const handleRaiseHand = () => {
+    stopPlayback();
     setIsPlaying(false);
     setIsPaused(false);
     openChatAndListen();
   };
-
-  useEffect(() => {
-    const loadVoices = () => {
-      const availableVoices = window.speechSynthesis.getVoices();
-      if (availableVoices.length > 0) {
-        setVoices(availableVoices);
-        const englishVoice = availableVoices.find(v => v.lang.startsWith('en-US')) || availableVoices.find(v => v.lang.startsWith('en'));
-        if (englishVoice) {
-          setSelectedVoice(englishVoice.voiceURI);
-        }
-      }
-    };
-
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      loadVoices();
-      speechSynthesis.onvoiceschanged = loadVoices;
-    }
-    
-    return () => {
-      stopPlayback();
-    };
-  }, [stopPlayback]);
 
 
   return (
