@@ -1278,7 +1278,10 @@ function CoursesComponent() {
                       <p className="text-sm text-muted-foreground max-h-32 overflow-y-auto">{summaryForPopup}</p>
                   )}
                   <div className="pt-4">
-                      <p className="text-xs text-muted-foreground mb-1">Preparing next chapter...</p>
+                      <div className="flex justify-between items-center">
+                        <p className="text-xs text-muted-foreground mb-1">Preparing next chapter...</p>
+                        <span className="text-xs font-semibold">{Math.round(nextChapterProgress)}%</span>
+                      </div>
                       <Progress value={nextChapterProgress} className="h-2"/>
                   </div>
               </div>
