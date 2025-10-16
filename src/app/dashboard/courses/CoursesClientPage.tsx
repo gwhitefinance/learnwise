@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect, useContext, Suspense, useRef } from 'react';
@@ -24,7 +23,7 @@ import AudioPlayer from '@/components/audio-player';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { generateMiniCourse, generateQuizFromModule, generateFlashcardsFromModule, generateTutorResponse, generateChapterContent, generateMidtermExam, generateRoadmap, generateCourseFromUrl } from '@/lib/actions';
+import { generateInitialCourseAndRoadmap, generateQuizFromModule, generateFlashcardsFromModule, generateTutorResponse, generateChapterContent, generateMidtermExam, generateRoadmap, generateCourseFromUrl } from '@/lib/actions';
 import { RewardContext } from '@/context/RewardContext';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import Loading from './loading';
@@ -34,6 +33,7 @@ import Image from 'next/image';
 import { Textarea } from '@/components/ui/textarea';
 import VoiceModePlayer from '@/components/VoiceModePlayer';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import GeneratingCourse from './GeneratingCourse';
 
 
 type Course = {
@@ -141,7 +141,7 @@ function CoursesComponent() {
 
   const [newCourse, setNewCourse] = useState({ name: '', instructor: '', credits: '', url: '', description: '' });
   const [isSaving, setIsSaving] = useState(false);
-  const [isAddCourseOpen, setAddCourseOpen] = useState(false);
+  const [addCourseOpen, setAddCourseOpen] = useState(false);
   const [gradeLevel, setGradeLevel] = useState<string | null>(null);
   const [addCourseStep, setAddCourseStep] = useState(1);
   const [isNewTopic, setIsNewTopic] = useState<boolean | null>(null);
@@ -267,7 +267,6 @@ function CoursesComponent() {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-        // If the click is outside the content area and the popover, hide the popover.
         const popoverEl = document.getElementById('text-selection-popover');
         if (contentRef.current && !contentRef.current.contains(event.target as Node) && popoverEl && !popoverEl.contains(event.target as Node)) {
             setPopoverPosition(null);
@@ -281,57 +280,63 @@ function CoursesComponent() {
   const currentModule = activeCourse?.units?.[currentModuleIndex];
   const currentChapter = currentModule?.chapters[currentChapterIndex];
 
-  const handleGenerateCourse = async (courseToGenerate: Course) => {
-    if (!user) return;
+  const handleGenerateCourse = async () => {
+    if (!user || !newCourse.name || isNewTopic === null || !learnerType) return;
     
+    setAddCourseOpen(false);
     setIsGenerating(true);
-    toast({ title: 'Generating Course Outline...', description: `This might take a minute...` });
-
+    
     try {
-        const learnerType = localStorage.getItem('learnerType') as any || 'Reading/Writing';
-        
-        const generationInput = {
-            courseName: courseToGenerate.name,
-            courseDescription: courseToGenerate.description || `An in-depth course on ${courseToGenerate.name}`,
-            learnerType,
-            courseUrl: courseToGenerate.url || '',
-            webContent: '', // this will be handled by the flow if URL exists
-        };
+        const result = await generateInitialCourseAndRoadmap({
+            courseName: newCourse.name,
+            courseDescription: newCourse.description || `An in-depth course on ${newCourse.name}`,
+            learnerType: learnerType as any,
+            durationInMonths: parseInt(learningPace, 10),
+        });
 
-        const result = await (courseToGenerate.url ? generateCourseFromUrl(generationInput) : generateMiniCourse(generationInput));
+        const { courseOutline, firstChapterContent, roadmap } = result;
 
-        const newUnits = result.modules.map(module => ({
+        const newUnits = courseOutline.modules.map((module, mIdx) => ({
             id: crypto.randomUUID(),
             title: module.title,
-            chapters: module.chapters.map(chapter => ({ 
-                ...chapter, 
+            chapters: module.chapters.map((chapter, cIdx) => ({
                 id: crypto.randomUUID(),
+                title: chapter.title,
+                ...(mIdx === 0 && cIdx === 0 ? firstChapterContent : {}),
             }))
         }));
-        
-        if (newUnits.length === 0) {
-            throw new Error("AI did not generate any modules.");
-        }
-        
-        const courseRef = doc(db, 'courses', courseToGenerate.id);
-        await updateDoc(courseRef, { 
-            units: newUnits,
-            completedChapters: [],
-        });
-        
-        setActiveCourse(prev => prev ? { ...prev, units: newUnits, completedChapters: [] } : null);
-        setSelectedCourseId(courseToGenerate.id);
-        setCurrentModuleIndex(0);
-        setCurrentChapterIndex(0);
-        setIsCourseReadyDialogOpen(true);
 
+        const courseData = {
+            name: newCourse.name,
+            description: newCourse.description || `An in-depth course on ${newCourse.name}`,
+            url: newCourse.url,
+            userId: user.uid,
+            units: newUnits,
+            isNewTopic: true,
+            completedChapters: [],
+            progress: 0,
+        };
+
+        const courseDocRef = await addDoc(collection(db, "courses"), courseData);
+        
+        const newRoadmap = {
+            goals: roadmap.goals.map(g => ({ ...g, id: crypto.randomUUID(), icon: g.icon || 'Flag' })),
+            milestones: roadmap.milestones.map(m => ({ ...m, id: crypto.randomUUID(), icon: m.icon || 'Calendar', completed: false }))
+        };
+        await addDoc(collection(db, 'roadmaps'), { ...newRoadmap, courseId: courseDocRef.id, userId: user.uid });
+        
+        toast({ title: 'Course & Roadmap Generated!', description: 'Your new learning lab is ready.' });
+        setSelectedCourseId(courseDocRef.id);
+        
     } catch (error) {
-        console.error("Failed to generate course content:", error);
-        toast({ variant: 'destructive', title: 'Generation Failed', description: 'Could not create content for this course.' });
+        console.error("Failed to generate course and roadmap:", error);
+        toast({ variant: 'destructive', title: 'Generation Failed', description: 'Could not create the full course content.' });
     } finally {
         setIsGenerating(false);
+        resetAddCourseDialog();
     }
   };
+
 
    const handleGenerateRoadmap = async (durationInMonths: number) => {
         if (!activeCourse || !user) return;
@@ -702,13 +707,9 @@ function CoursesComponent() {
     setLearningPace("3");
   };
   
-  const handleAddCourse = async () => {
+  const handleAddExistingCourse = async () => {
     if (!newCourse.name) {
         toast({ variant: 'destructive', title: 'Missing Fields', description: 'Please enter a course name.' });
-        return;
-    }
-    if (isNewTopic === null) {
-        toast({ variant: 'destructive', title: 'Missing Information', description: 'Please specify if you are currently in this course.' });
         return;
     }
     if (!user) return;
@@ -722,7 +723,7 @@ function CoursesComponent() {
         url: newCourse.url,
         description: newCourse.description || `A course on ${newCourse.name}`,
         userId: user.uid,
-        isNewTopic: isNewTopic,
+        isNewTopic: false,
         units: [],
         completedChapters: [],
         progress: 0,
@@ -730,34 +731,15 @@ function CoursesComponent() {
     };
 
     try {
-        const docRef = await addDoc(collection(db, "courses"), courseData);
-        toast({
-            title: 'Course Added!',
-            description: 'Now generating your study roadmap...',
-        });
-
-        setIsRoadmapGenerating(true);
-        const roadmapResult = await generateRoadmap({
-            courseName: courseData.name,
-            courseDescription: courseData.description,
-            courseUrl: courseData.url,
-            durationInMonths: parseInt(learningPace, 10),
-        });
-        const newRoadmap = {
-            goals: roadmapResult.goals.map(g => ({ ...g, id: `id-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, icon: g.icon || 'Flag' })),
-            milestones: roadmapResult.milestones.map(m => ({ ...m, id: `id-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, icon: m.icon || 'Calendar', completed: false }))
-        };
-        await addDoc(collection(db, 'roadmaps'), { ...newRoadmap, courseId: docRef.id, userId: user.uid });
-        toast({ title: 'Roadmap Generated!', description: 'Your new study plan is ready.' });
-        
+        await addDoc(collection(db, "courses"), courseData);
+        toast({ title: 'Course Added!' });
         setAddCourseOpen(false);
         resetAddCourseDialog();
     } catch(error) {
-        console.error("Error adding course or roadmap: ", error);
-        toast({ variant: 'destructive', title: 'Error', description: 'Could not add course or generate roadmap.' });
+        console.error("Error adding course: ", error);
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not add course.' });
     } finally {
         setIsSaving(false);
-        setIsRoadmapGenerating(false);
     }
   };
 
@@ -894,6 +876,10 @@ function CoursesComponent() {
   const completedChaptersCount = activeCourse?.completedChapters?.length ?? 0;
   const progress = chapterCount > 0 ? (completedChaptersCount / chapterCount) * 100 : 0;
   
+  if (isGenerating) {
+    return <GeneratingCourse courseName={newCourse.name} />;
+  }
+  
   if (isLoading) {
     return <Loading />;
   }
@@ -906,7 +892,7 @@ function CoursesComponent() {
                     <h1 className="text-3xl font-bold tracking-tight">Courses</h1>
                     <p className="text-muted-foreground">Manage your courses and generate interactive learning labs.</p>
                 </div>
-                 <Dialog open={isAddCourseOpen} onOpenChange={(open) => { if (!open) resetAddCourseDialog(); setAddCourseOpen(open); }}>
+                 <Dialog open={addCourseOpen} onOpenChange={(open) => { if (!open) resetAddCourseDialog(); setAddCourseOpen(open); }}>
                     <DialogTrigger asChild>
                         <Button disabled={isSaving}>
                             <Plus className="mr-2 h-4 w-4"/> Add Course
@@ -968,15 +954,21 @@ function CoursesComponent() {
                              {addCourseStep === 1 ? (
                                 <>
                                     <Button variant="ghost" onClick={() => { setAddCourseOpen(false); resetAddCourseDialog();}}>Cancel</Button>
-                                    <Button onClick={() => setAddCourseStep(2)} disabled={isSaving || isNewTopic === null || !newCourse.name}>
-                                        Next
+                                    <Button onClick={() => {
+                                        if (isNewTopic) {
+                                            handleAddExistingCourse();
+                                        } else {
+                                            setAddCourseStep(2);
+                                        }
+                                    }} disabled={isSaving || isNewTopic === null || !newCourse.name}>
+                                        {isNewTopic === false ? 'Next' : 'Add Course'}
                                     </Button>
                                 </>
                              ) : (
                                 <>
                                     <Button variant="ghost" onClick={() => setAddCourseStep(1)}>Back</Button>
-                                    <Button onClick={handleAddCourse} disabled={isSaving || isRoadmapGenerating}>
-                                        {isSaving ? 'Saving...' : (isRoadmapGenerating ? 'Generating Roadmap...' : 'Add Course')}
+                                    <Button onClick={handleGenerateCourse} disabled={isSaving || isGenerating}>
+                                        {isGenerating ? 'Generating...' : 'Generate Course & Plan'}
                                     </Button>
                                 </>
                              )}
@@ -1036,19 +1028,19 @@ function CoursesComponent() {
                                 )}
                             </CardContent>
                             <CardFooter className="flex flex-col sm:flex-row gap-2">
-                                {course.units && course.units.length > 0 ? (
+                                {(course.units && course.units.length > 0) || !course.isNewTopic ? (
                                     <Button className="w-full" onClick={() => setSelectedCourseId(course.id)}>
                                         Continue Learning
                                     </Button>
-                                ) : course.isNewTopic ? (
-                                    <Button className="w-full" onClick={() => handleGenerateCourse(course)} disabled={isGenerating}>
+                                ) : (
+                                    <Button className="w-full" onClick={() => {
+                                        setNewCourse(course);
+                                        setIsNewTopic(false); // Trigger "learning something new" flow
+                                        setAddCourseStep(2);
+                                        setAddCourseOpen(true);
+                                    }} disabled={isGenerating}>
                                         <Wand2 className="mr-2 h-4 w-4" />
                                         {isGenerating ? 'Generating...' : 'Generate Lab'}
-                                    </Button>
-                                ) : (
-                                    <Button className="w-full" onClick={() => setSelectedCourseId(course.id)} variant="secondary">
-                                        <BookCopy className="mr-2 h-4 w-4" />
-                                        Manage Course
                                     </Button>
                                 )}
                             </CardFooter>
@@ -1523,5 +1515,3 @@ export default function CoursesClientPage() {
         </Suspense>
     )
 }
-
-    

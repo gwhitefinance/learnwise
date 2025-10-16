@@ -26,6 +26,7 @@ import { generateImage } from '@/ai/flows/image-generation-flow';
 import { generateVideo } from '@/ai/flows/video-generation-flow';
 import { generatePodcastEpisode } from '@/ai/flows/podcast-flow';
 import { generateSatQuestion } from '@/ai/flows/sat-question-flow';
+import { generateInitialCourseAndRoadmap } from '@/ai/flows/initial-course-flow';
 
 
 // Re-exporting all AI functions as Server Actions
@@ -53,5 +54,6 @@ export {
     generateImage,
     generateVideo,
     generatePodcastEpisode,
-    generateSatQuestion
+    generateSatQuestion,
+    generateInitialCourseAndRoadmap
 };

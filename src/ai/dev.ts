@@ -26,3 +26,4 @@ import './flows/image-generation-flow';
 import './flows/video-generation-flow';
 import './flows/podcast-flow';
 import './flows/sat-question-flow';
+import './flows/initial-course-flow';
