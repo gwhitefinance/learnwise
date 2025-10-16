@@ -5,10 +5,9 @@ import { useEffect, useRef, useState, useCallback, useContext } from 'react';
 import { motion } from 'framer-motion';
 import Draggable from 'react-draggable';
 import { Button } from './ui/button';
-import { Hand, Pause, Play, X, Mic, MicOff, Video, VideoOff } from 'lucide-react';
+import { Hand, Pause, Play, X } from 'lucide-react';
 import AnimatedOrb from './AnimatedOrb';
 import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
 import { FloatingChatContext } from '@/components/floating-chat';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
@@ -141,16 +140,13 @@ export default function VoiceModePlayer({ initialContent, onClose }: VoiceModePl
                     <X className="w-5 h-5"/>
                 </button>
 
-                <div className="w-full flex flex-col items-center">
+                <div className="flex flex-col items-center justify-center text-center">
                     <AnimatedOrb isPlaying={isPlaying} />
-                    <h3 className="font-semibold text-lg mt-6">
-                        {isPlaying ? "Speaking..." : (isPaused ? "Paused" : "Voice Mode")}
-                    </h3>
-                    <p className="text-sm text-muted-foreground text-center h-10 px-4">
+                    <h1 className="text-3xl font-bold text-foreground mt-8 mb-2">Voice Mode</h1>
+                    <p className="text-muted-foreground mb-8 text-sm max-w-xs">
                         Now reading the current chapter. Raise your hand to interrupt and ask a question.
                     </p>
-                    
-                    <div className="mt-4 w-full">
+                    <div className="w-full mb-8">
                          <Select 
                             value={selectedVoice?.name}
                             onValueChange={(name) => {
@@ -170,23 +166,21 @@ export default function VoiceModePlayer({ initialContent, onClose }: VoiceModePl
                             </SelectContent>
                         </Select>
                     </div>
-
-                    <div className="flex items-center justify-center gap-4 mt-6 w-full">
-                        <Button 
-                            size="lg" 
-                            className="rounded-full h-16 w-16" 
-                            onClick={handlePauseResume}
-                        >
-                            {isPlaying ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6" />}
-                        </Button>
-                        <Button
-                            size="lg"
-                            variant="outline"
-                            className="rounded-full h-16 w-16"
+                    <div className="flex items-center space-x-6">
+                        <button 
                             onClick={handleRaiseHand}
+                            className="flex flex-col items-center justify-center w-24 h-24 bg-primary text-primary-foreground rounded-full shadow-lg transform transition-transform hover:scale-105"
                         >
-                            <Hand className="h-6 w-6" />
-                        </Button>
+                            <Hand className="w-9 h-9"/>
+                            <span className="text-sm mt-1">Raise Hand</span>
+                        </button>
+                        <button 
+                            onClick={handlePauseResume}
+                            className="flex flex-col items-center justify-center w-24 h-24 bg-muted text-muted-foreground rounded-full shadow-lg transform transition-transform hover:scale-105"
+                        >
+                            {isPlaying ? <Pause className="w-9 h-9"/> : <Play className="w-9 h-9"/>}
+                            <span className="text-sm mt-1">{isPlaying ? 'Pause' : 'Play'}</span>
+                        </button>
                     </div>
                 </div>
             </motion.div>

@@ -1,9 +1,10 @@
 
+
 'use client';
 
 import { useState, useEffect, useRef, createContext, useContext } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, X, MessageSquare, Loader2, Plus, Edit, Trash2, FileText, Home, Phone, ChevronRight, HelpCircle, Search, Calendar, Lightbulb, Sparkles, Upload, User, Award, Gem, Copy, RefreshCw, ChevronLeft, CheckCircle, XCircle, ArrowRight, BrainCircuit, Bot, MoreVertical, Link as LinkIcon, Share2, Maximize, Minimize, NotebookText, Download, Eraser, Mic } from 'lucide-react';
+import { Send, X, MessageSquare, Loader2, Plus, Edit, Trash2, FileText, Home, Phone, ChevronRight, HelpCircle, Search, Calendar, Lightbulb, Sparkles, Upload, User, Award, Gem, Copy, RefreshCw, ChevronLeft, CheckCircle, XCircle, ArrowRight, BrainCircuit, Bot, MoreVertical, Link as LinkIcon, Share2, Maximize, Minimize, NotebookText, Download, Eraser, Mic, Hand } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -1138,7 +1139,7 @@ export default function FloatingChat({ children }: { children: React.ReactNode }
                                               />
                                               <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-1">
                                                   <Button variant="ghost" size="icon" className={cn("h-8 w-8 rounded-full", isListening && "bg-red-500/20 text-red-500")} onClick={activateVoiceInput}>
-                                                      <Mic className="h-4 w-4"/>
+                                                      {isListening ? <Hand className="h-4 w-4" /> : <Mic className="h-4 w-4"/>}
                                                   </Button>
                                                   <Button size="icon" className="h-8 w-8 rounded-full" onClick={() => handleSendMessage()} disabled={isLoading}>
                                                       <Send className="h-4 w-4"/>
