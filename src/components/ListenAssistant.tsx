@@ -5,11 +5,12 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Draggable from 'react-draggable';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from './ui/button';
-import { Headphones, Play, Pause, X, Mic, Hand } from 'lucide-react';
+import { Headphones, Play, Pause, X, Mic, Hand, StopCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { generateTutorResponse } from '@/lib/actions';
 import { cn } from '@/lib/utils';
 import AIBuddy from './ai-buddy';
+import { useSpeech } from '@/hooks/use-speech';
 
 interface ListenAssistantProps {
   chapterContent: string;
@@ -18,12 +19,11 @@ interface ListenAssistantProps {
 
 const ListenAssistant: React.FC<ListenAssistantProps> = ({ chapterContent, onClose }) => {
   const [isMounted, setIsMounted] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
   const [isListening, setIsListening] = useState(false);
-  const [isSpeaking, setIsSpeaking] = useState(false);
   const [transcript, setTranscript] = useState('');
   
-  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const { speak, stop, isPlaying, isPaused } = useSpeech();
+  
   const recognitionRef = useRef<any>(null);
   const draggableRef = useRef(null);
   const { toast } = useToast();
@@ -53,44 +53,29 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ chapterContent, onClo
     }
 
     return () => {
-      if (window.speechSynthesis.speaking) {
-        window.speechSynthesis.cancel();
-      }
+      stop();
       recognitionRef.current?.abort();
     };
-  }, [toast]);
+  }, [toast, stop]);
 
   const handleAiResponse = async (text: string) => {
     if (!chapterContent) return;
 
-    setIsSpeaking(true);
     setTranscript('');
     try {
       const tutorResponse = await generateTutorResponse({ chapterContext: chapterContent, question: text });
-      const utterance = new SpeechSynthesisUtterance(tutorResponse.answer);
-      utterance.onend = () => setIsSpeaking(false);
-      window.speechSynthesis.speak(utterance);
+      speak(tutorResponse.answer);
     } catch (error) {
       console.error(error);
       toast({ variant: 'destructive', title: 'AI Error', description: 'Could not get a spoken response.' });
-      setIsSpeaking(false);
     }
   };
 
   const handleListen = () => {
     if (isPlaying) {
-      window.speechSynthesis.cancel();
-      setIsPlaying(false);
+      stop();
     } else {
-      const utterance = new SpeechSynthesisUtterance(chapterContent);
-      utteranceRef.current = utterance;
-      utterance.onstart = () => setIsPlaying(true);
-      utterance.onend = () => setIsPlaying(false);
-      utterance.onerror = () => {
-        toast({ variant: 'destructive', title: 'Could not play audio.' });
-        setIsPlaying(false);
-      };
-      window.speechSynthesis.speak(utterance);
+      speak(chapterContent);
     }
   };
 
@@ -98,10 +83,7 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ chapterContent, onClo
     if (isListening) {
       recognitionRef.current?.stop();
     } else {
-      if (window.speechSynthesis.speaking) {
-        window.speechSynthesis.cancel();
-        setIsPlaying(false);
-      }
+      stop(); // Stop any playback before listening
       recognitionRef.current?.start();
     }
   };
@@ -122,7 +104,7 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ chapterContent, onClo
         
         <AIBuddy
             className="w-32 h-32 mb-4"
-            isStatic={!isSpeaking && !isListening}
+            isStatic={!isPlaying && !isListening}
         />
         
         <AnimatePresence mode="wait">
@@ -143,7 +125,7 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ chapterContent, onClo
 
         <div className="flex items-center justify-center gap-4 mt-6">
             <Button onClick={handleListen} variant="outline" size="lg" className="rounded-full">
-                {isPlaying ? <Pause /> : <Headphones />}
+                {isPlaying ? <StopCircle /> : <Headphones />}
                 <span className="ml-2">{isPlaying ? 'Stop' : 'Listen'}</span>
             </Button>
             <Button
