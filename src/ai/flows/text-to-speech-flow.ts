@@ -43,16 +43,11 @@ const generateAudioFlow = ai.defineFlow(
   },
   async ({ text }) => {
     const { media } = await ai.generate({
-      model: googleAI.model('gemini-2.5-flash-preview-tts'),
+      model: googleAI.model('gemini-2.0-flash-lite'),
+      prompt: `Perform text-to-speech on this text: ${text}`,
       config: {
         responseModalities: ['AUDIO'],
-        speechConfig: {
-          voiceConfig: {
-            prebuiltVoiceConfig: { voiceName: 'Algenib' },
-          },
-        },
       },
-      prompt: text,
     });
     
     if (!media) {
