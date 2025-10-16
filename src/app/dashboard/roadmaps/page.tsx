@@ -1,10 +1,11 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
-import { GitMerge, Plus, Check, Flag, Calendar, ArrowRight, Loader2, CheckCircle, XCircle, Maximize, Minimize, Clock } from "lucide-react";
+import { GitMerge, Plus, Check, Flag, Calendar, ArrowRight, Loader2, CheckCircle, XCircle, Maximize, Minimize, Clock, Lightbulb } from "lucide-react";
 import * as LucideIcons from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
