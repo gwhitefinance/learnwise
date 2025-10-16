@@ -83,6 +83,9 @@ type QuizState = 'configuring' | 'in-progress' | 'results';
 type AnswerState = 'unanswered' | 'answered';
 type AnswerFeedback = { question: string; answer: string; correctAnswer: string; isCorrect: boolean; explanation?: string; };
 
+export const FloatingChatContext = createContext({
+  openChatAndListen: () => {},
+});
 
 const ChatHomeScreen = ({ sessions, onNavigate, onStartNewChat, onSelectSession, onStartChatWithPrompt, customizations }: { sessions: ChatSession[], onNavigate: (tab: string) => void, onStartNewChat: () => void, onSelectSession: (sessionId: string) => void, onStartChatWithPrompt: (prompt: string) => void, customizations: Record<string, string> }) => {
     const [user] = useAuthState(auth);
@@ -979,7 +982,7 @@ export default function FloatingChat({ children }: { children: React.ReactNode }
 
 
   return (
-    <>
+    <FloatingChatContext.Provider value={{ openChatAndListen: activateVoiceInput }}>
       {children}
       <div className={cn(
           "fixed bottom-6 right-6 z-50",
@@ -1252,6 +1255,6 @@ export default function FloatingChat({ children }: { children: React.ReactNode }
               </DialogContent>
           </Dialog>
       </div>
-    </>
+    </FloatingChatContext.Provider>
   );
 }

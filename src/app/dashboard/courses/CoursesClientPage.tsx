@@ -6,7 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Play, Pause, ChevronLeft, ChevronRight, Wand2, FlaskConical, Lightbulb, Copy, RefreshCw, Check, Star, CheckCircle, Send, Bot, User, GitMerge, PanelLeft, Minimize, Maximize, Loader2, Plus, Trash2, MoreVertical, XCircle, ArrowRight, RotateCcw, Video, Image as ImageIcon, BookCopy, Link as LinkIcon, Headphones, Underline, Highlighter, Rabbit, Snail, Turtle, Book } from 'lucide-react';
+import { Play, Pause, ChevronLeft, ChevronRight, Wand2, FlaskConical, Lightbulb, Copy, RefreshCw, Check, Star, CheckCircle, Send, Bot, User, GitMerge, PanelLeft, Minimize, Maximize, Loader2, Plus, Trash2, MoreVertical, XCircle, ArrowRight, RotateCcw, Video, Image as ImageIcon, BookCopy, Link as LinkIcon, Headphones, Underline, Highlighter, Rabbit, Snail, Turtle, Book, Mic } from 'lucide-react';
 import Link from 'next/link';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
@@ -33,6 +33,7 @@ import Image from 'next/image';
 import { Textarea } from '@/components/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import GeneratingCourse from './GeneratingCourse';
+import ListenAssistant from '@/components/ListenAssistant';
 
 
 type Course = {
@@ -165,6 +166,8 @@ function CoursesComponent() {
   const [summaryForPopup, setSummaryForPopup] = useState('');
   const [isSummaryLoading, setIsSummaryLoading] = useState(false);
   const [nextChapterProgress, setNextChapterProgress] = useState(0);
+
+  const [isListenAssistantOpen, setIsListenAssistantOpen] = useState(false);
 
 
   useEffect(() => {
@@ -1255,6 +1258,12 @@ function CoursesComponent() {
 
   return (
     <>
+      {isListenAssistantOpen && currentChapter?.content && (
+        <ListenAssistant
+          contentToRead={currentChapter.content}
+          onClose={() => setIsListenAssistantOpen(false)}
+        />
+      )}
       <Dialog open={isSummaryDialogOpen} onOpenChange={setIsSummaryDialogOpen}>
           <DialogContent onInteractOutside={(e) => e.preventDefault()} className="sm:max-w-md">
               <DialogHeader>
@@ -1408,6 +1417,9 @@ function CoursesComponent() {
                     <PanelLeft className="h-5 w-5" />
                 </Button>
                 <div className="flex items-center gap-2">
+                    <Button variant="outline" onClick={() => setIsListenAssistantOpen(true)}>
+                        <Headphones className="mr-2 h-4 w-4"/> Listen
+                    </Button>
                     <Button variant="outline" onClick={toggleFocusMode}>
                         {isFocusMode ? <Minimize className="mr-2 h-4 w-4"/> : <Maximize className="mr-2 h-4 w-4"/>}
                         {isFocusMode ? "Exit Focus Mode" : "Focus Mode"}
@@ -1588,5 +1600,3 @@ export default function CoursesClientPage() {
         </Suspense>
     )
 }
-
-    

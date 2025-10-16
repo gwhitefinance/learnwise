@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 
 const AnimatedOrb = ({ isPlaying }: { isPlaying: boolean }) => {
     return (
-        <div className="relative w-48 h-48">
+        <div className="relative w-full h-full">
             <motion.div
                 className="absolute inset-0 bg-gradient-to-tr from-blue-400 to-cyan-200 rounded-full"
                 animate={{
