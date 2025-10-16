@@ -28,30 +28,48 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ onClose, chapterConte
 
   useEffect(() => {
     setIsMounted(true);
+    // Cleanup on unmount
+    return () => {
+      recognitionRef.current?.stop();
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.onended = null;
+      }
+    };
   }, []);
 
-  const stopPlayback = useCallback(async () => {
+  const stopPlayback = useCallback(() => {
     return new Promise<void>((resolve) => {
       if (audioRef.current) {
-        audioRef.current.onended = null;
+        audioRef.current.onended = () => {
+          setIsSpeaking(false);
+          resolve();
+        };
         audioRef.current.pause();
         audioRef.current.src = '';
         audioRef.current = null;
+        // If onended doesn't fire (e.g., if paused), resolve immediately
+        if (isSpeaking) {
+          setIsSpeaking(false);
+          resolve();
+        } else {
+          resolve();
+        }
+      } else {
+        resolve();
       }
-      setIsSpeaking(false);
-      resolve();
     });
-  }, []);
+  }, [isSpeaking]);
 
 
   const handleAiResponse = useCallback(async (text: string) => {
     setTranscript('');
     try {
-      const tutorResponse = await generateTutorResponse({ chapterContext, question: text });
+      const tutorResponse = await generateTutorResponse({ chapterContext: chapterContent, question: text });
       setIsSpeaking(true);
       const audioResponse = await generateAudio({ text: tutorResponse.answer });
 
-      await stopPlayback(); // Ensure any previous audio is stopped
+      await stopPlayback(); 
 
       const newAudio = new Audio(audioResponse.audioDataUri);
       audioRef.current = newAudio;
@@ -119,14 +137,6 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ onClose, chapterConte
     recognitionRef.current = recognition;
     recognition.start();
   }, [isListening, isSpeaking, toast, handleAiResponse, stopPlayback, isMounted]);
-
-  useEffect(() => {
-    // Cleanup on unmount
-    return () => {
-      recognitionRef.current?.stop();
-      stopPlayback();
-    };
-  }, [stopPlayback]);
 
   return (
     <Draggable nodeRef={nodeRef} handle=".drag-handle">
