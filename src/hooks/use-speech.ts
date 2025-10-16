@@ -15,7 +15,8 @@ export const useSpeech = () => {
             toast({ variant: 'destructive', title: 'TTS not supported' });
             return;
         }
-
+        
+        // Cancel any ongoing speech before starting a new one.
         if (speechSynthesis.speaking) {
             speechSynthesis.cancel();
         }
@@ -28,6 +29,7 @@ export const useSpeech = () => {
         utterance.onend = () => {
             setIsPlaying(false);
             setIsPaused(false);
+            utteranceRef.current = null;
         };
         utterance.onpause = () => {
             setIsPlaying(false);
@@ -38,14 +40,21 @@ export const useSpeech = () => {
             setIsPaused(false);
         };
         utterance.onerror = (e) => {
-            console.error('Speech synthesis error', e);
-            toast({ variant: 'destructive', title: 'Audio Error' });
+            if (e.error !== 'interrupted' && e.error !== 'canceled') {
+                console.error('Speech synthesis error', e);
+                toast({ variant: 'destructive', title: 'Audio Error' });
+            }
             setIsPlaying(false);
             setIsPaused(false);
         };
         
         utteranceRef.current = utterance;
-        speechSynthesis.speak(utterance);
+        
+        // A small delay can help prevent race conditions in some browsers
+        setTimeout(() => {
+            speechSynthesis.speak(utterance);
+        }, 100);
+
     }, [toast]);
 
     const pause = useCallback(() => {
@@ -67,18 +76,10 @@ export const useSpeech = () => {
     }, []);
 
     useEffect(() => {
-        const handleStateChange = () => {
-            setIsPlaying(speechSynthesis.speaking && !speechSynthesis.paused);
-            setIsPaused(speechSynthesis.paused);
-        };
-
-        const speech = window.speechSynthesis;
-        const interval = setInterval(handleStateChange, 100);
-
+        // Cleanup function to cancel speech when the component unmounts
         return () => {
-            clearInterval(interval);
-            if (speech.speaking) {
-                speech.cancel();
+            if (speechSynthesis.speaking) {
+                speechSynthesis.cancel();
             }
         };
     }, []);
