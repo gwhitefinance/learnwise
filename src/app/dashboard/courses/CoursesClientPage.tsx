@@ -267,15 +267,16 @@ function CoursesComponent() {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-        const popoverEl = document.getElementById('text-selection-popover');
-        if (contentRef.current && !contentRef.current.contains(event.target as Node) && popoverEl && !popoverEl.contains(event.target as Node)) {
-            setPopoverPosition(null);
-            setSelectedRange(null);
+        if (popoverPosition && contentRef.current && !contentRef.current.contains(event.target as Node)) {
+            const popoverEl = document.getElementById('text-selection-popover');
+            if (popoverEl && !popoverEl.contains(event.target as Node)) {
+                setPopoverPosition(null);
+            }
         }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [popoverPosition]);
   
   const currentModule = activeCourse?.units?.[currentModuleIndex];
   const currentChapter = currentModule?.chapters[currentChapterIndex];
@@ -954,15 +955,15 @@ function CoursesComponent() {
                              {addCourseStep === 1 ? (
                                 <>
                                     <Button variant="ghost" onClick={() => { setAddCourseOpen(false); resetAddCourseDialog();}}>Cancel</Button>
-                                    <Button onClick={() => {
-                                        if (isNewTopic) {
-                                            handleAddExistingCourse();
-                                        } else {
-                                            setAddCourseStep(2);
-                                        }
-                                    }} disabled={isSaving || isNewTopic === null || !newCourse.name}>
-                                        {isNewTopic === false ? 'Next' : 'Add Course'}
-                                    </Button>
+                                    {isNewTopic === false ? (
+                                        <Button onClick={() => setAddCourseStep(2)} disabled={isSaving || isNewTopic === null || !newCourse.name}>
+                                            Next
+                                        </Button>
+                                    ) : (
+                                         <Button onClick={handleAddExistingCourse} disabled={isSaving || isNewTopic === null || !newCourse.name}>
+                                            Add Course
+                                        </Button>
+                                    )}
                                 </>
                              ) : (
                                 <>
@@ -1515,3 +1516,5 @@ export default function CoursesClientPage() {
         </Suspense>
     )
 }
+
+    
