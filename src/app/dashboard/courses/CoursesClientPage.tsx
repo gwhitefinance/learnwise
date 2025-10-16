@@ -261,17 +261,16 @@ function CoursesComponent() {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-        if (popoverPosition && contentRef.current && !contentRef.current.contains(event.target as Node)) {
-            const popoverEl = document.getElementById('text-selection-popover');
-            if (popoverEl && !popoverEl.contains(event.target as Node)) {
-                setPopoverPosition(null);
-                setSelectedRange(null);
-            }
+        // If the click is outside the content area and the popover, hide the popover.
+        const popoverEl = document.getElementById('text-selection-popover');
+        if (contentRef.current && !contentRef.current.contains(event.target as Node) && popoverEl && !popoverEl.contains(event.target as Node)) {
+            setPopoverPosition(null);
+            setSelectedRange(null);
         }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [popoverPosition]);
+  }, []);
   
   const currentModule = activeCourse?.units?.[currentModuleIndex];
   const currentChapter = currentModule?.chapters[currentChapterIndex];
@@ -802,20 +801,19 @@ function CoursesComponent() {
 
   const handleMouseUp = () => {
     const selection = window.getSelection();
-    if (selection && !selection.isCollapsed) {
+    if (selection && !selection.isCollapsed && contentRef.current?.contains(selection.anchorNode)) {
         const range = selection.getRangeAt(0);
-        if (contentRef.current && contentRef.current.contains(range.commonAncestorContainer)) {
-            setSelectedRange(range.cloneRange());
-            const rect = range.getBoundingClientRect();
-            const contentRect = contentRef.current.getBoundingClientRect();
-            setPopoverPosition({
-                top: rect.top - contentRect.top - 50,
-                left: rect.left - contentRect.left + rect.width / 2,
-            });
-            return;
-        }
+        setSelectedRange(range.cloneRange());
+        const rect = range.getBoundingClientRect();
+        const contentRect = contentRef.current.getBoundingClientRect();
+        
+        setPopoverPosition({
+            top: rect.top - contentRect.top - 50,
+            left: rect.left - contentRect.left + rect.width / 2,
+        });
+    } else {
+        setPopoverPosition(null);
     }
-    setPopoverPosition(null);
   };
   
   const applyStyle = (style: string) => {
@@ -1313,7 +1311,7 @@ function CoursesComponent() {
              </div>
         </aside>
         
-        <main className="flex-1 p-6 overflow-y-auto" onMouseUp={handleMouseUp}>
+        <main className="flex-1 p-6 overflow-y-auto">
              <div className="flex items-center justify-between mb-4">
                 <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
                     <PanelLeft className="h-5 w-5" />
@@ -1351,18 +1349,19 @@ function CoursesComponent() {
                          <div className='space-y-4'>
                             {currentChapter.imageUrl && (
                                 <div className="mt-4 rounded-lg overflow-hidden border aspect-video relative">
-                                    <Image src={currentChapter.imageUrl} alt={`Header for ${currentChapter.title}`} layout="fill" objectFit="cover" />
+                                    <Image src={currentChapter.imageUrl} alt={`Header for ${currentChapter.title}`} fill objectFit="cover" />
                                 </div>
                             )}
                              <div 
                                 ref={contentRef}
+                                onMouseUp={handleMouseUp}
                                 className="text-muted-foreground text-lg whitespace-pre-wrap leading-relaxed" 
                              >{currentChapter.content}</div>
                             {currentChapter.diagramUrl && (
                                 <div className="mt-4 p-4 bg-muted/50 rounded-lg">
                                     <h5 className="font-semibold text-sm mb-2 flex items-center gap-2"><ImageIcon size={16} /> Diagram</h5>
                                     <div className="rounded-lg overflow-hidden border aspect-video relative">
-                                        <Image src={currentChapter.diagramUrl} alt={`Diagram for ${currentChapter.title}`} layout="fill" objectFit="contain" />
+                                        <Image src={currentChapter.diagramUrl} alt={`Diagram for ${currentChapter.title}`} fill objectFit="contain" />
                                     </div>
                                 </div>
                             )}
