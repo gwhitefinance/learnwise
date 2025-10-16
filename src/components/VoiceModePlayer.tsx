@@ -48,21 +48,35 @@ export default function VoiceModePlayer({ initialContent, onClose }: VoiceModePl
         }
     }, [populateVoiceList]);
 
-    const stopPlayback = useCallback(() => {
-      if (typeof window !== 'undefined' && window.speechSynthesis) {
-        window.speechSynthesis.cancel();
-        setIsPlaying(false);
-        setIsPaused(false);
-      }
+    const stopPlayback = useCallback((): Promise<void> => {
+        return new Promise((resolve) => {
+            if (typeof window !== 'undefined' && window.speechSynthesis) {
+                if (utteranceRef.current) {
+                    utteranceRef.current.onend = () => {
+                        utteranceRef.current = null;
+                        resolve();
+                    };
+                }
+                window.speechSynthesis.cancel();
+                setIsPlaying(false);
+                setIsPaused(false);
+                // If not speaking, resolve immediately
+                if (!window.speechSynthesis.speaking) {
+                    resolve();
+                }
+            } else {
+                resolve();
+            }
+        });
     }, []);
 
-    const handlePlay = useCallback(() => {
+    const handlePlay = useCallback(async () => {
       if (typeof window === 'undefined' || !window.speechSynthesis || !selectedVoice) {
           toast({ variant: 'destructive', title: 'TTS not supported or no voice selected.' });
           return;
       }
       
-      stopPlayback();
+      await stopPlayback();
 
       const utterance = new SpeechSynthesisUtterance(initialContent);
       utteranceRef.current = utterance;
@@ -75,6 +89,7 @@ export default function VoiceModePlayer({ initialContent, onClose }: VoiceModePl
       utterance.onend = () => {
           setIsPlaying(false);
           setIsPaused(false);
+          utteranceRef.current = null;
       };
        utterance.onpause = () => {
         setIsPlaying(false);
@@ -102,6 +117,7 @@ export default function VoiceModePlayer({ initialContent, onClose }: VoiceModePl
         };
     }, [handlePlay, selectedVoice, stopPlayback]);
 
+
     const handlePauseResume = () => {
         if (typeof window === 'undefined' || !window.speechSynthesis) return;
 
@@ -114,8 +130,8 @@ export default function VoiceModePlayer({ initialContent, onClose }: VoiceModePl
         }
     };
     
-    const handleRaiseHand = () => {
-        stopPlayback();
+    const handleRaiseHand = async () => {
+        await stopPlayback();
         if (floatingChatContext?.activateVoiceInput) {
             onClose();
             floatingChatContext.activateVoiceInput();
