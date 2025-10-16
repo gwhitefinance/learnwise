@@ -28,7 +28,6 @@ import type { GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuPortal } from './ui/dropdown-menu';
 
-export const FloatingChatContext = createContext<{ activateVoiceInput: () => void } | undefined>(undefined);
 
 interface Message {
   role: 'user' | 'ai';
@@ -980,7 +979,7 @@ export default function FloatingChat({ children }: { children: React.ReactNode }
 
 
   return (
-    <FloatingChatContext.Provider value={{ activateVoiceInput }}>
+    <>
       {children}
       <div className={cn(
           "fixed bottom-6 right-6 z-50",
@@ -1253,6 +1252,6 @@ export default function FloatingChat({ children }: { children: React.ReactNode }
               </DialogContent>
           </Dialog>
       </div>
-    </FloatingChatContext.Provider>
+    </>
   );
 }

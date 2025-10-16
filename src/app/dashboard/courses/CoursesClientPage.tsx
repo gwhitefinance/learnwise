@@ -31,7 +31,6 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import Image from 'next/image';
 import { Textarea } from '@/components/ui/textarea';
-import VoiceModePlayer from '@/components/VoiceModePlayer';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import GeneratingCourse from './GeneratingCourse';
 
@@ -154,9 +153,6 @@ function CoursesComponent() {
   const [isAddUnitFromUrlOpen, setIsAddUnitFromUrlOpen] = useState(false);
   const [newUnitsUrl, setNewUnitsUrl] = useState('');
 
-  // Voice mode state
-  const [isVoiceModeOpen, setIsVoiceModeOpen] = useState(false);
-  
   // Highlighting and note-taking state
   const [selectedRange, setSelectedRange] = useState<Range | null>(null);
   const [popoverPosition, setPopoverPosition] = useState<{ top: number; left: number } | null>(null);
@@ -1303,12 +1299,6 @@ function CoursesComponent() {
             </DialogFooter>
         </DialogContent>
       </Dialog>
-      {isVoiceModeOpen && (
-        <VoiceModePlayer
-            initialContent={currentChapter?.content || 'No content available to read.'}
-            onClose={() => setIsVoiceModeOpen(false)}
-        />
-      )}
       <Dialog open={isCourseReadyDialogOpen} onOpenChange={setIsCourseReadyDialogOpen}>
         <DialogContent>
             <DialogHeader>
@@ -1418,9 +1408,6 @@ function CoursesComponent() {
                     <PanelLeft className="h-5 w-5" />
                 </Button>
                 <div className="flex items-center gap-2">
-                    <Button variant="outline" onClick={() => setIsVoiceModeOpen(true)} disabled={!currentChapter?.content}>
-                        <Headphones className="mr-2 h-4 w-4"/> Listen
-                    </Button>
                     <Button variant="outline" onClick={toggleFocusMode}>
                         {isFocusMode ? <Minimize className="mr-2 h-4 w-4"/> : <Maximize className="mr-2 h-4 w-4"/>}
                         {isFocusMode ? "Exit Focus Mode" : "Focus Mode"}
