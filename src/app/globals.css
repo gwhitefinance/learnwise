@@ -57,9 +57,20 @@
     @apply bg-background text-foreground;
   }
 
-  mark.highlight-yellow { background-color: rgba(250, 243, 131, 0.7); }
-  mark.highlight-blue { background-color: rgba(181, 226, 252, 0.7); }
-  mark.highlight-pink { background-color: rgba(255, 192, 203, 0.7); }
+  mark {
+    background-color: transparent;
+    color: inherit;
+  }
+
+  mark.highlight-yellow {
+    background-color: rgba(250, 243, 131, 0.7);
+  }
+  mark.highlight-blue {
+    background-color: rgba(181, 226, 252, 0.7);
+  }
+  mark.highlight-pink {
+    background-color: rgba(255, 192, 203, 0.7);
+  }
 }
 
 @layer utilities {
@@ -310,3 +321,5 @@ html.lenis {
   75% { transform: translateX(250px) translateY(-20px) scale(1.1); }
   100% { transform: translateX(450px) translateY(10px) scale(0.8); }
 }
+
+    
