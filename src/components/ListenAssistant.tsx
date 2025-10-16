@@ -44,8 +44,10 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ chapterContent, onClo
         handleAiResponse(userSpeech);
       };
       recognition.onerror = (event: any) => {
-        console.error('Speech recognition error', event.error);
-        toast({ variant: 'destructive', title: 'Voice recognition error.' });
+        if (event.error !== 'aborted') {
+            console.error('Speech recognition error', event.error);
+            toast({ variant: 'destructive', title: 'Voice recognition error.' });
+        }
         setIsListening(false);
       };
       recognition.onend = () => setIsListening(false);
