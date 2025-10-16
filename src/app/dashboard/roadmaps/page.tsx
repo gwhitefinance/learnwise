@@ -152,7 +152,7 @@ export default function RoadmapsPage() {
 
     useEffect(() => {
         let timer: NodeJS.Timeout;
-        if (isChallengeOpen && challengeState === 'in-progress' && timeRemaining > 0) {
+        if (isChallengeOpen && challengeState === 'in-progress' && timeRemaining > 0 && !isChallengeLoading) {
             timer = setTimeout(() => {
                 setTimeRemaining(t => t - 1);
             }, 1000);
@@ -165,7 +165,7 @@ export default function RoadmapsPage() {
             setIsChallengeOpen(false);
         }
         return () => clearTimeout(timer);
-    }, [isChallengeOpen, challengeState, timeRemaining, toast]);
+    }, [isChallengeOpen, challengeState, timeRemaining, toast, isChallengeLoading]);
 
 
     const activeRoadmap = activeCourseId ? roadmaps[activeCourseId] : null;
@@ -420,7 +420,7 @@ export default function RoadmapsPage() {
                                             <div className="z-10 flex-shrink-0">
                                                 {milestone.completed ? (
                                                     <div className="w-24 h-24 rounded-full bg-green-500/10 border-4 border-green-500 flex items-center justify-center text-green-500">
-                                                        <Check className="h-10 w-10"/>
+                                                        <Award className="h-10 w-10"/>
                                                     </div>
                                                 ) : (
                                                     <div className={cn("w-24 h-24 rounded-full border-4 flex items-center justify-center", canAttempt ? "bg-primary/10 border-primary text-primary" : "bg-muted border-border text-muted-foreground")}>
@@ -490,15 +490,30 @@ export default function RoadmapsPage() {
                         <DialogTitle>Mastery Challenge: {challengeMilestone?.title}</DialogTitle>
                         <DialogDescription>Answer all questions correctly to complete this milestone. One wrong answer and you'll have to try again!</DialogDescription>
                     </div>
-                    <div className="text-lg font-semibold flex items-center gap-2 text-muted-foreground">
-                        <Clock className="h-5 w-5"/>
-                        <span>{Math.floor(timeRemaining / 60)}:{(timeRemaining % 60).toString().padStart(2, '0')}</span>
-                    </div>
+                    {!isChallengeLoading && (
+                        <div className="text-lg font-semibold flex items-center gap-2 text-muted-foreground">
+                            <Clock className="h-5 w-5"/>
+                            <span>{Math.floor(timeRemaining / 60)}:{(timeRemaining % 60).toString().padStart(2, '0')}</span>
+                        </div>
+                    )}
                 </div>
               </DialogHeader>
               <div className="py-4 max-h-[70vh] overflow-y-auto">
                    {isChallengeLoading ? (
-                      <div className="flex h-60 items-center justify-center"><Loader2 className="w-8 h-8 animate-spin" /></div>
+                       <div className="flex flex-col items-center justify-center h-64">
+                            <div className="relative h-32 w-32">
+                                <motion.div
+                                    className="absolute inset-0 border-4 border-muted rounded-full"
+                                />
+                                <motion.div
+                                    className="absolute inset-0 border-4 border-primary rounded-full"
+                                    initial={{ clipPath: 'polygon(50% 50%, 50% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 0%, 50% 0%)' }}
+                                    animate={{ clipPath: 'polygon(50% 50%, 50% 0%, 100% 0%, 100% 100%, 0% 100%, 0% -100%, 50% -100%)' }}
+                                    transition={{ duration: 2, ease: "easeInOut", repeat: Infinity, repeatType: "loop" }}
+                                />
+                            </div>
+                            <p className="text-lg font-semibold mt-6 animate-pulse">Preparing Challenge...</p>
+                        </div>
                   ) : challengeQuiz && challengeState === 'in-progress' ? (
                        <div className="space-y-6">
                            <div className="text-center">
@@ -539,7 +554,7 @@ export default function RoadmapsPage() {
                   ) : challengeState === 'results' && (
                       <div className="text-center space-y-4 py-12">
                           <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring' }} className="w-24 h-24 mx-auto rounded-full bg-green-500/10 border-4 border-green-500 flex items-center justify-center text-green-500">
-                               <Check className="h-12 w-12"/>
+                               <Award className="h-12 w-12"/>
                           </motion.div>
                           <h2 className="text-3xl font-bold">Challenge Passed!</h2>
                           <p className="text-muted-foreground">You've mastered this milestone and earned a badge!</p>
