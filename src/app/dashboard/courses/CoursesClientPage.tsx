@@ -19,7 +19,7 @@ import type { GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
 import { cn } from '@/lib/utils';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
-import { collection, addDoc, query, where, getDocs, deleteDoc, doc, updateDoc, onSnapshot, serverTimestamp, increment, arrayUnion, arrayRemove, getDoc } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs, deleteDoc, doc, updateDoc, onSnapshot, serverTimestamp, increment, arrayUnion, arrayRemove, getDoc, Timestamp } from 'firebase/firestore';
 import AudioPlayer from '@/components/audio-player';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -87,15 +87,6 @@ type QuizResult = {
     answers: AnswerFeedback[];
     timestamp: any;
 }
-
-type Highlight = {
-    id: string;
-    text: string;
-    start: number;
-    end: number;
-    color: string;
-};
-
 
 function CoursesComponent() {
   const searchParams = useSearchParams();
@@ -270,10 +261,14 @@ function CoursesComponent() {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-        if (popoverPosition) {
-            setPopoverPosition(null);
-            setSelectedRange(null);
-            window.getSelection()?.removeAllRanges();
+        // If the click is outside the popover and not on the content itself
+        if (popoverPosition && contentRef.current && !contentRef.current.contains(event.target as Node)) {
+            const popoverEl = document.getElementById('text-selection-popover');
+            if (popoverEl && !popoverEl.contains(event.target as Node)) {
+                setPopoverPosition(null);
+                setSelectedRange(null);
+                // No need to removeAllRanges here as the selection might be inside the content area
+            }
         }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -809,46 +804,49 @@ function CoursesComponent() {
 
  const handleMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
     if (contentRef.current?.contains(e.target as Node)) {
-      const selection = window.getSelection();
-      if (selection && !selection.isCollapsed) {
-        const range = selection.getRangeAt(0);
-        setSelectedRange(range);
-        const rect = range.getBoundingClientRect();
-        const contentRect = contentRef.current.getBoundingClientRect();
-        setPopoverPosition({
-            top: rect.top - contentRect.top + window.scrollY - 50,
-            left: rect.left - contentRect.left + window.scrollX + rect.width / 2,
-        });
-      } else {
-        setSelectedRange(null);
-        setPopoverPosition(null);
-      }
-    } else {
-        setSelectedRange(null);
-        setPopoverPosition(null);
+        const selection = window.getSelection();
+        if (selection && !selection.isCollapsed) {
+            const range = selection.getRangeAt(0);
+            if (contentRef.current.contains(range.commonAncestorContainer)) {
+                setSelectedRange(range);
+                const rect = range.getBoundingClientRect();
+                const contentRect = contentRef.current.getBoundingClientRect();
+                setPopoverPosition({
+                    top: rect.top - contentRect.top + window.scrollY - 50,
+                    left: rect.left - contentRect.left + window.scrollX + rect.width / 2,
+                });
+                return; // Keep popover open
+            }
+        }
     }
+    // If we click outside or the selection is invalid, close the popover
+    setPopoverPosition(null);
+    setSelectedRange(null);
   };
 
   const applyStyle = (style: string) => {
     if (!selectedRange) return;
 
-    const mark = document.createElement('mark');
-    mark.className = style;
-    
     try {
-      selectedRange.surroundContents(mark);
-    } catch(e) {
-      // Fallback for selections that span multiple elements
-      try {
-        mark.appendChild(selectedRange.extractContents());
-        selectedRange.insertNode(mark);
-      } catch (e2) {
-        console.error("Failed to apply style:", e2)
-      }
+        const mark = document.createElement('mark');
+        mark.className = style;
+        selectedRange.surroundContents(mark);
+    } catch (e) {
+        // Fallback for selections that span multiple elements
+        console.error("Could not apply style directly, using fallback. Error:", e);
+        try {
+            const mark = document.createElement('mark');
+            mark.className = style;
+            mark.appendChild(selectedRange.extractContents());
+            selectedRange.insertNode(mark);
+        } catch (e2) {
+            console.error("Fallback style application failed:", e2);
+            toast({ variant: "destructive", title: "Highlight Failed", description: "Could not apply highlight to this selection." });
+        }
     }
 
-    setSelectedRange(null);
     setPopoverPosition(null);
+    setSelectedRange(null);
     window.getSelection()?.removeAllRanges();
   };
 
@@ -857,8 +855,8 @@ function CoursesComponent() {
     setNoteContent(selectedRange.toString());
     setIsNoteFromHighlightOpen(true);
     
-    setSelectedRange(null);
     setPopoverPosition(null);
+    setSelectedRange(null);
     window.getSelection()?.removeAllRanges();
   };
   
@@ -1193,7 +1191,7 @@ function CoursesComponent() {
             id="text-selection-popover"
             style={popoverStyle}
             className="z-10 bg-card p-1 rounded-lg shadow-lg border flex gap-1 items-center"
-            onClick={(e) => e.stopPropagation()} // Prevent closing when clicking the popover
+            onClick={(e) => e.stopPropagation()} 
         >
             <button onClick={() => applyStyle('highlight-yellow')} className="h-6 w-6 rounded-full bg-yellow-300 border-2 border-transparent hover:border-primary"></button>
             <button onClick={() => applyStyle('highlight-blue')} className="h-6 w-6 rounded-full bg-blue-300 border-2 border-transparent hover:border-primary"></button>
@@ -1207,18 +1205,6 @@ function CoursesComponent() {
                         <button onClick={() => applyStyle('underline-solid')} className="p-2 hover:bg-muted rounded-md text-sm w-full text-left">Solid</button>
                         <button onClick={() => applyStyle('underline-dashed')} className="p-2 hover:bg-muted rounded-md text-sm w-full text-left">Dashed</button>
                         <button onClick={() => applyStyle('underline-dotted')} className="p-2 hover:bg-muted rounded-md text-sm w-full text-left">Dotted</button>
-                    </div>
-                </PopoverContent>
-            </Popover>
-            <Popover>
-                <PopoverTrigger asChild>
-                    <button className="p-1 rounded-md hover:bg-muted"><Highlighter className="h-5 w-5" /></button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-1">
-                    <div className="flex flex-col gap-1">
-                        <button onClick={() => applyStyle('highlight-yellow')} className="p-2 hover:bg-muted rounded-md text-sm w-full text-left">Yellow</button>
-                        <button onClick={() => applyStyle('highlight-blue')} className="p-2 hover:bg-muted rounded-md text-sm w-full text-left">Blue</button>
-                        <button onClick={() => applyStyle('highlight-pink')} className="p-2 hover:bg-muted rounded-md text-sm w-full text-left">Pink</button>
                     </div>
                 </PopoverContent>
             </Popover>
@@ -1379,7 +1365,7 @@ function CoursesComponent() {
             {currentChapter && currentModule ? (
                  <div className="max-w-4xl mx-auto space-y-8 relative">
                      {popoverPosition && <TextSelectionMenu />}
-                     <h1 className="text-4xl font-bold">{currentChapter.title}</h1>
+                     <h1 className="text-4xl font-bold" onMouseUp={handleMouseUp}>{currentChapter.title}</h1>
                      
                       {isChapterContentLoading[currentChapter.id] ? (
                         <div className="space-y-4">
