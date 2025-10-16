@@ -161,8 +161,8 @@ function CoursesComponent() {
   const [isVoiceModeOpen, setIsVoiceModeOpen] = useState(false);
   
   // Highlighting and note-taking state
-  const [selection, setSelection] = useState<Range | null>(null);
-  const [popoverPosition, setPopoverPosition] = useState({ top: 0, left: 0 });
+  const [selectedRange, setSelectedRange] = useState<Range | null>(null);
+  const [popoverPosition, setPopoverPosition] = useState<{ top: number; left: number } | null>(null);
   const [isNoteFromHighlightOpen, setIsNoteFromHighlightOpen] = useState(false);
   const [noteContent, setNoteContent] = useState('');
   const contentRef = useRef<HTMLDivElement>(null);
@@ -270,13 +270,15 @@ function CoursesComponent() {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-        if (selection) {
-            setSelection(null);
+        if (popoverPosition) {
+            setPopoverPosition(null);
+            setSelectedRange(null);
+            window.getSelection()?.removeAllRanges();
         }
     };
-    document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
-  }, [selection]);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [popoverPosition]);
   
   const currentModule = activeCourse?.units?.[currentModuleIndex];
   const currentChapter = currentModule?.chapters[currentChapterIndex];
@@ -810,7 +812,7 @@ function CoursesComponent() {
       const selection = window.getSelection();
       if (selection && !selection.isCollapsed) {
         const range = selection.getRangeAt(0);
-        setSelection(range);
+        setSelectedRange(range);
         const rect = range.getBoundingClientRect();
         const contentRect = contentRef.current.getBoundingClientRect();
         setPopoverPosition({
@@ -818,37 +820,45 @@ function CoursesComponent() {
             left: rect.left - contentRect.left + window.scrollX + rect.width / 2,
         });
       } else {
-        setSelection(null);
+        setSelectedRange(null);
+        setPopoverPosition(null);
       }
     } else {
-      setSelection(null);
+        setSelectedRange(null);
+        setPopoverPosition(null);
     }
   };
 
   const applyStyle = (style: string) => {
-    if (!selection) return;
+    if (!selectedRange) return;
 
     const mark = document.createElement('mark');
     mark.className = style;
     
     try {
-      selection.surroundContents(mark);
+      selectedRange.surroundContents(mark);
     } catch(e) {
       // Fallback for selections that span multiple elements
-      mark.appendChild(selection.extractContents());
-      selection.insertNode(mark);
-      console.warn("Used fallback for highlighting:", e);
+      try {
+        mark.appendChild(selectedRange.extractContents());
+        selectedRange.insertNode(mark);
+      } catch (e2) {
+        console.error("Failed to apply style:", e2)
+      }
     }
 
-    setSelection(null);
+    setSelectedRange(null);
+    setPopoverPosition(null);
     window.getSelection()?.removeAllRanges();
   };
 
   const saveAsNote = () => {
-    if (!selection) return;
-    setNoteContent(selection.toString());
+    if (!selectedRange) return;
+    setNoteContent(selectedRange.toString());
     setIsNoteFromHighlightOpen(true);
-    setSelection(null);
+    
+    setSelectedRange(null);
+    setPopoverPosition(null);
     window.getSelection()?.removeAllRanges();
   };
   
@@ -1169,7 +1179,7 @@ function CoursesComponent() {
   }
 
   const TextSelectionMenu = () => {
-    if (!selection) return null;
+    if (!popoverPosition) return null;
 
     const popoverStyle = {
       position: 'absolute' as const,
@@ -1183,7 +1193,7 @@ function CoursesComponent() {
             id="text-selection-popover"
             style={popoverStyle}
             className="z-10 bg-card p-1 rounded-lg shadow-lg border flex gap-1 items-center"
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()} // Prevent closing when clicking the popover
         >
             <button onClick={() => applyStyle('highlight-yellow')} className="h-6 w-6 rounded-full bg-yellow-300 border-2 border-transparent hover:border-primary"></button>
             <button onClick={() => applyStyle('highlight-blue')} className="h-6 w-6 rounded-full bg-blue-300 border-2 border-transparent hover:border-primary"></button>
@@ -1345,7 +1355,7 @@ function CoursesComponent() {
              </div>
         </aside>
         
-        <main className="flex-1 p-6 overflow-y-auto" onMouseUp={handleMouseUp}>
+        <main className="flex-1 p-6 overflow-y-auto" >
              <div className="flex items-center justify-between mb-4">
                 <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
                     <PanelLeft className="h-5 w-5" />
@@ -1368,7 +1378,7 @@ function CoursesComponent() {
 
             {currentChapter && currentModule ? (
                  <div className="max-w-4xl mx-auto space-y-8 relative">
-                     {selection && <TextSelectionMenu />}
+                     {popoverPosition && <TextSelectionMenu />}
                      <h1 className="text-4xl font-bold">{currentChapter.title}</h1>
                      
                       {isChapterContentLoading[currentChapter.id] ? (
@@ -1388,6 +1398,7 @@ function CoursesComponent() {
                             )}
                              <div 
                                 ref={contentRef}
+                                onMouseUp={handleMouseUp}
                                 className="text-muted-foreground text-lg whitespace-pre-wrap leading-relaxed" 
                              >{currentChapter.content}</div>
                             {currentChapter.diagramUrl && (
@@ -1533,3 +1544,5 @@ export default function CoursesClientPage() {
         </Suspense>
     )
 }
+
+    
