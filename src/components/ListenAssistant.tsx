@@ -1,161 +1,144 @@
 
 'use client';
 
-import React, { useEffect, useRef, useState, useCallback, useContext } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import Draggable from 'react-draggable';
 import { Button } from './ui/button';
-import { X, Hand, Play, Pause, Mic, Loader2 } from 'lucide-react';
+import { X, Mic } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { motion } from 'framer-motion';
-import AnimatedOrb from './AnimatedOrb';
-import { FloatingChatContext } from './floating-chat';
+import AIBuddy from './ai-buddy';
+import { generateTutorResponse, generateAudio } from '@/lib/actions';
 
 interface ListenAssistantProps {
-  contentToRead: string;
+  chapterContent: string;
   onClose: () => void;
 }
 
-const ListenAssistant: React.FC<ListenAssistantProps> = ({ contentToRead, onClose }) => {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
-  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
-  const [selectedVoice, setSelectedVoice] = useState<string | undefined>(undefined);
-  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+const ListenAssistant: React.FC<ListenAssistantProps> = ({ chapterContent, onClose }) => {
   const nodeRef = React.useRef(null);
   const { toast } = useToast();
-  const { openChatAndListen } = useContext(FloatingChatContext);
+  const [isListening, setIsListening] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [transcript, setTranscript] = useState('');
+  const recognitionRef = useRef<any>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const stopPlayback = useCallback(() => {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      if (speechSynthesis.speaking) {
-        speechSynthesis.cancel();
-      }
+    if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = '';
     }
+    setIsSpeaking(false);
   }, []);
-
-  useEffect(() => {
-    const loadVoices = () => {
-      const availableVoices = window.speechSynthesis.getVoices();
-      if (availableVoices.length > 0) {
-        setVoices(availableVoices);
-        const englishVoice = availableVoices.find(v => v.lang.startsWith('en-US')) || availableVoices.find(v => v.lang.startsWith('en'));
-        if (englishVoice) {
-          setSelectedVoice(englishVoice.voiceURI);
-        }
-      }
-    };
-
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      loadVoices();
-      speechSynthesis.onvoiceschanged = loadVoices;
+  
+  const handleAiResponse = useCallback(async (text: string) => {
+    setTranscript('');
+    try {
+        const tutorResponse = await generateTutorResponse({ chapterContext: chapterContent, question: text });
+        setIsSpeaking(true);
+        const audioResponse = await generateAudio({ text: tutorResponse.answer });
+        
+        const newAudio = new Audio(audioResponse.audioDataUri);
+        audioRef.current = newAudio;
+        newAudio.play();
+        newAudio.onended = () => {
+            setIsSpeaking(false);
+        };
+    } catch(e) {
+        console.error(e);
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not get AI response.'});
+        setIsSpeaking(false);
     }
-    
-    // Cleanup function to stop speech when component unmounts or content changes
-    return () => {
-      stopPlayback();
-    };
-  }, [contentToRead, stopPlayback]);
+  }, [chapterContent, toast]);
 
-  const handlePlay = useCallback(() => {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
-        toast({ variant: 'destructive', title: 'Audio Error', description: 'Speech synthesis is not supported in this browser.' });
+  const toggleListen = useCallback(() => {
+    if (isSpeaking) {
+        stopPlayback();
         return;
     }
-    
-    if (isPlaying) {
-      speechSynthesis.pause();
-      setIsPaused(true);
-      setIsPlaying(false);
-    } else if (isPaused) {
-      speechSynthesis.resume();
-      setIsPaused(false);
-      setIsPlaying(true);
-    } else {
-      stopPlayback(); // Ensure any previous speech is stopped
-
-      const utterance = new SpeechSynthesisUtterance(contentToRead);
-      utteranceRef.current = utterance;
-
-      const voice = voices.find(v => v.voiceURI === selectedVoice);
-      if (voice) {
-        utterance.voice = voice;
-      }
-
-      utterance.onend = () => {
-        setIsPlaying(false);
-        setIsPaused(false);
-        utteranceRef.current = null;
-      };
-      utterance.onerror = (e) => {
-        console.error("Speech synthesis error", e);
-        toast({ variant: 'destructive', title: 'Audio Error', description: 'Could not play audio.' });
-        setIsPlaying(false);
-        setIsPaused(false);
-      };
-
-      speechSynthesis.speak(utterance);
-      setIsPlaying(true);
-      setIsPaused(false);
+    // @ts-ignore
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      toast({ variant: 'destructive', title: 'Voice input not supported.' });
+      return;
     }
-  }, [isPlaying, isPaused, contentToRead, selectedVoice, voices, stopPlayback, toast]);
+
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
+
+    recognition.onstart = () => setIsListening(true);
+    recognition.onend = () => setIsListening(false);
+    recognition.onerror = (event: any) => {
+        console.error('Speech recognition error', event.error);
+        toast({ variant: 'destructive', title: 'Voice recognition error.' });
+        setIsListening(false);
+    };
+
+    recognition.onresult = (event: any) => {
+        const currentTranscript = Array.from(event.results)
+            .map((result: any) => result[0])
+            .map((result) => result.transcript)
+            .join('');
+        setTranscript(currentTranscript);
+
+        if (event.results[0].isFinal) {
+            recognition.stop();
+            handleAiResponse(currentTranscript);
+        }
+    };
+    
+    recognitionRef.current = recognition;
+    recognition.start();
+  }, [isListening, isSpeaking, toast, handleAiResponse, stopPlayback]);
+
+  useEffect(() => {
+    return () => {
+      // Cleanup on unmount
+      recognitionRef.current?.stop();
+      stopPlayback();
+    };
+  }, [stopPlayback]);
   
-  const handleRaiseHand = () => {
-    stopPlayback();
-    setIsPlaying(false);
-    setIsPaused(false);
-    openChatAndListen();
-  };
-
-
   return (
     <Draggable nodeRef={nodeRef} handle=".drag-handle">
       <div ref={nodeRef} className="fixed bottom-24 right-6 w-full max-w-sm z-[60] cursor-grab">
-        <div className="bg-background/80 dark:bg-black/80 backdrop-blur-lg border border-border dark:border-white/20 rounded-2xl shadow-2xl p-6">
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-background/80 dark:bg-black/80 backdrop-blur-lg border border-border dark:border-white/20 rounded-2xl shadow-2xl p-6"
+        >
+          <div className="drag-handle h-8 w-full absolute top-0 left-0" />
           <button onClick={onClose} className="absolute top-4 right-4 text-muted-foreground hover:text-foreground">
             <X size={18} />
           </button>
 
           <div className="flex flex-col items-center justify-center text-center">
-            <div className="relative w-48 h-48 mb-6 drag-handle">
-              <AnimatedOrb isPlaying={isPlaying} />
+             <div className="relative w-48 h-48 mb-6">
+               <AIBuddy isStatic={!isSpeaking && !isListening} />
             </div>
             
-            <h1 className="text-2xl font-bold mb-1">Voice Mode</h1>
-            <p className="text-muted-foreground text-sm mb-6">
-                Now reading the current chapter. Raise your hand to interrupt and ask a question.
+            <h1 className="text-2xl font-bold mb-1">AI Voice Agent</h1>
+            <p className="text-muted-foreground text-sm h-10">
+                {isListening ? (transcript || 'Listening...') : isSpeaking ? 'Thinking...' : 'Ask me anything about this chapter.'}
             </p>
 
-            <div className="w-full mb-6">
-              <Select value={selectedVoice} onValueChange={setSelectedVoice}>
-                  <SelectTrigger>
-                      <SelectValue placeholder="Select a voice..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                      {voices.filter(v => v.lang.startsWith('en')).map(v => (
-                          <SelectItem key={v.voiceURI} value={v.voiceURI}>{v.name} ({v.lang})</SelectItem>
-                      ))}
-                  </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="flex items-center space-x-6">
-                <div className="flex flex-col items-center gap-2">
-                    <Button onClick={handleRaiseHand} variant="outline" className="w-20 h-20 rounded-full flex-col gap-1 border-2">
-                        <Hand size={28} />
-                    </Button>
-                     <span className="text-xs font-medium">Raise Hand</span>
-                </div>
-                <div className="flex flex-col items-center gap-2">
-                    <Button onClick={handlePlay} className="w-20 h-20 rounded-full flex-col gap-1 text-white bg-primary hover:bg-primary/90">
-                        {isPlaying ? <Pause size={28} /> : <Play size={28} />}
-                    </Button>
-                    <span className="text-xs font-medium">{isPlaying ? "Pause" : isPaused ? "Resume" : "Play"}</span>
-                </div>
+            <div className="flex items-center space-x-6 mt-6">
+                <Button onClick={toggleListen} className={cn("w-20 h-20 rounded-full flex-col gap-1 text-white transition-colors", isListening ? 'bg-red-500 hover:bg-red-600' : 'bg-primary hover:bg-primary/90')}>
+                    <Mic size={28} />
+                </Button>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </Draggable>
   );

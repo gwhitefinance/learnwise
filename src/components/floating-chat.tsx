@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { useState, useEffect, useRef, createContext, useContext } from 'react';
@@ -84,7 +82,7 @@ type AnswerState = 'unanswered' | 'answered';
 type AnswerFeedback = { question: string; answer: string; correctAnswer: string; isCorrect: boolean; explanation?: string; };
 
 export const FloatingChatContext = createContext({
-  openChatAndListen: () => {},
+  openChatWithVoice: () => {},
 });
 
 const ChatHomeScreen = ({ sessions, onNavigate, onStartNewChat, onSelectSession, onStartChatWithPrompt, customizations }: { sessions: ChatSession[], onNavigate: (tab: string) => void, onStartNewChat: () => void, onSelectSession: (sessionId: string) => void, onStartChatWithPrompt: (prompt: string) => void, customizations: Record<string, string> }) => {
@@ -847,7 +845,6 @@ export default function FloatingChat({ children }: { children: React.ReactNode }
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    URL.revokeObjectURL(url);
     toast({ title: 'Chat Exported!' });
   };
   
@@ -982,7 +979,7 @@ export default function FloatingChat({ children }: { children: React.ReactNode }
 
 
   return (
-    <FloatingChatContext.Provider value={{ openChatAndListen: activateVoiceInput }}>
+    <FloatingChatContext.Provider value={{ openChatWithVoice: activateVoiceInput }}>
       {children}
       <div className={cn(
           "fixed bottom-6 right-6 z-50",

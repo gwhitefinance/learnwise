@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useContext, Suspense, useRef } from 'react';
@@ -359,7 +358,7 @@ function CoursesComponent() {
             
             const newRoadmap = {
                 goals: roadmapResult.goals.map(g => ({ ...g, id: `id-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, icon: g.icon || 'Flag' })),
-                milestones: roadmapResult.milestones.map(m => ({ ...m, id: `id-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, icon: g.icon || 'Calendar', completed: false }))
+                milestones: roadmapResult.milestones.map(m => ({ ...m, id: `id-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, icon: m.icon || 'Calendar', completed: false }))
             };
 
             const roadmapsQuery = query(collection(db, 'roadmaps'), where('courseId', '==', activeCourse.id));
@@ -1260,7 +1259,6 @@ function CoursesComponent() {
     <>
       {isListenAssistantOpen && currentChapter?.content && (
         <ListenAssistant
-          contentToRead={currentChapter.content}
           onClose={() => setIsListenAssistantOpen(false)}
         />
       )}
