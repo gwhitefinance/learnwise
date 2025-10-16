@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
@@ -27,6 +28,7 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ chapterContent, onClo
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const recognitionRef = useRef<any>(null);
+  const draggableRef = useRef(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -143,8 +145,9 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ chapterContent, onClo
   }
 
   return (
-    <Draggable handle=".drag-handle">
+    <Draggable nodeRef={draggableRef} handle=".drag-handle">
       <motion.div
+        ref={draggableRef}
         initial={{ opacity: 0, y: 50, scale: 0.9 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: 50, scale: 0.9 }}
@@ -176,7 +179,7 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ chapterContent, onClo
 
         <div className="flex items-center justify-center gap-4 mt-6">
             <Button onClick={handleListen} disabled={isLoading} variant="outline" size="lg" className="rounded-full">
-                {isLoading ? <Loader2 className="animate-spin" /> : isPlaying ? <Pause /> : <Play />}
+                {isLoading ? <span className="animate-spin">...</span> : isPlaying ? <Pause /> : <Headphones />}
                 <span className="ml-2">{isLoading ? 'Preparing...' : (isPlaying ? 'Pause' : (isPaused ? 'Resume' : 'Listen'))}</span>
             </Button>
             <Button
