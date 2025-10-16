@@ -10,18 +10,23 @@ export const useSpeech = () => {
     const { toast } = useToast();
     const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
+    const stop = useCallback(() => {
+        if (typeof window !== 'undefined' && window.speechSynthesis.speaking) {
+            window.speechSynthesis.cancel();
+        }
+        // State is updated via onend listener
+    }, []);
+
     const speak = useCallback((text: string) => {
         if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
             toast({ variant: 'destructive', title: 'TTS not supported' });
             return;
         }
         
-        // Cancel any ongoing speech before starting a new one.
-        if (speechSynthesis.speaking) {
-            speechSynthesis.cancel();
-        }
+        stop();
 
         const utterance = new SpeechSynthesisUtterance(text);
+        
         utterance.onstart = () => {
             setIsPlaying(true);
             setIsPaused(false);
@@ -50,39 +55,35 @@ export const useSpeech = () => {
         
         utteranceRef.current = utterance;
         
-        // A small delay can help prevent race conditions in some browsers
         setTimeout(() => {
-            speechSynthesis.speak(utterance);
+            window.speechSynthesis.speak(utterance);
         }, 100);
 
-    }, [toast]);
+    }, [toast, stop]);
 
     const pause = useCallback(() => {
-        if (speechSynthesis.speaking && !speechSynthesis.paused) {
-            speechSynthesis.pause();
+        if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
+            window.speechSynthesis.pause();
         }
     }, []);
     
     const resume = useCallback(() => {
-        if (speechSynthesis.paused) {
-            speechSynthesis.resume();
-        }
-    }, []);
-
-    const stop = useCallback(() => {
-        if (speechSynthesis.speaking) {
-            speechSynthesis.cancel();
+        if (window.speechSynthesis.paused) {
+            window.speechSynthesis.resume();
         }
     }, []);
 
     useEffect(() => {
-        // Cleanup function to cancel speech when the component unmounts
-        return () => {
-            if (speechSynthesis.speaking) {
-                speechSynthesis.cancel();
-            }
+        const handleBeforeUnload = () => {
+            stop();
         };
-    }, []);
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+            stop();
+        };
+    }, [stop]);
 
     return { speak, stop, pause, resume, isPlaying, isPaused };
 };

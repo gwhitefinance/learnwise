@@ -5,7 +5,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Draggable from 'react-draggable';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from './ui/button';
-import { Headphones, Play, Pause, X, Mic, Hand, StopCircle } from 'lucide-react';
+import { Headphones, Play, Pause, X, Mic, Hand, StopCircle, Square } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { generateTutorResponse } from '@/lib/actions';
 import { cn } from '@/lib/utils';
@@ -22,7 +22,7 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ chapterContent, onClo
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   
-  const { speak, stop, isPlaying, isPaused } = useSpeech();
+  const { speak, stop, isPlaying } = useSpeech();
   
   const recognitionRef = useRef<any>(null);
   const draggableRef = useRef(null);
@@ -33,35 +33,48 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ chapterContent, onClo
 
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (SpeechRecognition) {
-      const recognition = new SpeechRecognition();
-      recognition.continuous = false;
-      recognition.interimResults = false;
-      recognition.lang = 'en-US';
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = true;
+      recognitionRef.current.lang = 'en-US';
 
-      recognition.onresult = (event: any) => {
-        const userSpeech = event.results[0][0].transcript;
-        setTranscript(userSpeech);
-        handleAiResponse(userSpeech);
+      recognitionRef.current.onresult = (event: any) => {
+        let interimTranscript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          if (event.results[i].isFinal) {
+            handleAiResponse(event.results[i][0].transcript);
+          } else {
+            interimTranscript += event.results[i][0].transcript;
+          }
+        }
+        setTranscript(interimTranscript);
       };
-      recognition.onerror = (event: any) => {
-        if (event.error !== 'aborted') {
+
+      recognitionRef.current.onerror = (event: any) => {
+        if (event.error !== 'aborted' && event.error !== 'no-speech') {
             console.error('Speech recognition error', event.error);
             toast({ variant: 'destructive', title: 'Voice recognition error.' });
         }
         setIsListening(false);
       };
-      recognition.onend = () => setIsListening(false);
-      recognitionRef.current = recognition;
+      
+      recognitionRef.current.onend = () => {
+        setIsListening(false);
+        setTranscript('');
+      };
+
     }
 
     return () => {
       stop();
-      recognitionRef.current?.abort();
+      if (recognitionRef.current) {
+        recognitionRef.current.abort();
+      }
     };
   }, [toast, stop]);
 
   const handleAiResponse = async (text: string) => {
-    if (!chapterContent) return;
+    if (!chapterContent || !text.trim()) return;
 
     setTranscript('');
     try {
@@ -81,12 +94,25 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ chapterContent, onClo
     }
   };
 
-  const toggleListenForQuestion = () => {
+  const toggleListening = () => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        toast({ variant: 'destructive', title: 'Voice input not supported in this browser.' });
+        return;
+    }
+      
     if (isListening) {
       recognitionRef.current?.stop();
     } else {
       stop(); // Stop any playback before listening
-      recognitionRef.current?.start();
+      try {
+        setTranscript('');
+        recognitionRef.current?.start();
+        setIsListening(true);
+      } catch (error) {
+         console.error('Could not start recognition:', error);
+         setIsListening(false);
+      }
     }
   };
 
@@ -131,11 +157,11 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ chapterContent, onClo
                 <span className="ml-2">{isPlaying ? 'Stop' : 'Listen'}</span>
             </Button>
             <Button
-                onClick={toggleListenForQuestion}
+                onClick={toggleListening}
                 size="icon"
-                className={cn("rounded-full h-14 w-14 transition-all duration-300", isListening ? 'bg-red-500 scale-110' : 'bg-primary')}
+                className={cn("rounded-full h-14 w-14 transition-all duration-300", isListening ? 'bg-red-500 hover:bg-red-600 scale-110' : 'bg-primary hover:bg-primary/90')}
             >
-                {isListening ? <Hand className="text-white" /> : <Mic className="text-white" />}
+                {isListening ? <Square className="text-white" /> : <Hand className="text-white" />}
             </Button>
         </div>
       </motion.div>
