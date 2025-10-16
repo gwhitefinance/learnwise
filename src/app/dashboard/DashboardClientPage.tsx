@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useContext } from 'react';
@@ -258,7 +259,6 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
     const [learnerType, setLearnerType] = useState<string | null>(null);
     const [gradeLevel, setGradeLevel] = useState<string | null>(null);
     const { showReward } = useContext(RewardContext);
-    const [showTimer, setShowTimer] = useState(false);
 
     // Add Course Dialog State
     const [isNewTopic, setIsNewTopic] = useState<boolean | null>(null);
@@ -848,16 +848,15 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                 This is your central hub for all your learning activities. Let's make today a productive one!
                             </p>
                              <div className="mt-4 flex gap-4">
-                                <div className="animated-button-container group w-full max-w-xs">
+                                <div className="animated-button-container group w-full max-w-[280px]">
                                   <Spotlight />
-                                    <Button asChild variant="outline" className="relative w-full bg-white text-black hover:bg-gray-100 rounded-xl font-semibold flex items-center gap-2 overflow-hidden h-12 text-base">
+                                    <Button asChild variant="outline" className="relative w-full bg-white text-black hover:bg-gray-100 rounded-xl font-semibold flex items-center gap-2 overflow-hidden h-11 text-base">
                                        <Link href="/dashboard/courses" >
                                         <Logo className="w-5 h-5"/>
                                         Start Tutorin
                                       </Link>
                                     </Button>
                                 </div>
-                                {showTimer && <PomodoroTimer onHide={() => setShowTimer(false)} />}
                             </div>
                         </div>
                          <div className="relative hidden lg:flex items-center justify-center gap-8">
