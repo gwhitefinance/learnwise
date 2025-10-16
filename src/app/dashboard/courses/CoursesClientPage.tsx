@@ -261,13 +261,11 @@ function CoursesComponent() {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-        // If the click is outside the popover and not on the content itself
         if (popoverPosition && contentRef.current && !contentRef.current.contains(event.target as Node)) {
             const popoverEl = document.getElementById('text-selection-popover');
             if (popoverEl && !popoverEl.contains(event.target as Node)) {
                 setPopoverPosition(null);
                 setSelectedRange(null);
-                // No need to removeAllRanges here as the selection might be inside the content area
             }
         }
     };
@@ -802,28 +800,24 @@ function CoursesComponent() {
     }
   };
 
- const handleMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (contentRef.current?.contains(e.target as Node)) {
-        const selection = window.getSelection();
-        if (selection && !selection.isCollapsed) {
-            const range = selection.getRangeAt(0);
-            if (contentRef.current.contains(range.commonAncestorContainer)) {
-                setSelectedRange(range);
-                const rect = range.getBoundingClientRect();
-                const contentRect = contentRef.current.getBoundingClientRect();
-                setPopoverPosition({
-                    top: rect.top - contentRect.top + window.scrollY - 50,
-                    left: rect.left - contentRect.left + window.scrollX + rect.width / 2,
-                });
-                return; // Keep popover open
-            }
+  const handleMouseUp = () => {
+    const selection = window.getSelection();
+    if (selection && !selection.isCollapsed) {
+        const range = selection.getRangeAt(0);
+        if (contentRef.current && contentRef.current.contains(range.commonAncestorContainer)) {
+            setSelectedRange(range.cloneRange());
+            const rect = range.getBoundingClientRect();
+            const contentRect = contentRef.current.getBoundingClientRect();
+            setPopoverPosition({
+                top: rect.top - contentRect.top - 50,
+                left: rect.left - contentRect.left + rect.width / 2,
+            });
+            return;
         }
     }
-    // If we click outside or the selection is invalid, close the popover
     setPopoverPosition(null);
-    setSelectedRange(null);
   };
-
+  
   const applyStyle = (style: string) => {
     if (!selectedRange) return;
 
@@ -832,17 +826,8 @@ function CoursesComponent() {
         mark.className = style;
         selectedRange.surroundContents(mark);
     } catch (e) {
-        // Fallback for selections that span multiple elements
-        console.error("Could not apply style directly, using fallback. Error:", e);
-        try {
-            const mark = document.createElement('mark');
-            mark.className = style;
-            mark.appendChild(selectedRange.extractContents());
-            selectedRange.insertNode(mark);
-        } catch (e2) {
-            console.error("Fallback style application failed:", e2);
-            toast({ variant: "destructive", title: "Highlight Failed", description: "Could not apply highlight to this selection." });
-        }
+        console.error("Could not apply style directly:", e);
+        toast({ variant: "destructive", title: "Highlight Failed", description: "Could not apply highlight to this selection." });
     }
 
     setPopoverPosition(null);
@@ -1191,7 +1176,6 @@ function CoursesComponent() {
             id="text-selection-popover"
             style={popoverStyle}
             className="z-10 bg-card p-1 rounded-lg shadow-lg border flex gap-1 items-center"
-            onClick={(e) => e.stopPropagation()} 
         >
             <button onClick={() => applyStyle('highlight-yellow')} className="h-6 w-6 rounded-full bg-yellow-300 border-2 border-transparent hover:border-primary"></button>
             <button onClick={() => applyStyle('highlight-blue')} className="h-6 w-6 rounded-full bg-blue-300 border-2 border-transparent hover:border-primary"></button>

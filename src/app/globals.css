@@ -62,13 +62,13 @@
     color: inherit;
   }
 
-  mark.highlight-yellow {
+  .highlight-yellow {
     background-color: rgba(250, 243, 131, 0.7);
   }
-  mark.highlight-blue {
+  .highlight-blue {
     background-color: rgba(181, 226, 252, 0.7);
   }
-  mark.highlight-pink {
+  .highlight-pink {
     background-color: rgba(255, 192, 203, 0.7);
   }
 }
