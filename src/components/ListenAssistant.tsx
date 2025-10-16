@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useContext } from 'react';
 import Draggable from 'react-draggable';
 import { Button } from './ui/button';
 import { X, Mic, Hand } from 'lucide-react';
@@ -9,7 +9,8 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { motion } from 'framer-motion';
 import AIBuddy from './ai-buddy';
-import { generateTutorResponse, generateAudio } from '@/lib/actions';
+import { generateTutorResponse } from '@/lib/actions';
+import { FloatingChatContext } from './floating-chat';
 
 interface ListenAssistantProps {
   onClose: () => void;
@@ -19,84 +20,65 @@ interface ListenAssistantProps {
 const ListenAssistant: React.FC<ListenAssistantProps> = ({ onClose, chapterContent }) => {
   const nodeRef = React.useRef(null);
   const { toast } = useToast();
+  const { openChatWithVoice } = useContext(FloatingChatContext);
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [transcript, setTranscript] = useState('');
   const recognitionRef = useRef<any>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-    // Cleanup on unmount
-    return () => {
-      recognitionRef.current?.stop();
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.onended = null;
-      }
-    };
-  }, []);
+  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   const stopPlayback = useCallback(() => {
-    return new Promise<void>((resolve) => {
-      if (audioRef.current) {
-        audioRef.current.onended = () => {
-          setIsSpeaking(false);
-          resolve();
-        };
-        audioRef.current.pause();
-        audioRef.current.src = '';
-        audioRef.current = null;
-        // If onended doesn't fire (e.g., if paused), resolve immediately
-        if (isSpeaking) {
-          setIsSpeaking(false);
-          resolve();
-        } else {
-          resolve();
-        }
-      } else {
-        resolve();
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+    }
+    setIsSpeaking(false);
+  }, []);
+  
+  useEffect(() => {
+    // Cleanup on unmount
+    return () => {
+      stopPlayback();
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
       }
-    });
-  }, [isSpeaking]);
+    };
+  }, [stopPlayback]);
 
 
   const handleAiResponse = useCallback(async (text: string) => {
     setTranscript('');
+    setIsSpeaking(true);
     try {
       const tutorResponse = await generateTutorResponse({ chapterContext: chapterContent, question: text });
-      setIsSpeaking(true);
-      const audioResponse = await generateAudio({ text: tutorResponse.answer });
+      
+      const utterance = new SpeechSynthesisUtterance(tutorResponse.answer);
+      utteranceRef.current = utterance;
 
-      await stopPlayback(); 
-
-      const newAudio = new Audio(audioResponse.audioDataUri);
-      audioRef.current = newAudio;
-
-      newAudio.play().catch(e => {
-        console.error("Audio play failed:", e);
-        toast({ variant: 'destructive', title: 'Audio Error', description: 'Could not play audio.' });
-        setIsSpeaking(false);
-      });
-
-      newAudio.onended = () => {
+      utterance.onend = () => {
         setIsSpeaking(false);
       };
+      
+      utterance.onerror = (e) => {
+        console.error("Speech synthesis error", e);
+        toast({ variant: 'destructive', title: 'Audio Error', description: 'Could not play audio.' });
+        setIsSpeaking(false);
+      };
+      
+      window.speechSynthesis.speak(utterance);
 
     } catch (e) {
       console.error(e);
       toast({ variant: 'destructive', title: 'Error', description: 'Could not get AI response.' });
       setIsSpeaking(false);
     }
-  }, [chapterContent, toast, stopPlayback]);
+  }, [chapterContent, toast]);
 
   const toggleListen = useCallback(() => {
-    if (!isMounted) return;
     if (isSpeaking) {
       stopPlayback();
       return;
     }
+
     // @ts-ignore
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
@@ -106,6 +88,7 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ onClose, chapterConte
 
     if (isListening) {
       recognitionRef.current?.stop();
+      setIsListening(false);
       return;
     }
 
@@ -118,7 +101,9 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ onClose, chapterConte
     recognition.onend = () => setIsListening(false);
     recognition.onerror = (event: any) => {
       console.error('Speech recognition error', event.error);
-      toast({ variant: 'destructive', title: 'Voice recognition error.' });
+      if (event.error !== 'no-speech') {
+        toast({ variant: 'destructive', title: 'Voice recognition error.' });
+      }
     };
 
     recognition.onresult = (event: any) => {
@@ -136,7 +121,7 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ onClose, chapterConte
 
     recognitionRef.current = recognition;
     recognition.start();
-  }, [isListening, isSpeaking, toast, handleAiResponse, stopPlayback, isMounted]);
+  }, [isListening, isSpeaking, toast, handleAiResponse, stopPlayback]);
 
   return (
     <Draggable nodeRef={nodeRef} handle=".drag-handle">
