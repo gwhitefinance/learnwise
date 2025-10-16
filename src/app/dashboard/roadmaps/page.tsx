@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
-import { GitMerge, Plus, Check, Flag, Calendar, ArrowRight, Loader2, CheckCircle, XCircle, Maximize, Minimize } from "lucide-react";
+import { GitMerge, Plus, Check, Flag, Calendar, ArrowRight, Loader2, CheckCircle, XCircle, Maximize, Minimize, Clock } from "lucide-react";
 import * as LucideIcons from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -93,6 +93,9 @@ export default function RoadmapsPage() {
     const [explanation, setExplanation] = useState<string | null>(null);
     const [isExplanationLoading, setIsExplanationLoading] = useState(false);
     const [learnerType, setLearnerType] = useState<string | null>(null);
+    
+    // Timer state
+    const [timeRemaining, setTimeRemaining] = useState(300); // 5 minutes
 
     // Focus mode
     const [isFocusMode, setIsFocusMode] = useState(false);
@@ -146,6 +149,24 @@ export default function RoadmapsPage() {
         };
     }, []);
 
+    useEffect(() => {
+        let timer: NodeJS.Timeout;
+        if (isChallengeOpen && challengeState === 'in-progress' && timeRemaining > 0) {
+            timer = setTimeout(() => {
+                setTimeRemaining(t => t - 1);
+            }, 1000);
+        } else if (isChallengeOpen && challengeState === 'in-progress' && timeRemaining === 0) {
+            toast({
+                variant: 'destructive',
+                title: "Time's Up!",
+                description: "You ran out of time. Review the material and try again!",
+            });
+            setIsChallengeOpen(false);
+        }
+        return () => clearTimeout(timer);
+    }, [isChallengeOpen, challengeState, timeRemaining, toast]);
+
+
     const activeRoadmap = activeCourseId ? roadmaps[activeCourseId] : null;
 
     const handleGenerateRoadmap = async (course: Course) => {
@@ -197,6 +218,7 @@ export default function RoadmapsPage() {
         setAnswerState('unanswered');
         setFeedback(null);
         setChallengeQuiz(null);
+        setTimeRemaining(300); // Reset timer to 5 minutes
 
         setIsChallengeOpen(true);
         setIsChallengeLoading(true);
@@ -425,8 +447,21 @@ export default function RoadmapsPage() {
           </Card>
         )}
       </div>
-
-       <Dialog open={isChallengeOpen} onOpenChange={setIsChallengeOpen}>
+      <Dialog open={showFocusModeDialog} onOpenChange={setShowFocusModeDialog}>
+          <DialogContent>
+              <DialogHeader>
+                  <DialogTitle>Enter Focus Mode?</DialogTitle>
+                  <DialogDescription>
+                      Focus Mode provides a distraction-free, fullscreen environment for your challenge. You can exit anytime by pressing 'Esc' or clicking the exit button.
+                  </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                  <Button variant="ghost" onClick={() => setShowFocusModeDialog(false)}>No, thanks</Button>
+                  <Button onClick={enterFocusMode}><Maximize className="mr-2 h-4 w-4"/> Enter Focus Mode</Button>
+              </DialogFooter>
+          </DialogContent>
+      </Dialog>
+       <Dialog open={isChallengeOpen} onOpenChange={(open) => { if (!open) exitFocusMode(); setIsChallengeOpen(open);}}>
           <DialogContent className={cn("max-w-3xl transition-all duration-300", isFocusMode && "w-full h-full max-w-full")}>
               {isFocusMode && (
                   <Button onClick={exitFocusMode} variant="outline" className="absolute top-4 right-4 z-50">
@@ -434,8 +469,16 @@ export default function RoadmapsPage() {
                   </Button>
               )}
                <DialogHeader>
-                  <DialogTitle>Mastery Challenge: {challengeMilestone?.title}</DialogTitle>
-                  <DialogDescription>Answer all questions correctly to complete this milestone. One wrong answer and you'll have to try again!</DialogDescription>
+                <div className="flex justify-between items-center">
+                    <div>
+                        <DialogTitle>Mastery Challenge: {challengeMilestone?.title}</DialogTitle>
+                        <DialogDescription>Answer all questions correctly to complete this milestone. One wrong answer and you'll have to try again!</DialogDescription>
+                    </div>
+                    <div className="text-lg font-semibold flex items-center gap-2 text-muted-foreground">
+                        <Clock className="h-5 w-5"/>
+                        <span>{Math.floor(timeRemaining / 60)}:{(timeRemaining % 60).toString().padStart(2, '0')}</span>
+                    </div>
+                </div>
               </DialogHeader>
               <div className="py-4 max-h-[70vh] overflow-y-auto">
                    {isChallengeLoading ? (
@@ -488,7 +531,7 @@ export default function RoadmapsPage() {
                   )}
                </div>
                <DialogFooter className="flex justify-between w-full">
-                  {!isFocusMode && <Button variant="outline" onClick={enterFocusMode}><Maximize className="mr-2 h-4 w-4"/>Focus Mode</Button>}
+                  {!isFocusMode && challengeState === 'in-progress' && <Button variant="outline" onClick={enterFocusMode}><Maximize className="mr-2 h-4 w-4"/>Focus Mode</Button>}
                    {challengeState === 'in-progress' ? (
                        <div className="flex gap-2">
                           {answerState === 'unanswered' ? (
