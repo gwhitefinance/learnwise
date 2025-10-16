@@ -27,7 +27,6 @@ import { generatePodcastEpisode } from '@/ai/flows/podcast-flow';
 import { generateSatQuestion } from '@/ai/flows/sat-question-flow';
 import { generateInitialCourseAndRoadmap } from '@/ai/flows/initial-course-flow';
 import { generateAudio } from '@/ai/flows/text-to-speech-flow';
-import { generateElevenLabsAudio } from '@/ai/flows/elevenlabs-tts-flow';
 
 // Re-exporting all AI functions as Server Actions
 export { 
@@ -57,5 +56,4 @@ export {
     generateSatQuestion,
     generateInitialCourseAndRoadmap,
     generateAudio,
-    generateElevenLabsAudio,
 };
