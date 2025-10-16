@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Progress } from '@/components/ui/progress';
 import AIBuddy from '@/components/ai-buddy';
+import { cn } from '@/lib/utils';
 
 const quotes = [
     "The beautiful thing about learning is that no one can take it from you.",
@@ -28,33 +29,50 @@ export default function GeneratingCourse({ courseName }: { courseName: string })
     const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
 
     useEffect(() => {
-        const interval = setInterval(() => {
-            setProgress(prev => {
-                if (prev >= 100) {
-                    clearInterval(interval);
-                    return 100;
-                }
-                const nextStep = generationSteps[currentStep];
-                if (prev < nextStep.progress) {
-                    return prev + 1;
-                } else {
-                    if (currentStep < generationSteps.length - 1) {
-                        setCurrentStep(currentStep + 1);
-                    }
-                    return prev;
-                }
-            });
-        }, 80);
+        const totalDuration = 15000; // Total estimated time in ms (e.g., 15 seconds)
+        const stepDurations = [0.1, 0.4, 0.3, 0.15, 0.05]; // Percentage of time for each step
 
+        let stepStartTime = 0;
+        let stepIndex = 0;
+        let animationFrameId: number;
+
+        const animateProgress = (timestamp: number) => {
+            if (!stepStartTime) stepStartTime = timestamp;
+            const elapsedTime = timestamp - stepStartTime;
+
+            const currentStepInfo = generationSteps[stepIndex];
+            const previousStepProgress = stepIndex > 0 ? generationSteps[stepIndex - 1].progress : 0;
+            const stepDuration = totalDuration * stepDurations[stepIndex];
+            
+            let stepProgress = Math.min(1, elapsedTime / stepDuration);
+            let newOverallProgress = Math.floor(previousStepProgress + stepProgress * (currentStepInfo.progress - previousStepProgress));
+
+            setProgress(newOverallProgress);
+            setCurrentStep(stepIndex);
+
+            if (stepProgress >= 1) {
+                if (stepIndex < generationSteps.length - 1) {
+                    stepIndex++;
+                    stepStartTime = timestamp;
+                } else {
+                    setProgress(100);
+                    return;
+                }
+            }
+            animationFrameId = requestAnimationFrame(animateProgress);
+        };
+        
+        animationFrameId = requestAnimationFrame(animateProgress);
+        
         const quoteInterval = setInterval(() => {
             setCurrentQuoteIndex(prev => (prev + 1) % quotes.length);
         }, 5000);
 
         return () => {
-            clearInterval(interval);
+            cancelAnimationFrame(animationFrameId);
             clearInterval(quoteInterval);
         };
-    }, [currentStep]);
+    }, []);
 
     return (
         <div className="flex flex-col items-center justify-center h-full text-center p-6">
@@ -62,16 +80,20 @@ export default function GeneratingCourse({ courseName }: { courseName: string })
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5 }}
+                className="w-full"
             >
-                <AIBuddy className="w-40 h-40 mb-8" />
+                <AIBuddy className="w-40 h-40 mb-8 mx-auto" />
                 <h1 className="text-3xl font-bold">Building your course:</h1>
                 <h2 className="text-2xl font-bold text-primary mb-8">{courseName}</h2>
 
                 <div className="w-full max-w-md mx-auto">
-                    <Progress value={progress} className="mb-2"/>
-                    <p className="text-sm text-muted-foreground mb-8">
-                        {generationSteps[currentStep].label}
-                    </p>
+                     <div className="flex justify-between items-center mb-1">
+                        <p className="text-sm text-muted-foreground text-left">
+                            {generationSteps[currentStep].label}
+                        </p>
+                         <p className="text-sm font-semibold text-primary">{progress}%</p>
+                    </div>
+                    <Progress value={progress} className="mb-2 h-2"/>
                 </div>
                 
                 <motion.p
@@ -79,7 +101,7 @@ export default function GeneratingCourse({ courseName }: { courseName: string })
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 1 }}
-                    className="text-muted-foreground italic mt-4 max-w-md mx-auto"
+                    className="text-muted-foreground italic mt-8 max-w-md mx-auto"
                 >
                     "{quotes[currentQuoteIndex]}"
                 </motion.p>
