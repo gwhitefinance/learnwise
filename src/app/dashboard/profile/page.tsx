@@ -6,14 +6,13 @@ import { useEffect, useState } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { doc, onSnapshot, query, collection, where } from 'firebase/firestore';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Gem, Zap, Shield, Star } from 'lucide-react';
+import { Gem, Zap, Shield, Star, Award } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import AIBuddy from '@/components/ai-buddy';
-import { Progress } from '@/components/ui/progress';
 
 type UserProfile = {
     displayName: string;
@@ -22,9 +21,17 @@ type UserProfile = {
     unlockedItems?: Record<string, string[]>;
 };
 
+type Roadmap = {
+    id: string;
+    courseId: string;
+    milestones: { id: string; title: string; completed: boolean; icon: string }[];
+};
+
+
 export default function ProfilePage() {
     const [user, authLoading] = useAuthState(auth);
     const [profile, setProfile] = useState<UserProfile | null>(null);
+    const [roadmaps, setRoadmaps] = useState<Roadmap[]>([]);
     const [profileLoading, setProfileLoading] = useState(true);
     const [customizations, setCustomizations] = useState<Record<string, string>>({});
     const router = useRouter();
@@ -37,14 +44,17 @@ export default function ProfilePage() {
         }
 
         const userDocRef = doc(db, 'users', user.uid);
-        const unsubscribe = onSnapshot(userDocRef, (doc) => {
+        const unsubscribeUser = onSnapshot(userDocRef, (doc) => {
             if (doc.exists()) {
-                const data = doc.data();
-                setProfile({
-                    ...data,
-                } as UserProfile);
+                setProfile(doc.data() as UserProfile);
             }
             setProfileLoading(false);
+        });
+        
+        const roadmapsQuery = query(collection(db, "roadmaps"), where("userId", "==", user.uid));
+        const unsubscribeRoadmaps = onSnapshot(roadmapsQuery, (snapshot) => {
+            const userRoadmaps = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Roadmap));
+            setRoadmaps(userRoadmaps);
         });
 
         const savedCustomizations = localStorage.getItem(`robotCustomizations_${user.uid}`);
@@ -52,7 +62,10 @@ export default function ProfilePage() {
             setCustomizations(JSON.parse(savedCustomizations));
         }
 
-        return () => unsubscribe();
+        return () => {
+            unsubscribeUser();
+            unsubscribeRoadmaps();
+        };
     }, [user, authLoading, router]);
 
     if (authLoading || profileLoading) {
@@ -75,13 +88,7 @@ export default function ProfilePage() {
         return <div>Could not load user profile. Please try refreshing.</div>
     }
     
-    const achievements = [
-        { title: 'First Quiz Completed', coins: 10, unlocked: true },
-        { title: 'First Course Finished', coins: 50, unlocked: false },
-        { title: '7-Day Study Streak', coins: 100, unlocked: false },
-        { title: 'Perfect Quiz Score', coins: 25, unlocked: true },
-        { title: 'Mastered a Topic', coins: 75, unlocked: false },
-    ];
+    const allCompletedMilestones = roadmaps.flatMap(r => r.milestones.filter(m => m.completed));
 
     return (
         <div className="space-y-8">
@@ -115,25 +122,24 @@ export default function ProfilePage() {
 
                     <Card>
                         <CardHeader>
-                            <CardTitle>Achievements</CardTitle>
-                             <CardDescription>Earn coins by completing tasks.</CardDescription>
+                            <CardTitle>Badge Collection</CardTitle>
+                             <CardDescription>Badges earned from completing Mastery Challenges.</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div className="space-y-4">
-                                {achievements.map((ach) => (
-                                    <div key={ach.title} className={cn("flex items-center justify-between p-3 rounded-lg", ach.unlocked ? "bg-green-500/10" : "bg-muted opacity-60")}>
-                                        <div className="flex items-center gap-3">
-                                            <div className={cn("p-2 rounded-full", ach.unlocked ? "bg-green-500/20 text-green-600" : "bg-muted-foreground/20 text-muted-foreground")}>
-                                                <Star className="h-5 w-5" />
+                           {allCompletedMilestones.length > 0 ? (
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                                    {allCompletedMilestones.map((milestone) => (
+                                        <div key={milestone.id} className="flex flex-col items-center text-center gap-2">
+                                            <div className="w-20 h-20 rounded-full flex items-center justify-center bg-green-500/10 border-2 border-green-500 text-green-500">
+                                                <Award className="h-10 w-10"/>
                                             </div>
-                                            <div>
-                                                <p className="font-semibold">{ach.title}</p>
-                                                <p className="text-sm text-muted-foreground">+{ach.coins} coins</p>
-                                            </div>
+                                            <p className="text-xs font-semibold text-center">{milestone.title}</p>
                                         </div>
-                                    </div>
-                                ))}
-                            </div>
+                                    ))}
+                                </div>
+                           ) : (
+                               <p className="text-muted-foreground text-center py-8">No badges earned yet. Complete some Mastery Challenges on your roadmaps!</p>
+                           )}
                         </CardContent>
                     </Card>
                 </div>
@@ -161,3 +167,4 @@ export default function ProfilePage() {
         </div>
     );
 }
+

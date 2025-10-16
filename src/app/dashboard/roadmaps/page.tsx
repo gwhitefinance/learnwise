@@ -1,27 +1,30 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
-import { GitMerge, Plus, Check, Flag, Calendar } from "lucide-react";
+import { GitMerge, Plus, Check, Flag, Calendar, ArrowRight, Loader2 } from "lucide-react";
 import * as LucideIcons from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { DatePicker } from '@/components/ui/date-picker';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { collection, query, where, addDoc, doc, updateDoc, onSnapshot } from 'firebase/firestore';
-import { generateRoadmap } from '@/lib/actions';
+import { generateRoadmap, generateQuizFromModule } from '@/lib/actions';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import type { GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
+
+type AnswerFeedback = { question: string; answer: string; correctAnswer: string; isCorrect: boolean; };
 
 export const dynamic = "force-dynamic";
 
@@ -31,9 +34,10 @@ type Course = {
     description: string;
     url?: string;
     userId?: string;
+    units?: { id: string; title: string; chapters: { id: string; title: string; content?: string }[] }[];
 };
 
-type Goal = {
+type Badge = {
     id: string;
     icon: string;
     title: string;
@@ -53,43 +57,15 @@ type Roadmap = {
     id: string;
     courseId: string;
     userId: string;
-    goals: Goal[];
+    goals: Badge[];
     milestones: Milestone[];
 };
 
-// Fixed function with proper typing
 const getIcon = (iconName: string | undefined, defaultIconName: string = 'Flag'): LucideIcon => {
     const nameToSearch = iconName || defaultIconName;
-
-    const iconKey = Object.keys(LucideIcons).find(
-        (key) => key.toLowerCase() === nameToSearch.toLowerCase()
-    ) as keyof typeof LucideIcons | undefined;
-
-    if (iconKey && typeof LucideIcons[iconKey] === 'function') {
-        return LucideIcons[iconKey] as LucideIcon;
-    }
-
-    return Flag;
+    const iconKey = Object.keys(LucideIcons).find((key) => key.toLowerCase() === nameToSearch.toLowerCase()) as keyof typeof LucideIcons | undefined;
+    return (iconKey && LucideIcons[iconKey] as LucideIcon) || Flag;
 };
-
-
-const CarIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
-    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M19.5 14.5A2.5 2.5 0 0 1 17 17H7a2.5 2.5 0 0 1-2.5-2.5V12h15v2.5Z"/>
-        <path d="M19.33 10.13A2 2 0 0 0 17.5 9H6.5a2 2 0 0 0-1.83 1.13L3 14h18l-1.67-3.87Z"/>
-        <path d="M7 9a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v0"/>
-        <circle cx="8" cy="17" r="2"/>
-        <circle cx="16" cy="17" r="2"/>
-    </svg>
-);
-
-const badgeColors = [
-    { bg: "bg-blue-100 dark:bg-blue-900/50", border: "border-blue-500", text: "text-blue-500" },
-    { bg: "bg-purple-100 dark:bg-purple-900/50", border: "border-purple-500", text: "text-purple-500" },
-    { bg: "bg-green-100 dark:bg-green-900/50", border: "border-green-500", text: "text-green-500" },
-    { bg: "bg-orange-100 dark:bg-orange-900/50", border: "border-orange-500", text: "text-orange-500" },
-];
-
 
 export default function RoadmapsPage() {
     const [courses, setCourses] = useState<Course[]>([]);
@@ -98,15 +74,17 @@ export default function RoadmapsPage() {
     const { toast } = useToast();
     const [user, authLoading] = useAuthState(auth);
     const router = useRouter();
-    
-    const [isItemDialogOpen, setIsItemDialogOpen] = useState(false);
-    const [editingItem, setEditingItem] = useState<Goal | Milestone | null>(null);
-    const [editingType, setEditingType] = useState<'goal' | 'milestone' | null>(null);
-    const [currentItemTitle, setCurrentItemTitle] = useState('');
-    const [currentItemDesc, setCurrentItemDesc] = useState('');
-    const [currentItemDate, setCurrentItemDate] = useState<Date | undefined>(undefined);
     const [activeCourseId, setActiveCourseId] = useState<string | null>(null);
 
+    // Mastery Challenge State
+    const [isChallengeOpen, setIsChallengeOpen] = useState(false);
+    const [challengeMilestone, setChallengeMilestone] = useState<Milestone | null>(null);
+    const [challengeQuiz, setChallengeQuiz] = useState<GenerateQuizOutput | null>(null);
+    const [isChallengeLoading, setIsChallengeLoading] = useState(false);
+    const [currentChallengeQuestionIndex, setCurrentChallengeQuestionIndex] = useState(0);
+    const [selectedChallengeAnswer, setSelectedChallengeAnswer] = useState<string | null>(null);
+    const [challengeAnswers, setChallengeAnswers] = useState<AnswerFeedback[]>([]);
+    const [challengeState, setChallengeState] = useState<'in-progress' | 'results'>('in-progress');
 
     useEffect(() => {
         if (authLoading || !user) return;
@@ -146,9 +124,10 @@ export default function RoadmapsPage() {
         setIsLoading(prev => ({ ...prev, [course.id]: true }));
         toast({ title: 'Generating Roadmap...', description: `The AI is creating a personalized study plan for ${course.name}.` });
         try {
+            const moduleTitles = course.units?.map(unit => unit.title).join(', ') || 'general topics';
             const response = await generateRoadmap({
                 courseName: course.name,
-                courseDescription: course.description,
+                courseDescription: `A course about ${course.name}. The modules are: ${moduleTitles}`,
                 courseUrl: course.url,
             });
 
@@ -156,7 +135,7 @@ export default function RoadmapsPage() {
                 courseId: course.id,
                 userId: user.uid,
                 goals: response.goals.map(g => ({ ...g, id: crypto.randomUUID(), icon: g.icon || 'Flag' })),
-                milestones: response.milestones.map(m => ({ ...m, id: crypto.randomUUID(), icon: m.icon || 'Calendar', completed: new Date(m.date) < new Date() }))
+                milestones: response.milestones.map(m => ({ ...m, id: crypto.randomUUID(), icon: m.icon || 'Calendar', completed: false }))
             };
             
             const existingRoadmapId = roadmaps[course.id]?.id;
@@ -180,129 +159,92 @@ export default function RoadmapsPage() {
         }
     };
     
-    const openItemDialog = (type: 'goal' | 'milestone', item?: Goal | Milestone) => {
-        setEditingType(type);
-        setEditingItem(item || null);
-        setCurrentItemTitle(item?.title || '');
-        setCurrentItemDesc(item?.description || '');
-        if (type === 'milestone' && item && 'date' in item) {
-            setCurrentItemDate(new Date(item.date));
-        } else {
-            setCurrentItemDate(undefined);
-        }
-        setIsItemDialogOpen(true);
-    };
-
-    const handleSaveItem = async () => {
-        if (!activeCourseId || !roadmaps[activeCourseId]) return;
+    const startMasteryChallenge = async (milestone: Milestone) => {
+        if (!activeCourseId) return;
+        const course = courses.find(c => c.id === activeCourseId);
+        const module = course?.units?.find(u => u.title.includes(milestone.title.split(':')[1]?.trim()));
         
-        let updatedRoadmap = { ...roadmaps[activeCourseId] };
-
-        if (editingType === 'goal') {
-            const newGoal: Goal = {
-                id: editingItem?.id || crypto.randomUUID(),
-                title: currentItemTitle,
-                description: currentItemDesc,
-                icon: 'Flag',
-            };
-            if (editingItem) {
-                updatedRoadmap.goals = updatedRoadmap.goals.map(g => g.id === newGoal.id ? newGoal : g);
-            } else {
-                updatedRoadmap.goals.push(newGoal);
-            }
-        } else if (editingType === 'milestone') {
-             const newMilestone: Milestone = {
-                id: editingItem?.id || crypto.randomUUID(),
-                title: currentItemTitle,
-                description: currentItemDesc,
-                date: currentItemDate ? currentItemDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-                icon: 'Calendar',
-                completed: (editingItem as Milestone)?.completed ?? false,
-            };
-            if (editingItem) {
-                updatedRoadmap.milestones = updatedRoadmap.milestones.map(m => m.id === newMilestone.id ? newMilestone : m);
-            } else {
-                updatedRoadmap.milestones.push(newMilestone);
-            }
-            updatedRoadmap.milestones.sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        if (!module || !module.chapters?.length) {
+            toast({ variant: 'destructive', title: 'Content Not Found', description: 'This module has no content to generate a quiz from.' });
+            return;
         }
-        
+
+        setChallengeMilestone(milestone);
+        setIsChallengeOpen(true);
+        setIsChallengeLoading(true);
+        setChallengeState('in-progress');
+        setChallengeAnswers([]);
+        setCurrentChallengeQuestionIndex(0);
+
         try {
-            const roadmapRef = doc(db, 'roadmaps', updatedRoadmap.id);
-            await updateDoc(roadmapRef, { goals: updatedRoadmap.goals, milestones: updatedRoadmap.milestones });
-            toast({ title: `${editingType} saved!` });
+            const moduleContent = module.chapters.map(c => `Chapter: ${c.title}\n${c.content}`).join('\n\n');
+            const result = await generateQuizFromModule({ moduleContent, learnerType: 'Reading/Writing' });
+            setChallengeQuiz(result);
         } catch (error) {
-            console.error("Error saving item: ", error);
-            toast({ variant: 'destructive', title: 'Save Failed', description: 'Could not save the item.'})
+            console.error("Failed to generate challenge quiz:", error);
+            toast({ variant: 'destructive', title: 'Could not start challenge.' });
+            setIsChallengeOpen(false);
+        } finally {
+            setIsChallengeLoading(false);
         }
-        setIsItemDialogOpen(false);
     };
-
-    const handleDeleteItem = async (type: 'goal' | 'milestone', id: string) => {
-        if (!activeCourseId || !roadmaps[activeCourseId]) return;
-
-        let updatedRoadmap = { ...roadmaps[activeCourseId] };
+    
+    const handleChallengeAnswer = async () => {
+        if (!challengeQuiz) return;
+        const currentQuestion = challengeQuiz.questions[currentChallengeQuestionIndex];
+        const isCorrect = selectedChallengeAnswer?.toLowerCase() === currentQuestion.answer.toLowerCase();
         
-        if (type === 'goal') {
-            updatedRoadmap.goals = updatedRoadmap.goals.filter(g => g.id !== id);
+        const newAnswers = [...challengeAnswers, {
+            question: currentQuestion.question,
+            answer: selectedChallengeAnswer || '',
+            correctAnswer: currentQuestion.answer,
+            isCorrect,
+        }];
+        setChallengeAnswers(newAnswers);
+
+        if (!isCorrect) {
+            toast({ variant: 'destructive', title: 'Incorrect', description: 'You must get all questions right to pass. Review the material and try again!' });
+            setIsChallengeOpen(false);
+            return;
+        }
+        
+        setSelectedChallengeAnswer(null);
+
+        if (currentChallengeQuestionIndex < challengeQuiz.questions.length - 1) {
+            setCurrentChallengeQuestionIndex(prev => prev + 1);
         } else {
-            updatedRoadmap.milestones = updatedRoadmap.milestones.filter(m => m.id !== id);
-        }
-        
-        try {
-            const roadmapRef = doc(db, 'roadmaps', updatedRoadmap.id);
-            await updateDoc(roadmapRef, { goals: updatedRoadmap.goals, milestones: updatedRoadmap.milestones });
-            toast({ title: `${type} deleted.` });
-        } catch(error) {
-            console.error("Error deleting item: ", error);
-            toast({ variant: 'destructive', title: 'Delete Failed', description: 'Could not delete the item.'})
+            // Passed the challenge
+            await handleToggleMilestone(challengeMilestone!.id, true);
+            toast({ title: 'Milestone Complete!', description: `You've earned the "${challengeMilestone?.title}" badge!` });
+            setChallengeState('results');
         }
     };
-
-    const handleToggleMilestone = async (milestoneId: string) => {
+    
+    const handleToggleMilestone = async (milestoneId: string, completed: boolean) => {
         if (!activeCourseId || !roadmaps[activeCourseId]) return;
 
         let updatedRoadmap = { ...roadmaps[activeCourseId] };
-        let milestoneCompleted = false;
-
-        updatedRoadmap.milestones = updatedRoadmap.milestones.map(m => {
-            if (m.id === milestoneId) {
-                const updatedMilestone = { ...m, completed: !m.completed };
-                if (updatedMilestone.completed) {
-                    milestoneCompleted = true;
-                }
-                return updatedMilestone;
-            }
-            return m;
-        });
+        updatedRoadmap.milestones = updatedRoadmap.milestones.map(m => 
+            m.id === milestoneId ? { ...m, completed } : m
+        );
 
         try {
             const roadmapRef = doc(db, 'roadmaps', updatedRoadmap.id);
             await updateDoc(roadmapRef, { milestones: updatedRoadmap.milestones });
-            if (milestoneCompleted) {
-                toast({
-                    title: '🎉 Milestone Complete!',
-                    description: "Great job! Keep up the momentum.",
-                });
-            }
         } catch (error) {
             console.error("Error toggling milestone: ", error);
-            toast({ variant: 'destructive', title: 'Update Failed', description: 'Could not update the milestone.'})
+            toast({ variant: 'destructive', title: 'Update Failed' });
         }
     };
 
-    const navigateToLearningLab = (courseId: string, milestone: Milestone) => {
-        router.push(`/dashboard/learning-lab?courseId=${courseId}&milestone=${encodeURIComponent(milestone.title)}`);
-    }
-
-  return (
+    return (
     <>
       <div className="space-y-6">
         <header>
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">My Study Roadmap</h1>
+              <h1 className="text-3xl font-bold tracking-tight">My Mastery Path</h1>
               <p className="text-muted-foreground">
-                Visualize your learning journey with key milestones and goals for each course.
+                Select a course to view your learning journey and earn badges by proving your knowledge.
               </p>
             </div>
              {courses.length > 0 && (
@@ -324,9 +266,9 @@ export default function RoadmapsPage() {
         </header>
 
         {authLoading ? (
-             <Loading />
+             <Skeleton className="h-96 w-full" />
         ) : courses.length > 0 ? (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-start">
+            <div className="grid grid-cols-1">
             {activeCourseId && courses.find((c) => c.id === activeCourseId) ? (
                  (() => {
                     const course = courses.find((c) => c.id === activeCourseId)!;
@@ -346,95 +288,55 @@ export default function RoadmapsPage() {
                     }
       
                     if (courseIsLoading && !roadmap) {
-                      return <Loading />;
+                      return <Skeleton className="h-96 w-full" />;
                     }
       
                     if (roadmap) {
-                      const completedCount = roadmap.milestones.filter(m => m.completed).length;
-                      const carPosition = roadmap.milestones.length > 0 ? (completedCount / roadmap.milestones.length) : 0;
-                      
-                      const pathD = `M 250 80 C 100 150, 400 250, 250 350 S 100 450, 250 550 S 400 650, 250 750`;
-
                       return (
-                        <>
-                            <div className="lg:col-span-2 relative pt-8">
-                                <svg className="absolute top-0 left-0 h-full w-full pointer-events-none" preserveAspectRatio="xMidYMid meet" viewBox="0 0 500 800">
-                                    <motion.path
-                                        d={pathD}
-                                        fill="none"
-                                        stroke="hsl(var(--border))"
-                                        strokeWidth="2"
-                                        strokeDasharray="5 5"
-                                    />
-                                    <motion.path
-                                        d={pathD}
-                                        fill="none"
-                                        stroke="hsl(var(--primary))"
-                                        strokeWidth="2"
-                                        initial={{ pathLength: 0 }}
-                                        animate={{ pathLength: carPosition }}
-                                        transition={{ duration: 1, ease: "easeInOut" }}
-                                    />
-                                     <motion.g
-                                        style={{ offsetPath: `path("${pathD}")` }}
-                                        animate={{ offsetDistance: `${carPosition * 100}%` }}
-                                        transition={{ duration: 1, ease: "easeInOut" }}
-                                    >
-                                        <foreignObject x="-20" y="-20" width="40" height="40">
-                                            <CarIcon className="w-8 h-8 text-primary" />
-                                        </foreignObject>
-                                    </motion.g>
-                                </svg>
-                                <div className="space-y-4 relative">
-                                    {roadmap.milestones.map((milestone, index) => {
-                                        const Icon = getIcon(milestone.icon, 'Calendar');
-                                        return (
-                                            <div key={milestone.id} className={cn("flex items-start gap-4 w-[calc(50%-2rem)]", index % 2 === 0 ? "ml-auto" : "mr-auto")}>
-                                                <div className="z-10 bg-primary w-12 h-12 rounded-full flex items-center justify-center text-white flex-shrink-0">
-                                                    <Icon className="w-5 h-5" size={20} />
-                                                </div>
-                                                <Card className="flex-1">
-                                                    <CardContent className="p-4">
-                                                        <div className="flex justify-between items-start gap-2">
-                                                            <div>
-                                                                <p className="font-semibold">{milestone.title}</p>
-                                                                <p className="text-xs text-muted-foreground mt-1">{new Date(milestone.date).toLocaleDateString()}</p>
-                                                            </div>
-                                                            <button onClick={() => handleToggleMilestone(milestone.id)} className={cn("h-6 w-6 rounded-full flex items-center justify-center border-2 transition-colors flex-shrink-0", milestone.completed ? 'bg-primary text-primary-foreground border-primary' : 'bg-muted border-primary hover:bg-primary/20')}>
-                                                                {milestone.completed && <Check className="h-4 w-4" />}
-                                                            </button>
-                                                        </div>
-                                                    </CardContent>
-                                                </Card>
+                        <div className="relative p-8">
+                            <div className="absolute left-16 top-0 bottom-0 w-1 bg-border -z-10"></div>
+                            <div className="space-y-16">
+                                {roadmap.milestones.map((milestone, index) => {
+                                    const Icon = getIcon(milestone.icon, 'Calendar');
+                                    const canAttempt = index === 0 || roadmap.milestones[index - 1].completed;
+                                    return (
+                                        <motion.div 
+                                            key={milestone.id} 
+                                            className="flex items-center gap-8"
+                                            initial={{ opacity: 0, x: -20 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{ duration: 0.5, delay: index * 0.1 }}
+                                        >
+                                            <div className="z-10 flex-shrink-0">
+                                                {milestone.completed ? (
+                                                    <div className="w-24 h-24 rounded-full bg-green-500/10 border-4 border-green-500 flex items-center justify-center text-green-500">
+                                                        <Check className="h-10 w-10"/>
+                                                    </div>
+                                                ) : (
+                                                    <div className={cn("w-24 h-24 rounded-full border-4 flex items-center justify-center", canAttempt ? "bg-primary/10 border-primary text-primary" : "bg-muted border-border text-muted-foreground")}>
+                                                        <Icon className="h-10 w-10" />
+                                                    </div>
+                                                )}
                                             </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                            <div>
-                                <div className="flex justify-between items-center mb-6">
-                                    <h2 className="text-2xl font-semibold">Your Badges</h2>
-                                    <Button variant="outline" size="sm" onClick={() => openItemDialog('goal')}>
-                                        <Plus className="mr-2 h-4 w-4" /> Add Goal
-                                    </Button>
-                                </div>
-                                <div className="grid grid-cols-2 gap-6">
-                                    {roadmap.goals.map((goal, index) => {
-                                        const Icon = getIcon(goal.icon, 'Flag');
-                                        const color = badgeColors[index % badgeColors.length];
-                                        return (
-                                            <Card key={goal.id} className="group text-center p-4 aspect-square flex flex-col justify-center items-center bg-card hover:bg-muted/50 transition-colors">
-                                                <div className={cn("w-24 h-24 rounded-full flex items-center justify-center mb-4 border-4", color.bg, color.border)}>
-                                                    <Icon className={cn("h-12 w-12", color.text)} size={48} />
-                                                </div>
-                                                <h3 className="font-semibold text-sm">{goal.title}</h3>
-                                                <p className="text-xs text-muted-foreground line-clamp-2">{goal.description}</p>
+                                            <Card className={cn("flex-1", !canAttempt && "opacity-60")}>
+                                                <CardContent className="p-6 flex justify-between items-center">
+                                                    <div>
+                                                        <p className="text-xs text-muted-foreground">{new Date(milestone.date).toLocaleDateString('en-US', {month: 'long', day: 'numeric', year: 'numeric'})}</p>
+                                                        <h3 className="text-xl font-bold mt-1">{milestone.title}</h3>
+                                                        <p className="text-muted-foreground mt-2">{milestone.description}</p>
+                                                    </div>
+                                                    {!milestone.completed && (
+                                                        <Button onClick={() => startMasteryChallenge(milestone)} disabled={!canAttempt}>
+                                                          Start Challenge <ArrowRight className="ml-2 h-4 w-4"/>
+                                                        </Button>
+                                                    )}
+                                                </CardContent>
                                             </Card>
-                                        );
-                                    })}
-                                </div>
+                                        </motion.div>
+                                    );
+                                })}
                             </div>
-                        </>
+                        </div>
                       );
                     }
                     return null;
@@ -452,69 +354,52 @@ export default function RoadmapsPage() {
         )}
       </div>
 
-      <Dialog open={isItemDialogOpen} onOpenChange={setIsItemDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{editingItem ? 'Edit' : 'Add'} {editingType}</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="item-title">Title</Label>
-              <Input id="item-title" value={currentItemTitle} onChange={(e) => setCurrentItemTitle(e.target.value)} />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="item-desc">Description</Label>
-              <Textarea id="item-desc" value={currentItemDesc} onChange={(e) => setCurrentItemDesc(e.target.value)} />
-            </div>
-            {editingType === 'milestone' && (
-              <div className="grid gap-2">
-                <Label htmlFor="item-date">Date</Label>
-                <DatePicker date={currentItemDate} setDate={setCurrentItemDate} />
-              </div>
-            )}
-          </div>
-          <DialogFooter>
-            <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
-            <Button onClick={handleSaveItem}>Save</Button>
-          </DialogFooter>
+       <Dialog open={isChallengeOpen} onOpenChange={(open) => { if (!open) setIsChallengeOpen(false); }}>
+        <DialogContent className="max-w-2xl">
+            <DialogHeader>
+                <DialogTitle>Mastery Challenge: {challengeMilestone?.title}</DialogTitle>
+                <DialogDescription>Answer all questions correctly to complete this milestone.</DialogDescription>
+            </DialogHeader>
+             <div className="py-4 max-h-[70vh] overflow-y-auto">
+                {isChallengeLoading ? (
+                    <div className="flex h-60 items-center justify-center"><Loader2 className="w-8 h-8 animate-spin" /></div>
+                ) : challengeQuiz && challengeState === 'in-progress' ? (
+                     <div className="space-y-6">
+                        <div className="text-center">
+                             <p className="text-muted-foreground mb-2">Question {currentChallengeQuestionIndex + 1} of {challengeQuiz.questions.length}</p>
+                            <h3 className="text-xl font-bold">{challengeQuiz.questions[currentChallengeQuestionIndex].question}</h3>
+                        </div>
+                         <RadioGroup value={selectedChallengeAnswer ?? ''} onValueChange={setSelectedChallengeAnswer}>
+                            <div className="space-y-3">
+                                {challengeQuiz.questions[currentChallengeQuestionIndex].options?.map((option, index) => (
+                                    <Label key={index} htmlFor={`c-opt-${index}`} className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted cursor-pointer transition-colors">
+                                        <RadioGroupItem value={option} id={`c-opt-${index}`} />
+                                        <span>{option}</span>
+                                    </Label>
+                                ))}
+                            </div>
+                        </RadioGroup>
+                    </div>
+                ) : challengeState === 'results' && (
+                    <div className="text-center space-y-4 py-12">
+                        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring' }} className="w-24 h-24 mx-auto rounded-full bg-green-500/10 border-4 border-green-500 flex items-center justify-center text-green-500">
+                             <Check className="h-12 w-12"/>
+                        </motion.div>
+                        <h2 className="text-3xl font-bold">Challenge Passed!</h2>
+                        <p className="text-muted-foreground">You've mastered this milestone and earned a badge!</p>
+                    </div>
+                )}
+             </div>
+             <DialogFooter>
+                 {challengeState === 'in-progress' && (
+                    <Button onClick={handleChallengeAnswer} disabled={!selectedChallengeAnswer || isChallengeLoading}>
+                        {currentChallengeQuestionIndex < (challengeQuiz?.questions.length ?? 0) - 1 ? 'Next Question' : 'Finish Challenge'}
+                    </Button>
+                )}
+                {challengeState === 'results' && <DialogClose asChild><Button>Awesome!</Button></DialogClose>}
+             </DialogFooter>
         </DialogContent>
       </Dialog>
     </>
   );
-}
-
-function Loading() {
-    return (
-        <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <Skeleton className="h-8 w-1/2" />
-                 <Skeleton className="h-10 w-48" />
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div className="space-y-8">
-                    <div className="flex justify-between items-center">
-                        <Skeleton className="h-8 w-32" />
-                    </div>
-                    <div className="space-y-16">
-                       <div className="flex items-center gap-6"><Skeleton className="h-16 w-16 rounded-full flex-shrink-0"/><div className="space-y-2 flex-1"><Skeleton className="h-5 w-3/4"/><Skeleton className="h-4 w-full"/><Skeleton className="h-4 w-1/2"/></div></div>
-                       <div className="flex items-center gap-6"><Skeleton className="h-16 w-16 rounded-full flex-shrink-0"/><div className="space-y-2 flex-1"><Skeleton className="h-5 w-3/4"/><Skeleton className="h-4 w-full"/><Skeleton className="h-4 w-1/2"/></div></div>
-                       <div className="flex items-center gap-6"><Skeleton className="h-16 w-16 rounded-full flex-shrink-0"/><div className="space-y-2 flex-1"><Skeleton className="h-5 w-3/4"/><Skeleton className="h-4 w-full"/><Skeleton className="h-4 w-1/2"/></div></div>
-                    </div>
-                </div>
-                <div className="space-y-8">
-                     <div className="flex justify-between items-center">
-                        <Skeleton className="h-8 w-32" />
-                        <Skeleton className="h-8 w-28" />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <Skeleton className="h-40" />
-                        <Skeleton className="h-40" />
-                        <Skeleton className="h-40" />
-                         <Skeleton className="h-40" />
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
 }
