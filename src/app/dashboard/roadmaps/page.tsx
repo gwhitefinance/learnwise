@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
-import { GitMerge, Plus, Check, Flag, Calendar, ArrowRight, Loader2 } from "lucide-react";
+import { GitMerge, Plus, Check, Flag, Calendar, ArrowRight, Loader2, CheckCircle, XCircle, Maximize, Minimize } from "lucide-react";
 import * as LucideIcons from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -17,12 +17,15 @@ import Link from 'next/link';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { collection, query, where, addDoc, doc, updateDoc, onSnapshot } from 'firebase/firestore';
-import { generateRoadmap, generateQuizFromModule } from '@/lib/actions';
+import { generateRoadmap, generateQuizAction, generateExplanation } from '@/lib/actions';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import type { GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
+import { Progress } from '@/components/ui/progress';
+import AudioPlayer from '@/components/audio-player';
+
 
 type AnswerFeedback = { question: string; answer: string; correctAnswer: string; isCorrect: boolean; };
 
@@ -85,6 +88,15 @@ export default function RoadmapsPage() {
     const [selectedChallengeAnswer, setSelectedChallengeAnswer] = useState<string | null>(null);
     const [challengeAnswers, setChallengeAnswers] = useState<AnswerFeedback[]>([]);
     const [challengeState, setChallengeState] = useState<'in-progress' | 'results'>('in-progress');
+    const [answerState, setAnswerState] = useState<'unanswered' | 'answered'>('unanswered');
+    const [feedback, setFeedback] = useState<AnswerFeedback | null>(null);
+    const [explanation, setExplanation] = useState<string | null>(null);
+    const [isExplanationLoading, setIsExplanationLoading] = useState(false);
+    const [learnerType, setLearnerType] = useState<string | null>(null);
+
+    // Focus mode
+    const [isFocusMode, setIsFocusMode] = useState(false);
+    const [showFocusModeDialog, setShowFocusModeDialog] = useState(false);
 
     useEffect(() => {
         if (authLoading || !user) return;
@@ -117,6 +129,23 @@ export default function RoadmapsPage() {
         
     }, [user, authLoading, activeCourseId]);
     
+    useEffect(() => {
+        const storedLearnerType = localStorage.getItem('learnerType');
+        setLearnerType(storedLearnerType ?? 'Unknown');
+
+        const handleFullscreenChange = () => {
+            if (!document.fullscreenElement) {
+                setIsFocusMode(false);
+            }
+        };
+
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+
+        return () => {
+            document.removeEventListener('fullscreenchange', handleFullscreenChange);
+        };
+    }, []);
+
     const activeRoadmap = activeCourseId ? roadmaps[activeCourseId] : null;
 
     const handleGenerateRoadmap = async (course: Course) => {
@@ -160,26 +189,27 @@ export default function RoadmapsPage() {
     };
     
     const startMasteryChallenge = async (milestone: Milestone) => {
-        if (!activeCourseId) return;
-        const course = courses.find(c => c.id === activeCourseId);
-        const module = course?.units?.find(u => u.title.includes(milestone.title.split(':')[1]?.trim()));
-        
-        if (!module || !module.chapters?.length) {
-            toast({ variant: 'destructive', title: 'Content Not Found', description: 'This module has no content to generate a quiz from.' });
-            return;
-        }
-
         setChallengeMilestone(milestone);
-        setIsChallengeOpen(true);
-        setIsChallengeLoading(true);
         setChallengeState('in-progress');
         setChallengeAnswers([]);
         setCurrentChallengeQuestionIndex(0);
+        setSelectedChallengeAnswer(null);
+        setAnswerState('unanswered');
+        setFeedback(null);
+        setChallengeQuiz(null);
+
+        setIsChallengeOpen(true);
+        setIsChallengeLoading(true);
 
         try {
-            const moduleContent = module.chapters.map(c => `Chapter: ${c.title}\n${c.content}`).join('\n\n');
-            const result = await generateQuizFromModule({ moduleContent, learnerType: 'Reading/Writing' });
+            const result = await generateQuizAction({
+                topics: `${milestone.title}: ${milestone.description}`,
+                questionType: 'Multiple Choice',
+                difficulty: 'Hard',
+                numQuestions: 5,
+            });
             setChallengeQuiz(result);
+            setShowFocusModeDialog(true);
         } catch (error) {
             console.error("Failed to generate challenge quiz:", error);
             toast({ variant: 'destructive', title: 'Could not start challenge.' });
@@ -190,26 +220,51 @@ export default function RoadmapsPage() {
     };
     
     const handleChallengeAnswer = async () => {
-        if (!challengeQuiz) return;
+        if (!challengeQuiz || selectedChallengeAnswer === null) return;
         const currentQuestion = challengeQuiz.questions[currentChallengeQuestionIndex];
-        const isCorrect = selectedChallengeAnswer?.toLowerCase() === currentQuestion.answer.toLowerCase();
-        
-        const newAnswers = [...challengeAnswers, {
+        const isCorrect = selectedChallengeAnswer.toLowerCase() === currentQuestion.answer.toLowerCase();
+
+        const answerFeedback: AnswerFeedback = {
             question: currentQuestion.question,
-            answer: selectedChallengeAnswer || '',
+            answer: selectedChallengeAnswer,
             correctAnswer: currentQuestion.answer,
-            isCorrect,
-        }];
-        setChallengeAnswers(newAnswers);
-
-        if (!isCorrect) {
-            toast({ variant: 'destructive', title: 'Incorrect', description: 'You must get all questions right to pass. Review the material and try again!' });
-            setIsChallengeOpen(false);
-            return;
-        }
+            isCorrect: isCorrect,
+        };
         
-        setSelectedChallengeAnswer(null);
+        setAnswerState('answered');
+        setFeedback(answerFeedback);
+        
+        if (isCorrect) {
+            setChallengeAnswers(prev => [...prev, answerFeedback]);
+        } else {
+            setIsExplanationLoading(true);
+            setExplanation(null);
+            try {
+                 const explanationResult = await generateExplanation({
+                    question: currentQuestion.question,
+                    userAnswer: selectedChallengeAnswer,
+                    correctAnswer: currentQuestion.answer,
+                    learnerType: (learnerType as any) ?? 'Unknown',
+                    provideFullExplanation: true,
+                });
+                setExplanation(explanationResult.explanation);
+            } catch (error) {
+                 console.error(error);
+                setExplanation("Sorry, I couldn't generate an explanation for this question.");
+            } finally {
+                setIsExplanationLoading(false);
+            }
+        }
+    };
 
+    const handleNextChallengeQuestion = async () => {
+        if (!challengeQuiz) return;
+        
+        setFeedback(null);
+        setExplanation(null);
+        setSelectedChallengeAnswer(null);
+        setAnswerState('unanswered');
+        
         if (currentChallengeQuestionIndex < challengeQuiz.questions.length - 1) {
             setCurrentChallengeQuestionIndex(prev => prev + 1);
         } else {
@@ -235,6 +290,23 @@ export default function RoadmapsPage() {
             console.error("Error toggling milestone: ", error);
             toast({ variant: 'destructive', title: 'Update Failed' });
         }
+    };
+    
+    const enterFocusMode = () => {
+        if (document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen().catch(err => {
+                console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+            });
+        }
+        setIsFocusMode(true);
+        setShowFocusModeDialog(false);
+    };
+
+    const exitFocusMode = () => {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        }
+        setIsFocusMode(false);
     };
 
     return (
@@ -354,51 +426,87 @@ export default function RoadmapsPage() {
         )}
       </div>
 
-       <Dialog open={isChallengeOpen} onOpenChange={(open) => { if (!open) setIsChallengeOpen(false); }}>
-        <DialogContent className="max-w-2xl">
-            <DialogHeader>
-                <DialogTitle>Mastery Challenge: {challengeMilestone?.title}</DialogTitle>
-                <DialogDescription>Answer all questions correctly to complete this milestone.</DialogDescription>
-            </DialogHeader>
-             <div className="py-4 max-h-[70vh] overflow-y-auto">
-                {isChallengeLoading ? (
-                    <div className="flex h-60 items-center justify-center"><Loader2 className="w-8 h-8 animate-spin" /></div>
-                ) : challengeQuiz && challengeState === 'in-progress' ? (
-                     <div className="space-y-6">
-                        <div className="text-center">
-                             <p className="text-muted-foreground mb-2">Question {currentChallengeQuestionIndex + 1} of {challengeQuiz.questions.length}</p>
-                            <h3 className="text-xl font-bold">{challengeQuiz.questions[currentChallengeQuestionIndex].question}</h3>
-                        </div>
-                         <RadioGroup value={selectedChallengeAnswer ?? ''} onValueChange={setSelectedChallengeAnswer}>
-                            <div className="space-y-3">
-                                {challengeQuiz.questions[currentChallengeQuestionIndex].options?.map((option, index) => (
-                                    <Label key={index} htmlFor={`c-opt-${index}`} className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted cursor-pointer transition-colors">
-                                        <RadioGroupItem value={option} id={`c-opt-${index}`} />
-                                        <span>{option}</span>
-                                    </Label>
-                                ))}
-                            </div>
-                        </RadioGroup>
-                    </div>
-                ) : challengeState === 'results' && (
-                    <div className="text-center space-y-4 py-12">
-                        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring' }} className="w-24 h-24 mx-auto rounded-full bg-green-500/10 border-4 border-green-500 flex items-center justify-center text-green-500">
-                             <Check className="h-12 w-12"/>
-                        </motion.div>
-                        <h2 className="text-3xl font-bold">Challenge Passed!</h2>
-                        <p className="text-muted-foreground">You've mastered this milestone and earned a badge!</p>
-                    </div>
-                )}
-             </div>
-             <DialogFooter>
-                 {challengeState === 'in-progress' && (
-                    <Button onClick={handleChallengeAnswer} disabled={!selectedChallengeAnswer || isChallengeLoading}>
-                        {currentChallengeQuestionIndex < (challengeQuiz?.questions.length ?? 0) - 1 ? 'Next Question' : 'Finish Challenge'}
-                    </Button>
-                )}
-                {challengeState === 'results' && <DialogClose asChild><Button>Awesome!</Button></DialogClose>}
-             </DialogFooter>
-        </DialogContent>
+       <Dialog open={isChallengeOpen} onOpenChange={setIsChallengeOpen}>
+          <DialogContent className={cn("max-w-3xl transition-all duration-300", isFocusMode && "w-full h-full max-w-full")}>
+              {isFocusMode && (
+                  <Button onClick={exitFocusMode} variant="outline" className="absolute top-4 right-4 z-50">
+                      <Minimize className="mr-2 h-4 w-4"/> Exit Focus Mode
+                  </Button>
+              )}
+               <DialogHeader>
+                  <DialogTitle>Mastery Challenge: {challengeMilestone?.title}</DialogTitle>
+                  <DialogDescription>Answer all questions correctly to complete this milestone. One wrong answer and you'll have to try again!</DialogDescription>
+              </DialogHeader>
+              <div className="py-4 max-h-[70vh] overflow-y-auto">
+                   {isChallengeLoading ? (
+                      <div className="flex h-60 items-center justify-center"><Loader2 className="w-8 h-8 animate-spin" /></div>
+                  ) : challengeQuiz && challengeState === 'in-progress' ? (
+                       <div className="space-y-6">
+                           <div className="text-center">
+                                <p className="text-muted-foreground mb-2">Question {currentChallengeQuestionIndex + 1} of {challengeQuiz.questions.length}</p>
+                                <Progress value={((currentChallengeQuestionIndex + 1) / challengeQuiz.questions.length) * 100} className="mb-4 h-2"/>
+                                <h3 className="text-xl font-bold">{challengeQuiz.questions[currentChallengeQuestionIndex].question}</h3>
+                          </div>
+                           <RadioGroup value={selectedChallengeAnswer ?? ''} onValueChange={setSelectedChallengeAnswer} disabled={answerState === 'answered'}>
+                              <div className="space-y-3">
+                                  {challengeQuiz.questions[currentChallengeQuestionIndex].options?.map((option, index) => {
+                                      const isCorrect = option.toLowerCase() === challengeQuiz.questions[currentChallengeQuestionIndex].answer.toLowerCase();
+                                      return (
+                                      <Label key={index} htmlFor={`c-opt-${index}`} className={cn(
+                                          "flex items-center gap-3 p-4 rounded-lg border hover:bg-muted cursor-pointer transition-colors",
+                                          answerState === 'unanswered' && (selectedChallengeAnswer === option ? "border-primary bg-primary/10" : "border-border"),
+                                          answerState === 'answered' && isCorrect && "border-green-500 bg-green-500/10",
+                                          answerState === 'answered' && selectedChallengeAnswer === option && !isCorrect && "border-red-500 bg-red-500/10",
+                                      )}>
+                                          <RadioGroupItem value={option} id={`c-opt-${index}`} />
+                                          <span>{option}</span>
+                                           {answerState === 'answered' && isCorrect && <CheckCircle className="h-5 w-5 text-green-500 ml-auto"/>}
+                                           {answerState === 'answered' && selectedChallengeAnswer === option && !isCorrect && <XCircle className="h-5 w-5 text-red-500 ml-auto"/>}
+                                      </Label>
+                                  )})}
+                              </div>
+                          </RadioGroup>
+                          {answerState === 'answered' && feedback && !feedback.isCorrect && (
+                               <div className="p-4 bg-amber-500/10 rounded-lg border border-amber-500/20">
+                                  <h4 className="font-semibold flex items-center gap-2 text-amber-700"><Lightbulb/> Explanation</h4>
+                                  {isExplanationLoading ? (
+                                      <p className="animate-pulse text-muted-foreground mt-2">Generating personalized feedback...</p>
+                                  ) : (
+                                      <div className="text-muted-foreground mt-2"><AudioPlayer textToPlay={explanation || ''} /><p>{explanation}</p></div>
+                                  )}
+                              </div>
+                          )}
+                      </div>
+                  ) : challengeState === 'results' && (
+                      <div className="text-center space-y-4 py-12">
+                          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring' }} className="w-24 h-24 mx-auto rounded-full bg-green-500/10 border-4 border-green-500 flex items-center justify-center text-green-500">
+                               <Check className="h-12 w-12"/>
+                          </motion.div>
+                          <h2 className="text-3xl font-bold">Challenge Passed!</h2>
+                          <p className="text-muted-foreground">You've mastered this milestone and earned a badge!</p>
+                      </div>
+                  )}
+               </div>
+               <DialogFooter className="flex justify-between w-full">
+                  {!isFocusMode && <Button variant="outline" onClick={enterFocusMode}><Maximize className="mr-2 h-4 w-4"/>Focus Mode</Button>}
+                   {challengeState === 'in-progress' ? (
+                       <div className="flex gap-2">
+                          {answerState === 'unanswered' ? (
+                              <Button onClick={handleChallengeAnswer} disabled={!selectedChallengeAnswer}>Submit</Button>
+                          ) : feedback?.isCorrect ? (
+                              <Button onClick={handleNextChallengeQuestion}>
+                                  {currentChallengeQuestionIndex < (challengeQuiz?.questions.length ?? 0) - 1 ? 'Next Question' : 'Finish Challenge'}
+                                  <ArrowRight className="ml-2 h-4 w-4" />
+                              </Button>
+                          ) : (
+                              <DialogClose asChild><Button variant="destructive">Review & Try Again</Button></DialogClose>
+                          )}
+                      </div>
+                  ) : (
+                      <DialogClose asChild><Button>Awesome!</Button></DialogClose>
+                  )}
+               </DialogFooter>
+          </DialogContent>
       </Dialog>
     </>
   );
