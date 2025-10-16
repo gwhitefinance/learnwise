@@ -5,21 +5,8 @@
  */
 import { ai } from '@/ai/genkit';
 import { googleAI } from '@genkit-ai/google-genai';
-import { z } from 'zod';
+import { GenerateAudioInput, GenerateAudioInputSchema, GenerateAudioOutput, GenerateAudioOutputSchema } from '@/ai/schemas/text-to-speech-schema';
 import wav from 'wav';
-
-// Define the schema for the audio generation input
-export const GenerateAudioInputSchema = z.object({
-  text: z.string().describe('The text to be converted to speech.'),
-});
-export type GenerateAudioInput = z.infer<typeof GenerateAudioInputSchema>;
-
-// Define the schema for the audio generation output
-export const GenerateAudioOutputSchema = z.object({
-  audio: z.string().describe('The generated audio as a base64 encoded data URI.'),
-});
-export type GenerateAudioOutput = z.infer<typeof GenerateAudioOutputSchema>;
-
 
 /**
  * Converts raw PCM audio data to a base64-encoded WAV string.
