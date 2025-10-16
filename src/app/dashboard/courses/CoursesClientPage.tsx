@@ -1196,18 +1196,6 @@ function CoursesComponent() {
             <button onClick={() => applyStyle('highlight-yellow')} className="h-6 w-6 rounded-full bg-yellow-300 border-2 border-transparent hover:border-primary"></button>
             <button onClick={() => applyStyle('highlight-blue')} className="h-6 w-6 rounded-full bg-blue-300 border-2 border-transparent hover:border-primary"></button>
             <button onClick={() => applyStyle('highlight-pink')} className="h-6 w-6 rounded-full bg-pink-300 border-2 border-transparent hover:border-primary"></button>
-            <Popover>
-                <PopoverTrigger asChild>
-                    <button className="p-1 rounded-md hover:bg-muted"><Underline className="h-5 w-5" /></button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-1">
-                    <div className="flex flex-col gap-1">
-                        <button onClick={() => applyStyle('underline-solid')} className="p-2 hover:bg-muted rounded-md text-sm w-full text-left">Solid</button>
-                        <button onClick={() => applyStyle('underline-dashed')} className="p-2 hover:bg-muted rounded-md text-sm w-full text-left">Dashed</button>
-                        <button onClick={() => applyStyle('underline-dotted')} className="p-2 hover:bg-muted rounded-md text-sm w-full text-left">Dotted</button>
-                    </div>
-                </PopoverContent>
-            </Popover>
             <div className="w-px h-6 bg-border mx-1"></div>
             <button onClick={saveAsNote} className="p-1 rounded-md hover:bg-muted"><Plus className="h-5 w-5" /></button>
         </div>
@@ -1341,7 +1329,7 @@ function CoursesComponent() {
              </div>
         </aside>
         
-        <main className="flex-1 p-6 overflow-y-auto" >
+        <main className="flex-1 p-6 overflow-y-auto" onMouseUp={handleMouseUp}>
              <div className="flex items-center justify-between mb-4">
                 <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
                     <PanelLeft className="h-5 w-5" />
@@ -1365,7 +1353,7 @@ function CoursesComponent() {
             {currentChapter && currentModule ? (
                  <div className="max-w-4xl mx-auto space-y-8 relative">
                      {popoverPosition && <TextSelectionMenu />}
-                     <h1 className="text-4xl font-bold" onMouseUp={handleMouseUp}>{currentChapter.title}</h1>
+                     <h1 className="text-4xl font-bold">{currentChapter.title}</h1>
                      
                       {isChapterContentLoading[currentChapter.id] ? (
                         <div className="space-y-4">
@@ -1384,7 +1372,6 @@ function CoursesComponent() {
                             )}
                              <div 
                                 ref={contentRef}
-                                onMouseUp={handleMouseUp}
                                 className="text-muted-foreground text-lg whitespace-pre-wrap leading-relaxed" 
                              >{currentChapter.content}</div>
                             {currentChapter.diagramUrl && (
