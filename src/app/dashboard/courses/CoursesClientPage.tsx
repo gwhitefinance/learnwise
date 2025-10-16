@@ -6,7 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Play, Pause, ChevronLeft, ChevronRight, Wand2, FlaskConical, Lightbulb, Copy, RefreshCw, Check, Star, CheckCircle, Send, Bot, User, GitMerge, PanelLeft, Minimize, Maximize, Loader2, Plus, Trash2, MoreVertical, XCircle, ArrowRight, RotateCcw, Video, Image as ImageIcon, BookCopy, Link as LinkIcon, Headphones, Underline, Highlighter, Rabbit, Snail, Turtle } from 'lucide-react';
+import { Play, Pause, ChevronLeft, ChevronRight, Wand2, FlaskConical, Lightbulb, Copy, RefreshCw, Check, Star, CheckCircle, Send, Bot, User, GitMerge, PanelLeft, Minimize, Maximize, Loader2, Plus, Trash2, MoreVertical, XCircle, ArrowRight, RotateCcw, Video, Image as ImageIcon, BookCopy, Link as LinkIcon, Headphones, Underline, Highlighter, Rabbit, Snail, Turtle, Book } from 'lucide-react';
 import Link from 'next/link';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
@@ -23,7 +23,7 @@ import AudioPlayer from '@/components/audio-player';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { generateInitialCourseAndRoadmap, generateQuizFromModule, generateFlashcardsFromModule, generateTutorResponse, generateChapterContent, generateMidtermExam, generateRoadmap, generateCourseFromUrl } from '@/lib/actions';
+import { generateInitialCourseAndRoadmap, generateQuizFromModule, generateFlashcardsFromModule, generateTutorResponse, generateChapterContent, generateMidtermExam, generateRoadmap, generateCourseFromUrl, generateSummary } from '@/lib/actions';
 import { RewardContext } from '@/context/RewardContext';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import Loading from './loading';
@@ -163,6 +163,12 @@ function CoursesComponent() {
   const [isNoteFromHighlightOpen, setIsNoteFromHighlightOpen] = useState(false);
   const [noteContent, setNoteContent] = useState('');
   const contentRef = useRef<HTMLDivElement>(null);
+  
+  // Summary dialog state
+  const [isSummaryDialogOpen, setIsSummaryDialogOpen] = useState(false);
+  const [summaryForPopup, setSummaryForPopup] = useState('');
+  const [isSummaryLoading, setIsSummaryLoading] = useState(false);
+  const [isNextChapterGenerating, setIsNextChapterGenerating] = useState(false);
 
 
   useEffect(() => {
@@ -570,58 +576,92 @@ function CoursesComponent() {
   };
 
   const handleCompleteAndContinue = async () => {
-    if (!activeCourse || !user || !currentChapter) return;
-    const module = activeCourse.units?.[currentModuleIndex];
-    if (!module) return;
-    const existingResult = quizResults[module.id];
-
+    if (!activeCourse || !user || !currentChapter || !currentModule) return;
+    
     // Mark current chapter as complete
     const courseRef = doc(db, 'courses', activeCourse.id);
     await updateDoc(courseRef, { completedChapters: arrayUnion(currentChapter.id) });
-    
     setActiveCourse(prev => prev ? { ...prev, completedChapters: [...(prev.completedChapters || []), currentChapter.id]} : null);
 
+    // Open summary dialog and start generating content
+    setIsSummaryDialogOpen(true);
+    setIsSummaryLoading(true);
+    setIsNextChapterGenerating(true);
+    setSummaryForPopup('');
 
-    // Check if the current chapter is a quiz and if it has been completed
-    if (currentChapter?.title.includes('Quiz') && !existingResult) {
-        toast({
-            variant: 'destructive',
-            title: 'Quiz Required',
-            description: 'You must complete the module quiz before continuing.',
-        });
-        return;
+    // --- Start parallel AI calls ---
+    
+    // 1. Generate summary for the current chapter
+    if (currentChapter.content) {
+        generateSummary({ noteContent: currentChapter.content })
+            .then(result => {
+                setSummaryForPopup(result.summary);
+            })
+            .catch(error => {
+                console.error("Summary generation failed:", error);
+                setSummaryForPopup("Could not generate a summary for this chapter.");
+            })
+            .finally(() => {
+                setIsSummaryLoading(false);
+            });
+    } else {
+        setSummaryForPopup("This chapter didn't have content to summarize.");
+        setIsSummaryLoading(false);
+    }
+    
+    // 2. Generate content for the next chapter
+    let nextModuleIndex = currentModuleIndex;
+    let nextChapterIndex = currentChapterIndex + 1;
+    let isLastChapter = false;
+
+    if (nextChapterIndex >= (currentModule.chapters.length ?? 0)) {
+        nextModuleIndex++;
+        nextChapterIndex = 0;
+        if (nextModuleIndex >= (activeCourse.units?.length ?? 0)) {
+            isLastChapter = true; // This is the last chapter of the course
+        }
     }
 
-    if (currentChapterIndex < module.chapters.length - 1) {
-        const nextChapterIndex = currentChapterIndex + 1;
-        setCurrentChapterIndex(nextChapterIndex); // Move to next chapter immediately
-        const generated = await handleGenerateChapterContent(currentModuleIndex, nextChapterIndex);
-        if (!generated) {
-            setCurrentChapterIndex(currentChapterIndex); // Revert if generation fails
-        }
-    } else if (currentModuleIndex < (activeCourse.units?.length ?? 0) - 1) {
-        const nextModuleIndex = currentModuleIndex + 1;
-        setCurrentModuleIndex(nextModuleIndex);
-        setCurrentChapterIndex(0);
-        const generated = await handleGenerateChapterContent(nextModuleIndex, 0);
-        if (generated) {
-            toast({ title: "Module Complete!", description: "Moving to the next module." });
-        } else {
-             setCurrentModuleIndex(currentModuleIndex); // Revert
-             setCurrentChapterIndex(currentChapterIndex);
+    if (!isLastChapter) {
+        handleGenerateChapterContent(nextModuleIndex, nextChapterIndex)
+            .then(success => {
+                if (success) {
+                    setIsNextChapterGenerating(false); // Enable the "Next" button
+                } else {
+                    toast({ variant: 'destructive', title: 'Error', description: 'Could not load the next chapter.'});
+                    setIsSummaryDialogOpen(false); // Close dialog on error
+                }
+            });
+    } else {
+        // It's the last chapter, so just enable the button to show the final message
+        setIsNextChapterGenerating(false);
+    }
+  };
+
+  const handleProceedToNextChapter = () => {
+    if (!activeCourse || !currentModule) return;
+    
+    setIsSummaryDialogOpen(false);
+
+    let nextModuleIndex = currentModuleIndex;
+    let nextChapterIndex = currentChapterIndex + 1;
+
+    if (nextChapterIndex >= currentModule.chapters.length) {
+        nextModuleIndex++;
+        nextChapterIndex = 0;
+    }
+
+    if (nextModuleIndex >= (activeCourse.units?.length ?? 0)) {
+        toast({ title: "Course Complete!", description: "Congratulations, you've finished the course!" });
+        const courseRef = doc(db, 'courses', activeCourse.id);
+        updateDoc(courseRef, { labCompleted: true });
+        if(user) {
+            updateDoc(doc(db, 'users', user.uid), { coins: increment(500) });
+            showReward({ type: 'coins', amount: 500 });
         }
     } else {
-        toast({ title: "Course Complete!", description: "Congratulations, you've finished the course!" });
-        try {
-            await updateDoc(courseRef, {
-                labCompleted: true
-            });
-            await updateDoc(doc(db, 'users', user.uid), { coins: increment(500) });
-            showReward({ type: 'coins', amount: 500 });
-        } catch (error) {
-            console.error("Error completing course:", error);
-            toast({ variant: 'destructive', title: 'Error', description: 'Could not save course completion status.' });
-        }
+        setCurrentModuleIndex(nextModuleIndex);
+        setCurrentChapterIndex(nextChapterIndex);
     }
   };
   
@@ -1080,7 +1120,7 @@ function CoursesComponent() {
                         <p className="text-muted-foreground">You answered {((existingQuizResult.score / existingQuizResult.totalQuestions) * 100).toFixed(0)}% of the questions correctly.</p>
 
                         <div className="mt-8 flex justify-center gap-4">
-                            <Button variant="outline" onClick={() => handleCompleteAndContinue()}>
+                            <Button variant="outline" onClick={handleCompleteAndContinue}>
                                 Continue to Next Section <ArrowRight className="ml-2 h-4 w-4"/>
                             </Button>
                         </div>
@@ -1163,7 +1203,7 @@ function CoursesComponent() {
                         <p className="text-muted-foreground">You answered {totalQuestions > 0 ? ((score / totalQuestions) * 100).toFixed(0) : 0}% of the questions correctly.</p>
 
                         <div className="mt-8 flex justify-center gap-4">
-                            <Button variant="outline" onClick={() => handleCompleteAndContinue()}>
+                            <Button variant="outline" onClick={handleCompleteAndContinue}>
                                 Continue to Next Section <ArrowRight className="ml-2 h-4 w-4"/>
                             </Button>
                         </div>
@@ -1203,6 +1243,42 @@ function CoursesComponent() {
 
   return (
     <>
+      <Dialog open={isSummaryDialogOpen} onOpenChange={setIsSummaryDialogOpen}>
+          <DialogContent onInteractOutside={(e) => e.preventDefault()}>
+              <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2"><Book className="h-5 w-5 text-primary"/>Chapter Summary</DialogTitle>
+                  <DialogDescription>
+                      Here's a quick recap of what you just read. The next chapter is loading in the background.
+                  </DialogDescription>
+              </DialogHeader>
+              <div className="py-4 max-h-[40vh] overflow-y-auto">
+                  {isSummaryLoading ? (
+                      <div className="space-y-2">
+                          <Skeleton className="h-4 w-full"/>
+                          <Skeleton className="h-4 w-full"/>
+                          <Skeleton className="h-4 w-2/3"/>
+                      </div>
+                  ) : (
+                      <p className="text-sm text-muted-foreground">{summaryForPopup}</p>
+                  )}
+              </div>
+              <DialogFooter>
+                  <Button onClick={handleProceedToNextChapter} disabled={isNextChapterGenerating}>
+                      {isNextChapterGenerating ? (
+                          <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Preparing next chapter...
+                          </>
+                      ) : (
+                           <>
+                              Next Chapter <ArrowRight className="ml-2 h-4 w-4" />
+                          </>
+                      )}
+                  </Button>
+              </DialogFooter>
+          </DialogContent>
+      </Dialog>
+
       <Dialog open={isNoteFromHighlightOpen} onOpenChange={setIsNoteFromHighlightOpen}>
          <DialogContent>
             <DialogHeader>

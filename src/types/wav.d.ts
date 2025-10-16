@@ -1,6 +1,23 @@
-// src/types/wav.d.ts (or at root if you don't have a types folder)
 
 declare module 'wav' {
-  const content: any;
-  export default content;
+    import { Transform } from 'stream';
+
+    interface WriterOptions {
+        channels?: number;
+        sampleRate?: number;
+        bitDepth?: number;
+    }
+
+    export class Writer extends Transform {
+        constructor(options?: WriterOptions);
+    }
+
+    interface ReaderOptions {
+        format?: string;
+    }
+
+    export class Reader extends Transform {
+        constructor(options?: ReaderOptions);
+        on(event: 'format', listener: (format: any) => void): this;
+    }
 }
