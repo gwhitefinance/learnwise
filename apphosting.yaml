@@ -34,3 +34,7 @@ env:
     availability:
       - BUILD
       - RUNTIME
+  - variable: ELEVENLABS_API_KEY
+    secret: ELEVENLABS_API_KEY
+    availability:
+      - RUNTIME

@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useEffect, useRef, useState, useCallback, useContext } from 'react';
@@ -9,8 +8,7 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { motion } from 'framer-motion';
 import AIBuddy from './ai-buddy';
-import { generateTutorResponse } from '@/lib/actions';
-import { FloatingChatContext } from './floating-chat';
+import { generateTutorResponse, generateElevenLabsAudio } from '@/lib/actions';
 
 interface ListenAssistantProps {
   onClose: () => void;
@@ -20,51 +18,53 @@ interface ListenAssistantProps {
 const ListenAssistant: React.FC<ListenAssistantProps> = ({ onClose, chapterContent }) => {
   const nodeRef = React.useRef(null);
   const { toast } = useToast();
-  const { openChatWithVoice } = useContext(FloatingChatContext);
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [transcript, setTranscript] = useState('');
   const recognitionRef = useRef<any>(null);
-  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
 
-  const stopPlayback = useCallback(() => {
-    if (typeof window !== 'undefined' && window.speechSynthesis) {
-        window.speechSynthesis.cancel();
-    }
-    setIsSpeaking(false);
-  }, []);
-  
   useEffect(() => {
-    // Cleanup on unmount
+    setIsMounted(true);
     return () => {
-      stopPlayback();
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
       if (recognitionRef.current) {
         recognitionRef.current.stop();
       }
     };
-  }, [stopPlayback]);
-
+  }, []);
 
   const handleAiResponse = useCallback(async (text: string) => {
     setTranscript('');
-    setIsSpeaking(true);
     try {
+      if (!chapterContent) {
+          throw new Error("Chapter content is not available.");
+      }
       const tutorResponse = await generateTutorResponse({ chapterContext: chapterContent, question: text });
       
-      const utterance = new SpeechSynthesisUtterance(tutorResponse.answer);
-      utteranceRef.current = utterance;
-
-      utterance.onend = () => {
+      setIsSpeaking(true);
+      const audioResponse = await generateElevenLabsAudio({ text: tutorResponse.answer });
+      
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      const newAudio = new Audio(audioResponse.audioDataUri);
+      audioRef.current = newAudio;
+      
+      newAudio.onended = () => setIsSpeaking(false);
+      newAudio.onerror = () => {
+        toast({ variant: 'destructive', title: 'Audio Playback Error' });
         setIsSpeaking(false);
       };
       
-      utterance.onerror = (e) => {
-        console.error("Speech synthesis error", e);
-        toast({ variant: 'destructive', title: 'Audio Error', description: 'Could not play audio.' });
-        setIsSpeaking(false);
-      };
-      
-      window.speechSynthesis.speak(utterance);
+      newAudio.play().catch(e => {
+          console.error("Audio playback failed", e);
+          toast({ variant: 'destructive', title: 'Audio Playback Failed' });
+          setIsSpeaking(false);
+      });
 
     } catch (e) {
       console.error(e);
@@ -72,10 +72,12 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ onClose, chapterConte
       setIsSpeaking(false);
     }
   }, [chapterContent, toast]);
+  
 
   const toggleListen = useCallback(() => {
-    if (isSpeaking) {
-      stopPlayback();
+    if (isSpeaking && audioRef.current) {
+      audioRef.current.pause();
+      setIsSpeaking(false);
       return;
     }
 
@@ -101,7 +103,7 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ onClose, chapterConte
     recognition.onend = () => setIsListening(false);
     recognition.onerror = (event: any) => {
       console.error('Speech recognition error', event.error);
-      if (event.error !== 'no-speech') {
+      if (event.error !== 'no-speech' && event.error !== 'aborted') {
         toast({ variant: 'destructive', title: 'Voice recognition error.' });
       }
     };
@@ -121,7 +123,9 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ onClose, chapterConte
 
     recognitionRef.current = recognition;
     recognition.start();
-  }, [isListening, isSpeaking, toast, handleAiResponse, stopPlayback]);
+  }, [isListening, isSpeaking, toast, handleAiResponse]);
+
+  if (!isMounted) return null;
 
   return (
     <Draggable nodeRef={nodeRef} handle=".drag-handle">

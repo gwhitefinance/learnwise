@@ -7,8 +7,8 @@ import { generateCourseFromUrl } from '@/ai/flows/course-from-url-flow';
 import { generateSummary } from '@/ai/flows/note-summary-flow';
 import { generateFlashcardsFromNote } from '@/ai/flows/note-to-flashcard-flow';
 import { generateQuizFromNote } from '@/ai/flows/note-to-quiz-flow';
-import { generateMiniCourse } from '@/ai/flows/mini-course-flow';
-import { generateQuizFromModule } from '@/ai/flows/module-quiz-flow';
+import { generateMiniCourse } from '@/ai-flows/mini-course-flow';
+import { generateQuizFromModule } from '@/ai-flows/module-quiz-flow';
 import { generateFlashcardsFromModule } from '@/ai/flows/module-flashcard-flow';
 import { generateTutoringSession } from '@/ai/flows/image-tutoring-flow';
 import { studyPlannerFlow } from '@/ai/flows/study-planner-flow';
@@ -27,6 +27,7 @@ import { generatePodcastEpisode } from '@/ai/flows/podcast-flow';
 import { generateSatQuestion } from '@/ai/flows/sat-question-flow';
 import { generateInitialCourseAndRoadmap } from '@/ai/flows/initial-course-flow';
 import { generateAudio } from '@/ai/flows/text-to-speech-flow';
+import { generateElevenLabsAudio } from '@/ai/flows/elevenlabs-tts-flow';
 
 // Re-exporting all AI functions as Server Actions
 export { 
@@ -56,4 +57,5 @@ export {
     generateSatQuestion,
     generateInitialCourseAndRoadmap,
     generateAudio,
+    generateElevenLabsAudio,
 };
