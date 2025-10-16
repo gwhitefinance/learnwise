@@ -3,7 +3,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import elevenlabs from 'elevenlabs-node';
+import { ElevenLabsClient } from '@elevenlabs/elevenlabs-js';
 import { streamToBuffer } from '@/lib/stream-utils';
 
 const ElevenLabsInputSchema = z.object({
@@ -16,7 +16,7 @@ const ElevenLabsOutputSchema = z.object({
 });
 export type ElevenLabsOutput = z.infer<typeof ElevenLabsOutputSchema>;
 
-const elevenlabsClient = new elevenlabs({
+const elevenlabsClient = new ElevenLabsClient({
     apiKey: process.env.ELEVENLABS_API_KEY,
 });
 
@@ -28,13 +28,22 @@ const generateElevenLabsAudioFlow = ai.defineFlow(
   },
   async ({ text }) => {
     try {
-        const audioStream = await elevenlabsClient.generate({
+        const audioStream = await elevenlabsClient.textToSpeech.generate({
             voice: 'Rachel',
             text,
             model_id: 'eleven_multilingual_v2',
         });
 
-        const audioBuffer = await streamToBuffer(audioStream);
+        // The JS SDK returns a browser ReadableStream. We need to handle it.
+        const reader = audioStream.getReader();
+        const chunks: Uint8Array[] = [];
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            chunks.push(value);
+        }
+        
+        const audioBuffer = Buffer.concat(chunks);
         const base64Audio = audioBuffer.toString('base64');
         
         return {

@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from './ui/button';
 import { Headphones, Play, Pause, X, Mic, Hand } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { generateTutorResponse, generateElevenLabsAudio } from '@/lib/actions';
+import { generateTutorResponse } from '@/lib/actions';
 import { cn } from '@/lib/utils';
 import AIBuddy from './ai-buddy';
 
@@ -71,14 +71,12 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ chapterContent, onClo
     setTranscript('');
     try {
       const tutorResponse = await generateTutorResponse({ chapterContext: chapterContent, question: text });
-      const audioResponse = await generateElevenLabsAudio({ text: tutorResponse.answer });
       
-      const newAudio = new Audio(audioResponse.audioDataUri);
-      audioRef.current = newAudio;
-      newAudio.play();
-      newAudio.onended = () => {
-        setIsSpeaking(false);
-      };
+      // Since ElevenLabs is removed, we'll use the browser's built-in speech synthesis
+      const utterance = new SpeechSynthesisUtterance(tutorResponse.answer);
+      utterance.onend = () => setIsSpeaking(false);
+      window.speechSynthesis.speak(utterance);
+
     } catch (error) {
       console.error(error);
       toast({ variant: 'destructive', title: 'AI Error', description: 'Could not get a spoken response.' });
@@ -87,43 +85,11 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ chapterContent, onClo
   };
 
   const handleListen = async () => {
-    if (isPlaying) {
-      audioRef.current?.pause();
-      setIsPlaying(false);
-      setIsPaused(true);
-      return;
-    }
-    if (isPaused) {
-      audioRef.current?.play();
-      setIsPlaying(true);
-      setIsPaused(false);
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const response = await generateElevenLabsAudio({ text: chapterContent });
-      const newAudio = new Audio(response.audioDataUri);
-      audioRef.current = newAudio;
-      newAudio.play();
-      
-      newAudio.onended = () => {
-        setIsPlaying(false);
-        setIsPaused(false);
-      };
-      setIsPlaying(true);
-      setIsPaused(false);
-
-    } catch (error) {
-      console.error('Failed to generate or play audio:', error);
-      toast({
+    toast({
         variant: 'destructive',
-        title: 'Audio Error',
-        description: 'Could not play the audio for this chapter.',
-      });
-    } finally {
-      setIsLoading(false);
-    }
+        title: 'Feature Temporarily Disabled',
+        description: 'The text-to-speech feature is currently unavailable. Please try again later.',
+    });
   };
 
   const toggleListenForQuestion = () => {
@@ -178,7 +144,7 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ chapterContent, onClo
         </AnimatePresence>
 
         <div className="flex items-center justify-center gap-4 mt-6">
-            <Button onClick={handleListen} disabled={isLoading} variant="outline" size="lg" className="rounded-full">
+            <Button onClick={handleListen} disabled={true} variant="outline" size="lg" className="rounded-full">
                 {isLoading ? <span className="animate-spin">...</span> : isPlaying ? <Pause /> : <Headphones />}
                 <span className="ml-2">{isLoading ? 'Preparing...' : (isPlaying ? 'Pause' : (isPaused ? 'Resume' : 'Listen'))}</span>
             </Button>
