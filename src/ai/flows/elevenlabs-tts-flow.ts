@@ -2,7 +2,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import { ElevenLabsClient } from 'elevenlabs-node';
+import elevenlabs from 'elevenlabs-node';
 import { streamToBuffer } from '@/lib/stream-utils';
 
 const ElevenLabsInputSchema = z.object({
@@ -15,7 +15,7 @@ const ElevenLabsOutputSchema = z.object({
 });
 export type ElevenLabsOutput = z.infer<typeof ElevenLabsOutputSchema>;
 
-const elevenlabs = new ElevenLabsClient({
+const elevenlabsClient = new elevenlabs({
     apiKey: process.env.ELEVENLABS_API_KEY,
 });
 
@@ -27,7 +27,7 @@ const generateElevenLabsAudioFlow = ai.defineFlow(
   },
   async ({ text }) => {
     try {
-        const audioStream = await elevenlabs.generate({
+        const audioStream = await elevenlabsClient.generate({
             voice: 'Rachel',
             text,
             model_id: 'eleven_multilingual_v2',
