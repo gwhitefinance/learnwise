@@ -7,10 +7,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from './ui/button';
 import { Headphones, Play, Pause, X, Mic, Hand, StopCircle, Square, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { generateTutorResponse } from '@/lib/actions';
+import { generateTutorResponse, generateAudio } from '@/lib/actions';
 import { cn } from '@/lib/utils';
 import AIBuddy from './ai-buddy';
-import { useSpeech } from '@/hooks/use-speech';
 
 interface ListenAssistantProps {
   chapterContent: string;
@@ -22,16 +21,16 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ chapterContent, onClo
   const [isListening, setIsListening] = useState(false);
   const [isThinking, setIsThinking] = useState(false);
   const [transcript, setTranscript] = useState('');
-  
-  const { speak, stop, isPlaying } = useSpeech();
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isLoadingAudio, setIsLoadingAudio] = useState(false);
   
   const recognitionRef = useRef<any>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const draggableRef = useRef(null);
   const { toast } = useToast();
 
   useEffect(() => {
     setIsMounted(true);
-
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (SpeechRecognition) {
       recognitionRef.current = new SpeechRecognition();
@@ -64,30 +63,55 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ chapterContent, onClo
       recognitionRef.current.onend = () => {
         setIsListening(false);
       };
-
     }
+  }, [toast]);
 
-    return () => {
-      stop();
-      if (recognitionRef.current) {
-        recognitionRef.current.abort();
-      }
-    };
-  }, [toast, stop]);
+  const speak = useCallback(async (text: string) => {
+    if (isLoadingAudio || isPlaying) return;
+    setIsLoadingAudio(true);
+    try {
+      const result = await generateAudio({ text });
+      const newAudio = new Audio(result.audioDataUri);
+      audioRef.current = newAudio;
+      newAudio.play();
+      setIsPlaying(true);
+      newAudio.onended = () => {
+        setIsPlaying(false);
+        audioRef.current = null;
+      };
+    } catch (error) {
+      console.error('Error generating audio:', error);
+      toast({ variant: 'destructive', title: 'Could not play audio.' });
+    } finally {
+      setIsLoadingAudio(false);
+    }
+  }, [isLoadingAudio, isPlaying, toast]);
+
+  const stop = useCallback(() => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      setIsPlaying(false);
+      audioRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => stop();
+  }, [stop]);
 
   const handleAiResponse = async (text: string) => {
     if (!chapterContent || !text.trim()) return;
-
     setTranscript('');
     setIsThinking(true);
     try {
       const tutorResponse = await generateTutorResponse({ chapterContext: chapterContent, question: text });
-      speak(tutorResponse.answer);
+      setIsThinking(false);
+      await speak(tutorResponse.answer);
     } catch (error) {
       console.error(error);
       toast({ variant: 'destructive', title: 'AI Error', description: 'Could not get a spoken response.' });
-    } finally {
-        setIsThinking(false);
+      setIsThinking(false);
     }
   };
 
@@ -105,7 +129,6 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ chapterContent, onClo
         toast({ variant: 'destructive', title: 'Voice input not supported in this browser.' });
         return;
     }
-      
     if (isListening) {
       recognitionRef.current?.stop();
     } else {
@@ -127,6 +150,7 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ chapterContent, onClo
     if (isListening) return "Listening...";
     if (transcript) return `"${transcript}"`;
     if (isThinking) return "Thinking...";
+    if (isLoadingAudio) return "Preparing audio...";
     if (isPlaying) return "Speaking...";
     return "Tutorin Voice Agent";
   }
@@ -156,15 +180,15 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ chapterContent, onClo
                 exit={{ opacity: 0, y: -10 }}
                 className="h-10 flex items-center justify-center"
             >
-                <p className={cn("text-xl font-bold", (transcript || isThinking) && "italic text-muted-foreground")}>
+                <p className={cn("text-xl font-bold", (transcript || isThinking || isLoadingAudio) && "italic text-muted-foreground")}>
                    {getStatusText()}
                 </p>
             </motion.div>
         </AnimatePresence>
 
         <div className="flex items-center justify-center gap-4 mt-6">
-            <Button onClick={handleListen} variant="outline" size="lg" className="rounded-full">
-                {isPlaying ? <StopCircle /> : <Headphones />}
+            <Button onClick={handleListen} variant="outline" size="lg" className="rounded-full" disabled={isLoadingAudio}>
+                {isLoadingAudio ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : (isPlaying ? <StopCircle /> : <Headphones />)}
                 <span className="ml-2">{isPlaying ? 'Stop' : 'Listen'}</span>
             </Button>
             <Button

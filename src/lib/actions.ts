@@ -27,6 +27,7 @@ import { generateVideo } from '@/ai/flows/video-generation-flow';
 import { generatePodcastEpisode } from '@/ai/flows/podcast-flow';
 import { generateSatQuestion } from '@/ai/flows/sat-question-flow';
 import { generateInitialCourseAndRoadmap } from '@/ai/flows/initial-course-flow';
+import { generateAudio } from '@/ai/flows/text-to-speech-flow';
 
 // Re-exporting all AI functions as Server Actions
 export { 
@@ -55,7 +56,5 @@ export {
     generatePodcastEpisode,
     generateSatQuestion,
     generateInitialCourseAndRoadmap,
+    generateAudio,
 };
-
-// This re-export is intentionally removed as we are now using client-side TTS
-// export { generateAudio };
