@@ -848,23 +848,20 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                 This is your central hub for all your learning activities. Let's make today a productive one!
                             </p>
                              <div className="mt-4 flex gap-4">
-                                <div className="animated-button-container group">
+                                <div className="animated-button-container group w-full max-w-xs">
                                   <Spotlight />
-                                    <Button asChild variant="outline" className="relative w-full bg-white text-black hover:bg-gray-100 rounded-xl font-semibold flex items-center gap-2 overflow-hidden">
+                                    <Button asChild variant="outline" className="relative w-full bg-white text-black hover:bg-gray-100 rounded-xl font-semibold flex items-center gap-2 overflow-hidden h-12 text-base">
                                        <Link href="/dashboard/courses" >
                                         <Logo className="w-5 h-5"/>
                                         Start Tutorin
                                       </Link>
                                     </Button>
                                 </div>
-                                <Button variant="secondary" className="rounded-xl" onClick={() => setShowTimer(!showTimer)}>
-                                    <Clock className="w-4 h-4 mr-2" />
-                                    Timer
-                                </Button>
+                                {showTimer && <PomodoroTimer onHide={() => setShowTimer(false)} />}
                             </div>
                         </div>
                          <div className="relative hidden lg:flex items-center justify-center gap-8">
-                            {showTimer && <PomodoroTimer onHide={() => setShowTimer(false)} />}
+                            
                             <AIBuddy 
                                 className="w-32 h-32"
                                 color={customizations.color}
