@@ -273,7 +273,7 @@ export default function RoadmapsPage() {
             setExplanation(null);
             try {
                  const explanationResult = await generateExplanation({
-                    question: `${currentQuestion.question} The user chose '${selectedChallengeAnswer}' but the correct answer was '${currentQuestion.answer}'. Explain why it was wrong and what topics from the milestone '${challengeMilestone?.title}' they should review.`,
+                    question: `In a quiz about "${challengeMilestone?.title}", the user answered the question "${currentQuestion.question}" with "${selectedChallengeAnswer}", but the correct answer was "${currentQuestion.answer}". Explain why their answer was incorrect and suggest what specific concepts they should review before trying again.`,
                     userAnswer: selectedChallengeAnswer,
                     correctAnswer: currentQuestion.answer,
                     learnerType: (learnerType as any) ?? 'Unknown',
@@ -341,7 +341,7 @@ export default function RoadmapsPage() {
     };
 
     const exitFocusMode = () => {
-        if (document.exitFullscreen) {
+        if (document.fullscreenElement) {
             document.exitFullscreen();
         }
         setIsFocusMode(false);
@@ -577,4 +577,3 @@ export default function RoadmapsPage() {
     </>
   );
 }
-
