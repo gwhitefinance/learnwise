@@ -5,7 +5,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Draggable from 'react-draggable';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from './ui/button';
-import { Headphones, Play, Pause, X, Mic, Hand, StopCircle, Square } from 'lucide-react';
+import { Headphones, Play, Pause, X, Mic, Hand, StopCircle, Square, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { generateTutorResponse } from '@/lib/actions';
 import { cn } from '@/lib/utils';
@@ -20,6 +20,7 @@ interface ListenAssistantProps {
 const ListenAssistant: React.FC<ListenAssistantProps> = ({ chapterContent, onClose }) => {
   const [isMounted, setIsMounted] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [isThinking, setIsThinking] = useState(false);
   const [transcript, setTranscript] = useState('');
   
   const { speak, stop, isPlaying } = useSpeech();
@@ -39,15 +40,17 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ chapterContent, onClo
       recognitionRef.current.lang = 'en-US';
 
       recognitionRef.current.onresult = (event: any) => {
-        let interimTranscript = '';
+        let finalTranscript = '';
         for (let i = event.resultIndex; i < event.results.length; i++) {
           if (event.results[i].isFinal) {
-            handleAiResponse(event.results[i][0].transcript);
+            finalTranscript += event.results[i][0].transcript;
           } else {
-            interimTranscript += event.results[i][0].transcript;
+             setTranscript(event.results[i][0].transcript);
           }
         }
-        setTranscript(interimTranscript);
+        if (finalTranscript) {
+          handleAiResponse(finalTranscript);
+        }
       };
 
       recognitionRef.current.onerror = (event: any) => {
@@ -60,7 +63,6 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ chapterContent, onClo
       
       recognitionRef.current.onend = () => {
         setIsListening(false);
-        setTranscript('');
       };
 
     }
@@ -77,12 +79,15 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ chapterContent, onClo
     if (!chapterContent || !text.trim()) return;
 
     setTranscript('');
+    setIsThinking(true);
     try {
       const tutorResponse = await generateTutorResponse({ chapterContext: chapterContent, question: text });
       speak(tutorResponse.answer);
     } catch (error) {
       console.error(error);
       toast({ variant: 'destructive', title: 'AI Error', description: 'Could not get a spoken response.' });
+    } finally {
+        setIsThinking(false);
     }
   };
 
@@ -118,6 +123,14 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ chapterContent, onClo
 
   if (!isMounted) return null;
 
+  const getStatusText = () => {
+    if (isListening) return "Listening...";
+    if (transcript) return `"${transcript}"`;
+    if (isThinking) return "Thinking...";
+    if (isPlaying) return "Speaking...";
+    return "Tutorin Voice Agent";
+  }
+
   return (
     <Draggable nodeRef={draggableRef} handle=".drag-handle">
       <motion.div
@@ -132,22 +145,20 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ chapterContent, onClo
         
         <AIBuddy
             className="w-32 h-32 mb-4"
-            isStatic={!isPlaying && !isListening}
+            isStatic={!isPlaying && !isListening && !isThinking}
         />
         
         <AnimatePresence mode="wait">
             <motion.div
-                key={transcript ? 'transcript' : 'title'}
+                key={getStatusText()}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="h-10"
+                className="h-10 flex items-center justify-center"
             >
-                {transcript ? (
-                    <p className="text-lg font-semibold italic">"{transcript}"</p>
-                ) : (
-                    <h3 className="text-xl font-bold">Tutorin Voice Agent</h3>
-                )}
+                <p className={cn("text-xl font-bold", (transcript || isThinking) && "italic text-muted-foreground")}>
+                   {getStatusText()}
+                </p>
             </motion.div>
         </AnimatePresence>
 
