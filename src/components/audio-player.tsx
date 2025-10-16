@@ -1,10 +1,10 @@
+
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Play, Pause, Loader2 } from 'lucide-react';
+import { Play, Pause, Loader2, StopCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { generateAudio } from '@/lib/actions';
 
 interface AudioPlayerProps {
   textToPlay: string;
@@ -13,77 +13,69 @@ interface AudioPlayerProps {
 export default function AudioPlayer({ textToPlay }: AudioPlayerProps) {
   const [learnerType, setLearnerType] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
+  const [isAvailable, setIsAvailable] = useState(false);
   const { toast } = useToast();
+  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   useEffect(() => {
     const type = localStorage.getItem('learnerType');
     setLearnerType(type);
-  }, []);
-  
-  useEffect(() => {
-    // Cleanup audio on component unmount
-    return () => {
-      if (audio) {
-        audio.pause();
-        setAudio(null);
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      setIsAvailable(true);
+    }
+
+    const handleBeforeUnload = () => {
+      if (window.speechSynthesis.speaking) {
+        window.speechSynthesis.cancel();
       }
     };
-  }, [audio]);
+    window.addEventListener('beforeunload', handleBeforeUnload);
 
-  const handlePlay = async () => {
-    if (isPlaying && audio) {
-      audio.pause();
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      handleBeforeUnload(); // Cleanup on unmount
+    };
+  }, []);
+
+  const handlePlayPause = () => {
+    if (!isAvailable) {
+      toast({ variant: 'destructive', title: 'Text-to-speech is not supported in your browser.' });
+      return;
+    }
+
+    if (window.speechSynthesis.speaking) {
+      window.speechSynthesis.cancel();
       setIsPlaying(false);
-      return;
-    }
-
-    if (audio) {
-      audio.play();
-      setIsPlaying(true);
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const response = await generateAudio({ text: textToPlay });
-      const newAudio = new Audio(response.audioDataUri);
-      newAudio.play();
-      
-      newAudio.onended = () => {
+    } else {
+      const utterance = new SpeechSynthesisUtterance(textToPlay);
+      utterance.onstart = () => setIsPlaying(true);
+      utterance.onend = () => setIsPlaying(false);
+      utterance.onerror = () => {
+        toast({ variant: 'destructive', title: 'Audio Error' });
         setIsPlaying(false);
       };
-      
-      setAudio(newAudio);
-      setIsPlaying(true);
-    } catch (error) {
-      console.error('Failed to generate or play audio:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Audio Error',
-        description: 'Could not play the audio for this section.',
-      });
-    } finally {
-      setIsLoading(false);
+      utteranceRef.current = utterance;
+      window.speechSynthesis.speak(utterance);
     }
   };
 
   if (learnerType !== 'Auditory' || !textToPlay) {
     return null;
   }
+  
+  if (!isAvailable) {
+      return null;
+  }
 
   return (
     <div className="mb-2">
-      <Button onClick={handlePlay} variant="outline" size="sm" disabled={isLoading}>
-        {isLoading ? (
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-        ) : isPlaying ? (
+      <Button onClick={handlePlayPause} variant="outline" size="sm">
+        {isPlaying ? (
           <Pause className="mr-2 h-4 w-4" />
         ) : (
           <Play className="mr-2 h-4 w-4" />
         )}
-        {isPlaying ? 'Pause' : 'Listen'}
+        {isPlaying ? 'Stop' : 'Listen'}
       </Button>
     </div>
   );
