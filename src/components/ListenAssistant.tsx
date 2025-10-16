@@ -7,10 +7,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from './ui/button';
 import { Headphones, Play, Pause, X, Mic, Hand, StopCircle, Square, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { generateTutorResponse } from '@/lib/actions';
+import { generateTutorResponse, generateAudio } from '@/lib/actions';
 import { cn } from '@/lib/utils';
 import AIBuddy from './ai-buddy';
-import { useSpeech } from '@/hooks/use-speech';
 
 interface ListenAssistantProps {
   chapterContent: string;
@@ -25,11 +24,20 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ chapterContent, onClo
   
   const recognitionRef = useRef<any>(null);
   const draggableRef = useRef(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const { toast } = useToast();
-  const { isPlaying, speak, stop } = useSpeech();
+
+  const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
+    audioRef.current = new Audio();
+
+    const audio = audioRef.current;
+    audio.onplay = () => setIsPlaying(true);
+    audio.onpause = () => setIsPlaying(false);
+    audio.onended = () => setIsPlaying(false);
+
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (SpeechRecognition) {
       recognitionRef.current = new SpeechRecognition();
@@ -63,7 +71,38 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ chapterContent, onClo
         setIsListening(false);
       };
     }
+    
+    return () => {
+        if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current = null;
+        }
+    }
   }, [toast]);
+  
+  const speak = useCallback(async (text: string) => {
+    if (audioRef.current?.Hl) {
+        audioRef.current.pause();
+    }
+    try {
+        const { audio } = await generateAudio({ text });
+        if (audioRef.current) {
+            audioRef.current.src = audio;
+            audioRef.current.play();
+        }
+    } catch (e) {
+        console.error(e);
+        toast({ variant: 'destructive', title: 'Could not play audio.' });
+    }
+  }, [toast]);
+  
+  const stop = useCallback(() => {
+      if (audioRef.current) {
+          audioRef.current.pause();
+          audioRef.current.currentTime = 0;
+      }
+      setIsPlaying(false);
+  }, []);
 
   const handleAiResponse = async (text: string) => {
     if (!chapterContent || !text.trim()) return;

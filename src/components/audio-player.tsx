@@ -1,10 +1,11 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Play, Pause, StopCircle } from 'lucide-react';
-import { useSpeech } from '@/hooks/use-speech';
+import { Play, StopCircle, Loader2 } from 'lucide-react';
+import { generateAudio } from '@/lib/actions';
+import { useToast } from '@/hooks/use-toast';
 
 interface AudioPlayerProps {
   textToPlay: string;
@@ -12,19 +13,50 @@ interface AudioPlayerProps {
 
 export default function AudioPlayer({ textToPlay }: AudioPlayerProps) {
   const [learnerType, setLearnerType] = useState<string | null>(null);
-  const { isPlaying, speak, stop } = useSpeech();
+  const [isLoading, setIsLoading] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     const type = localStorage.getItem('learnerType');
     setLearnerType(type);
-    return () => stop(); // Stop audio when component unmounts
-  }, [stop]);
+    
+    audioRef.current = new Audio();
+    const audio = audioRef.current;
+    
+    const onEnded = () => setIsPlaying(false);
+    audio.addEventListener('ended', onEnded);
+    
+    return () => {
+      audio.removeEventListener('ended', onEnded);
+      audio.pause();
+    };
+  }, []);
 
-  const handlePlayPause = () => {
+  const handlePlayPause = async () => {
     if (isPlaying) {
-      stop();
-    } else {
-      speak(textToPlay);
+      audioRef.current?.pause();
+      audioRef.current!.currentTime = 0;
+      setIsPlaying(false);
+      return;
+    }
+    
+    setIsLoading(true);
+    setIsPlaying(true); // Optimistically set playing state
+
+    try {
+        const { audio } = await generateAudio({ text: textToPlay });
+        if (audioRef.current) {
+            audioRef.current.src = audio;
+            await audioRef.current.play();
+        }
+    } catch(e) {
+        console.error(e);
+        toast({ variant: 'destructive', title: 'Could not play audio.' });
+        setIsPlaying(false); // Revert on error
+    } finally {
+        setIsLoading(false);
     }
   };
 
@@ -34,13 +66,15 @@ export default function AudioPlayer({ textToPlay }: AudioPlayerProps) {
 
   return (
     <div className="mb-2">
-      <Button onClick={handlePlayPause} variant="outline" size="sm">
-        {isPlaying ? (
+      <Button onClick={handlePlayPause} variant="outline" size="sm" disabled={isLoading}>
+        {isLoading ? (
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        ) : isPlaying ? (
           <StopCircle className="mr-2 h-4 w-4" />
         ) : (
           <Play className="mr-2 h-4 w-4" />
         )}
-        {isPlaying ? 'Stop' : 'Listen'}
+        {isLoading ? 'Preparing...' : (isPlaying ? 'Stop' : 'Listen')}
       </Button>
     </div>
   );
