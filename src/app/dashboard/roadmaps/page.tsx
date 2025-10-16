@@ -5,7 +5,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
-import { GitMerge, Plus, Check, Flag, Calendar, ArrowRight, Loader2, CheckCircle, XCircle, Maximize, Minimize, Clock, Lightbulb } from "lucide-react";
+import { GitMerge, Plus, Check, Flag, Calendar, ArrowRight, Loader2, CheckCircle, XCircle, Maximize, Minimize, Clock, Lightbulb, Coins } from "lucide-react";
 import * as LucideIcons from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -17,7 +17,7 @@ import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
-import { collection, query, where, addDoc, doc, updateDoc, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, addDoc, doc, updateDoc, onSnapshot, increment } from 'firebase/firestore';
 import { generateRoadmap, generateQuizAction, generateExplanation } from '@/lib/actions';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -243,10 +243,10 @@ export default function RoadmapsPage() {
     };
     
     const handleChallengeAnswer = async () => {
-        if (!challengeQuiz || selectedChallengeAnswer === null) return;
+        if (!challengeQuiz || selectedChallengeAnswer === null || !user) return;
         const currentQuestion = challengeQuiz.questions[currentChallengeQuestionIndex];
         const isCorrect = selectedChallengeAnswer.toLowerCase() === currentQuestion.answer.toLowerCase();
-
+    
         const answerFeedback: AnswerFeedback = {
             question: currentQuestion.question,
             answer: selectedChallengeAnswer,
@@ -260,11 +260,20 @@ export default function RoadmapsPage() {
         if (isCorrect) {
             setChallengeAnswers(prev => [...prev, answerFeedback]);
         } else {
+            // "Sudden death" - end the challenge
+            try {
+                const userRef = doc(db, 'users', user.uid);
+                await updateDoc(userRef, { coins: increment(-25) });
+                toast({ variant: 'destructive', title: 'Challenge Failed!', description: "You lost 25 coins. Better luck next time." });
+            } catch (e) {
+                console.error("Error deducting coins:", e);
+            }
+
             setIsExplanationLoading(true);
             setExplanation(null);
             try {
                  const explanationResult = await generateExplanation({
-                    question: currentQuestion.question,
+                    question: `${currentQuestion.question} The user chose '${selectedChallengeAnswer}' but the correct answer was '${currentQuestion.answer}'. Explain why it was wrong and what topics from the milestone '${challengeMilestone?.title}' they should review.`,
                     userAnswer: selectedChallengeAnswer,
                     correctAnswer: currentQuestion.answer,
                     learnerType: (learnerType as any) ?? 'Unknown',
@@ -273,7 +282,7 @@ export default function RoadmapsPage() {
                 setExplanation(explanationResult.explanation);
             } catch (error) {
                  console.error(error);
-                setExplanation("Sorry, I couldn't generate an explanation for this question.");
+                setExplanation("Sorry, I couldn't generate an explanation for this question. Review the material on this topic and try again.");
             } finally {
                 setIsExplanationLoading(false);
             }
@@ -281,7 +290,7 @@ export default function RoadmapsPage() {
     };
 
     const handleNextChallengeQuestion = async () => {
-        if (!challengeQuiz) return;
+        if (!challengeQuiz || !user) return;
         
         setFeedback(null);
         setExplanation(null);
@@ -293,7 +302,13 @@ export default function RoadmapsPage() {
         } else {
             // Passed the challenge
             await handleToggleMilestone(challengeMilestone!.id, true);
-            toast({ title: 'Milestone Complete!', description: `You've earned the "${challengeMilestone?.title}" badge!` });
+            try {
+                const userRef = doc(db, 'users', user.uid);
+                await updateDoc(userRef, { coins: increment(100) });
+                toast({ title: 'Challenge Passed!', description: `You earned 100 coins and the "${challengeMilestone?.title}" badge!` });
+            } catch (e) {
+                console.error("Error awarding coins:", e);
+            }
             setChallengeState('results');
         }
     };
@@ -528,6 +543,7 @@ export default function RoadmapsPage() {
                           </motion.div>
                           <h2 className="text-3xl font-bold">Challenge Passed!</h2>
                           <p className="text-muted-foreground">You've mastered this milestone and earned a badge!</p>
+                           <p className="text-lg font-bold flex items-center justify-center gap-1 text-amber-500"><Coins size={20}/> +100 Coins</p>
                       </div>
                   )}
                </div>
@@ -543,7 +559,13 @@ export default function RoadmapsPage() {
                                   <ArrowRight className="ml-2 h-4 w-4" />
                               </Button>
                           ) : (
-                              <DialogClose asChild><Button variant="destructive">Review & Try Again</Button></DialogClose>
+                              <DialogClose asChild>
+                                  <div className='text-right'>
+                                    <p className="text-destructive font-bold text-lg">Challenge Failed</p>
+                                    <p className="text-muted-foreground text-sm flex items-center justify-end gap-1"><Coins size={14}/> -25 Coins</p>
+                                    <Button variant="destructive" className="mt-2">Review & Try Again</Button>
+                                  </div>
+                              </DialogClose>
                           )}
                       </div>
                   ) : (
@@ -555,3 +577,4 @@ export default function RoadmapsPage() {
     </>
   );
 }
+
