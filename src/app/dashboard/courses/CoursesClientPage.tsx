@@ -168,7 +168,7 @@ function CoursesComponent() {
   const [isSummaryDialogOpen, setIsSummaryDialogOpen] = useState(false);
   const [summaryForPopup, setSummaryForPopup] = useState('');
   const [isSummaryLoading, setIsSummaryLoading] = useState(false);
-  const [isNextChapterGenerating, setIsNextChapterGenerating] = useState(false);
+  const [nextChapterProgress, setNextChapterProgress] = useState(0);
 
 
   useEffect(() => {
@@ -360,7 +360,7 @@ function CoursesComponent() {
             
             const newRoadmap = {
                 goals: roadmapResult.goals.map(g => ({ ...g, id: `id-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, icon: g.icon || 'Flag' })),
-                milestones: roadmapResult.milestones.map(m => ({ ...m, id: `id-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, icon: m.icon || 'Calendar', completed: false }))
+                milestones: roadmapResult.milestones.map(m => ({ ...m, id: `id-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, icon: g.icon || 'Calendar', completed: false }))
             };
 
             const roadmapsQuery = query(collection(db, 'roadmaps'), where('courseId', '==', activeCourse.id));
@@ -575,6 +575,33 @@ function CoursesComponent() {
     }
   };
 
+  const handleProceedToNextChapter = () => {
+    if (!activeCourse || !currentModule) return;
+    
+    setIsSummaryDialogOpen(false);
+
+    let nextModuleIndex = currentModuleIndex;
+    let nextChapterIndex = currentChapterIndex + 1;
+
+    if (nextChapterIndex >= currentModule.chapters.length) {
+        nextModuleIndex++;
+        nextChapterIndex = 0;
+    }
+
+    if (nextModuleIndex >= (activeCourse.units?.length ?? 0)) {
+        toast({ title: "Course Complete!", description: "Congratulations, you've finished the course!" });
+        const courseRef = doc(db, 'courses', activeCourse.id);
+        updateDoc(courseRef, { labCompleted: true });
+        if(user) {
+            updateDoc(doc(db, 'users', user.uid), { coins: increment(500) });
+            showReward({ type: 'coins', amount: 500 });
+        }
+    } else {
+        setCurrentModuleIndex(nextModuleIndex);
+        setCurrentChapterIndex(nextChapterIndex);
+    }
+  };
+
   const handleCompleteAndContinue = async () => {
     if (!activeCourse || !user || !currentChapter || !currentModule) return;
     
@@ -583,10 +610,10 @@ function CoursesComponent() {
     await updateDoc(courseRef, { completedChapters: arrayUnion(currentChapter.id) });
     setActiveCourse(prev => prev ? { ...prev, completedChapters: [...(prev.completedChapters || []), currentChapter.id]} : null);
 
-    // Open summary dialog and start generating content
+    // Open summary dialog
     setIsSummaryDialogOpen(true);
     setIsSummaryLoading(true);
-    setIsNextChapterGenerating(true);
+    setNextChapterProgress(0);
     setSummaryForPopup('');
 
     // --- Start parallel AI calls ---
@@ -618,50 +645,39 @@ function CoursesComponent() {
         nextModuleIndex++;
         nextChapterIndex = 0;
         if (nextModuleIndex >= (activeCourse.units?.length ?? 0)) {
-            isLastChapter = true; // This is the last chapter of the course
+            isLastChapter = true; 
         }
     }
 
     if (!isLastChapter) {
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += Math.random() * 10;
+            if (progress > 95) { // Don't let it hit 100 on its own
+                clearInterval(interval);
+            } else {
+                setNextChapterProgress(progress);
+            }
+        }, 300);
+
         handleGenerateChapterContent(nextModuleIndex, nextChapterIndex)
             .then(success => {
+                clearInterval(interval);
+                setNextChapterProgress(100);
                 if (success) {
-                    setIsNextChapterGenerating(false); // Enable the "Next" button
+                    setTimeout(() => {
+                        handleProceedToNextChapter();
+                    }, 500); // Give user a moment to see 100%
                 } else {
                     toast({ variant: 'destructive', title: 'Error', description: 'Could not load the next chapter.'});
-                    setIsSummaryDialogOpen(false); // Close dialog on error
+                    setIsSummaryDialogOpen(false);
                 }
             });
     } else {
-        // It's the last chapter, so just enable the button to show the final message
-        setIsNextChapterGenerating(false);
-    }
-  };
-
-  const handleProceedToNextChapter = () => {
-    if (!activeCourse || !currentModule) return;
-    
-    setIsSummaryDialogOpen(false);
-
-    let nextModuleIndex = currentModuleIndex;
-    let nextChapterIndex = currentChapterIndex + 1;
-
-    if (nextChapterIndex >= currentModule.chapters.length) {
-        nextModuleIndex++;
-        nextChapterIndex = 0;
-    }
-
-    if (nextModuleIndex >= (activeCourse.units?.length ?? 0)) {
-        toast({ title: "Course Complete!", description: "Congratulations, you've finished the course!" });
-        const courseRef = doc(db, 'courses', activeCourse.id);
-        updateDoc(courseRef, { labCompleted: true });
-        if(user) {
-            updateDoc(doc(db, 'users', user.uid), { coins: increment(500) });
-            showReward({ type: 'coins', amount: 500 });
-        }
-    } else {
-        setCurrentModuleIndex(nextModuleIndex);
-        setCurrentChapterIndex(nextChapterIndex);
+        setNextChapterProgress(100);
+        setTimeout(() => {
+            handleProceedToNextChapter();
+        }, 500);
     }
   };
   
@@ -1244,14 +1260,14 @@ function CoursesComponent() {
   return (
     <>
       <Dialog open={isSummaryDialogOpen} onOpenChange={setIsSummaryDialogOpen}>
-          <DialogContent onInteractOutside={(e) => e.preventDefault()}>
+          <DialogContent onInteractOutside={(e) => e.preventDefault()} className="sm:max-w-md">
               <DialogHeader>
                   <DialogTitle className="flex items-center gap-2"><Book className="h-5 w-5 text-primary"/>Chapter Summary</DialogTitle>
                   <DialogDescription>
-                      Here's a quick recap of what you just read. The next chapter is loading in the background.
+                      Here's a quick recap. The next chapter is being prepared.
                   </DialogDescription>
               </DialogHeader>
-              <div className="py-4 max-h-[40vh] overflow-y-auto">
+              <div className="py-4 space-y-4">
                   {isSummaryLoading ? (
                       <div className="space-y-2">
                           <Skeleton className="h-4 w-full"/>
@@ -1259,23 +1275,13 @@ function CoursesComponent() {
                           <Skeleton className="h-4 w-2/3"/>
                       </div>
                   ) : (
-                      <p className="text-sm text-muted-foreground">{summaryForPopup}</p>
+                      <p className="text-sm text-muted-foreground max-h-32 overflow-y-auto">{summaryForPopup}</p>
                   )}
+                  <div className="pt-4">
+                      <p className="text-xs text-muted-foreground mb-1">Preparing next chapter...</p>
+                      <Progress value={nextChapterProgress} className="h-2"/>
+                  </div>
               </div>
-              <DialogFooter>
-                  <Button onClick={handleProceedToNextChapter} disabled={isNextChapterGenerating}>
-                      {isNextChapterGenerating ? (
-                          <>
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              Preparing next chapter...
-                          </>
-                      ) : (
-                           <>
-                              Next Chapter <ArrowRight className="ml-2 h-4 w-4" />
-                          </>
-                      )}
-                  </Button>
-              </DialogFooter>
           </DialogContent>
       </Dialog>
 
