@@ -6,7 +6,6 @@ import { googleAI } from '@genkit-ai/google-genai';
 import { z } from 'zod';
 import { TextToSpeechInputSchema, TextToSpeechOutputSchema, TextToSpeechInput, TextToSpeechOutput } from '@/ai/schemas/text-to-speech-schema';
 import wav from 'wav';
-import { streamToBuffer } from '@/lib/stream-utils';
 
 async function toWav(
   pcmData: Buffer,
@@ -43,10 +42,15 @@ const generateAudioFlow = ai.defineFlow(
   },
   async ({ text }) => {
     const { media } = await ai.generate({
-      model: googleAI.model('gemini-2.0-flash-lite'),
-      prompt: `Perform text-to-speech on this text: ${text}`,
+      model: googleAI.model('gemini-2.5-flash-preview-tts'),
+      prompt: text,
       config: {
         responseModalities: ['AUDIO'],
+        speechConfig: {
+          voiceConfig: {
+            prebuiltVoiceConfig: { voiceName: 'Algenib' },
+          },
+        },
       },
     });
     
