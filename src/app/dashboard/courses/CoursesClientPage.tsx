@@ -1006,10 +1006,10 @@ function CoursesComponent() {
                             </div>
                         )}
                         <DialogFooter>
-                             {addCourseStep === 1 ? (
+                            {addCourseStep === 1 ? (
                                 <>
                                     <Button variant="ghost" onClick={() => { setAddCourseOpen(false); resetAddCourseDialog();}}>Cancel</Button>
-                                    {isNewTopic === false ? (
+                                    {isNewTopic === true ? (
                                         <Button onClick={() => setAddCourseStep(2)} disabled={isSaving || isNewTopic === null || !newCourse.name}>
                                             Next
                                         </Button>
@@ -1019,14 +1019,14 @@ function CoursesComponent() {
                                         </Button>
                                     )}
                                 </>
-                             ) : (
+                            ) : (
                                 <>
                                     <Button variant="ghost" onClick={() => setAddCourseStep(1)}>Back</Button>
                                     <Button onClick={handleGenerateCourse} disabled={isSaving || isGenerating}>
                                         {isGenerating ? 'Generating...' : 'Generate Course & Plan'}
                                     </Button>
                                 </>
-                             )}
+                            )}
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
@@ -1090,7 +1090,7 @@ function CoursesComponent() {
                                 ) : (
                                     <Button className="w-full" onClick={() => {
                                         setNewCourse(course);
-                                        setIsNewTopic(false); // Trigger "learning something new" flow
+                                        setIsNewTopic(true); // Trigger "learning something new" flow
                                         setAddCourseStep(2);
                                         setAddCourseOpen(true);
                                     }} disabled={isGenerating}>
