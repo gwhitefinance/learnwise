@@ -30,6 +30,12 @@ const games = [
         description: "A relaxing puzzle game to test your spatial reasoning. Strategically place blocks to clear lines on the board.",
         href: "/dashboard/games/block-puzzle",
         icon: <Grid className="w-10 h-10 text-green-500" />
+    },
+    {
+        title: "Memory Match",
+        description: "Test your memory by matching pairs of terms and definitions. A fun way to review key concepts.",
+        href: "/dashboard/games/memory-match",
+        icon: <Brain className="w-10 h-10 text-pink-500" />
     }
 ];
 

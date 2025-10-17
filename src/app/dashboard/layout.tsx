@@ -100,6 +100,9 @@ import FloatingChat from '@/components/floating-chat';
 import { useToast } from '@/hooks/use-toast';
 import Logo from '@/components/Logo';
 import DashboardLoading from './loading';
+import { CallProvider } from '@/context/CallContext';
+import CallView from '@/components/CallView';
+import IncomingCall from '@/components/IncomingCall';
 
 type SidebarChild = {
   title: string;
@@ -723,6 +726,8 @@ function DashboardLayoutContent({
         </div>
       </div>
       <RewardPopup />
+      <CallView />
+      <IncomingCall />
       <Toaster />
     </>
   );
@@ -736,7 +741,9 @@ export default function DashboardLayout({
   return (
     <RewardProvider>
         <Suspense fallback={<DashboardLoading />}>
-            <DashboardLayoutContent>{children}</DashboardLayoutContent>
+            <CallProvider>
+              <DashboardLayoutContent>{children}</DashboardLayoutContent>
+            </CallProvider>
         </Suspense>
     </RewardProvider>
   )

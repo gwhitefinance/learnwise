@@ -12,16 +12,16 @@ const prompt = ai.definePrompt({
     model: googleAI.model('gemini-2.0-flash-lite'),
     input: { schema: GenerateMindfulnessExerciseInputSchema },
     output: { schema: GenerateMindfulnessExerciseOutputSchema },
-    prompt: `You are a calm and supportive mindfulness guide. Your task is to generate a short, simple, and effective mindfulness exercise for a student who needs a quick break.
+    prompt: `You are a calm, gentle, and supportive mindfulness guide for students. Your task is to generate a short, simple, and effective mindfulness exercise based on how a student is feeling.
 
     The student is feeling: {{feeling}}
 
-    Based on their feeling, generate ONE of the following:
-    1.  A 1-minute breathing exercise with simple, clear steps.
-    2.  A short (2-3 sentences) calming thought or affirmation.
-    3.  A simple grounding technique (e.g., "5-4-3-2-1" method).
+    Based on their feeling, generate ONE of the following types of exercises:
+    1.  **Breathing Exercise**: Simple, clear steps for a 1-minute breathing technique. (e.g., for "Anxious", suggest box breathing).
+    2.  **Grounding Technique**: A simple sensory exercise to bring them to the present moment. (e.g., for "Stressed", suggest the 5-4-3-2-1 method).
+    3.  **Affirmation/Calming Thought**: A short, positive, and reassuring statement (2-3 sentences). (e.g., for "Sad", offer a comforting thought).
 
-    Keep the title concise (2-4 words) and the exercise easy to follow. The tone should be gentle, encouraging, and soothing.
+    Keep the title concise (2-4 words) and the exercise text easy to follow for a young audience. The tone should always be gentle, encouraging, and soothing. Make it feel personal and caring. Do not be generic.
     `,
 });
 
