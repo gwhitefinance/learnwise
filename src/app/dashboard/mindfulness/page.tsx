@@ -4,12 +4,14 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Wand2, Loader2, Zap, Wind, Coffee, Droplets, Smile, Meh, Frown, Sparkles, Sprout, Flower, Leaf } from 'lucide-react';
+import { Wand2, Loader2, Zap, Wind, Coffee, Droplets, Smile, Meh, Frown, Sparkles, Sprout, Flower, Leaf, Edit, Upload } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { generateMindfulnessExercise } from '@/lib/actions';
 import type { GenerateMindfulnessExerciseOutput } from '@/ai/schemas/mindfulness-schema';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Textarea } from '@/components/ui/textarea';
+import Link from 'next/link';
 
 const feelings = [
     { name: 'Stressed', icon: <Zap /> },
@@ -93,40 +95,62 @@ export default function MindfulnessPage() {
                 </CardContent>
             </Card>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>How are you feeling right now?</CardTitle>
-                    <CardDescription>Select a feeling to get a tailored mindfulness exercise.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-                        {feelings.map(feeling => (
-                            <button
-                                key={feeling.name}
-                                onClick={() => setSelectedFeeling(feeling.name)}
-                                className={cn(
-                                    "flex flex-col items-center justify-center gap-2 p-4 rounded-lg border text-lg font-semibold transition-all aspect-square",
-                                    selectedFeeling === feeling.name
-                                        ? "border-primary bg-primary/10 ring-2 ring-primary text-primary"
-                                        : "border-border hover:bg-muted"
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>How are you feeling right now?</CardTitle>
+                        <CardDescription>Select a feeling to get a tailored mindfulness exercise.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                            {feelings.map(feeling => (
+                                <button
+                                    key={feeling.name}
+                                    onClick={() => setSelectedFeeling(feeling.name)}
+                                    className={cn(
+                                        "flex flex-col items-center justify-center gap-2 p-4 rounded-lg border text-lg font-semibold transition-all aspect-square",
+                                        selectedFeeling === feeling.name
+                                            ? "border-primary bg-primary/10 ring-2 ring-primary text-primary"
+                                            : "border-border hover:bg-muted"
+                                    )}
+                                >
+                                    {feeling.icon}
+                                    <span className="text-sm">{feeling.name}</span>
+                                </button>
+                            ))}
+                        </div>
+                         <div className="flex justify-center mt-8">
+                            <Button size="lg" onClick={handleGenerateExercise} disabled={isLoading}>
+                                {isLoading ? (
+                                    <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Generating...</>
+                                ) : (
+                                    <><Wand2 className="mr-2 h-5 w-5" /> Get Mindful Moment</>
                                 )}
-                            >
-                                {feeling.icon}
-                                <span className="text-sm">{feeling.name}</span>
-                            </button>
-                        ))}
-                    </div>
-                     <div className="flex justify-center mt-8">
-                        <Button size="lg" onClick={handleGenerateExercise} disabled={isLoading}>
-                            {isLoading ? (
-                                <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Generating...</>
-                            ) : (
-                                <><Wand2 className="mr-2 h-5 w-5" /> Get Mindful Moment</>
-                            )}
-                        </Button>
-                    </div>
-                </CardContent>
-            </Card>
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Daily Reflection</CardTitle>
+                        <CardDescription>Take a moment for gratitude and creative expression.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        <div>
+                            <h4 className="font-semibold text-sm mb-2">Gratitude Journal</h4>
+                            <Textarea placeholder="What are three things you're grateful for today?" />
+                        </div>
+                        <div>
+                             <h4 className="font-semibold text-sm mb-2">Draw Your Feelings</h4>
+                             <Link href="/dashboard/whiteboard" className="w-full">
+                                <Button variant="outline" className="w-full">
+                                    <Edit className="mr-2 h-4 w-4" /> Open Doodle Canvas
+                                </Button>
+                             </Link>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
 
             <AnimatePresence>
             {exercise && (
