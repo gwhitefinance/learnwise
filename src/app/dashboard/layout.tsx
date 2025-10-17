@@ -67,6 +67,7 @@ import {
   Shield,
   Podcast,
   BookMarked,
+  Wind,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -194,6 +195,12 @@ const sidebarItems: SidebarItem[] = [
             icon: <BarChart3 />,
             href: "/dashboard/analysis",
             id: "analysis-link",
+        },
+        {
+            title: "Mindfulness",
+            icon: <Wind />,
+            href: "/dashboard/mindfulness",
+            id: "mindfulness-link",
         },
         {
             title: "Podcasts",
