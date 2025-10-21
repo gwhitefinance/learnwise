@@ -9,6 +9,7 @@ import { GraduationCap, Heart, Search, Filter, ArrowRight, MoreHorizontal, Check
 import { cn } from '@/lib/utils';
 import Loading from './loading';
 import { allUSColleges } from '@/lib/colleges';
+import Link from 'next/link';
 
 type College = {
     id: string;
@@ -127,15 +128,17 @@ export default function CollegePrepPage() {
                             {searchResults.length > 0 && (
                                 <div className="border rounded-lg max-h-60 overflow-y-auto mb-4">
                                     {searchResults.map(college => (
-                                        <div key={college.id} className="flex items-center justify-between p-3 border-b">
-                                            <div>
-                                                <p className="font-semibold">{college.name}</p>
-                                                <p className="text-xs text-muted-foreground">{college.location}</p>
+                                        <Link key={college.id} href={`/dashboard/college-prep/${college.id}`} className="block">
+                                            <div className="flex items-center justify-between p-3 border-b hover:bg-muted">
+                                                <div>
+                                                    <p className="font-semibold">{college.name}</p>
+                                                    <p className="text-xs text-muted-foreground">{college.location}</p>
+                                                </div>
+                                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.preventDefault(); toggleFavorite(college);}}>
+                                                    <Heart className={cn("h-4 w-4", college.isFavorited ? "fill-red-500 text-red-500" : "text-muted-foreground")} />
+                                                </Button>
                                             </div>
-                                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => toggleFavorite(college)}>
-                                                <Heart className={cn("h-4 w-4", college.isFavorited ? "fill-red-500 text-red-500" : "text-muted-foreground")} />
-                                            </Button>
-                                        </div>
+                                        </Link>
                                     ))}
                                 </div>
                             )}
@@ -143,18 +146,20 @@ export default function CollegePrepPage() {
                             <h4 className="font-semibold text-lg mb-2">Favorites</h4>
                             <div className="space-y-3">
                                 {favoritedColleges.length > 0 ? favoritedColleges.map(college => (
-                                    <div key={college.id} className="flex items-center justify-between p-3 rounded-lg bg-muted">
-                                        <div>
-                                            <p className="font-semibold">{college.name}</p>
-                                            <p className="text-xs text-muted-foreground">{college.location}</p>
+                                    <Link key={college.id} href={`/dashboard/college-prep/${college.id}`} className="block">
+                                        <div className="flex items-center justify-between p-3 rounded-lg bg-muted hover:bg-muted/80">
+                                            <div>
+                                                <p className="font-semibold">{college.name}</p>
+                                                <p className="text-xs text-muted-foreground">{college.location}</p>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.preventDefault(); toggleFavorite(college); }}>
+                                                    <Heart className={cn("h-4 w-4", "fill-red-500 text-red-500")} />
+                                                </Button>
+                                                <Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4"/></Button>
+                                            </div>
                                         </div>
-                                        <div className="flex items-center gap-2">
-                                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => toggleFavorite(college)}>
-                                                <Heart className={cn("h-4 w-4", "fill-red-500 text-red-500")} />
-                                            </Button>
-                                            <Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4"/></Button>
-                                        </div>
-                                    </div>
+                                    </Link>
                                 )) : (
                                     <div className="text-sm text-center text-muted-foreground p-4">Your favorited colleges will appear here.</div>
                                 )}
