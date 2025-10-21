@@ -177,12 +177,6 @@ const sidebarItems: SidebarItem[] = [
             id: "whiteboard-link",
         },
         {
-            title: "Key Concepts",
-            icon: <KeySquare />,
-            href: "/dashboard/key-concepts",
-            id: "key-concepts-link",
-        },
-        {
             title: "Games",
             icon: <Gamepad2 />,
             href: "/dashboard/games",
