@@ -1,11 +1,10 @@
 
-
 'use client';
 
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { BookOpen, Calculator, Loader2, RefreshCw, FileText, Trophy, Clock } from 'lucide-react';
+import { BookOpen, Calculator, Loader2, RefreshCw, FileText, Trophy, Clock, GraduationCap, ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -216,22 +215,49 @@ export default function SatPrepPage() {
                         </CardContent>
                     </Card>
 
-                    <Card className="lg:col-span-2">
-                        <CardHeader>
-                            <CardTitle>Past Attempts</CardTitle>
-                            <CardDescription>Review your scores from previous practice tests.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            {resultsLoading ? (
-                                <div className="space-y-2">
-                                    <Skeleton className="h-10 w-full" />
-                                    <Skeleton className="h-10 w-full" />
-                                    <Skeleton className="h-10 w-full" />
-                                </div>
-                            ) : pastResults.length > 0 ? (
-                                <div className="space-y-3">
-                                    {pastResults.map(result => (
-                                        <div key={result.id} className="flex items-center justify-between p-3 rounded-lg bg-muted">
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <Card className="flex flex-col items-center justify-center text-center p-6 bg-blue-500/10 border-blue-500/20 hover:border-blue-500/40 transition-colors">
+                            <FileText className="h-12 w-12 text-blue-400 mb-4"/>
+                            <CardTitle className="text-2xl">Full-Length Practice Test</CardTitle>
+                            <CardDescription className="mt-2 mb-6 max-w-xs">
+                                Simulate the real digital SAT experience with a full-length, timed practice test.
+                            </CardDescription>
+                            <Link href="/dashboard/sat-prep/practice-test" className="w-full">
+                                <Button className="w-full max-w-sm">Start Practice Test</Button>
+                            </Link>
+                        </Card>
+                        {gradeLevel === 'High School' && (
+                             <Card className="flex flex-col items-center justify-center text-center p-6 bg-purple-500/10 border-purple-500/20 hover:border-purple-500/40 transition-colors">
+                                <GraduationCap className="h-12 w-12 text-purple-400 mb-4"/>
+                                <CardTitle className="text-2xl">College Prep Hub</CardTitle>
+                                <CardDescription className="mt-2 mb-6 max-w-xs">
+                                    Search for colleges, track applications, and get personalized advice for your journey to higher education.
+                                </CardDescription>
+                                <Link href="/dashboard/sat-prep/college-prep" className="w-full">
+                                    <Button className="w-full max-w-sm bg-purple-500 hover:bg-purple-600 text-white">Go to College Prep</Button>
+                                </Link>
+                            </Card>
+                        )}
+                    </div>
+                </div>
+                
+                 <Card className="lg:col-span-1">
+                    <CardHeader>
+                        <CardTitle>Past Attempts</CardTitle>
+                        <CardDescription>Review your scores from previous practice tests.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        {resultsLoading ? (
+                            <div className="space-y-2">
+                                <Skeleton className="h-10 w-full" />
+                                <Skeleton className="h-10 w-full" />
+                                <Skeleton className="h-10 w-full" />
+                            </div>
+                        ) : pastResults.length > 0 ? (
+                            <div className="space-y-3">
+                                {pastResults.map(result => (
+                                    <Link key={result.id} href={`/dashboard/sat-prep/${result.id}`}>
+                                        <div className="flex items-center justify-between p-3 rounded-lg bg-muted hover:bg-muted/80">
                                             <div className="flex items-center gap-4">
                                                 <div className="bg-primary/10 text-primary p-2 rounded-full">
                                                     <Trophy className="h-5 w-5" />
@@ -243,54 +269,14 @@ export default function SatPrepPage() {
                                             </div>
                                              <p className="text-sm font-medium">R/W: {result.readingWriting} | Math: {result.math}</p>
                                         </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                 <div className="text-center text-muted-foreground py-8">
-                                    <p>You haven't completed any practice tests yet.</p>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-                </div>
-
-                <Card className="lg:col-span-1 flex flex-col items-center justify-center text-center p-6 bg-blue-500/10 border-blue-500/20 hover:border-blue-500/40 transition-colors">
-                    <FileText className="h-12 w-12 text-blue-400 mb-4"/>
-                    <CardTitle className="text-2xl">Full-Length Practice Test</CardTitle>
-                    <CardDescription className="mt-2 mb-6 max-w-xs">
-                        Simulate the real digital SAT experience with a full-length, timed practice test.
-                    </CardDescription>
-                    <Link href="/dashboard/sat-prep/practice-test" className="w-full">
-                        <Button className="w-full max-w-sm">Start Practice Test</Button>
-                    </Link>
-                </Card>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2"><BookOpen/> Reading and Writing</CardTitle>
-                        <CardDescription>This section tests your comprehension, analysis, and editing skills.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                        {readingWritingTopics.map(topic => (
-                             <div key={topic.title} className="p-3 rounded-lg bg-muted/50">
-                                <h4 className="font-semibold text-sm">{topic.title}</h4>
+                                    </Link>
+                                ))}
                             </div>
-                        ))}
-                    </CardContent>
-                </Card>
-                 <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2"><Calculator/> Math</CardTitle>
-                        <CardDescription>This section tests your skills in algebra, advanced math, and geometry.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                        {mathTopics.map(topic => (
-                             <div key={topic.title} className="p-3 rounded-lg bg-muted/50">
-                                <h4 className="font-semibold text-sm">{topic.title}</h4>
+                        ) : (
+                             <div className="text-center text-muted-foreground py-8">
+                                <p>You haven't completed any practice tests yet.</p>
                             </div>
-                        ))}
+                        )}
                     </CardContent>
                 </Card>
             </div>
