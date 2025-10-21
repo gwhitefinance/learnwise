@@ -17,6 +17,7 @@ const ListenToNote: React.FC<ListenToNoteProps> = ({ onNoteGenerated }) => {
   const [isListening, setIsListening] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [transcript, setTranscript] = useState('');
+  const finalTranscriptRef = useRef('');
   const recognitionRef = useRef<any>(null);
   const { toast } = useToast();
 
@@ -30,20 +31,21 @@ const ListenToNote: React.FC<ListenToNoteProps> = ({ onNoteGenerated }) => {
 
       recognitionRef.current.onresult = (event: any) => {
         let interimTranscript = '';
-        let finalTranscript = '';
+        let currentFinalTranscript = '';
         for (let i = event.resultIndex; i < event.results.length; ++i) {
           if (event.results[i].isFinal) {
-            finalTranscript += event.results[i][0].transcript;
+            currentFinalTranscript += event.results[i][0].transcript;
           } else {
             interimTranscript += event.results[i][0].transcript;
           }
         }
-        setTranscript(prev => prev + finalTranscript + interimTranscript);
+        finalTranscriptRef.current += currentFinalTranscript;
+        setTranscript(finalTranscriptRef.current + interimTranscript);
       };
 
       recognitionRef.current.onerror = (event: any) => {
         console.error('Speech recognition error', event.error);
-        if (event.error !== 'no-speech') {
+        if (event.error !== 'no-speech' && event.error !== 'aborted') {
              toast({ variant: 'destructive', title: 'Voice recognition error.' });
         }
         setIsListening(false);
@@ -65,6 +67,7 @@ const ListenToNote: React.FC<ListenToNoteProps> = ({ onNoteGenerated }) => {
       recognitionRef.current.stop();
     } else {
       setTranscript(''); // Clear previous transcript
+      finalTranscriptRef.current = '';
       recognitionRef.current.start();
       setIsListening(true);
     }
@@ -82,6 +85,7 @@ const ListenToNote: React.FC<ListenToNoteProps> = ({ onNoteGenerated }) => {
           });
           onNoteGenerated(result.title, result.note);
           setTranscript('');
+          finalTranscriptRef.current = '';
       } catch (e) {
           console.error(e);
           toast({ variant: 'destructive', title: 'Error generating note.'});
@@ -119,4 +123,3 @@ const ListenToNote: React.FC<ListenToNoteProps> = ({ onNoteGenerated }) => {
 };
 
 export default ListenToNote;
-
