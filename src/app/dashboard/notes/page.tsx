@@ -24,6 +24,7 @@ import { useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { generateSummary, generateFlashcardsFromNote, generateQuizFromNote } from '@/lib/actions';
+import ListenToNote from '@/components/ListenToNote';
 
 type Unit = {
     id: string;
@@ -385,6 +386,12 @@ export default function NotesPage() {
 
     return [];
   };
+  
+  const handleGeneratedNote = (title: string, content: string) => {
+      setNewNoteTitle(title);
+      setNewNoteContent(content);
+      setNoteDialogOpen(true);
+  }
 
   const displayedNotes = getFilteredNotes();
   const selectedCourseForFilter = courses.find(c => c.id === filterCourseId);
@@ -450,25 +457,28 @@ export default function NotesPage() {
         </Dialog>
       </div>
 
-       <div className="flex gap-4">
-          <Select value={filterCourseId || 'all'} onValueChange={val => { setFilterCourseId(val); setFilterUnitId(null); }}>
-              <SelectTrigger className="w-[220px]"><SelectValue placeholder="Filter by Course" /></SelectTrigger>
-              <SelectContent>
-                  <SelectItem value="all">All Courses</SelectItem>
-                  {courses.map(course => (
-                      <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>
-                  ))}
-              </SelectContent>
-          </Select>
-          <Select value={filterUnitId || 'all'} onValueChange={val => setFilterUnitId(val)} disabled={!filterCourseId || filterCourseId === 'all' || !selectedCourseForFilter?.units || selectedCourseForFilter.units.length === 0}>
-              <SelectTrigger className="w-[220px]"><SelectValue placeholder="Filter by Unit" /></SelectTrigger>
-              <SelectContent>
-                  <SelectItem value="all">All Units</SelectItem>
-                  {selectedCourseForFilter?.units?.map(unit => (
-                      <SelectItem key={unit.id} value={unit.id}>{unit.name}</SelectItem>
-                  ))}
-              </SelectContent>
-          </Select>
+       <div className="flex flex-col md:flex-row gap-4">
+          <ListenToNote onNoteGenerated={handleGeneratedNote}/>
+          <div className="flex gap-4">
+              <Select value={filterCourseId || 'all'} onValueChange={val => { setFilterCourseId(val); setFilterUnitId(null); }}>
+                  <SelectTrigger className="w-[220px]"><SelectValue placeholder="Filter by Course" /></SelectTrigger>
+                  <SelectContent>
+                      <SelectItem value="all">All Courses</SelectItem>
+                      {courses.map(course => (
+                          <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>
+                      ))}
+                  </SelectContent>
+              </Select>
+              <Select value={filterUnitId || 'all'} onValueChange={val => setFilterUnitId(val)} disabled={!filterCourseId || filterCourseId === 'all' || !selectedCourseForFilter?.units || selectedCourseForFilter.units.length === 0}>
+                  <SelectTrigger className="w-[220px]"><SelectValue placeholder="Filter by Unit" /></SelectTrigger>
+                  <SelectContent>
+                      <SelectItem value="all">All Units</SelectItem>
+                      {selectedCourseForFilter?.units?.map(unit => (
+                          <SelectItem key={unit.id} value={unit.id}>{unit.name}</SelectItem>
+                      ))}
+                  </SelectContent>
+              </Select>
+          </div>
        </div>
 
       <Tabs defaultValue="all" onValueChange={setActiveTab}>
