@@ -38,3 +38,9 @@ env:
     secret: ELEVENLABS_API_KEY
     availability:
       - RUNTIME
+  - variable: COLLEGE_SCORECARD_API_KEY
+    secret: COLLEGE_SCORECARD_API_KEY
+    availability:
+      - RUNTIME
+
+    

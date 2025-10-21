@@ -1,67 +1,21 @@
 
-
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { GraduationCap, Heart, Search, Filter, ArrowRight, MoreHorizontal, Check, Plus } from 'lucide-react';
+import { GraduationCap, Heart, Search, Filter, ArrowRight, MoreHorizontal, Check, Plus, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Loading from './loading';
+import { searchColleges } from './actions';
 
-// Mock data - in a real app, this would come from a database/API
-const mockColleges = [
-    // Ivy League
-    { id: '1', name: 'Harvard University', location: 'Cambridge, MA', isFavorited: false },
-    { id: '2', name: 'Yale University', location: 'New Haven, CT', isFavorited: false },
-    { id: '3', name: 'Princeton University', location: 'Princeton, NJ', isFavorited: false },
-    { id: '4', name: 'Columbia University', location: 'New York, NY', isFavorited: false },
-    { id: '5', name: 'University of Pennsylvania', location: 'Philadelphia, PA', isFavorited: false },
-    { id: '6', name: 'Brown University', location: 'Providence, RI', isFavorited: false },
-    { id: '7', name: 'Dartmouth College', location: 'Hanover, NH', isFavorited: false },
-    { id: '8', name: 'Cornell University', location: 'Ithaca, NY', isFavorited: false },
-
-    // Top Private & Public
-    { id: '9', name: 'Stanford University', location: 'Stanford, CA', isFavorited: false },
-    { id: '10', name: 'Massachusetts Institute of Technology (MIT)', location: 'Cambridge, MA', isFavorited: false },
-    { id: '11', name: 'California Institute of Technology (Caltech)', location: 'Pasadena, CA', isFavorited: false },
-    { id: '12', name: 'University of Chicago', location: 'Chicago, IL', isFavorited: false },
-    { id: '13', name: 'Duke University', location: 'Durham, NC', isFavorited: false },
-    { id: '14', name: 'Johns Hopkins University', location: 'Baltimore, MD', isFavorited: false },
-    { id: '15', name: 'Northwestern University', location: 'Evanston, IL', isFavorited: false },
-    { id: '16', name: 'Vanderbilt University', location: 'Nashville, TN', isFavorited: false },
-    { id: '17', name: 'Rice University', location: 'Houston, TX', isFavorited: false },
-    { id: '18', name: 'University of Notre Dame', location: 'Notre Dame, IN', isFavorited: false },
-    { id: '19', name: 'Georgetown University', location: 'Washington, D.C.', isFavorited: false },
-
-    // Top Public Universities
-    { id: '20', name: 'University of California, Berkeley', location: 'Berkeley, CA', isFavorited: false },
-    { id: '21', name: 'University of California, Los Angeles (UCLA)', location: 'Los Angeles, CA', isFavorited: false },
-    { id: '22', name: 'University of Michigan-Ann Arbor', location: 'Ann Arbor, MI', isFavorited: false },
-    { id: '23', name: 'University of Virginia', location: 'Charlottesville, VA', isFavorited: false },
-    { id: '24', name: 'University of North Carolina at Chapel Hill', location: 'Chapel Hill, NC', isFavorited: false },
-    { id: '25', name: 'University of Florida', location: 'Gainesville, FL', isFavorited: true },
-    { id: '26', name: 'University of Texas at Austin', location: 'Austin, TX', isFavorited: false },
-    { id: '27', name: 'Georgia Institute of Technology', location: 'Atlanta, GA', isFavorited: false },
-    { id: '28', name: 'University of Illinois Urbana-Champaign', location: 'Champaign, IL', isFavorited: false },
-    { id: '29', name: 'University of Wisconsin-Madison', location: 'Madison, WI', isFavorited: false },
-    { id: '30', name: 'University of Washington', location: 'Seattle, WA', isFavorited: false },
-
-    // Other notable schools
-    { id: '31', name: 'New York University (NYU)', location: 'New York, NY', isFavorited: false },
-    { id: '32', name: 'University of Southern California (USC)', location: 'Los Angeles, CA', isFavorited: false },
-    { id: '33', name: 'Carnegie Mellon University', location: 'Pittsburgh, PA', isFavorited: false },
-    { id: '34', name: 'Emory University', location: 'Atlanta, GA', isFavorited: false },
-    { id: '35', name: 'Boston University', location: 'Boston, MA', isFavorited: false },
-    { id: '36', name: 'Tufts University', location: 'Medford, MA', isFavorited: false },
-    { id: '37', name: 'The Ohio State University', location: 'Columbus, OH', isFavorited: false },
-    { id: '38', name: 'Pennsylvania State University', location: 'University Park, PA', isFavorited: false },
-    { id: '39', name: 'Purdue University', location: 'West Lafayette, IN', isFavorited: false },
-    { id: '40', name: 'Texas A&M University', location: 'College Station, TX', isFavorited: false },
-    { id: '41', name: 'Florida State University', location: 'Tallahassee, FL', isFavorited: false },
-    { id: '42', name: 'University of Central Florida', location: 'Orlando, FL', isFavorited: false },
-];
+type College = {
+    id: string;
+    name: string;
+    location: string;
+    isFavorited: boolean;
+};
 
 const mockChecklist = [
     { id: '1', task: 'Draft personal statement', completed: true },
@@ -75,11 +29,52 @@ export default function CollegePrepPage() {
     const [loading, setLoading] = useState(true);
     const router = useRouter();
 
+    const [favoritedColleges, setFavoritedColleges] = useState<College[]>([
+        { id: '25', name: 'University of Florida', location: 'Gainesville, FL', isFavorited: true },
+    ]);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [searchResults, setSearchResults] = useState<College[]>([]);
+    const [isSearching, setIsSearching] = useState(false);
+
     useEffect(() => {
         const storedGrade = localStorage.getItem('onboardingGradeLevel');
         setGradeLevel(storedGrade);
         setLoading(false);
     }, []);
+
+    useEffect(() => {
+        if (searchTerm.trim().length < 3) {
+            setSearchResults([]);
+            return;
+        }
+
+        const debounceSearch = setTimeout(async () => {
+            setIsSearching(true);
+            const results = await searchColleges(searchTerm);
+            const formattedResults = results.map((r: any) => ({
+                id: String(r.id),
+                name: r['school.name'],
+                location: `${r['school.city']}, ${r['school.state']}`,
+                isFavorited: favoritedColleges.some(fav => fav.id === String(r.id)),
+            }));
+            setSearchResults(formattedResults);
+            setIsSearching(false);
+        }, 500); // 500ms debounce
+
+        return () => clearTimeout(debounceSearch);
+    }, [searchTerm, favoritedColleges]);
+    
+    const toggleFavorite = (college: College) => {
+        setFavoritedColleges(prev => {
+            const isFavorited = prev.some(fav => fav.id === college.id);
+            if (isFavorited) {
+                return prev.filter(fav => fav.id !== college.id);
+            } else {
+                return [...prev, { ...college, isFavorited: true }];
+            }
+        });
+         setSearchResults(prev => prev.map(res => res.id === college.id ? {...res, isFavorited: !res.isFavorited} : res));
+    };
 
     if (loading) {
         return <Loading />; 
@@ -123,20 +118,44 @@ export default function CollegePrepPage() {
                             <div className="flex gap-2 mb-4">
                                 <div className="relative flex-1">
                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                    <input placeholder="Search colleges..." className="w-full pl-10 pr-4 py-2 h-10 rounded-md border bg-background" />
+                                    <input 
+                                        placeholder="Search colleges by name..." 
+                                        className="w-full pl-10 pr-4 py-2 h-10 rounded-md border bg-background" 
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                    />
+                                    {isSearching && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />}
                                 </div>
                                 <Button variant="outline"><Filter className="mr-2 h-4 w-4" /> Filters</Button>
                             </div>
+                            
+                            {searchResults.length > 0 && (
+                                <div className="border rounded-lg max-h-60 overflow-y-auto mb-4">
+                                    {searchResults.map(college => (
+                                        <div key={college.id} className="flex items-center justify-between p-3 border-b">
+                                            <div>
+                                                <p className="font-semibold">{college.name}</p>
+                                                <p className="text-xs text-muted-foreground">{college.location}</p>
+                                            </div>
+                                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => toggleFavorite(college)}>
+                                                <Heart className={cn("h-4 w-4", college.isFavorited ? "fill-red-500 text-red-500" : "text-muted-foreground")} />
+                                            </Button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            <h4 className="font-semibold text-lg mb-2">Favorites</h4>
                             <div className="space-y-3">
-                                {mockColleges.filter(c => c.isFavorited).map(college => (
+                                {favoritedColleges.map(college => (
                                     <div key={college.id} className="flex items-center justify-between p-3 rounded-lg bg-muted">
                                         <div>
                                             <p className="font-semibold">{college.name}</p>
                                             <p className="text-xs text-muted-foreground">{college.location}</p>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                <Heart className={cn("h-4 w-4", college.isFavorited && "fill-red-500 text-red-500")} />
+                                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => toggleFavorite(college)}>
+                                                <Heart className={cn("h-4 w-4", "fill-red-500 text-red-500")} />
                                             </Button>
                                             <Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4"/></Button>
                                         </div>
@@ -217,3 +236,4 @@ export default function CollegePrepPage() {
         </div>
     );
 }
+    
