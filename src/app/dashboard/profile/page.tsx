@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -62,6 +63,7 @@ export default function ProfilePage() {
 
     const [leaderboard, setLeaderboard] = useState<UserProfile[]>([]);
     const [currentUserRank, setCurrentUserRank] = useState<number | null>(null);
+    const [leaderboardLoading, setLeaderboardLoading] = useState(true);
 
 
     useEffect(() => {
@@ -92,10 +94,12 @@ export default function ProfilePage() {
         });
         
         const fetchLeaderboard = async () => {
+            setLeaderboardLoading(true);
             const leaderboardData = await getLeaderboard();
             setLeaderboard(leaderboardData);
             const userRank = leaderboardData.findIndex(p => p.uid === user.uid);
             setCurrentUserRank(userRank !== -1 ? userRank + 1 : null);
+            setLeaderboardLoading(false);
         };
         fetchLeaderboard();
 
@@ -330,7 +334,11 @@ export default function ProfilePage() {
                     <CardTitle className="flex items-center gap-2"><Trophy /> Leaderboard Snapshot</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    {currentUserRank ? (
+                    {leaderboardLoading ? (
+                        <div className="flex justify-center items-center h-24">
+                            <p className="text-muted-foreground">Loading leaderboard...</p>
+                        </div>
+                    ) : currentUserRank ? (
                          <div className="flex flex-col md:flex-row items-center justify-between gap-6 p-4 rounded-lg bg-muted">
                             <div className="text-center md:text-left">
                                 <p className="text-sm text-muted-foreground font-semibold">Your Rank</p>
@@ -395,5 +403,7 @@ export default function ProfilePage() {
         </div>
     );
 }
+
+    
 
     
