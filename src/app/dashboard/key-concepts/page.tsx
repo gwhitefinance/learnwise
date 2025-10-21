@@ -12,7 +12,7 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { generateFlashcardsFromNote, generateQuizAction, generateConceptExplanation } from '@/lib/actions';
-import { Wand2, Lightbulb, Copy, Brain, RefreshCw, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { Wand2, Lightbulb, Copy, Brain, RefreshCw, ChevronLeft, ChevronRight, Loader2, Bookmark, Check } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -21,6 +21,9 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import type { GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+
 
 type Course = {
     id: string;
@@ -70,12 +73,15 @@ export default function KeyConceptsPage() {
     const [explanation, setExplanation] = useState<Partial<TermExplanation>>({});
     const [isExplanationLoading, setExplanationLoading] = useState(false);
 
+    const [knownTerms, setKnownTerms] = useState<Record<string, Flashcard[]>>({});
+
     const { toast } = useToast();
     const [user] = useAuthState(auth);
 
     useEffect(() => {
         if (!user) return;
         
+        // Load courses
         const q = query(collection(db, "courses"), where("userId", "==", user.uid));
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const userCourses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
@@ -84,23 +90,36 @@ export default function KeyConceptsPage() {
             const urlCourseId = searchParams.get('courseId');
             if (urlCourseId && userCourses.some(c => c.id === urlCourseId)) {
                 setSelectedCourseId(urlCourseId);
-            } else if (userCourses.length > 0) {
+            } else if (userCourses.length > 0 && !selectedCourseId) {
                 setSelectedCourseId(userCourses[0].id);
             }
             setIsLoadingCourses(false);
         });
+        
+        // Load known terms from localStorage
+        const savedTerms = localStorage.getItem(`knownTerms_${user.uid}`);
+        if (savedTerms) {
+            setKnownTerms(JSON.parse(savedTerms));
+        }
+
 
         return () => unsubscribe();
-    }, [user, searchParams]);
+    }, [user, searchParams, selectedCourseId]);
 
-    const handleGenerateContent = useCallback(async (courseId: string) => {
-        const course = courses.find(c => c.id === courseId);
-        if (!course || !course.units || course.units.length === 0) {
-            toast({ variant: 'destructive', title: 'Course has no content' });
+    const handleGenerateContent = useCallback(async () => {
+        const course = courses.find(c => c.id === selectedCourseId);
+        if (!course) {
+            toast({ variant: 'destructive', title: 'Please select a course' });
+            return;
+        }
+
+        if (!course.units || course.units.length === 0) {
+            toast({ variant: 'destructive', title: 'Course has no content', description: 'Please add units and chapters to this course first.' });
             return;
         }
 
         setIsLoadingContent(true);
+        setFlashcards([]);
         const courseContent = course.units.flatMap(u => u.chapters || []).map(c => `Chapter ${c.title}: ${c.content}`).join('\n\n');
         
         if (!courseContent.trim()) {
@@ -118,13 +137,8 @@ export default function KeyConceptsPage() {
         } finally {
             setIsLoadingContent(false);
         }
-    }, [courses, toast]);
+    }, [courses, selectedCourseId, toast]);
     
-    useEffect(() => {
-        if (selectedCourseId) {
-            handleGenerateContent(selectedCourseId);
-        }
-    }, [selectedCourseId, handleGenerateContent]);
 
     const handleCheckAnswer = (index: number) => {
         const newFlashcards = [...flashcards];
@@ -187,159 +201,223 @@ export default function KeyConceptsPage() {
         } finally {
             setExplanationLoading(false);
         }
-    }
+    };
+
+    const handleKnowTerm = (card: Flashcard) => {
+        if (!user) return;
+        const newKnownTerms = { ...knownTerms };
+        
+        if (!newKnownTerms[selectedCourseId]) {
+            newKnownTerms[selectedCourseId] = [];
+        }
+
+        // Avoid adding duplicates
+        if (!newKnownTerms[selectedCourseId].some(t => t.front === card.front)) {
+            newKnownTerms[selectedCourseId].push(card);
+            setKnownTerms(newKnownTerms);
+            localStorage.setItem(`knownTerms_${user.uid}`, JSON.stringify(newKnownTerms));
+            toast({ title: "Term Saved!", description: `"${card.front}" was added to your mastery list.`});
+        } else {
+            toast({ title: "Already Saved", description: `"${card.front}" is already in your mastery list.`});
+        }
+    };
 
 
     const currentCard = flashcards[currentFlashcardIndex];
+    const selectedCourse = courses.find(c => c.id === selectedCourseId);
 
     return (
-        <div className="space-y-6">
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight">Key Concepts Hub</h1>
-                <p className="text-muted-foreground">Master the essential vocabulary from your courses.</p>
-            </div>
-            
-            <div className="flex flex-col md:flex-row gap-4">
-                <Select value={selectedCourseId} onValueChange={setSelectedCourseId} disabled={isLoadingContent}>
-                    <SelectTrigger className="w-full md:w-[300px]">
-                        <SelectValue placeholder="Select a course..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {isLoadingCourses ? <SelectItem value="loading" disabled>Loading courses...</SelectItem> : courses.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                    </SelectContent>
-                </Select>
-                <Button onClick={handleGenerateQuiz} disabled={flashcards.length === 0}>
-                    <Lightbulb className="mr-2 h-4 w-4" /> Quick Quiz
-                </Button>
-            </div>
-            
-            {isLoadingContent ? (
-                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <Skeleton className="h-64 w-full" />
-                    <Skeleton className="h-64 w-full" />
-                    <Skeleton className="h-64 w-full" />
+        <div className="flex h-full">
+            <aside className="w-80 h-full bg-card border-r p-4 flex-col hidden md:flex">
+                 <div className="flex-1 overflow-hidden flex flex-col">
+                    <h2 className="text-lg font-bold mb-4">Mastery List</h2>
+                     <ScrollArea className="flex-1 -mr-4 pr-4">
+                        {Object.keys(knownTerms).length > 0 ? (
+                             <Accordion type="multiple" defaultValue={Object.keys(knownTerms)} className="w-full">
+                                {courses.filter(c => knownTerms[c.id]).map(course => (
+                                    <AccordionItem key={course.id} value={course.id}>
+                                        <AccordionTrigger>{course.name}</AccordionTrigger>
+                                        <AccordionContent>
+                                            <ul className="space-y-1 pl-4 text-sm text-muted-foreground">
+                                                {knownTerms[course.id].map(term => (
+                                                    <li key={term.front}>{term.front}</li>
+                                                ))}
+                                            </ul>
+                                        </AccordionContent>
+                                    </AccordionItem>
+                                ))}
+                            </Accordion>
+                        ) : (
+                            <div className="text-center text-muted-foreground text-sm py-16">
+                                <Bookmark className="mx-auto mb-2 h-8 w-8"/>
+                                <p>Click "I Know This" on a flashcard to save it here for later review.</p>
+                            </div>
+                        )}
+                    </ScrollArea>
                 </div>
-            ) : flashcards.length > 0 ? (
-                <div>
-                     <div className="text-center text-sm text-muted-foreground mb-4">
-                        Card {currentFlashcardIndex + 1} of {flashcards.length}
+            </aside>
+            <main className="flex-1 p-6 overflow-y-auto">
+                <div className="space-y-6">
+                    <div>
+                        <h1 className="text-3xl font-bold tracking-tight">Key Concepts Hub</h1>
+                        <p className="text-muted-foreground">Master the essential vocabulary from your courses.</p>
                     </div>
-                    <AnimatePresence mode="wait">
-                         <motion.div
-                            key={currentFlashcardIndex}
-                            initial={{ opacity: 0, x: 50 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -50 }}
-                            transition={{ duration: 0.3 }}
-                            className="relative"
-                        >
-                            <Card className="w-full max-w-2xl mx-auto min-h-[350px] flex flex-col justify-between p-8">
-                               <div>
-                                  <CardTitle className="text-2xl mb-8 text-center">{currentCard.front}</CardTitle>
-                                  {currentCard.isRevealed ? (
-                                      <div className="space-y-4">
-                                          <p className={cn("p-3 rounded-md text-sm", currentCard.isCorrect ? "bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300" : "bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-300")}>
-                                              <strong>Your Answer:</strong> {currentCard.userInput || "No answer"}
-                                          </p>
-                                          <p className="p-3 rounded-md bg-muted text-sm">
-                                              <strong>Correct Answer:</strong> {currentCard.back}
-                                          </p>
-                                      </div>
-                                  ) : (
-                                       <Input 
-                                          placeholder="Type the definition here..."
-                                          value={currentCard.userInput || ''}
-                                          onChange={(e) => {
-                                              const newFlashcards = [...flashcards];
-                                              newFlashcards[currentFlashcardIndex].userInput = e.target.value;
-                                              setFlashcards(newFlashcards);
-                                          }}
-                                          onKeyDown={(e) => e.key === 'Enter' && handleCheckAnswer(currentFlashcardIndex)}
-                                      />
-                                  )}
-                               </div>
-                                <CardFooter className="p-0 pt-6 flex justify-between items-center">
-                                    <Button variant="outline" onClick={() => handleExplainTerm(currentCard)}>
-                                        <Wand2 className="mr-2 h-4 w-4"/> AI Explain It
-                                    </Button>
+                    
+                    <div className="flex flex-col md:flex-row gap-4">
+                        <Select value={selectedCourseId} onValueChange={setSelectedCourseId} disabled={isLoadingContent}>
+                            <SelectTrigger className="w-full md:w-[300px]">
+                                <SelectValue placeholder="Select a course..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {isLoadingCourses ? <SelectItem value="loading" disabled>Loading courses...</SelectItem> : courses.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                        <Button onClick={handleGenerateQuiz} disabled={flashcards.length === 0}>
+                            <Lightbulb className="mr-2 h-4 w-4" /> Quick Quiz
+                        </Button>
+                    </div>
+                    
+                    {flashcards.length > 0 ? (
+                        <div>
+                            <div className="text-center text-sm text-muted-foreground mb-4">
+                                Card {currentFlashcardIndex + 1} of {flashcards.length}
+                            </div>
+                            <AnimatePresence mode="wait">
+                                <motion.div
+                                    key={currentFlashcardIndex}
+                                    initial={{ opacity: 0, x: 50 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -50 }}
+                                    transition={{ duration: 0.3 }}
+                                    className="relative"
+                                >
+                                    <Card className="w-full max-w-2xl mx-auto min-h-[350px] flex flex-col justify-between p-8">
+                                    <div>
+                                    <CardTitle className="text-2xl mb-8 text-center">{currentCard.front}</CardTitle>
                                     {currentCard.isRevealed ? (
-                                        <Button onClick={() => {
-                                            const newFlashcards = [...flashcards];
-                                            newFlashcards[currentFlashcardIndex].isRevealed = false;
-                                            newFlashcards[currentFlashcardIndex].userInput = '';
-                                            newFlashcards[currentFlashcardIndex].isCorrect = undefined;
-                                            setFlashcards(newFlashcards);
-                                        }}>
-                                            <RefreshCw className="mr-2 h-4 w-4" /> Try Again
-                                        </Button>
+                                        <div className="space-y-4">
+                                            <p className={cn("p-3 rounded-md text-sm", currentCard.isCorrect ? "bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300" : "bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-300")}>
+                                                <strong>Your Answer:</strong> {currentCard.userInput || "No answer"}
+                                            </p>
+                                            <p className="p-3 rounded-md bg-muted text-sm">
+                                                <strong>Correct Answer:</strong> {currentCard.back}
+                                            </p>
+                                        </div>
                                     ) : (
-                                        <Button onClick={() => handleCheckAnswer(currentFlashcardIndex)}>Check Answer</Button>
+                                        <Input 
+                                            placeholder="Type the definition here..."
+                                            value={currentCard.userInput || ''}
+                                            onChange={(e) => {
+                                                const newFlashcards = [...flashcards];
+                                                newFlashcards[currentFlashcardIndex].userInput = e.target.value;
+                                                setFlashcards(newFlashcards);
+                                            }}
+                                            onKeyDown={(e) => e.key === 'Enter' && handleCheckAnswer(currentFlashcardIndex)}
+                                        />
                                     )}
-                                </CardFooter>
-                            </Card>
-                         </motion.div>
-                    </AnimatePresence>
-                    <div className="flex justify-center items-center gap-4 mt-6">
-                        <Button variant="outline" size="icon" onClick={() => setCurrentFlashcardIndex(prev => Math.max(0, prev - 1))} disabled={currentFlashcardIndex === 0}>
-                            <ChevronLeft className="h-4 w-4" />
-                        </Button>
-                        <Button variant="outline" size="icon" onClick={() => setCurrentFlashcardIndex(prev => Math.min(flashcards.length - 1, prev + 1))} disabled={currentFlashcardIndex === flashcards.length - 1}>
-                            <ChevronRight className="h-4 w-4" />
-                        </Button>
-                    </div>
-                </div>
-            ) : (
-                <Card className="text-center p-12">
-                    <h3 className="text-lg font-semibold">No Key Concepts Found</h3>
-                    <p className="text-muted-foreground mt-2">Could not generate any key terms from the selected course. Make sure the course has content.</p>
-                </Card>
-            )}
+                                    </div>
+                                    <CardFooter className="p-0 pt-6 flex justify-between items-center">
+                                        <div className="flex gap-2">
+                                            <Button variant="outline" onClick={() => handleExplainTerm(currentCard)}>
+                                                <Wand2 className="mr-2 h-4 w-4"/> AI Explain It
+                                            </Button>
+                                             <Button variant="secondary" onClick={() => handleKnowTerm(currentCard)}>
+                                                <Check className="mr-2 h-4 w-4" /> I Know This
+                                            </Button>
+                                        </div>
+                                        {currentCard.isRevealed ? (
+                                            <Button onClick={() => {
+                                                const newFlashcards = [...flashcards];
+                                                newFlashcards[currentFlashcardIndex].isRevealed = false;
+                                                newFlashcards[currentFlashcardIndex].userInput = '';
+                                                newFlashcards[currentFlashcardIndex].isCorrect = undefined;
+                                                setFlashcards(newFlashcards);
+                                            }}>
+                                                <RefreshCw className="mr-2 h-4 w-4" /> Try Again
+                                            </Button>
+                                        ) : (
+                                            <Button onClick={() => handleCheckAnswer(currentFlashcardIndex)}>Check Answer</Button>
+                                        )}
+                                    </CardFooter>
+                                    </Card>
+                                </motion.div>
+                            </AnimatePresence>
+                            <div className="flex justify-center items-center gap-4 mt-6">
+                                <Button variant="outline" size="icon" onClick={() => setCurrentFlashcardIndex(prev => Math.max(0, prev - 1))} disabled={currentFlashcardIndex === 0}>
+                                    <ChevronLeft className="h-4 w-4" />
+                                </Button>
+                                <Button variant="outline" size="icon" onClick={() => setCurrentFlashcardIndex(prev => Math.min(flashcards.length - 1, prev + 1))} disabled={currentFlashcardIndex === flashcards.length - 1}>
+                                    <ChevronRight className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        </div>
+                    ) : (
+                        <Card className="text-center p-12">
+                            {isLoadingContent ? (
+                                <>
+                                 <Loader2 className="mx-auto h-12 w-12 text-muted-foreground animate-spin mb-4" />
+                                 <h3 className="text-lg font-semibold">Generating Concepts...</h3>
+                                </>
+                            ): (
+                                <>
+                                    <Brain className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                                    <h3 className="text-lg font-semibold">Generate Key Concepts</h3>
+                                    <p className="text-muted-foreground mt-2 mb-4">Select a course and click the button to generate flashcards.</p>
+                                    <Button onClick={handleGenerateContent} disabled={!selectedCourseId || isLoadingContent}>
+                                        <Wand2 className="mr-2 h-4 w-4" /> Generate Flashcards for "{selectedCourse?.name || '...'}"
+                                    </Button>
+                                </>
+                            )}
+                        </Card>
+                    )}
 
-            <Dialog open={isQuizDialogOpen} onOpenChange={setIsQuizDialogOpen}>
-                <DialogContent className="max-w-2xl">
-                    <DialogHeader><DialogTitle>Term Tussle!</DialogTitle></DialogHeader>
-                    {isQuizLoading ? <div className="p-8 text-center"><Loader2 className="w-8 h-8 animate-spin mx-auto"/></div> : quiz && (
-                         <div>
-                            <p className="font-semibold mb-4">{quiz.questions[0].question}</p>
-                            <RadioGroup>
-                                <div className="space-y-2">
-                                    {quiz.questions[0].options?.map((option, i) => (
-                                        <Label key={i} htmlFor={`q-opt-${i}`} className="flex items-center gap-2 p-3 rounded-lg border">
-                                            <RadioGroupItem value={option} id={`q-opt-${i}`} />
-                                            {option}
-                                        </Label>
-                                    ))}
+                    <Dialog open={isQuizDialogOpen} onOpenChange={setIsQuizDialogOpen}>
+                        <DialogContent className="max-w-2xl">
+                            <DialogHeader><DialogTitle>Term Tussle!</DialogTitle></DialogHeader>
+                            {isQuizLoading ? <div className="p-8 text-center"><Loader2 className="w-8 h-8 animate-spin mx-auto"/></div> : quiz && (
+                                <div>
+                                    <p className="font-semibold mb-4">{quiz.questions[0].question}</p>
+                                    <RadioGroup>
+                                        <div className="space-y-2">
+                                            {quiz.questions[0].options?.map((option, i) => (
+                                                <Label key={i} htmlFor={`q-opt-${i}`} className="flex items-center gap-2 p-3 rounded-lg border">
+                                                    <RadioGroupItem value={option} id={`q-opt-${i}`} />
+                                                    {option}
+                                                </Label>
+                                            ))}
+                                        </div>
+                                    </RadioGroup>
                                 </div>
-                            </RadioGroup>
-                        </div>
-                    )}
-                    <DialogFooter><DialogClose asChild><Button>Close</Button></DialogClose></DialogFooter>
-                </DialogContent>
-            </Dialog>
+                            )}
+                            <DialogFooter><DialogClose asChild><Button>Close</Button></DialogClose></DialogFooter>
+                        </DialogContent>
+                    </Dialog>
 
-            <Dialog open={isExplanationDialogOpen} onOpenChange={setExplanationDialogOpen}>
-                <DialogContent className="max-w-xl">
-                    <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2"><Brain className="text-purple-500" /> AI Explanations for "{explanationTerm?.front}"</DialogTitle>
-                    </DialogHeader>
-                    {isExplanationLoading ? <div className="p-8 text-center"><Loader2 className="w-8 h-8 animate-spin mx-auto"/></div> : (
-                        <div className="py-4 space-y-4">
-                            <div className="p-4 bg-muted rounded-lg">
-                                <h4 className="font-semibold text-sm mb-1">In Simple Terms</h4>
-                                <p className="text-muted-foreground text-sm">{explanation.simple || '...'}</p>
-                            </div>
-                            <div className="p-4 bg-muted rounded-lg">
-                                <h4 className="font-semibold text-sm mb-1">As an Analogy</h4>
-                                <p className="text-muted-foreground text-sm">{explanation.analogy || '...'}</p>
-                            </div>
-                            <div className="p-4 bg-muted rounded-lg">
-                                <h4 className="font-semibold text-sm mb-1">In a Sentence</h4>
-                                <p className="text-muted-foreground text-sm italic">"{explanation.sentence || '...'}"</p>
-                            </div>
-                        </div>
-                    )}
-                </DialogContent>
-            </Dialog>
+                    <Dialog open={isExplanationDialogOpen} onOpenChange={setExplanationDialogOpen}>
+                        <DialogContent className="max-w-xl">
+                            <DialogHeader>
+                                <DialogTitle className="flex items-center gap-2"><Brain className="text-purple-500" /> AI Explanations for "{explanationTerm?.front}"</DialogTitle>
+                            </DialogHeader>
+                            {isExplanationLoading ? <div className="p-8 text-center"><Loader2 className="w-8 h-8 animate-spin mx-auto"/></div> : (
+                                <div className="py-4 space-y-4">
+                                    <div className="p-4 bg-muted rounded-lg">
+                                        <h4 className="font-semibold text-sm mb-1">In Simple Terms</h4>
+                                        <p className="text-muted-foreground text-sm">{explanation.simple || '...'}</p>
+                                    </div>
+                                    <div className="p-4 bg-muted rounded-lg">
+                                        <h4 className="font-semibold text-sm mb-1">As an Analogy</h4>
+                                        <p className="text-muted-foreground text-sm">{explanation.analogy || '...'}</p>
+                                    </div>
+                                    <div className="p-4 bg-muted rounded-lg">
+                                        <h4 className="font-semibold text-sm mb-1">In a Sentence</h4>
+                                        <p className="text-muted-foreground text-sm italic">"{explanation.sentence || '...'}"</p>
+                                    </div>
+                                </div>
+                            )}
+                        </DialogContent>
+                    </Dialog>
+                </div>
+            </main>
         </div>
     );
 }
