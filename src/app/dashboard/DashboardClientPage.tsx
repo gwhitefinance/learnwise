@@ -44,6 +44,7 @@ import {
   Rabbit,
   Snail,
   Turtle,
+  Copy,
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -77,7 +78,7 @@ import dynamic from 'next/dynamic';
 import AIBuddy from '@/components/ai-buddy';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import rewardsData from '@/lib/rewards.json';
-import { generateExplanation, generateRoadmap } from '@/lib/actions';
+import { generateExplanation, generateRoadmap, generateFlashcardsFromModule } from '@/lib/actions';
 import AudioPlayer from '@/components/audio-player';
 import type { GenerateExplanationOutput } from '@/ai/schemas/quiz-explanation-schema';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -86,6 +87,7 @@ import { Textarea } from '@/components/ui/textarea';
 import Logo from '@/components/Logo';
 import Spotlight from '@/components/ui/spotlight';
 import PomodoroTimer from '@/components/PomodoroTimer';
+import { AnimatePresence } from 'framer-motion';
 
   type CourseFile = {
       id: string;
@@ -98,6 +100,7 @@ import PomodoroTimer from '@/components/PomodoroTimer';
       id: string;
       name: string;
       files?: CourseFile[];
+      chapters?: { id: string; title: string; content?: string }[];
   };
 
   type Course = {
@@ -170,28 +173,46 @@ import PomodoroTimer from '@/components/PomodoroTimer';
       practiceFeedback?: 'correct' | 'incorrect';
   };
   
+  type Flashcard = {
+    front: string;
+    back: string;
+  };
+
 const paces = [
   { value: "6", label: "Casual", description: "A relaxed pace for exploring.", icon: <Snail className="h-6 w-6" /> },
   { value: "3", label: "Steady", description: "A balanced pace for consistent learning.", icon: <Turtle className="h-6 w-6" /> },
   { value: "1", label: "Intense", description: "A fast-paced schedule for quick mastery.", icon: <Rabbit className="h-6 w-6" /> },
 ];
   
-  const AppCard = ({ title, description, icon, href, actionButton, id }: { title: string; description: string; icon: React.ReactNode; href: string, actionButton?: React.ReactNode, id?: string }) => (
+  const AppCard = ({ title, description, icon, href, actionButton, id, onClick }: { title: string; description: string; icon: React.ReactNode; href?: string, actionButton?: React.ReactNode, id?: string, onClick?: () => void }) => (
     <motion.div
         whileHover={{ y: -5, scale: 1.02 }}
         transition={{ type: 'spring', stiffness: 300 }}
         className="relative group rounded-2xl border border-border/20 bg-background/50 p-6 overflow-hidden flex flex-col"
         id={id}
+        onClick={onClick}
     >
-        <Link href={href} className="flex flex-col flex-grow">
-            <div>
-                <div className="bg-primary/10 text-primary p-3 rounded-xl inline-block mb-4">
-                    {icon}
+        {href ? (
+            <Link href={href} className="flex flex-col flex-grow">
+                <div>
+                    <div className="bg-primary/10 text-primary p-3 rounded-xl inline-block mb-4">
+                        {icon}
+                    </div>
+                    <h3 className="text-xl font-bold">{title}</h3>
+                    <p className="text-muted-foreground mt-2">{description}</p>
                 </div>
-                <h3 className="text-xl font-bold">{title}</h3>
-                <p className="text-muted-foreground mt-2">{description}</p>
+            </Link>
+        ) : (
+            <div className="flex flex-col flex-grow cursor-pointer">
+                 <div>
+                    <div className="bg-primary/10 text-primary p-3 rounded-xl inline-block mb-4">
+                        {icon}
+                    </div>
+                    <h3 className="text-xl font-bold">{title}</h3>
+                    <p className="text-muted-foreground mt-2">{description}</p>
+                </div>
             </div>
-        </Link>
+        )}
         {actionButton && (
             <div className='mt-6' onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
                 {actionButton}
@@ -274,6 +295,14 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
     const [isNewTopic, setIsNewTopic] = useState<boolean | null>(null);
     const [learningPace, setLearningPace] = useState<string>("3");
     const [isRoadmapGenerating, setIsRoadmapGenerating] = useState(false);
+    
+    // Key Concepts Dialog State
+    const [isConceptsOpen, setIsConceptsOpen] = useState(false);
+    const [selectedConceptCourse, setSelectedConceptCourse] = useState<string>('');
+    const [isFlashcardLoading, setIsFlashcardLoading] = useState(false);
+    const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
+    const [currentFlashcardIndex, setCurrentFlashcardIndex] = useState(0);
+    const [isFlipped, setIsFlipped] = useState(false);
 
 
      useEffect(() => {
@@ -451,59 +480,77 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
             toast({ variant: 'destructive', title: 'Missing Fields', description: 'Please enter a course name.' });
             return;
         }
-        if (isNewTopic === null) {
-            toast({ variant: 'destructive', title: 'Missing Information', description: 'Please specify if you are currently in this course.' });
-            return;
-        }
         if (!user) return;
   
         setIsSavingCourse(true);
-  
-        const courseData = {
-            name: newCourse.name,
-            instructor: newCourse.instructor || 'N/A',
-            credits: parseInt(newCourse.credits, 10) || 0,
-            url: newCourse.url,
-            description: newCourse.description || `A course on ${newCourse.name}`,
-            userId: user.uid,
-            isNewTopic: isNewTopic,
-            units: [],
-            completedChapters: [],
-            progress: 0,
-            files: 0,
-        };
-  
-        try {
-            const docRef = await addDoc(collection(db, "courses"), courseData);
-            toast({
-                title: 'Course Added!',
-                description: 'Now generating your study roadmap...',
-            });
-
-            // Generate roadmap after adding course
+        if (isNewTopic) { // Learning something new
             setIsRoadmapGenerating(true);
-            const roadmapResult = await generateRoadmap({
-                courseName: courseData.name,
-                courseDescription: courseData.description,
-                courseUrl: courseData.url,
-                durationInMonths: parseInt(learningPace, 10),
-            });
-            const newRoadmap = {
-                goals: roadmapResult.goals.map(g => ({ ...g, id: `id-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, icon: g.icon || 'Flag' })),
-                milestones: roadmapResult.milestones.map(m => ({ ...m, id: `id-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, icon: m.icon || 'Calendar', completed: false }))
-            };
-            await addDoc(collection(db, 'roadmaps'), { ...newRoadmap, courseId: docRef.id, userId: user.uid });
-            toast({ title: 'Roadmap Generated!', description: 'Your new study plan is ready.' });
-            
-            setAddCourseOpen(false);
-            resetAddCourseDialog();
+            try {
+                 const courseData = {
+                    name: newCourse.name,
+                    instructor: newCourse.instructor || 'N/A',
+                    credits: parseInt(newCourse.credits, 10) || 0,
+                    url: newCourse.url,
+                    description: newCourse.description || `A course on ${newCourse.name}`,
+                    userId: user.uid,
+                    isNewTopic: isNewTopic,
+                    units: [],
+                    completedChapters: [],
+                    progress: 0,
+                    files: 0,
+                };
+                const docRef = await addDoc(collection(db, "courses"), courseData);
+                toast({
+                    title: 'Course Added!',
+                    description: 'Now generating your study roadmap...',
+                });
 
-        } catch(error) {
-            console.error("Error adding course or roadmap: ", error);
-            toast({ variant: 'destructive', title: 'Error', description: 'Could not add course or generate roadmap.' });
-        } finally {
-            setIsSavingCourse(false);
-            setIsRoadmapGenerating(false);
+                const roadmapResult = await generateRoadmap({
+                    courseName: courseData.name,
+                    courseDescription: courseData.description,
+                    courseUrl: courseData.url,
+                    durationInMonths: parseInt(learningPace, 10),
+                });
+                const newRoadmap = {
+                    goals: roadmapResult.goals.map(g => ({ ...g, id: `id-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, icon: g.icon || 'Flag' })),
+                    milestones: roadmapResult.milestones.map(m => ({ ...m, id: `id-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, icon: m.icon || 'Calendar', completed: false }))
+                };
+                await addDoc(collection(db, 'roadmaps'), { ...newRoadmap, courseId: docRef.id, userId: user.uid });
+                toast({ title: 'Roadmap Generated!', description: 'Your new study plan is ready.' });
+                
+                setAddCourseOpen(false);
+                resetAddCourseDialog();
+            } catch (error) {
+                console.error("Error generating new topic course and roadmap: ", error);
+                toast({ variant: 'destructive', title: 'Error', description: 'Could not set up the new course.' });
+            } finally {
+                 setIsSavingCourse(false);
+                 setIsRoadmapGenerating(false);
+            }
+        } else { // Already in this course
+            try {
+                await addDoc(collection(db, "courses"), {
+                    name: newCourse.name,
+                    description: newCourse.description || `A course on ${newCourse.name}`,
+                    url: newCourse.url,
+                    instructor: newCourse.instructor || 'N/A',
+                    credits: parseInt(newCourse.credits, 10) || 0,
+                    userId: user.uid,
+                    isNewTopic: false,
+                    units: [],
+                    completedChapters: [],
+                    progress: 0,
+                    files: 0,
+                });
+                toast({ title: 'Course Added!' });
+                setAddCourseOpen(false);
+                resetAddCourseDialog();
+            } catch (error) {
+                 console.error("Error adding existing course: ", error);
+                toast({ variant: 'destructive', title: 'Error', description: 'Could not add the course.' });
+            } finally {
+                setIsSavingCourse(false);
+            }
         }
     };
     
@@ -720,6 +767,53 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
         });
     }
 
+    const handleGenerateFlashcards = async () => {
+        if (!selectedConceptCourse) {
+            toast({ variant: 'destructive', title: "Please select a course."});
+            return;
+        }
+        
+        const course = courses.find(c => c.id === selectedConceptCourse);
+        if (!course || !course.units || course.units.length === 0) {
+            toast({ variant: 'destructive', title: "Course has no content.", description: 'Please select a course with generated units and chapters.'});
+            return;
+        }
+
+        const courseContent = course.units
+            .flatMap(unit => unit.chapters || [])
+            .map(chapter => `Chapter: ${chapter.title}\n${chapter.content || ''}`)
+            .join('\n\n---\n\n');
+
+        if (!courseContent.trim()) {
+            toast({ variant: 'destructive', title: "Course content is empty." });
+            return;
+        }
+
+        setIsFlashcardLoading(true);
+        setFlashcards([]);
+        setCurrentFlashcardIndex(0);
+        setIsFlipped(false);
+
+        try {
+            const result = await generateFlashcardsFromModule({
+                moduleContent: courseContent,
+                learnerType: (learnerType as any) ?? 'Reading/Writing'
+            });
+            setFlashcards(result.flashcards);
+            if(result.flashcards.length === 0) {
+                 toast({ title: 'No Key Terms Found', description: "We couldn't find enough key terms to generate flashcards."});
+            }
+        } catch(error) {
+            console.error("Failed to generate flashcards:", error);
+            toast({
+                variant: 'destructive',
+                title: 'Flashcard Generation Failed',
+            });
+        } finally {
+            setIsFlashcardLoading(false);
+        }
+    };
+
    
   return (
     <div className="space-y-8 mt-0">
@@ -799,7 +893,7 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                           New Course
                         </Button>
                     </DialogTrigger>
-                     <DialogContent>
+                    <DialogContent>
                         <DialogHeader>
                             <DialogTitle>Add a New Course</DialogTitle>
                             <DialogDescription>
@@ -822,13 +916,13 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                 </div>
                                 <div className="grid gap-2">
                                     <Label htmlFor="is-new-topic">Are you currently in this course?</Label>
-                                    <Select onValueChange={(value) => setIsNewTopic(value === 'false')}>
+                                    <Select onValueChange={(value) => setIsNewTopic(value === 'true')}>
                                         <SelectTrigger id="is-new-topic">
                                             <SelectValue placeholder="Select an option" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="true">Yes, I am</SelectItem>
-                                            <SelectItem value="false">No, I'm learning something new</SelectItem>
+                                            <SelectItem value="false">Yes, I am</SelectItem>
+                                            <SelectItem value="true">No, I'm learning something new</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -855,9 +949,15 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                              {addCourseStep === 1 ? (
                                 <>
                                     <Button variant="ghost" onClick={() => { setAddCourseOpen(false); resetAddCourseDialog();}}>Cancel</Button>
-                                    <Button onClick={() => setAddCourseStep(2)} disabled={isSavingCourse || isNewTopic === null || !newCourse.name}>
-                                        Next
-                                    </Button>
+                                    {isNewTopic ? (
+                                        <Button onClick={() => setAddCourseStep(2)} disabled={isSavingCourse || isNewTopic === null || !newCourse.name}>
+                                            Next
+                                        </Button>
+                                    ) : (
+                                         <Button onClick={handleAddCourse} disabled={isSavingCourse || isNewTopic === null || !newCourse.name}>
+                                            Add Course
+                                        </Button>
+                                    )}
                                 </>
                              ) : (
                                 <>
@@ -1119,6 +1219,14 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                 description="Test your knowledge with AI quizzes." 
                                 icon={<Lightbulb className="w-8 h-8"/>}
                                 actionButton={<Button variant="outline" className="w-full">Generate Quiz <ArrowRight className="ml-2 h-4 w-4"/></Button>}
+                            />
+                        </motion.div>
+                         <motion.div whileHover={{ y: -5, scale: 1.02 }} transition={{ type: 'spring', stiffness: 300 }}>
+                            <AppCard 
+                                title="Key Concepts" 
+                                description="Master key terms with interactive flashcards." 
+                                icon={<Copy className="w-8 h-8"/>}
+                                onClick={() => setIsConceptsOpen(true)}
                             />
                         </motion.div>
                     </div>
@@ -1448,6 +1556,83 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
             </TabsContent>
 
         </Tabs>
+        <Dialog open={isConceptsOpen} onOpenChange={setIsConceptsOpen}>
+            <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                    <DialogTitle>Key Concepts Hub</DialogTitle>
+                    <DialogDescription>
+                        Select a course to generate interactive flashcards for its key terms.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="py-4 space-y-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="concept-course">Course</Label>
+                        <Select value={selectedConceptCourse} onValueChange={setSelectedConceptCourse}>
+                            <SelectTrigger id="concept-course">
+                                <SelectValue placeholder="Select a course..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {courses.map(course => (
+                                    <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <Button onClick={handleGenerateFlashcards} disabled={isFlashcardLoading || !selectedConceptCourse} className="w-full">
+                        {isFlashcardLoading ? 'Generating...' : 'Generate Flashcards'}
+                    </Button>
+                    
+                    <div className="mt-6">
+                        {isFlashcardLoading ? (
+                            <div className="flex items-center justify-center h-64">
+                                <p className="animate-pulse">Brewing flashcards...</p>
+                            </div>
+                        ) : flashcards.length > 0 ? (
+                            <div className="space-y-4">
+                                <div className="text-center text-sm text-muted-foreground">
+                                    Card {currentFlashcardIndex + 1} of {flashcards.length}
+                                </div>
+                                <div
+                                    className="relative w-full h-64 cursor-pointer"
+                                    onClick={() => setIsFlipped(!isFlipped)}
+                                >
+                                    <AnimatePresence>
+                                        <motion.div
+                                            key={isFlipped ? 'back' : 'front'}
+                                            initial={{ rotateY: isFlipped ? 180 : 0 }}
+                                            animate={{ rotateY: 0 }}
+                                            exit={{ rotateY: isFlipped ? 0 : -180 }}
+                                            transition={{ duration: 0.5 }}
+                                            className="absolute w-full h-full p-6 flex items-center justify-center text-center rounded-lg border bg-card text-card-foreground shadow-sm"
+                                            style={{ backfaceVisibility: 'hidden' }}
+                                        >
+                                            <p className="text-xl font-semibold">
+                                                {isFlipped ? flashcards[currentFlashcardIndex].back : flashcards[currentFlashcardIndex].front}
+                                            </p>
+                                        </motion.div>
+                                    </AnimatePresence>
+                                </div>
+                                <div className="flex justify-center items-center gap-4">
+                                    <Button variant="outline" size="icon" onClick={() => { setIsFlipped(false); setCurrentFlashcardIndex(prev => Math.max(0, prev - 1))}} disabled={currentFlashcardIndex === 0}>
+                                        <ChevronLeft className="h-4 w-4" />
+                                    </Button>
+                                    <Button onClick={() => setIsFlipped(!isFlipped)}>
+                                        <RefreshCw className="mr-2 h-4 w-4"/> Flip Card
+                                    </Button>
+                                    <Button variant="outline" size="icon" onClick={() => { setIsFlipped(false); setCurrentFlashcardIndex(prev => Math.min(flashcards.length - 1, prev + 1))}} disabled={currentFlashcardIndex === flashcards.length - 1}>
+                                        <ChevronRight className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="flex items-center justify-center h-64 text-center text-muted-foreground">
+                                <p>Select a course and generate flashcards to start studying.</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </DialogContent>
+        </Dialog>
     </div>
   )
 }
