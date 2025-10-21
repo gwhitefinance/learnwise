@@ -12,9 +12,55 @@ import Loading from './loading';
 
 // Mock data - in a real app, this would come from a database/API
 const mockColleges = [
-    { id: '1', name: 'University of Florida', location: 'Gainesville, FL', isFavorited: true },
-    { id: '2', name: 'Florida State University', location: 'Tallahassee, FL', isFavorited: false },
-    { id: '3', name: 'University of Central Florida', location: 'Orlando, FL', isFavorited: false },
+    // Ivy League
+    { id: '1', name: 'Harvard University', location: 'Cambridge, MA', isFavorited: false },
+    { id: '2', name: 'Yale University', location: 'New Haven, CT', isFavorited: false },
+    { id: '3', name: 'Princeton University', location: 'Princeton, NJ', isFavorited: false },
+    { id: '4', name: 'Columbia University', location: 'New York, NY', isFavorited: false },
+    { id: '5', name: 'University of Pennsylvania', location: 'Philadelphia, PA', isFavorited: false },
+    { id: '6', name: 'Brown University', location: 'Providence, RI', isFavorited: false },
+    { id: '7', name: 'Dartmouth College', location: 'Hanover, NH', isFavorited: false },
+    { id: '8', name: 'Cornell University', location: 'Ithaca, NY', isFavorited: false },
+
+    // Top Private & Public
+    { id: '9', name: 'Stanford University', location: 'Stanford, CA', isFavorited: false },
+    { id: '10', name: 'Massachusetts Institute of Technology (MIT)', location: 'Cambridge, MA', isFavorited: false },
+    { id: '11', name: 'California Institute of Technology (Caltech)', location: 'Pasadena, CA', isFavorited: false },
+    { id: '12', name: 'University of Chicago', location: 'Chicago, IL', isFavorited: false },
+    { id: '13', name: 'Duke University', location: 'Durham, NC', isFavorited: false },
+    { id: '14', name: 'Johns Hopkins University', location: 'Baltimore, MD', isFavorited: false },
+    { id: '15', name: 'Northwestern University', location: 'Evanston, IL', isFavorited: false },
+    { id: '16', name: 'Vanderbilt University', location: 'Nashville, TN', isFavorited: false },
+    { id: '17', name: 'Rice University', location: 'Houston, TX', isFavorited: false },
+    { id: '18', name: 'University of Notre Dame', location: 'Notre Dame, IN', isFavorited: false },
+    { id: '19', name: 'Georgetown University', location: 'Washington, D.C.', isFavorited: false },
+
+    // Top Public Universities
+    { id: '20', name: 'University of California, Berkeley', location: 'Berkeley, CA', isFavorited: false },
+    { id: '21', name: 'University of California, Los Angeles (UCLA)', location: 'Los Angeles, CA', isFavorited: false },
+    { id: '22', name: 'University of Michigan-Ann Arbor', location: 'Ann Arbor, MI', isFavorited: false },
+    { id: '23', name: 'University of Virginia', location: 'Charlottesville, VA', isFavorited: false },
+    { id: '24', name: 'University of North Carolina at Chapel Hill', location: 'Chapel Hill, NC', isFavorited: false },
+    { id: '25', name: 'University of Florida', location: 'Gainesville, FL', isFavorited: true },
+    { id: '26', name: 'University of Texas at Austin', location: 'Austin, TX', isFavorited: false },
+    { id: '27', name: 'Georgia Institute of Technology', location: 'Atlanta, GA', isFavorited: false },
+    { id: '28', name: 'University of Illinois Urbana-Champaign', location: 'Champaign, IL', isFavorited: false },
+    { id: '29', name: 'University of Wisconsin-Madison', location: 'Madison, WI', isFavorited: false },
+    { id: '30', name: 'University of Washington', location: 'Seattle, WA', isFavorited: false },
+
+    // Other notable schools
+    { id: '31', name: 'New York University (NYU)', location: 'New York, NY', isFavorited: false },
+    { id: '32', name: 'University of Southern California (USC)', location: 'Los Angeles, CA', isFavorited: false },
+    { id: '33', name: 'Carnegie Mellon University', location: 'Pittsburgh, PA', isFavorited: false },
+    { id: '34', name: 'Emory University', location: 'Atlanta, GA', isFavorited: false },
+    { id: '35', name: 'Boston University', location: 'Boston, MA', isFavorited: false },
+    { id: '36', name: 'Tufts University', location: 'Medford, MA', isFavorited: false },
+    { id: '37', name: 'The Ohio State University', location: 'Columbus, OH', isFavorited: false },
+    { id: '38', name: 'Pennsylvania State University', location: 'University Park, PA', isFavorited: false },
+    { id: '39', name: 'Purdue University', location: 'West Lafayette, IN', isFavorited: false },
+    { id: '40', name: 'Texas A&M University', location: 'College Station, TX', isFavorited: false },
+    { id: '41', name: 'Florida State University', location: 'Tallahassee, FL', isFavorited: false },
+    { id: '42', name: 'University of Central Florida', location: 'Orlando, FL', isFavorited: false },
 ];
 
 const mockChecklist = [
@@ -82,7 +128,7 @@ export default function CollegePrepPage() {
                                 <Button variant="outline"><Filter className="mr-2 h-4 w-4" /> Filters</Button>
                             </div>
                             <div className="space-y-3">
-                                {mockColleges.map(college => (
+                                {mockColleges.filter(c => c.isFavorited).map(college => (
                                     <div key={college.id} className="flex items-center justify-between p-3 rounded-lg bg-muted">
                                         <div>
                                             <p className="font-semibold">{college.name}</p>
