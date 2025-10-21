@@ -14,7 +14,7 @@ export async function getLeaderboard(): Promise<UserProfile[]> {
 
     try {
         const usersRef = db.collection('users');
-        const q = usersRef.orderBy('coins', 'desc').limit(100);
+        const q = usersRef.orderBy('coins', 'desc');
         const querySnapshot = await q.get();
 
         const users: UserProfile[] = [];
