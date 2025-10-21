@@ -69,6 +69,7 @@ import {
   BookMarked,
   Wind,
   Copy,
+  KeySquare,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -174,6 +175,12 @@ const sidebarItems: SidebarItem[] = [
             icon: <PenSquare />,
             href: "/dashboard/whiteboard",
             id: "whiteboard-link",
+        },
+        {
+            title: "Key Concepts",
+            icon: <KeySquare />,
+            href: "/dashboard/key-concepts",
+            id: "key-concepts-link",
         },
         {
             title: "Games",
