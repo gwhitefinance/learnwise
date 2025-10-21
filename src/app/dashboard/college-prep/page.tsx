@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { GraduationCap, Heart, Search, Filter, ArrowRight, MoreHorizontal, Check, Plus, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Loading from './loading';
-import { searchColleges } from './actions';
+import { allUSColleges } from '@/lib/colleges';
 
 type College = {
     id: string;
@@ -34,34 +34,30 @@ export default function CollegePrepPage() {
     ]);
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState<College[]>([]);
-    const [isSearching, setIsSearching] = useState(false);
 
     useEffect(() => {
         const storedGrade = localStorage.getItem('onboardingGradeLevel');
         setGradeLevel(storedGrade);
         setLoading(false);
     }, []);
-
+    
     useEffect(() => {
-        if (searchTerm.trim().length < 3) {
+        if (searchTerm.trim().length < 2) {
             setSearchResults([]);
             return;
         }
 
-        setIsSearching(true);
-        const debounceSearch = setTimeout(async () => {
-            const results = await searchColleges(searchTerm);
-            const formattedResults = results.map((r: any) => ({
-                id: String(r.id),
-                name: r['school.name'],
-                location: `${r['school.city']}, ${r['school.state']}`,
-                isFavorited: favoritedColleges.some(fav => fav.id === String(r.id)),
+        const lowerCaseSearchTerm = searchTerm.toLowerCase();
+        const filtered = allUSColleges
+            .filter(college => college.name.toLowerCase().includes(lowerCaseSearchTerm))
+            .slice(0, 10) // Limit to top 10 results for performance
+            .map(college => ({
+                ...college,
+                isFavorited: favoritedColleges.some(fav => fav.id === college.id),
             }));
-            setSearchResults(formattedResults);
-            setIsSearching(false);
-        }, 500); // 500ms debounce
+        
+        setSearchResults(filtered);
 
-        return () => clearTimeout(debounceSearch);
     }, [searchTerm, favoritedColleges]);
     
     const toggleFavorite = (college: College) => {
@@ -124,7 +120,6 @@ export default function CollegePrepPage() {
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                     />
-                                    {isSearching && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />}
                                 </div>
                                 <Button variant="outline"><Filter className="mr-2 h-4 w-4" /> Filters</Button>
                             </div>
@@ -238,5 +233,3 @@ export default function CollegePrepPage() {
         </div>
     );
 }
-    
-    
