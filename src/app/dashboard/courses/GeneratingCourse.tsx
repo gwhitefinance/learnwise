@@ -82,7 +82,25 @@ export default function GeneratingCourse({ courseName }: { courseName: string })
                 transition={{ duration: 0.5 }}
                 className="w-full"
             >
-                <AIBuddy className="w-40 h-40 mb-8 mx-auto" />
+                <div className="relative mb-8 flex flex-col items-center">
+                    <div className="relative w-48 h-48">
+                        <AIBuddy className="w-full h-full" />
+                        <motion.div
+                            key={currentQuoteIndex}
+                            initial={{ opacity: 0, y: 10, scale: 0.9 }}
+                            animate={{ opacity: 1, y: 0, scale: 1, transition: { delay: 0.2 } }}
+                            exit={{ opacity: 0, y: 10, scale: 0.9 }}
+                            className="absolute -top-10 -right-24 w-56"
+                        >
+                            <div className="bg-muted p-3 rounded-lg shadow-md relative text-xs text-muted-foreground italic">
+                                "{quotes[currentQuoteIndex]}"
+                                <div className="absolute left-4 -bottom-2 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[8px] border-t-muted" />
+                            </div>
+                        </motion.div>
+                    </div>
+                     <div className="h-2 w-56 bg-gray-200 dark:bg-gray-700 rounded-t-sm shadow-inner" />
+                </div>
+                
                 <h1 className="text-3xl font-bold">Building your course:</h1>
                 <h2 className="text-2xl font-bold text-primary mb-8">{courseName}</h2>
 
@@ -95,16 +113,6 @@ export default function GeneratingCourse({ courseName }: { courseName: string })
                     </div>
                     <Progress value={progress} className="mb-2 h-2"/>
                 </div>
-                
-                <motion.p
-                    key={currentQuoteIndex}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 1 }}
-                    className="text-muted-foreground italic mt-8 max-w-md mx-auto"
-                >
-                    "{quotes[currentQuoteIndex]}"
-                </motion.p>
             </motion.div>
         </div>
     );
