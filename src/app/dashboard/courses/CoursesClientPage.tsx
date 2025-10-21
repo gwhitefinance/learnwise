@@ -124,7 +124,6 @@ function CoursesComponent() {
   const [quizResults, setQuizResults] = useState<Record<string, QuizResult>>({});
   
   const [isFlashcardDialogOpen, setFlashcardDialogOpen] = useState(false);
-  const [isFlashcardLoading, setFlashcardLoading] = useState(false);
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [currentFlashcardIndex, setCurrentFlashcardIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
@@ -167,6 +166,11 @@ function CoursesComponent() {
   const [nextChapterProgress, setNextChapterProgress] = useState(0);
 
   const [isListenAssistantVisible, setIsListenAssistantVisible] = useState(false);
+  
+  // Key Concepts Dialog State
+  const [isConceptsOpen, setIsConceptsOpen] = useState(false);
+  const [selectedConceptCourse, setSelectedConceptCourse] = useState<string>('');
+  const [isFlashcardLoading, setIsFlashcardLoading] = useState(false);
 
 
   useEffect(() => {
@@ -497,29 +501,50 @@ function CoursesComponent() {
     }
   };
   
-  const handleGenerateFlashcards = async (module: Module) => {
-    const moduleContent = module.chapters.map(c => `Chapter: ${c.title}\n${c.content}`).join('\n\n');
-    setFlashcardDialogOpen(true);
-    setFlashcardLoading(true);
+  const handleGenerateFlashcards = async () => {
+    if (!selectedConceptCourse) {
+        toast({ variant: 'destructive', title: "Please select a course."});
+        return;
+    }
+    
+    const course = courses.find(c => c.id === selectedConceptCourse);
+    if (!course || !course.units || course.units.length === 0) {
+        toast({ variant: 'destructive', title: "Course has no content.", description: 'Please select a course with generated units and chapters.'});
+        return;
+    }
+
+    const courseContent = course.units
+        .flatMap(unit => unit.chapters || [])
+        .map(chapter => `Chapter: ${chapter.title}\n${chapter.content || ''}`)
+        .join('\n\n---\n\n');
+
+    if (!courseContent.trim()) {
+        toast({ variant: 'destructive', title: "Course content is empty." });
+        return;
+    }
+
+    setIsFlashcardLoading(true);
     setFlashcards([]);
     setCurrentFlashcardIndex(0);
     setIsFlipped(false);
+
     try {
         const result = await generateFlashcardsFromModule({
-            moduleContent,
+            moduleContent: courseContent,
             learnerType: (learnerType as any) ?? 'Reading/Writing'
         });
         setFlashcards(result.flashcards);
+        if(result.flashcards.length === 0) {
+             toast({ title: 'No Key Terms Found', description: "We couldn't find enough key terms to generate flashcards."});
+        }
     } catch(error) {
         console.error("Failed to generate flashcards:", error);
         toast({
             variant: 'destructive',
             title: 'Flashcard Generation Failed',
-            description: 'Could not generate flashcards for this module.',
         });
-        setFlashcardDialogOpen(false);
     } finally {
-        setFlashcardLoading(false);
+        setIsFlashcardLoading(false);
     }
   };
   
@@ -947,89 +972,171 @@ function CoursesComponent() {
                     <h1 className="text-3xl font-bold tracking-tight">Courses</h1>
                     <p className="text-muted-foreground">Manage your courses and generate interactive learning labs.</p>
                 </div>
-                 <Dialog open={addCourseOpen} onOpenChange={(open) => { if (!open) resetAddCourseDialog(); setAddCourseOpen(open); }}>
-                    <DialogTrigger asChild>
-                        <Button disabled={isSaving}>
-                            <Plus className="mr-2 h-4 w-4"/> Add Course
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Add a New Course</DialogTitle>
-                            <DialogDescription>
-                                {addCourseStep === 1 ? 'First, provide some details about your course.' : 'How quickly do you want to learn?'}
-                            </DialogDescription>
-                        </DialogHeader>
-                        {addCourseStep === 1 ? (
-                            <div className="grid gap-4 py-4">
-                                <div className="grid gap-2">
-                                    <Label htmlFor="name">Course Name</Label>
-                                    <Input id="name" name="name" value={newCourse.name} onChange={handleInputChange} placeholder="e.g., Introduction to AI"/>
-                                </div>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="description">Description (Optional)</Label>
-                                    <Textarea id="description" name="description" value={newCourse.description} onChange={handleInputChange} placeholder="A brief summary of the course"/>
-                                </div>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="url">Course URL (Optional)</Label>
-                                    <Input id="url" name="url" value={newCourse.url} onChange={handleInputChange} placeholder="https://example.com/course-link"/>
-                                </div>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="is-new-topic">Are you currently in this course?</Label>
-                                    <Select onValueChange={(value) => setIsNewTopic(value === 'false')}>
-                                        <SelectTrigger id="is-new-topic">
-                                            <SelectValue placeholder="Select an option" />
+                <div className="flex gap-2">
+                    <Dialog open={isConceptsOpen} onOpenChange={setIsConceptsOpen}>
+                        <DialogTrigger asChild>
+                            <Button variant="outline"><Copy className="mr-2 h-4 w-4"/> Key Concepts</Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-2xl">
+                            <DialogHeader>
+                                <DialogTitle>Key Concepts Hub</DialogTitle>
+                                <DialogDescription>
+                                    Select a course to generate interactive flashcards for its key terms.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <div className="py-4 space-y-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="concept-course">Course</Label>
+                                    <Select value={selectedConceptCourse} onValueChange={setSelectedConceptCourse}>
+                                        <SelectTrigger id="concept-course">
+                                            <SelectValue placeholder="Select a course..." />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="true">Yes, I am</SelectItem>
-                                            <SelectItem value="false">No, I'm learning something new</SelectItem>
+                                            {courses.map(course => (
+                                                <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>
+                                            ))}
                                         </SelectContent>
                                     </Select>
                                 </div>
-                            </div>
-                        ) : (
-                            <div className="py-4">
-                                <RadioGroup value={learningPace} onValueChange={setLearningPace} className="space-y-4">
-                                    {paces.map(pace => (
-                                        <Label key={pace.value} htmlFor={`pace-${pace.value}`} className={cn("flex items-start gap-4 p-4 rounded-lg border transition-all cursor-pointer", learningPace === pace.value && "border-primary bg-primary/10 ring-2 ring-primary")}>
-                                            <RadioGroupItem value={pace.value} id={`pace-${pace.value}`} className="mt-1" />
-                                            <div className="flex-1">
-                                                <div className="flex items-center gap-2">
-                                                    {pace.icon}
-                                                    <span className="font-semibold text-lg">{pace.label}</span>
-                                                </div>
-                                                <p className="text-sm text-muted-foreground mt-1">{pace.description}</p>
+                                <Button onClick={handleGenerateFlashcards} disabled={isFlashcardLoading || !selectedConceptCourse} className="w-full">
+                                    {isFlashcardLoading ? 'Generating...' : 'Generate Flashcards'}
+                                </Button>
+                                
+                                <div className="mt-6">
+                                    {isFlashcardLoading ? (
+                                        <div className="flex items-center justify-center h-64">
+                                            <p className="animate-pulse">Brewing flashcards...</p>
+                                        </div>
+                                    ) : flashcards.length > 0 ? (
+                                        <div className="space-y-4">
+                                            <div className="text-center text-sm text-muted-foreground">
+                                                Card {currentFlashcardIndex + 1} of {flashcards.length}
                                             </div>
-                                        </Label>
-                                    ))}
-                                </RadioGroup>
-                            </div>
-                        )}
-                        <DialogFooter>
-                            {addCourseStep === 1 ? (
-                                <>
-                                    <Button variant="ghost" onClick={() => { setAddCourseOpen(false); resetAddCourseDialog();}}>Cancel</Button>
-                                    {isNewTopic === true ? (
-                                        <Button onClick={() => setAddCourseStep(2)} disabled={isSaving || isNewTopic === null || !newCourse.name}>
-                                            Next
-                                        </Button>
+                                            <div
+                                                className="relative w-full h-64 cursor-pointer"
+                                                onClick={() => setIsFlipped(!isFlipped)}
+                                            >
+                                                <AnimatePresence>
+                                                    <motion.div
+                                                        key={isFlipped ? 'back' : 'front'}
+                                                        initial={{ rotateY: isFlipped ? 180 : 0 }}
+                                                        animate={{ rotateY: 0 }}
+                                                        exit={{ rotateY: isFlipped ? 0 : -180 }}
+                                                        transition={{ duration: 0.5 }}
+                                                        className="absolute w-full h-full p-6 flex items-center justify-center text-center rounded-lg border bg-card text-card-foreground shadow-sm"
+                                                        style={{ backfaceVisibility: 'hidden' }}
+                                                    >
+                                                        <p className="text-xl font-semibold">
+                                                            {isFlipped ? flashcards[currentFlashcardIndex].back : flashcards[currentFlashcardIndex].front}
+                                                        </p>
+                                                    </motion.div>
+                                                </AnimatePresence>
+                                            </div>
+                                            <div className="flex justify-center items-center gap-4">
+                                                <Button variant="outline" size="icon" onClick={() => { setIsFlipped(false); setCurrentFlashcardIndex(prev => Math.max(0, prev - 1))}} disabled={currentFlashcardIndex === 0}>
+                                                    <ChevronLeft className="h-4 w-4" />
+                                                </Button>
+                                                <Button onClick={() => setIsFlipped(!isFlipped)}>
+                                                    <RefreshCw className="mr-2 h-4 w-4"/> Flip Card
+                                                </Button>
+                                                <Button variant="outline" size="icon" onClick={() => { setIsFlipped(false); setCurrentFlashcardIndex(prev => Math.min(flashcards.length - 1, prev + 1))}} disabled={currentFlashcardIndex === flashcards.length - 1}>
+                                                    <ChevronRight className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        </div>
                                     ) : (
-                                         <Button onClick={handleAddExistingCourse} disabled={isSaving || isNewTopic === null || !newCourse.name}>
-                                            Add Course
-                                        </Button>
+                                        <div className="flex items-center justify-center h-64 text-center text-muted-foreground">
+                                            <p>Select a course and generate flashcards to start studying.</p>
+                                        </div>
                                     )}
-                                </>
+                                </div>
+                            </div>
+                        </DialogContent>
+                    </Dialog>
+                    <Dialog open={addCourseOpen} onOpenChange={(open) => { if (!open) resetAddCourseDialog(); setAddCourseOpen(open); }}>
+                        <DialogTrigger asChild>
+                            <Button disabled={isSaving}>
+                                <Plus className="mr-2 h-4 w-4"/> Add Course
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Add a New Course</DialogTitle>
+                                <DialogDescription>
+                                    {addCourseStep === 1 ? 'First, provide some details about your course.' : 'How quickly do you want to learn?'}
+                                </DialogDescription>
+                            </DialogHeader>
+                            {addCourseStep === 1 ? (
+                                <div className="grid gap-4 py-4">
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="name">Course Name</Label>
+                                        <Input id="name" name="name" value={newCourse.name} onChange={handleInputChange} placeholder="e.g., Introduction to AI"/>
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="description">Description (Optional)</Label>
+                                        <Textarea id="description" name="description" value={newCourse.description} onChange={handleInputChange} placeholder="A brief summary of the course"/>
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="url">Course URL (Optional)</Label>
+                                        <Input id="url" name="url" value={newCourse.url} onChange={handleInputChange} placeholder="https://example.com/course-link"/>
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="is-new-topic">Are you currently in this course?</Label>
+                                        <Select onValueChange={(value) => setIsNewTopic(value === 'true')}>
+                                            <SelectTrigger id="is-new-topic">
+                                                <SelectValue placeholder="Select an option" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="false">Yes, I am</SelectItem>
+                                                <SelectItem value="true">No, I'm learning something new</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
                             ) : (
-                                <>
-                                    <Button variant="ghost" onClick={() => setAddCourseStep(1)}>Back</Button>
-                                    <Button onClick={handleGenerateCourse} disabled={isSaving || isGenerating}>
-                                        {isGenerating ? 'Generating...' : 'Generate Course & Plan'}
-                                    </Button>
-                                </>
+                                <div className="py-4">
+                                    <RadioGroup value={learningPace} onValueChange={setLearningPace} className="space-y-4">
+                                        {paces.map(pace => (
+                                            <Label key={pace.value} htmlFor={`pace-${pace.value}`} className={cn("flex items-start gap-4 p-4 rounded-lg border transition-all cursor-pointer", learningPace === pace.value && "border-primary bg-primary/10 ring-2 ring-primary")}>
+                                                <RadioGroupItem value={pace.value} id={`pace-${pace.value}`} className="mt-1" />
+                                                <div className="flex-1">
+                                                    <div className="flex items-center gap-2">
+                                                        {pace.icon}
+                                                        <span className="font-semibold text-lg">{pace.label}</span>
+                                                    </div>
+                                                    <p className="text-sm text-muted-foreground mt-1">{pace.description}</p>
+                                                </div>
+                                            </Label>
+                                        ))}
+                                    </RadioGroup>
+                                </div>
                             )}
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
+                            <DialogFooter>
+                                {addCourseStep === 1 ? (
+                                    <>
+                                        <Button variant="ghost" onClick={() => { setAddCourseOpen(false); resetAddCourseDialog();}}>Cancel</Button>
+                                        {isNewTopic === true ? (
+                                             <Button onClick={() => setAddCourseStep(2)} disabled={isSaving || isNewTopic === null || !newCourse.name}>
+                                                Next
+                                            </Button>
+                                        ) : (
+                                            <Button onClick={handleAddExistingCourse} disabled={isSaving || isNewTopic === null || !newCourse.name}>
+                                                Add Course
+                                            </Button>
+                                        )}
+                                    </>
+                                ) : (
+                                    <>
+                                        <Button variant="ghost" onClick={() => setAddCourseStep(1)}>Back</Button>
+                                        <Button onClick={handleGenerateCourse} disabled={isSaving || isGenerating}>
+                                            {isGenerating ? 'Generating...' : 'Generate Course & Plan'}
+                                        </Button>
+                                    </>
+                                )}
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+                </div>
             </div>
             {courses.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
