@@ -30,7 +30,7 @@ export default function CollegePrepPage() {
     const router = useRouter();
 
     const [favoritedColleges, setFavoritedColleges] = useState<College[]>([
-        { id: '25', name: 'University of Florida', location: 'Gainesville, FL', isFavorited: true },
+        { id: '133658', name: 'University of Florida', location: 'Gainesville, FL', isFavorited: true },
     ]);
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState<College[]>([]);
@@ -147,7 +147,7 @@ export default function CollegePrepPage() {
 
                             <h4 className="font-semibold text-lg mb-2">Favorites</h4>
                             <div className="space-y-3">
-                                {favoritedColleges.map(college => (
+                                {favoritedColleges.length > 0 ? favoritedColleges.map(college => (
                                     <div key={college.id} className="flex items-center justify-between p-3 rounded-lg bg-muted">
                                         <div>
                                             <p className="font-semibold">{college.name}</p>
@@ -160,7 +160,9 @@ export default function CollegePrepPage() {
                                             <Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4"/></Button>
                                         </div>
                                     </div>
-                                ))}
+                                )) : (
+                                    <div className="text-sm text-center text-muted-foreground p-4">Your favorited colleges will appear here.</div>
+                                )}
                             </div>
                         </CardContent>
                     </Card>
