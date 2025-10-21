@@ -110,7 +110,7 @@ export default function LeaderboardPage() {
                             </TableBody>
                         </Table>
                          {leaderboard.length === 0 && (
-                            <div className="text-center text-muted-foreground p-8">
+                            <div className="text-center text-white p-8">
                                 The leaderboard is currently empty. Start learning to get on the board!
                             </div>
                         )}
