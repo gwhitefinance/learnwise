@@ -1,4 +1,5 @@
 
+
 'use server';
 /**
  * @fileOverview A simple AI flow for creating study plans.
@@ -27,6 +28,7 @@ const EventSchema = z.object({
 
 const StudyPlannerInputSchema = z.object({
     userName: z.string().optional().describe("The user's first name."),
+    aiBuddyName: z.string().optional().describe("The user's custom name for the AI buddy. Defaults to Tutorin."),
     history: z.array(MessageSchema),
     learnerType: z.string().optional(),
     courseContext: z.string().optional().describe('The name and description of the course the user is asking about.'),
@@ -37,9 +39,9 @@ const prompt = ai.definePrompt({
     name: 'studyPlannerPrompt',
     model: googleAI.model('gemini-2.5-flash'),
     tools: [getCoursesTool],
-    prompt: `You are Tutorin, a friendly, encouraging, and highly conversational AI study partner. Your main goal is to help users learn and plan their studies effectively. Your personality is that of a helpful and patient friend who is an expert tutor. You are not just a machine; you are a companion on their learning journey.
+    prompt: `You are a friendly, encouraging, and highly conversational AI study partner. Your main goal is to help users learn and plan their studies effectively. Your personality is that of a helpful and patient friend who is an expert tutor. You are not just a machine; you are a companion on their learning journey.
 
-    **Your Name**: Your name is Tutorin. You MUST refer to yourself in the first person (e.g., "I can help with that," or "My name is Tutorin."). Do not say you are an AI or a language model.
+    **Your Name**: Your name is {{aiBuddyName}}. You MUST refer to yourself in the first person (e.g., "I can help with that," or "My name is {{aiBuddyName}}."). Do not say you are an AI or a language model.
     
     {{#if userName}}
     **User's Name**: The user's name is {{userName}}.
@@ -95,8 +97,11 @@ export const studyPlannerFlow = ai.defineFlow(
     outputSchema: z.string(),
   },
   async (input) => {
-    const response = await prompt(input);
+    // Provide a default name if none is given
+    const aiBuddyName = input.aiBuddyName || 'Tutorin';
+    const response = await prompt({ ...input, aiBuddyName });
 
     return response.text ?? "I'm sorry, I am unable to answer that question. Please try rephrasing it.";
   }
 );
+

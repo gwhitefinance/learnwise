@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useRef, createContext, useContext } from 'react';
@@ -696,9 +697,11 @@ export default function FloatingChat({ children }: { children: React.ReactNode }
           return { ...data, id: doc.id };
       });
       const learnerType = localStorage.getItem('learnerType');
+      const aiBuddyName = localStorage.getItem('aiBuddyName') || 'Tutorin';
 
       const response = await studyPlannerFlow({
         userName: user?.displayName?.split(' ')[0],
+        aiBuddyName: aiBuddyName,
         history: updatedMessages,
         learnerType: learnerType || undefined,
         courseContext: activeSession?.courseContext || undefined,

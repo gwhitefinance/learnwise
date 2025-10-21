@@ -6,19 +6,25 @@ import { useEffect, useState } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
-import { doc, onSnapshot, query, collection, where } from 'firebase/firestore';
+import { doc, onSnapshot, query, collection, where, updateDoc } from 'firebase/firestore';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Gem, Zap, Shield, Star, Award } from 'lucide-react';
+import { Gem, Zap, Shield, Star, Award, Flame, Brain, Pen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import AIBuddy from '@/components/ai-buddy';
+import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
 
 type UserProfile = {
     displayName: string;
     email: string;
     coins: number;
     unlockedItems?: Record<string, string[]>;
+    level?: number;
+    xp?: number;
 };
 
 type Roadmap = {
@@ -34,7 +40,13 @@ export default function ProfilePage() {
     const [roadmaps, setRoadmaps] = useState<Roadmap[]>([]);
     const [profileLoading, setProfileLoading] = useState(true);
     const [customizations, setCustomizations] = useState<Record<string, string>>({});
+    const [streak, setStreak] = useState(0);
+    const [learnerType, setLearnerType] = useState<string | null>(null);
+    const [aiBuddyName, setAiBuddyName] = useState('Tutorin');
+    const [isEditingName, setIsEditingName] = useState(false);
     const router = useRouter();
+    const { toast } = useToast();
+
 
     useEffect(() => {
         if (authLoading) return;
@@ -57,16 +69,47 @@ export default function ProfilePage() {
             setRoadmaps(userRoadmaps);
         });
 
+        // Load customizations and buddy name
         const savedCustomizations = localStorage.getItem(`robotCustomizations_${user.uid}`);
         if(savedCustomizations) {
             setCustomizations(JSON.parse(savedCustomizations));
         }
+        const savedBuddyName = localStorage.getItem('aiBuddyName');
+        if (savedBuddyName) {
+            setAiBuddyName(savedBuddyName);
+        }
+        
+        // Load learner type
+        const type = localStorage.getItem('learnerType');
+        setLearnerType(type);
+
+        // Load streak
+        const lastVisit = localStorage.getItem('lastVisit');
+        const today = new Date().toDateString();
+        if (lastVisit === today) {
+            setStreak(Number(localStorage.getItem('streakCount')) || 1);
+        } else {
+             const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            if (lastVisit === yesterday.toDateString()) {
+                setStreak((Number(localStorage.getItem('streakCount')) || 0) + 1);
+            } else {
+                setStreak(1);
+            }
+        }
+
 
         return () => {
             unsubscribeUser();
             unsubscribeRoadmaps();
         };
     }, [user, authLoading, router]);
+    
+    const handleSaveName = () => {
+        localStorage.setItem('aiBuddyName', aiBuddyName);
+        setIsEditingName(false);
+        toast({ title: "Name saved!", description: `Your buddy is now named ${aiBuddyName}.`});
+    }
 
     if (authLoading || profileLoading) {
         return (
@@ -89,6 +132,10 @@ export default function ProfilePage() {
     }
     
     const allCompletedMilestones = roadmaps.flatMap(r => r.milestones.filter(m => m.completed));
+    const level = profile.level || 1;
+    const xp = profile.xp || 0;
+    const xpForNextLevel = level * 100;
+    const xpProgress = (xp / xpForNextLevel) * 100;
 
     return (
         <div className="space-y-8">
@@ -112,10 +159,21 @@ export default function ProfilePage() {
                                 <CardDescription>{profile.email}</CardDescription>
                             </div>
                         </CardHeader>
-                        <CardContent className="flex items-center gap-8">
-                             <div className="flex items-center gap-2 text-2xl font-bold text-amber-500">
-                                <Gem className="h-6 w-6"/>
-                                <span>{profile.coins} Coins</span>
+                        <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div className="p-4 bg-muted rounded-lg text-center">
+                                <p className="text-sm text-muted-foreground font-semibold">Coins</p>
+                                <p className="text-2xl font-bold flex items-center justify-center gap-1 text-amber-500"><Gem size={20}/> {profile.coins}</p>
+                            </div>
+                            <div className="p-4 bg-muted rounded-lg text-center">
+                                <p className="text-sm text-muted-foreground font-semibold">Streak</p>
+                                <p className="text-2xl font-bold flex items-center justify-center gap-1 text-orange-500"><Flame size={20}/> {streak}</p>
+                            </div>
+                            <div className="p-4 bg-muted rounded-lg text-center col-span-2">
+                                <div className="flex justify-between items-center text-sm mb-1">
+                                    <p className="font-semibold">Level {level}</p>
+                                    <p className="text-muted-foreground">{xp} / {xpForNextLevel} XP</p>
+                                </div>
+                                <Progress value={xpProgress}/>
                             </div>
                         </CardContent>
                     </Card>
@@ -144,14 +202,13 @@ export default function ProfilePage() {
                     </Card>
                 </div>
 
-                <div className="lg:col-span-1">
+                <div className="lg:col-span-1 space-y-6">
                      <Card>
                         <CardHeader>
-                            <CardTitle>Your AI Buddy</CardTitle>
-                            <CardDescription>Your customized study companion.</CardDescription>
+                            <CardTitle>Your AI Companion</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="flex items-center justify-center bg-muted rounded-lg p-4 relative aspect-square">
+                            <div className="flex items-center justify-center bg-muted rounded-lg p-4 relative aspect-square mb-4">
                                 <AIBuddy
                                     className="w-48 h-48"
                                     color={customizations.color}
@@ -160,8 +217,32 @@ export default function ProfilePage() {
                                     shoes={customizations.shoes}
                                 />
                             </div>
+                            {isEditingName ? (
+                                <div className="flex items-center gap-2">
+                                    <Input value={aiBuddyName} onChange={(e) => setAiBuddyName(e.target.value)} placeholder="Enter a name..." />
+                                    <Button size="sm" onClick={handleSaveName}>Save</Button>
+                                </div>
+                            ) : (
+                                <div className="text-center">
+                                    <p className="text-xl font-bold">{aiBuddyName}</p>
+                                    <Button variant="link" size="sm" onClick={() => setIsEditingName(true)}><Pen className="h-3 w-3 mr-1"/>Rename</Button>
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
+
+                    {learnerType && (
+                         <Card className="bg-blue-500/10 border-blue-500/20">
+                            <CardHeader>
+                                <CardTitle className="text-blue-700 flex items-center gap-2"><Brain /> Learning Style: {learnerType}</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-sm text-blue-800/80">
+                                    <span className="font-semibold">Pro Tip:</span> As a {learnerType} learner, try leveraging features that play to your strengths. For you, this might mean using the Whiteboard to draw diagrams or watching generated video clips in your courses.
+                                </p>
+                            </CardContent>
+                        </Card>
+                    )}
                 </div>
             </div>
         </div>
