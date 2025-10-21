@@ -61,7 +61,7 @@ export default function KeyConceptsPage() {
     const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
     const [currentFlashcardIndex, setCurrentFlashcardIndex] = useState(0);
     
-    const [isQuizDialogOpen, setQuizDialogOpen] = useState(false);
+    const [isQuizDialogOpen, setIsQuizDialogOpen] = useState(false);
     const [quiz, setQuiz] = useState<GenerateQuizOutput | null>(null);
     const [isQuizLoading, setIsQuizLoading] = useState(false);
 
@@ -295,7 +295,7 @@ export default function KeyConceptsPage() {
                 </Card>
             )}
 
-            <Dialog open={isQuizDialogOpen} onOpenChange={setQuizDialogOpen}>
+            <Dialog open={isQuizDialogOpen} onOpenChange={setIsQuizDialogOpen}>
                 <DialogContent className="max-w-2xl">
                     <DialogHeader><DialogTitle>Term Tussle!</DialogTitle></DialogHeader>
                     {isQuizLoading ? <div className="p-8 text-center"><Loader2 className="w-8 h-8 animate-spin mx-auto"/></div> : quiz && (
