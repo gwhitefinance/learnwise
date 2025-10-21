@@ -18,6 +18,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { deleteUser } from 'firebase/auth';
+import Link from 'next/link';
 
 type UserProfile = {
     displayName: string;
@@ -26,6 +27,13 @@ type UserProfile = {
     unlockedItems?: Record<string, string[]>;
     level?: number;
     xp?: number;
+};
+
+type Course = {
+    id: string;
+    name: string;
+    units?: { chapters?: { id: string }[] }[];
+    completedChapters?: string[];
 };
 
 type Roadmap = {
@@ -38,6 +46,7 @@ type Roadmap = {
 export default function ProfilePage() {
     const [user, authLoading] = useAuthState(auth);
     const [profile, setProfile] = useState<UserProfile | null>(null);
+    const [courses, setCourses] = useState<Course[]>([]);
     const [roadmaps, setRoadmaps] = useState<Roadmap[]>([]);
     const [profileLoading, setProfileLoading] = useState(true);
     const [customizations, setCustomizations] = useState<Record<string, string>>({});
@@ -62,6 +71,12 @@ export default function ProfilePage() {
                 setProfile(doc.data() as UserProfile);
             }
             setProfileLoading(false);
+        });
+
+        const coursesQuery = query(collection(db, "courses"), where("userId", "==", user.uid));
+        const unsubscribeCourses = onSnapshot(coursesQuery, (snapshot) => {
+            const userCourses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
+            setCourses(userCourses);
         });
         
         const roadmapsQuery = query(collection(db, "roadmaps"), where("userId", "==", user.uid));
@@ -103,6 +118,7 @@ export default function ProfilePage() {
         return () => {
             unsubscribeUser();
             unsubscribeRoadmaps();
+            unsubscribeCourses();
         };
     }, [user, authLoading, router]);
     
@@ -198,6 +214,33 @@ export default function ProfilePage() {
                                 </div>
                                 <Progress value={xpProgress}/>
                             </div>
+                        </CardContent>
+                    </Card>
+
+                     <Card>
+                        <CardHeader>
+                            <CardTitle>Course Progress</CardTitle>
+                            <CardDescription>A high-level overview of your learning landscape.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            {courses.length > 0 ? courses.map(course => {
+                                const totalChapters = course.units?.reduce((acc, unit) => acc + (unit.chapters?.length ?? 0), 0) ?? 0;
+                                const completedCount = course.completedChapters?.length ?? 0;
+                                const courseProgress = totalChapters > 0 ? (completedCount / totalChapters) * 100 : 0;
+                                return (
+                                    <div key={course.id}>
+                                        <div className="flex justify-between items-center mb-1">
+                                            <Link href={`/dashboard/courses?courseId=${course.id}`}>
+                                                <p className="font-semibold hover:underline">{course.name}</p>
+                                            </Link>
+                                            <span className="text-sm font-medium text-muted-foreground">{Math.round(courseProgress)}%</span>
+                                        </div>
+                                        <Progress value={courseProgress} className="h-2"/>
+                                    </div>
+                                )
+                            }) : (
+                                <p className="text-center text-muted-foreground py-4">No courses started yet.</p>
+                            )}
                         </CardContent>
                     </Card>
 
