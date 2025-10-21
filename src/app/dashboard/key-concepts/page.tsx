@@ -16,14 +16,12 @@ import { Wand2, Lightbulb, Copy, Brain, RefreshCw, ChevronLeft, ChevronRight, Lo
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import type { GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-
 
 type Course = {
     id: string;
@@ -42,10 +40,12 @@ type Course = {
 type Flashcard = {
     front: string;
     back: string;
+    distractors?: string[];
     isRevealed?: boolean;
     isMastered?: boolean;
     userInput?: string;
     isCorrect?: boolean;
+    options?: string[]; // For multiple choice
 };
 
 type TermExplanation = {
@@ -53,6 +53,8 @@ type TermExplanation = {
     analogy: string;
     sentence: string;
 };
+
+type CardType = 'input' | 'choice' | 'definition';
 
 export default function KeyConceptsPage() {
     const searchParams = useSearchParams();
@@ -63,6 +65,7 @@ export default function KeyConceptsPage() {
     
     const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
     const [currentFlashcardIndex, setCurrentFlashcardIndex] = useState(0);
+    const [cardType, setCardType] = useState<CardType>('input');
     
     const [isQuizDialogOpen, setIsQuizDialogOpen] = useState(false);
     const [quiz, setQuiz] = useState<GenerateQuizOutput | null>(null);
@@ -81,7 +84,6 @@ export default function KeyConceptsPage() {
     useEffect(() => {
         if (!user) return;
         
-        // Load courses
         const q = query(collection(db, "courses"), where("userId", "==", user.uid));
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const userCourses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
@@ -96,15 +98,21 @@ export default function KeyConceptsPage() {
             setIsLoadingCourses(false);
         });
         
-        // Load known terms from localStorage
         const savedTerms = localStorage.getItem(`knownTerms_${user.uid}`);
         if (savedTerms) {
             setKnownTerms(JSON.parse(savedTerms));
         }
 
-
         return () => unsubscribe();
     }, [user, searchParams, selectedCourseId]);
+
+    const shuffleArray = (array: any[]) => {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
 
     const handleGenerateContent = useCallback(async () => {
         const course = courses.find(c => c.id === selectedCourseId);
@@ -130,7 +138,14 @@ export default function KeyConceptsPage() {
 
         try {
             const result = await generateFlashcardsFromNote({ noteContent: courseContent, learnerType: 'Reading/Writing' });
-            setFlashcards(result.flashcards.map(fc => ({...fc, isRevealed: false})));
+            
+            const processedFlashcards = result.flashcards.map(fc => ({
+                ...fc,
+                isRevealed: false,
+                options: fc.distractors ? shuffleArray([...fc.distractors, fc.back]) : undefined
+            }));
+            
+            setFlashcards(processedFlashcards);
             setCurrentFlashcardIndex(0);
         } catch (e) {
             toast({ variant: 'destructive', title: 'Failed to generate flashcards' });
@@ -143,8 +158,14 @@ export default function KeyConceptsPage() {
     const handleCheckAnswer = (index: number) => {
         const newFlashcards = [...flashcards];
         const card = newFlashcards[index];
-        const isCorrect = card.userInput?.trim().toLowerCase() === card.back.trim().toLowerCase();
         
+        let isCorrect = false;
+        if (cardType === 'input') {
+             isCorrect = (card.userInput || '').trim().toLowerCase() === card.back.trim().toLowerCase();
+        } else if (cardType === 'choice') {
+            isCorrect = card.userInput === card.back;
+        }
+
         newFlashcards[index] = { ...card, isRevealed: true, isCorrect };
         setFlashcards(newFlashcards);
     };
@@ -167,7 +188,7 @@ export default function KeyConceptsPage() {
             setQuiz(result);
         } catch(e) {
             toast({ variant: 'destructive', title: 'Failed to generate quiz' });
-            setQuizDialogOpen(false);
+            setIsQuizDialogOpen(false);
         } finally {
             setIsQuizLoading(false);
         }
@@ -211,7 +232,6 @@ export default function KeyConceptsPage() {
             newKnownTerms[selectedCourseId] = [];
         }
 
-        // Avoid adding duplicates
         if (!newKnownTerms[selectedCourseId].some(t => t.front === card.front)) {
             newKnownTerms[selectedCourseId].push(card);
             setKnownTerms(newKnownTerms);
@@ -272,6 +292,16 @@ export default function KeyConceptsPage() {
                                 {isLoadingCourses ? <SelectItem value="loading" disabled>Loading courses...</SelectItem> : courses.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
                             </SelectContent>
                         </Select>
+                         <Select value={cardType} onValueChange={(v) => setCardType(v as CardType)} disabled={flashcards.length === 0}>
+                            <SelectTrigger className="w-full md:w-[200px]">
+                                <SelectValue placeholder="Select practice mode..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="input">Fill in the Blank</SelectItem>
+                                <SelectItem value="choice">Multiple Choice</SelectItem>
+                                <SelectItem value="definition">Definition</SelectItem>
+                            </SelectContent>
+                        </Select>
                         <Button onClick={handleGenerateQuiz} disabled={flashcards.length === 0}>
                             <Lightbulb className="mr-2 h-4 w-4" /> Quick Quiz
                         </Button>
@@ -284,37 +314,58 @@ export default function KeyConceptsPage() {
                             </div>
                             <AnimatePresence mode="wait">
                                 <motion.div
-                                    key={currentFlashcardIndex}
+                                    key={`${currentFlashcardIndex}-${cardType}`}
                                     initial={{ opacity: 0, x: 50 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     exit={{ opacity: 0, x: -50 }}
                                     transition={{ duration: 0.3 }}
                                     className="relative"
                                 >
-                                    <Card className="w-full max-w-2xl mx-auto min-h-[350px] flex flex-col justify-between p-8">
+                                    <Card className="w-full max-w-2xl mx-auto min-h-[400px] flex flex-col justify-between p-8">
                                     <div>
-                                    <CardTitle className="text-2xl mb-8 text-center">{currentCard.front}</CardTitle>
-                                    {currentCard.isRevealed ? (
-                                        <div className="space-y-4">
-                                            <p className={cn("p-3 rounded-md text-sm", currentCard.isCorrect ? "bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300" : "bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-300")}>
-                                                <strong>Your Answer:</strong> {currentCard.userInput || "No answer"}
-                                            </p>
-                                            <p className="p-3 rounded-md bg-muted text-sm">
-                                                <strong>Correct Answer:</strong> {currentCard.back}
-                                            </p>
-                                        </div>
-                                    ) : (
-                                        <Input 
-                                            placeholder="Type the definition here..."
-                                            value={currentCard.userInput || ''}
-                                            onChange={(e) => {
-                                                const newFlashcards = [...flashcards];
-                                                newFlashcards[currentFlashcardIndex].userInput = e.target.value;
-                                                setFlashcards(newFlashcards);
-                                            }}
-                                            onKeyDown={(e) => e.key === 'Enter' && handleCheckAnswer(currentFlashcardIndex)}
-                                        />
-                                    )}
+                                        <CardTitle className="text-2xl mb-8 text-center">{currentCard.front}</CardTitle>
+                                        
+                                        {cardType === 'definition' ? (
+                                            <p className="text-center text-lg text-muted-foreground p-4 bg-muted rounded-lg">{currentCard.back}</p>
+                                        ) : currentCard.isRevealed ? (
+                                            <div className="space-y-4">
+                                                <p className={cn("p-3 rounded-md text-sm", currentCard.isCorrect ? "bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300" : "bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-300")}>
+                                                    <strong>Your Answer:</strong> {currentCard.userInput || "No answer"}
+                                                </p>
+                                                <p className="p-3 rounded-md bg-muted text-sm">
+                                                    <strong>Correct Answer:</strong> {currentCard.back}
+                                                </p>
+                                            </div>
+                                        ) : cardType === 'input' ? (
+                                            <Input 
+                                                placeholder="Type the definition here..."
+                                                value={currentCard.userInput || ''}
+                                                onChange={(e) => {
+                                                    const newFlashcards = [...flashcards];
+                                                    newFlashcards[currentFlashcardIndex].userInput = e.target.value;
+                                                    setFlashcards(newFlashcards);
+                                                }}
+                                                onKeyDown={(e) => e.key === 'Enter' && handleCheckAnswer(currentFlashcardIndex)}
+                                            />
+                                        ) : cardType === 'choice' && currentCard.options ? (
+                                            <RadioGroup
+                                                value={currentCard.userInput}
+                                                onValueChange={(value) => {
+                                                    const newFlashcards = [...flashcards];
+                                                    newFlashcards[currentFlashcardIndex].userInput = value;
+                                                    setFlashcards(newFlashcards);
+                                                }}
+                                            >
+                                                <div className="space-y-2">
+                                                {currentCard.options.map((option, i) => (
+                                                    <Label key={i} htmlFor={`mc-option-${i}`} className="flex items-center gap-4 p-3 rounded-lg border cursor-pointer hover:bg-muted">
+                                                        <RadioGroupItem value={option} id={`mc-option-${i}`} />
+                                                        <span>{option}</span>
+                                                    </Label>
+                                                ))}
+                                                </div>
+                                            </RadioGroup>
+                                        ) : null}
                                     </div>
                                     <CardFooter className="p-0 pt-6 flex justify-between items-center">
                                         <div className="flex gap-2">
@@ -325,18 +376,20 @@ export default function KeyConceptsPage() {
                                                 <Check className="mr-2 h-4 w-4" /> I Know This
                                             </Button>
                                         </div>
-                                        {currentCard.isRevealed ? (
-                                            <Button onClick={() => {
-                                                const newFlashcards = [...flashcards];
-                                                newFlashcards[currentFlashcardIndex].isRevealed = false;
-                                                newFlashcards[currentFlashcardIndex].userInput = '';
-                                                newFlashcards[currentFlashcardIndex].isCorrect = undefined;
-                                                setFlashcards(newFlashcards);
-                                            }}>
-                                                <RefreshCw className="mr-2 h-4 w-4" /> Try Again
-                                            </Button>
-                                        ) : (
-                                            <Button onClick={() => handleCheckAnswer(currentFlashcardIndex)}>Check Answer</Button>
+                                        {cardType !== 'definition' && (
+                                            currentCard.isRevealed ? (
+                                                <Button onClick={() => {
+                                                    const newFlashcards = [...flashcards];
+                                                    newFlashcards[currentFlashcardIndex].isRevealed = false;
+                                                    newFlashcards[currentFlashcardIndex].userInput = '';
+                                                    newFlashcards[currentFlashcardIndex].isCorrect = undefined;
+                                                    setFlashcards(newFlashcards);
+                                                }}>
+                                                    <RefreshCw className="mr-2 h-4 w-4" /> Try Again
+                                                </Button>
+                                            ) : (
+                                                <Button onClick={() => handleCheckAnswer(currentFlashcardIndex)}>Check Answer</Button>
+                                            )
                                         )}
                                     </CardFooter>
                                     </Card>
@@ -389,7 +442,7 @@ export default function KeyConceptsPage() {
                                     </RadioGroup>
                                 </div>
                             )}
-                            <DialogFooter><DialogClose asChild><Button>Close</Button></DialogClose></DialogFooter>
+                            <DialogFooter><Button onClick={() => setIsQuizDialogOpen(false)}>Close</Button></DialogFooter>
                         </DialogContent>
                     </Dialog>
 

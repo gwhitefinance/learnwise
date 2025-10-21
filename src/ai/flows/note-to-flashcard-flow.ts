@@ -7,7 +7,7 @@
  */
 import { ai } from '@/ai/genkit';
 import { googleAI } from '@genkit-ai/google-genai';
-import { GenerateFlashcardsInputSchema, GenerateFlashcardsInput, GenerateFlashcardsOutputSchema, GenerateFlashcardsOutput } from '@/ai/schemas/note-to-flashcard-schema';
+import { GenerateFlashcardsInputSchema, GenerateFlashcardsInput, GenerateFlashcardsOutputSchema, GenerateFlashcardsOutput } from '@/ai/schemas/flashcard-generation-schema';
 
 const prompt = ai.definePrompt({
     name: 'noteToFlashcardGenerationPrompt',
@@ -17,7 +17,11 @@ const prompt = ai.definePrompt({
     prompt: `You are an expert at creating study materials. 
     Generate a set of 5-10 flashcards based *only* on the provided note content.
 
-    For each flashcard, provide a "front" with a key term or question, and a "back" with the corresponding definition or answer.
+    For each flashcard, provide:
+    1. A "front" with a key term or question.
+    2. A "back" with the corresponding definition or answer.
+    3. An array of three plausible but incorrect definitions ("distractors") that could be used for a multiple-choice question.
+
     Keep the content concise and focused on the most important information in the note.
 
     The user is a {{learnerType}} learner. 

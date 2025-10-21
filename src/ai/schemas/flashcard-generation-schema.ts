@@ -1,6 +1,6 @@
 
 /**
- * @fileoverview DEPRECATED. Use flashcard-generation-schema.ts instead.
+ * @fileoverview Defines the data schemas for the advanced flashcard generation feature.
  */
 import { z } from 'zod';
 
@@ -14,6 +14,7 @@ export type GenerateFlashcardsInput = z.infer<typeof GenerateFlashcardsInputSche
 const FlashcardSchema = z.object({
   front: z.string().describe('The front of the flashcard (e.g., a term or question).'),
   back: z.string().describe('The back of the flashcard (e.g., a definition or answer).'),
+  distractors: z.array(z.string()).length(3).describe('An array of three plausible but incorrect answers to be used as multiple-choice options.'),
 });
 
 export const GenerateFlashcardsOutputSchema = z.object({
