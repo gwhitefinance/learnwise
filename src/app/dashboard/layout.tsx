@@ -68,6 +68,7 @@ import {
   Podcast,
   BookMarked,
   Wind,
+  Copy,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -162,6 +163,12 @@ const sidebarItems: SidebarItem[] = [
       icon: <BookOpen />,
       id: "study-tools-section",
       children: [
+        {
+            title: "Key Concepts",
+            icon: <Copy />,
+            href: "/dashboard/key-concepts",
+            id: "key-concepts-link",
+        },
         {
             title: "Practice Quiz",
             icon: <Lightbulb />,

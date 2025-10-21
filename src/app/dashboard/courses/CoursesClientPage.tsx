@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useContext, Suspense, useRef } from 'react';
@@ -123,11 +124,6 @@ function CoursesComponent() {
 
   const [quizResults, setQuizResults] = useState<Record<string, QuizResult>>({});
   
-  const [isFlashcardDialogOpen, setFlashcardDialogOpen] = useState(false);
-  const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
-  const [currentFlashcardIndex, setCurrentFlashcardIndex] = useState(0);
-  const [isFlipped, setIsFlipped] = useState(false);
-
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState('');
   const [isTutorLoading, setIsTutorLoading] = useState(false);
@@ -167,11 +163,6 @@ function CoursesComponent() {
 
   const [isListenAssistantVisible, setIsListenAssistantVisible] = useState(false);
   
-  // Key Concepts Dialog State
-  const [isConceptsOpen, setIsConceptsOpen] = useState(false);
-  const [selectedConceptCourse, setSelectedConceptCourse] = useState<string>('');
-  const [isFlashcardLoading, setIsFlashcardLoading] = useState(false);
-
 
   useEffect(() => {
     if (authLoading || !user) return;
@@ -498,53 +489,6 @@ function CoursesComponent() {
             console.error("Error saving quiz results:", error);
             toast({ variant: 'destructive', title: 'Error', description: 'Could not save your quiz results.' });
         }
-    }
-  };
-  
-  const handleGenerateFlashcards = async () => {
-    if (!selectedConceptCourse) {
-        toast({ variant: 'destructive', title: "Please select a course."});
-        return;
-    }
-    
-    const course = courses.find(c => c.id === selectedConceptCourse);
-    if (!course || !course.units || course.units.length === 0) {
-        toast({ variant: 'destructive', title: "Course has no content.", description: 'Please select a course with generated units and chapters.'});
-        return;
-    }
-
-    const courseContent = course.units
-        .flatMap(unit => unit.chapters || [])
-        .map(chapter => `Chapter: ${chapter.title}\n${chapter.content || ''}`)
-        .join('\n\n---\n\n');
-
-    if (!courseContent.trim()) {
-        toast({ variant: 'destructive', title: "Course content is empty." });
-        return;
-    }
-
-    setIsFlashcardLoading(true);
-    setFlashcards([]);
-    setCurrentFlashcardIndex(0);
-    setIsFlipped(false);
-
-    try {
-        const result = await generateFlashcardsFromModule({
-            moduleContent: courseContent,
-            learnerType: (learnerType as any) ?? 'Reading/Writing'
-        });
-        setFlashcards(result.flashcards);
-        if(result.flashcards.length === 0) {
-             toast({ title: 'No Key Terms Found', description: "We couldn't find enough key terms to generate flashcards."});
-        }
-    } catch(error) {
-        console.error("Failed to generate flashcards:", error);
-        toast({
-            variant: 'destructive',
-            title: 'Flashcard Generation Failed',
-        });
-    } finally {
-        setIsFlashcardLoading(false);
     }
   };
   
@@ -973,86 +917,11 @@ function CoursesComponent() {
                     <p className="text-muted-foreground">Manage your courses and generate interactive learning labs.</p>
                 </div>
                 <div className="flex gap-2">
-                    <Dialog open={isConceptsOpen} onOpenChange={setIsConceptsOpen}>
-                        <DialogTrigger asChild>
-                            <Button variant="outline"><Copy className="mr-2 h-4 w-4"/> Key Concepts</Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-2xl">
-                            <DialogHeader>
-                                <DialogTitle>Key Concepts Hub</DialogTitle>
-                                <DialogDescription>
-                                    Select a course to generate interactive flashcards for its key terms.
-                                </DialogDescription>
-                            </DialogHeader>
-                            <div className="py-4 space-y-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="concept-course">Course</Label>
-                                    <Select value={selectedConceptCourse} onValueChange={setSelectedConceptCourse}>
-                                        <SelectTrigger id="concept-course">
-                                            <SelectValue placeholder="Select a course..." />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {courses.map(course => (
-                                                <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <Button onClick={handleGenerateFlashcards} disabled={isFlashcardLoading || !selectedConceptCourse} className="w-full">
-                                    {isFlashcardLoading ? 'Generating...' : 'Generate Flashcards'}
-                                </Button>
-                                
-                                <div className="mt-6">
-                                    {isFlashcardLoading ? (
-                                        <div className="flex items-center justify-center h-64">
-                                            <p className="animate-pulse">Brewing flashcards...</p>
-                                        </div>
-                                    ) : flashcards.length > 0 ? (
-                                        <div className="space-y-4">
-                                            <div className="text-center text-sm text-muted-foreground">
-                                                Card {currentFlashcardIndex + 1} of {flashcards.length}
-                                            </div>
-                                            <div
-                                                className="relative w-full h-64 cursor-pointer"
-                                                onClick={() => setIsFlipped(!isFlipped)}
-                                            >
-                                                <AnimatePresence>
-                                                    <motion.div
-                                                        key={isFlipped ? 'back' : 'front'}
-                                                        initial={{ rotateY: isFlipped ? 180 : 0 }}
-                                                        animate={{ rotateY: 0 }}
-                                                        exit={{ rotateY: isFlipped ? 0 : -180 }}
-                                                        transition={{ duration: 0.5 }}
-                                                        className="absolute w-full h-full p-6 flex items-center justify-center text-center rounded-lg border bg-card text-card-foreground shadow-sm"
-                                                        style={{ backfaceVisibility: 'hidden' }}
-                                                    >
-                                                        <p className="text-xl font-semibold">
-                                                            {isFlipped ? flashcards[currentFlashcardIndex].back : flashcards[currentFlashcardIndex].front}
-                                                        </p>
-                                                    </motion.div>
-                                                </AnimatePresence>
-                                            </div>
-                                            <div className="flex justify-center items-center gap-4">
-                                                <Button variant="outline" size="icon" onClick={() => { setIsFlipped(false); setCurrentFlashcardIndex(prev => Math.max(0, prev - 1))}} disabled={currentFlashcardIndex === 0}>
-                                                    <ChevronLeft className="h-4 w-4" />
-                                                </Button>
-                                                <Button onClick={() => setIsFlipped(!isFlipped)}>
-                                                    <RefreshCw className="mr-2 h-4 w-4"/> Flip Card
-                                                </Button>
-                                                <Button variant="outline" size="icon" onClick={() => { setIsFlipped(false); setCurrentFlashcardIndex(prev => Math.min(flashcards.length - 1, prev + 1))}} disabled={currentFlashcardIndex === flashcards.length - 1}>
-                                                    <ChevronRight className="h-4 w-4" />
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div className="flex items-center justify-center h-64 text-center text-muted-foreground">
-                                            <p>Select a course and generate flashcards to start studying.</p>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </DialogContent>
-                    </Dialog>
+                    <Button variant="outline" asChild>
+                        <Link href="/dashboard/key-concepts">
+                            <Copy className="mr-2 h-4 w-4"/> Key Concepts
+                        </Link>
+                    </Button>
                     <Dialog open={addCourseOpen} onOpenChange={(open) => { if (!open) resetAddCourseDialog(); setAddCourseOpen(open); }}>
                         <DialogTrigger asChild>
                             <Button disabled={isSaving}>
@@ -1116,7 +985,7 @@ function CoursesComponent() {
                                     <>
                                         <Button variant="ghost" onClick={() => { setAddCourseOpen(false); resetAddCourseDialog();}}>Cancel</Button>
                                         {isNewTopic === true ? (
-                                             <Button onClick={() => setAddCourseStep(2)} disabled={isSaving || isNewTopic === null || !newCourse.name}>
+                                            <Button onClick={() => setAddCourseStep(2)} disabled={isSaving || isNewTopic === null || !newCourse.name}>
                                                 Next
                                             </Button>
                                         ) : (
