@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -66,6 +67,7 @@ export default function KeyConceptsPage() {
     const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
     const [currentFlashcardIndex, setCurrentFlashcardIndex] = useState(0);
     const [cardType, setCardType] = useState<CardType>('input');
+    const [isFlipped, setIsFlipped] = useState(false);
     
     const [isQuizDialogOpen, setIsQuizDialogOpen] = useState(false);
     const [quiz, setQuiz] = useState<GenerateQuizOutput | null>(null);
@@ -105,6 +107,10 @@ export default function KeyConceptsPage() {
 
         return () => unsubscribe();
     }, [user, searchParams, selectedCourseId]);
+
+    useEffect(() => {
+        setIsFlipped(false); // Reset flip state when card or type changes
+    }, [currentFlashcardIndex, cardType]);
 
     const shuffleArray = (array: any[]) => {
         for (let i = array.length - 1; i > 0; i--) {
@@ -160,10 +166,51 @@ export default function KeyConceptsPage() {
         const card = newFlashcards[index];
         
         let isCorrect = false;
+        const userInput = (card.userInput || '').trim().toLowerCase();
+        const correctAnswer = card.back.trim().toLowerCase();
+        
         if (cardType === 'input') {
-             isCorrect = (card.userInput || '').trim().toLowerCase() === card.back.trim().toLowerCase();
+            // Fuzzy match: check if user input is "close enough"
+             const similarity = (s1: string, s2: string) => {
+                let longer = s1;
+                let shorter = s2;
+                if (s1.length < s2.length) {
+                    longer = s2;
+                    shorter = s1;
+                }
+                const longerLength = longer.length;
+                if (longerLength === 0) return 1.0;
+                return (longerLength - editDistance(longer, shorter)) / parseFloat(longerLength.toString());
+            };
+
+            const editDistance = (s1: string, s2: string) => {
+                s1 = s1.toLowerCase();
+                s2 = s2.toLowerCase();
+
+                const costs = [];
+                for (let i = 0; i <= s1.length; i++) {
+                    let lastValue = i;
+                    for (let j = 0; j <= s2.length; j++) {
+                        if (i === 0) costs[j] = j;
+                        else {
+                            if (j > 0) {
+                                let newValue = costs[j - 1];
+                                if (s1.charAt(i - 1) !== s2.charAt(j - 1))
+                                    newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
+                                costs[j - 1] = lastValue;
+                                lastValue = newValue;
+                            }
+                        }
+                    }
+                    if (i > 0) costs[s2.length] = lastValue;
+                }
+                return costs[s2.length];
+            };
+            
+            isCorrect = similarity(userInput, correctAnswer) > 0.8 || userInput.includes(correctAnswer) || correctAnswer.includes(userInput);
+
         } else if (cardType === 'choice') {
-            isCorrect = card.userInput === card.back;
+            isCorrect = userInput === correctAnswer;
         }
 
         newFlashcards[index] = { ...card, isRevealed: true, isCorrect };
@@ -323,49 +370,75 @@ export default function KeyConceptsPage() {
                                 >
                                     <Card className="w-full max-w-2xl mx-auto min-h-[400px] flex flex-col justify-between p-8">
                                     <div>
-                                        <CardTitle className="text-2xl mb-8 text-center">{currentCard.front}</CardTitle>
-                                        
                                         {cardType === 'definition' ? (
-                                            <p className="text-center text-lg text-muted-foreground p-4 bg-muted rounded-lg">{currentCard.back}</p>
-                                        ) : currentCard.isRevealed ? (
-                                            <div className="space-y-4">
-                                                <p className={cn("p-3 rounded-md text-sm", currentCard.isCorrect ? "bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300" : "bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-300")}>
-                                                    <strong>Your Answer:</strong> {currentCard.userInput || "No answer"}
-                                                </p>
-                                                <p className="p-3 rounded-md bg-muted text-sm">
-                                                    <strong>Correct Answer:</strong> {currentCard.back}
-                                                </p>
-                                            </div>
-                                        ) : cardType === 'input' ? (
-                                            <Input 
-                                                placeholder="Type the definition here..."
-                                                value={currentCard.userInput || ''}
-                                                onChange={(e) => {
-                                                    const newFlashcards = [...flashcards];
-                                                    newFlashcards[currentFlashcardIndex].userInput = e.target.value;
-                                                    setFlashcards(newFlashcards);
-                                                }}
-                                                onKeyDown={(e) => e.key === 'Enter' && handleCheckAnswer(currentFlashcardIndex)}
-                                            />
-                                        ) : cardType === 'choice' && currentCard.options ? (
-                                            <RadioGroup
-                                                value={currentCard.userInput}
-                                                onValueChange={(value) => {
-                                                    const newFlashcards = [...flashcards];
-                                                    newFlashcards[currentFlashcardIndex].userInput = value;
-                                                    setFlashcards(newFlashcards);
-                                                }}
+                                            <div
+                                                className="relative w-full h-[250px] cursor-pointer"
+                                                onClick={() => setIsFlipped(!isFlipped)}
+                                                style={{ perspective: '1000px' }}
                                             >
-                                                <div className="space-y-2">
-                                                {currentCard.options.map((option, i) => (
-                                                    <Label key={i} htmlFor={`mc-option-${i}`} className="flex items-center gap-4 p-3 rounded-lg border cursor-pointer hover:bg-muted">
-                                                        <RadioGroupItem value={option} id={`mc-option-${i}`} />
-                                                        <span>{option}</span>
-                                                    </Label>
-                                                ))}
-                                                </div>
-                                            </RadioGroup>
-                                        ) : null}
+                                                <motion.div
+                                                    className="absolute w-full h-full p-6 flex items-center justify-center text-center rounded-lg border bg-card text-card-foreground shadow-sm"
+                                                    style={{ backfaceVisibility: 'hidden' }}
+                                                    initial={false}
+                                                    animate={{ rotateY: isFlipped ? 180 : 0 }}
+                                                    transition={{ duration: 0.6 }}
+                                                >
+                                                     <p className="text-xl font-semibold">{currentCard.front}</p>
+                                                </motion.div>
+                                                <motion.div
+                                                    className="absolute w-full h-full p-6 flex items-center justify-center text-center rounded-lg border bg-muted text-card-foreground shadow-sm"
+                                                    style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
+                                                    initial={false}
+                                                    animate={{ rotateY: isFlipped ? 0 : -180 }}
+                                                    transition={{ duration: 0.6 }}
+                                                >
+                                                    <p className="text-lg">{currentCard.back}</p>
+                                                </motion.div>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <CardTitle className="text-2xl mb-8 text-center">{currentCard.front}</CardTitle>
+                                                {currentCard.isRevealed ? (
+                                                    <div className="space-y-4">
+                                                        <p className={cn("p-3 rounded-md text-sm", currentCard.isCorrect ? "bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300" : "bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-300")}>
+                                                            <strong>Your Answer:</strong> {currentCard.userInput || "No answer"}
+                                                        </p>
+                                                        <p className="p-3 rounded-md bg-muted text-sm">
+                                                            <strong>Correct Answer:</strong> {currentCard.back}
+                                                        </p>
+                                                    </div>
+                                                ) : cardType === 'input' ? (
+                                                    <Input 
+                                                        placeholder="Type the definition here..."
+                                                        value={currentCard.userInput || ''}
+                                                        onChange={(e) => {
+                                                            const newFlashcards = [...flashcards];
+                                                            newFlashcards[currentFlashcardIndex].userInput = e.target.value;
+                                                            setFlashcards(newFlashcards);
+                                                        }}
+                                                        onKeyDown={(e) => e.key === 'Enter' && handleCheckAnswer(currentFlashcardIndex)}
+                                                    />
+                                                ) : cardType === 'choice' && currentCard.options ? (
+                                                    <RadioGroup
+                                                        value={currentCard.userInput}
+                                                        onValueChange={(value) => {
+                                                            const newFlashcards = [...flashcards];
+                                                            newFlashcards[currentFlashcardIndex].userInput = value;
+                                                            setFlashcards(newFlashcards);
+                                                        }}
+                                                    >
+                                                        <div className="space-y-2">
+                                                        {currentCard.options.map((option, i) => (
+                                                            <Label key={i} htmlFor={`mc-option-${i}`} className="flex items-center gap-4 p-3 rounded-lg border cursor-pointer hover:bg-muted">
+                                                                <RadioGroupItem value={option} id={`mc-option-${i}`} />
+                                                                <span>{option}</span>
+                                                            </Label>
+                                                        ))}
+                                                        </div>
+                                                    </RadioGroup>
+                                                ) : null}
+                                            </>
+                                        )}
                                     </div>
                                     <CardFooter className="p-0 pt-6 flex justify-between items-center">
                                         <div className="flex gap-2">
@@ -391,6 +464,7 @@ export default function KeyConceptsPage() {
                                                 <Button onClick={() => handleCheckAnswer(currentFlashcardIndex)}>Check Answer</Button>
                                             )
                                         )}
+                                        {cardType === 'definition' && <Button onClick={() => setIsFlipped(!isFlipped)}><RefreshCw className="mr-2 h-4 w-4" />Flip Card</Button>}
                                     </CardFooter>
                                     </Card>
                                 </motion.div>
@@ -474,3 +548,4 @@ export default function KeyConceptsPage() {
         </div>
     );
 }
+
