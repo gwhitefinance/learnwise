@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -215,30 +216,16 @@ export default function SatPrepPage() {
                         </CardContent>
                     </Card>
 
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <Card className="flex flex-col items-center justify-center text-center p-6 bg-blue-500/10 border-blue-500/20 hover:border-blue-500/40 transition-colors">
-                            <FileText className="h-12 w-12 text-blue-400 mb-4"/>
-                            <CardTitle className="text-2xl">Full-Length Practice Test</CardTitle>
-                            <CardDescription className="mt-2 mb-6 max-w-xs">
-                                Simulate the real digital SAT experience with a full-length, timed practice test.
-                            </CardDescription>
-                            <Link href="/dashboard/sat-prep/practice-test" className="w-full">
-                                <Button className="w-full max-w-sm">Start Practice Test</Button>
-                            </Link>
-                        </Card>
-                        {gradeLevel === 'High School' && (
-                             <Card className="flex flex-col items-center justify-center text-center p-6 bg-purple-500/10 border-purple-500/20 hover:border-purple-500/40 transition-colors">
-                                <GraduationCap className="h-12 w-12 text-purple-400 mb-4"/>
-                                <CardTitle className="text-2xl">College Prep Hub</CardTitle>
-                                <CardDescription className="mt-2 mb-6 max-w-xs">
-                                    Search for colleges, track applications, and get personalized advice for your journey to higher education.
-                                </CardDescription>
-                                <Link href="/dashboard/sat-prep/college-prep" className="w-full">
-                                    <Button className="w-full max-w-sm bg-purple-500 hover:bg-purple-600 text-white">Go to College Prep</Button>
-                                </Link>
-                            </Card>
-                        )}
-                    </div>
+                    <Card className="flex flex-col items-center justify-center text-center p-6 bg-blue-500/10 border-blue-500/20 hover:border-blue-500/40 transition-colors">
+                        <FileText className="h-12 w-12 text-blue-400 mb-4"/>
+                        <CardTitle className="text-2xl">Full-Length Practice Test</CardTitle>
+                        <CardDescription className="mt-2 mb-6 max-w-xs">
+                            Simulate the real digital SAT experience with a full-length, timed practice test.
+                        </CardDescription>
+                        <Link href="/dashboard/sat-prep/practice-test" className="w-full">
+                            <Button className="w-full max-w-sm">Start Practice Test</Button>
+                        </Link>
+                    </Card>
                 </div>
                 
                  <Card className="lg:col-span-1">

@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -6,6 +7,8 @@ import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { GraduationCap, Heart, Search, Filter, ArrowRight, MoreHorizontal, Check, Plus } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import Loading from './loading';
 
 // Mock data - in a real app, this would come from a database/API
 const mockColleges = [
@@ -33,7 +36,7 @@ export default function CollegePrepPage() {
     }, []);
 
     if (loading) {
-        return <div className="p-8">Loading...</div>; // Replace with a proper loading skeleton
+        return <Loading />; 
     }
 
     if (!loading && gradeLevel !== 'High School') {

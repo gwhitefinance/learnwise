@@ -119,6 +119,7 @@ type SidebarItem = {
   id: string;
   href?: string;
   children?: SidebarChild[];
+  isHighSchoolOnly?: boolean;
 };
 
 const sidebarItems: SidebarItem[] = [
@@ -220,16 +221,22 @@ const sidebarItems: SidebarItem[] = [
             id: "upload-link",
         },
       ]
-    }
+    },
+    {
+        title: "SAT Prep",
+        icon: <BookMarked />,
+        href: "/dashboard/sat-prep",
+        id: "sat-prep-link",
+        isHighSchoolOnly: true,
+    },
+    {
+        title: "College Prep",
+        icon: <GraduationCap />,
+        href: "/dashboard/college-prep",
+        id: "college-prep-link",
+        isHighSchoolOnly: true,
+    },
   ];
-
-const satPrepItem: SidebarItem = {
-    title: "SAT Prep",
-    icon: <BookMarked />,
-    href: "/dashboard/sat-prep",
-    id: "sat-prep-link",
-};
-
 
 const SidebarNavItem = ({ item, pathname, setMobileMenuOpen }: { item: SidebarItem, pathname: string, setMobileMenuOpen: (open: boolean) => void }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -449,7 +456,9 @@ function DashboardLayoutContent({
     fileInputRef.current?.click();
   }
 
-  const currentSidebarItems = isMounted && gradeLevel === 'High School' ? [...sidebarItems, satPrepItem] : sidebarItems;
+  const currentSidebarItems = sidebarItems.filter(item => 
+      !item.isHighSchoolOnly || (item.isHighSchoolOnly && isMounted && gradeLevel === 'High School')
+  );
 
 
   const filteredSidebarItems = currentSidebarItems.map(item => {
