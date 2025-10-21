@@ -48,8 +48,8 @@ export default function CollegePrepPage() {
             return;
         }
 
+        setIsSearching(true);
         const debounceSearch = setTimeout(async () => {
-            setIsSearching(true);
             const results = await searchColleges(searchTerm);
             const formattedResults = results.map((r: any) => ({
                 id: String(r.id),
@@ -236,4 +236,5 @@ export default function CollegePrepPage() {
         </div>
     );
 }
+    
     
