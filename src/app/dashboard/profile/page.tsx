@@ -9,7 +9,7 @@ import { doc, onSnapshot, query, collection, where, updateDoc, deleteDoc } from 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Gem, Zap, Shield, Star, Award, Flame, Brain, Pen, Trash2 } from 'lucide-react';
+import { Gem, Zap, Shield, Star, Award, Flame, Brain, Pen, Trash2, Trophy } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import AIBuddy from '@/components/ai-buddy';
 import { Progress } from '@/components/ui/progress';
@@ -19,6 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { deleteUser } from 'firebase/auth';
 import Link from 'next/link';
+import { getLeaderboard } from '@/app/leaderboard/actions';
 
 type UserProfile = {
     displayName: string;
@@ -27,6 +28,8 @@ type UserProfile = {
     unlockedItems?: Record<string, string[]>;
     level?: number;
     xp?: number;
+    uid?: string;
+    photoURL?: string;
 };
 
 type Course = {
@@ -57,6 +60,9 @@ export default function ProfilePage() {
     const router = useRouter();
     const { toast } = useToast();
 
+    const [leaderboard, setLeaderboard] = useState<UserProfile[]>([]);
+    const [currentUserRank, setCurrentUserRank] = useState<number | null>(null);
+
 
     useEffect(() => {
         if (authLoading) return;
@@ -84,6 +90,14 @@ export default function ProfilePage() {
             const userRoadmaps = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Roadmap));
             setRoadmaps(userRoadmaps);
         });
+        
+        const fetchLeaderboard = async () => {
+            const leaderboardData = await getLeaderboard();
+            setLeaderboard(leaderboardData);
+            const userRank = leaderboardData.findIndex(p => p.uid === user.uid);
+            setCurrentUserRank(userRank !== -1 ? userRank + 1 : null);
+        };
+        fetchLeaderboard();
 
         // Load customizations and buddy name
         const savedCustomizations = localStorage.getItem(`robotCustomizations_${user.uid}`);
@@ -311,6 +325,42 @@ export default function ProfilePage() {
                     )}
                 </div>
             </div>
+             <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2"><Trophy /> Leaderboard Snapshot</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    {currentUserRank ? (
+                         <div className="flex flex-col md:flex-row items-center justify-between gap-6 p-4 rounded-lg bg-muted">
+                            <div className="text-center md:text-left">
+                                <p className="text-sm text-muted-foreground font-semibold">Your Rank</p>
+                                <p className="text-4xl font-bold text-primary">#{currentUserRank}</p>
+                            </div>
+                            <div className="space-y-2 flex-1 max-w-sm">
+                                {leaderboard.slice(0, 3).map((player, index) => (
+                                    <div key={player.uid} className="flex items-center gap-3 text-sm">
+                                        <span className="font-bold w-6 text-muted-foreground">{index + 1}.</span>
+                                        <Avatar className="h-8 w-8">
+                                            <AvatarImage src={player.photoURL} />
+                                            <AvatarFallback>{player.displayName?.[0]}</AvatarFallback>
+                                        </Avatar>
+                                        <span className="font-medium flex-1 truncate">{player.displayName}</span>
+                                        <span className="font-bold flex items-center gap-1 text-amber-500"><Gem size={14}/> {player.coins}</span>
+                                    </div>
+                                ))}
+                            </div>
+                             <Button asChild variant="outline">
+                                <Link href="/leaderboard">View Full Leaderboard</Link>
+                            </Button>
+                        </div>
+                    ) : (
+                        <div className="text-center text-muted-foreground py-4">
+                            Start earning coins to appear on the leaderboard!
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+
              <Card className="bg-destructive/10 border-destructive/20 mt-8">
                 <CardHeader>
                     <CardTitle className="text-destructive">Danger Zone</CardTitle>
@@ -345,3 +395,5 @@ export default function ProfilePage() {
         </div>
     );
 }
+
+    
