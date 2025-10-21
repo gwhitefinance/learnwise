@@ -74,6 +74,7 @@ export async function getCollegeDetails(collegeId: string): Promise<CollegeDetai
         'latest.student.size',
         'latest.admissions.admission_rate.overall',
         'latest.admissions.sat_scores.average.overall',
+        'latest.admissions.act_scores.midpoint.cumulative',
         'latest.cost.tuition.in_state',
         'latest.cost.tuition.out_of_state',
     ].join(',');
@@ -86,7 +87,27 @@ export async function getCollegeDetails(collegeId: string): Promise<CollegeDetai
             throw new Error(`API call failed with status: ${response.status}`);
         }
         const data = await response.json();
-        return data.results[0] || null;
+        const result = data.results[0];
+
+        if (!result) return null;
+        
+        // Ensure all fields exist, providing null if they don't.
+        const details: CollegeDetails = {
+            id: result.id,
+            'school.name': result['school.name'] || 'N/A',
+            'school.city': result['school.city'] || 'N/A',
+            'school.state': result['school.state'] || 'N/A',
+            'school.school_url': result['school.school_url'] || '',
+            'latest.student.size': result['latest.student.size'] || null,
+            'latest.admissions.admission_rate.overall': result['latest.admissions.admission_rate.overall'] || null,
+            'latest.admissions.sat_scores.average.overall': result['latest.admissions.sat_scores.average.overall'] || null,
+            'latest.admissions.act_scores.midpoint.cumulative': result['latest.admissions.act_scores.midpoint.cumulative'] || null,
+            'latest.cost.tuition.in_state': result['latest.cost.tuition.in_state'] || null,
+            'latest.cost.tuition.out_of_state': result['latest.cost.tuition.out_of_state'] || null,
+        };
+
+        return details;
+        
     } catch (error) {
         console.error(`Failed to fetch details for college ID ${collegeId}:`, error);
         return null;
