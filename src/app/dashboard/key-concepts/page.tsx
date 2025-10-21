@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
@@ -258,7 +258,7 @@ export default function KeyConceptsPage() {
                                       />
                                   )}
                                </div>
-                               <CardFooter className="p-0 pt-6 flex justify-between items-center">
+                                <CardFooter className="p-0 pt-6 flex justify-between items-center">
                                     <Button variant="outline" onClick={() => handleExplainTerm(currentCard)}>
                                         <Wand2 className="mr-2 h-4 w-4"/> AI Explain It
                                     </Button>
@@ -343,4 +343,3 @@ export default function KeyConceptsPage() {
         </div>
     );
 }
-
