@@ -1,22 +1,23 @@
 
-
 'use client';
 
 import { useEffect, useState } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
-import { doc, onSnapshot, query, collection, where, updateDoc } from 'firebase/firestore';
+import { doc, onSnapshot, query, collection, where, updateDoc, deleteDoc } from 'firebase/firestore';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Gem, Zap, Shield, Star, Award, Flame, Brain, Pen } from 'lucide-react';
+import { Gem, Zap, Shield, Star, Award, Flame, Brain, Pen, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import AIBuddy from '@/components/ai-buddy';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { deleteUser } from 'firebase/auth';
 
 type UserProfile = {
     displayName: string;
@@ -109,6 +110,28 @@ export default function ProfilePage() {
         localStorage.setItem('aiBuddyName', aiBuddyName);
         setIsEditingName(false);
         toast({ title: "Name saved!", description: `Your buddy is now named ${aiBuddyName}.`});
+    }
+
+    const handleDeleteAccount = async () => {
+        if (!user) return;
+        try {
+            // This is a simplified deletion. A production app would require re-authentication.
+            // First, delete Firestore data
+            await deleteDoc(doc(db, "users", user.uid));
+            
+            // Then, delete the Firebase Auth user
+            await deleteUser(user);
+
+            toast({ title: "Account Deleted", description: "Your account has been permanently deleted."});
+            router.push('/signup');
+        } catch (error: any) {
+            console.error("Error deleting account:", error);
+            let description = "Could not delete your account. Please try again later.";
+            if (error.code === 'auth/requires-recent-login') {
+                description = "This is a sensitive operation. Please log out and log back in before deleting your account."
+            }
+            toast({ variant: 'destructive', title: "Deletion Failed", description });
+        }
     }
 
     if (authLoading || profileLoading) {
@@ -245,7 +268,37 @@ export default function ProfilePage() {
                     )}
                 </div>
             </div>
+             <Card className="bg-destructive/10 border-destructive/20 mt-8">
+                <CardHeader>
+                    <CardTitle className="text-destructive">Danger Zone</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <h4 className="font-semibold">Delete Account</h4>
+                            <p className="text-sm text-muted-foreground">This will permanently delete your account and all associated data.</p>
+                        </div>
+                        <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <Button variant="destructive">Delete Account</Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        This action cannot be undone. This will permanently delete your
+                                        account and remove all your data from our servers.
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction onClick={handleDeleteAccount}>Delete Account</AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                    </div>
+                </CardContent>
+            </Card>
         </div>
     );
 }
-
