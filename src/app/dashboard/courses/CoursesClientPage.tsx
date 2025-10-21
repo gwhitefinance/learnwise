@@ -6,7 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Play, Pause, ChevronLeft, ChevronRight, Wand2, FlaskConical, Lightbulb, Copy, RefreshCw, Check, Star, CheckCircle, Send, Bot, User, GitMerge, PanelLeft, Minimize, Maximize, Loader2, Plus, Trash2, MoreVertical, XCircle, ArrowRight, RotateCcw, Video, Image as ImageIcon, BookCopy, Link as LinkIcon, Headphones, Underline, Highlighter, Rabbit, Snail, Turtle, Book, Mic } from 'lucide-react';
+import { Play, Pause, ChevronLeft, ChevronRight, Wand2, FlaskConical, Lightbulb, Copy, RefreshCw, Check, Star, CheckCircle, Send, Bot, User, GitMerge, PanelLeft, Minimize, Maximize, Loader2, Plus, Trash2, MoreVertical, XCircle, ArrowRight, RotateCcw, Video, Image as ImageIcon, BookCopy, Link as LinkIcon, Headphones, Underline, Highlighter, Rabbit, Snail, Turtle, Book, Mic, Bookmark, Brain } from 'lucide-react';
 import Link from 'next/link';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
@@ -23,7 +23,7 @@ import AudioPlayer from '@/components/audio-player';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { generateInitialCourseAndRoadmap, generateQuizFromModule, generateFlashcardsFromModule, generateTutorResponse, generateChapterContent, generateMidtermExam, generateRoadmap, generateCourseFromUrl, generateSummary } from '@/lib/actions';
+import { generateInitialCourseAndRoadmap, generateQuizFromModule, generateFlashcardsFromNote, generateTutorResponse, generateChapterContent, generateMidtermExam, generateRoadmap, generateCourseFromUrl, generateSummary, generateConceptExplanation } from '@/lib/actions';
 import { RewardContext } from '@/context/RewardContext';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import Loading from './loading';
@@ -34,6 +34,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import GeneratingCourse from './GeneratingCourse';
 import ListenAssistant from '@/components/ListenAssistant';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 
 type Course = {
@@ -69,6 +70,12 @@ type Chapter = {
 type Flashcard = {
     front: string;
     back: string;
+    distractors?: string[];
+    isRevealed?: boolean;
+    isMastered?: boolean;
+    userInput?: string;
+    isCorrect?: boolean;
+    options?: string[]; // For multiple choice
 };
 
 interface ChatMessage {
@@ -93,6 +100,8 @@ const paces = [
   { value: "3", label: "Steady", description: "A balanced pace for consistent learning.", icon: <Turtle className="h-6 w-6" /> },
   { value: "1", label: "Intense", description: "A fast-paced schedule for quick mastery.", icon: <Rabbit className="h-6 w-6" /> },
 ];
+
+type CardType = 'input' | 'choice' | 'definition';
 
 function CoursesComponent() {
   const searchParams = useSearchParams();
@@ -163,6 +172,20 @@ function CoursesComponent() {
 
   const [isListenAssistantVisible, setIsListenAssistantVisible] = useState(false);
   
+  // Key Concepts Dialog State
+  const [isConceptsOpen, setConceptsOpen] = useState(false);
+  const [selectedConceptCourse, setSelectedConceptCourse] = useState('');
+  const [isLoadingContent, setIsLoadingContent] = useState(false);
+  const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
+  const [currentFlashcardIndex, setCurrentFlashcardIndex] = useState(0);
+  const [cardType, setCardType] = useState<CardType>('input');
+  const [isFlipped, setIsFlipped] = useState(false);
+  const [isExplanationDialogOpen, setExplanationDialogOpen] = useState(false);
+  const [explanationTerm, setExplanationTerm] = useState<Flashcard | null>(null);
+  const [explanation, setExplanation] = useState<any>({}); // Using 'any' for simplicity
+  const [isExplanationLoading, setIsExplanationLoading] = useState(false);
+  const [knownTerms, setKnownTerms] = useState<Record<string, Flashcard[]>>({});
+  
 
   useEffect(() => {
     if (authLoading || !user) return;
@@ -172,6 +195,9 @@ function CoursesComponent() {
         const userCourses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
         setCourses(userCourses);
         setIsLoading(false);
+        if (userCourses.length > 0 && !selectedConceptCourse) {
+            setSelectedConceptCourse(userCourses[0].id);
+        }
     });
 
     const storedLearnerType = localStorage.getItem('learnerType');
@@ -187,8 +213,14 @@ function CoursesComponent() {
         setSelectedCourseId(null);
     }
 
+     const savedTerms = localStorage.getItem(`knownTerms_${user.uid}`);
+    if (savedTerms) {
+        setKnownTerms(JSON.parse(savedTerms));
+    }
+
+
     return () => unsubscribe();
-  }, [user, authLoading, searchParams]);
+  }, [user, authLoading, searchParams, selectedConceptCourse]);
   
   useEffect(() => {
     const loadCourseData = async () => {
@@ -745,7 +777,7 @@ function CoursesComponent() {
         instructor: newCourse.instructor || 'N/A',
         credits: parseInt(newCourse.credits, 10) || 0,
         url: newCourse.url,
-        description: newCourse.description || `A course on ${newCourse.name}`,
+        description: newCourse.description || `An in-depth course on ${newCourse.name}`,
         userId: user.uid,
         isNewTopic: false,
         units: [],
@@ -896,6 +928,149 @@ function CoursesComponent() {
       }
   }
 
+  // Key Concepts Dialog Functions
+    const shuffleArray = (array: any[]) => {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    const handleGenerateFlashcards = useCallback(async () => {
+        const course = courses.find(c => c.id === selectedConceptCourse);
+        if (!course) {
+            toast({ variant: 'destructive', title: 'Please select a course' });
+            return;
+        }
+
+        if (!course.units || course.units.length === 0) {
+            toast({ variant: 'destructive', title: 'Course has no content', description: 'Please add units and chapters to this course first.' });
+            return;
+        }
+
+        setIsLoadingContent(true);
+        setFlashcards([]);
+        const courseContent = course.units.flatMap(u => u.chapters || []).map(c => `Chapter ${c.title}: ${c.content}`).join('\n\n');
+        
+        if (!courseContent.trim()) {
+            toast({ variant: 'destructive', title: 'Content is empty' });
+            setIsLoadingContent(false);
+            return;
+        }
+
+        try {
+            const result = await generateFlashcardsFromNote({ noteContent: courseContent, learnerType: 'Reading/Writing' });
+            
+            const processedFlashcards = result.flashcards.map(fc => ({
+                ...fc,
+                isRevealed: false,
+                options: fc.distractors ? shuffleArray([...fc.distractors, fc.back]) : undefined
+            }));
+            
+            setFlashcards(processedFlashcards);
+            setCurrentFlashcardIndex(0);
+        } catch (e) {
+            toast({ variant: 'destructive', title: 'Failed to generate flashcards' });
+        } finally {
+            setIsLoadingContent(false);
+        }
+    }, [courses, selectedConceptCourse, toast]);
+    
+    useEffect(() => {
+        setIsFlipped(false); // Reset flip state when card or type changes
+    }, [currentFlashcardIndex, cardType]);
+
+
+    const handleCheckAnswer = (index: number) => {
+        const newFlashcards = [...flashcards];
+        const card = newFlashcards[index];
+        
+        let isCorrect = false;
+        const userInput = (card.userInput || '').trim().toLowerCase();
+        const correctAnswer = card.back.trim().toLowerCase();
+        
+        if (cardType === 'input') {
+            const similarity = (s1: string, s2: string) => {
+                let longer = s1; let shorter = s2;
+                if (s1.length < s2.length) { longer = s2; shorter = s1; }
+                const longerLength = longer.length;
+                if (longerLength === 0) return 1.0;
+                return (longerLength - editDistance(longer, shorter)) / parseFloat(longerLength.toString());
+            };
+            const editDistance = (s1: string, s2: string) => {
+                s1 = s1.toLowerCase(); s2 = s2.toLowerCase();
+                const costs = [];
+                for (let i = 0; i <= s1.length; i++) {
+                    let lastValue = i;
+                    for (let j = 0; j <= s2.length; j++) {
+                        if (i === 0) costs[j] = j;
+                        else if (j > 0) {
+                            let newValue = costs[j - 1];
+                            if (s1.charAt(i - 1) !== s2.charAt(j - 1)) newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
+                            costs[j - 1] = lastValue; lastValue = newValue;
+                        }
+                    }
+                    if (i > 0) costs[s2.length] = lastValue;
+                }
+                return costs[s2.length];
+            };
+            isCorrect = similarity(userInput, correctAnswer) > 0.8 || userInput.includes(correctAnswer) || correctAnswer.includes(userInput);
+        } else if (cardType === 'choice') {
+            isCorrect = userInput === correctAnswer;
+        }
+
+        newFlashcards[index] = { ...card, isRevealed: true, isCorrect };
+        setFlashcards(newFlashcards);
+    };
+
+    const handleExplainTerm = async (card: Flashcard) => {
+        setExplanationTerm(card);
+        setExplanation({});
+        setExplanationDialogOpen(true);
+        setIsExplanationLoading(true);
+        const courseContext = courses.find(c => c.id === selectedConceptCourse)?.name || '';
+
+        try {
+            const types: ('simple' | 'analogy' | 'sentence')[] = ['simple', 'analogy', 'sentence'];
+            const promises = types.map(type => generateConceptExplanation({
+                term: card.front,
+                definition: card.back,
+                courseContext,
+                explanationType: type,
+            }));
+
+            const results = await Promise.all(promises);
+            const newExplanations: Partial<any> = {};
+            results.forEach((res, index) => {
+                newExplanations[types[index]] = res.explanation;
+            });
+            setExplanation(newExplanations);
+        } catch (e) {
+            toast({ variant: 'destructive', title: 'Failed to get explanations' });
+        } finally {
+            setIsExplanationLoading(false);
+        }
+    };
+    
+    const handleKnowTerm = (card: Flashcard) => {
+        if (!user) return;
+        const newKnownTerms = { ...knownTerms };
+        
+        if (!newKnownTerms[selectedConceptCourse]) {
+            newKnownTerms[selectedConceptCourse] = [];
+        }
+
+        if (!newKnownTerms[selectedConceptCourse].some(t => t.front === card.front)) {
+            newKnownTerms[selectedConceptCourse].push(card);
+            setKnownTerms(newKnownTerms);
+            localStorage.setItem(`knownTerms_${user.uid}`, JSON.stringify(newKnownTerms));
+            toast({ title: "Term Saved!", description: `"${card.front}" was added to your mastery list.`});
+        } else {
+            toast({ title: "Already Saved", description: `"${card.front}" is already in your mastery list.`});
+        }
+    };
+
   const chapterCount = activeCourse?.units?.reduce((acc, unit) => acc + (unit.chapters?.length ?? 0), 0) ?? 0;
   const completedChaptersCount = activeCourse?.completedChapters?.length ?? 0;
   const progress = chapterCount > 0 ? (completedChaptersCount / chapterCount) * 100 : 0;
@@ -917,10 +1092,8 @@ function CoursesComponent() {
                     <p className="text-muted-foreground">Manage your courses and generate interactive learning labs.</p>
                 </div>
                 <div className="flex gap-2">
-                    <Button variant="outline" asChild>
-                        <Link href="/dashboard/key-concepts">
-                            <Copy className="mr-2 h-4 w-4"/> Key Concepts
-                        </Link>
+                    <Button variant="outline" onClick={() => setConceptsOpen(true)}>
+                        <Copy className="mr-2 h-4 w-4"/> Key Concepts
                     </Button>
                     <Dialog open={addCourseOpen} onOpenChange={(open) => { if (!open) resetAddCourseDialog(); setAddCourseOpen(open); }}>
                         <DialogTrigger asChild>
@@ -1087,6 +1260,211 @@ function CoursesComponent() {
                   </p>
                 </Card>
             )}
+            
+            <Dialog open={isConceptsOpen} onOpenChange={setConceptsOpen}>
+                <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
+                    <DialogHeader>
+                        <DialogTitle>Key Concepts Hub</DialogTitle>
+                        <DialogDescription>
+                            Master essential vocabulary with interactive flashcards and AI-powered explanations.
+                        </DialogDescription>
+                    </DialogHeader>
+                     <div className="flex-1 overflow-hidden grid grid-cols-3 gap-6">
+                        <aside className="col-span-1 h-full bg-card border rounded-lg p-4 flex flex-col">
+                             <div className="flex-1 overflow-hidden flex flex-col">
+                                <h2 className="text-lg font-bold mb-4">Mastery List</h2>
+                                <ScrollArea className="flex-1 -mr-4 pr-4">
+                                    {Object.keys(knownTerms).length > 0 ? (
+                                        <Accordion type="multiple" defaultValue={Object.keys(knownTerms)} className="w-full">
+                                            {courses.filter(c => knownTerms[c.id]).map(course => (
+                                                <AccordionItem key={course.id} value={course.id}>
+                                                    <AccordionTrigger>{course.name}</AccordionTrigger>
+                                                    <AccordionContent>
+                                                        <ul className="space-y-1 pl-4 text-sm text-muted-foreground">
+                                                            {knownTerms[course.id].map(term => (
+                                                                <li key={term.front}>{term.front}</li>
+                                                            ))}
+                                                        </ul>
+                                                    </AccordionContent>
+                                                </AccordionItem>
+                                            ))}
+                                        </Accordion>
+                                    ) : (
+                                        <div className="text-center text-muted-foreground text-sm py-16">
+                                            <Bookmark className="mx-auto mb-2 h-8 w-8"/>
+                                            <p>Click "I Know This" on a flashcard to save it here for later review.</p>
+                                        </div>
+                                    )}
+                                </ScrollArea>
+                            </div>
+                        </aside>
+                         <main className="col-span-2 flex flex-col gap-6">
+                            <div className="flex flex-col md:flex-row gap-4">
+                                <Select value={selectedConceptCourse} onValueChange={setSelectedConceptCourse} disabled={isLoadingContent}>
+                                    <SelectTrigger className="w-full md:w-[300px]">
+                                        <SelectValue placeholder="Select a course..." />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {courses.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
+                                <Select value={cardType} onValueChange={(v) => setCardType(v as CardType)} disabled={flashcards.length === 0}>
+                                    <SelectTrigger className="w-full md:w-[200px]">
+                                        <SelectValue placeholder="Select practice mode..." />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="input">Fill in the Blank</SelectItem>
+                                        <SelectItem value="choice">Multiple Choice</SelectItem>
+                                        <SelectItem value="definition">Definition</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                              {flashcards.length > 0 ? (
+                                <div>
+                                    <div className="text-center text-sm text-muted-foreground mb-4">
+                                        Card {currentFlashcardIndex + 1} of {flashcards.length}
+                                    </div>
+                                    <AnimatePresence mode="wait">
+                                        <motion.div
+                                            key={`${currentFlashcardIndex}-${cardType}`}
+                                            initial={{ opacity: 0, x: 50 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            exit={{ opacity: 0, x: -50 }}
+                                            transition={{ duration: 0.3 }}
+                                            className="relative"
+                                        >
+                                            <Card className="w-full mx-auto min-h-[400px] flex flex-col justify-between p-8">
+                                            <div>
+                                                {cardType === 'definition' ? (
+                                                    <div
+                                                        className="relative w-full h-[250px] cursor-pointer"
+                                                        onClick={() => setIsFlipped(!isFlipped)}
+                                                        style={{ perspective: '1000px' }}
+                                                    >
+                                                        <motion.div
+                                                            className="absolute w-full h-full p-6 flex items-center justify-center text-center rounded-lg border bg-card text-card-foreground shadow-sm"
+                                                            style={{ backfaceVisibility: 'hidden' }}
+                                                            initial={false}
+                                                            animate={{ rotateY: isFlipped ? 180 : 0 }}
+                                                            transition={{ duration: 0.6 }}
+                                                        >
+                                                            <p className="text-xl font-semibold">{flashcards[currentFlashcardIndex].front}</p>
+                                                        </motion.div>
+                                                        <motion.div
+                                                            className="absolute w-full h-full p-6 flex items-center justify-center text-center rounded-lg border bg-muted text-card-foreground shadow-sm"
+                                                            style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
+                                                            initial={false}
+                                                            animate={{ rotateY: isFlipped ? 0 : -180 }}
+                                                            transition={{ duration: 0.6 }}
+                                                        >
+                                                            <p className="text-lg">{flashcards[currentFlashcardIndex].back}</p>
+                                                        </motion.div>
+                                                    </div>
+                                                ) : (
+                                                    <>
+                                                        <CardTitle className="text-2xl mb-8 text-center">{flashcards[currentFlashcardIndex].front}</CardTitle>
+                                                        {flashcards[currentFlashcardIndex].isRevealed ? (
+                                                            <div className="space-y-4">
+                                                                <p className={cn("p-3 rounded-md text-sm", flashcards[currentFlashcardIndex].isCorrect ? "bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300" : "bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-300")}>
+                                                                    <strong>Your Answer:</strong> {flashcards[currentFlashcardIndex].userInput || "No answer"}
+                                                                </p>
+                                                                <p className="p-3 rounded-md bg-muted text-sm">
+                                                                    <strong>Correct Answer:</strong> {flashcards[currentFlashcardIndex].back}
+                                                                </p>
+                                                            </div>
+                                                        ) : cardType === 'input' ? (
+                                                            <Input 
+                                                                placeholder="Type the definition here..."
+                                                                value={flashcards[currentFlashcardIndex].userInput || ''}
+                                                                onChange={(e) => {
+                                                                    const newFlashcards = [...flashcards];
+                                                                    newFlashcards[currentFlashcardIndex].userInput = e.target.value;
+                                                                    setFlashcards(newFlashcards);
+                                                                }}
+                                                                onKeyDown={(e) => e.key === 'Enter' && handleCheckAnswer(currentFlashcardIndex)}
+                                                            />
+                                                        ) : cardType === 'choice' && flashcards[currentFlashcardIndex].options ? (
+                                                            <RadioGroup
+                                                                value={flashcards[currentFlashcardIndex].userInput}
+                                                                onValueChange={(value) => {
+                                                                    const newFlashcards = [...flashcards];
+                                                                    newFlashcards[currentFlashcardIndex].userInput = value;
+                                                                    setFlashcards(newFlashcards);
+                                                                }}
+                                                            >
+                                                                <div className="space-y-2">
+                                                                {flashcards[currentFlashcardIndex].options?.map((option, i) => (
+                                                                    <Label key={i} htmlFor={`mc-option-${i}`} className="flex items-center gap-4 p-3 rounded-lg border cursor-pointer hover:bg-muted">
+                                                                        <RadioGroupItem value={option} id={`mc-option-${i}`} />
+                                                                        <span>{option}</span>
+                                                                    </Label>
+                                                                ))}
+                                                                </div>
+                                                            </RadioGroup>
+                                                        ) : null}
+                                                    </>
+                                                )}
+                                            </div>
+                                            <CardFooter className="p-0 pt-6 flex justify-between items-center">
+                                                <div className="flex gap-2">
+                                                    <Button variant="outline" onClick={() => handleExplainTerm(flashcards[currentFlashcardIndex])}>
+                                                        <Wand2 className="mr-2 h-4 w-4"/> AI Explain It
+                                                    </Button>
+                                                    <Button variant="secondary" onClick={() => handleKnowTerm(flashcards[currentFlashcardIndex])}>
+                                                        <Check className="mr-2 h-4 w-4" /> I Know This
+                                                    </Button>
+                                                </div>
+                                                {cardType !== 'definition' ? (
+                                                    flashcards[currentFlashcardIndex].isRevealed ? (
+                                                        <Button onClick={() => {
+                                                            const newFlashcards = [...flashcards];
+                                                            newFlashcards[currentFlashcardIndex].isRevealed = false;
+                                                            newFlashcards[currentFlashcardIndex].userInput = '';
+                                                            newFlashcards[currentFlashcardIndex].isCorrect = undefined;
+                                                            setFlashcards(newFlashcards);
+                                                        }}>
+                                                            <RefreshCw className="mr-2 h-4 w-4" /> Try Again
+                                                        </Button>
+                                                    ) : (
+                                                        <Button onClick={() => handleCheckAnswer(currentFlashcardIndex)}>Check Answer</Button>
+                                                    )
+                                                ) : <Button onClick={() => setIsFlipped(!isFlipped)}><RefreshCw className="mr-2 h-4 w-4" />Flip Card</Button>}
+                                            </CardFooter>
+                                            </Card>
+                                        </motion.div>
+                                    </AnimatePresence>
+                                    <div className="flex justify-center items-center gap-4 mt-6">
+                                        <Button variant="outline" size="icon" onClick={() => setCurrentFlashcardIndex(prev => Math.max(0, prev - 1))} disabled={currentFlashcardIndex === 0}>
+                                            <ChevronLeft className="h-4 w-4" />
+                                        </Button>
+                                        <Button variant="outline" size="icon" onClick={() => setCurrentFlashcardIndex(prev => Math.min(flashcards.length - 1, prev + 1))} disabled={currentFlashcardIndex === flashcards.length - 1}>
+                                            <ChevronRight className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <Card className="text-center p-12 h-full flex flex-col justify-center items-center">
+                                    {isLoadingContent ? (
+                                        <>
+                                        <Loader2 className="mx-auto h-12 w-12 text-muted-foreground animate-spin mb-4" />
+                                        <h3 className="text-lg font-semibold">Generating Concepts...</h3>
+                                        </>
+                                    ): (
+                                        <>
+                                            <Brain className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                                            <h3 className="text-lg font-semibold">Generate Key Concepts</h3>
+                                            <p className="text-muted-foreground mt-2 mb-4">Select a course and click the button to generate flashcards.</p>
+                                            <Button onClick={handleGenerateFlashcards} disabled={!selectedConceptCourse || isLoadingContent}>
+                                                <Wand2 className="mr-2 h-4 w-4" /> Generate Flashcards for "{courses.find(c => c.id === selectedConceptCourse)?.name || '...'}"
+                                            </Button>
+                                        </>
+                                    )}
+                                </Card>
+                            )}
+                         </main>
+                     </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
   }

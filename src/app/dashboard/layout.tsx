@@ -164,12 +164,6 @@ const sidebarItems: SidebarItem[] = [
       id: "study-tools-section",
       children: [
         {
-            title: "Key Concepts",
-            icon: <Copy />,
-            href: "/dashboard/key-concepts",
-            id: "key-concepts-link",
-        },
-        {
             title: "Practice Quiz",
             icon: <Lightbulb />,
             href: "/dashboard/practice-quiz",
