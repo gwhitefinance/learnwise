@@ -19,6 +19,7 @@ type CollegeDetails = {
     'latest.student.size': number | null;
     'latest.admissions.admission_rate.overall': number | null;
     'latest.admissions.sat_scores.average.overall': number | null;
+    'latest.admissions.act_scores.midpoint.cumulative': number | null;
     'latest.cost.tuition.in_state': number | null;
     'latest.cost.tuition.out_of_state': number | null;
 };
@@ -73,7 +74,6 @@ export async function getCollegeDetails(collegeId: string): Promise<CollegeDetai
         'latest.student.size',
         'latest.admissions.admission_rate.overall',
         'latest.admissions.sat_scores.average.overall',
-        'latest.admissions.act_scores.midpoint.cumulative',
         'latest.cost.tuition.in_state',
         'latest.cost.tuition.out_of_state',
     ].join(',');
