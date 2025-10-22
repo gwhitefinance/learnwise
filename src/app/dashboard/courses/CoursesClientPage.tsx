@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useContext, Suspense, useRef } from 'react';
@@ -911,6 +912,15 @@ function CoursesComponent() {
   const completedChaptersCount = activeCourse?.completedChapters?.length ?? 0;
   const progress = chapterCount > 0 ? (completedChaptersCount / chapterCount) * 100 : 0;
   
+  const existingQuizResult = currentModule ? quizResults[currentModule.id] : undefined;
+  const currentChapterIsQuiz = currentChapter?.title.toLowerCase().includes('quiz');
+
+  useEffect(() => {
+    if (currentChapterIsQuiz && currentModule && !existingQuizResult) {
+      handleStartModuleQuiz(currentModule, true);
+    }
+  }, [currentChapter, currentModule, existingQuizResult]);
+
   if (isGenerating) {
     return <GeneratingCourse courseName={newCourse.name} />;
   }
@@ -1101,16 +1111,7 @@ function CoursesComponent() {
   }
   
   const isMidtermModule = activeCourse.units && currentModuleIndex === Math.floor(activeCourse.units.length / 2);
-  const existingQuizResult = currentModule ? quizResults[currentModule.id] : undefined;
-
-  const currentChapterIsQuiz = currentChapter?.title.toLowerCase().includes('quiz');
-
-  useEffect(() => {
-    if (currentChapterIsQuiz && currentModule && !existingQuizResult) {
-      handleStartModuleQuiz(currentModule, true);
-    }
-  }, [currentChapter, currentModule, existingQuizResult]);
-
+  
   if (currentChapterIsQuiz && currentModule) {
     if (existingQuizResult) {
         return (
