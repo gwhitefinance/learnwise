@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect, useContext, Suspense, useRef } from 'react';
@@ -273,12 +272,6 @@ function CoursesComponent() {
   const currentModule = activeCourse?.units?.[currentModuleIndex];
   const currentChapter = currentModule?.chapters[currentChapterIndex];
 
-  useEffect(() => {
-    if (currentChapter?.title.toLowerCase().includes('quiz') && currentModule && !quizResults[currentModule.id]) {
-      handleStartModuleQuiz(currentModule, true);
-    }
-  }, [currentChapter, currentModule, quizResults]);
-
   const handleGenerateCourse = async () => {
     if (!user || !newCourse.name || isNewTopic === null || !learnerType) return;
     
@@ -352,7 +345,7 @@ function CoursesComponent() {
             
             const newRoadmap = {
                 goals: roadmapResult.goals.map(g => ({ ...g, id: `id-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, icon: g.icon || 'Flag' })),
-                milestones: roadmapResult.milestones.map(m => ({ ...m, id: `id-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, icon: m.icon || 'Calendar', completed: false }))
+                milestones: roadmapResult.milestones.map(m => ({ ...m, id: `id-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, icon: g.icon || 'Calendar', completed: false }))
             };
 
             const roadmapsQuery = query(collection(db, 'roadmaps'), where('courseId', '==', activeCourse.id));
@@ -375,10 +368,7 @@ function CoursesComponent() {
     };
 
 
-  const handleStartModuleQuiz = async (module: Module, autoStart = false) => {
-    if (autoStart) {
-        setQuizDialogOpen(true);
-    }
+  const handleStartModuleQuiz = async (module: Module) => {
     setQuizLoading(true);
     setGeneratedQuiz(null);
     setQuizAnswers([]);
@@ -401,9 +391,7 @@ function CoursesComponent() {
             title: 'Quiz Generation Failed',
             description: 'Could not generate a quiz for this module.',
         });
-        if (autoStart) {
-            setQuizDialogOpen(false);
-        }
+        setQuizDialogOpen(false);
     } finally {
         setQuizLoading(false);
     }
@@ -460,6 +448,22 @@ function CoursesComponent() {
         isCorrect: isCorrect,
     };
     
+    if (!isCorrect) {
+        try {
+            await addDoc(collection(db, 'quizAttempts'), {
+                userId: user.uid,
+                courseId: activeCourse?.id,
+                topic: currentModule.title,
+                question: currentQuestion.question,
+                userAnswer: selectedQuizAnswer,
+                correctAnswer: currentQuestion.answer,
+                timestamp: serverTimestamp()
+            });
+        } catch (error) {
+            console.error("Error saving incorrect answer:", error);
+        }
+    }
+
     const newQuizAnswers = [...quizAnswers, answerFeedback];
     setQuizAnswers(newQuizAnswers);
     setSelectedQuizAnswer(null);
@@ -581,11 +585,6 @@ function CoursesComponent() {
     await updateDoc(courseRef, { completedChapters: arrayUnion(currentChapter.id) });
     setActiveCourse(prev => prev ? { ...prev, completedChapters: [...(prev.completedChapters || []), currentChapter.id]} : null);
 
-    // Open summary dialog
-    setIsSummaryDialogOpen(true);
-    setIsSummaryLoading(true);
-    setNextChapterProgress(0);
-
     // --- Check if next chapter is a quiz ---
     let nextModuleIndex = currentModuleIndex;
     let nextChapterIndex = currentChapterIndex + 1;
@@ -601,18 +600,16 @@ function CoursesComponent() {
 
     const nextChapter = !isLastChapterOfCourse ? activeCourse.units![nextModuleIndex].chapters[nextChapterIndex] : null;
     const isNextChapterQuiz = nextChapter?.title.toLowerCase().includes('quiz');
-    
+
     if (isNextChapterQuiz) {
-        setSummaryForPopup("Preparing your quiz... Good luck!");
-        setIsSummaryLoading(false);
-        setNextChapterProgress(100);
-        setTimeout(() => {
-            handleProceedToNextChapter();
-        }, 1500); // Give user a moment to read the message
+        handleProceedToNextChapter(); // Bypass summary dialog
         return;
     }
 
-    // --- Normal flow: Generate summary and pre-load next chapter ---
+    // --- Normal flow: Show summary dialog and pre-load next chapter ---
+    setIsSummaryDialogOpen(true);
+    setIsSummaryLoading(true);
+    setNextChapterProgress(0);
     
     // 1. Generate summary for the current chapter
     if (currentChapter.content) {
@@ -1144,7 +1141,21 @@ function CoursesComponent() {
     
     return (
       <>
-        {isQuizLoading && (
+        {quizState === 'configuring' && (
+            <div className="flex flex-col items-center text-center">
+                <div className="mb-10 w-full max-w-3xl">
+                    <h1 className="text-4xl font-bold">{currentModule.title}</h1>
+                    <p className="text-muted-foreground mt-2">
+                        This quiz will cover the material from the previous chapters in this module.
+                    </p>
+                     <p className="text-muted-foreground mt-1">Review the content to prepare yourself for the assessment.</p>
+                </div>
+                <Button size="lg" onClick={() => handleStartModuleQuiz(currentModule)}>
+                    Start Quiz
+                </Button>
+            </div>
+        )}
+        {quizState === 'in-progress' && isQuizLoading && (
            <div className="flex items-center justify-center h-full"><Loader2 className="h-8 w-8 animate-spin" /> <p className="ml-4">Generating your quiz...</p></div>
         )}
         
@@ -1332,8 +1343,7 @@ function CoursesComponent() {
                 </div>
                  <Accordion type="multiple" defaultValue={activeCourse?.units?.map(u => u.id)} className="w-full flex-1 overflow-y-auto">
                     {activeCourse?.units?.map((unit, mIndex) => {
-                       const previousModules = activeCourse.units?.slice(0, mIndex) ?? [];
-                       const arePreviousModulesComplete = previousModules.every(prevModule => 
+                       const arePreviousModulesComplete = activeCourse.units!.slice(0, mIndex).every(prevModule => 
                             prevModule.chapters.every(chap => activeCourse.completedChapters?.includes(chap.id))
                         );
 
@@ -1348,11 +1358,11 @@ function CoursesComponent() {
                                         const chapterIsQuiz = chapter.title.toLowerCase().includes('quiz');
                                         const quizResultForChapter = chapterIsQuiz ? quizResults[unit.id] : undefined;
                                         
-                                        const isPreviousChapterCompleted = cIndex === 0 
+                                         const isPreviousChapterCompleted = cIndex === 0 
                                             ? arePreviousModulesComplete
                                             : unit.chapters.slice(0, cIndex).every(c => activeCourse.completedChapters?.includes(c.id));
-
-                                        const isLocked = activeCourse.isNewTopic && !(mIndex === 0 && cIndex === 0) && !isPreviousChapterCompleted;
+                                        
+                                        const isLocked = activeCourse.isNewTopic && !isCompleted && !isPreviousChapterCompleted && !(mIndex === 0 && cIndex === 0);
 
                                         return (
                                         <li key={chapter.id}>
@@ -1538,3 +1548,4 @@ export default function CoursesClientPage() {
         </Suspense>
     )
 }
+
