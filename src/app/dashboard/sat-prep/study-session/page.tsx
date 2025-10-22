@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { generateSatStudySessionAction, generateFeedbackAction, generateMiniCourse, generateExplanation } from '@/lib/actions';
-import type { SatQuestion, FeedbackInput, FeedbackOutput } from '@/ai/schemas/sat-study-session-schema';
+import type { SatQuestion, FeedbackInput, SatStudySessionInput, SatStudySessionOutput } from '@/ai/schemas/sat-study-session-schema';
 import { cn } from '@/lib/utils';
 import { ArrowLeft, ArrowRight, CheckCircle, Clock, XCircle, FileText, BookOpen, Calculator, Send, Bot, Wand2, Star } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -50,7 +50,7 @@ function StudySessionPageContent() {
 
     const { toast } = useToast();
 
-    const { openChatWithPrompt } = useContext(FloatingChatContext) as any;
+    const { openChatWithPrompt } = useContext(FloatingChatContext);
 
     useEffect(() => {
         if (!topic) {
@@ -192,7 +192,7 @@ function StudySessionPageContent() {
             setFeedbackLoading(true);
 
             try {
-                const answeredQuestions = questions.map((q, i) => ({
+                const answeredQuestions: FeedbackInput['answeredQuestions'] = questions.map((q, i) => ({
                     question: q.question,
                     userAnswer: userAnswers[i] || 'No answer',
                     correctAnswer: q.answer,
@@ -430,12 +430,9 @@ const EmbeddedChat = ({ topic }: { topic: string | null }) => {
         setIsLoading(true);
     
         try {
-          const response = await studyPlannerFlow({
-            userName: user?.displayName?.split(' ')[0],
-            history: newMessages,
-          });
+          const response = await generateTutorResponse({ chapterContext: `The user is in an SAT study session about ${topic}.`, question: chatInput });
     
-          const aiMessage: Message = { role: 'ai', content: response };
+          const aiMessage: Message = { role: 'ai', content: response.answer };
           setMessages([...newMessages, aiMessage]);
     
         } catch (error) {

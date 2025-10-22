@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview A flow for generating a 10-question, high-difficulty SAT study session.
@@ -41,6 +40,6 @@ const generateSatStudySessionFlow = ai.defineFlow(
   }
 );
 
-export default async function generateSatStudySession(input: SatStudySessionInput): Promise<SatStudySessionOutput> {
+export async function generateSatStudySession(input: SatStudySessionInput): Promise<SatStudySessionOutput> {
     return generateSatStudySessionFlow(input);
 }
