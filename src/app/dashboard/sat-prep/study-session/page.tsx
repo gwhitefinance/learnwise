@@ -9,7 +9,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
-import { generateMiniCourse, generateExplanation, generateFeedbackAction } from '@/lib/actions';
+import { generateMiniCourse, generateExplanation } from '@/lib/actions';
 import type { SatQuestion, AnswerFeedback as FeedbackAnswer, FeedbackInput } from '@/ai/schemas/sat-study-session-schema';
 import { cn } from '@/lib/utils';
 import { ArrowLeft, ArrowRight, CheckCircle, Clock, XCircle, FileText, BookOpen, Calculator, Send, Bot, Wand2, Star } from 'lucide-react';
@@ -26,6 +26,8 @@ import { FloatingChatContext } from '@/components/floating-chat';
 import { addDoc, collection } from 'firebase/firestore';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import GeneratingCourse from '@/app/dashboard/courses/GeneratingCourse';
+import { generateFeedbackAction } from '@/ai/flows/sat-feedback-flow';
+import GeneratingSession from '../GeneratingSession';
 
 
 function StudySessionPageContent() {
@@ -187,8 +189,8 @@ function StudySessionPageContent() {
                 answeredQuestions: questions.map((q, i) => ({
                     question: q.question,
                     userAnswer: userAnswers[i] || "No answer",
-                    isCorrect: userAnswers[i] === q.answer,
                     correctAnswer: q.answer,
+                    isCorrect: userAnswers[i] === q.answer,
                     topic: q.topic,
                 }))
             };
@@ -553,3 +555,5 @@ export default function StudySessionPage() {
         </Suspense>
     );
 }
+
+    
