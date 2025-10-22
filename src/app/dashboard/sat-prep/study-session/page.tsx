@@ -118,7 +118,11 @@ function StudySessionPageContent() {
     return (
         <div className="flex-1 overflow-y-auto p-4 md:p-8">
             <div className="max-w-3xl mx-auto">
-                <header className="mb-8">
+                 <header className="mb-8">
+                    <Button variant="ghost" onClick={() => router.push('/dashboard/sat-prep')} className="mb-4">
+                        <ArrowLeft className="mr-2 h-4 w-4"/>
+                        Back to SAT Prep Hub
+                    </Button>
                     <div className="flex justify-between items-center mb-4">
                         <h1 className="text-2xl font-bold flex items-center gap-2">
                             {topic === 'Reading & Writing' ? <BookOpen /> : <Calculator />}
@@ -168,7 +172,9 @@ function StudySessionPageContent() {
 
                         {isCurrentAnswered && (
                             <Card className="bg-amber-500/10 border-amber-500/20">
-                                <CardHeader><CardTitle className="text-amber-700">Explanation</CardTitle></CardHeader>
+                                <CardHeader>
+                                    <CardTitle className="text-amber-700">Explanation</CardTitle>
+                                </CardHeader>
                                 <CardContent>
                                     <p className="text-muted-foreground">{currentQuestion.explanation}</p>
                                 </CardContent>
@@ -208,3 +214,4 @@ export default function StudySessionPage() {
         </Suspense>
     );
 }
+
