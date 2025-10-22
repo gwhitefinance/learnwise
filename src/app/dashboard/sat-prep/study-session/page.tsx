@@ -76,12 +76,12 @@ function StudySessionPageContent() {
                 }
             } catch (e) {
                 console.error("Failed to parse study session data from sessionStorage", e);
-                toast({ variant: 'destructive', title: 'Session Expired', description: 'Could not load session data. Please start a new session.' });
-                router.push('/dashboard/sat-prep');
+                // toast({ variant: 'destructive', title: 'Session Expired', description: 'Could not load session data. Please start a new session.' });
+                // router.push('/dashboard/sat-prep');
             }
         } else {
-            toast({ variant: 'destructive', title: 'Session Expired', description: 'Please start a new session.' });
-            router.push('/dashboard/sat-prep');
+            // toast({ variant: 'destructive', title: 'Session Expired', description: 'Please start a new session.' });
+            // router.push('/dashboard/sat-prep');
         }
         
     }, [topic, router, toast]);
@@ -316,7 +316,7 @@ function StudySessionPageContent() {
                                             <p className="font-semibold">{q.question}</p>
                                             <div className="text-sm">
                                                 <p><span className="font-bold">Your Answer:</span> <span className={cn(userAnswers[i] === q.answer ? "text-green-600" : "text-red-600")}>{userAnswers[i] || 'No Answer'}</span></p>
-                                                {userAnswers[i] !== q.answer && <p className="text-green-600 font-bold">Correct Answer: {q.answer}</p>}
+                                                {userAnswers[i] !== q.answer && <p className="text-green-600 font-bold">Correct Answer: {q.correctAnswer}</p>}
                                             </div>
                                         </div>
                                     </AccordionContent>
@@ -557,7 +557,7 @@ export default function StudySessionPage() {
         <Suspense fallback={<Skeleton className="h-full w-full" />}>
             <div className="grid grid-cols-1 lg:grid-cols-3 h-full">
                 <div className="hidden lg:block lg:col-span-1">
-                   <EmbeddedChat topic={topic} currentQuestion={null} />
+                   <StudySessionPageContent />
                 </div>
                 <div className="lg:col-span-2">
                     <StudySessionPageContent />
