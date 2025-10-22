@@ -453,7 +453,7 @@ function StudySessionPageContent() {
 }
 
 
-const EmbeddedChat = ({ topic }: { topic: string | null }) => {
+const EmbeddedChat = ({ topic, currentQuestion }: { topic: string | null, currentQuestion: SatQuestion | null }) => {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [messages, setMessages] = useState<Message[]>([
@@ -464,7 +464,7 @@ const EmbeddedChat = ({ topic }: { topic: string | null }) => {
     const [user] = useAuthState(auth);
 
     const handleChatSubmit = async () => {
-        if (!chatInput.trim() || !user) return;
+        if (!chatInput.trim() || !user || !currentQuestion) return;
     
         const userMessage: Message = { role: 'user', content: chatInput };
         const newMessages = [...messages, userMessage];
@@ -473,7 +473,12 @@ const EmbeddedChat = ({ topic }: { topic: string | null }) => {
         setIsLoading(true);
     
         try {
-          const response = await generateTutorResponse({ studyContext: `The user is in an SAT study session about ${topic}.`, question: chatInput, history: newMessages });
+          const response = await generateTutorResponse({ 
+              studyContext: `The user is in an SAT study session about ${topic}.`, 
+              currentQuestion: `Passage: ${currentQuestion.passage || 'N/A'}\nQuestion: ${currentQuestion.question}\nOptions: ${currentQuestion.options.join(', ')}`,
+              question: chatInput,
+              history: newMessages 
+          });
     
           const aiMessage: Message = { role: 'ai', content: response.answer };
           setMessages([...newMessages, aiMessage]);
@@ -552,7 +557,7 @@ export default function StudySessionPage() {
         <Suspense fallback={<Skeleton className="h-full w-full" />}>
             <div className="grid grid-cols-1 lg:grid-cols-3 h-full">
                 <div className="hidden lg:block lg:col-span-1">
-                   <EmbeddedChat topic={topic} />
+                   <EmbeddedChat topic={topic} currentQuestion={null} />
                 </div>
                 <div className="lg:col-span-2">
                     <StudySessionPageContent />

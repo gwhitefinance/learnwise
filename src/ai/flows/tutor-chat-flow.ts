@@ -23,7 +23,8 @@ const prompt = ai.definePrompt({
     2.  **No Markdown**: Do NOT use any markdown formatting like asterisks for bolding or italics.
 
     CURRENT STUDY CONTEXT:
-    The student is in a study session for the '{{studyContext}}' section of the SAT.
+    - The student is in a study session for the '{{studyContext}}' section of the SAT.
+    - They are currently looking at the following question: "{{currentQuestion}}"
 
     CONVERSATION HISTORY:
     {{#each history}}
@@ -33,7 +34,7 @@ const prompt = ai.definePrompt({
     STUDENT'S LATEST QUESTION:
     "{{question}}"
 
-    Based on your expertise, provide a clear and helpful answer to the student's question. Be encouraging and break down complex topics into simple steps.
+    Based on your expertise and the context of the current question, provide a clear and helpful answer to the student's question. Be encouraging and break down complex topics into simple steps.
     `,
 });
 

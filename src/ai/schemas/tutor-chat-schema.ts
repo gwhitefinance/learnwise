@@ -7,6 +7,7 @@ const MessageSchema = z.object({
 
 export const TutorChatInputSchema = z.object({
   studyContext: z.string().describe('The topic of the current study session (e.g., "SAT Math", "Reading & Writing").'),
+  currentQuestion: z.string().optional().describe('The full text of the current SAT question the user is looking at, including any passage.'),
   question: z.string().describe('The user\'s question.'),
   history: z.array(MessageSchema).optional().describe('The conversation history so far.'),
 });
