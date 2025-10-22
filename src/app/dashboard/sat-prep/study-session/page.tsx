@@ -19,6 +19,7 @@ import AIBuddy from '@/components/ai-buddy';
 import { Input } from '@/components/ui/input';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '@/lib/firebase';
+import { Badge } from '@/components/ui/badge';
 
 
 function StudySessionPageContent() {
