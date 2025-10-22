@@ -5,12 +5,12 @@
 import { useState, useEffect, Suspense, useContext } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
-import { generateSatStudySession as generateSatStudySessionAction, studyPlannerFlow, generateFeedback as generateFeedbackAction, generateMiniCourse } from '@/lib/actions';
+import { generateSatStudySessionAction, studyPlannerFlow, generateFeedbackAction, generateMiniCourse } from '@/lib/actions';
 import type { SatQuestion, SatStudySessionInput, SatStudySessionOutput } from '@/ai/schemas/sat-study-session-schema';
 import { cn } from '@/lib/utils';
 import { ArrowLeft, ArrowRight, CheckCircle, Clock, XCircle, FileText, BookOpen, Calculator, Send, Bot, Wand2, Star } from 'lucide-react';
@@ -484,7 +484,7 @@ const EmbeddedChat = ({ topic }: { topic: string | null }) => {
             <div className="relative mt-4">
                 <Input 
                     placeholder="Ask anything..."
-                    className="h-12 rounded-full pl-6 pr-14 text-base"
+                    className="h-12 rounded-full pl-6 pr-16 text-base"
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleChatSubmit()}
@@ -520,3 +520,4 @@ export default function StudySessionPage() {
         </Suspense>
     );
 }
+
