@@ -124,10 +124,6 @@ function StudySessionPageContent() {
         <div className="flex-1 overflow-y-auto p-4 md:p-8">
             <div className="max-w-3xl mx-auto">
                  <header className="mb-8">
-                    <Button variant="ghost" onClick={() => router.push('/dashboard/sat-prep')} className="mb-4">
-                        <ArrowLeft className="mr-2 h-4 w-4"/>
-                        Back to SAT Prep Hub
-                    </Button>
                     <div className="flex justify-between items-center mb-4">
                         <h1 className="text-2xl font-bold flex items-center gap-2">
                             {topic === 'Reading & Writing' ? <BookOpen /> : <Calculator />}
@@ -207,6 +203,7 @@ const EmbeddedChat = ({ topic }: { topic: string | null }) => {
     const [chatInput, setChatInput] = useState('');
     const { toast } = useToast();
     const [user] = useAuthState(auth);
+    const router = useRouter();
 
     const handleChatSubmit = () => {
         if (!chatInput.trim()) return;
@@ -217,8 +214,12 @@ const EmbeddedChat = ({ topic }: { topic: string | null }) => {
 
     return (
         <div className="p-4 border-r h-full flex flex-col bg-card">
-            <div className="p-4 bg-muted rounded-lg text-center mb-4">
+            <div className="p-4 bg-muted rounded-lg text-center mb-4 flex items-center justify-between">
+                 <Button variant="ghost" size="icon" onClick={() => router.push('/dashboard/sat-prep')} className="h-8 w-8">
+                    <ArrowLeft className="h-4 w-4" />
+                </Button>
                 <h3 className="font-semibold">Ask Tutorin</h3>
+                <div className="w-8"></div>
             </div>
              <div className="flex-1 space-y-4">
                 <div className="flex items-start gap-3">
