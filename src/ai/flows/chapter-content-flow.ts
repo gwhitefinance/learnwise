@@ -9,7 +9,7 @@ import { GenerateChapterContentInput, GenerateChapterContentInputSchema, Generat
 
 const prompt = ai.definePrompt({
     name: 'generateChapterContentPrompt',
-    model: googleAI.model('gemini-2.5-flash'),
+    model: googleAI.model('gemini-1.5-flash'),
     input: { schema: GenerateChapterContentInputSchema },
     output: { schema: GenerateChapterContentOutputSchema },
     config: {
@@ -17,16 +17,19 @@ const prompt = ai.definePrompt({
     },
     prompt: `You are an expert instructional designer who creates engaging, comprehensive, and in-depth educational content.
 
-    Your task is to write the content for a single chapter and devise a relevant interactive activity.
+    Your task is to generate the content for a single chapter, including both text paragraphs and small "Check Your Understanding" questions, and devise a relevant interactive activity.
 
     Course Context:
     - Course Name: {{courseName}}
     - Module: {{moduleTitle}}
     - Chapter: {{chapterTitle}}
 
-    **CRITICAL INSTRUCTIONS FOR 'content' FIELD:**
-    1.  **Length**: The 'content' you generate MUST be a detailed essay, comprising exactly 5 to 7 substantial paragraphs. Do NOT provide a short summary. It must be a comprehensive, word-heavy educational resource.
-    2.  **Formatting**: You MUST separate each paragraph with a double newline character ('\\n\\n'). The final output should be a single string, but with clear visual separation between paragraphs.
+    **CRITICAL INSTRUCTIONS for the 'content' FIELD:**
+    1.  **Structure**: The 'content' field MUST be an array of objects.
+    2.  **Content Mix**: You MUST create a mix of 'text' blocks and 'question' blocks.
+    3.  **Text Blocks**: Generate 4-5 substantial paragraphs of detailed educational content, each in its own 'text' block.
+    4.  **Question Blocks**: After every 2-3 text paragraphs, insert one 'question' block. Each question block should contain a simple, multiple-choice question that reinforces the concepts from the preceding paragraphs. Include 4 options and the correct answer. You should generate a total of 1-2 question blocks for the entire chapter.
+    5.  **Overall Length**: The entire chapter, combining all text and question blocks, should feel comprehensive and educational.
 
     The user is a {{learnerType}} learner. Tailor the content and the interactive activity accordingly.
     
@@ -36,7 +39,7 @@ const prompt = ai.definePrompt({
     - For Kinesthetic learners: Suggest a simple, tangible action, like a hand gesture to remember a process or relating the topic to a physical object on their desk.
     - For Reading/Writing learners: Suggest summarizing the main point in one sentence or writing down 3 keywords.
 
-    First, generate the detailed 'content' following the critical instructions.
+    First, generate the array of 'content' blocks following the critical instructions.
     Second, devise the short and fun 'activity'.
     `,
 });
@@ -55,7 +58,7 @@ const generateChapterContentFlow = ai.defineFlow(
     for (let attempt = 0; attempt < maxRetries; attempt++) {
         try {
             const { output } = await prompt(input);
-            if (!output) {
+            if (!output || !output.content || output.content.length === 0) {
                 throw new Error('Failed to generate chapter content: No output from AI.');
             }
             return output; // Success

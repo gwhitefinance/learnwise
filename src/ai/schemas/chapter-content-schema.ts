@@ -10,8 +10,20 @@ export const GenerateChapterContentInputSchema = z.object({
   learnerType: z.enum(['Visual', 'Auditory', 'Kinesthetic', 'Reading/Writing', 'Unknown']),
 });
 
+const TextBlockSchema = z.object({
+  type: z.literal('text'),
+  content: z.string().describe('A paragraph of educational text.'),
+});
+
+const QuestionBlockSchema = z.object({
+    type: z.literal('question'),
+    question: z.string().describe('A single multiple-choice question to check understanding.'),
+    options: z.array(z.string()).length(4).describe('An array of 4 possible answers.'),
+    correctAnswer: z.string().describe('The correct answer from the options array.'),
+});
+
 export const GenerateChapterContentOutputSchema = z.object({
-  content: z.string().describe('The detailed, essay-length educational content for the chapter.'),
+  content: z.array(z.union([TextBlockSchema, QuestionBlockSchema])).describe('An array of content blocks, mixing detailed text paragraphs and "Check Your Understanding" questions.'),
   activity: z.string().describe('A suggested, interactive activity based on the chapter content, tailored to the learner\'s style.'),
 });
 
