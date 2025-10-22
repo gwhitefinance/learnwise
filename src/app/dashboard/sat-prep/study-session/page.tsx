@@ -26,7 +26,7 @@ import { FloatingChatContext } from '@/components/floating-chat';
 import { addDoc, collection } from 'firebase/firestore';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import GeneratingCourse from '@/app/dashboard/courses/GeneratingCourse';
-import { generateFeedbackFlow, generateExplanation } from '@/ai/flows/sat-feedback-flow';
+import { generateFeedbackFlow, generateExplanation, generateTutorResponse } from '@/ai/flows/sat-feedback-flow';
 import GeneratingSession from '../GeneratingSession';
 
 
@@ -145,7 +145,7 @@ function StudySessionPageContent() {
 
         } catch (error) {
             console.error("Course creation failed:", error);
-            toast({ variant: 'destructive', title: "Course Creation Failed" });
+            toast({ variant: "destructive", title: "Course Creation Failed" });
         } finally {
             setIsSubmittingCourse(false);
         }
@@ -194,7 +194,6 @@ function StudySessionPageContent() {
                 answeredQuestions: questions.map((q, i) => ({
                     question: q.question,
                     userAnswer: userAnswers[i] || "No answer",
-                    correctAnswer: q.answer,
                     isCorrect: userAnswers[i] === q.answer,
                     topic: q.topic,
                 }))
