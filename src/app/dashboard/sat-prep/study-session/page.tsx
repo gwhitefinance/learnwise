@@ -71,7 +71,6 @@ function StudySessionPageContent() {
                     setQuestions(parsedQuestions);
                     setIsLoading(false);
                 } else {
-                    // Data is empty or invalid, push back.
                     toast({ variant: 'destructive', title: 'Session data is invalid.', description: 'Please start a new session.' });
                     router.push('/dashboard/sat-prep');
                 }
@@ -84,6 +83,7 @@ function StudySessionPageContent() {
             toast({ variant: 'destructive', title: 'Session Expired', description: 'Please start a new session.' });
             router.push('/dashboard/sat-prep');
         }
+        
     }, [topic, router, toast]);
 
     useEffect(() => {
@@ -102,7 +102,6 @@ function StudySessionPageContent() {
     const handleTurnStrugglingIntoCourse = async () => {
         if (!resultsData || !user) return;
         setIsSubmittingCourse(true);
-        // We won't show a toast here, the GeneratingCourse component will handle the UI
 
         const strugglingTopics = Object.entries(resultsData.accuracyByTopic)
             .filter(([, stats]) => (stats as any).correct / (stats as any).total < 0.6)
@@ -233,6 +232,7 @@ function StudySessionPageContent() {
     }
     
     if (isSubmittingCourse) {
+        if (!resultsData) return null;
         const strugglingTopics = Object.entries(resultsData.accuracyByTopic)
             .filter(([, stats]) => (stats as any).correct / (stats as any).total < 0.6)
             .map(([topic]) => topic);
@@ -473,7 +473,7 @@ const EmbeddedChat = ({ topic }: { topic: string | null }) => {
         setIsLoading(true);
     
         try {
-          const response = await generateTutorResponse({ chapterContext: `The user is in an SAT study session about ${topic}.`, question: chatInput });
+          const response = await generateTutorResponse({ studyContext: `The user is in an SAT study session about ${topic}.`, question: chatInput, history: newMessages });
     
           const aiMessage: Message = { role: 'ai', content: response.answer };
           setMessages([...newMessages, aiMessage]);

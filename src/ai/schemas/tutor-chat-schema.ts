@@ -1,8 +1,14 @@
 import { z } from 'zod';
 
+const MessageSchema = z.object({
+  role: z.enum(['user', 'ai']),
+  content: z.string(),
+});
+
 export const TutorChatInputSchema = z.object({
-  chapterContext: z.string().describe('The full text content of the chapter the user is asking about.'),
-  question: z.string().describe('The user\'s question about the chapter content.'),
+  studyContext: z.string().describe('The topic of the current study session (e.g., "SAT Math", "Reading & Writing").'),
+  question: z.string().describe('The user\'s question.'),
+  history: z.array(MessageSchema).optional().describe('The conversation history so far.'),
 });
 export type TutorChatInput = z.infer<typeof TutorChatInputSchema>;
 

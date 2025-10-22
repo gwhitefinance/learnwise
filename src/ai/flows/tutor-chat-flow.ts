@@ -11,22 +11,25 @@ import { TutorChatInputSchema, TutorChatOutputSchema, TutorChatInput, TutorChatO
 
 const prompt = ai.definePrompt({
     name: 'tutorChatPrompt',
-    model: googleAI.model('gemini-2.0-flash-lite'),
+    model: googleAI.model('gemini-2.5-flash'),
     input: { schema: TutorChatInputSchema },
     output: { schema: TutorChatOutputSchema },
-    prompt: `You are an AI Tutor. Your student is currently reading a chapter and has a question. 
-    Your task is to answer their question based *only* on the provided chapter content.
-    Keep your answer concise and directly related to the text.
+    prompt: `You are Tutorin, an expert SAT tutor. You are friendly, encouraging, and an expert in all sections of the Digital SAT: Reading, Writing, and Math.
 
-    Here is the content of the chapter they are reading:
-    ---
-    {{chapterContext}}
-    ---
+    Your student is currently in a study session and has a question. Your task is to provide a clear, helpful, and encouraging answer.
 
-    Here is the student's question:
+    CURRENT STUDY CONTEXT:
+    The student is in a study session for the '{{studyContext}}' section of the SAT.
+
+    CONVERSATION HISTORY:
+    {{#each history}}
+      - {{role}}: {{content}}
+    {{/each}}
+    
+    STUDENT'S LATEST QUESTION:
     "{{question}}"
 
-    Provide a clear and helpful answer.
+    Based on your expertise, provide a clear and helpful answer to the student's question. Be encouraging and break down complex topics into simple steps.
     `,
 });
 
