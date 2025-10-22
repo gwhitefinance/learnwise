@@ -19,7 +19,6 @@ import { auth, db } from '@/lib/firebase';
 import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
 import { format, formatDistanceToNow } from 'date-fns';
 import { FloatingChatContext } from '@/components/floating-chat';
-import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 
@@ -212,11 +211,6 @@ export default function SatPrepPage() {
             </div>
         );
     }
-
-    const studyTasks = [
-        { title: 'Study Session', subject: 'Math', progress: 0, total: 10, color: 'bg-purple-500' },
-        { title: 'Study Session', subject: 'Reading and Writing', progress: 1, total: 10, color: 'bg-green-500' },
-    ];
     
     const todayIndex = new Date().getDay();
 
@@ -233,12 +227,61 @@ export default function SatPrepPage() {
                 </div>
                  <div className="space-y-4">
                     <h2 className="text-2xl font-bold flex items-center gap-2"><Rocket className="text-primary"/> Let's begin:</h2>
-                    <ul className="list-disc list-inside space-y-2 pl-2">
-                        <li><Link href="#" className="hover:underline font-medium">Study Session: Reading</Link></li>
-                        <li><Link href="#" className="hover:underline font-medium">Study Session: Math</Link></li>
-                    </ul>
+                    <div className="flex flex-col sm:flex-row gap-4">
+                        <Button asChild className="w-full justify-start text-base py-6" variant="outline">
+                            <Link href="#">
+                                <BookOpen className="mr-2 h-5 w-5" />
+                                Study Session: Reading
+                            </Link>
+                        </Button>
+                        <Button asChild className="w-full justify-start text-base py-6" variant="outline">
+                            <Link href="#">
+                                <Calculator className="mr-2 h-5 w-5" />
+                                Study Session: Math
+                            </Link>
+                        </Button>
+                    </div>
                 </div>
                  <DailyQuestion />
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Full Practice Test</CardTitle>
+                        <CardDescription>Simulate the real test environment to gauge your progress.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Button className="w-full md:w-auto" asChild size="lg">
+                            <Link href="/dashboard/sat-prep/practice-test">
+                                Start Full-Length Test <ArrowRight className="ml-2 h-4 w-4"/>
+                            </Link>
+                        </Button>
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Past Results</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        {resultsLoading ? (
+                            <Skeleton className="h-24 w-full" />
+                        ) : pastResults.length > 0 ? (
+                            <div className="space-y-3">
+                                {pastResults.slice(0, 3).map(result => (
+                                    <Link key={result.id} href={`/dashboard/sat-prep/${result.id}`}>
+                                        <div className="flex justify-between items-center p-3 rounded-lg hover:bg-muted">
+                                            <div>
+                                                <p className="font-semibold">{result.total}</p>
+                                                <p className="text-xs text-muted-foreground">{format(result.timestamp.toDate(), 'MMM d, yyyy')}</p>
+                                            </div>
+                                            <Trophy className="h-5 w-5 text-yellow-500"/>
+                                        </div>
+                                    </Link>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-center text-sm text-muted-foreground py-4">No past test results.</p>
+                        )}
+                    </CardContent>
+                </Card>
                 <div className="pt-8">
                      <div className="relative">
                         <Input 
@@ -281,57 +324,26 @@ export default function SatPrepPage() {
                         <CardTitle>Do this next:</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        {studyTasks.map((task, i) => (
-                            <div key={i} className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm text-muted-foreground">{task.title}</p>
-                                    <div className="flex items-center gap-2">
-                                        <div className={cn("h-2 w-2 rounded-full", task.color)}/>
-                                        <p className="font-semibold">{task.subject}</p>
-                                    </div>
+                         <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm text-muted-foreground">Study Session</p>
+                                <div className="flex items-center gap-2">
+                                    <div className={cn("h-2 w-2 rounded-full", 'bg-purple-500')}/>
+                                    <p className="font-semibold">Math</p>
                                 </div>
-                                <p className="text-sm font-medium">{task.progress}/{task.total}</p>
                             </div>
-                        ))}
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Full Practice Test</CardTitle>
-                        <CardDescription>Simulate the real test environment.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <Button className="w-full" asChild>
-                            <Link href="/dashboard/sat-prep/practice-test">
-                                Start Full-Length Test
-                            </Link>
-                        </Button>
-                    </CardContent>
-                </Card>
-                 <Card>
-                    <CardHeader>
-                        <CardTitle>Past Results</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        {resultsLoading ? (
-                            <Skeleton className="h-24 w-full" />
-                        ) : pastResults.length > 0 ? (
-                            <div className="space-y-3">
-                                {pastResults.slice(0, 3).map(result => (
-                                    <Link key={result.id} href={`/dashboard/sat-prep/${result.id}`}>
-                                        <div className="flex justify-between items-center p-3 rounded-lg hover:bg-muted">
-                                            <div>
-                                                <p className="font-semibold">{result.total}</p>
-                                                <p className="text-xs text-muted-foreground">{format(result.timestamp.toDate(), 'MMM d, yyyy')}</p>
-                                            </div>
-                                            <Trophy className="h-5 w-5 text-yellow-500"/>
-                                        </div>
-                                    </Link>
-                                ))}
+                            <p className="text-sm font-medium">0/10</p>
+                        </div>
+                         <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm text-muted-foreground">Study Session</p>
+                                <div className="flex items-center gap-2">
+                                    <div className={cn("h-2 w-2 rounded-full", 'bg-green-500')}/>
+                                    <p className="font-semibold">Reading and Writing</p>
+                                </div>
                             </div>
-                        ) : (
-                            <p className="text-center text-sm text-muted-foreground py-4">No past test results.</p>
-                        )}
+                            <p className="text-sm font-medium">1/10</p>
+                        </div>
                     </CardContent>
                 </Card>
             </div>
