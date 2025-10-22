@@ -3,7 +3,14 @@
  */
 import { z } from 'zod';
 import { SatQuestionSchema } from './sat-question-schema';
-import { AnswerFeedbackSchema } from './sat-feedback-schema';
+
+// Define AnswerFeedbackSchema directly in this file
+export const AnswerFeedbackSchema = z.object({
+  question: z.string(),
+  userAnswer: z.string(),
+  correctAnswer: z.string(),
+  isCorrect: z.boolean(),
+});
 
 export const SatStudySessionInputSchema = z.object({
   category: z.enum(['Math', 'Reading & Writing']),
