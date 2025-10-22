@@ -9,17 +9,20 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
-import { generateSatStudySession } from '@/ai/flows/sat-study-session-flow';
+import { generateSatStudySession, studyPlannerFlow } from '@/ai/flows/sat-study-session-flow';
 import type { SatQuestion } from '@/ai/schemas/sat-study-session-schema';
 import { cn } from '@/lib/utils';
-import { ArrowLeft, ArrowRight, CheckCircle, Clock, XCircle, FileText, BookOpen, Calculator, Send } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle, Clock, XCircle, FileText, BookOpen, Calculator, Send, Bot } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { FloatingChatContext } from '@/components/floating-chat';
 import AIBuddy from '@/components/ai-buddy';
 import { Input } from '@/components/ui/input';
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { auth } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
 import { Badge } from '@/components/ui/badge';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import type { Message } from '@/components/floating-chat';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 
 function StudySessionPageContent() {
@@ -90,7 +93,7 @@ function StudySessionPageContent() {
     
     const handlePrevious = () => {
         if (currentQuestionIndex > 0) {
-            setCurrentQuestionIndex(prev => prev - 1);
+            setCurrentQuestionIndex(prev => prev + 1);
         }
     };
 
@@ -200,16 +203,40 @@ function StudySessionPageContent() {
 }
 
 const EmbeddedChat = ({ topic }: { topic: string | null }) => {
-    const [chatInput, setChatInput] = useState('');
+    const router = useRouter();
     const { toast } = useToast();
     const [user] = useAuthState(auth);
-    const router = useRouter();
+    const [isLoading, setIsLoading] = useState(false);
+    const [chatInput, setChatInput] = useState('');
+    const [messages, setMessages] = useState<Message[]>([
+        { role: 'ai', content: `Any questions on ${topic}? I'm here to help.` }
+    ]);
 
-    const handleChatSubmit = () => {
-        if (!chatInput.trim()) return;
-        toast({ title: 'Message Sent (Simulation)', description: `You asked: ${chatInput}`});
-        // In a real scenario, this would integrate with a chat service.
-        setChatInput('');
+    const handleChatSubmit = async () => {
+        if (!chatInput.trim() || !user) return;
+    
+        const userMessage: Message = { role: 'user', content: chatInput };
+        const newMessages = [...messages, userMessage];
+        setMessages(newMessages);
+        setInput('');
+        setIsLoading(true);
+    
+        try {
+          const response = await studyPlannerFlow({
+            userName: user?.displayName?.split(' ')[0],
+            history: newMessages,
+          });
+    
+          const aiMessage: Message = { role: 'ai', content: response };
+          setMessages([...newMessages, aiMessage]);
+    
+        } catch (error) {
+          console.error(error);
+          setMessages(messages); // Revert on error
+          toast({ variant: 'destructive', title: 'Error', description: 'Could not get a response from the AI.'})
+        } finally {
+          setIsLoading(false);
+        }
     }
 
     return (
@@ -221,28 +248,46 @@ const EmbeddedChat = ({ topic }: { topic: string | null }) => {
                 <h3 className="font-semibold">Ask Tutorin</h3>
                 <div className="w-8"></div>
             </div>
-             <div className="flex-1 space-y-4">
-                <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 flex-shrink-0">
-                        <AIBuddy className="w-10 h-10" />
-                    </div>
-                    <div className="bg-muted p-3 rounded-lg rounded-bl-none">
-                        <p className="text-sm">Any questions on {topic}? I'm here to help.</p>
-                    </div>
+            <ScrollArea className="flex-1 -mx-4">
+                <div className="px-4 space-y-4">
+                    {messages.map((message, index) => (
+                        <div key={index} className={cn("flex items-start gap-3", message.role === 'user' && 'justify-end')}>
+                            {message.role === 'ai' && (
+                                <div className="w-10 h-10 flex-shrink-0">
+                                    <AIBuddy className="w-10 h-10" />
+                                </div>
+                            )}
+                             <div className={cn("p-3 rounded-lg max-w-[85%]", message.role === 'ai' ? 'bg-muted rounded-bl-none' : 'bg-primary text-primary-foreground rounded-br-none')}>
+                                <p className="text-sm">{message.content}</p>
+                            </div>
+                        </div>
+                    ))}
+                    {isLoading && (
+                        <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 flex-shrink-0">
+                                <AIBuddy className="w-10 h-10" />
+                            </div>
+                            <div className="bg-muted p-3 rounded-lg rounded-bl-none animate-pulse">
+                                <p className="text-sm">Thinking...</p>
+                            </div>
+                        </div>
+                    )}
                 </div>
-            </div>
+            </ScrollArea>
             <div className="relative mt-4">
                 <Input 
-                    placeholder="Ask Tutorin anything..."
+                    placeholder="Ask anything..."
                     className="h-12 rounded-full pl-6 pr-14 text-base"
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleChatSubmit()}
+                    disabled={isLoading}
                 />
                 <Button 
                     size="icon" 
                     className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full h-9 w-9"
                     onClick={handleChatSubmit}
+                    disabled={isLoading}
                 >
                     <Send className="h-4 w-4" />
                 </Button>
