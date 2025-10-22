@@ -1,11 +1,10 @@
 
-
 'use client';
 
 import { useState, useEffect, Suspense, useContext } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
@@ -205,6 +204,10 @@ export default function StudySessionPage() {
         <Suspense fallback={<div>Loading...</div>}>
             <div className="flex w-full h-full">
                 <div className="w-[400px] h-full bg-card border-r flex-shrink-0 hidden lg:block">
+                    <div className="p-4 border-b text-center">
+                        <h3 className="font-semibold">Ask Tutorin</h3>
+                        <p className="text-xs text-muted-foreground">Get help with any question.</p>
+                    </div>
                     <FloatingChat isEmbedded={true}>
                         <></>
                     </FloatingChat>
@@ -214,4 +217,3 @@ export default function StudySessionPage() {
         </Suspense>
     );
 }
-
