@@ -31,7 +31,6 @@ import { generateAudio } from '@/ai/flows/text-to-speech-flow';
 import { generateMindfulnessExercise } from '@/ai/flows/mindfulness-flow';
 import { generateConceptExplanation } from '@/ai/flows/concept-explanation-flow';
 import { generateSatStudySessionAction } from '@/ai/flows/sat-study-session-flow';
-import { generateFeedbackAction } from '@/ai/flows/sat-feedback-flow';
 
 
 // Re-exporting all AI functions as Server Actions
@@ -65,5 +64,4 @@ export {
     generateMindfulnessExercise,
     generateConceptExplanation,
     generateSatStudySessionAction,
-    generateFeedbackAction,
 };

@@ -9,7 +9,8 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
-import { generateSatStudySessionAction, generateFeedbackAction, generateMiniCourse, generateExplanation } from '@/lib/actions';
+import { generateSatStudySessionAction, generateMiniCourse, generateExplanation } from '@/lib/actions';
+import { generateFeedbackFlow } from '@/ai/flows/sat-feedback-flow';
 import type { SatQuestion, FeedbackInput } from '@/ai/schemas/sat-study-session-schema';
 import { cn } from '@/lib/utils';
 import { ArrowLeft, ArrowRight, CheckCircle, Clock, XCircle, FileText, BookOpen, Calculator, Send, Bot, Wand2, Star } from 'lucide-react';
@@ -198,7 +199,7 @@ function StudySessionPageContent() {
                     isCorrect: userAnswers[i] === q.answer,
                     topic: q.topic,
                 }));
-                const feedbackResult = await generateFeedbackAction({ answeredQuestions });
+                const feedbackResult = await generateFeedbackFlow({ answeredQuestions });
                 setResultsData((prev: any) => ({ ...prev, feedback: feedbackResult.feedback }));
             } catch (error) {
                 console.error("Failed to get AI feedback:", error);
