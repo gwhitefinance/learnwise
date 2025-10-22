@@ -21,6 +21,7 @@ import { format, formatDistanceToNow } from 'date-fns';
 import { FloatingChatContext } from '@/components/floating-chat';
 import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 
 type TestResult = {
     id: string;
