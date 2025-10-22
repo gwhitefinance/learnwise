@@ -18,6 +18,10 @@ const prompt = ai.definePrompt({
 
     Your student is currently in a study session and has a question. Your task is to provide a clear, helpful, and encouraging answer.
 
+    **CRITICAL INSTRUCTIONS**:
+    1.  **Be Concise**: Keep your answer to 2-3 sentences.
+    2.  **No Markdown**: Do NOT use any markdown formatting like asterisks for bolding or italics.
+
     CURRENT STUDY CONTEXT:
     The student is in a study session for the '{{studyContext}}' section of the SAT.
 
