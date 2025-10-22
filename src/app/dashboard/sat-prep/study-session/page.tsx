@@ -23,6 +23,7 @@ import { Badge } from '@/components/ui/badge';
 import type { Message } from '@/components/floating-chat';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { FloatingChatContext } from '@/components/floating-chat';
 
 
 function StudySessionPageContent() {
