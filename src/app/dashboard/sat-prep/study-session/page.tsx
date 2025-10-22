@@ -1,10 +1,11 @@
 
+
 'use client';
 
 import { useState, useEffect, Suspense, useContext } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
@@ -195,9 +196,9 @@ function StudySessionPageContent() {
                 const answeredQuestions: FeedbackInput['answeredQuestions'] = questions.map((q, i) => ({
                     question: q.question,
                     userAnswer: userAnswers[i] || 'No answer',
-                    correctAnswer: q.answer,
                     isCorrect: userAnswers[i] === q.answer,
                     topic: q.topic,
+                    correctAnswer: q.answer, // FIX: Added correct answer
                 }));
                 const feedbackResult = await generateFeedbackFlow({ answeredQuestions });
                 setResultsData((prev: any) => ({ ...prev, feedback: feedbackResult.feedback }));
@@ -240,7 +241,7 @@ function StudySessionPageContent() {
             <div className="p-4 md:p-8 space-y-8">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <Card className="relative">
-                        {resultsData.accuracy < 50 && <Badge variant="destructive" className="absolute -top-3 -left-3 -rotate-12">Suffering</Badge>}
+                        {resultsData.accuracy < 50 && <Badge variant="destructive" className="absolute -top-3 -left-3 -rotate-12">Struggling</Badge>}
                         <CardHeader><CardTitle>Accuracy</CardTitle></CardHeader>
                         <CardContent><p className="text-4xl font-bold">{resultsData.accuracy.toFixed(0)}%</p></CardContent>
                     </Card>
@@ -296,7 +297,7 @@ function StudySessionPageContent() {
                     </CardHeader>
                     <CardFooter>
                         <Button onClick={handleTurnStrugglingIntoCourse} disabled={isSubmittingCourse}>
-                            {isSubmittingCourse ? <>Creating Course...</> : <>Create My Course</>}
+                            {isSubmittingCourse ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Creating Course...</> : <>Create My Course</>}
                         </Button>
                     </CardFooter>
                 </Card>
