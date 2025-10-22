@@ -25,7 +25,7 @@ const prompt = ai.definePrompt({
 });
 
 
-const generateSatStudySessionFlow = ai.defineFlow(
+export const generateSatStudySessionFlow = ai.defineFlow(
   {
     name: 'generateSatStudySessionFlow',
     inputSchema: SatStudySessionInputSchema,
@@ -40,6 +40,6 @@ const generateSatStudySessionFlow = ai.defineFlow(
   }
 );
 
-export async function generateSatStudySession(input: SatStudySessionInput): Promise<SatStudySessionOutput> {
+export async function generateSatStudySessionAction(input: SatStudySessionInput): Promise<SatStudySessionOutput> {
     return generateSatStudySessionFlow(input);
 }
