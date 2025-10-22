@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { generateSatStudySession, studyPlannerFlow, generateFeedback, generateMiniCourse } from '@/lib/actions';
-import type { SatQuestion } from '@/ai/schemas/sat-study-session-schema';
+import type { SatQuestion, SatStudySessionInput, SatStudySessionOutput } from '@/ai/schemas/sat-study-session-schema';
 import { cn } from '@/lib/utils';
 import { ArrowLeft, ArrowRight, CheckCircle, Clock, XCircle, FileText, BookOpen, Calculator, Send, Bot, Wand2, Star } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -295,7 +295,7 @@ function StudySessionPageContent() {
                     </CardHeader>
                     <CardFooter>
                         <Button onClick={handleTurnStrugglingIntoCourse} disabled={isSubmittingCourse}>
-                            {isSubmittingCourse ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/>Creating Course...</> : <>Create My Course</>}
+                            {isSubmittingCourse ? <>Creating Course...</> : <>Create My Course</>}
                         </Button>
                     </CardFooter>
                 </Card>

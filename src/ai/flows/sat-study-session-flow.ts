@@ -6,7 +6,7 @@
 import { ai } from '@/ai/genkit';
 import { googleAI } from '@genkit-ai/google-genai';
 import { z } from 'zod';
-import { SatStudySessionInputSchema, SatStudySessionOutputSchema, SatStudySessionInput, SatStudySessionOutput } from '@/ai/schemas/sat-study-session-schema';
+import { SatStudySessionInputSchema, SatStudySessionOutputSchema } from '@/ai/schemas/sat-study-session-schema';
 
 
 const prompt = ai.definePrompt({
@@ -42,6 +42,6 @@ const generateSatStudySessionFlow = ai.defineFlow(
   }
 );
 
-export async function generateSatStudySession(input: SatStudySessionInput): Promise<SatStudySessionOutput> {
+export async function generateSatStudySession(input: z.infer<typeof SatStudySessionInputSchema>): Promise<z.infer<typeof SatStudySessionOutputSchema>> {
     return generateSatStudySessionFlow(input);
 }
