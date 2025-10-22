@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, Suspense, useContext } from 'react';
@@ -29,6 +30,7 @@ import GeneratingCourse from '@/app/dashboard/courses/GeneratingCourse';
 import { generateFeedbackFlow } from '@/ai/flows/sat-feedback-flow';
 import { generateExplanation } from '@/ai/flows/quiz-explanation-flow';
 import GeneratingSession from '../GeneratingSession';
+import { generateSatStudySessionAction } from '@/lib/actions';
 
 
 function StudySessionPageContent({ topic }: { topic: 'Math' | 'Reading & Writing' | null }) {
@@ -69,13 +71,13 @@ function StudySessionPageContent({ topic }: { topic: 'Math' | 'Reading & Writing
                     setQuestions(parsedQuestions);
                     setIsLoading(false);
                 } else {
-                    toast({ variant: 'destructive', title: 'Session data is invalid.', description: 'Please start a new session.' });
+                    toast({ variant: 'destructive', title: 'Session Expired', description: 'Could not load session data. Please start a new session.' });
                     router.push('/dashboard/sat-prep');
                 }
             } catch (e) {
                 console.error("Failed to parse study session data from sessionStorage", e);
-                // toast({ variant: 'destructive', title: 'Session Expired', description: 'Could not load session data. Please start a new session.' });
-                // router.push('/dashboard/sat-prep');
+                toast({ variant: 'destructive', title: 'Session Expired', description: 'Could not load session data. Please start a new session.' });
+                router.push('/dashboard/sat-prep');
             }
         }
     }, [topic, router, toast]);
@@ -447,7 +449,7 @@ function StudySessionPageContent({ topic }: { topic: 'Math' | 'Reading & Writing
 
 
 const EmbeddedChat = ({ topic, currentQuestion }: { topic: string | null, currentQuestion: SatQuestion | null }) => {
-    const [isLoading, setIsLoading] = useState(false);
+    const [isChatLoading, setIsChatLoading] = useState(false);
     const [messages, setMessages] = useState<Message[]>([
         { role: 'ai', content: `Any questions on ${topic}? I'm here to help.` }
     ]);
@@ -462,7 +464,7 @@ const EmbeddedChat = ({ topic, currentQuestion }: { topic: string | null, curren
         const newMessages = [...messages, userMessage];
         setMessages(newMessages);
         setChatInput('');
-        setIsLoading(true);
+        setIsChatLoading(true);
     
         try {
           const response = await generateTutorResponse({ 
@@ -480,7 +482,7 @@ const EmbeddedChat = ({ topic, currentQuestion }: { topic: string | null, curren
           setMessages(messages); // Revert on error
           toast({ variant: 'destructive', title: 'Error', description: 'Could not get a response from the AI.'})
         } finally {
-          setIsLoading(false);
+          setIsChatLoading(false);
         }
     }
 
@@ -503,7 +505,7 @@ const EmbeddedChat = ({ topic, currentQuestion }: { topic: string | null, curren
                             </div>
                         </div>
                     ))}
-                    {isLoading && (
+                    {isChatLoading && (
                         <div className="flex items-start gap-3">
                             <div className="w-10 h-10 flex-shrink-0">
                                 <AIBuddy className="w-10 h-10" />
@@ -522,13 +524,13 @@ const EmbeddedChat = ({ topic, currentQuestion }: { topic: string | null, curren
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleChatSubmit()}
-                    disabled={isLoading}
+                    disabled={isChatLoading}
                 />
                 <Button 
                     size="icon" 
                     className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full h-9 w-9"
                     onClick={handleChatSubmit}
-                    disabled={isLoading}
+                    disabled={isChatLoading}
                 >
                     <Send className="h-4 w-4" />
                 </Button>
@@ -543,16 +545,9 @@ export default function StudySessionPage() {
 
     return (
         <Suspense fallback={<Skeleton className="h-full w-full" />}>
-            <div className="grid grid-cols-1 lg:grid-cols-3 h-full">
-                <div className="hidden lg:block lg:col-span-1">
-                   <EmbeddedChat topic={topic} currentQuestion={null} />
-                </div>
-                <div className="lg:col-span-2">
-                    <StudySessionPageContent topic={topic} />
-                </div>
+             <div className="h-full">
+                <StudySessionPageContent topic={topic} />
             </div>
         </Suspense>
     );
 }
-
-    
