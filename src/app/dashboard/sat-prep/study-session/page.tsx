@@ -37,7 +37,7 @@ function StudySessionPageContent() {
     const [userAnswers, setUserAnswers] = useState<Record<number, string>>({});
     const [isSubmitted, setIsSubmitted] = useState<Record<number, boolean>>({});
     
-    const [timeRemaining, setTimeRemaining] = useState(20 * 60); // 20 minutes
+    const [questionTime, setQuestionTime] = useState(0); 
     const { toast } = useToast();
 
     const { openChatWithPrompt } = useContext(FloatingChatContext);
@@ -67,18 +67,15 @@ function StudySessionPageContent() {
     }, [topic, router, toast]);
 
     useEffect(() => {
+        setQuestionTime(0); // Reset timer for new question
         const timer = setInterval(() => {
-            setTimeRemaining(prev => {
-                if (prev <= 1) {
-                    clearInterval(timer);
-                    // Handle time up
-                    return 0;
-                }
-                return prev - 1;
-            });
+            // Only count time if an answer has NOT been submitted for the current question
+            if (!isSubmitted[currentQuestionIndex]) {
+                 setQuestionTime(prev => prev + 1);
+            }
         }, 1000);
         return () => clearInterval(timer);
-    }, []);
+    }, [currentQuestionIndex, isSubmitted]);
 
     const handleSubmit = () => {
         setIsSubmitted(prev => ({ ...prev, [currentQuestionIndex]: true }));
@@ -128,8 +125,8 @@ function StudySessionPageContent() {
     const selectedAnswer = userAnswers[currentQuestionIndex];
     const isCorrect = selectedAnswer === currentQuestion.correctAnswer;
     const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
-    const minutes = Math.floor(timeRemaining / 60);
-    const seconds = timeRemaining % 60;
+    const minutes = Math.floor(questionTime / 60);
+    const seconds = questionTime % 60;
     
     const difficultyColors = {
         'Easy': 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300',
@@ -338,3 +335,4 @@ export default function StudySessionPage() {
         </Suspense>
     );
 }
+
