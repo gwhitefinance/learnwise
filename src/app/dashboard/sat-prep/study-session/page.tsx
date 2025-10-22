@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, Suspense, useContext } from 'react';
@@ -93,7 +94,7 @@ function StudySessionPageContent() {
     
     const handlePrevious = () => {
         if (currentQuestionIndex > 0) {
-            setCurrentQuestionIndex(prev => prev + 1);
+            setCurrentQuestionIndex(prev => prev - 1);
         }
     };
 
@@ -218,7 +219,7 @@ const EmbeddedChat = ({ topic }: { topic: string | null }) => {
         const userMessage: Message = { role: 'user', content: chatInput };
         const newMessages = [...messages, userMessage];
         setMessages(newMessages);
-        setInput('');
+        setChatInput('');
         setIsLoading(true);
     
         try {
@@ -241,7 +242,7 @@ const EmbeddedChat = ({ topic }: { topic: string | null }) => {
 
     return (
         <div className="p-4 border-r h-full flex flex-col bg-card">
-            <div className="p-4 bg-muted rounded-lg text-center mb-4 flex items-center justify-between">
+             <div className="p-4 bg-muted rounded-lg text-center mb-4 flex items-center justify-between">
                  <Button variant="ghost" size="icon" onClick={() => router.push('/dashboard/sat-prep')} className="h-8 w-8">
                     <ArrowLeft className="h-4 w-4" />
                 </Button>
