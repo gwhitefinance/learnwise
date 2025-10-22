@@ -273,6 +273,12 @@ function CoursesComponent() {
   const currentModule = activeCourse?.units?.[currentModuleIndex];
   const currentChapter = currentModule?.chapters[currentChapterIndex];
 
+  useEffect(() => {
+    if (currentChapter?.title.toLowerCase().includes('quiz') && currentModule && !quizResults[currentModule.id]) {
+      handleStartModuleQuiz(currentModule, true);
+    }
+  }, [currentChapter, currentModule, quizResults]);
+
   const handleGenerateCourse = async () => {
     if (!user || !newCourse.name || isNewTopic === null || !learnerType) return;
     
@@ -915,12 +921,6 @@ function CoursesComponent() {
   const existingQuizResult = currentModule ? quizResults[currentModule.id] : undefined;
   const currentChapterIsQuiz = currentChapter?.title.toLowerCase().includes('quiz');
 
-  useEffect(() => {
-    if (currentChapterIsQuiz && currentModule && !existingQuizResult) {
-      handleStartModuleQuiz(currentModule, true);
-    }
-  }, [currentChapter, currentModule, existingQuizResult]);
-
   if (isGenerating) {
     return <GeneratingCourse courseName={newCourse.name} />;
   }
@@ -1345,6 +1345,8 @@ function CoursesComponent() {
                                     {unit.chapters.map((chapter, cIndex) => {
                                         const isCurrent = currentModuleIndex === mIndex && currentChapterIndex === cIndex;
                                         const isCompleted = activeCourse.completedChapters?.includes(chapter.id) ?? false;
+                                        const chapterIsQuiz = chapter.title.toLowerCase().includes('quiz');
+                                        const quizResultForChapter = chapterIsQuiz ? quizResults[unit.id] : undefined;
                                         
                                         const isPreviousChapterCompleted = cIndex === 0 
                                             ? arePreviousModulesComplete
@@ -1367,7 +1369,12 @@ function CoursesComponent() {
                                                 )}
                                             >
                                                 <CheckCircle size={14} className={cn(isCompleted ? "text-green-500" : "text-muted-foreground/50")} />
-                                                {chapter.title}
+                                                <span className="flex-1">{chapter.title}</span>
+                                                {quizResultForChapter && (
+                                                    <span className="text-xs font-semibold text-primary">
+                                                        {Math.round((quizResultForChapter.score / quizResultForChapter.totalQuestions) * 100)}%
+                                                    </span>
+                                                )}
                                             </button>
                                         </li>
                                     )})}
