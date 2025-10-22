@@ -45,6 +45,9 @@ import {
   Snail,
   Turtle,
   Copy,
+  ChevronLeft,
+  ChevronRight,
+  RefreshCw,
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -78,7 +81,7 @@ import dynamic from 'next/dynamic';
 import AIBuddy from '@/components/ai-buddy';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import rewardsData from '@/lib/rewards.json';
-import { generateExplanation, generateRoadmap, generateFlashcardsFromModule } from '@/lib/actions';
+import { generateExplanation, generateRoadmap, generateFlashcardsFromModule, generateChapterContent } from '@/lib/actions';
 import AudioPlayer from '@/components/audio-player';
 import type { GenerateExplanationOutput } from '@/ai/schemas/quiz-explanation-schema';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -171,6 +174,7 @@ import { AnimatePresence } from 'framer-motion';
       isExplanationLoading: boolean;
       practiceAnswer?: string;
       practiceFeedback?: 'correct' | 'incorrect';
+      remediationChapter?: { title: string; content: string; };
   };
   
   type Flashcard = {
@@ -703,22 +707,19 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
 
         if (isCorrect) {
             toast({ title: "Correct!", description: "Great job! This question has been mastered." });
-            // Optimistically remove the item from the UI
             setWeakestLinks(prev => ({
                 ...prev,
                 [topic]: prev[topic].filter(l => l.attempt.id !== attemptId)
             }));
             
-            // Remove from Firestore in the background
             try {
                 await deleteDoc(doc(db, 'quizAttempts', attemptId));
             } catch (error) {
                 console.error("Failed to delete mastered question:", error);
-                // If deletion fails, we might want to add it back to the UI, but for now, we'll leave it as is for a smoother user experience.
             }
 
         } else {
-            toast({ variant: 'destructive', title: "Not quite...", description: "Let's try another one!" });
+            toast({ variant: 'destructive', title: "Not quite...", description: "Let's try a different approach to this concept." });
             
             setWeakestLinks(prev => ({
                 ...prev,
@@ -727,29 +728,26 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
 
             try {
                 const { attempt } = currentLink;
-                const result = await generateExplanation({
-                    question: attempt.question,
-                    userAnswer: attempt.userAnswer, // This is the original wrong answer
-                    correctAnswer: attempt.correctAnswer, // This is the original correct answer
+                // Instead of getting a new question, generate a full remediation chapter
+                const remediationContent = await generateChapterContent({
+                    courseName: "Targeted Review",
+                    moduleTitle: attempt.topic,
+                    chapterTitle: `Understanding: "${attempt.question}"`,
                     learnerType: learnerType as any,
-                    provideFullExplanation: false, // We only want a new question
                 });
-                
-                // Update the state with the new practice question, clearing old feedback
+
                 setWeakestLinks(prev => ({
                     ...prev,
                     [topic]: prev[topic].map(l => l.attempt.id === attemptId ? { 
                         ...l,
-                        explanation: { ...l.explanation!, practiceQuestion: result.practiceQuestion }, // Keep old explanation, update question
                         isExplanationLoading: false,
-                        practiceAnswer: undefined,
-                        practiceFeedback: undefined,
+                        remediationChapter: { title: `Deep Dive: ${attempt.topic}`, content: remediationContent.content },
+                        explanation: undefined, // Clear old explanation and question
                     } : l)
                 }));
-
             } catch (error) {
-                console.error("Failed to get another question:", error);
-                toast({ variant: 'destructive', title: 'AI Error', description: 'Could not generate a new question.' });
+                console.error("Failed to get remediation chapter:", error);
+                toast({ variant: 'destructive', title: 'AI Error', description: 'Could not generate a new explanation.' });
                 setWeakestLinks(prev => ({
                     ...prev,
                     [topic]: prev[topic].map(l => l.attempt.id === attemptId ? { ...l, isExplanationLoading: false } : l)
@@ -1465,7 +1463,20 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                                     <div><span className="font-semibold">Correct Answer:</span> {state.attempt.correctAnswer}</div>
                                                 </div>
                                             </div>
-                                            {state.explanation ? (
+
+                                            {state.remediationChapter ? (
+                                                <div className="mt-4 p-4 bg-background rounded-lg border space-y-4">
+                                                     <h4 className="font-semibold flex items-center gap-2 text-primary"><BrainCircuit size={18}/> Remediation Chapter: {state.remediationChapter.title}</h4>
+                                                     <div className="text-muted-foreground text-sm whitespace-pre-wrap leading-relaxed">{state.remediationChapter.content}</div>
+                                                      <Button size="sm" onClick={() => {
+                                                          toast({ title: 'Concept Mastered!', description: 'This topic has been cleared from your workout.'});
+                                                          setWeakestLinks(prev => ({...prev, [topic]: prev[topic].filter(l => l.attempt.id !== state.attempt.id)}));
+                                                          deleteDoc(doc(db, 'quizAttempts', state.attempt.id));
+                                                      }}>
+                                                          I Understand Now, Mark as Mastered
+                                                      </Button>
+                                                </div>
+                                            ) : state.explanation ? (
                                                 <div className="space-y-4 pt-4">
                                                     {state.explanation.explanation && (
                                                         <div className="p-4 bg-background rounded-lg border">
