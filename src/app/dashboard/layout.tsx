@@ -531,111 +531,113 @@ function DashboardLayoutContent({
         )}
 
         {/* Sidebar - Mobile */}
-        <div
-            className={cn(
-            "fixed inset-y-0 left-0 z-50 w-64 transform bg-background transition-transform duration-300 ease-in-out md:hidden",
-            mobileMenuOpen ? "translate-x-0" : "-translate-x-full",
-            isFocusLayout && "hidden"
-            )}
-        >
-            <div className="flex h-full flex-col border-r">
-            <div className="flex items-center justify-between p-4">
-                <div className="flex items-center gap-3">
-                <div>
-                    <h2 className="font-semibold">Tutorin</h2>
-                    <p className="text-xs text-muted-foreground">Study Suite</p>
-                </div>
-                <div className="flex aspect-square size-10 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-600 to-blue-600 text-white">
-                    <Logo className="size-5" />
-                </div>
-                </div>
-                <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(false)}>
-                <X className="h-5 w-5" />
-                </Button>
-            </div>
+        {!isFocusLayout && (
+          <div
+              className={cn(
+              "fixed inset-y-0 left-0 z-50 w-64 transform bg-background transition-transform duration-300 ease-in-out md:hidden",
+              mobileMenuOpen ? "translate-x-0" : "-translate-x-full",
+              )}
+          >
+              <div className="flex h-full flex-col border-r">
+              <div className="flex items-center justify-between p-4">
+                  <div className="flex items-center gap-3">
+                  <div>
+                      <h2 className="font-semibold">Tutorin</h2>
+                      <p className="text-xs text-muted-foreground">Study Suite</p>
+                  </div>
+                  <div className="flex aspect-square size-10 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-600 to-blue-600 text-white">
+                      <Logo className="size-5" />
+                  </div>
+                  </div>
+                  <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(false)}>
+                  <X className="h-5 w-5" />
+                  </Button>
+              </div>
 
-            <div className="px-3 py-2">
-                <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input type="search" placeholder="Search..." className="w-full rounded-2xl bg-muted pl-9 pr-4 py-2" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
-                </div>
-            </div>
+              <div className="px-3 py-2">
+                  <div className="relative">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input type="search" placeholder="Search..." className="w-full rounded-2xl bg-muted pl-9 pr-4 py-2" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+                  </div>
+              </div>
 
-            <ScrollArea className="flex-1 px-3 py-2">
-                <div className="space-y-1">
-                {filteredSidebarItems.length > 0 ? filteredSidebarItems.map((item) => (
-                    <div key={item.title} className="mb-1">
-                        <SidebarNavItem item={item} pathname={pathname} setMobileMenuOpen={setMobileMenuOpen} />
-                    </div>
-                )) : (
-                    <div className="p-4 text-center text-sm text-muted-foreground">No results found.</div>
+              <ScrollArea className="flex-1 px-3 py-2">
+                  <div className="space-y-1">
+                  {filteredSidebarItems.length > 0 ? filteredSidebarItems.map((item) => (
+                      <div key={item.title} className="mb-1">
+                          <SidebarNavItem item={item} pathname={pathname} setMobileMenuOpen={setMobileMenuOpen} />
+                      </div>
+                  )) : (
+                      <div className="p-4 text-center text-sm text-muted-foreground">No results found.</div>
+                  )}
+                  </div>
+              </ScrollArea>
+
+              <div className="border-t p-3">
+                  <div className="space-y-1">
+                  <Button onClick={handleSignOut} className="flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm font-medium">
+                          <LogOut className="h-5 w-5" />
+                          <span>Sign Out</span>
+                      </Button>
+                  {userProfileDisplay}
+                  </div>
+              </div>
+              </div>
+          </div>
+        )}
+
+        {/* Sidebar - Desktop */}
+        {!isFocusLayout && (
+            <div
+                className={cn(
+                "fixed inset-y-0 left-0 z-30 hidden w-64 transform border-r bg-background transition-transform duration-300 ease-in-out md:block",
+                sidebarOpen ? "translate-x-0" : "-translate-x-full",
                 )}
+            >
+                <div className="flex h-full flex-col">
+                <div className="p-4">
+                    <div className="flex items-center gap-3">
+                    <div>
+                        <h2 className="font-semibold">Tutorin</h2>
+                        <p className="text-xs text-muted-foreground">Study Suite</p>
+                    </div>
+                    <div className="flex aspect-square size-10 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-600 to-blue-600 text-white">
+                        <Logo className="size-5" />
+                    </div>
+                    </div>
                 </div>
-            </ScrollArea>
 
-            <div className="border-t p-3">
-                <div className="space-y-1">
-                <Button onClick={handleSignOut} className="flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm font-medium">
+                <div className="px-3 py-2">
+                    <div className="relative">
+                    <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input type="search" placeholder="Search..." className="w-full rounded-2xl bg-muted pl-9 pr-4 py-2" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+                    </div>
+                </div>
+
+                <ScrollArea className="flex-1 px-3 py-2">
+                    <div className="space-y-1">
+                    {filteredSidebarItems.length > 0 ? filteredSidebarItems.map((item: any) => (
+                        <div key={item.title} className="mb-1">
+                            <SidebarNavItem item={item} pathname={pathname} setMobileMenuOpen={setMobileMenuOpen} />
+                        </div>
+                    )) : (
+                        <div className="p-4 text-center text-sm text-muted-foreground">No results found.</div>
+                    )}
+                    </div>
+                </ScrollArea>
+
+                <div className="border-t p-3">
+                    <div className="space-y-2">
+                    <Button onClick={handleSignOut} className="flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm font-medium">
                         <LogOut className="h-5 w-5" />
                         <span>Sign Out</span>
                     </Button>
-                {userProfileDisplay}
-                </div>
-            </div>
-            </div>
-        </div>
-
-        {/* Sidebar - Desktop */}
-        <div
-            className={cn(
-            "fixed inset-y-0 left-0 z-30 hidden w-64 transform border-r bg-background transition-transform duration-300 ease-in-out md:block",
-            sidebarOpen ? "translate-x-0" : "-translate-x-full",
-            isFocusLayout && "hidden"
-            )}
-        >
-            <div className="flex h-full flex-col">
-            <div className="p-4">
-                <div className="flex items-center gap-3">
-                <div>
-                    <h2 className="font-semibold">Tutorin</h2>
-                    <p className="text-xs text-muted-foreground">Study Suite</p>
-                </div>
-                <div className="flex aspect-square size-10 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-600 to-blue-600 text-white">
-                    <Logo className="size-5" />
-                </div>
-                </div>
-            </div>
-
-            <div className="px-3 py-2">
-                <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input type="search" placeholder="Search..." className="w-full rounded-2xl bg-muted pl-9 pr-4 py-2" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
-                </div>
-            </div>
-
-            <ScrollArea className="flex-1 px-3 py-2">
-                <div className="space-y-1">
-                {filteredSidebarItems.length > 0 ? filteredSidebarItems.map((item: any) => (
-                    <div key={item.title} className="mb-1">
-                        <SidebarNavItem item={item} pathname={pathname} setMobileMenuOpen={setMobileMenuOpen} />
+                    {userProfileDisplay}
                     </div>
-                )) : (
-                    <div className="p-4 text-center text-sm text-muted-foreground">No results found.</div>
-                )}
                 </div>
-            </ScrollArea>
-
-            <div className="border-t p-3">
-                <div className="space-y-2">
-                <Button onClick={handleSignOut} className="flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm font-medium">
-                    <LogOut className="h-5 w-5" />
-                    <span>Sign Out</span>
-                </Button>
-                {userProfileDisplay}
                 </div>
             </div>
-            </div>
-        </div>
+        )}
 
         {/* Main Content */}
         <div className={cn(
