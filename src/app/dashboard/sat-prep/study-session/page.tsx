@@ -217,10 +217,13 @@ const EmbeddedChat = ({ topic }: { topic: string | null }) => {
 
     return (
         <div className="p-4 border-r h-full flex flex-col bg-card">
+            <div className="p-4 bg-muted rounded-lg text-center mb-4">
+                <h3 className="font-semibold">Ask Tutorin</h3>
+            </div>
              <div className="flex-1 space-y-4">
                 <div className="flex items-start gap-3">
                     <div className="w-10 h-10 flex-shrink-0">
-                        <AIBuddy className="w-full h-full" />
+                        <AIBuddy className="w-10 h-10" />
                     </div>
                     <div className="bg-muted p-3 rounded-lg rounded-bl-none">
                         <p className="text-sm">Any questions on {topic}? I'm here to help.</p>
