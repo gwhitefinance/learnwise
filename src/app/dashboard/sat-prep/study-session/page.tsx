@@ -31,10 +31,8 @@ import { generateExplanation } from '@/ai/flows/quiz-explanation-flow';
 import GeneratingSession from '../GeneratingSession';
 
 
-function StudySessionPageContent() {
+function StudySessionPageContent({ topic }: { topic: 'Math' | 'Reading & Writing' | null }) {
     const router = useRouter();
-    const searchParams = useSearchParams();
-    const topic = searchParams.get('topic') as 'Math' | 'Reading & Writing' | null;
 
     const [questions, setQuestions] = useState<SatQuestion[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -79,11 +77,7 @@ function StudySessionPageContent() {
                 // toast({ variant: 'destructive', title: 'Session Expired', description: 'Could not load session data. Please start a new session.' });
                 // router.push('/dashboard/sat-prep');
             }
-        } else {
-            // toast({ variant: 'destructive', title: 'Session Expired', description: 'Please start a new session.' });
-            // router.push('/dashboard/sat-prep');
         }
-        
     }, [topic, router, toast]);
 
     useEffect(() => {
@@ -345,7 +339,6 @@ function StudySessionPageContent() {
              <div className="flex flex-col items-center justify-center h-full text-center">
                  <h1 className="text-2xl font-bold">Generating Your Session...</h1>
                  <p className="text-muted-foreground">This may take a moment.</p>
-                 <Loader2 className="mt-4 h-8 w-8 animate-spin"/>
              </div>
         )
     }
@@ -454,7 +447,6 @@ function StudySessionPageContent() {
 
 
 const EmbeddedChat = ({ topic, currentQuestion }: { topic: string | null, currentQuestion: SatQuestion | null }) => {
-    const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [messages, setMessages] = useState<Message[]>([
         { role: 'ai', content: `Any questions on ${topic}? I'm here to help.` }
@@ -494,12 +486,8 @@ const EmbeddedChat = ({ topic, currentQuestion }: { topic: string | null, curren
 
     return (
         <div className="p-4 border-r h-full flex flex-col bg-card">
-             <header className="p-2 mb-4 flex items-center justify-between">
-                <Button variant="ghost" size="icon" onClick={() => router.push('/dashboard/sat-prep')} className="h-8 w-8">
-                    <ArrowLeft className="h-4 w-4" />
-                </Button>
-                <h3 className="font-semibold">Ask Tutorin</h3>
-                <div className="w-8"></div>
+             <header className="p-2 mb-4">
+                <h3 className="font-semibold text-center">Ask Tutorin</h3>
             </header>
             <ScrollArea className="flex-1 -mx-4">
                 <div className="px-4 space-y-4">
@@ -557,12 +545,14 @@ export default function StudySessionPage() {
         <Suspense fallback={<Skeleton className="h-full w-full" />}>
             <div className="grid grid-cols-1 lg:grid-cols-3 h-full">
                 <div className="hidden lg:block lg:col-span-1">
-                   <StudySessionPageContent />
+                   <EmbeddedChat topic={topic} currentQuestion={null} />
                 </div>
                 <div className="lg:col-span-2">
-                    <StudySessionPageContent />
+                    <StudySessionPageContent topic={topic} />
                 </div>
             </div>
         </Suspense>
     );
 }
+
+    
