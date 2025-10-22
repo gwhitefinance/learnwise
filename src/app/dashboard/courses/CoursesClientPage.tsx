@@ -96,6 +96,11 @@ type QuizResult = {
     timestamp: any;
 };
 
+type InlineQuizState = {
+    selectedAnswer?: string;
+    feedback?: 'correct' | 'incorrect' | null;
+};
+
 
 function CoursesComponent() {
   const searchParams = useSearchParams();
@@ -166,6 +171,13 @@ function CoursesComponent() {
 
   const [isListenAssistantVisible, setIsListenAssistantVisible] = useState(false);
 
+  const [inlineQuizStates, setInlineQuizStates] = useState<Record<string, InlineQuizState>>({});
+
+  const currentModule = activeCourse?.units?.[currentModuleIndex];
+  const currentChapter = currentModule?.chapters[currentChapterIndex];
+  const currentChapterIsQuiz = currentChapter?.title.toLowerCase().includes('quiz');
+  const existingQuizResult = currentModule ? quizResults[currentModule.id] : undefined;
+
   useEffect(() => {
     if (authLoading || !user) return;
 
@@ -192,6 +204,12 @@ function CoursesComponent() {
     return () => unsubscribe();
   }, [user, authLoading, searchParams]);
   
+    useEffect(() => {
+        if (currentChapterIsQuiz && currentModule && !existingQuizResult) {
+            handleStartModuleQuiz(currentModule, true);
+        }
+    }, [currentChapterIsQuiz, currentModule, existingQuizResult]);
+
   useEffect(() => {
     const loadCourseData = async () => {
         if (!user || !selectedCourseId) {
@@ -264,6 +282,7 @@ function CoursesComponent() {
   useEffect(() => {
     setChatHistory([]);
     setChatInput('');
+    setInlineQuizStates({});
   }, [currentChapterIndex, currentModuleIndex]);
 
   useEffect(() => {
@@ -279,16 +298,6 @@ function CoursesComponent() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [popoverPosition]);
 
-  const currentModule = activeCourse?.units?.[currentModuleIndex];
-  const currentChapter = currentModule?.chapters[currentChapterIndex];
-  const existingQuizResult = currentModule ? quizResults[currentModule.id] : undefined;
-  const currentChapterIsQuiz = currentChapter?.title.toLowerCase().includes('quiz');
-
-  useEffect(() => {
-    if (currentChapterIsQuiz && currentModule && !existingQuizResult) {
-        handleStartModuleQuiz(currentModule, true);
-    }
-  }, [currentChapterIsQuiz, currentModule, existingQuizResult]);
 
   const handleGenerateCourse = async () => {
     if (!user || !newCourse.name || isNewTopic === null || !learnerType) return;
@@ -956,6 +965,26 @@ function CoursesComponent() {
   }
 
 
+  const handleCheckInlineAnswer = (blockIndex: number, questionBlock: ContentBlock) => {
+    const key = `${currentChapter?.id}-${blockIndex}`;
+    const currentState = inlineQuizStates[key];
+    if (!currentState?.selectedAnswer) return;
+
+    const isCorrect = currentState.selectedAnswer === questionBlock.correctAnswer;
+    setInlineQuizStates(prev => ({
+        ...prev,
+        [key]: { ...prev[key], feedback: isCorrect ? 'correct' : 'incorrect' }
+    }));
+  };
+
+  const handleInlineAnswerChange = (blockIndex: number, answer: string) => {
+    const key = `${currentChapter?.id}-${blockIndex}`;
+    setInlineQuizStates(prev => ({
+        ...prev,
+        [key]: { ...prev[key], selectedAnswer: answer }
+    }));
+  };
+
   const chapterCount = activeCourse?.units?.reduce((acc, unit) => acc + (unit.chapters?.length ?? 0), 0) ?? 0;
   const completedChaptersCount = activeCourse?.completedChapters?.length ?? 0;
   const progress = chapterCount > 0 ? (completedChaptersCount / chapterCount) * 100 : 0;
@@ -1156,7 +1185,7 @@ function CoursesComponent() {
   const isMidtermModule = activeCourse.units && currentModuleIndex === Math.floor(activeCourse.units.length / 2);
   
     if (currentChapterIsQuiz && currentModule) {
-        if (quizLoading) {
+        if (quizLoading && !existingQuizResult) {
             return (
                 <div className="flex flex-col items-center justify-center h-full text-center p-8">
                     <div className="relative mb-8">
@@ -1178,7 +1207,7 @@ function CoursesComponent() {
             );
         }
 
-        if (quizState === 'configuring') {
+        if (quizState === 'configuring' && !existingQuizResult) {
              return (
                 <div className="flex flex-col items-center justify-center h-full text-center p-8">
                     <div className="mb-10 w-full max-w-3xl">
@@ -1194,94 +1223,95 @@ function CoursesComponent() {
                 </div>
             )
         } else if (existingQuizResult && quizState !== 'in-progress') {
+             const scorePercentage = Math.round((existingQuizResult.score / existingQuizResult.totalQuestions) * 100);
              return (
-            <div className="flex flex-col items-center">
-                <div className="text-center mb-10">
-                    <h1 className="text-4xl font-bold">Quiz Results</h1>
-                    <p className="text-muted-foreground mt-2">Here's how you did on the {currentModule.title} quiz.</p>
-                </div>
-                <Card className="w-full max-w-3xl">
-                    <CardContent className="p-8 text-center">
-                        <h2 className="text-2xl font-semibold">Your Score</h2>
-                        <p className="text-6xl font-bold text-primary my-4">{existingQuizResult.score} / {existingQuizResult.totalQuestions}</p>
-                        <p className="text-muted-foreground">You answered {((existingQuizResult.score / existingQuizResult.totalQuestions) * 100).toFixed(0)}% of the questions correctly.</p>
+                <div className="flex flex-col items-center">
+                    <div className="text-center mb-10">
+                        <h1 className="text-4xl font-bold">Quiz Results</h1>
+                        <p className="text-muted-foreground mt-2">Here's how you did on the {currentModule.title} quiz.</p>
+                    </div>
+                    <Card className="w-full max-w-3xl">
+                        <CardContent className="p-8 text-center">
+                            <h2 className="text-2xl font-semibold">Your Score</h2>
+                            <p className={cn("text-6xl font-bold my-4", scorePercentage > 80 ? 'text-green-500' : scorePercentage > 60 ? 'text-yellow-500' : 'text-red-500')}>{scorePercentage}%</p>
+                            <p className="text-muted-foreground">You answered {existingQuizResult.score} out of {existingQuizResult.totalQuestions} questions correctly.</p>
 
-                        <div className="mt-8 flex justify-center gap-4">
-                            <Button variant="outline" onClick={handleCompleteAndContinue}>
-                                Continue to Next Section <ArrowRight className="ml-2 h-4 w-4"/>
-                            </Button>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-        );
-    }
-    
-    const score = quizAnswers.filter(a => a.isCorrect).length;
-    const totalQuestions = generatedQuiz?.questions.length ?? 0;
-    const currentQuizQuestion = generatedQuiz?.questions[currentQuizQuestionIndex];
-    const quizProgress = totalQuestions > 0 ? ((currentQuizQuestionIndex) / totalQuestions) * 100 : 0;
-    
-    return (
-      <>
-        {quizState === 'in-progress' && !isQuizLoading && currentQuizQuestion && (
-            <div className="flex flex-col items-center">
-                 <div className="text-center mb-10 w-full max-w-3xl">
-                    <p className="text-muted-foreground mb-2">Question {currentQuizQuestionIndex + 1} of {totalQuestions}</p>
-                    <Progress value={quizProgress} className="mb-4 h-2"/>
-                    <h1 className="text-3xl font-bold mt-8">{currentQuizQuestion.question}</h1>
-                </div>
-                 <Card className="w-full max-w-3xl">
-                    <CardContent className="p-8">
-                         <RadioGroup value={selectedQuizAnswer ?? ''} onValueChange={setSelectedQuizAnswer}>
-                            <div className="space-y-4">
-                            {currentQuizQuestion.options?.map((option, index) => (
-                                <Label key={index} htmlFor={`option-${index}`} className={cn(
-                                    "flex items-center gap-4 p-4 rounded-lg border transition-all cursor-pointer",
-                                    "border-border hover:bg-muted",
-                                    selectedQuizAnswer === option && "border-primary bg-primary/10"
-                                )}>
-                                    <RadioGroupItem value={option} id={`option-${index}`} />
-                                    <span>{option}</span>
-                                </Label>
-                            ))}
+                            <div className="mt-8 flex justify-center gap-4">
+                                <Button variant="outline" onClick={handleCompleteAndContinue}>
+                                    Continue to Next Section <ArrowRight className="ml-2 h-4 w-4"/>
+                                </Button>
                             </div>
-                        </RadioGroup>
-                         <div className="mt-8 flex justify-end">
-                            <Button onClick={handleSubmitQuizAnswer} disabled={!selectedQuizAnswer}>
-                                {currentQuizQuestionIndex < totalQuestions - 1 ? 'Next Question' : 'Finish Quiz'}
-                                <ArrowRight className="ml-2 h-4 w-4" />
-                            </Button>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-        )}
-
-        {quizState === 'results' && (
-            <div className="flex flex-col items-center">
-                 <div className="text-center mb-10">
-                    <h1 className="text-4xl font-bold">Quiz Results</h1>
-                    <p className="text-muted-foreground mt-2">Here's how you did on the {isMidtermModule ? 'Midterm' : currentModule.title} quiz.</p>
+                        </CardContent>
+                    </Card>
                 </div>
-                 <Card className="w-full max-w-3xl">
-                    <CardContent className="p-8 text-center">
-                        <h2 className="text-2xl font-semibold">Your Score</h2>
-                        <p className="text-6xl font-bold text-primary my-4">{score} / {totalQuestions}</p>
-                        <p className="text-muted-foreground">You answered {totalQuestions > 0 ? ((score / totalQuestions) * 100).toFixed(0) : 0}% of the questions correctly.</p>
+            );
+        }
+    
+        const score = quizAnswers.filter(a => a.isCorrect).length;
+        const totalQuestions = generatedQuiz?.questions.length ?? 0;
+        const currentQuizQuestion = generatedQuiz?.questions[currentQuizQuestionIndex];
+        const quizProgress = totalQuestions > 0 ? ((currentQuizQuestionIndex) / totalQuestions) * 100 : 0;
+        
+        return (
+          <>
+            {quizState === 'in-progress' && !isQuizLoading && currentQuizQuestion && (
+                <div className="flex flex-col items-center">
+                     <div className="text-center mb-10 w-full max-w-3xl">
+                        <p className="text-muted-foreground mb-2">Question {currentQuizQuestionIndex + 1} of {totalQuestions}</p>
+                        <Progress value={quizProgress} className="mb-4 h-2"/>
+                        <h1 className="text-3xl font-bold mt-8">{currentQuizQuestion.question}</h1>
+                    </div>
+                     <Card className="w-full max-w-3xl">
+                        <CardContent className="p-8">
+                             <RadioGroup value={selectedQuizAnswer ?? ''} onValueChange={setSelectedQuizAnswer}>
+                                <div className="space-y-4">
+                                {currentQuizQuestion.options?.map((option, index) => (
+                                    <Label key={index} htmlFor={`option-${index}`} className={cn(
+                                        "flex items-center gap-4 p-4 rounded-lg border transition-all cursor-pointer",
+                                        "border-border hover:bg-muted",
+                                        selectedQuizAnswer === option && "border-primary bg-primary/10"
+                                    )}>
+                                        <RadioGroupItem value={option} id={`option-${index}`} />
+                                        <span>{option}</span>
+                                    </Label>
+                                ))}
+                                </div>
+                            </RadioGroup>
+                             <div className="mt-8 flex justify-end">
+                                <Button onClick={handleSubmitQuizAnswer} disabled={!selectedQuizAnswer}>
+                                    {currentQuizQuestionIndex < totalQuestions - 1 ? 'Next Question' : 'Finish Quiz'}
+                                    <ArrowRight className="ml-2 h-4 w-4" />
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+            )}
 
-                        <div className="mt-8 flex justify-center gap-4">
-                            <Button variant="outline" onClick={handleCompleteAndContinue}>
-                                Continue to Next Section <ArrowRight className="ml-2 h-4 w-4"/>
-                            </Button>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-        )}
-      </>
-    )
-  }
+            {quizState === 'results' && (
+                <div className="flex flex-col items-center">
+                     <div className="text-center mb-10">
+                        <h1 className="text-4xl font-bold">Quiz Results</h1>
+                        <p className="text-muted-foreground mt-2">Here's how you did on the {isMidtermModule ? 'Midterm' : currentModule.title} quiz.</p>
+                    </div>
+                     <Card className="w-full max-w-3xl">
+                        <CardContent className="p-8 text-center">
+                            <h2 className="text-2xl font-semibold">Your Score</h2>
+                            <p className="text-6xl font-bold text-primary my-4">{score} / {totalQuestions}</p>
+                            <p className="text-muted-foreground">You answered {totalQuestions > 0 ? ((score / totalQuestions) * 100).toFixed(0) : 0}% of the questions correctly.</p>
+
+                            <div className="mt-8 flex justify-center gap-4">
+                                <Button variant="outline" onClick={handleCompleteAndContinue}>
+                                    Continue to Next Section <ArrowRight className="ml-2 h-4 w-4"/>
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+            )}
+          </>
+        )
+    }
 
   const TextSelectionMenu = () => {
     if (!popoverPosition) return null;
@@ -1446,7 +1476,10 @@ function CoursesComponent() {
                                                 <CheckCircle size={14} className={cn(isCompleted ? "text-green-500" : "text-muted-foreground/50")} />
                                                 <span className="flex-1">{chapter.title}</span>
                                                 {quizResultForChapter && (
-                                                    <span className="text-xs font-semibold text-primary">
+                                                    <span className={cn(
+                                                        "text-xs font-semibold",
+                                                        (quizResultForChapter.score / quizResultForChapter.totalQuestions) * 100 > 80 ? 'text-green-500' : 'text-yellow-500'
+                                                    )}>
                                                         {Math.round((quizResultForChapter.score / quizResultForChapter.totalQuestions) * 100)}%
                                                     </span>
                                                 )}
@@ -1509,22 +1542,52 @@ function CoursesComponent() {
                                     if (block.type === 'text') {
                                         return <p key={index}>{block.content}</p>;
                                     }
-                                    if (block.type === 'question' && block.question) {
+                                    if (block.type === 'question' && block.question && block.options) {
+                                        const key = `${currentChapter.id}-${index}`;
+                                        const state = inlineQuizStates[key] || {};
                                         return (
-                                            <Card key={index} className="bg-muted/50 my-8">
+                                            <Card key={key} className="bg-muted/50 my-8">
                                                 <CardHeader>
                                                     <CardTitle className="text-lg flex items-center gap-2"><Lightbulb size={18}/> Check Your Understanding</CardTitle>
                                                 </CardHeader>
                                                 <CardContent>
                                                     <p className="font-semibold mb-4">{block.question}</p>
-                                                    <RadioGroup>
-                                                        {block.options?.map((opt, i) => (
-                                                             <div key={i} className="flex items-center space-x-2">
-                                                                <RadioGroupItem value={opt} id={`check-${index}-${i}`} />
-                                                                <Label htmlFor={`check-${index}-${i}`}>{opt}</Label>
-                                                            </div>
-                                                        ))}
+                                                     <RadioGroup 
+                                                        value={state.selectedAnswer} 
+                                                        onValueChange={(val) => handleInlineAnswerChange(index, val)}
+                                                        disabled={!!state.feedback}
+                                                    >
+                                                        <div className="space-y-2">
+                                                            {block.options.map((opt, i) => {
+                                                                const isCorrect = opt === block.correctAnswer;
+                                                                const isSelected = opt === state.selectedAnswer;
+                                                                return (
+                                                                     <Label key={i} htmlFor={`check-${index}-${i}`} className={cn(
+                                                                        "flex items-center gap-4 p-3 rounded-lg border transition-all",
+                                                                        state.feedback === null && (isSelected ? "border-primary bg-primary/10" : "border-border hover:bg-muted cursor-pointer"),
+                                                                        state.feedback && isCorrect && "border-green-500 bg-green-500/10",
+                                                                        state.feedback && isSelected && !isCorrect && "border-red-500 bg-red-500/10",
+                                                                    )}>
+                                                                        <RadioGroupItem value={opt} id={`check-${index}-${i}`} />
+                                                                        <span>{opt}</span>
+                                                                        {state.feedback && isCorrect && <CheckCircle className="h-5 w-5 text-green-500 ml-auto"/>}
+                                                                        {state.feedback && isSelected && !isCorrect && <XCircle className="h-5 w-5 text-red-500 ml-auto"/>}
+                                                                    </Label>
+                                                                )
+                                                            })}
+                                                        </div>
                                                     </RadioGroup>
+                                                    <div className="mt-4 flex justify-end">
+                                                        {state.feedback ? (
+                                                            <p className={cn("text-sm font-semibold", state.feedback === 'correct' ? 'text-green-600' : 'text-red-600')}>
+                                                                {state.feedback === 'correct' ? 'Correct!' : `Not quite. The correct answer is: ${block.correctAnswer}`}
+                                                            </p>
+                                                        ) : (
+                                                            <Button size="sm" onClick={() => handleCheckInlineAnswer(index, block)} disabled={!state.selectedAnswer}>
+                                                                Check Answer
+                                                            </Button>
+                                                        )}
+                                                    </div>
                                                 </CardContent>
                                             </Card>
                                         );
