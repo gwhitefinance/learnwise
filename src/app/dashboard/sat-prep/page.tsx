@@ -1,11 +1,10 @@
 
-
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { BookOpen, Calculator, Loader2, RefreshCw, FileText, Trophy, Clock, GraduationCap, ArrowRight } from 'lucide-react';
+import { BookOpen, Calculator, Loader2, RefreshCw, FileText, Trophy, Clock, GraduationCap, ArrowRight, Rocket, Send, FileQuestion } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -19,20 +18,8 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
 import { format, formatDistanceToNow } from 'date-fns';
-
-const readingWritingTopics = [
-    { title: "Information and Ideas", description: "Comprehend, analyze, and synthesize information from texts and graphics." },
-    { title: "Craft and Structure", description: "Understand how authors use structure and language to achieve their purpose." },
-    { title: "Expression of Ideas", description: "Revise texts to improve effectiveness and meet rhetorical goals." },
-    { title: "Standard English Conventions", description: "Edit texts to conform to grammar, usage, and punctuation standards." },
-];
-
-const mathTopics = [
-    { title: "Algebra", description: "Solve linear equations and systems in one and two variables." },
-    { title: "Advanced Math", description: "Work with quadratic, exponential, and other nonlinear equations." },
-    { title: "Problem-Solving & Data Analysis", description: "Apply quantitative reasoning using ratios, percentages, and rates." },
-    { title: "Geometry and Trigonometry", description: "Solve problems involving area, volume, triangles, and trigonometry." },
-];
+import { FloatingChatContext } from '@/components/floating-chat';
+import { Progress } from '@/components/ui/progress';
 
 type TestResult = {
     id: string;
@@ -50,14 +37,12 @@ export default function SatPrepPage() {
     const router = useRouter();
     const { toast } = useToast();
     
-    const [question, setQuestion] = useState<SatQuestion | null>(null);
-    const [isLoadingQuestion, setIsLoadingQuestion] = useState(true);
-    const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
-    const [isAnswered, setIsAnswered] = useState(false);
-    
     const [user, authLoading] = useAuthState(auth);
     const [pastResults, setPastResults] = useState<TestResult[]>([]);
     const [resultsLoading, setResultsLoading] = useState(true);
+    const [streak, setStreak] = useState(0);
+    const [chatInput, setChatInput] = useState('');
+    const { openChatWithVoice } = useContext(FloatingChatContext);
 
     useEffect(() => {
         if (authLoading) return;
@@ -73,42 +58,37 @@ export default function SatPrepPage() {
             setResultsLoading(false);
         });
 
-        return () => unsubscribe();
-    }, [user, authLoading, router]);
-
-    const fetchQuestion = async () => {
-        setIsLoadingQuestion(true);
-        setSelectedAnswer(null);
-        setIsAnswered(false);
-        try {
-            const learnerType = localStorage.getItem('learnerType') as any || 'Reading/Writing';
-            const today = new Date().toDateString(); // Use date as a seed for daily consistency
-            const result = await generateSatQuestion({ seed: today, learnerType });
-            setQuestion(result);
-        } catch (error) {
-            console.error("Failed to fetch daily SAT question:", error);
-            toast({ variant: 'destructive', title: 'Could not load question.' });
-        } finally {
-            setIsLoadingQuestion(false);
-        }
-    };
-    
-    useEffect(() => {
         const storedGrade = localStorage.getItem('onboardingGradeLevel');
         setGradeLevel(storedGrade);
         setLoading(false);
-        fetchQuestion();
-    }, []);
-
-    const handleSubmit = () => {
-        if (!selectedAnswer) {
-            toast({ variant: 'destructive', title: 'Please select an answer.'});
-            return;
+        
+        // Mock streak
+        const lastVisit = localStorage.getItem('lastVisit');
+        const today = new Date().toDateString();
+        if (lastVisit === today) {
+            setStreak(Number(localStorage.getItem('streakCount')) || 0);
+        } else {
+             const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            if (lastVisit === yesterday.toDateString()) {
+                setStreak((Number(localStorage.getItem('streakCount')) || 0) + 1);
+            } else {
+                setStreak(0);
+            }
         }
-        setIsAnswered(true);
-    };
 
-    if (loading) {
+        return () => unsubscribe();
+    }, [user, authLoading, router]);
+
+    const handleChatSubmit = () => {
+        if (!chatInput.trim()) return;
+        // This function would ideally open the chat and send the message
+        toast({ title: 'Opening chat...', description: `You asked: ${chatInput}`});
+        openChatWithVoice(); // This will just open the chat for now
+        setChatInput('');
+    }
+
+    if (loading || authLoading) {
         return (
             <div className="flex items-center justify-center h-full">
                 <p>Loading...</p>
@@ -136,137 +116,102 @@ export default function SatPrepPage() {
         );
     }
 
-    const isCorrect = selectedAnswer === question?.correctAnswer;
+
+    const studyTasks = [
+        { title: 'Study Session', subject: 'Math', progress: 0, total: 10, color: 'bg-purple-500' },
+        { title: 'Study Session', subject: 'Reading and Writing', progress: 1, total: 10, color: 'bg-green-500' },
+        { title: 'Practice Test', subject: 'Short Practice Test', progress: 0, total: 20, color: 'bg-yellow-500' },
+    ];
+    
+    const todayIndex = new Date().getDay();
 
     return (
-        <div className="space-y-8">
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight">SAT Prep Hub</h1>
-                <p className="text-muted-foreground">Your centralized dashboard for Digital SAT resources and practice.</p>
-            </div>
-
-             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-                 <div className="lg:col-span-2 space-y-8">
-                    <Card>
-                        <CardHeader>
-                            <div className="flex justify-between items-center">
-                                <div>
-                                    <CardTitle>Question of the Day</CardTitle>
-                                    <CardDescription>A new question every day to build your skills.</CardDescription>
-                                </div>
-                                <Button variant="ghost" size="icon" onClick={fetchQuestion} disabled={isLoadingQuestion}>
-                                    <RefreshCw className={cn("h-4 w-4", isLoadingQuestion && "animate-spin")} />
-                                </Button>
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            {isLoadingQuestion ? (
-                                <div className="space-y-4">
-                                    <Skeleton className="h-6 w-3/4" />
-                                    <div className="space-y-2 pt-4">
-                                        <Skeleton className="h-10 w-full" />
-                                        <Skeleton className="h-10 w-full" />
-                                        <Skeleton className="h-10 w-full" />
-                                        <Skeleton className="h-10 w-full" />
-                                    </div>
-                                </div>
-                            ) : question ? (
-                                <div>
-                                    <div className="prose dark:prose-invert max-w-none">
-                                        {question.passage && <p className="text-muted-foreground border-l-4 pl-4 italic">{question.passage}</p>}
-                                        <p className="text-lg font-semibold">{question.question}</p>
-                                    </div>
-
-                                    <RadioGroup value={selectedAnswer ?? ''} onValueChange={setSelectedAnswer} disabled={isAnswered}>
-                                        <div className="space-y-2 mt-4">
-                                        {question.options.map((option, index) => {
-                                            const isCorrectOption = option === question.correctAnswer;
-                                            const isSelected = option === selectedAnswer;
-                                            
-                                            return (
-                                                <Label 
-                                                    key={index}
-                                                    className={cn(
-                                                        "flex items-start gap-4 p-4 rounded-lg border transition-all",
-                                                        isAnswered && isCorrectOption && "bg-green-500/10 border-green-500",
-                                                        isAnswered && isSelected && !isCorrectOption && "bg-red-500/10 border-red-500",
-                                                        !isAnswered && "cursor-pointer hover:bg-muted"
-                                                    )}
-                                                >
-                                                    <RadioGroupItem value={option} id={`option-${index}`} className="mt-1" />
-                                                    <span className="flex-1">{option}</span>
-                                                </Label>
-                                            )
-                                        })}
-                                        </div>
-                                    </RadioGroup>
-
-                                    {!isAnswered ? (
-                                        <Button onClick={handleSubmit} className="mt-6" disabled={!selectedAnswer}>Submit</Button>
-                                    ) : (
-                                        <div className="mt-6 p-4 rounded-lg bg-muted border">
-                                            <h4 className="font-bold text-lg mb-2">{isCorrect ? "Correct!" : "Not Quite..."}</h4>
-                                            <p className="text-sm text-muted-foreground">{question.explanation}</p>
-                                        </div>
-                                    )}
-                                </div>
-                            ) : (
-                                <p className="text-muted-foreground">Could not load today's question. Please try again.</p>
-                            )}
-                        </CardContent>
-                    </Card>
-
-                    <Card className="flex flex-col items-center justify-center text-center p-6 bg-blue-500/10 border-blue-500/20 hover:border-blue-500/40 transition-colors">
-                        <FileText className="h-12 w-12 text-blue-400 mb-4"/>
-                        <CardTitle className="text-2xl">Full-Length Practice Test</CardTitle>
-                        <CardDescription className="mt-2 mb-6 max-w-xs">
-                            Simulate the real digital SAT experience with a full-length, timed practice test.
-                        </CardDescription>
-                        <Link href="/dashboard/sat-prep/practice-test" className="w-full">
-                            <Button className="w-full max-w-sm">Start Practice Test</Button>
-                        </Link>
-                    </Card>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+            <div className="lg:col-span-2 space-y-8">
+                 <div className="space-y-4">
+                    <h1 className="text-5xl font-bold tracking-tight">Welcome, {user?.displayName?.split(' ')[0] || 'Grady'}! 👋</h1>
+                    <p className="text-muted-foreground text-lg max-w-2xl">
+                        I'm Satori, your personal SAT tutor. I'll guide you every step of the way and help you
+                        reach your 1480 goal. To get started, jump into two guided study sessions and a short
+                        practice test. This will help me check your current level, estimate your score, and build
+                        your personalised study plan.
+                    </p>
                 </div>
-                
-                 <Card className="lg:col-span-1">
+                 <div className="space-y-4">
+                    <h2 className="text-2xl font-bold flex items-center gap-2"><Rocket className="text-primary"/> Let's begin:</h2>
+                    <ul className="list-disc list-inside space-y-2 pl-2">
+                        <li><Link href="#" className="hover:underline font-medium">Study Session: Reading</Link></li>
+                        <li><Link href="#" className="hover:underline font-medium">Study Session: Math</Link></li>
+                        <li><Link href="/dashboard/sat-prep/practice-test" className="hover:underline font-medium">Short Practice Test</Link></li>
+                    </ul>
+                </div>
+
+                <div className="pt-8">
+                     <div className="relative">
+                        <Input 
+                            placeholder="Ask Satori anything" 
+                            className="h-14 rounded-full pl-6 pr-16 text-lg"
+                            value={chatInput}
+                            onChange={(e) => setChatInput(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleChatSubmit()}
+                        />
+                        <Button size="icon" className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full h-10 w-10" onClick={handleChatSubmit}>
+                            <Send className="h-5 w-5" />
+                        </Button>
+                    </div>
+                </div>
+            </div>
+            <div className="lg:col-span-1 space-y-8">
+                <Card>
                     <CardHeader>
-                        <CardTitle>Past Attempts</CardTitle>
-                        <CardDescription>Review your scores from previous practice tests.</CardDescription>
+                        <CardTitle>Study Streak</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        {resultsLoading ? (
-                            <div className="space-y-2">
-                                <Skeleton className="h-10 w-full" />
-                                <Skeleton className="h-10 w-full" />
-                                <Skeleton className="h-10 w-full" />
+                        <p className="font-bold text-lg mb-2">{streak} Days study streak</p>
+                         <div className="flex justify-between gap-1">
+                            {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => (
+                                <div key={day} className="text-center space-y-1">
+                                    <div className={cn(
+                                        "h-10 w-10 rounded-full bg-muted flex items-center justify-center",
+                                        i < todayIndex && "bg-green-500/20",
+                                        i === todayIndex && "bg-primary text-primary-foreground"
+                                    )}>
+                                        <p className="font-bold text-sm">{day.charAt(0)}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Do this next:</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        {studyTasks.map((task, i) => (
+                            <div key={i} className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm text-muted-foreground">{task.title}</p>
+                                    <div className="flex items-center gap-2">
+                                        <div className={cn("h-2 w-2 rounded-full", task.color)}/>
+                                        <p className="font-semibold">{task.subject}</p>
+                                    </div>
+                                </div>
+                                <p className="text-sm font-medium">{task.progress}/{task.total}</p>
                             </div>
-                        ) : pastResults.length > 0 ? (
-                            <div className="space-y-3">
-                                {pastResults.map(result => (
-                                    <Link key={result.id} href={`/dashboard/sat-prep/${result.id}`}>
-                                        <div className="flex items-center justify-between p-3 rounded-lg bg-muted hover:bg-muted/80">
-                                            <div className="flex items-center gap-4">
-                                                <div className="bg-primary/10 text-primary p-2 rounded-full">
-                                                    <Trophy className="h-5 w-5" />
-                                                </div>
-                                                <div>
-                                                    <p className="font-semibold">{result.total} / 1600</p>
-                                                    <p className="text-xs text-muted-foreground">{formatDistanceToNow(result.timestamp.toDate(), { addSuffix: true })}</p>
-                                                </div>
-                                            </div>
-                                             <p className="text-sm font-medium">R/W: {result.readingWriting} | Math: {result.math}</p>
-                                        </div>
-                                    </Link>
-                                ))}
-                            </div>
-                        ) : (
-                             <div className="text-center text-muted-foreground py-8">
-                                <p>You haven't completed any practice tests yet.</p>
-                            </div>
-                        )}
+                        ))}
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Side quests:</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-muted-foreground text-center py-4">Coming soon...</p>
                     </CardContent>
                 </Card>
             </div>
         </div>
     );
 }
+
