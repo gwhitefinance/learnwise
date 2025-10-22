@@ -215,7 +215,7 @@ const EmbeddedChat = ({ topic }: { topic: string | null }) => {
     }
 
     return (
-        <div className="p-4 border-l h-full flex flex-col bg-card">
+        <div className="p-4 border-r h-full flex flex-col bg-card">
              <div className="flex-1 space-y-4">
                 <div className="flex items-start gap-3">
                     <AIBuddy className="w-10 h-10 flex-shrink-0" />
@@ -251,11 +251,11 @@ export default function StudySessionPage() {
     return (
         <Suspense fallback={<div>Loading...</div>}>
             <div className="grid grid-cols-1 lg:grid-cols-3 h-full">
+                <div className="hidden lg:block lg:col-span-1">
+                   <EmbeddedChat topic={topic} />
+                </div>
                 <div className="lg:col-span-2">
                     <StudySessionPageContent />
-                </div>
-                 <div className="hidden lg:block lg:col-span-1">
-                   <EmbeddedChat topic={topic} />
                 </div>
             </div>
         </Suspense>
