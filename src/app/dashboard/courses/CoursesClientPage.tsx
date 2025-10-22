@@ -94,7 +94,7 @@ type QuizResult = {
     totalQuestions: number;
     answers: AnswerFeedback[];
     timestamp: any;
-}
+};
 
 
 function CoursesComponent() {
@@ -281,6 +281,14 @@ function CoursesComponent() {
 
   const currentModule = activeCourse?.units?.[currentModuleIndex];
   const currentChapter = currentModule?.chapters[currentChapterIndex];
+  const existingQuizResult = currentModule ? quizResults[currentModule.id] : undefined;
+  const currentChapterIsQuiz = currentChapter?.title.toLowerCase().includes('quiz');
+
+  useEffect(() => {
+    if (currentChapterIsQuiz && currentModule && !existingQuizResult) {
+        handleStartModuleQuiz(currentModule, true);
+    }
+  }, [currentChapterIsQuiz, currentModule, existingQuizResult]);
 
   const handleGenerateCourse = async () => {
     if (!user || !newCourse.name || isNewTopic === null || !learnerType) return;
@@ -952,9 +960,6 @@ function CoursesComponent() {
   const completedChaptersCount = activeCourse?.completedChapters?.length ?? 0;
   const progress = chapterCount > 0 ? (completedChaptersCount / chapterCount) * 100 : 0;
   
-  const existingQuizResult = currentModule ? quizResults[currentModule.id] : undefined;
-  const currentChapterIsQuiz = currentChapter?.title.toLowerCase().includes('quiz');
-
   const fullChapterContentString = Array.isArray(currentChapter?.content)
     ? currentChapter!.content.map(b => b.content || '').join('\n')
     : currentChapter?.content || '';
@@ -1150,14 +1155,8 @@ function CoursesComponent() {
   
   const isMidtermModule = activeCourse.units && currentModuleIndex === Math.floor(activeCourse.units.length / 2);
   
-    useEffect(() => {
-        if (currentChapterIsQuiz && currentModule && !existingQuizResult) {
-            handleStartModuleQuiz(currentModule, true);
-        }
-    }, [currentChapterIsQuiz, currentModule, existingQuizResult]);
-    
     if (currentChapterIsQuiz && currentModule) {
-        if (isQuizLoading) {
+        if (quizLoading) {
             return (
                 <div className="flex flex-col items-center justify-center h-full text-center p-8">
                     <div className="relative mb-8">
