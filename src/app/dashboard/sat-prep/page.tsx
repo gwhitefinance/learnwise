@@ -21,6 +21,7 @@ import { format } from 'date-fns';
 import { FloatingChatContext } from '@/components/floating-chat';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import GeneratingSession from './GeneratingSession';
 
 type TestResult = {
     id: string;
@@ -187,9 +188,15 @@ export default function SatPrepPage() {
 
     const handleNavigate = (topic: string) => {
         setIsNavigating(topic);
-        // The router will navigate, and the new page will handle its own loading.
-        router.push(`/dashboard/sat-prep/study-session?topic=${encodeURIComponent(topic)}`);
+        // Simulate generation time before navigating
+        setTimeout(() => {
+            router.push(`/dashboard/sat-prep/study-session?topic=${encodeURIComponent(topic)}`);
+        }, 8000); // Match the duration in GeneratingSession
     };
+
+    if (isNavigating) {
+        return <GeneratingSession topic={isNavigating} />;
+    }
 
     if (loading || authLoading) {
         return (

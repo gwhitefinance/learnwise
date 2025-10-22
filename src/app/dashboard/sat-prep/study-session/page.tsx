@@ -9,9 +9,8 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
-import { generateSatStudySessionAction, generateMiniCourse, generateExplanation } from '@/lib/actions';
-import { generateFeedbackFlow } from '@/ai/flows/sat-feedback-flow';
-import type { SatQuestion, FeedbackInput } from '@/ai/schemas/sat-study-session-schema';
+import { generateSatStudySessionAction, generateMiniCourse, generateExplanation, generateFeedbackAction } from '@/lib/actions';
+import type { SatQuestion, AnswerFeedback as FeedbackAnswer, FeedbackInput } from '@/ai/schemas/sat-study-session-schema';
 import { cn } from '@/lib/utils';
 import { ArrowLeft, ArrowRight, CheckCircle, Clock, XCircle, FileText, BookOpen, Calculator, Send, Bot, Wand2, Star } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -74,9 +73,11 @@ function StudySessionPageContent() {
                 setIsLoading(false);
             }
         };
-
-        fetchQuestions();
-    }, [topic, router, toast]);
+        
+        if (questions.length === 0) {
+            fetchQuestions();
+        }
+    }, [topic, router, toast, questions.length]);
 
     useEffect(() => {
         if (sessionState === 'studying') {
@@ -155,6 +156,7 @@ function StudySessionPageContent() {
             setCurrentQuestionIndex(prev => prev + 1);
         } else {
             // End of session, calculate results
+            setFeedbackLoading(true);
             const totalTime = Object.values(questionTimers).reduce((sum, time) => sum + time, 0);
             const correctAnswers = questions.filter((q, i) => userAnswers[i] === q.answer).length;
             
@@ -182,15 +184,28 @@ function StudySessionPageContent() {
                 return acc;
             }, {} as Record<string, { correct: number, total: number }>);
 
+             const feedbackInput: FeedbackInput = {
+                answeredQuestions: questions.map((q, i) => ({
+                    question: q.question,
+                    userAnswer: userAnswers[i] || "No answer",
+                    isCorrect: userAnswers[i] === q.answer,
+                    correctAnswer: q.answer, // FIX: Added correct answer
+                    topic: q.topic,
+                }))
+            };
+
+            const feedbackResult = await generateFeedbackAction(feedbackInput);
+
             const results = {
                 accuracy: (correctAnswers / questions.length) * 100,
                 totalQuestions: questions.length,
                 avgTime: totalTime / questions.length,
                 accuracyByTopic,
                 accuracyByDifficulty,
-                feedback: '',
+                feedback: feedbackResult.feedback,
             };
             setResultsData(results);
+            setFeedbackLoading(false);
             setSessionState('results');
         }
     };
@@ -247,6 +262,14 @@ function StudySessionPageContent() {
                         <CardContent><p className="text-4xl font-bold">{resultsData.avgTime.toFixed(0)}s/q</p></CardContent>
                     </Card>
                 </div>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Tutorin's Feedback</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        {feedbackLoading ? <Skeleton className="h-16 w-full" /> : <p className="text-muted-foreground">{resultsData.feedback}</p>}
+                    </CardContent>
+                </Card>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <Card>
                         <CardHeader><CardTitle>Accuracy by Domain</CardTitle></CardHeader>
@@ -296,7 +319,7 @@ function StudySessionPageContent() {
                                             <p className="font-semibold">{q.question}</p>
                                             <div className="text-sm">
                                                 <p><span className="font-bold">Your Answer:</span> <span className={cn(userAnswers[i] === q.answer ? "text-green-600" : "text-red-600")}>{userAnswers[i] || 'No Answer'}</span></p>
-                                                <p className="text-green-600 font-bold">Correct Answer: {q.answer}</p>
+                                                {userAnswers[i] !== q.answer && <p className="text-green-600 font-bold">Correct Answer: {q.answer}</p>}
                                             </div>
                                         </div>
                                     </AccordionContent>
@@ -321,7 +344,13 @@ function StudySessionPageContent() {
     }
     
     if (questions.length === 0) {
-        return <div className="p-8">No questions were generated for this session. Please try again.</div>
+        return (
+             <div className="flex flex-col items-center justify-center h-full text-center">
+                 <h1 className="text-2xl font-bold">Generating Your Session...</h1>
+                 <p className="text-muted-foreground">This may take a moment.</p>
+                 <Loader2 className="mt-4 h-8 w-8 animate-spin"/>
+             </div>
+        )
     }
 
     const currentQuestion = questions[currentQuestionIndex];
