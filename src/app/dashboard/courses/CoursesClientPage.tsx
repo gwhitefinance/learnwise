@@ -1415,34 +1415,11 @@ function CoursesComponent() {
                             <Skeleton className="h-4 w-5/6" />
                         </div>
                     ) : currentChapter.content ? (
-                         <div className='space-y-4'>
-                            {currentChapter.imageUrl && (
-                                <div className="mt-4 rounded-lg overflow-hidden border aspect-video relative">
-                                    <Image src={currentChapter.imageUrl} alt={`Header for ${currentChapter.title}`} fill objectFit="cover" />
-                                </div>
-                            )}
-                             <div 
-                                ref={contentRef}
-                                onMouseUp={handleMouseUp}
-                                className="text-muted-foreground text-lg whitespace-pre-wrap leading-relaxed" 
-                             >{currentChapter.content}</div>
-                            {currentChapter.diagramUrl && (
-                                <div className="mt-4 p-4 bg-muted/50 rounded-lg">
-                                    <h5 className="font-semibold text-sm mb-2 flex items-center gap-2"><ImageIcon size={16} /> Diagram</h5>
-                                    <div className="rounded-lg overflow-hidden border aspect-video relative">
-                                        <Image src={currentChapter.diagramUrl} alt={`Diagram for ${currentChapter.title}`} fill objectFit="contain" />
-                                    </div>
-                                </div>
-                            )}
-                                {currentChapter.videoUrl && (
-                                <div className="mt-4 p-4 bg-muted/50 rounded-lg">
-                                    <h5 className="font-semibold text-sm mb-2 flex items-center gap-2"><Video size={16} /> Video Clip</h5>
-                                    <div className="rounded-lg overflow-hidden border aspect-video bg-black">
-                                        <video src={currentChapter.videoUrl} controls className="w-full h-full" />
-                                    </div>
-                                </div>
-                            )}
-                        </div>
+                         <div 
+                            ref={contentRef}
+                            onMouseUp={handleMouseUp}
+                            className="text-muted-foreground text-lg whitespace-pre-wrap leading-relaxed" 
+                         >{currentChapter.content}</div>
                      ) : (
                          <div className="text-center p-8 border-2 border-dashed rounded-lg">
                             <h3 className="text-lg font-semibold">This chapter's content hasn't been generated yet.</h3>

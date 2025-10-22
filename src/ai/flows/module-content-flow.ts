@@ -1,13 +1,11 @@
 
 'use server';
 /**
- * @fileOverview A flow for generating all chapter content within a single course module, including multimedia assets.
+ * @fileOverview A flow for generating all chapter content within a single course module.
  */
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { generateChapterContent } from './chapter-content-flow';
-import { generateImage } from './image-generation-flow';
-import { generateVideo } from './video-generation-flow';
 import { GenerateModuleContentInputSchema, GenerateModuleContentOutputSchema, GenerateModuleContentInput, GenerateModuleContentOutput, ChapterWithContent } from '@/ai/schemas/module-content-schema';
 
 // Helper function for generating a simple unique ID
@@ -25,7 +23,7 @@ const generateModuleContentFlow = ai.defineFlow(
 
     // Process chapters sequentially to avoid hitting rate limits.
     for (const chapter of input.module.chapters) {
-        // 1. Generate text content and media prompts for the current chapter.
+        // 1. Generate text content for the current chapter.
         const contentData = await generateChapterContent({
             courseName: input.courseName,
             moduleTitle: input.module.title,
@@ -33,24 +31,16 @@ const generateModuleContentFlow = ai.defineFlow(
             learnerType: input.learnerType,
         });
 
-        // 2. Generate media assets for the current chapter sequentially.
-        const imageUrl = contentData.imagePrompt ? (await generateImage({ prompt: contentData.imagePrompt })).media : '';
-        const diagramUrl = contentData.diagramPrompt ? (await generateImage({ prompt: contentData.diagramPrompt })).media : '';
-        const videoUrl = contentData.videoPrompt ? (await generateVideo({ prompt: contentData.videoPrompt })).media : '';
-
-        // 3. Assemble the full chapter data.
+        // 2. Assemble the full chapter data.
         updatedChapters.push({
             id: chapter.id || generateUniqueId(),
             title: chapter.title,
             content: contentData.content,
             activity: contentData.activity,
-            imageUrl: imageUrl,
-            diagramUrl: diagramUrl,
-            videoUrl: videoUrl,
         });
     }
 
-    // 4. Assemble the final module with all content.
+    // 3. Assemble the final module with all content.
     const updatedModule = {
         id: input.module.id || generateUniqueId(),
         title: input.module.title,

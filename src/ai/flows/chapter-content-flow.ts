@@ -1,7 +1,7 @@
 
 'use server';
 /**
- * @fileOverview A flow for generating detailed content for a single course chapter, including prompts for multimedia.
+ * @fileOverview A flow for generating detailed content for a single course chapter.
  */
 import { ai } from '@/ai/genkit';
 import { googleAI } from '@genkit-ai/google-genai';
@@ -12,9 +12,9 @@ const prompt = ai.definePrompt({
     model: googleAI.model('gemini-2.5-flash'),
     input: { schema: GenerateChapterContentInputSchema },
     output: { schema: GenerateChapterContentOutputSchema },
-    prompt: `You are an expert instructional designer and multimedia producer who creates engaging, comprehensive, and in-depth educational content.
+    prompt: `You are an expert instructional designer who creates engaging, comprehensive, and in-depth educational content.
 
-    Your task is to write the content for a single chapter and devise relevant multimedia prompts.
+    Your task is to write the content for a single chapter and devise a relevant interactive activity.
 
     Course Context:
     - Course Name: {{courseName}}
@@ -31,15 +31,8 @@ const prompt = ai.definePrompt({
     - For Kinesthetic learners: Suggest a simple, tangible action, like a hand gesture to remember a process or relating the topic to a physical object on their desk.
     - For Reading/Writing learners: Suggest summarizing the main point in one sentence or writing down 3 keywords.
 
-    **MULTIMEDIA GENERATION:**
-    After generating the content and activity, create prompts for generative AI models:
-    1.  **Image Prompt**: Write a concise, descriptive prompt (10-15 words) for a text-to-image model to create a visually appealing header image for this chapter.
-    2.  **Diagram Prompt**: Write a detailed prompt for a text-to-image model to generate an educational diagram, chart, or infographic that visually explains a core concept from the chapter. Be specific about labels, arrows, and components.
-    3.  **Video Prompt**: Write a descriptive prompt for a text-to-video model to generate a short, 5-8 second silent educational video clip. Describe the scene, action, and style (e.g., "A cinematic, slow-motion shot of...", "An animated, time-lapse video showing...").
-
     First, generate the detailed 'content'.
     Second, devise a short and fun 'activity'.
-    Third, create the 'imagePrompt', 'diagramPrompt', and 'videoPrompt'.
     `,
 });
 
