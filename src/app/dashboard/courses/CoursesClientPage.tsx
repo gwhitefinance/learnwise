@@ -6,7 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Play, Pause, ChevronLeft, ChevronRight, Wand2, FlaskConical, Lightbulb, Copy, RefreshCw, Check, Star, CheckCircle, Send, Bot, User, GitMerge, PanelLeft, Minimize, Maximize, Loader2, Plus, Trash2, MoreVertical, XCircle, ArrowRight, RotateCcw, Video, Image as ImageIcon, BookCopy, Link as LinkIcon, Headphones, Underline, Highlighter, Rabbit, Snail, Turtle, Book, Mic, Bookmark, Brain, KeySquare } from 'lucide-react';
+import { Play, Pause, ChevronLeft, ChevronRight, Wand2, FlaskConical, Lightbulb, Copy, RefreshCw, Check, Star, CheckCircle, Send, Bot, GitMerge, PanelLeft, Minimize, Maximize, Loader2, Plus, Trash2, MoreVertical, XCircle, ArrowRight, RotateCcw, Video, Image as ImageIcon, BookCopy, Link as LinkIcon, Headphones, Underline, Highlighter, Rabbit, Snail, Turtle, Book, Mic, Bookmark, Brain, KeySquare } from 'lucide-react';
 import Link from 'next/link';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
@@ -61,7 +61,6 @@ type Chapter = {
     title: string;
     content?: string;
     activity?: string;
-    interactiveTool?: string;
 };
 
 interface ChatMessage {
@@ -368,30 +367,35 @@ function CoursesComponent() {
     };
 
 
-  const handleStartModuleQuiz = async (module: Module) => {
-    const moduleContent = module.chapters.map(c => `Chapter: ${c.title}\n${c.content}`).join('\n\n');
-    setQuizDialogOpen(true);
+  const handleStartModuleQuiz = async (module: Module, autoStart = false) => {
+    if (autoStart) {
+        setQuizDialogOpen(true);
+    }
     setQuizLoading(true);
     setGeneratedQuiz(null);
     setQuizAnswers([]);
     setQuizState('in-progress');
     setCurrentQuizQuestionIndex(0);
     setSelectedQuizAnswer(null);
-    
+
+    const moduleContent = module.chapters.map(c => `Chapter: ${c.title}\n${c.content}`).join('\n\n');
+
     try {
         const result = await generateQuizFromModule({
             moduleContent,
             learnerType: (learnerType as any) ?? 'Reading/Writing'
         });
         setGeneratedQuiz(result);
-    } catch(error) {
+    } catch (error) {
         console.error("Failed to generate quiz:", error);
         toast({
             variant: 'destructive',
             title: 'Quiz Generation Failed',
             description: 'Could not generate a quiz for this module.',
         });
-        setQuizDialogOpen(false);
+        if (autoStart) {
+            setQuizDialogOpen(false);
+        }
     } finally {
         setQuizLoading(false);
     }
@@ -573,9 +577,34 @@ function CoursesComponent() {
     setIsSummaryDialogOpen(true);
     setIsSummaryLoading(true);
     setNextChapterProgress(0);
-    setSummaryForPopup('');
 
-    // --- Start parallel AI calls ---
+    // --- Check if next chapter is a quiz ---
+    let nextModuleIndex = currentModuleIndex;
+    let nextChapterIndex = currentChapterIndex + 1;
+    let isLastChapterOfCourse = false;
+
+    if (nextChapterIndex >= (currentModule.chapters.length ?? 0)) {
+        nextModuleIndex++;
+        nextChapterIndex = 0;
+    }
+    if (nextModuleIndex >= (activeCourse.units?.length ?? 0)) {
+        isLastChapterOfCourse = true;
+    }
+
+    const nextChapter = !isLastChapterOfCourse ? activeCourse.units![nextModuleIndex].chapters[nextChapterIndex] : null;
+    const isNextChapterQuiz = nextChapter?.title.toLowerCase().includes('quiz');
+    
+    if (isNextChapterQuiz) {
+        setSummaryForPopup("Preparing your quiz... Good luck!");
+        setIsSummaryLoading(false);
+        setNextChapterProgress(100);
+        setTimeout(() => {
+            handleProceedToNextChapter();
+        }, 1500); // Give user a moment to read the message
+        return;
+    }
+
+    // --- Normal flow: Generate summary and pre-load next chapter ---
     
     // 1. Generate summary for the current chapter
     if (currentChapter.content) {
@@ -596,19 +625,7 @@ function CoursesComponent() {
     }
     
     // 2. Generate content for the next chapter
-    let nextModuleIndex = currentModuleIndex;
-    let nextChapterIndex = currentChapterIndex + 1;
-    let isLastChapter = false;
-
-    if (nextChapterIndex >= (currentModule.chapters.length ?? 0)) {
-        nextModuleIndex++;
-        nextChapterIndex = 0;
-        if (nextModuleIndex >= (activeCourse.units?.length ?? 0)) {
-            isLastChapter = true; 
-        }
-    }
-
-    if (!isLastChapter) {
+    if (!isLastChapterOfCourse) {
         let progress = 0;
         const interval = setInterval(() => {
             progress += Math.random() * 10;
@@ -1085,8 +1102,15 @@ function CoursesComponent() {
   const isMidtermModule = activeCourse.units && currentModuleIndex === Math.floor(activeCourse.units.length / 2);
   const existingQuizResult = currentModule ? quizResults[currentModule.id] : undefined;
 
-  if (currentChapter?.title.includes('Quiz') && currentModule) {
-    
+  const currentChapterIsQuiz = currentChapter?.title.toLowerCase().includes('quiz');
+
+  useEffect(() => {
+    if (currentChapterIsQuiz && currentModule && !existingQuizResult) {
+      handleStartModuleQuiz(currentModule, true);
+    }
+  }, [currentChapter, currentModule, existingQuizResult]);
+
+  if (currentChapterIsQuiz && currentModule) {
     if (existingQuizResult) {
         return (
             <div className="flex flex-col items-center">
@@ -1118,23 +1142,8 @@ function CoursesComponent() {
     
     return (
       <>
-        {quizState === 'configuring' && (
-            <div className="flex h-full flex-col items-center justify-center text-center p-6">
-                <h2 className="text-2xl font-bold">{isMidtermModule ? 'Midterm Exam' : `Module Quiz: ${currentModule.title}`}</h2>
-                <p className="text-muted-foreground mt-2 max-w-md">
-                    {isMidtermModule 
-                        ? "This is a 35-question exam covering all material from the first half of the course." 
-                        : "Test your knowledge on the chapters you've just completed. A good score will earn you coins!"
-                    }
-                </p>
-                <Button className="mt-6" onClick={isMidtermModule ? handleStartMidtermExam : () => handleStartModuleQuiz(currentModule)} disabled={isQuizLoading}>
-                    {isQuizLoading ? 'Loading...' : `Start ${isMidtermModule ? 'Midterm Exam' : 'Quiz'}`}
-                </Button>
-            </div>
-        )}
-
-        {quizState === 'in-progress' && isQuizLoading && (
-           <div className="flex items-center justify-center h-full"><Loader2 className="h-8 w-8 animate-spin" /></div>
+        {isQuizLoading && (
+           <div className="flex items-center justify-center h-full"><Loader2 className="h-8 w-8 animate-spin" /> <p className="ml-4">Generating your quiz...</p></div>
         )}
         
         {quizState === 'in-progress' && !isQuizLoading && currentQuizQuestion && (
@@ -1212,9 +1221,9 @@ function CoursesComponent() {
             style={popoverStyle}
             className="z-10 bg-card p-1 rounded-lg shadow-lg border flex gap-1 items-center"
         >
-            <button onClick={() => applyStyle('highlight-yellow')} className="h-6 w-6 rounded-full bg-yellow-300 border-2 border-transparent hover:border-primary"></button>
-            <button onClick={() => applyStyle('highlight-blue')} className="h-6 w-6 rounded-full bg-blue-300 border-2 border-transparent hover:border-primary"></button>
-            <button onClick={() => applyStyle('highlight-pink')} className="h-6 w-6 rounded-full bg-pink-300 border-2 border-transparent hover:border-primary"></button>
+            <button onClick={()={() => applyStyle('highlight-yellow')}} className="h-6 w-6 rounded-full bg-yellow-300 border-2 border-transparent hover:border-primary"></button>
+            <button onClick={()={() => applyStyle('highlight-blue')}} className="h-6 w-6 rounded-full bg-blue-300 border-2 border-transparent hover:border-primary"></button>
+            <button onClick={()={() => applyStyle('highlight-pink')}} className="h-6 w-6 rounded-full bg-pink-300 border-2 border-transparent hover:border-primary"></button>
             <div className="w-px h-6 bg-border mx-1"></div>
             <button onClick={saveAsNote} className="p-1 rounded-md hover:bg-muted"><Plus className="h-5 w-5" /></button>
         </div>
@@ -1227,7 +1236,7 @@ function CoursesComponent() {
       {isListenAssistantVisible && currentChapter?.content && (
         <ListenAssistant 
             chapterContent={currentChapter.content}
-            onClose={() => setIsListenAssistantVisible(false)}
+            onClose={()={() => setIsListenAssistantVisible(false)}}
         />
       )}
       <Dialog open={isSummaryDialogOpen} onOpenChange={setIsSummaryDialogOpen}>
@@ -1235,19 +1244,10 @@ function CoursesComponent() {
               <DialogHeader>
                   <DialogTitle className="flex items-center gap-2"><Book className="h-5 w-5 text-primary"/>Chapter Summary</DialogTitle>
                   <DialogDescription>
-                      Here's a quick recap. The next chapter is being prepared.
+                      {summaryForPopup}
                   </DialogDescription>
               </DialogHeader>
               <div className="py-4 space-y-4">
-                  {isSummaryLoading ? (
-                      <div className="space-y-2">
-                          <Skeleton className="h-4 w-full"/>
-                          <Skeleton className="h-4 w-full"/>
-                          <Skeleton className="h-4 w-2/3"/>
-                      </div>
-                  ) : (
-                      <p className="text-sm text-muted-foreground max-h-32 overflow-y-auto">{summaryForPopup}</p>
-                  )}
                   <div className="pt-4">
                       <div className="flex justify-between items-center">
                         <p className="text-xs text-muted-foreground mb-1">Preparing next chapter...</p>
@@ -1269,7 +1269,7 @@ function CoursesComponent() {
                 <p className="text-sm text-muted-foreground">This note will be saved under the current course: <strong>{activeCourse?.name}</strong>.</p>
             </div>
             <DialogFooter>
-                <Button variant="ghost" onClick={() => setIsNoteFromHighlightOpen(false)}>Cancel</Button>
+                <Button variant="ghost" onClick={()={() => setIsNoteFromHighlightOpen(false)}>Cancel</Button>
                 <Button onClick={handleSaveNoteFromHighlight}>Save Note</Button>
             </DialogFooter>
         </DialogContent>
@@ -1283,7 +1283,7 @@ function CoursesComponent() {
                 </DialogDescription>
             </DialogHeader>
             <DialogFooter>
-                <Button variant="ghost" onClick={() => setIsCourseReadyDialogOpen(false)}>I'll start later</Button>
+                <Button variant="ghost" onClick={()={() => setIsCourseReadyDialogOpen(false)}>I'll start later</Button>
                 <Button onClick={handleStartTutorin}>
                     Start Tutorin
                     <Wand2 className="ml-2 h-4 w-4"/>
@@ -1346,7 +1346,7 @@ function CoursesComponent() {
                                         
                                         const isPreviousChapterCompleted = cIndex === 0 
                                             ? arePreviousModulesComplete
-                                            : activeCourse.completedChapters?.includes(unit.chapters[cIndex - 1].id) ?? false;
+                                            : unit.chapters.slice(0, cIndex).every(c => activeCourse.completedChapters?.includes(c.id));
 
                                         const isLocked = activeCourse.isNewTopic && !(mIndex === 0 && cIndex === 0) && !isPreviousChapterCompleted;
 
@@ -1427,23 +1427,6 @@ function CoursesComponent() {
                         </div>
                      )}
                      
-                    {currentChapter.interactiveTool && (
-                        <div className="p-6 bg-blue-500/10 rounded-lg border border-blue-500/20">
-                            <h5 className="font-semibold flex items-center gap-2 text-blue-700">
-                                <FlaskConical size={18} /> Interactive Tool
-                            </h5>
-                            <div className="mt-4 aspect-video">
-                                <iframe
-                                    src={currentChapter.interactiveTool}
-                                    className="w-full h-full border-0 rounded-md"
-                                    allowFullScreen
-                                    title={`Interactive tool for ${currentChapter.title}`}
-                                ></iframe>
-                            </div>
-                        </div>
-                    )}
-
-
                      <div className="p-6 bg-amber-500/10 rounded-lg border border-amber-500/20">
                         <h5 className="font-semibold flex items-center gap-2 text-amber-700"><Lightbulb size={18}/> Suggested Activity</h5>
                         <div className="text-muted-foreground mt-2">
@@ -1541,8 +1524,10 @@ function CoursesComponent() {
 
 export default function CoursesClientPage() {
     return (
-        <Suspense fallback={<Loading />}>
+        <Suspense fallback={<Loading />} >
             <CoursesComponent />
         </Suspense>
     )
 }
+
+    
