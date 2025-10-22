@@ -48,6 +48,7 @@ type Course = {
     instructor?: string;
     credits?: number;
     isNewTopic?: boolean;
+    labCompleted?: boolean;
 };
 
 type Module = {
@@ -1221,9 +1222,9 @@ function CoursesComponent() {
             style={popoverStyle}
             className="z-10 bg-card p-1 rounded-lg shadow-lg border flex gap-1 items-center"
         >
-            <button onClick={()={() => applyStyle('highlight-yellow')}} className="h-6 w-6 rounded-full bg-yellow-300 border-2 border-transparent hover:border-primary"></button>
-            <button onClick={()={() => applyStyle('highlight-blue')}} className="h-6 w-6 rounded-full bg-blue-300 border-2 border-transparent hover:border-primary"></button>
-            <button onClick={()={() => applyStyle('highlight-pink')}} className="h-6 w-6 rounded-full bg-pink-300 border-2 border-transparent hover:border-primary"></button>
+            <button onClick={() => applyStyle('highlight-yellow')} className="h-6 w-6 rounded-full bg-yellow-300 border-2 border-transparent hover:border-primary"></button>
+            <button onClick={() => applyStyle('highlight-blue')} className="h-6 w-6 rounded-full bg-blue-300 border-2 border-transparent hover:border-primary"></button>
+            <button onClick={() => applyStyle('highlight-pink')} className="h-6 w-6 rounded-full bg-pink-300 border-2 border-transparent hover:border-primary"></button>
             <div className="w-px h-6 bg-border mx-1"></div>
             <button onClick={saveAsNote} className="p-1 rounded-md hover:bg-muted"><Plus className="h-5 w-5" /></button>
         </div>
@@ -1236,7 +1237,7 @@ function CoursesComponent() {
       {isListenAssistantVisible && currentChapter?.content && (
         <ListenAssistant 
             chapterContent={currentChapter.content}
-            onClose={()={() => setIsListenAssistantVisible(false)}}
+            onClose={() => setIsListenAssistantVisible(false)}
         />
       )}
       <Dialog open={isSummaryDialogOpen} onOpenChange={setIsSummaryDialogOpen}>
@@ -1269,7 +1270,7 @@ function CoursesComponent() {
                 <p className="text-sm text-muted-foreground">This note will be saved under the current course: <strong>{activeCourse?.name}</strong>.</p>
             </div>
             <DialogFooter>
-                <Button variant="ghost" onClick={()={() => setIsNoteFromHighlightOpen(false)}>Cancel</Button>
+                <Button variant="ghost" onClick={() => setIsNoteFromHighlightOpen(false)}>Cancel</Button>
                 <Button onClick={handleSaveNoteFromHighlight}>Save Note</Button>
             </DialogFooter>
         </DialogContent>
@@ -1283,7 +1284,7 @@ function CoursesComponent() {
                 </DialogDescription>
             </DialogHeader>
             <DialogFooter>
-                <Button variant="ghost" onClick={()={() => setIsCourseReadyDialogOpen(false)}>I'll start later</Button>
+                <Button variant="ghost" onClick={() => setIsCourseReadyDialogOpen(false)}>I'll start later</Button>
                 <Button onClick={handleStartTutorin}>
                     Start Tutorin
                     <Wand2 className="ml-2 h-4 w-4"/>
@@ -1529,5 +1530,3 @@ export default function CoursesClientPage() {
         </Suspense>
     )
 }
-
-    
