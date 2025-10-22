@@ -236,7 +236,6 @@ export default function SatPrepPage() {
                     <ul className="list-disc list-inside space-y-2 pl-2">
                         <li><Link href="#" className="hover:underline font-medium">Study Session: Reading</Link></li>
                         <li><Link href="#" className="hover:underline font-medium">Study Session: Math</Link></li>
-                        <li><Link href="/dashboard/sat-prep/practice-test" className="hover:underline font-medium">Full-Length Practice Test</Link></li>
                     </ul>
                 </div>
                  <DailyQuestion />
@@ -294,6 +293,19 @@ export default function SatPrepPage() {
                                 <p className="text-sm font-medium">{task.progress}/{task.total}</p>
                             </div>
                         ))}
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Full Practice Test</CardTitle>
+                        <CardDescription>Simulate the real test environment.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Button className="w-full" asChild>
+                            <Link href="/dashboard/sat-prep/practice-test">
+                                Start Full-Length Test
+                            </Link>
+                        </Button>
                     </CardContent>
                 </Card>
                  <Card>
