@@ -11,12 +11,12 @@ export const GenerateChapterContentInputSchema = z.object({
 });
 
 const TextBlockSchema = z.object({
-  type: z.literal('text'),
+  type: z.enum(['text']).describe("The type of this content block, which is 'text'."),
   content: z.string().describe('A paragraph of educational text.'),
 });
 
 const QuestionBlockSchema = z.object({
-    type: z.literal('question'),
+    type: z.enum(['question']).describe("The type of this content block, which is 'question'."),
     question: z.string().describe('A single multiple-choice question to check understanding.'),
     options: z.array(z.string()).length(4).describe('An array of 4 possible answers.'),
     correctAnswer: z.string().describe('The correct answer from the options array.'),
