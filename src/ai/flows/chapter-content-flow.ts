@@ -12,6 +12,9 @@ const prompt = ai.definePrompt({
     model: googleAI.model('gemini-2.5-flash'),
     input: { schema: GenerateChapterContentInputSchema },
     output: { schema: GenerateChapterContentOutputSchema },
+    config: {
+      maxOutputTokens: 8192,
+    },
     prompt: `You are an expert instructional designer who creates engaging, comprehensive, and in-depth educational content.
 
     Your task is to write the content for a single chapter and devise a relevant interactive activity.
