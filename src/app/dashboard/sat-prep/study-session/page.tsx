@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
@@ -14,6 +15,7 @@ import type { SatQuestion } from '@/ai/schemas/sat-question-schema';
 import { cn } from '@/lib/utils';
 import { ArrowLeft, ArrowRight, CheckCircle, Clock, XCircle, FileText, BookOpen, Calculator } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import FloatingChat from '@/components/floating-chat';
 
 function StudySessionPageContent() {
     const router = useRouter();
@@ -114,78 +116,85 @@ function StudySessionPageContent() {
     const seconds = timeRemaining % 60;
 
     return (
-        <div className="max-w-3xl mx-auto p-4 md:p-8">
-            <header className="mb-8">
-                 <div className="flex justify-between items-center mb-4">
-                    <h1 className="text-2xl font-bold flex items-center gap-2">
-                         {topic === 'Reading & Writing' ? <BookOpen /> : <Calculator />}
-                        Study Session: {topic}
-                    </h1>
-                     <div className="text-sm font-semibold flex items-center gap-2 text-muted-foreground">
-                        <Clock className="h-5 w-5" />
-                        <span>{minutes.toString().padStart(2, '0')}:{seconds.toString().padStart(2, '0')}</span>
-                    </div>
-                </div>
-                <div>
-                     <Progress value={progress} className="h-2" />
-                    <p className="text-xs text-muted-foreground mt-1">{currentQuestionIndex + 1} / {questions.length}</p>
-                </div>
-            </header>
-
-            <main>
-                <div className="space-y-6">
-                    {currentQuestion.passage && (
-                         <blockquote className="border-l-4 pl-4 italic text-muted-foreground bg-muted p-4 rounded-r-lg">
-                            {currentQuestion.passage}
-                        </blockquote>
-                    )}
-                    <p className="font-semibold text-lg">{currentQuestion.question}</p>
-                    
-                    <RadioGroup 
-                        value={selectedAnswer || ''} 
-                        onValueChange={(value) => setUserAnswers(prev => ({ ...prev, [currentQuestionIndex]: value }))}
-                        disabled={isCurrentAnswered}
-                    >
-                        <div className="space-y-3">
-                            {currentQuestion.options.map((option, index) => (
-                                <Label key={index} htmlFor={`option-${index}`} className={cn(
-                                    "flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-all",
-                                    isCurrentAnswered && option === currentQuestion.correctAnswer && "border-green-500 bg-green-500/10",
-                                    isCurrentAnswered && selectedAnswer === option && !isCorrect && "border-red-500 bg-red-500/10",
-                                    !isCurrentAnswered && selectedAnswer === option && "border-primary"
-                                )}>
-                                    <RadioGroupItem value={option} id={`option-${index}`} />
-                                    <span>{option}</span>
-                                    {isCurrentAnswered && option === currentQuestion.correctAnswer && <CheckCircle className="h-5 w-5 text-green-500 ml-auto"/>}
-                                    {isCurrentAnswered && selectedAnswer === option && !isCorrect && <XCircle className="h-5 w-5 text-red-500 ml-auto"/>}
-                                </Label>
-                            ))}
+        <div className="flex w-full h-full">
+            <div className="w-[400px] h-full bg-card border-r flex-shrink-0">
+                <FloatingChat isEmbedded={true} />
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 md:p-8">
+                <div className="max-w-3xl mx-auto">
+                    <header className="mb-8">
+                        <div className="flex justify-between items-center mb-4">
+                            <h1 className="text-2xl font-bold flex items-center gap-2">
+                                {topic === 'Reading & Writing' ? <BookOpen /> : <Calculator />}
+                                Study Session: {topic}
+                            </h1>
+                            <div className="text-sm font-semibold flex items-center gap-2 text-muted-foreground">
+                                <Clock className="h-5 w-5" />
+                                <span>{minutes.toString().padStart(2, '0')}:{seconds.toString().padStart(2, '0')}</span>
+                            </div>
                         </div>
-                    </RadioGroup>
+                        <div>
+                            <Progress value={progress} className="h-2" />
+                            <p className="text-xs text-muted-foreground mt-1">{currentQuestionIndex + 1} / {questions.length}</p>
+                        </div>
+                    </header>
 
-                    {isCurrentAnswered && (
-                        <Card className="bg-amber-500/10 border-amber-500/20">
-                            <CardHeader><CardTitle className="text-amber-700">Explanation</CardTitle></CardHeader>
-                            <CardContent>
-                                <p className="text-muted-foreground">{currentQuestion.explanation}</p>
-                            </CardContent>
-                        </Card>
-                    )}
+                    <main>
+                        <div className="space-y-6">
+                            {currentQuestion.passage && (
+                                <blockquote className="border-l-4 pl-4 italic text-muted-foreground bg-muted p-4 rounded-r-lg">
+                                    {currentQuestion.passage}
+                                </blockquote>
+                            )}
+                            <p className="font-semibold text-lg">{currentQuestion.question}</p>
+                            
+                            <RadioGroup 
+                                value={selectedAnswer || ''} 
+                                onValueChange={(value) => setUserAnswers(prev => ({ ...prev, [currentQuestionIndex]: value }))}
+                                disabled={isCurrentAnswered}
+                            >
+                                <div className="space-y-3">
+                                    {currentQuestion.options.map((option, index) => (
+                                        <Label key={index} htmlFor={`option-${index}`} className={cn(
+                                            "flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-all",
+                                            isCurrentAnswered && option === currentQuestion.correctAnswer && "border-green-500 bg-green-500/10",
+                                            isCurrentAnswered && selectedAnswer === option && !isCorrect && "border-red-500 bg-red-500/10",
+                                            !isCurrentAnswered && selectedAnswer === option && "border-primary"
+                                        )}>
+                                            <RadioGroupItem value={option} id={`option-${index}`} />
+                                            <span>{option}</span>
+                                            {isCurrentAnswered && option === currentQuestion.correctAnswer && <CheckCircle className="h-5 w-5 text-green-500 ml-auto"/>}
+                                            {isCurrentAnswered && selectedAnswer === option && !isCorrect && <XCircle className="h-5 w-5 text-red-500 ml-auto"/>}
+                                        </Label>
+                                    ))}
+                                </div>
+                            </RadioGroup>
+
+                            {isCurrentAnswered && (
+                                <Card className="bg-amber-500/10 border-amber-500/20">
+                                    <CardHeader><CardTitle className="text-amber-700">Explanation</CardTitle></CardHeader>
+                                    <CardContent>
+                                        <p className="text-muted-foreground">{currentQuestion.explanation}</p>
+                                    </CardContent>
+                                </Card>
+                            )}
+                        </div>
+                    </main>
+
+                    <footer className="mt-8 pt-4 border-t flex justify-between items-center">
+                        <Button variant="outline" onClick={handlePrevious} disabled={currentQuestionIndex === 0}>
+                            <ArrowLeft className="mr-2 h-4 w-4" /> Previous
+                        </Button>
+                        {isCurrentAnswered ? (
+                            <Button onClick={handleNext}>
+                                {currentQuestionIndex === questions.length - 1 ? 'Finish Session' : 'Next'} <ArrowRight className="ml-2 h-4 w-4" />
+                            </Button>
+                        ) : (
+                            <Button onClick={handleSubmit} disabled={!selectedAnswer}>Submit</Button>
+                        )}
+                    </footer>
                 </div>
-            </main>
-
-            <footer className="mt-8 pt-4 border-t flex justify-between items-center">
-                 <Button variant="outline" onClick={handlePrevious} disabled={currentQuestionIndex === 0}>
-                    <ArrowLeft className="mr-2 h-4 w-4" /> Previous
-                </Button>
-                {isCurrentAnswered ? (
-                    <Button onClick={handleNext}>
-                         {currentQuestionIndex === questions.length - 1 ? 'Finish Session' : 'Next'} <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                ) : (
-                    <Button onClick={handleSubmit} disabled={!selectedAnswer}>Submit</Button>
-                )}
-            </footer>
+            </div>
         </div>
     );
 }

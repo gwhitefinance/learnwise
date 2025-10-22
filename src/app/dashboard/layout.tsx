@@ -351,6 +351,8 @@ function DashboardLayoutContent({
   const [userCoins, setUserCoins] = useState<number>(0);
   const [isHalloweenTheme, setIsHalloweenTheme] = useState(false);
   const [gradeLevel, setGradeLevel] = useState<string | null>(null);
+  
+  const isFocusLayout = pathname.startsWith('/dashboard/sat-prep/study-session');
 
   useEffect(() => {
     setIsMounted(true);
@@ -504,11 +506,12 @@ function DashboardLayoutContent({
     <>
       <div className={cn(
           "relative min-h-screen overflow-hidden bg-background",
-          isHalloweenTheme && 'halloween-bg'
+          isHalloweenTheme && 'halloween-bg',
+          isFocusLayout && 'flex'
       )}>
         <input type="file" ref={fileInputRef} onChange={handleProfilePicChange} className="hidden" accept="image/*" />
         
-        {!isHalloweenTheme && (
+        {!isHalloweenTheme && !isFocusLayout && (
           <motion.div
               className="absolute inset-0 -z-10 opacity-20"
               animate={{
@@ -524,7 +527,7 @@ function DashboardLayoutContent({
         )}
 
         {/* Mobile menu overlay */}
-        {mobileMenuOpen && (
+        {mobileMenuOpen && !isFocusLayout && (
           <div className="fixed inset-0 z-40 bg-black/50 md:hidden" onClick={() => setMobileMenuOpen(false)} />
         )}
 
@@ -533,6 +536,7 @@ function DashboardLayoutContent({
             className={cn(
             "fixed inset-y-0 left-0 z-50 w-64 transform bg-background transition-transform duration-300 ease-in-out md:hidden",
             mobileMenuOpen ? "translate-x-0" : "-translate-x-full",
+            isFocusLayout && "hidden"
             )}
         >
             <div className="flex h-full flex-col border-r">
@@ -587,6 +591,7 @@ function DashboardLayoutContent({
             className={cn(
             "fixed inset-y-0 left-0 z-30 hidden w-64 transform border-r bg-background transition-transform duration-300 ease-in-out md:block",
             sidebarOpen ? "translate-x-0" : "-translate-x-full",
+            isFocusLayout && "hidden"
             )}
         >
             <div className="flex h-full flex-col">
@@ -636,101 +641,104 @@ function DashboardLayoutContent({
         {/* Main Content */}
         <div className={cn(
             "flex flex-col min-h-screen transition-all duration-300 ease-in-out", 
-            sidebarOpen ? "md:pl-64" : "md:pl-0",
+            sidebarOpen && !isFocusLayout ? "md:pl-64" : "md:pl-0",
+            isFocusLayout && 'w-full'
         )}>
-            <header className="sticky top-0 z-10 flex h-16 items-center gap-3 border-b bg-background/95 px-4 backdrop-blur">
-            <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileMenuOpen(true)}>
-                <Menu className="h-5 w-5" />
-            </Button>
-            <Button variant="ghost" size="icon" className="hidden md:flex" onClick={() => setSidebarOpen(!sidebarOpen)} aria-label="Toggle Sidebar">
-                <PanelLeft className="h-5 w-5" />
-            </Button>
-            <div className="flex flex-1 items-center justify-between">
-                <h1 className="text-xl font-semibold">Tutorin</h1>
-                <div className="flex items-center gap-3">
-                <TooltipProvider>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button variant="ghost" size="icon" className="rounded-2xl" onClick={() => setIsHalloweenTheme(!isHalloweenTheme)}>
-                                <PumpkinIcon className="h-5 w-5 text-orange-500"/>
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                            {isHalloweenTheme ? 'Disable Halloween Theme' : 'Enable Halloween Theme'}
-                        </TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
+            {!isFocusLayout && (
+                <header className="sticky top-0 z-10 flex h-16 items-center gap-3 border-b bg-background/95 px-4 backdrop-blur">
+                    <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileMenuOpen(true)}>
+                        <Menu className="h-5 w-5" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="hidden md:flex" onClick={() => setSidebarOpen(!sidebarOpen)} aria-label="Toggle Sidebar">
+                        <PanelLeft className="h-5 w-5" />
+                    </Button>
+                    <div className="flex flex-1 items-center justify-between">
+                        <h1 className="text-xl font-semibold">Tutorin</h1>
+                        <div className="flex items-center gap-3">
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="rounded-2xl" onClick={() => setIsHalloweenTheme(!isHalloweenTheme)}>
+                                        <PumpkinIcon className="h-5 w-5 text-orange-500"/>
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    {isHalloweenTheme ? 'Disable Halloween Theme' : 'Enable Halloween Theme'}
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
 
-                <TooltipProvider>
-                    <Tooltip>
-                    <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" className="rounded-2xl relative">
-                        <Bell className="h-5 w-5" />
-                        {notifications > 0 && (
-                            <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
-                            {notifications}
-                            </span>
-                        )}
-                        </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Notifications</TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
+                        <TooltipProvider>
+                            <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" className="rounded-2xl relative">
+                                <Bell className="h-5 w-5" />
+                                {notifications > 0 && (
+                                    <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
+                                    {notifications}
+                                    </span>
+                                )}
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Notifications</TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
 
-                <TooltipProvider>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Link href="/dashboard/shop">
-                                <div className="flex items-center gap-2 rounded-full bg-amber-500/10 px-3 py-1.5 text-amber-600">
-                                    <Gem className="h-4 w-4" />
-                                    <span className="text-sm font-medium">{userCoins}</span>
-                                </div>
-                            </Link>
-                        </TooltipTrigger>
-                        <TooltipContent>Your Coins</TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Link href="/dashboard/shop">
+                                        <div className="flex items-center gap-2 rounded-full bg-amber-500/10 px-3 py-1.5 text-amber-600">
+                                            <Gem className="h-4 w-4" />
+                                            <span className="text-sm font-medium">{userCoins}</span>
+                                        </div>
+                                    </Link>
+                                </TooltipTrigger>
+                                <TooltipContent>Your Coins</TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
 
 
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                    <button>
-                        <Avatar className="h-9 w-9 border-2 border-primary cursor-pointer">
-                            {profilePic ? (
-                                <AvatarImage src={profilePic} alt="User" />
-                            ): (
-                                <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
-                            )}
-                        </Avatar>
-                    </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                        <DropdownMenuItem onSelect={() => router.push('/dashboard/profile')}>
-                            <User className="mr-2 h-4 w-4" />
-                            <span>Profile</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onSelect={() => router.push('/dashboard/shop')}>
-                            <ShoppingBag className="mr-2 h-4 w-4" />
-                            <span>Shop & Rewards</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onSelect={triggerFileUpload}>
-                            <User className="mr-2 h-4 w-4" />
-                            <span>Change Picture</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={handleSignOut}>
-                            <LogOut className="mr-2 h-4 w-4" />
-                            <span>Sign Out</span>
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                            <button>
+                                <Avatar className="h-9 w-9 border-2 border-primary cursor-pointer">
+                                    {profilePic ? (
+                                        <AvatarImage src={profilePic} alt="User" />
+                                    ): (
+                                        <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
+                                    )}
+                                </Avatar>
+                            </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                                <DropdownMenuItem onSelect={() => router.push('/dashboard/profile')}>
+                                    <User className="mr-2 h-4 w-4" />
+                                    <span>Profile</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => router.push('/dashboard/shop')}>
+                                    <ShoppingBag className="mr-2 h-4 w-4" />
+                                    <span>Shop & Rewards</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onSelect={triggerFileUpload}>
+                                    <User className="mr-2 h-4 w-4" />
+                                    <span>Change Picture</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={handleSignOut}>
+                                    <LogOut className="mr-2 h-4 w-4" />
+                                    <span>Sign Out</span>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
 
-                </div>
-            </div>
-            </header>
+                        </div>
+                    </div>
+                </header>
+            )}
 
             <main className="flex-1 flex flex-col relative p-4 md:p-6">
-              <FloatingChat>
+              <FloatingChat isHidden={isFocusLayout}>
                 {React.cloneElement(children as React.ReactElement, { isHalloweenTheme })}
               </FloatingChat>
             </main>
