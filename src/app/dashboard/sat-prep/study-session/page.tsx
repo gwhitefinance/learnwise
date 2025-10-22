@@ -10,8 +10,8 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
-import { generateSatStudySessionFlow, studyPlannerFlow, generateFeedbackFlow, generateMiniCourse, generateExplanation } from '@/lib/actions';
-import type { SatQuestion, SatStudySessionInput, SatStudySessionOutput, FeedbackInput, FeedbackOutput } from '@/ai/schemas/sat-study-session-schema';
+import { generateSatStudySessionAction, generateFeedbackAction, generateMiniCourse, generateExplanation } from '@/lib/actions';
+import type { SatQuestion, FeedbackInput, FeedbackOutput } from '@/ai/schemas/sat-study-session-schema';
 import { cn } from '@/lib/utils';
 import { ArrowLeft, ArrowRight, CheckCircle, Clock, XCircle, FileText, BookOpen, Calculator, Send, Bot, Wand2, Star } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -63,7 +63,7 @@ function StudySessionPageContent() {
             setIsLoading(true);
             try {
                 const learnerType = localStorage.getItem('learnerType') as any || 'Reading/Writing';
-                const result = await generateSatStudySessionFlow({ category: topic, learnerType });
+                const result = await generateSatStudySessionAction({ category: topic, learnerType });
                 setQuestions(result.questions);
             } catch (error) {
                 console.error("Failed to fetch study session:", error);
@@ -198,7 +198,7 @@ function StudySessionPageContent() {
                     correctAnswer: q.answer,
                     isCorrect: userAnswers[i] === q.answer
                 }));
-                const feedbackResult = await generateFeedbackFlow({ answeredQuestions });
+                const feedbackResult = await generateFeedbackAction({ answeredQuestions });
                 setResultsData((prev: any) => ({ ...prev, feedback: feedbackResult.feedback }));
             } catch (error) {
                 console.error("Failed to get AI feedback:", error);
@@ -409,6 +409,7 @@ function StudySessionPageContent() {
     );
 }
 
+
 const EmbeddedChat = ({ topic }: { topic: string | null }) => {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
@@ -520,4 +521,3 @@ export default function StudySessionPage() {
         </Suspense>
     );
 }
-
