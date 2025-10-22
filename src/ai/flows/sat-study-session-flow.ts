@@ -5,8 +5,8 @@
  */
 import { ai } from '@/ai/genkit';
 import { googleAI } from '@genkit-ai/google-genai';
-import { z } from 'zod';
 import { SatStudySessionInputSchema, SatStudySessionOutputSchema } from '@/ai/schemas/sat-study-session-schema';
+import type { z } from 'zod';
 
 
 const prompt = ai.definePrompt({

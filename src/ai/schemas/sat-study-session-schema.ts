@@ -4,14 +4,6 @@
 import { z } from 'zod';
 import { SatQuestionSchema } from './sat-question-schema';
 
-// Define AnswerFeedbackSchema directly in this file
-export const AnswerFeedbackSchema = z.object({
-  question: z.string(),
-  userAnswer: z.string(),
-  correctAnswer: z.string(),
-  isCorrect: z.boolean(),
-});
-
 export const SatStudySessionInputSchema = z.object({
   category: z.enum(['Math', 'Reading & Writing']),
   learnerType: z.enum(['Visual', 'Auditory', 'Kinesthetic', 'Reading/Writing', 'Unknown']),
@@ -23,6 +15,14 @@ export const SatStudySessionOutputSchema = z.object({
     questions: z.array(SatQuestionSchema),
 });
 export type SatStudySessionOutput = z.infer<typeof SatStudySessionOutputSchema>;
+
+// Define AnswerFeedbackSchema directly in this file
+export const AnswerFeedbackSchema = z.object({
+  question: z.string(),
+  userAnswer: z.string(),
+  correctAnswer: z.string(),
+  isCorrect: z.boolean(),
+});
 
 export const FeedbackInputSchema = z.object({
     answeredQuestions: z.array(AnswerFeedbackSchema),
