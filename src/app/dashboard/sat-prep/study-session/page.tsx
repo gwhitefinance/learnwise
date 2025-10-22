@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect, Suspense, useContext } from 'react';
@@ -26,6 +25,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { FloatingChatContext } from '@/components/floating-chat';
 import { addDoc, collection } from 'firebase/firestore';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import GeneratingCourse from '@/app/dashboard/courses/GeneratingCourse';
 
 
 function StudySessionPageContent() {
@@ -93,7 +94,7 @@ function StudySessionPageContent() {
     const handleTurnStrugglingIntoCourse = async () => {
         if (!resultsData || !user) return;
         setIsSubmittingCourse(true);
-        toast({ title: "Generating your personalized course...", description: "This might take a moment." });
+        // We won't show a toast here, the GeneratingCourse component will handle the UI
 
         const strugglingTopics = Object.entries(resultsData.accuracyByTopic)
             .filter(([, stats]) => (stats as any).correct / (stats as any).total < 0.6)
@@ -127,6 +128,7 @@ function StudySessionPageContent() {
                 userId: user.uid,
                 units: courseOutline.modules.map(m => ({...m, id: crypto.randomUUID(), chapters: m.chapters.map(c => ({...c, id: crypto.randomUUID()}))})),
                 isNewTopic: true,
+                completedChapters: [],
             };
 
             await addDoc(collection(db, "courses"), courseData);
@@ -190,24 +192,6 @@ function StudySessionPageContent() {
             };
             setResultsData(results);
             setSessionState('results');
-            setFeedbackLoading(true);
-
-            try {
-                const answeredQuestions: FeedbackInput['answeredQuestions'] = questions.map((q, i) => ({
-                    question: q.question,
-                    userAnswer: userAnswers[i] || 'No answer',
-                    isCorrect: userAnswers[i] === q.answer,
-                    topic: q.topic,
-                    correctAnswer: q.answer, // FIX: Added correct answer
-                }));
-                const feedbackResult = await generateFeedbackFlow({ answeredQuestions });
-                setResultsData((prev: any) => ({ ...prev, feedback: feedbackResult.feedback }));
-            } catch (error) {
-                console.error("Failed to get AI feedback:", error);
-                setResultsData((prev: any) => ({ ...prev, feedback: "Could not generate feedback at this time."}));
-            } finally {
-                setFeedbackLoading(false);
-            }
         }
     };
     
@@ -235,13 +219,22 @@ function StudySessionPageContent() {
             </div>
         );
     }
+    
+    if (isSubmittingCourse) {
+        const strugglingTopics = Object.entries(resultsData.accuracyByTopic)
+            .filter(([, stats]) => (stats as any).correct / (stats as any).total < 0.6)
+            .map(([topic]) => topic);
+
+        const courseName = `Personalized SAT Review: ${strugglingTopics.join(', ')}`;
+        return <GeneratingCourse courseName={courseName} />;
+    }
 
     if (sessionState === 'results' && resultsData) {
         return (
             <div className="p-4 md:p-8 space-y-8">
+                <h1 className="text-3xl font-bold">Session Results</h1>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <Card className="relative">
-                        {resultsData.accuracy < 50 && <Badge variant="destructive" className="absolute -top-3 -left-3 -rotate-12">Struggling</Badge>}
+                    <Card>
                         <CardHeader><CardTitle>Accuracy</CardTitle></CardHeader>
                         <CardContent><p className="text-4xl font-bold">{resultsData.accuracy.toFixed(0)}%</p></CardContent>
                     </Card>
@@ -254,12 +247,6 @@ function StudySessionPageContent() {
                         <CardContent><p className="text-4xl font-bold">{resultsData.avgTime.toFixed(0)}s/q</p></CardContent>
                     </Card>
                 </div>
-                 <Card>
-                    <CardHeader><CardTitle>Tutorin's Feedback</CardTitle></CardHeader>
-                    <CardContent>
-                        {feedbackLoading ? <Skeleton className="h-16 w-full" /> : <p className="text-muted-foreground">{resultsData.feedback}</p>}
-                    </CardContent>
-                </Card>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <Card>
                         <CardHeader><CardTitle>Accuracy by Domain</CardTitle></CardHeader>
@@ -290,6 +277,34 @@ function StudySessionPageContent() {
                         </CardContent>
                     </Card>
                 </div>
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Question Review</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <Accordion type="single" collapsible className="w-full">
+                            {questions.map((q, i) => (
+                                <AccordionItem value={`item-${i}`} key={i}>
+                                    <AccordionTrigger>
+                                        <div className="flex items-center gap-2">
+                                            {userAnswers[i] === q.answer ? <CheckCircle className="h-5 w-5 text-green-500"/> : <XCircle className="h-5 w-5 text-red-500"/>}
+                                            <span>Question {i+1}</span>
+                                        </div>
+                                    </AccordionTrigger>
+                                    <AccordionContent>
+                                        <div className="space-y-4">
+                                            <p className="font-semibold">{q.question}</p>
+                                            <div className="text-sm">
+                                                <p><span className="font-bold">Your Answer:</span> <span className={cn(userAnswers[i] === q.answer ? "text-green-600" : "text-red-600")}>{userAnswers[i] || 'No Answer'}</span></p>
+                                                <p className="text-green-600 font-bold">Correct Answer: {q.answer}</p>
+                                            </div>
+                                        </div>
+                                    </AccordionContent>
+                                </AccordionItem>
+                            ))}
+                        </Accordion>
+                    </CardContent>
+                </Card>
                 <Card className="bg-primary/10 border-primary/20">
                     <CardHeader>
                         <CardTitle className="text-primary flex items-center gap-2"><Star/> Turn Struggling Areas into a Course</CardTitle>
@@ -297,7 +312,7 @@ function StudySessionPageContent() {
                     </CardHeader>
                     <CardFooter>
                         <Button onClick={handleTurnStrugglingIntoCourse} disabled={isSubmittingCourse}>
-                            {isSubmittingCourse ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Creating Course...</> : <>Create My Course</>}
+                            Create My Course
                         </Button>
                     </CardFooter>
                 </Card>
@@ -508,7 +523,7 @@ export default function StudySessionPage() {
     const topic = searchParams.get('topic') as 'Math' | 'Reading & Writing' | null;
 
     return (
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<Skeleton className="h-full w-full" />}>
             <div className="grid grid-cols-1 lg:grid-cols-3 h-full">
                 <div className="hidden lg:block lg:col-span-1">
                    <EmbeddedChat topic={topic} />
