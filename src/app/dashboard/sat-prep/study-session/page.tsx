@@ -9,7 +9,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
-import { generateSatStudySessionAction, generateMiniCourse, generateExplanation, generateFeedbackAction } from '@/lib/actions';
+import { generateMiniCourse, generateExplanation, generateFeedbackAction } from '@/lib/actions';
 import type { SatQuestion, AnswerFeedback as FeedbackAnswer, FeedbackInput } from '@/ai/schemas/sat-study-session-schema';
 import { cn } from '@/lib/utils';
 import { ArrowLeft, ArrowRight, CheckCircle, Clock, XCircle, FileText, BookOpen, Calculator, Send, Bot, Wand2, Star } from 'lucide-react';
@@ -60,24 +60,23 @@ function StudySessionPageContent() {
             return;
         }
 
-        const fetchQuestions = async () => {
-            setIsLoading(true);
+        const storedData = sessionStorage.getItem('satStudySessionData');
+        if (storedData) {
             try {
-                const learnerType = localStorage.getItem('learnerType') as any || 'Reading/Writing';
-                const result = await generateSatStudySessionAction({ category: topic, learnerType });
-                setQuestions(result.questions);
-            } catch (error) {
-                console.error("Failed to fetch study session:", error);
-                toast({ variant: 'destructive', title: 'Failed to load session' });
-            } finally {
-                setIsLoading(false);
+                const parsedQuestions = JSON.parse(storedData);
+                setQuestions(parsedQuestions);
+            } catch (e) {
+                console.error("Failed to parse study session data from sessionStorage", e);
+                // Handle error or refetch
             }
-        };
-        
-        if (questions.length === 0) {
-            fetchQuestions();
+            setIsLoading(false);
+            // Clear the data from storage after using it
+            sessionStorage.removeItem('satStudySessionData');
+        } else {
+             toast({ variant: 'destructive', title: 'Session Expired', description: 'Please start a new session.' });
+             router.push('/dashboard/sat-prep');
         }
-    }, [topic, router, toast, questions.length]);
+    }, [topic, router, toast]);
 
     useEffect(() => {
         if (sessionState === 'studying') {
@@ -189,7 +188,7 @@ function StudySessionPageContent() {
                     question: q.question,
                     userAnswer: userAnswers[i] || "No answer",
                     isCorrect: userAnswers[i] === q.answer,
-                    correctAnswer: q.answer, // FIX: Added correct answer
+                    correctAnswer: q.answer,
                     topic: q.topic,
                 }))
             };
@@ -222,17 +221,7 @@ function StudySessionPageContent() {
     }
 
     if (isLoading) {
-        return (
-             <div className="max-w-4xl mx-auto p-8">
-                <Skeleton className="h-8 w-48 mb-4" />
-                <Skeleton className="h-4 w-full mb-8" />
-                <Skeleton className="h-40 w-full mb-4" />
-                <Skeleton className="h-12 w-full mb-2" />
-                <Skeleton className="h-12 w-full mb-2" />
-                <Skeleton className="h-12 w-full mb-2" />
-                <Skeleton className="h-12 w-full mb-2" />
-            </div>
-        );
+        return <GeneratingSession topic={topic || 'SAT Session'} />;
     }
     
     if (isSubmittingCourse) {

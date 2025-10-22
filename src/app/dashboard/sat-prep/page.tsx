@@ -10,8 +10,8 @@ import { cn } from '@/lib/utils';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import type { SatQuestion } from '@/ai/schemas/sat-question-schema';
-import { generateSatQuestion } from '@/lib/actions';
+import type { SatQuestion } from '@/ai/schemas/sat-study-session-schema';
+import { generateSatQuestion, generateSatStudySessionAction } from '@/lib/actions';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import { useAuthState } from 'react-firebase-hooks/auth';
@@ -141,7 +141,7 @@ export default function SatPrepPage() {
     const [streak, setStreak] = useState(0);
     const [chatInput, setChatInput] = useState('');
     const { openChatWithVoice } = useContext(FloatingChatContext);
-    const [isNavigating, setIsNavigating] = useState<string | null>(null);
+    const [isGenerating, setIsGenerating] = useState<string | null>(null);
 
     useEffect(() => {
         if (authLoading) return;
@@ -186,16 +186,25 @@ export default function SatPrepPage() {
         setChatInput('');
     }
 
-    const handleNavigate = (topic: string) => {
-        setIsNavigating(topic);
-        // Simulate generation time before navigating
-        setTimeout(() => {
+    const handleGenerateSession = async (topic: 'Math' | 'Reading & Writing') => {
+        setIsGenerating(topic);
+        try {
+            const learnerType = localStorage.getItem('learnerType') as any || 'Reading/Writing';
+            const result = await generateSatStudySessionAction({ category: topic, learnerType });
+            
+            // Store the result in sessionStorage to pass to the next page
+            sessionStorage.setItem('satStudySessionData', JSON.stringify(result.questions));
+
             router.push(`/dashboard/sat-prep/study-session?topic=${encodeURIComponent(topic)}`);
-        }, 8000); // Match the duration in GeneratingSession
+        } catch (error) {
+            console.error("Failed to generate study session:", error);
+            toast({ variant: "destructive", title: "Generation Failed", description: "Could not create your study session. Please try again." });
+            setIsGenerating(null);
+        }
     };
 
-    if (isNavigating) {
-        return <GeneratingSession topic={isNavigating} />;
+    if (isGenerating) {
+        return <GeneratingSession topic={isGenerating} />;
     }
 
     if (loading || authLoading) {
@@ -243,28 +252,20 @@ export default function SatPrepPage() {
                     <h2 className="text-2xl font-bold flex items-center gap-2"><Rocket className="text-primary"/> Let's begin:</h2>
                      <div className="flex flex-col sm:flex-row gap-4">
                         <Button 
-                            onClick={() => handleNavigate('Reading & Writing')} 
+                            onClick={() => handleGenerateSession('Reading & Writing')} 
                             className="w-full justify-start text-base py-6" 
                             variant="outline"
-                            disabled={!!isNavigating}
+                            disabled={!!isGenerating}
                         >
-                            {isNavigating === 'Reading & Writing' ? (
-                                <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Generating Session...</>
-                            ) : (
-                                <><BookOpen className="mr-2 h-5 w-5" /> Study Session: Reading</>
-                            )}
+                            <BookOpen className="mr-2 h-5 w-5" /> Study Session: Reading
                         </Button>
                         <Button 
-                            onClick={() => handleNavigate('Math')} 
+                            onClick={() => handleGenerateSession('Math')} 
                             className="w-full justify-start text-base py-6" 
                             variant="outline"
-                            disabled={!!isNavigating}
+                            disabled={!!isGenerating}
                         >
-                             {isNavigating === 'Math' ? (
-                                <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Generating Session...</>
-                            ) : (
-                                <><Calculator className="mr-2 h-5 w-5" /> Study Session: Math</>
-                            )}
+                            <Calculator className="mr-2 h-5 w-5" /> Study Session: Math
                         </Button>
                     </div>
                 </div>
