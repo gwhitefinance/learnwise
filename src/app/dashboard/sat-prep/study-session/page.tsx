@@ -4,7 +4,7 @@
 import { useState, useEffect, Suspense, useContext } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
@@ -202,16 +202,49 @@ function StudySessionPageContent() {
 }
 
 const EmbeddedChat = ({ topic }: { topic: string | null }) => {
+    const [chatInput, setChatInput] = useState('');
+    const { toast } = useToast();
+    const [user] = useAuthState(auth);
+
+    const handleChatSubmit = () => {
+        if (!chatInput.trim()) return;
+        toast({ title: 'Message Sent (Simulation)', description: `You asked: ${chatInput}`});
+        // In a real scenario, this would integrate with a chat service.
+        setChatInput('');
+    }
+
     return (
-        <div className="p-4 border-b text-center flex flex-col h-full bg-muted/50">
-            <div className="p-4 flex-1 flex flex-col items-center justify-center">
-                 <AIBuddy className="w-24 h-24 mb-4" />
-                <h3 className="font-semibold">Ask Tutorin</h3>
-                <p className="text-sm text-muted-foreground">Any questions on {topic}? I'm here to help.</p>
+        <div className="p-4 border-l h-full flex flex-col bg-card">
+             <div className="flex-1 space-y-4">
+                <div className="flex items-start gap-3">
+                    <AIBuddy className="w-10 h-10 flex-shrink-0" />
+                    <div className="bg-muted p-3 rounded-lg rounded-bl-none">
+                        <p className="text-sm">Any questions on {topic}? I'm here to help.</p>
+                    </div>
+                </div>
+                {/* Example of a user message */}
+                {/* <div className="flex items-start gap-3 justify-end">
+                    <div className="bg-primary text-primary-foreground p-3 rounded-lg rounded-br-none">
+                        <p className="text-sm">Can you explain why B is wrong?</p>
+                    </div>
+                     <Avatar className="h-8 w-8">
+                        <AvatarFallback>{user?.displayName?.[0]}</AvatarFallback>
+                    </Avatar>
+                </div> */}
             </div>
-             <div className="relative">
-                <Input placeholder="Ask anything..." className="pr-10" />
-                <Button size="icon" variant="ghost" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8">
+            <div className="relative mt-4">
+                <Input 
+                    placeholder="Ask Tutorin anything..."
+                    className="h-12 rounded-full pl-6 pr-14 text-base"
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleChatSubmit()}
+                />
+                <Button 
+                    size="icon" 
+                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full h-9 w-9"
+                    onClick={handleChatSubmit}
+                >
                     <Send className="h-4 w-4" />
                 </Button>
             </div>
@@ -225,11 +258,13 @@ export default function StudySessionPage() {
 
     return (
         <Suspense fallback={<div>Loading...</div>}>
-            <div className="flex w-full h-full">
-                <div className="w-[400px] h-full bg-card border-r flex-shrink-0 hidden lg:flex">
+            <div className="grid grid-cols-1 lg:grid-cols-3 h-full">
+                <div className="hidden lg:block lg:col-span-1">
                    <EmbeddedChat topic={topic} />
                 </div>
-                <StudySessionPageContent />
+                <div className="lg:col-span-2">
+                    <StudySessionPageContent />
+                </div>
             </div>
         </Suspense>
     );
