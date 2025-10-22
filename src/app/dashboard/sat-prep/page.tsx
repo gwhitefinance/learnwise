@@ -4,7 +4,7 @@
 import { useState, useEffect, useContext } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { BookOpen, Calculator, Loader2, RefreshCw, FileText, Trophy, Clock, GraduationCap, ArrowRight, Rocket, Send, FileQuestion } from 'lucide-react';
+import { BookOpen, Calculator, Loader2, RefreshCw, FileText, Trophy, Clock, GraduationCap, ArrowRight, Rocket, Send } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -20,6 +20,7 @@ import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestor
 import { format, formatDistanceToNow } from 'date-fns';
 import { FloatingChatContext } from '@/components/floating-chat';
 import { Progress } from '@/components/ui/progress';
+import { Input } from '@/components/ui/input';
 
 type TestResult = {
     id: string;
@@ -214,4 +215,3 @@ export default function SatPrepPage() {
         </div>
     );
 }
-
