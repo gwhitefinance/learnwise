@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect, Suspense, useContext } from 'react';
@@ -11,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { generateSatStudySessionAction, generateFeedbackAction, generateMiniCourse, generateExplanation } from '@/lib/actions';
-import type { SatQuestion, FeedbackInput, SatStudySessionInput, SatStudySessionOutput } from '@/ai/schemas/sat-study-session-schema';
+import type { SatQuestion, FeedbackInput } from '@/ai/schemas/sat-study-session-schema';
 import { cn } from '@/lib/utils';
 import { ArrowLeft, ArrowRight, CheckCircle, Clock, XCircle, FileText, BookOpen, Calculator, Send, Bot, Wand2, Star } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -50,7 +49,7 @@ function StudySessionPageContent() {
 
     const { toast } = useToast();
 
-    const { openChatWithPrompt } = useContext(FloatingChatContext);
+    const { openChatWithPrompt } = useContext(FloatingChatContext) as any;
 
     useEffect(() => {
         if (!topic) {
@@ -253,7 +252,7 @@ function StudySessionPageContent() {
                     </Card>
                 </div>
                  <Card>
-                    <CardHeader><CardTitle>Satori's Feedback</CardTitle></CardHeader>
+                    <CardHeader><CardTitle>Tutorin's Feedback</CardTitle></CardHeader>
                     <CardContent>
                         {feedbackLoading ? <Skeleton className="h-16 w-full" /> : <p className="text-muted-foreground">{resultsData.feedback}</p>}
                     </CardContent>
@@ -518,4 +517,3 @@ export default function StudySessionPage() {
         </Suspense>
     );
 }
-

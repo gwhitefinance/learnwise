@@ -12,7 +12,7 @@ const prompt = ai.definePrompt({
     model: googleAI.model('gemini-2.0-flash'),
     input: { schema: FeedbackInputSchema },
     output: { schema: FeedbackOutputSchema },
-    prompt: `You are an expert SAT tutor named Satori, providing feedback on a student's practice set.
+    prompt: `You are an expert SAT tutor named Tutorin, providing feedback on a student's practice set.
     Analyze the student's performance based on the questions they answered.
 
     Your task is to provide a concise (2-3 sentences) and encouraging feedback summary.
@@ -31,7 +31,7 @@ const prompt = ai.definePrompt({
     `,
 });
 
-const generateFeedbackFlow = ai.defineFlow(
+export const generateFeedbackFlow = ai.defineFlow(
   {
     name: 'generateFeedbackFlow',
     inputSchema: FeedbackInputSchema,
@@ -47,6 +47,6 @@ const generateFeedbackFlow = ai.defineFlow(
 );
 
 
-export default async function generateFeedback(input: FeedbackInput): Promise<FeedbackOutput> {
+export async function generateFeedbackAction(input: FeedbackInput): Promise<FeedbackOutput> {
     return generateFeedbackFlow(input);
 }
