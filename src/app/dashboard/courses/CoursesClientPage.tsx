@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useContext, Suspense, useRef } from 'react';
@@ -35,6 +36,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import GeneratingCourse from './GeneratingCourse';
 import ListenAssistant from '@/components/ListenAssistant';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import AIBuddy from '@/components/ai-buddy';
 
 
 type Course = {
@@ -268,9 +270,16 @@ function CoursesComponent() {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [popoverPosition]);
-  
+
   const currentModule = activeCourse?.units?.[currentModuleIndex];
   const currentChapter = currentModule?.chapters[currentChapterIndex];
+
+  useEffect(() => {
+    if (currentModule && quizState === 'configuring' && currentChapter?.title.toLowerCase().includes('quiz')) {
+        // Do nothing on load, wait for button click
+    }
+  }, [currentModule, quizState, currentChapter]);
+
 
   const handleGenerateCourse = async () => {
     if (!user || !newCourse.name || isNewTopic === null || !learnerType) return;
@@ -345,7 +354,7 @@ function CoursesComponent() {
             
             const newRoadmap = {
                 goals: roadmapResult.goals.map(g => ({ ...g, id: `id-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, icon: g.icon || 'Flag' })),
-                milestones: roadmapResult.milestones.map(m => ({ ...m, id: `id-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, icon: g.icon || 'Calendar', completed: false }))
+                milestones: roadmapResult.milestones.map(m => ({ ...m, id: `id-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, icon: m.icon || 'Calendar', completed: false }))
             };
 
             const roadmapsQuery = query(collection(db, 'roadmaps'), where('courseId', '==', activeCourse.id));
@@ -369,10 +378,10 @@ function CoursesComponent() {
 
 
   const handleStartModuleQuiz = async (module: Module) => {
+    setQuizState('in-progress');
     setQuizLoading(true);
     setGeneratedQuiz(null);
     setQuizAnswers([]);
-    setQuizState('in-progress');
     setCurrentQuizQuestionIndex(0);
     setSelectedQuizAnswer(null);
 
@@ -391,7 +400,7 @@ function CoursesComponent() {
             title: 'Quiz Generation Failed',
             description: 'Could not generate a quiz for this module.',
         });
-        setQuizDialogOpen(false);
+        setQuizState('configuring'); // Revert state on failure
     } finally {
         setQuizLoading(false);
     }
@@ -574,6 +583,7 @@ function CoursesComponent() {
     } else {
         setCurrentModuleIndex(nextModuleIndex);
         setCurrentChapterIndex(nextChapterIndex);
+        setQuizState('configuring'); // Reset quiz state for the next module
     }
   };
 
@@ -602,7 +612,7 @@ function CoursesComponent() {
     const isNextChapterQuiz = nextChapter?.title.toLowerCase().includes('quiz');
 
     if (isNextChapterQuiz) {
-        handleProceedToNextChapter(); // Bypass summary dialog
+        handleProceedToNextChapter(); // Bypass summary dialog and go to quiz intro screen
         return;
     }
 
@@ -1156,7 +1166,23 @@ function CoursesComponent() {
             </div>
         )}
         {quizState === 'in-progress' && isQuizLoading && (
-           <div className="flex items-center justify-center h-full"><Loader2 className="h-8 w-8 animate-spin" /> <p className="ml-4">Generating your quiz...</p></div>
+           <div className="flex flex-col items-center justify-center h-full text-center p-8">
+              <div className="relative mb-8">
+                  <AIBuddy className="w-32 h-32" isStatic={false} />
+              </div>
+              <h2 className="text-2xl font-bold animate-pulse">Preparing your quiz...</h2>
+              <p className="text-muted-foreground mt-2">Good luck!</p>
+              <div className="mt-8 flex gap-4">
+                   {currentModule.chapters.slice(0, -1).map((chapter, index) => (
+                      <Button key={chapter.id} variant="outline" onClick={() => {
+                          setCurrentModuleIndex(currentModuleIndex);
+                          setCurrentChapterIndex(index);
+                      }}>
+                          Review Chapter {index + 1}
+                      </Button>
+                  ))}
+              </div>
+          </div>
         )}
         
         {quizState === 'in-progress' && !isQuizLoading && currentQuizQuestion && (
@@ -1548,4 +1574,3 @@ export default function CoursesClientPage() {
         </Suspense>
     )
 }
-
