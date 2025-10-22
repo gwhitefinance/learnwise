@@ -10,10 +10,10 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
-import { generateSatStudySession, studyPlannerFlow } from '@/lib/actions';
+import { generateSatStudySession, studyPlannerFlow, generateFeedback, generateMiniCourse } from '@/lib/actions';
 import type { SatQuestion } from '@/ai/schemas/sat-study-session-schema';
 import { cn } from '@/lib/utils';
-import { ArrowLeft, ArrowRight, CheckCircle, Clock, XCircle, FileText, BookOpen, Calculator, Send, Bot } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle, Clock, XCircle, FileText, BookOpen, Calculator, Send, Bot, Wand2, Star } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import AIBuddy from '@/components/ai-buddy';
 import { Input } from '@/components/ui/input';
@@ -24,6 +24,7 @@ import type { Message } from '@/components/floating-chat';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { FloatingChatContext } from '@/components/floating-chat';
+import { addDoc, collection } from 'firebase/firestore';
 
 
 function StudySessionPageContent() {
@@ -37,7 +38,16 @@ function StudySessionPageContent() {
     const [userAnswers, setUserAnswers] = useState<Record<number, string>>({});
     const [isSubmitted, setIsSubmitted] = useState<Record<number, boolean>>({});
     
-    const [questionTime, setQuestionTime] = useState(0); 
+    const [questionTimers, setQuestionTimers] = useState<Record<number, number>>({});
+    const [currentQuestionTime, setCurrentQuestionTime] = useState(0);
+
+    const [isSubmittingCourse, setIsSubmittingCourse] = useState(false);
+    
+    const [sessionState, setSessionState] = useState<'studying' | 'results'>('studying');
+    const [resultsData, setResultsData] = useState<any>(null);
+    const [feedbackLoading, setFeedbackLoading] = useState(false);
+    const [user] = useAuthState(auth);
+
     const { toast } = useToast();
 
     const { openChatWithPrompt } = useContext(FloatingChatContext);
@@ -67,27 +77,135 @@ function StudySessionPageContent() {
     }, [topic, router, toast]);
 
     useEffect(() => {
-        setQuestionTime(0); // Reset timer for new question
-        const timer = setInterval(() => {
-            // Only count time if an answer has NOT been submitted for the current question
-            if (!isSubmitted[currentQuestionIndex]) {
-                 setQuestionTime(prev => prev + 1);
-            }
-        }, 1000);
-        return () => clearInterval(timer);
-    }, [currentQuestionIndex, isSubmitted]);
+        if (sessionState === 'studying') {
+            setCurrentQuestionTime(0); // Reset timer for new question
+            const timer = setInterval(() => {
+                // Only count time if an answer has NOT been submitted for the current question
+                if (!isSubmitted[currentQuestionIndex]) {
+                    setCurrentQuestionTime(prev => prev + 1);
+                }
+            }, 1000);
+            return () => clearInterval(timer);
+        }
+    }, [currentQuestionIndex, isSubmitted, sessionState]);
+
+    const handleTurnStrugglingIntoCourse = async () => {
+        if (!resultsData || !user) return;
+        setIsSubmittingCourse(true);
+        toast({ title: "Generating your personalized course...", description: "This might take a moment." });
+
+        const strugglingTopics = Object.entries(resultsData.accuracyByTopic)
+            .filter(([, stats]) => (stats as any).correct / (stats as any).total < 0.6)
+            .map(([topic]) => topic);
+            
+        if(strugglingTopics.length === 0) {
+            toast({ title: "No struggling areas to create a course from. Great job!" });
+            setIsSubmittingCourse(false);
+            return;
+        }
+
+        const courseName = `Personalized SAT Review: ${strugglingTopics.join(', ')}`;
+        const courseDescription = `An AI-generated course focusing on your areas for improvement: ${strugglingTopics.join(', ')}.`;
+
+        try {
+            const learnerType = localStorage.getItem('learnerType') as any || 'Reading/Writing';
+            const courseOutline = await generateMiniCourse({
+                courseName,
+                courseDescription,
+                learnerType,
+            });
+
+            const courseData = {
+                name: courseName,
+                description: courseDescription,
+                instructor: "AI Assistant",
+                credits: 3,
+                url: '',
+                progress: 0,
+                files: 0,
+                userId: user.uid,
+                units: courseOutline.modules.map(m => ({...m, id: crypto.randomUUID(), chapters: m.chapters.map(c => ({...c, id: crypto.randomUUID()}))})),
+                isNewTopic: true,
+            };
+
+            await addDoc(collection(db, "courses"), courseData);
+            
+            toast({ title: "Course Created!", description: "Your new review course is available on the courses page." });
+            router.push('/dashboard/courses');
+
+        } catch (error) {
+            console.error("Course creation failed:", error);
+            toast({ variant: 'destructive', title: "Course Creation Failed" });
+        } finally {
+            setIsSubmittingCourse(false);
+        }
+    }
+
 
     const handleSubmit = () => {
         setIsSubmitted(prev => ({ ...prev, [currentQuestionIndex]: true }));
+        setQuestionTimers(prev => ({...prev, [currentQuestionIndex]: currentQuestionTime}));
     };
 
-    const handleNext = () => {
+    const handleNext = async () => {
         if (currentQuestionIndex < questions.length - 1) {
             setCurrentQuestionIndex(prev => prev + 1);
         } else {
-            // Handle end of session
-            toast({ title: "Study session complete!", description: "Great work!" });
-            router.push('/dashboard/sat-prep');
+            // End of session, calculate results
+            const totalTime = Object.values(questionTimers).reduce((sum, time) => sum + time, 0);
+            const correctAnswers = questions.filter((q, i) => userAnswers[i] === q.answer).length;
+            
+            const accuracyByTopic = questions.reduce((acc, q, i) => {
+                const topic = q.topic;
+                if (!acc[topic]) {
+                    acc[topic] = { correct: 0, total: 0 };
+                }
+                acc[topic].total++;
+                if (userAnswers[i] === q.answer) {
+                    acc[topic].correct++;
+                }
+                return acc;
+            }, {} as Record<string, { correct: number, total: number }>);
+
+            const accuracyByDifficulty = questions.reduce((acc, q, i) => {
+                const difficulty = q.difficulty;
+                if (!acc[difficulty]) {
+                    acc[difficulty] = { correct: 0, total: 0 };
+                }
+                acc[difficulty].total++;
+                if (userAnswers[i] === q.answer) {
+                    acc[difficulty].correct++;
+                }
+                return acc;
+            }, {} as Record<string, { correct: number, total: number }>);
+
+            const results = {
+                accuracy: (correctAnswers / questions.length) * 100,
+                totalQuestions: questions.length,
+                avgTime: totalTime / questions.length,
+                accuracyByTopic,
+                accuracyByDifficulty,
+                feedback: '',
+            };
+            setResultsData(results);
+            setSessionState('results');
+            setFeedbackLoading(true);
+
+            try {
+                const answeredQuestions = questions.map((q, i) => ({
+                    question: q.question,
+                    userAnswer: userAnswers[i] || 'No answer',
+                    correctAnswer: q.answer,
+                    isCorrect: userAnswers[i] === q.answer
+                }));
+                const feedbackResult = await generateFeedback({ answeredQuestions });
+                setResultsData((prev: any) => ({ ...prev, feedback: feedbackResult.feedback }));
+            } catch (error) {
+                console.error("Failed to get AI feedback:", error);
+                setResultsData((prev: any) => ({ ...prev, feedback: "Could not generate feedback at this time."}));
+            } finally {
+                setFeedbackLoading(false);
+            }
         }
     };
     
@@ -115,6 +233,75 @@ function StudySessionPageContent() {
             </div>
         );
     }
+
+    if (sessionState === 'results' && resultsData) {
+        return (
+            <div className="p-4 md:p-8 space-y-8">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <Card className="relative">
+                        {resultsData.accuracy < 50 && <Badge variant="destructive" className="absolute -top-3 -left-3 -rotate-12">Suffering</Badge>}
+                        <CardHeader><CardTitle>Accuracy</CardTitle></CardHeader>
+                        <CardContent><p className="text-4xl font-bold">{resultsData.accuracy.toFixed(0)}%</p></CardContent>
+                    </Card>
+                     <Card>
+                        <CardHeader><CardTitle>Questions</CardTitle></CardHeader>
+                        <CardContent><p className="text-4xl font-bold">{resultsData.totalQuestions}</p></CardContent>
+                    </Card>
+                     <Card>
+                        <CardHeader><CardTitle>Avg. Time</CardTitle></CardHeader>
+                        <CardContent><p className="text-4xl font-bold">{resultsData.avgTime.toFixed(0)}s/q</p></CardContent>
+                    </Card>
+                </div>
+                 <Card>
+                    <CardHeader><CardTitle>Satori's Feedback</CardTitle></CardHeader>
+                    <CardContent>
+                        {feedbackLoading ? <Skeleton className="h-16 w-full" /> : <p className="text-muted-foreground">{resultsData.feedback}</p>}
+                    </CardContent>
+                </Card>
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <Card>
+                        <CardHeader><CardTitle>Accuracy by Domain</CardTitle></CardHeader>
+                        <CardContent className="space-y-4">
+                            {Object.entries(resultsData.accuracyByTopic).map(([topic, stats]: any) => (
+                                <div key={topic}>
+                                    <div className="flex justify-between text-sm mb-1">
+                                        <span className="font-medium">{topic}</span>
+                                        <span className="text-muted-foreground">{stats.correct}/{stats.total}</span>
+                                    </div>
+                                    <Progress value={(stats.correct / stats.total) * 100} />
+                                </div>
+                            ))}
+                        </CardContent>
+                    </Card>
+                     <Card>
+                        <CardHeader><CardTitle>Accuracy by Difficulty</CardTitle></CardHeader>
+                        <CardContent className="space-y-4">
+                            {Object.entries(resultsData.accuracyByDifficulty).map(([difficulty, stats]: any) => (
+                                <div key={difficulty}>
+                                    <div className="flex justify-between text-sm mb-1">
+                                        <span className="font-medium">{difficulty}</span>
+                                        <span className="text-muted-foreground">{stats.correct}/{stats.total}</span>
+                                    </div>
+                                    <Progress value={(stats.correct / stats.total) * 100} />
+                                </div>
+                            ))}
+                        </CardContent>
+                    </Card>
+                </div>
+                <Card className="bg-primary/10 border-primary/20">
+                    <CardHeader>
+                        <CardTitle className="text-primary flex items-center gap-2"><Star/> Turn Struggling Areas into a Course</CardTitle>
+                        <CardDescription>Create a personalized learning lab focusing on the topics you need to improve.</CardDescription>
+                    </CardHeader>
+                    <CardFooter>
+                        <Button onClick={handleTurnStrugglingIntoCourse} disabled={isSubmittingCourse}>
+                            {isSubmittingCourse ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/>Creating Course...</> : <>Create My Course</>}
+                        </Button>
+                    </CardFooter>
+                </Card>
+            </div>
+        )
+    }
     
     if (questions.length === 0) {
         return <div className="p-8">No questions were generated for this session. Please try again.</div>
@@ -125,8 +312,6 @@ function StudySessionPageContent() {
     const selectedAnswer = userAnswers[currentQuestionIndex];
     const isCorrect = selectedAnswer === currentQuestion.correctAnswer;
     const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
-    const minutes = Math.floor(questionTime / 60);
-    const seconds = questionTime % 60;
     
     const difficultyColors = {
         'Easy': 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300',
@@ -145,7 +330,7 @@ function StudySessionPageContent() {
                         </h1>
                         <div className="text-sm font-semibold flex items-center gap-2 text-muted-foreground">
                             <Clock className="h-5 w-5" />
-                            <span>{minutes.toString().padStart(2, '0')}:{seconds.toString().padStart(2, '0')}</span>
+                             <span>{Math.floor(currentQuestionTime / 60).toString().padStart(2, '0')}:{(currentQuestionTime % 60).toString().padStart(2, '0')}</span>
                         </div>
                     </div>
                     <div>
@@ -263,7 +448,7 @@ const EmbeddedChat = ({ topic }: { topic: string | null }) => {
 
     return (
         <div className="p-4 border-r h-full flex flex-col bg-card">
-             <header className="p-2 mb-4 flex items-center justify-between bg-muted rounded-lg">
+             <header className="p-2 mb-4 flex items-center justify-between">
                 <Button variant="ghost" size="icon" onClick={() => router.push('/dashboard/sat-prep')} className="h-8 w-8">
                     <ArrowLeft className="h-4 w-4" />
                 </Button>
@@ -335,4 +520,3 @@ export default function StudySessionPage() {
         </Suspense>
     );
 }
-

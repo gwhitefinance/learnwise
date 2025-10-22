@@ -3,6 +3,7 @@
  */
 import { z } from 'zod';
 import { SatQuestionSchema } from './sat-question-schema';
+import { AnswerFeedbackSchema } from './sat-feedback-schema';
 
 export const SatStudySessionInputSchema = z.object({
   category: z.enum(['Math', 'Reading & Writing']),
@@ -15,3 +16,13 @@ export const SatStudySessionOutputSchema = z.object({
     questions: z.array(SatQuestionSchema),
 });
 export type SatStudySessionOutput = z.infer<typeof SatStudySessionOutputSchema>;
+
+export const FeedbackInputSchema = z.object({
+    answeredQuestions: z.array(AnswerFeedbackSchema),
+});
+export type FeedbackInput = z.infer<typeof FeedbackInputSchema>;
+
+export const FeedbackOutputSchema = z.object({
+    feedback: z.string().describe("A 2-3 sentence summary of the student's performance, highlighting one strength and one area for improvement."),
+});
+export type FeedbackOutput = z.infer<typeof FeedbackOutputSchema>;
