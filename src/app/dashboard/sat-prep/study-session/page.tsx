@@ -12,9 +12,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { generateSatStudySession } from '@/ai/flows/sat-study-session-flow';
 import type { SatQuestion } from '@/ai/schemas/sat-study-session-schema';
 import { cn } from '@/lib/utils';
-import { ArrowLeft, ArrowRight, CheckCircle, Clock, XCircle, FileText, BookOpen, Calculator } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle, Clock, XCircle, FileText, BookOpen, Calculator, Send } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import FloatingChat, { FloatingChatContext } from '@/components/floating-chat';
+import { FloatingChatContext } from '@/components/floating-chat';
+import AIBuddy from '@/components/ai-buddy';
+import { Input } from '@/components/ui/input';
 
 function StudySessionPageContent() {
     const router = useRouter();
@@ -103,7 +105,7 @@ function StudySessionPageContent() {
     }
     
     if (questions.length === 0) {
-        return <div>No questions found for this session.</div>
+        return <div className="p-8">No questions were generated for this session. Please try again.</div>
     }
 
     const currentQuestion = questions[currentQuestionIndex];
@@ -199,18 +201,33 @@ function StudySessionPageContent() {
     );
 }
 
+const EmbeddedChat = ({ topic }: { topic: string | null }) => {
+    return (
+        <div className="p-4 border-b text-center flex flex-col h-full bg-muted/50">
+            <div className="p-4 flex-1 flex flex-col items-center justify-center">
+                 <AIBuddy className="w-24 h-24 mb-4" />
+                <h3 className="font-semibold">Ask Tutorin</h3>
+                <p className="text-sm text-muted-foreground">Any questions on {topic}? I'm here to help.</p>
+            </div>
+             <div className="relative">
+                <Input placeholder="Ask anything..." className="pr-10" />
+                <Button size="icon" variant="ghost" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8">
+                    <Send className="h-4 w-4" />
+                </Button>
+            </div>
+        </div>
+    );
+}
+
 export default function StudySessionPage() {
+    const searchParams = useSearchParams();
+    const topic = searchParams.get('topic') as 'Math' | 'Reading & Writing' | null;
+
     return (
         <Suspense fallback={<div>Loading...</div>}>
             <div className="flex w-full h-full">
-                <div className="w-[400px] h-full bg-card border-r flex-shrink-0 hidden lg:block">
-                    <div className="p-4 border-b text-center">
-                        <h3 className="font-semibold">Ask Tutorin</h3>
-                        <p className="text-xs text-muted-foreground">Get help with any question.</p>
-                    </div>
-                    <FloatingChat isEmbedded={true}>
-                        <></>
-                    </FloatingChat>
+                <div className="w-[400px] h-full bg-card border-r flex-shrink-0 hidden lg:flex">
+                   <EmbeddedChat topic={topic} />
                 </div>
                 <StudySessionPageContent />
             </div>
