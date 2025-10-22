@@ -738,7 +738,7 @@ function DashboardLayoutContent({
             )}
 
             <main className="flex-1 flex flex-col relative p-4 md:p-6">
-              <FloatingChat isHidden={isFocusLayout}>
+              <FloatingChat isHidden={isFocusLayout} isEmbedded={isFocusLayout}>
                 {React.cloneElement(children as React.ReactElement, { isHalloweenTheme })}
               </FloatingChat>
             </main>
