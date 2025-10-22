@@ -179,6 +179,12 @@ function CoursesComponent() {
   const existingQuizResult = currentModule ? quizResults[currentModule.id] : undefined;
 
   useEffect(() => {
+    if (currentChapterIsQuiz && currentModule && !existingQuizResult) {
+        handleStartModuleQuiz(currentModule, true);
+    }
+  }, [currentChapterIsQuiz, currentModule, existingQuizResult]);
+  
+  useEffect(() => {
     if (authLoading || !user) return;
 
     const q = query(collection(db, "courses"), where("userId", "==", user.uid));
@@ -204,12 +210,6 @@ function CoursesComponent() {
     return () => unsubscribe();
   }, [user, authLoading, searchParams]);
   
-    useEffect(() => {
-        if (currentChapterIsQuiz && currentModule && !existingQuizResult) {
-            handleStartModuleQuiz(currentModule, true);
-        }
-    }, [currentChapterIsQuiz, currentModule, existingQuizResult]);
-
   useEffect(() => {
     const loadCourseData = async () => {
         if (!user || !selectedCourseId) {
@@ -1185,7 +1185,7 @@ function CoursesComponent() {
   const isMidtermModule = activeCourse.units && currentModuleIndex === Math.floor(activeCourse.units.length / 2);
   
     if (currentChapterIsQuiz && currentModule) {
-        if (quizLoading && !existingQuizResult) {
+        if (isQuizLoading && !existingQuizResult) {
             return (
                 <div className="flex flex-col items-center justify-center h-full text-center p-8">
                     <div className="relative mb-8">
