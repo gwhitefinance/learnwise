@@ -21,7 +21,9 @@ const prompt = ai.definePrompt({
     - Module: {{moduleTitle}}
     - Chapter: {{chapterTitle}}
 
-    **CRITICAL INSTRUCTION**: Your primary goal is to generate the 'content' for this chapter. The content MUST be the length of a detailed essay, comprising at least 5 to 7 substantial paragraphs. It must be a comprehensive, word-heavy educational resource. Do NOT provide a short summary.
+    **CRITICAL INSTRUCTIONS FOR 'content' FIELD:**
+    1.  **Length**: The 'content' you generate MUST be a detailed essay, comprising exactly 5 to 7 substantial paragraphs. Do NOT provide a short summary. It must be a comprehensive, word-heavy educational resource.
+    2.  **Formatting**: You MUST separate each paragraph with a double newline character ('\\n\\n'). The final output should be a single string, but with clear visual separation between paragraphs.
 
     The user is a {{learnerType}} learner. Tailor the content and the interactive activity accordingly.
     
@@ -31,8 +33,8 @@ const prompt = ai.definePrompt({
     - For Kinesthetic learners: Suggest a simple, tangible action, like a hand gesture to remember a process or relating the topic to a physical object on their desk.
     - For Reading/Writing learners: Suggest summarizing the main point in one sentence or writing down 3 keywords.
 
-    First, generate the detailed 'content'.
-    Second, devise a short and fun 'activity'.
+    First, generate the detailed 'content' following the critical instructions.
+    Second, devise the short and fun 'activity'.
     `,
 });
 
