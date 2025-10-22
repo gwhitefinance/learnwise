@@ -17,7 +17,7 @@ import Link from 'next/link';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
-import { format, formatDistanceToNow } from 'date-fns';
+import { format } from 'date-fns';
 import { FloatingChatContext } from '@/components/floating-chat';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -227,15 +227,15 @@ export default function SatPrepPage() {
                 </div>
                  <div className="space-y-4">
                     <h2 className="text-2xl font-bold flex items-center gap-2"><Rocket className="text-primary"/> Let's begin:</h2>
-                    <div className="flex flex-col sm:flex-row gap-4">
+                     <div className="flex flex-col sm:flex-row gap-4">
                         <Button asChild className="w-full justify-start text-base py-6" variant="outline">
-                            <Link href="#">
+                            <Link href="/dashboard/sat-prep/study-session?topic=Reading+%26+Writing">
                                 <BookOpen className="mr-2 h-5 w-5" />
                                 Study Session: Reading
                             </Link>
                         </Button>
                         <Button asChild className="w-full justify-start text-base py-6" variant="outline">
-                            <Link href="#">
+                            <Link href="/dashboard/sat-prep/study-session?topic=Math">
                                 <Calculator className="mr-2 h-5 w-5" />
                                 Study Session: Math
                             </Link>
