@@ -9,7 +9,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
-import { generateMiniCourse, generateExplanation } from '@/lib/actions';
+import { generateMiniCourse } from '@/lib/actions';
 import type { SatQuestion, AnswerFeedback as FeedbackAnswer, FeedbackInput } from '@/ai/schemas/sat-study-session-schema';
 import { cn } from '@/lib/utils';
 import { ArrowLeft, ArrowRight, CheckCircle, Clock, XCircle, FileText, BookOpen, Calculator, Send, Bot, Wand2, Star } from 'lucide-react';
@@ -26,7 +26,7 @@ import { FloatingChatContext } from '@/components/floating-chat';
 import { addDoc, collection } from 'firebase/firestore';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import GeneratingCourse from '@/app/dashboard/courses/GeneratingCourse';
-import { generateFeedbackAction } from '@/ai/flows/sat-feedback-flow';
+import { generateFeedbackFlow, generateExplanation } from '@/ai/flows/sat-feedback-flow';
 import GeneratingSession from '../GeneratingSession';
 
 
@@ -66,17 +66,22 @@ function StudySessionPageContent() {
         if (storedData) {
             try {
                 const parsedQuestions = JSON.parse(storedData);
-                setQuestions(parsedQuestions);
+                if (parsedQuestions && parsedQuestions.length > 0) {
+                    setQuestions(parsedQuestions);
+                    setIsLoading(false);
+                } else {
+                    // Data is empty or invalid, push back.
+                    toast({ variant: 'destructive', title: 'Session data is invalid.', description: 'Please start a new session.' });
+                    router.push('/dashboard/sat-prep');
+                }
             } catch (e) {
                 console.error("Failed to parse study session data from sessionStorage", e);
-                // Handle error or refetch
+                toast({ variant: 'destructive', title: 'Session Expired', description: 'Could not load session data. Please start a new session.' });
+                router.push('/dashboard/sat-prep');
             }
-            setIsLoading(false);
-            // Clear the data from storage after using it
-            sessionStorage.removeItem('satStudySessionData');
         } else {
-             toast({ variant: 'destructive', title: 'Session Expired', description: 'Please start a new session.' });
-             router.push('/dashboard/sat-prep');
+            toast({ variant: 'destructive', title: 'Session Expired', description: 'Please start a new session.' });
+            router.push('/dashboard/sat-prep');
         }
     }, [topic, router, toast]);
 
@@ -195,7 +200,7 @@ function StudySessionPageContent() {
                 }))
             };
 
-            const feedbackResult = await generateFeedbackAction(feedbackInput);
+            const feedbackResult = await generateFeedbackFlow(feedbackInput);
 
             const results = {
                 accuracy: (correctAnswers / questions.length) * 100,
@@ -555,5 +560,3 @@ export default function StudySessionPage() {
         </Suspense>
     );
 }
-
-    
