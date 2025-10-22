@@ -6,7 +6,6 @@
 import { ai } from '@/ai/genkit';
 import { googleAI } from '@genkit-ai/google-genai';
 import { z } from 'zod';
-import { SatQuestionSchema } from '@/ai/schemas/sat-question-schema';
 import { SatStudySessionInputSchema, SatStudySessionOutputSchema, SatStudySessionInput, SatStudySessionOutput } from '@/ai/schemas/sat-study-session-schema';
 
 
