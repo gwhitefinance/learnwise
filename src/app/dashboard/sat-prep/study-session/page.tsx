@@ -4,7 +4,7 @@
 import { useState, useEffect, Suspense, useContext } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
@@ -195,7 +195,8 @@ function StudySessionPageContent() {
                     question: q.question,
                     userAnswer: userAnswers[i] || 'No answer',
                     correctAnswer: q.answer,
-                    isCorrect: userAnswers[i] === q.answer
+                    isCorrect: userAnswers[i] === q.answer,
+                    topic: q.topic,
                 }));
                 const feedbackResult = await generateFeedbackAction({ answeredQuestions });
                 setResultsData((prev: any) => ({ ...prev, feedback: feedbackResult.feedback }));

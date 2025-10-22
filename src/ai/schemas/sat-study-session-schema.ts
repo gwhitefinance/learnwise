@@ -1,8 +1,10 @@
+
 /**
  * @fileoverview Defines the data schemas for the SAT Study Session generation feature.
  */
 import { z } from 'zod';
 import { SatQuestionSchema } from './sat-question-schema';
+
 
 export const SatStudySessionInputSchema = z.object({
   category: z.enum(['Math', 'Reading & Writing']),
@@ -22,6 +24,7 @@ export const AnswerFeedbackSchema = z.object({
   userAnswer: z.string(),
   correctAnswer: z.string(),
   isCorrect: z.boolean(),
+  topic: z.string().describe("The main topic of the question (e.g., 'Craft and Structure', 'Algebra')."),
 });
 
 export const FeedbackInputSchema = z.object({
