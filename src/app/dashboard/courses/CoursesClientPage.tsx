@@ -61,9 +61,6 @@ type Chapter = {
     title: string;
     content?: string;
     activity?: string;
-    imageUrl?: string;
-    diagramUrl?: string;
-    videoUrl?: string;
     interactiveTool?: string;
 };
 
@@ -1333,12 +1330,10 @@ function CoursesComponent() {
                 </div>
                  <Accordion type="multiple" defaultValue={activeCourse?.units?.map(u => u.id)} className="w-full flex-1 overflow-y-auto">
                     {activeCourse?.units?.map((unit, mIndex) => {
-                        let lastCompletedChapterIndex = -1;
-                        unit.chapters.forEach((chap, cIdx) => {
-                            if (activeCourse.completedChapters?.includes(chap.id)) {
-                                lastCompletedChapterIndex = cIdx;
-                            }
-                        });
+                       const previousModules = activeCourse.units?.slice(0, mIndex) ?? [];
+                       const arePreviousModulesComplete = previousModules.every(prevModule => 
+                            prevModule.chapters.every(chap => activeCourse.completedChapters?.includes(chap.id))
+                        );
 
                         return (
                         <AccordionItem key={unit.id} value={unit.id}>
@@ -1348,8 +1343,13 @@ function CoursesComponent() {
                                     {unit.chapters.map((chapter, cIndex) => {
                                         const isCurrent = currentModuleIndex === mIndex && currentChapterIndex === cIndex;
                                         const isCompleted = activeCourse.completedChapters?.includes(chapter.id) ?? false;
-                                        const isLocked = activeCourse.isNewTopic && cIndex > lastCompletedChapterIndex + 1;
                                         
+                                        const isPreviousChapterCompleted = cIndex === 0 
+                                            ? arePreviousModulesComplete
+                                            : activeCourse.completedChapters?.includes(unit.chapters[cIndex - 1].id) ?? false;
+
+                                        const isLocked = activeCourse.isNewTopic && !(mIndex === 0 && cIndex === 0) && !isPreviousChapterCompleted;
+
                                         return (
                                         <li key={chapter.id}>
                                             <button 
