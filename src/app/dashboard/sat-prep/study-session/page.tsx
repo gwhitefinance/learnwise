@@ -17,6 +17,9 @@ import { useToast } from '@/hooks/use-toast';
 import { FloatingChatContext } from '@/components/floating-chat';
 import AIBuddy from '@/components/ai-buddy';
 import { Input } from '@/components/ui/input';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { auth } from '@/lib/firebase';
+
 
 function StudySessionPageContent() {
     const router = useRouter();
@@ -173,9 +176,7 @@ function StudySessionPageContent() {
 
                         {isCurrentAnswered && (
                             <Card className="bg-amber-500/10 border-amber-500/20">
-                                <CardHeader>
-                                    <CardTitle className="text-amber-700">Explanation</CardTitle>
-                                </CardHeader>
+                                <CardHeader><CardTitle className="text-amber-700">Explanation</CardTitle></CardHeader>
                                 <CardContent>
                                     <p className="text-muted-foreground">{currentQuestion.explanation}</p>
                                 </CardContent>
@@ -222,15 +223,6 @@ const EmbeddedChat = ({ topic }: { topic: string | null }) => {
                         <p className="text-sm">Any questions on {topic}? I'm here to help.</p>
                     </div>
                 </div>
-                {/* Example of a user message */}
-                {/* <div className="flex items-start gap-3 justify-end">
-                    <div className="bg-primary text-primary-foreground p-3 rounded-lg rounded-br-none">
-                        <p className="text-sm">Can you explain why B is wrong?</p>
-                    </div>
-                     <Avatar className="h-8 w-8">
-                        <AvatarFallback>{user?.displayName?.[0]}</AvatarFallback>
-                    </Avatar>
-                </div> */}
             </div>
             <div className="relative mt-4">
                 <Input 
@@ -259,11 +251,11 @@ export default function StudySessionPage() {
     return (
         <Suspense fallback={<div>Loading...</div>}>
             <div className="grid grid-cols-1 lg:grid-cols-3 h-full">
-                <div className="hidden lg:block lg:col-span-1">
-                   <EmbeddedChat topic={topic} />
-                </div>
                 <div className="lg:col-span-2">
                     <StudySessionPageContent />
+                </div>
+                 <div className="hidden lg:block lg:col-span-1">
+                   <EmbeddedChat topic={topic} />
                 </div>
             </div>
         </Suspense>
