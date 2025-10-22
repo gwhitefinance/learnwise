@@ -31,6 +31,102 @@ type TestResult = {
     timestamp: { toDate: () => Date };
 };
 
+const DailyQuestion = () => {
+    const [questionData, setQuestionData] = useState<SatQuestion | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+    const [isAnswered, setIsAnswered] = useState(false);
+    const [learnerType, setLearnerType] = useState<string | null>(null);
+
+    useEffect(() => {
+        const type = localStorage.getItem('learnerType');
+        setLearnerType(type);
+        fetchQuestion();
+    }, []);
+
+    const fetchQuestion = async () => {
+        setIsLoading(true);
+        setSelectedAnswer(null);
+        setIsAnswered(false);
+        try {
+            const today = new Date().toISOString().split('T')[0];
+            const result = await generateSatQuestion({ seed: today, learnerType: (learnerType as any) ?? 'Reading/Writing' });
+            setQuestionData(result);
+        } catch (error) {
+            console.error("Failed to fetch daily question:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleCheckAnswer = () => {
+        setIsAnswered(true);
+    };
+
+    if (isLoading) {
+        return <Card><CardContent className="p-6"><Skeleton className="h-48 w-full" /></CardContent></Card>;
+    }
+    
+    if (!questionData) {
+        return <Card><CardContent className="p-6 text-center text-muted-foreground">Could not load question. Try refreshing.</CardContent></Card>;
+    }
+
+    const isCorrect = selectedAnswer === questionData.correctAnswer;
+
+    return (
+        <Card>
+            <CardHeader>
+                <div className="flex justify-between items-center">
+                    <div>
+                        <CardTitle>Question of the Day</CardTitle>
+                        <CardDescription>A new challenge every day to keep you sharp.</CardDescription>
+                    </div>
+                    <Button variant="ghost" size="icon" onClick={fetchQuestion} disabled={isLoading}>
+                        <RefreshCw className="h-4 w-4" />
+                    </Button>
+                </div>
+            </CardHeader>
+            <CardContent>
+                <div className="flex flex-col md:flex-row gap-8">
+                    <div className="flex-1 space-y-4">
+                        <Badge variant="secondary" className="capitalize">{questionData.category}</Badge>
+                        {questionData.passage && (
+                            <blockquote className="border-l-4 pl-4 italic text-sm text-muted-foreground">
+                                {questionData.passage}
+                            </blockquote>
+                        )}
+                        <p className="font-semibold">{questionData.question}</p>
+                        <RadioGroup value={selectedAnswer ?? ''} onValueChange={setSelectedAnswer} disabled={isAnswered}>
+                            <div className="space-y-3">
+                                {questionData.options.map((option, index) => (
+                                    <Label key={index} htmlFor={`option-${index}`} className={cn(
+                                        "flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all",
+                                        isAnswered && option === questionData.correctAnswer && "border-green-500 bg-green-500/10",
+                                        isAnswered && selectedAnswer === option && !isCorrect && "border-red-500 bg-red-500/10",
+                                        !isAnswered && selectedAnswer === option && "border-primary"
+                                    )}>
+                                        <RadioGroupItem value={option} id={`option-${index}`} />
+                                        <span>{option}</span>
+                                    </Label>
+                                ))}
+                            </div>
+                        </RadioGroup>
+                        <Button onClick={handleCheckAnswer} disabled={isAnswered || !selectedAnswer}>Check Answer</Button>
+                    </div>
+                    {isAnswered && (
+                        <div className="md:w-1/3 md:border-l md:pl-8 space-y-4">
+                            <h4 className={cn("font-bold text-lg", isCorrect ? 'text-green-600' : 'text-red-600')}>
+                                {isCorrect ? "Correct!" : "Not Quite"}
+                            </h4>
+                            <p className="text-sm text-muted-foreground">{questionData.explanation}</p>
+                        </div>
+                    )}
+                </div>
+            </CardContent>
+        </Card>
+    );
+};
+
 
 export default function SatPrepPage() {
     const [gradeLevel, setGradeLevel] = useState<string | null>(null);
@@ -83,9 +179,8 @@ export default function SatPrepPage() {
 
     const handleChatSubmit = () => {
         if (!chatInput.trim()) return;
-        // This function would ideally open the chat and send the message
         toast({ title: 'Opening chat...', description: `You asked: ${chatInput}`});
-        openChatWithVoice(); // This will just open the chat for now
+        openChatWithVoice(); 
         setChatInput('');
     }
 
@@ -117,11 +212,9 @@ export default function SatPrepPage() {
         );
     }
 
-
     const studyTasks = [
         { title: 'Study Session', subject: 'Math', progress: 0, total: 10, color: 'bg-purple-500' },
         { title: 'Study Session', subject: 'Reading and Writing', progress: 1, total: 10, color: 'bg-green-500' },
-        { title: 'Practice Test', subject: 'Short Practice Test', progress: 0, total: 20, color: 'bg-yellow-500' },
     ];
     
     const todayIndex = new Date().getDay();
@@ -130,11 +223,10 @@ export default function SatPrepPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             <div className="lg:col-span-2 space-y-8">
                  <div className="space-y-4">
-                    <h1 className="text-5xl font-bold tracking-tight">Welcome, {user?.displayName?.split(' ')[0] || 'Grady'}! 👋</h1>
+                    <h1 className="text-5xl font-bold tracking-tight">Welcome, {user?.displayName?.split(' ')[0] || 'Student'}! 👋</h1>
                     <p className="text-muted-foreground text-lg max-w-2xl">
-                        I'm Satori, your personal SAT tutor. I'll guide you every step of the way and help you
-                        reach your 1480 goal. To get started, jump into two guided study sessions and a short
-                        practice test. This will help me check your current level, estimate your score, and build
+                        I'm Tutorin, your personal SAT tutor. I'll guide you every step of the way and help you
+                        reach your goal. To get started, jump into a study session or a practice test. This will help me check your current level, estimate your score, and build
                         your personalised study plan.
                     </p>
                 </div>
@@ -143,14 +235,14 @@ export default function SatPrepPage() {
                     <ul className="list-disc list-inside space-y-2 pl-2">
                         <li><Link href="#" className="hover:underline font-medium">Study Session: Reading</Link></li>
                         <li><Link href="#" className="hover:underline font-medium">Study Session: Math</Link></li>
-                        <li><Link href="/dashboard/sat-prep/practice-test" className="hover:underline font-medium">Short Practice Test</Link></li>
+                        <li><Link href="/dashboard/sat-prep/practice-test" className="hover:underline font-medium">Full-Length Practice Test</Link></li>
                     </ul>
                 </div>
-
+                 <DailyQuestion />
                 <div className="pt-8">
                      <div className="relative">
                         <Input 
-                            placeholder="Ask Satori anything" 
+                            placeholder="Ask Tutorin anything" 
                             className="h-14 rounded-full pl-6 pr-16 text-lg"
                             value={chatInput}
                             onChange={(e) => setChatInput(e.target.value)}
@@ -174,8 +266,8 @@ export default function SatPrepPage() {
                                 <div key={day} className="text-center space-y-1">
                                     <div className={cn(
                                         "h-10 w-10 rounded-full bg-muted flex items-center justify-center",
-                                        i < todayIndex && "bg-green-500/20",
-                                        i === todayIndex && "bg-primary text-primary-foreground"
+                                        i < streak % 7 && "bg-green-500/20",
+                                        i === streak % 7 && "bg-primary text-primary-foreground"
                                     )}>
                                         <p className="font-bold text-sm">{day.charAt(0)}</p>
                                     </div>
@@ -205,10 +297,28 @@ export default function SatPrepPage() {
                 </Card>
                  <Card>
                     <CardHeader>
-                        <CardTitle>Side quests:</CardTitle>
+                        <CardTitle>Past Results</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <p className="text-muted-foreground text-center py-4">Coming soon...</p>
+                        {resultsLoading ? (
+                            <Skeleton className="h-24 w-full" />
+                        ) : pastResults.length > 0 ? (
+                            <div className="space-y-3">
+                                {pastResults.slice(0, 3).map(result => (
+                                    <Link key={result.id} href={`/dashboard/sat-prep/${result.id}`}>
+                                        <div className="flex justify-between items-center p-3 rounded-lg hover:bg-muted">
+                                            <div>
+                                                <p className="font-semibold">{result.total}</p>
+                                                <p className="text-xs text-muted-foreground">{format(result.timestamp.toDate(), 'MMM d, yyyy')}</p>
+                                            </div>
+                                            <Trophy className="h-5 w-5 text-yellow-500"/>
+                                        </div>
+                                    </Link>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-center text-sm text-muted-foreground py-4">No past test results.</p>
+                        )}
                     </CardContent>
                 </Card>
             </div>
