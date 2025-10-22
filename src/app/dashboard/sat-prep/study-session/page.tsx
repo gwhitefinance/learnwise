@@ -18,7 +18,7 @@ import { useToast } from '@/hooks/use-toast';
 import AIBuddy from '@/components/ai-buddy';
 import { Input } from '@/components/ui/input';
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { auth } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
 import { Badge } from '@/components/ui/badge';
 import type { Message } from '@/components/floating-chat';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -40,7 +40,7 @@ function StudySessionPageContent() {
     const [timeRemaining, setTimeRemaining] = useState(20 * 60); // 20 minutes
     const { toast } = useToast();
 
-    const { openChatWithPrompt } = useContext(FloatingChatContext) as any;
+    const { openChatWithPrompt } = useContext(FloatingChatContext);
 
     useEffect(() => {
         if (!topic) {
@@ -266,13 +266,13 @@ const EmbeddedChat = ({ topic }: { topic: string | null }) => {
 
     return (
         <div className="p-4 border-r h-full flex flex-col bg-card">
-            <div className="p-2 bg-muted rounded-lg text-center mb-4 flex items-center justify-between">
-                 <Button variant="ghost" size="icon" onClick={() => router.push('/dashboard/sat-prep')} className="h-8 w-8">
+             <header className="p-2 mb-4 flex items-center justify-between bg-muted rounded-lg">
+                <Button variant="ghost" size="icon" onClick={() => router.push('/dashboard/sat-prep')} className="h-8 w-8">
                     <ArrowLeft className="h-4 w-4" />
                 </Button>
                 <h3 className="font-semibold">Ask Tutorin</h3>
                 <div className="w-8"></div>
-            </div>
+            </header>
             <ScrollArea className="flex-1 -mx-4">
                 <div className="px-4 space-y-4">
                     {messages.map((message, index) => (

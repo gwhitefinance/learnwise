@@ -85,6 +85,7 @@ type AnswerFeedback = { question: string; answer: string; correctAnswer: string;
 
 export const FloatingChatContext = createContext({
   openChatWithVoice: () => {},
+  openChatWithPrompt: (prompt: string) => {},
 });
 
 const ChatHomeScreen = ({ sessions, onNavigate, onStartNewChat, onSelectSession, onStartChatWithPrompt, customizations }: { sessions: ChatSession[], onNavigate: (tab: string) => void, onStartNewChat: () => void, onSelectSession: (sessionId: string) => void, onStartChatWithPrompt: (prompt: string) => void, customizations: Record<string, string> }) => {
@@ -1166,7 +1167,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
   );
 
   return (
-    <FloatingChatContext.Provider value={{ openChatWithVoice: activateVoiceInput }}>
+    <FloatingChatContext.Provider value={{ openChatWithVoice: activateVoiceInput, openChatWithPrompt: handleStartChatWithPrompt }}>
       {children}
       {!isHidden && (
         isEmbedded ? ChatComponent : (
