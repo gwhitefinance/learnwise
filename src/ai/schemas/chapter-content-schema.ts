@@ -13,6 +13,7 @@ export const GenerateChapterContentInputSchema = z.object({
 export const GenerateChapterContentOutputSchema = z.object({
   content: z.string().describe('The detailed, essay-length educational content for the chapter.'),
   activity: z.string().describe('A suggested, interactive activity based on the chapter content, tailored to the learner\'s style.'),
+  interactiveTool: z.string().optional().describe('A URL to an interactive learning tool or simulation relevant to the chapter. Should be a simple, single-page web app. (e.g. a simple calculator, a physics simulation).'),
 });
 
 export type GenerateChapterContentInput = z.infer<typeof GenerateChapterContentInputSchema>;
