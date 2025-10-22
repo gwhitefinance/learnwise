@@ -140,6 +140,7 @@ export default function SatPrepPage() {
     const [streak, setStreak] = useState(0);
     const [chatInput, setChatInput] = useState('');
     const { openChatWithVoice } = useContext(FloatingChatContext);
+    const [isNavigating, setIsNavigating] = useState<string | null>(null);
 
     useEffect(() => {
         if (authLoading) return;
@@ -183,6 +184,12 @@ export default function SatPrepPage() {
         openChatWithVoice(); 
         setChatInput('');
     }
+
+    const handleNavigate = (topic: string) => {
+        setIsNavigating(topic);
+        // The router will navigate, and the new page will handle its own loading.
+        router.push(`/dashboard/sat-prep/study-session?topic=${encodeURIComponent(topic)}`);
+    };
 
     if (loading || authLoading) {
         return (
@@ -228,17 +235,29 @@ export default function SatPrepPage() {
                  <div className="space-y-4">
                     <h2 className="text-2xl font-bold flex items-center gap-2"><Rocket className="text-primary"/> Let's begin:</h2>
                      <div className="flex flex-col sm:flex-row gap-4">
-                        <Button asChild className="w-full justify-start text-base py-6" variant="outline">
-                            <Link href="/dashboard/sat-prep/study-session?topic=Reading+%26+Writing">
-                                <BookOpen className="mr-2 h-5 w-5" />
-                                Study Session: Reading
-                            </Link>
+                        <Button 
+                            onClick={() => handleNavigate('Reading & Writing')} 
+                            className="w-full justify-start text-base py-6" 
+                            variant="outline"
+                            disabled={!!isNavigating}
+                        >
+                            {isNavigating === 'Reading & Writing' ? (
+                                <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Generating Session...</>
+                            ) : (
+                                <><BookOpen className="mr-2 h-5 w-5" /> Study Session: Reading</>
+                            )}
                         </Button>
-                        <Button asChild className="w-full justify-start text-base py-6" variant="outline">
-                            <Link href="/dashboard/sat-prep/study-session?topic=Math">
-                                <Calculator className="mr-2 h-5 w-5" />
-                                Study Session: Math
-                            </Link>
+                        <Button 
+                            onClick={() => handleNavigate('Math')} 
+                            className="w-full justify-start text-base py-6" 
+                            variant="outline"
+                            disabled={!!isNavigating}
+                        >
+                             {isNavigating === 'Math' ? (
+                                <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Generating Session...</>
+                            ) : (
+                                <><Calculator className="mr-2 h-5 w-5" /> Study Session: Math</>
+                            )}
                         </Button>
                     </div>
                 </div>
