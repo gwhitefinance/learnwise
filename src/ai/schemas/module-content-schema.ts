@@ -19,7 +19,7 @@ export const GenerateModuleContentInputSchema = z.object({
 export type GenerateModuleContentInput = z.infer<typeof GenerateModuleContentInputSchema>;
 
 
-const ChapterSchema = z.object({
+export const ChapterWithContentSchema = z.object({
   id: z.string(),
   title: z.string(),
   content: z.string(),
@@ -28,11 +28,12 @@ const ChapterSchema = z.object({
   diagramUrl: z.string().optional(),
   videoUrl: z.string().optional(),
 });
+export type ChapterWithContent = z.infer<typeof ChapterWithContentSchema>;
 
 const ModuleSchema = z.object({
   id: z.string(),
   title: z.string(),
-  chapters: z.array(ChapterSchema),
+  chapters: z.array(ChapterWithContentSchema),
 });
 
 

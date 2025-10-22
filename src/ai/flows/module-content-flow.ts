@@ -8,7 +8,7 @@ import { z } from 'zod';
 import { generateChapterContent } from './chapter-content-flow';
 import { generateImage } from './image-generation-flow';
 import { generateVideo } from './video-generation-flow';
-import { GenerateModuleContentInputSchema, GenerateModuleContentOutputSchema, GenerateModuleContentInput, GenerateModuleContentOutput } from '@/ai/schemas/module-content-schema';
+import { GenerateModuleContentInputSchema, GenerateModuleContentOutputSchema, GenerateModuleContentInput, GenerateModuleContentOutput, ChapterWithContent } from '@/ai/schemas/module-content-schema';
 
 // Helper function for generating a simple unique ID
 const generateUniqueId = () => `id-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -21,47 +21,40 @@ const generateModuleContentFlow = ai.defineFlow(
   },
   async (input) => {
     
-    // 1. Generate all chapter text content and multimedia prompts in parallel
-    const chapterContentPromises = input.module.chapters.map(chapter => 
-      generateChapterContent({
-        courseName: input.courseName,
-        moduleTitle: input.module.title,
-        chapterTitle: chapter.title,
-        learnerType: input.learnerType,
-      })
-    );
-    const allChapterData = await Promise.all(chapterContentPromises);
+    const updatedChapters: ChapterWithContent[] = [];
 
-    // 2. Trigger all image and video generations in parallel
-    const mediaGenerationPromises = allChapterData.flatMap(data => [
-        data.imagePrompt ? generateImage({ prompt: data.imagePrompt }) : Promise.resolve({ media: '' }),
-        data.diagramPrompt ? generateImage({ prompt: data.diagramPrompt }) : Promise.resolve({ media: '' }),
-        data.videoPrompt ? generateVideo({ prompt: data.videoPrompt }) : Promise.resolve({ media: '' }),
-    ]);
+    // Process chapters sequentially to avoid hitting rate limits.
+    for (const chapter of input.module.chapters) {
+        // 1. Generate text content and media prompts for the current chapter.
+        const contentData = await generateChapterContent({
+            courseName: input.courseName,
+            moduleTitle: input.module.title,
+            chapterTitle: chapter.title,
+            learnerType: input.learnerType,
+        });
 
-    const allMediaAssets = await Promise.all(mediaGenerationPromises);
+        // 2. Generate media assets for the current chapter sequentially.
+        const imageUrl = contentData.imagePrompt ? (await generateImage({ prompt: contentData.imagePrompt })).media : '';
+        const diagramUrl = contentData.diagramPrompt ? (await generateImage({ prompt: contentData.diagramPrompt })).media : '';
+        const videoUrl = contentData.videoPrompt ? (await generateVideo({ prompt: contentData.videoPrompt })).media : '';
 
-    // 3. Assemble the final module with all content and media URLs
-    let mediaIndex = 0;
+        // 3. Assemble the full chapter data.
+        updatedChapters.push({
+            id: chapter.id || generateUniqueId(),
+            title: chapter.title,
+            content: contentData.content,
+            activity: contentData.activity,
+            imageUrl: imageUrl,
+            diagramUrl: diagramUrl,
+            videoUrl: videoUrl,
+        });
+    }
+
+    // 4. Assemble the final module with all content.
     const updatedModule = {
         id: input.module.id || generateUniqueId(),
         title: input.module.title,
-        chapters: input.module.chapters.map((chapter, chapterIndex) => {
-            const contentData = allChapterData[chapterIndex];
-            const imageUrl = allMediaAssets[mediaIndex++]?.media;
-            const diagramUrl = allMediaAssets[mediaIndex++]?.media;
-            const videoUrl = allMediaAssets[mediaIndex++]?.media;
-
-            return {
-                id: chapter.id || generateUniqueId(),
-                title: chapter.title,
-                content: contentData.content,
-                activity: contentData.activity,
-                imageUrl: imageUrl,
-                diagramUrl: diagramUrl,
-                videoUrl: videoUrl,
-            };
-        })
+        chapters: updatedChapters,
     };
 
     return {
