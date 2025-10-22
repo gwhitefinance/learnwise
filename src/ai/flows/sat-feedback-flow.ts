@@ -5,7 +5,7 @@
  */
 import { ai } from '@/ai/genkit';
 import { googleAI } from '@genkit-ai/google-genai';
-import { FeedbackInputSchema, FeedbackOutputSchema, FeedbackInput, FeedbackOutput } from '@/ai/schemas/sat-study-session-schema';
+import { FeedbackInputSchema, FeedbackOutputSchema, type FeedbackInput, type FeedbackOutput } from '@/ai/schemas/sat-study-session-schema';
 
 const prompt = ai.definePrompt({
     name: 'satFeedbackPrompt',
@@ -47,6 +47,6 @@ const generateFeedbackFlow = ai.defineFlow(
 );
 
 
-export async function generateFeedback(input: FeedbackInput): Promise<FeedbackOutput> {
+export default async function generateFeedback(input: FeedbackInput): Promise<FeedbackOutput> {
     return generateFeedbackFlow(input);
 }

@@ -30,7 +30,9 @@ import { generateInitialCourseAndRoadmap } from '@/ai/flows/initial-course-flow'
 import { generateAudio } from '@/ai/flows/text-to-speech-flow';
 import { generateMindfulnessExercise } from '@/ai/flows/mindfulness-flow';
 import { generateConceptExplanation } from '@/ai/flows/concept-explanation-flow';
-import { generateSatStudySession, generateFeedback } from '@/ai/flows/sat-study-session-flow';
+import generateSatStudySession from '@/ai/flows/sat-study-session-flow';
+import generateFeedback from '@/ai/flows/sat-feedback-flow';
+
 
 // Re-exporting all AI functions as Server Actions
 export { 
