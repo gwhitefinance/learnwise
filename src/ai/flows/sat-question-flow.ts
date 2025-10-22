@@ -20,6 +20,7 @@ const prompt = ai.definePrompt({
     - For 'Reading & Writing' questions, you may optionally include a short passage (1-3 sentences) if it's relevant to the question.
     - All questions must be multiple-choice with exactly four options (A, B, C, D).
     - Provide a clear and concise explanation for why the correct answer is correct, tailored to a {{learnerType}} learner.
+    - Assign a difficulty ('Easy', 'Medium', 'Hard'), a main 'topic', and a more specific 'subTopic'.
 
     Generate the question, the four options, the correct answer, the category, an optional passage, and the explanation.
     `,

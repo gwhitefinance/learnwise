@@ -21,6 +21,7 @@ const prompt = ai.definePrompt({
     - All questions must be multiple-choice with exactly four options (A, B, C, D).
     - For 'Reading & Writing' questions, you MUST include a relevant passage for each question as context. The passage should be concise but provide enough information to answer the question.
     - Provide a clear and concise explanation for why the correct answer is correct, tailored to a {{learnerType}} learner.
+    - For each question, assign a 'difficulty' ('Easy', 'Medium', or 'Hard'), a main 'topic' (e.g., 'Craft and Structure'), and a more specific 'subTopic' (e.g., 'Words in Context').
 
     Generate the 10 questions, each with four options, the correct answer, the category, an optional passage, and the explanation.
     `,

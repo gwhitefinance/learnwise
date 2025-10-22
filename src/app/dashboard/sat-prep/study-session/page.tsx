@@ -38,7 +38,9 @@ function StudySessionPageContent() {
     
     const [timeRemaining, setTimeRemaining] = useState(20 * 60); // 20 minutes
     const { toast } = useToast();
-    
+
+    const { openChatWithPrompt } = useContext(FloatingChatContext) as any;
+
     useEffect(() => {
         if (!topic) {
             toast({ variant: 'destructive', title: 'No topic selected!' });
@@ -97,6 +99,11 @@ function StudySessionPageContent() {
         }
     };
 
+    const handleAskTutorin = (question: SatQuestion) => {
+        const prompt = `I'm confused about this SAT question: "${question.question}". Can you explain it to me in a different way? The correct answer is ${question.correctAnswer}.`;
+        openChatWithPrompt(prompt);
+    }
+
     if (isLoading) {
         return (
              <div className="max-w-4xl mx-auto p-8">
@@ -122,6 +129,12 @@ function StudySessionPageContent() {
     const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
     const minutes = Math.floor(timeRemaining / 60);
     const seconds = timeRemaining % 60;
+    
+    const difficultyColors = {
+        'Easy': 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300',
+        'Medium': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300',
+        'Hard': 'bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300',
+    };
 
     return (
         <div className="flex-1 overflow-y-auto p-4 md:p-8">
@@ -175,12 +188,23 @@ function StudySessionPageContent() {
                         </RadioGroup>
 
                         {isCurrentAnswered && (
-                            <Card className="bg-amber-500/10 border-amber-500/20">
-                                <CardHeader><CardTitle className="text-amber-700">Explanation</CardTitle></CardHeader>
-                                <CardContent>
-                                    <p className="text-muted-foreground">{currentQuestion.explanation}</p>
-                                </CardContent>
-                            </Card>
+                            <div className="border rounded-lg p-6 space-y-4">
+                               <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
+                                    <Badge className={cn(difficultyColors[currentQuestion.difficulty])}>{currentQuestion.difficulty}</Badge>
+                                    <span className="font-medium">{currentQuestion.topic}</span>
+                                    <span>&bull;</span>
+                                    <span>{currentQuestion.subTopic}</span>
+                                </div>
+                                
+                                <h4 className="font-bold text-lg">Explanation</h4>
+                                <p className="text-muted-foreground">{currentQuestion.explanation}</p>
+                                
+                                <div>
+                                    <Button variant="link" className="p-0 h-auto" onClick={() => handleAskTutorin(currentQuestion)}>
+                                        Still confused? Ask Tutorin.
+                                    </Button>
+                                </div>
+                            </div>
                         )}
                     </div>
                 </main>
