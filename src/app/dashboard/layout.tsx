@@ -506,8 +506,7 @@ function DashboardLayoutContent({
     <>
       <div className={cn(
           "relative min-h-screen overflow-hidden bg-background",
-          isHalloweenTheme && 'halloween-bg',
-          isFocusLayout && 'flex'
+          isHalloweenTheme && 'halloween-bg'
       )}>
         <input type="file" ref={fileInputRef} onChange={handleProfilePicChange} className="hidden" accept="image/*" />
         
@@ -642,7 +641,7 @@ function DashboardLayoutContent({
         <div className={cn(
             "flex flex-col min-h-screen transition-all duration-300 ease-in-out", 
             sidebarOpen && !isFocusLayout ? "md:pl-64" : "md:pl-0",
-            isFocusLayout && 'w-full'
+            isFocusLayout && 'md:pl-0 w-full'
         )}>
             {!isFocusLayout && (
                 <header className="sticky top-0 z-10 flex h-16 items-center gap-3 border-b bg-background/95 px-4 backdrop-blur">

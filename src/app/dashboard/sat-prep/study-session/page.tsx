@@ -1,7 +1,8 @@
 
+
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, useContext } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,7 +15,7 @@ import type { SatQuestion } from '@/ai/schemas/sat-study-session-schema';
 import { cn } from '@/lib/utils';
 import { ArrowLeft, ArrowRight, CheckCircle, Clock, XCircle, FileText, BookOpen, Calculator } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import FloatingChat from '@/components/floating-chat';
+import FloatingChat, { FloatingChatContext } from '@/components/floating-chat';
 
 function StudySessionPageContent() {
     const router = useRouter();
@@ -197,9 +198,8 @@ export default function StudySessionPage() {
     return (
         <Suspense fallback={<div>Loading...</div>}>
             <div className="flex w-full h-full">
-                <div className="w-[400px] h-full bg-card border-r flex-shrink-0">
+                <div className="w-[400px] h-full bg-card border-r flex-shrink-0 hidden lg:block">
                     <FloatingChat isEmbedded={true}>
-                        {/* Empty children as we only want the chat component here */}
                         <></>
                     </FloatingChat>
                 </div>
