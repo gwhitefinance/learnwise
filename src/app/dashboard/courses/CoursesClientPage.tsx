@@ -70,7 +70,7 @@ type Module = {
 type Chapter = {
     id: string;
     title: string;
-    content?: ContentBlock[];
+    content?: ContentBlock[] | string;
     activity?: string;
 };
 
@@ -391,7 +391,10 @@ function CoursesComponent() {
 
     const moduleContent = module.chapters
         .filter(c => !c.title.toLowerCase().includes('quiz'))
-        .map(c => `Chapter: ${c.title}\n${(c.content?.map(block => block.content || '').join('\n') || '')}`)
+        .map(c => {
+            if (typeof c.content === 'string') return `Chapter: ${c.title}\n${c.content}`;
+            return `Chapter: ${c.title}\n${(c.content?.map(block => block.content || '').join('\n') || '')}`;
+        })
         .join('\n\n');
 
 
@@ -424,7 +427,10 @@ function CoursesComponent() {
     const firstHalfContent = activeCourse.units
         .slice(0, middleModuleIndex)
         .flatMap(unit => unit.chapters)
-        .map(c => `Chapter: ${c.title}\n${(c.content?.map(block => block.content || '').join('\n') || '')}`)
+        .map(c => {
+            if (typeof c.content === 'string') return `Chapter: ${c.title}\n${c.content}`;
+            return `Chapter: ${c.title}\n${(c.content?.map(block => block.content || '').join('\n') || '')}`;
+        })
         .join('\n\n');
 
 
@@ -634,7 +640,10 @@ function CoursesComponent() {
     setNextChapterProgress(0);
     
     // 1. Generate summary for the current chapter
-    const currentChapterContent = currentChapter.content?.map(block => block.content || '').join('\n') || '';
+    const currentChapterContent = Array.isArray(currentChapter.content)
+      ? currentChapter.content.map(block => block.content || '').join('\n')
+      : currentChapter.content || '';
+      
     if (currentChapterContent) {
         generateSummary({ noteContent: currentChapterContent })
             .then(result => {
@@ -710,7 +719,10 @@ function CoursesComponent() {
   };
   
   const handleSendTutorMessage = async () => {
-    const currentChapterContent = currentChapter?.content?.map(block => block.content || '').join('\n') || '';
+    const currentChapterContent = Array.isArray(currentChapter?.content)
+      ? currentChapter!.content.map(block => block.content || '').join('\n')
+      : currentChapter?.content || '';
+      
     if (!chatInput.trim() || !currentChapter || !currentChapterContent) return;
 
 
@@ -943,7 +955,9 @@ function CoursesComponent() {
   const existingQuizResult = currentModule ? quizResults[currentModule.id] : undefined;
   const currentChapterIsQuiz = currentChapter?.title.toLowerCase().includes('quiz');
 
-  const fullChapterContentString = currentChapter?.content?.map(b => b.content || '').join('\n') || '';
+  const fullChapterContentString = Array.isArray(currentChapter?.content)
+    ? currentChapter!.content.map(b => b.content || '').join('\n')
+    : currentChapter?.content || '';
 
   if (isGenerating) {
     return <GeneratingCourse courseName={newCourse.name} />;
@@ -1136,23 +1150,14 @@ function CoursesComponent() {
   
   const isMidtermModule = activeCourse.units && currentModuleIndex === Math.floor(activeCourse.units.length / 2);
   
+    useEffect(() => {
+        if (currentChapterIsQuiz && currentModule && !existingQuizResult) {
+            handleStartModuleQuiz(currentModule, true);
+        }
+    }, [currentChapterIsQuiz, currentModule, existingQuizResult]);
+    
     if (currentChapterIsQuiz && currentModule) {
-        if (quizState === 'configuring') {
-             return (
-                <div className="flex flex-col items-center text-center">
-                    <div className="mb-10 w-full max-w-3xl">
-                        <h1 className="text-4xl font-bold">{currentModule.title}</h1>
-                        <p className="text-muted-foreground mt-2">
-                            This quiz will cover the material from the previous chapters in this module.
-                        </p>
-                        <p className="text-muted-foreground mt-1">Review the content to prepare yourself for the assessment.</p>
-                    </div>
-                    <Button size="lg" onClick={() => handleStartModuleQuiz(currentModule)}>
-                        Start Quiz
-                    </Button>
-                </div>
-            )
-        } else if (isQuizLoading) {
+        if (isQuizLoading) {
             return (
                 <div className="flex flex-col items-center justify-center h-full text-center p-8">
                     <div className="relative mb-8">
@@ -1172,6 +1177,23 @@ function CoursesComponent() {
                     </div>
                 </div>
             );
+        }
+
+        if (quizState === 'configuring') {
+             return (
+                <div className="flex flex-col items-center justify-center h-full text-center p-8">
+                    <div className="mb-10 w-full max-w-3xl">
+                        <h1 className="text-4xl font-bold">{currentModule.title}</h1>
+                        <p className="text-muted-foreground mt-2">
+                            This quiz will cover the material from the previous chapters in this module.
+                        </p>
+                        <p className="text-muted-foreground mt-1">Review the content to prepare yourself for the assessment.</p>
+                    </div>
+                    <Button size="lg" onClick={() => handleStartModuleQuiz(currentModule)}>
+                        Start Quiz
+                    </Button>
+                </div>
+            )
         } else if (existingQuizResult && quizState !== 'in-progress') {
              return (
             <div className="flex flex-col items-center">
@@ -1483,32 +1505,36 @@ function CoursesComponent() {
                             onMouseUp={handleMouseUp}
                             className="text-muted-foreground text-lg whitespace-pre-wrap leading-relaxed space-y-6"
                          >
-                            {currentChapter.content.map((block, index) => {
-                                if (block.type === 'text') {
-                                    return <p key={index}>{block.content}</p>;
-                                }
-                                if (block.type === 'question' && block.question) {
-                                    return (
-                                        <Card key={index} className="bg-muted/50 my-8">
-                                            <CardHeader>
-                                                <CardTitle className="text-lg flex items-center gap-2"><Lightbulb size={18}/> Check Your Understanding</CardTitle>
-                                            </CardHeader>
-                                            <CardContent>
-                                                <p className="font-semibold mb-4">{block.question}</p>
-                                                <RadioGroup>
-                                                    {block.options?.map((opt, i) => (
-                                                         <div key={i} className="flex items-center space-x-2">
-                                                            <RadioGroupItem value={opt} id={`check-${index}-${i}`} />
-                                                            <Label htmlFor={`check-${index}-${i}`}>{opt}</Label>
-                                                        </div>
-                                                    ))}
-                                                </RadioGroup>
-                                            </CardContent>
-                                        </Card>
-                                    );
-                                }
-                                return null;
-                            })}
+                            {Array.isArray(currentChapter.content) ? (
+                                currentChapter.content.map((block, index) => {
+                                    if (block.type === 'text') {
+                                        return <p key={index}>{block.content}</p>;
+                                    }
+                                    if (block.type === 'question' && block.question) {
+                                        return (
+                                            <Card key={index} className="bg-muted/50 my-8">
+                                                <CardHeader>
+                                                    <CardTitle className="text-lg flex items-center gap-2"><Lightbulb size={18}/> Check Your Understanding</CardTitle>
+                                                </CardHeader>
+                                                <CardContent>
+                                                    <p className="font-semibold mb-4">{block.question}</p>
+                                                    <RadioGroup>
+                                                        {block.options?.map((opt, i) => (
+                                                             <div key={i} className="flex items-center space-x-2">
+                                                                <RadioGroupItem value={opt} id={`check-${index}-${i}`} />
+                                                                <Label htmlFor={`check-${index}-${i}`}>{opt}</Label>
+                                                            </div>
+                                                        ))}
+                                                    </RadioGroup>
+                                                </CardContent>
+                                            </Card>
+                                        );
+                                    }
+                                    return null;
+                                })
+                            ) : (
+                                <p>{currentChapter.content}</p>
+                            )}
                         </div>
                      ) : (
                          <div className="text-center p-8 border-2 border-dashed rounded-lg">
