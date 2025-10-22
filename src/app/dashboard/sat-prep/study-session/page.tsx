@@ -10,7 +10,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
-import { generateSatStudySession, studyPlannerFlow } from '@/ai/flows/sat-study-session-flow';
+import { generateSatStudySession, studyPlannerFlow } from '@/lib/actions';
 import type { SatQuestion } from '@/ai/schemas/sat-study-session-schema';
 import { cn } from '@/lib/utils';
 import { ArrowLeft, ArrowRight, CheckCircle, Clock, XCircle, FileText, BookOpen, Calculator, Send, Bot } from 'lucide-react';
@@ -18,9 +18,8 @@ import { useToast } from '@/hooks/use-toast';
 import AIBuddy from '@/components/ai-buddy';
 import { Input } from '@/components/ui/input';
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { auth, db } from '@/lib/firebase';
+import { auth } from '@/lib/firebase';
 import { Badge } from '@/components/ui/badge';
-import { collection, query, where, getDocs } from 'firebase/firestore';
 import type { Message } from '@/components/floating-chat';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -205,13 +204,13 @@ function StudySessionPageContent() {
 
 const EmbeddedChat = ({ topic }: { topic: string | null }) => {
     const router = useRouter();
-    const { toast } = useToast();
-    const [user] = useAuthState(auth);
     const [isLoading, setIsLoading] = useState(false);
-    const [chatInput, setChatInput] = useState('');
     const [messages, setMessages] = useState<Message[]>([
         { role: 'ai', content: `Any questions on ${topic}? I'm here to help.` }
     ]);
+    const [chatInput, setChatInput] = useState('');
+    const { toast } = useToast();
+    const [user] = useAuthState(auth);
 
     const handleChatSubmit = async () => {
         if (!chatInput.trim() || !user) return;
@@ -242,7 +241,7 @@ const EmbeddedChat = ({ topic }: { topic: string | null }) => {
 
     return (
         <div className="p-4 border-r h-full flex flex-col bg-card">
-             <div className="p-4 bg-muted rounded-lg text-center mb-4 flex items-center justify-between">
+            <div className="p-2 bg-muted rounded-lg text-center mb-4 flex items-center justify-between">
                  <Button variant="ghost" size="icon" onClick={() => router.push('/dashboard/sat-prep')} className="h-8 w-8">
                     <ArrowLeft className="h-4 w-4" />
                 </Button>
