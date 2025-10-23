@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect, useContext } from 'react';
@@ -242,16 +241,25 @@ export default function SatPrepPage() {
                         </Button>
                     </div>
                 </div>
+                 <DailyQuestion />
                  <Card>
-                    <CardHeader>
-                        <CardTitle>Past Practice Sessions</CardTitle>
+                    <CardHeader className="flex flex-row justify-between items-center">
+                        <div>
+                            <CardTitle>Past Practice Sessions</CardTitle>
+                            <CardDescription>Review your recent study sessions.</CardDescription>
+                        </div>
+                        <Button variant="ghost" asChild>
+                            <Link href="/dashboard/sat-prep/sessions">
+                                See All
+                            </Link>
+                        </Button>
                     </CardHeader>
                     <CardContent>
                         {resultsLoading ? (
                             <Skeleton className="h-24 w-full" />
                         ) : pastStudySessions.length > 0 ? (
                             <div className="space-y-3">
-                                {pastStudySessions.slice(0, 5).map(session => (
+                                {pastStudySessions.slice(0, 3).map(session => (
                                     <div key={session.id} className="flex justify-between items-center p-3 rounded-lg hover:bg-muted">
                                         <div>
                                             <p className="font-semibold">{session.topic}</p>
@@ -269,7 +277,6 @@ export default function SatPrepPage() {
                         )}
                     </CardContent>
                 </Card>
-                 <DailyQuestion />
             </div>
             <div className="lg:col-span-1 space-y-8">
                 <Card className="bg-primary text-primary-foreground">
