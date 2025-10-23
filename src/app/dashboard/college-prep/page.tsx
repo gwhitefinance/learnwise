@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { GraduationCap, Heart, Search, Filter, ArrowRight, MoreHorizontal, Check, Plus, Loader2, Sparkles } from 'lucide-react';
+import { GraduationCap, Heart, Search, Filter, ArrowRight, MoreHorizontal, Check, Plus, Loader2, Sparkles, Save } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Loading from './loading';
 import Link from 'next/link';
@@ -31,6 +31,13 @@ type EnhancedActivity = {
     strength: number;
 };
 
+type SavedActivity = {
+    id: string;
+    title: string;
+    description: string;
+};
+
+
 const mockChecklist = [
     { id: '1', task: 'Draft personal statement', completed: true },
     { id: '2', task: 'Request teacher recommendations', completed: true },
@@ -52,25 +59,34 @@ export default function CollegePrepPage() {
     const [activityInput, setActivityInput] = useState('');
     const [isEnhancing, setIsEnhancing] = useState(false);
     const [enhancedActivity, setEnhancedActivity] = useState<EnhancedActivity | null>(null);
+    const [activityTitle, setActivityTitle] = useState('');
+    const [savedActivities, setSavedActivities] = useState<SavedActivity[]>([]);
 
 
     useEffect(() => {
         const storedGrade = localStorage.getItem('onboardingGradeLevel');
         setGradeLevel(storedGrade);
         
-        // Load favorites from local storage
         const savedFavorites = localStorage.getItem('favoritedColleges');
         if (savedFavorites) {
             setFavoritedColleges(JSON.parse(savedFavorites));
+        }
+        
+        const savedActivitiesData = localStorage.getItem('savedExtracurriculars');
+        if (savedActivitiesData) {
+            setSavedActivities(JSON.parse(savedActivitiesData));
         }
 
         setLoading(false);
     }, []);
     
     useEffect(() => {
-        // Save favorites to local storage whenever they change
         localStorage.setItem('favoritedColleges', JSON.stringify(favoritedColleges));
     }, [favoritedColleges]);
+
+     useEffect(() => {
+        localStorage.setItem('savedExtracurriculars', JSON.stringify(savedActivities));
+    }, [savedActivities]);
 
     useEffect(() => {
         if (searchTerm.trim().length < 3) {
@@ -108,6 +124,7 @@ export default function CollegePrepPage() {
         if (!activityInput.trim()) return;
         setIsEnhancing(true);
         setEnhancedActivity(null);
+        setActivityTitle('');
         try {
             const result = await enhanceExtracurricular({ activityDescription: activityInput });
             setEnhancedActivity(result);
@@ -116,6 +133,23 @@ export default function CollegePrepPage() {
         } finally {
             setIsEnhancing(false);
         }
+    };
+    
+    const handleSaveActivity = () => {
+        if (!enhancedActivity || !activityTitle.trim()) {
+            return;
+        }
+        const newActivity: SavedActivity = {
+            id: crypto.randomUUID(),
+            title: activityTitle,
+            description: enhancedActivity.enhancedDescription,
+        };
+        setSavedActivities(prev => [...prev, newActivity]);
+        
+        // Reset fields after saving
+        setEnhancedActivity(null);
+        setActivityInput('');
+        setActivityTitle('');
     };
 
 
@@ -229,7 +263,7 @@ export default function CollegePrepPage() {
                                 Enhance with AI
                             </Button>
                             {enhancedActivity && (
-                                <div className="pt-4 space-y-4">
+                                <div className="pt-4 space-y-4 border-t">
                                     <div>
                                         <h4 className="font-semibold">Suggested Description:</h4>
                                         <p className="text-muted-foreground p-3 bg-muted rounded-lg mt-1">{enhancedActivity.enhancedDescription}</p>
@@ -241,43 +275,39 @@ export default function CollegePrepPage() {
                                             <span className="font-bold text-primary text-lg">{enhancedActivity.strength}%</span>
                                         </div>
                                     </div>
+                                    <div className="space-y-2 border-t pt-4">
+                                         <Input 
+                                            placeholder="Enter an Activity Title (e.g., 'Debate Team Captain')"
+                                            value={activityTitle}
+                                            onChange={(e) => setActivityTitle(e.target.value)}
+                                        />
+                                        <Button onClick={handleSaveActivity} disabled={!activityTitle.trim()}>
+                                            <Save className="mr-2 h-4 w-4"/>
+                                            Save to Profile
+                                        </Button>
+                                    </div>
                                 </div>
                             )}
                         </CardContent>
                     </Card>
                     <Card>
                         <CardHeader>
-                            <CardTitle>Admissions Tracker</CardTitle>
-                             <CardDescription>Visualize your application progress for each college.</CardDescription>
+                            <CardTitle>My Extracurriculars</CardTitle>
+                            <CardDescription>Your saved list of polished activity descriptions.</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div className="space-y-3 rounded-lg bg-muted p-3">
-                                    <h4 className="font-semibold text-sm">Not Started</h4>
-                                    <div className="p-3 rounded-md bg-background border">
-                                        <p className="font-semibold text-sm">University of Miami</p>
-                                        <p className="text-xs text-muted-foreground">Regular Decision</p>
-                                    </div>
+                            {savedActivities.length > 0 ? (
+                                <div className="space-y-4">
+                                    {savedActivities.map(activity => (
+                                        <div key={activity.id} className="p-4 rounded-lg bg-muted">
+                                            <h4 className="font-semibold">{activity.title}</h4>
+                                            <p className="text-sm text-muted-foreground mt-1">{activity.description}</p>
+                                        </div>
+                                    ))}
                                 </div>
-                                 <div className="space-y-3 rounded-lg bg-muted p-3">
-                                    <h4 className="font-semibold text-sm">In Progress</h4>
-                                     <div className="p-3 rounded-md bg-background border">
-                                        <p className="font-semibold text-sm">University of Central Florida</p>
-                                        <p className="text-xs text-muted-foreground">EA Application</p>
-                                    </div>
-                                </div>
-                                 <div className="space-y-3 rounded-lg bg-muted p-3">
-                                    <h4 className="font-semibold text-sm">Submitted</h4>
-                                    <div className="p-3 rounded-md bg-background border">
-                                        <p className="font-semibold text-sm">University of Florida</p>
-                                        <p className="text-xs text-muted-foreground">Regular Decision</p>
-                                    </div>
-                                     <div className="p-3 rounded-md bg-background border">
-                                        <p className="font-semibold text-sm">Florida State University</p>
-                                        <p className="text-xs text-muted-foreground">Rolling Admission</p>
-                                    </div>
-                                </div>
-                            </div>
+                            ) : (
+                                <p className="text-center text-sm text-muted-foreground p-4">Your saved activities will show up here.</p>
+                            )}
                         </CardContent>
                     </Card>
                 </div>
@@ -317,3 +347,4 @@ export default function CollegePrepPage() {
         </div>
     );
 }
+
