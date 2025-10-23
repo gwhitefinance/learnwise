@@ -1411,30 +1411,32 @@ function CoursesComponent() {
                             <ArrowLeft className="h-4 w-4" />
                         </Button>
                         <div className="flex-1 overflow-hidden text-center">
-                             <h2 className="text-lg font-bold truncate">{activeCourse?.name}</h2>
+                            <h2 className="text-lg font-bold truncate">{activeCourse?.name}</h2>
                             <p className="text-sm text-muted-foreground">{chapterCount > 0 ? `${chapterCount} Chapters` : 'No units created'}</p>
                         </div>
-                         {!activeCourse?.isNewTopic && (
-                            <Dialog open={isAddUnitOpen} onOpenChange={setIsAddUnitOpen}>
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0"><Plus/></Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent>
-                                        <DialogTrigger asChild>
-                                            <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setIsAddUnitOpen(true);}}>
-                                                <BookCopy className="mr-2 h-4 w-4"/> Add Unit Manually
-                                            </DropdownMenuItem>
-                                        </DialogTrigger>
-                                        <DialogTrigger asChild>
-                                            <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setIsAddUnitFromUrlOpen(true);}}>
-                                                <LinkIcon className="mr-2 h-4 w-4"/> Add from URL
-                                            </DropdownMenuItem>
-                                        </DialogTrigger>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            </Dialog>
-                        )}
+                        <div className="h-8 w-8 flex-shrink-0">
+                            {!activeCourse?.isNewTopic && (
+                                <Dialog open={isAddUnitOpen} onOpenChange={setIsAddUnitOpen}>
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0"><Plus/></Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent>
+                                            <DialogTrigger asChild>
+                                                <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setIsAddUnitOpen(true);}}>
+                                                    <BookCopy className="mr-2 h-4 w-4"/> Add Unit Manually
+                                                </DropdownMenuItem>
+                                            </DialogTrigger>
+                                            <DialogTrigger asChild>
+                                                <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setIsAddUnitFromUrlOpen(true);}}>
+                                                    <LinkIcon className="mr-2 h-4 w-4"/> Add from URL
+                                                </DropdownMenuItem>
+                                            </DialogTrigger>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </Dialog>
+                            )}
+                        </div>
                     </div>
                     
                     {chapterCount > 0 && <Progress value={progress} className="mt-2 h-2" />}
