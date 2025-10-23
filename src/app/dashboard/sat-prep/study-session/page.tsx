@@ -260,7 +260,7 @@ function StudySessionPageContent({ topic }: { topic: 'Math' | 'Reading & Writing
             // End of session, calculate results
             setFeedbackLoading(true);
             const totalTime = Object.values(questionTimers).reduce((sum, time) => sum + time, 0);
-            const correctAnswers = questions.filter((q, i) => userAnswers[i] === q.answer).length;
+            const correctAnswers = questions.filter((q, i) => userAnswers[i] === q.correctAnswer).length;
             
             const accuracyByTopic = questions.reduce((acc, q, i) => {
                 const topic = q.topic;
@@ -268,7 +268,7 @@ function StudySessionPageContent({ topic }: { topic: 'Math' | 'Reading & Writing
                     acc[topic] = { correct: 0, total: 0 };
                 }
                 acc[topic].total++;
-                if (userAnswers[i] === q.answer) {
+                if (userAnswers[i] === q.correctAnswer) {
                     acc[topic].correct++;
                 }
                 return acc;
@@ -280,7 +280,7 @@ function StudySessionPageContent({ topic }: { topic: 'Math' | 'Reading & Writing
                     acc[difficulty] = { correct: 0, total: 0 };
                 }
                 acc[difficulty].total++;
-                if (userAnswers[i] === q.answer) {
+                if (userAnswers[i] === q.correctAnswer) {
                     acc[difficulty].correct++;
                 }
                 return acc;
@@ -291,7 +291,7 @@ function StudySessionPageContent({ topic }: { topic: 'Math' | 'Reading & Writing
                     question: q.question,
                     userAnswer: userAnswers[i] || "No answer",
                     correctAnswer: q.correctAnswer,
-                    isCorrect: userAnswers[i] === q.answer,
+                    isCorrect: userAnswers[i] === q.correctAnswer,
                     topic: q.topic,
                 }))
             };
@@ -403,7 +403,7 @@ function StudySessionPageContent({ topic }: { topic: 'Math' | 'Reading & Writing
                                 <AccordionItem value={`item-${i}`} key={i}>
                                     <AccordionTrigger>
                                         <div className="flex items-center gap-2">
-                                            {userAnswers[i] === q.answer ? <CheckCircle className="h-5 w-5 text-green-500"/> : <XCircle className="h-5 w-5 text-red-500"/>}
+                                            {userAnswers[i] === q.correctAnswer ? <CheckCircle className="h-5 w-5 text-green-500"/> : <XCircle className="h-5 w-5 text-red-500"/>}
                                             <span>Question {i+1}</span>
                                         </div>
                                     </AccordionTrigger>
@@ -411,8 +411,8 @@ function StudySessionPageContent({ topic }: { topic: 'Math' | 'Reading & Writing
                                         <div className="space-y-4">
                                             <p className="font-semibold">{q.question}</p>
                                             <div className="text-sm">
-                                                <p><span className="font-bold">Your Answer:</span> <span className={cn(userAnswers[i] === q.answer ? "text-green-600" : "text-red-600")}>{userAnswers[i] || 'No Answer'}</span></p>
-                                                {userAnswers[i] !== q.answer && <p className="text-green-600 font-bold">Correct Answer: {q.correctAnswer}</p>}
+                                                <p><span className="font-bold">Your Answer:</span> <span className={cn(userAnswers[i] === q.correctAnswer ? "text-green-600" : "text-red-600")}>{userAnswers[i] || 'No Answer'}</span></p>
+                                                {userAnswers[i] !== q.correctAnswer && <p className="text-green-600 font-bold">Correct Answer: {q.correctAnswer}</p>}
                                             </div>
                                         </div>
                                     </AccordionContent>
@@ -562,3 +562,5 @@ export default function StudySessionPage() {
         </Suspense>
     );
 }
+
+    
