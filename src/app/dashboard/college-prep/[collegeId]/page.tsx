@@ -237,8 +237,7 @@ export default function CollegeDetailPage() {
                         <CardHeader>
                             <CardTitle>About {college['school.name']}</CardTitle>
                         </CardHeader>
-                        <CardContent className="flex items-center gap-4">
-                            <AIBuddy className="h-24 w-24 flex-shrink-0" />
+                        <CardContent>
                             <p className="text-muted-foreground">Detailed description coming soon. For now, you can visit the school's website for more information, or ask me any questions you have about this college!</p>
                         </CardContent>
                     </Card>
