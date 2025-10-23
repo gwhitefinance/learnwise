@@ -83,6 +83,7 @@ export default function CollegeDetailPage() {
     const [loading, setLoading] = useState(true);
     const [userSatScore, setUserSatScore] = useState<number | null>(null);
     const [userAppStrength, setUserAppStrength] = useState<number | null>(null);
+    const [userState, setUserState] = useState<string | null>(null);
     const [description, setDescription] = useState<string | null>(null);
     const [isDescriptionLoading, setIsDescriptionLoading] = useState(true);
 
@@ -92,6 +93,11 @@ export default function CollegeDetailPage() {
         const storedSatScore = localStorage.getItem('satScore');
         if (storedSatScore) {
             setUserSatScore(parseInt(storedSatScore, 10));
+        }
+
+        const storedUserState = localStorage.getItem('userState');
+        if (storedUserState) {
+            setUserState(storedUserState);
         }
         
         const savedActivitiesData = localStorage.getItem('savedExtracurriculars');
@@ -155,7 +161,14 @@ export default function CollegeDetailPage() {
         
         // 1. SAT Score Factor
         const satDifference = userSatScore - avgSat;
-        const satFactor = Math.max(-0.4, Math.min(0.4, satDifference / 200));
+        let satFactor = 0;
+        // More impactful factor based on SAT difference
+        if (satDifference > 0) {
+            satFactor = Math.min(0.25, (satDifference / 200)); // Cap bonus
+        } else {
+            satFactor = Math.max(-0.35, (satDifference / 150)); // Cap penalty
+        }
+
 
         // 2. App Strength Factor
         let expectedAppStrength = 50; 
@@ -164,9 +177,15 @@ export default function CollegeDetailPage() {
         else if (baseAcceptanceRate <= 0.60) expectedAppStrength = 55; // Moderately Selective
 
         const appStrengthDifference = (userAppStrength - expectedAppStrength);
-        const appStrengthFactor = Math.max(-0.3, Math.min(0.3, appStrengthDifference / 50));
+        const appStrengthFactor = Math.max(-0.2, Math.min(0.2, appStrengthDifference / 100));
+        
+        // 3. In-State Factor
+        const isInState = userState && college['school.state'] === userState;
+        // For simplicity, we assume public schools benefit more from in-state applicants.
+        // A more complex model could check school type. This is a reasonable approximation.
+        const inStateBonus = isInState ? Math.min(baseAcceptanceRate * 0.5, 0.15) : 0; // Up to 15% bonus, but no more than 50% of original rate
 
-        let calculatedChance = baseAcceptanceRate + (satFactor * 0.6) + (appStrengthFactor * 0.4);
+        let calculatedChance = baseAcceptanceRate + satFactor + appStrengthFactor + inStateBonus;
         calculatedChance = Math.max(0.01, Math.min(0.99, calculatedChance));
 
         const percentage = Math.round(calculatedChance * 100);
@@ -180,7 +199,7 @@ export default function CollegeDetailPage() {
 
         return { percentage, description };
 
-    }, [college, userAppStrength, userSatScore]);
+    }, [college, userAppStrength, userSatScore, userState]);
     
     const getChanceColor = (percentage: number | null) => {
         if (percentage === null) return 'bg-muted text-muted-foreground border-border';
@@ -233,7 +252,7 @@ export default function CollegeDetailPage() {
                             </div>
                              <div className="space-y-2 pt-4 border-t">
                                 <ChanceIndicator label="SAT" userStat={userSatScore} collegeStat={college['latest.admissions.sat_scores.average.overall']} />
-                                 <ChanceIndicator label="App Strength" userStat={userAppStrength} collegeStat={null} />
+                                <ChanceIndicator label="App Strength" userStat={userAppStrength} collegeStat={null} />
                             </div>
                         </CardContent>
                     </Card>

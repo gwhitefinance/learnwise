@@ -5,7 +5,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { GraduationCap, Heart, Search, Filter, ArrowRight, MoreHorizontal, Check, Plus, Loader2, Sparkles, Save } from 'lucide-react';
+import { GraduationCap, Heart, Search, Filter, ArrowRight, MoreHorizontal, Check, Plus, Loader2, Sparkles, Save, MapPin } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Loading from './loading';
 import Link from 'next/link';
@@ -15,6 +15,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { enhanceExtracurricular } from '@/lib/actions';
 import { Progress } from '@/components/ui/progress';
 import { Slider } from '@/components/ui/slider';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { allUSStates } from '@/lib/states';
+
 
 type College = {
     id: number;
@@ -57,15 +60,13 @@ export default function CollegePrepPage() {
     const [activityTitle, setActivityTitle] = useState('');
     const [savedActivities, setSavedActivities] = useState<SavedActivity[]>([]);
     
-    // SAT Score state
+    // Academic Profile State
     const [satScore, setSatScore] = useState(1200);
-
-    // GPA state
     const [weightedGpa, setWeightedGpa] = useState('');
     const [unweightedGpa, setUnweightedGpa] = useState('');
-    
-    // Transcript state
     const [courses, setCourses] = useState([]);
+    const [userState, setUserState] = useState('');
+
 
     const applicationStrength = useMemo(() => {
         const satWeight = 0.35;
@@ -130,6 +131,11 @@ export default function CollegePrepPage() {
         const storedCourses = localStorage.getItem('transcriptCourses');
         if (storedCourses) {
             setCourses(JSON.parse(storedCourses));
+        }
+
+        const storedUserState = localStorage.getItem('userState');
+        if (storedUserState) {
+            setUserState(storedUserState);
         }
 
         setLoading(false);
@@ -223,6 +229,11 @@ export default function CollegePrepPage() {
             setUnweightedGpa(sanitizedValue);
             localStorage.setItem('unweightedGpa', sanitizedValue);
         }
+    }
+    
+    const handleUserStateChange = (stateAbbreviation: string) => {
+        setUserState(stateAbbreviation);
+        localStorage.setItem('userState', stateAbbreviation);
     }
 
 
@@ -411,6 +422,19 @@ export default function CollegePrepPage() {
                                     <label className="font-semibold text-sm">Unweighted GPA</label>
                                     <Input placeholder="e.g., 3.8" value={unweightedGpa} onChange={(e) => handleGpaChange('unweighted', e.target.value)} />
                                 </div>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="font-semibold text-sm flex items-center gap-2"><MapPin className="h-4 w-4"/> My Home State</label>
+                                <Select value={userState} onValueChange={handleUserStateChange}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select your state" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {allUSStates.map(state => (
+                                            <SelectItem key={state.abbreviation} value={state.abbreviation}>{state.name}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
                              <Button variant="outline" className="w-full" asChild>
                                 <Link href="/dashboard/college-prep/transcript">Manage Transcript</Link>
