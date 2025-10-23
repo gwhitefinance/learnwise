@@ -4,7 +4,14 @@
 import { useState, useEffect, Suspense, useContext } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
@@ -429,7 +436,7 @@ function StudySessionPageContent({ topic }: { topic: 'Math' | 'Reading & Writing
             </div>
         )
     }
-    
+
     if (questions.length === 0) {
         return (
              <div className="flex flex-col items-center justify-center h-full text-center">
@@ -555,5 +562,3 @@ export default function StudySessionPage() {
         </Suspense>
     );
 }
-
-    
