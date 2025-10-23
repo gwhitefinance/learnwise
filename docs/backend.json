@@ -1,0 +1,250 @@
+
+{
+  "entities": {
+    "userProfile": {
+      "title": "User Profile",
+      "description": "Represents a user's profile information.",
+      "type": "object",
+      "properties": {
+        "displayName": {
+          "type": "string",
+          "description": "The user's display name."
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "The user's email address."
+        },
+        "coins": {
+          "type": "number",
+          "description": "The number of coins the user has."
+        },
+        "level": {
+          "type": "number",
+          "description": "The user's current level."
+        },
+        "xp": {
+          "type": "number",
+          "description": "The user's current experience points."
+        },
+        "photoURL": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL of the user's profile picture."
+        },
+        "unlockedItems": {
+            "type": "object",
+            "description": "A map of unlocked shop item categories and their names."
+        }
+      }
+    },
+    "course": {
+      "title": "Course",
+      "description": "Represents a course a user is taking.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string"
+        },
+        "units": {
+          "type": "array"
+        },
+        "completedChapters": {
+          "type": "array"
+        },
+        "isNewTopic": {
+            "type": "boolean"
+        }
+      }
+    },
+    "roadmap": {
+      "title": "Roadmap",
+      "description": "A study plan for a course.",
+      "type": "object",
+      "properties": {
+        "courseId": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string"
+        },
+        "goals": {
+          "type": "array"
+        },
+        "milestones": {
+          "type": "array"
+        }
+      }
+    },
+    "note": {
+        "title": "Note",
+        "description": "A user's note.",
+        "type": "object",
+        "properties": {
+            "title": { "type": "string" },
+            "content": { "type": "string" },
+            "date": { "type": "string", "format": "date-time" },
+            "color": { "type": "string" },
+            "isImportant": { "type": "boolean" },
+            "isCompleted": { "type": "boolean" },
+            "userId": { "type": "string" },
+            "courseId": { "type": "string" },
+            "unitId": { "type": "string" }
+        }
+    },
+    "chatSession": {
+        "title": "Chat Session",
+        "description": "A chat session with the AI.",
+        "type": "object",
+        "properties": {
+            "title": { "type": "string" },
+            "messages": { "type": "array" },
+            "timestamp": { "type": "string", "format": "date-time" },
+            "userId": { "type": "string" },
+            "isPublic": { "type": "boolean" }
+        }
+    },
+    "quizAttempt": {
+        "title": "Quiz Attempt",
+        "description": "A record of an incorrect quiz answer.",
+        "type": "object",
+        "properties": {
+            "userId": { "type": "string" },
+            "courseId": { "type": "string" },
+            "topic": { "type": "string" },
+            "question": { "type": "string" },
+            "userAnswer": { "type": "string" },
+            "correctAnswer": { "type": "string" },
+            "timestamp": { "type": "string", "format": "date-time" }
+        }
+    },
+    "quizResult": {
+        "title": "Quiz Result",
+        "description": "The result of a completed quiz.",
+        "type": "object",
+        "properties": {
+            "userId": { "type": "string" },
+            "courseId": { "type": "string" },
+            "moduleId": { "type": "string" },
+            "score": { "type": "number" },
+            "totalQuestions": { "type": "number" },
+            "answers": { "type": "array" },
+            "timestamp": { "type": "string", "format": "date-time" }
+        }
+    },
+    "calendarEvent": {
+        "title": "Calendar Event",
+        "description": "An event in the user's calendar.",
+        "type": "object",
+        "properties": {
+            "title": { "type": "string" },
+            "description": { "type": "string" },
+            "date": { "type": "string" },
+            "startTime": { "type": "string" },
+            "endTime": { "type": "string" },
+            "type": { "type": "string" },
+            "userId": { "type": "string" }
+        }
+    },
+    "squad": {
+        "title": "Learning Squad",
+        "description": "A collaborative group for users.",
+        "type": "object",
+        "properties": {
+            "name": { "type": "string" },
+            "ownerId": { "type": "string" },
+            "members": { "type": "array", "items": { "type": "string" } },
+            "inviteCode": { "type": "string" },
+            "permissions": { "type": "object" }
+        }
+    },
+    "satTestResult": {
+        "title": "SAT Test Result",
+        "description": "The result of a completed full-length SAT practice test.",
+        "type": "object",
+        "properties": {
+            "userId": { "type": "string" },
+            "total": { "type": "number" },
+            "readingWriting": { "type": "number" },
+            "math": { "type": "number" },
+            "timestamp": { "type": "string", "format": "date-time" }
+        }
+    },
+    "satStudySession": {
+        "title": "SAT Study Session",
+        "description": "The result of a completed SAT study session.",
+        "type": "object",
+        "properties": {
+            "userId": { "type": "string" },
+            "topic": { "type": "string" },
+            "score": { "type": "number" },
+            "results": { "type": "object" },
+            "questions": { "type": "array" },
+            "userAnswers": { "type": "object" },
+            "timestamp": { "type": "string", "format": "date-time" }
+        }
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/userProfile"
+      },
+      "description": "Stores user profile information."
+    },
+    "/courses/{courseId}": {
+      "schema": {
+        "$ref": "#/entities/course"
+      },
+      "description": "Stores course data for each user."
+    },
+    "/roadmaps/{roadmapId}": {
+        "schema": { "$ref": "#/entities/roadmap" },
+        "description": "Stores generated study roadmaps for courses."
+    },
+    "/notes/{noteId}": {
+        "schema": { "$ref": "#/entities/note" },
+        "description": "Stores user notes."
+    },
+    "/chatSessions/{sessionId}": {
+        "schema": { "$ref": "#/entities/chatSession" },
+        "description": "Stores user chat sessions."
+    },
+    "/quizAttempts/{attemptId}": {
+        "schema": { "$ref": "#/entities/quizAttempt" },
+        "description": "Stores records of incorrect quiz answers for review."
+    },
+    "/quizResults/{resultId}": {
+        "schema": { "$ref": "#/entities/quizResult" },
+        "description": "Stores the results of completed quizzes."
+    },
+    "/calendarEvents/{eventId}": {
+        "schema": { "$ref": "#/entities/calendarEvent" },
+        "description": "Stores events for the user's calendar."
+    },
+    "/squads/{squadId}": {
+        "schema": { "$ref": "#/entities/squad" },
+        "description": "Stores learning squad information."
+    },
+    "/satTestResults/{resultId}": {
+        "schema": { "$ref": "#/entities/satTestResult" },
+        "description": "Stores results from full-length SAT practice tests."
+    },
+    "/satStudySessions/{sessionId}": {
+        "schema": { "$ref": "#/entities/satStudySession" },
+        "description": "Stores results from focused SAT study sessions."
+    }
+  },
+  "auth": {
+    "providers": [
+      "anonymous",
+      "google"
+    ]
+  }
+}

@@ -1,74 +1,68 @@
+
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Rules for all collections can go here
-    
+
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
     match /users/{userId} {
-      // Users can read their own profile, and update it.
-      allow read, update: if request.auth != null && request.auth.uid == userId;
-      // Users can create their own user document.
-      allow create: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if isOwner(userId);
     }
     
     match /courses/{courseId} {
-        allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
-    }
-
-    match /projects/{projectId} {
-        allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
-    }
-    
-    match /recentFiles/{fileId} {
-        allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
-    }
-
-    match /notes/{noteId} {
-        allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
-    }
-    
-    match /calendarEvents/{eventId} {
-        allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow read, write: if isOwner(resource.data.userId);
     }
 
     match /roadmaps/{roadmapId} {
-        allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
+        allow read, write: if isOwner(resource.data.userId);
+    }
+    
+    match /notes/{noteId} {
+        allow read, write: if isOwner(resource.data.userId);
+    }
+    
+    match /chatSessions/{sessionId} {
+        allow read, write: if isOwner(resource.data.userId);
+        allow get: if resource.data.isPublic == true;
+    }
+    
+    match /quizAttempts/{attemptId} {
+        allow read, write: if isOwner(resource.data.userId);
     }
 
-    match /chatSessions/{sessionId} {
-      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
-      // Allow public read if isPublic is true
-      allow get: if resource.data.isPublic == true;
+    match /quizResults/{resultId} {
+        allow read, write: if isOwner(resource.data.userId);
+    }
+    
+    match /calendarEvents/{eventId} {
+        allow read, write: if isOwner(resource.data.userId);
     }
 
     match /squads/{squadId} {
-      allow read, write: if request.auth != null && request.auth.uid == resource.data.ownerId || request.auth.uid in resource.data.members;
+        allow read: if request.auth.uid in resource.data.members;
+        allow create: if isOwner(request.resource.data.ownerId);
+        allow update: if isOwner(resource.data.ownerId); // Only owner can update permissions etc.
+        allow delete: if isOwner(resource.data.ownerId);
     }
-
+    
     match /squads/{squadId}/memberDetails/{memberId} {
-       allow read, write: if request.auth != null && request.auth.uid in resource.data.members;
-    }
-    
-    match /squads/{squadId}/projects/{projectId} {
-       allow read, write: if request.auth != null && request.auth.uid in resource.data.members;
-    }
-    
-    match /satTestResults/{resultId} {
-        allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
-    }
-    
-    match /quizResults/{resultId} {
-        // Allow a user to create a new quiz result for themselves
-        allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-        // Allow a user to read their own quiz results
-        allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+        allow read: if request.auth.uid in get(/databases/$(database)/documents/squads/$(squadId)).data.members;
+        allow write: if isOwner(get(/databases/$(database)/documents/squads/$(squadId)).data.ownerId);
     }
 
-    match /quizAttempts/{attemptId} {
-        // Allow a user to create a new quiz attempt for themselves
-        allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-        // Allow a user to read and delete their own quiz attempts
-        allow read, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    match /squads/{squadId}/projects/{projectId} {
+        allow read, write: if request.auth.uid in get(/databases/$(database)/documents/squads/$(squadId)).data.members;
+    }
+
+    match /satTestResults/{resultId} {
+        allow read, write: if isOwner(resource.data.userId);
+    }
+
+    match /satStudySessions/{sessionId} {
+      allow read, write: if isOwner(resource.data.userId);
     }
   }
 }
