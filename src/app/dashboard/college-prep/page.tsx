@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 import Loading from './loading';
 import Link from 'next/link';
 import { searchColleges } from './actions';
+import { Input } from '@/components/ui/input';
 
 type College = {
     id: number;
