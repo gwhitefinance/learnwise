@@ -60,9 +60,14 @@ export default function CollegePrepPage() {
     // SAT Score state
     const [satScore, setSatScore] = useState(1200);
 
+    // GPA state
+    const [weightedGpa, setWeightedGpa] = useState('');
+    const [unweightedGpa, setUnweightedGpa] = useState('');
+
     const applicationStrength = useMemo(() => {
-        const extracurricularWeight = 0.5;
-        const satWeight = 0.5;
+        const extracurricularWeight = 0.3;
+        const satWeight = 0.4;
+        const gpaWeight = 0.3;
 
         // Calculate extracurricular score
         const totalActivityStrength = savedActivities.reduce((sum, activity) => sum + activity.strength, 0);
@@ -70,12 +75,17 @@ export default function CollegePrepPage() {
         
         // Calculate SAT score percentage (assuming max score of 1600 and min of 400)
         const satPercentage = ((satScore - 400) / (1600 - 400)) * 100;
+        
+        // Calculate GPA percentage (assuming weighted GPA is on a 5.0 scale for calculation)
+        const gpaValue = parseFloat(weightedGpa);
+        const gpaPercentage = !isNaN(gpaValue) ? (gpaValue / 5.0) * 100 : 0;
+
 
         // Combine scores
-        const combinedStrength = (averageActivityStrength * extracurricularWeight) + (satPercentage * satWeight);
+        const combinedStrength = (averageActivityStrength * extracurricularWeight) + (satPercentage * satWeight) + (gpaPercentage * gpaWeight);
         
         return Math.round(Math.max(0, Math.min(100, combinedStrength)));
-    }, [savedActivities, satScore]);
+    }, [savedActivities, satScore, weightedGpa]);
 
 
     useEffect(() => {
@@ -96,6 +106,11 @@ export default function CollegePrepPage() {
         if (storedSatScore) {
             setSatScore(parseInt(storedSatScore, 10));
         }
+        
+        const storedWeightedGpa = localStorage.getItem('weightedGpa');
+        if(storedWeightedGpa) setWeightedGpa(storedWeightedGpa);
+        const storedUnweightedGpa = localStorage.getItem('unweightedGpa');
+        if(storedUnweightedGpa) setUnweightedGpa(storedUnweightedGpa);
 
         setLoading(false);
     }, []);
@@ -178,6 +193,17 @@ export default function CollegePrepPage() {
         setSatScore(newScore);
         localStorage.setItem('satScore', String(newScore));
     };
+
+    const handleGpaChange = (type: 'weighted' | 'unweighted', value: string) => {
+        const sanitizedValue = value.replace(/[^0-9.]/g, '');
+        if (type === 'weighted') {
+            setWeightedGpa(sanitizedValue);
+            localStorage.setItem('weightedGpa', sanitizedValue);
+        } else {
+            setUnweightedGpa(sanitizedValue);
+            localStorage.setItem('unweightedGpa', sanitizedValue);
+        }
+    }
 
 
     if (loading) {
@@ -341,18 +367,31 @@ export default function CollegePrepPage() {
                 <div className="space-y-6">
                     <Card>
                         <CardHeader>
-                            <CardTitle>My SAT Score</CardTitle>
-                            <CardDescription>Set your obtained SAT score.</CardDescription>
+                            <CardTitle>My Academic Profile</CardTitle>
+                            <CardDescription>Set your scores and GPA.</CardDescription>
                         </CardHeader>
-                        <CardContent>
-                            <div className="text-center font-bold text-4xl text-primary mb-6">{satScore}</div>
-                            <Slider
-                                defaultValue={[satScore]}
-                                max={1600}
-                                min={400}
-                                step={10}
-                                onValueChange={handleSatScoreChange}
-                            />
+                        <CardContent className="space-y-6">
+                             <div>
+                                <label className="font-semibold text-sm">SAT Score</label>
+                                <div className="text-center font-bold text-3xl text-primary my-2">{satScore}</div>
+                                <Slider
+                                    defaultValue={[satScore]}
+                                    max={1600}
+                                    min={400}
+                                    step={10}
+                                    onValueChange={handleSatScoreChange}
+                                />
+                            </div>
+                             <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label className="font-semibold text-sm">Weighted GPA</label>
+                                    <Input placeholder="e.g., 4.2" value={weightedGpa} onChange={(e) => handleGpaChange('weighted', e.target.value)} />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="font-semibold text-sm">Unweighted GPA</label>
+                                    <Input placeholder="e.g., 3.8" value={unweightedGpa} onChange={(e) => handleGpaChange('unweighted', e.target.value)} />
+                                </div>
+                            </div>
                         </CardContent>
                     </Card>
                     <Card>
@@ -385,7 +424,7 @@ export default function CollegePrepPage() {
                                     {applicationStrength}%
                                 </div>
                             </div>
-                            <p className="text-xs text-muted-foreground mt-4 text-center">Based on SAT score and extracurriculars.</p>
+                            <p className="text-xs text-muted-foreground mt-4 text-center">Based on SAT, GPA, and extracurriculars.</p>
                         </CardContent>
                     </Card>
 
