@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { enhanceExtracurricular } from '@/lib/actions';
 import { Progress } from '@/components/ui/progress';
+import { Slider } from '@/components/ui/slider';
 
 type College = {
     id: number;
@@ -61,6 +62,9 @@ export default function CollegePrepPage() {
     const [enhancedActivity, setEnhancedActivity] = useState<EnhancedActivity | null>(null);
     const [activityTitle, setActivityTitle] = useState('');
     const [savedActivities, setSavedActivities] = useState<SavedActivity[]>([]);
+    
+    // SAT Score state
+    const [goalScore, setGoalScore] = useState(1200);
 
 
     useEffect(() => {
@@ -75,6 +79,11 @@ export default function CollegePrepPage() {
         const savedActivitiesData = localStorage.getItem('savedExtracurriculars');
         if (savedActivitiesData) {
             setSavedActivities(JSON.parse(savedActivitiesData));
+        }
+        
+        const storedGoalScore = localStorage.getItem('satGoalScore');
+        if (storedGoalScore) {
+            setGoalScore(parseInt(storedGoalScore, 10));
         }
 
         setLoading(false);
@@ -150,6 +159,12 @@ export default function CollegePrepPage() {
         setEnhancedActivity(null);
         setActivityInput('');
         setActivityTitle('');
+    };
+
+    const handleGoalScoreChange = (value: number[]) => {
+        const newScore = value[0];
+        setGoalScore(newScore);
+        localStorage.setItem('satGoalScore', String(newScore));
     };
 
 
@@ -314,6 +329,22 @@ export default function CollegePrepPage() {
                 <div className="space-y-6">
                     <Card>
                         <CardHeader>
+                            <CardTitle>Goal SAT Score</CardTitle>
+                            <CardDescription>Adjust the slider to set your target score.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-center font-bold text-4xl text-primary mb-6">{goalScore}</div>
+                            <Slider
+                                defaultValue={[goalScore]}
+                                max={1600}
+                                min={400}
+                                step={10}
+                                onValueChange={handleGoalScoreChange}
+                            />
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader>
                             <CardTitle>Application Checklist</CardTitle>
                         </CardHeader>
                         <CardContent>
@@ -347,4 +378,3 @@ export default function CollegePrepPage() {
         </div>
     );
 }
-
