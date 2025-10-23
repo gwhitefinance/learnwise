@@ -340,6 +340,10 @@ function StudySessionPageContent({ topic }: { topic: 'Math' | 'Reading & Writing
     if (sessionState === 'results' && resultsData) {
         return (
             <div className="p-4 md:p-8 space-y-8">
+                 <Button variant="ghost" onClick={() => router.push('/dashboard/sat-prep')}>
+                    <ArrowLeft className="mr-2 h-4 w-4"/>
+                    Back to SAT Prep Hub
+                </Button>
                 <h1 className="text-3xl font-bold">Session Results</h1>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <Card>
