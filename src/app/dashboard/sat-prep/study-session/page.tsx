@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect, Suspense, useContext } from 'react';
@@ -10,7 +9,6 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
-import { generateMiniCourse, generateTutorResponse } from '@/lib/actions';
 import type { SatQuestion, AnswerFeedback as FeedbackAnswer, FeedbackInput } from '@/ai/schemas/sat-study-session-schema';
 import { cn } from '@/lib/utils';
 import { ArrowLeft, ArrowRight, CheckCircle, Clock, XCircle, FileText, BookOpen, Calculator, Send, Bot, Wand2, Star } from 'lucide-react';
@@ -28,9 +26,100 @@ import { addDoc, collection } from 'firebase/firestore';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import GeneratingCourse from '@/app/dashboard/courses/GeneratingCourse';
 import { generateFeedbackFlow } from '@/ai/flows/sat-feedback-flow';
-import { generateExplanation } from '@/ai/flows/quiz-explanation-flow';
+import { generateExplanation, generateSatStudySessionAction, generateTutorResponse, generateMiniCourse } from '@/lib/actions';
 import GeneratingSession from '../GeneratingSession';
-import { generateSatStudySessionAction } from '@/lib/actions';
+
+
+const EmbeddedChat = ({ topic, currentQuestion }: { topic: string | null, currentQuestion: SatQuestion | null }) => {
+    const [isChatLoading, setIsChatLoading] = useState(false);
+    const [messages, setMessages] = useState<Message[]>([
+        { role: 'ai', content: `Any questions on ${topic}? I'm here to help.` }
+    ]);
+    const [chatInput, setChatInput] = useState('');
+    const { toast } = useToast();
+    const [user] = useAuthState(auth);
+
+    const handleChatSubmit = async () => {
+        if (!chatInput.trim() || !user || !currentQuestion) return;
+    
+        const userMessage: Message = { role: 'user', content: chatInput };
+        const newMessages = [...messages, userMessage];
+        setMessages(newMessages);
+        setChatInput('');
+        setIsChatLoading(true);
+    
+        try {
+          const response = await generateTutorResponse({ 
+              studyContext: `The user is in an SAT study session about ${topic}.`, 
+              currentQuestion: `Passage: ${currentQuestion.passage || 'N/A'}\nQuestion: ${currentQuestion.question}\nOptions: ${currentQuestion.options.join(', ')}`,
+              question: chatInput,
+              history: newMessages 
+          });
+    
+          const aiMessage: Message = { role: 'ai', content: response.answer };
+          setMessages([...newMessages, aiMessage]);
+    
+        } catch (error) {
+          console.error(error);
+          setMessages(messages); // Revert on error
+          toast({ variant: 'destructive', title: 'Error', description: 'Could not get a response from the AI.'})
+        } finally {
+          setIsChatLoading(false);
+        }
+    }
+
+    return (
+        <div className="p-4 border-r h-full flex flex-col bg-card">
+             <header className="p-2 mb-4">
+                <h3 className="font-semibold text-center">Ask Tutorin</h3>
+            </header>
+            <ScrollArea className="flex-1 -mx-4">
+                <div className="px-4 space-y-4">
+                    {messages.map((message, index) => (
+                        <div key={index} className={cn("flex items-start gap-3", message.role === 'user' && 'justify-end')}>
+                            {message.role === 'ai' && (
+                                <div className="w-10 h-10 flex-shrink-0">
+                                    <AIBuddy className="w-10 h-10" />
+                                </div>
+                            )}
+                             <div className={cn("p-3 rounded-lg max-w-[85%]", message.role === 'ai' ? 'bg-muted rounded-bl-none' : 'bg-primary text-primary-foreground rounded-br-none')}>
+                                <p className="text-sm">{message.content}</p>
+                            </div>
+                        </div>
+                    ))}
+                    {isChatLoading && (
+                        <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 flex-shrink-0">
+                                <AIBuddy className="w-10 h-10" />
+                            </div>
+                            <div className="bg-muted p-3 rounded-lg rounded-bl-none animate-pulse">
+                                <p className="text-sm">Thinking...</p>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </ScrollArea>
+            <div className="relative mt-4">
+                <Input 
+                    placeholder="Ask anything..."
+                    className="h-12 rounded-full pl-6 pr-16 text-base"
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && !isChatLoading && handleChatSubmit()}
+                    disabled={isChatLoading}
+                />
+                <Button 
+                    size="icon" 
+                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full h-9 w-9"
+                    onClick={handleChatSubmit}
+                    disabled={isChatLoading}
+                >
+                    <Send className="h-4 w-4" />
+                </Button>
+            </div>
+        </div>
+    );
+}
 
 
 function StudySessionPageContent({ topic }: { topic: 'Math' | 'Reading & Writing' | null }) {
@@ -328,6 +417,7 @@ function StudySessionPageContent({ topic }: { topic: 'Math' | 'Reading & Writing
                     </CardHeader>
                     <CardFooter>
                         <Button onClick={handleTurnStrugglingIntoCourse} disabled={isSubmittingCourse}>
+                            {isSubmittingCourse ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
                             Create My Course
                         </Button>
                     </CardFooter>
@@ -358,186 +448,94 @@ function StudySessionPageContent({ topic }: { topic: 'Math' | 'Reading & Writing
     };
 
     return (
-        <div className="flex-1 overflow-y-auto p-4 md:p-8">
-            <div className="max-w-3xl mx-auto">
-                 <header className="mb-8">
-                    <div className="flex justify-between items-center mb-4">
-                        <h1 className="text-2xl font-bold flex items-center gap-2">
-                            {topic === 'Reading & Writing' ? <BookOpen /> : <Calculator />}
-                            Study Session: {topic}
-                        </h1>
-                        <div className="text-sm font-semibold flex items-center gap-2 text-muted-foreground">
-                            <Clock className="h-5 w-5" />
-                             <span>{Math.floor(currentQuestionTime / 60).toString().padStart(2, '0')}:{(currentQuestionTime % 60).toString().padStart(2, '0')}</span>
-                        </div>
-                    </div>
-                    <div>
-                        <Progress value={progress} className="h-2" />
-                        <p className="text-xs text-muted-foreground mt-1">{currentQuestionIndex + 1} / {questions.length}</p>
-                    </div>
-                </header>
-
-                <main>
-                    <div className="space-y-6">
-                        {currentQuestion.passage && (
-                            <blockquote className="border-l-4 pl-4 italic text-muted-foreground bg-muted p-4 rounded-r-lg">
-                                {currentQuestion.passage}
-                            </blockquote>
-                        )}
-                        <p className="font-semibold text-lg">{currentQuestion.question}</p>
-                        
-                        <RadioGroup 
-                            value={selectedAnswer || ''} 
-                            onValueChange={(value) => setUserAnswers(prev => ({ ...prev, [currentQuestionIndex]: value }))}
-                            disabled={isCurrentAnswered}
-                        >
-                            <div className="space-y-3">
-                                {currentQuestion.options.map((option, index) => (
-                                    <Label key={index} htmlFor={`option-${index}`} className={cn(
-                                        "flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-all",
-                                        isCurrentAnswered && option === currentQuestion.correctAnswer && "border-green-500 bg-green-500/10",
-                                        isCurrentAnswered && selectedAnswer === option && !isCorrect && "border-red-500 bg-red-500/10",
-                                        !isCurrentAnswered && selectedAnswer === option && "border-primary"
-                                    )}>
-                                        <RadioGroupItem value={option} id={`option-${index}`} />
-                                        <span>{option}</span>
-                                        {isCurrentAnswered && option === currentQuestion.correctAnswer && <CheckCircle className="h-5 w-5 text-green-500 ml-auto"/>}
-                                        {isCurrentAnswered && selectedAnswer === option && !isCorrect && <XCircle className="h-5 w-5 text-red-500 ml-auto"/>}
-                                    </Label>
-                                ))}
-                            </div>
-                        </RadioGroup>
-
-                        {isCurrentAnswered && (
-                            <div className="border rounded-lg p-6 space-y-4">
-                               <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
-                                    <Badge className={cn(difficultyColors[currentQuestion.difficulty])}>{currentQuestion.difficulty}</Badge>
-                                    <span className="font-medium">{currentQuestion.topic}</span>
-                                    <span>&bull;</span>
-                                    <span>{currentQuestion.subTopic}</span>
-                                </div>
-                                
-                                <h4 className="font-bold text-lg">Explanation</h4>
-                                <p className="text-muted-foreground">{currentQuestion.explanation}</p>
-                                
-                                <div>
-                                    <Button variant="link" className="p-0 h-auto" onClick={() => handleAskTutorin(currentQuestion)}>
-                                        Still confused? Ask Tutorin.
-                                    </Button>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </main>
-
-                <footer className="mt-8 pt-4 border-t flex justify-between items-center">
-                    <Button variant="outline" onClick={handlePrevious} disabled={currentQuestionIndex === 0}>
-                        <ArrowLeft className="mr-2 h-4 w-4" /> Previous
-                    </Button>
-                    {isCurrentAnswered ? (
-                        <Button onClick={handleNext}>
-                            {currentQuestionIndex === questions.length - 1 ? 'Finish Session' : 'Next'} <ArrowRight className="ml-2 h-4 w-4" />
-                        </Button>
-                    ) : (
-                        <Button onClick={handleSubmit} disabled={!selectedAnswer}>Submit</Button>
-                    )}
-                </footer>
+        <div className="h-full flex">
+            <div className="w-96 flex-shrink-0">
+                <EmbeddedChat topic={topic} currentQuestion={currentQuestion} />
             </div>
-        </div>
-    );
-}
+            <div className="flex-1 overflow-y-auto p-4 md:p-8">
+                <div className="max-w-3xl mx-auto">
+                    <header className="mb-8">
+                        <div className="flex justify-between items-center mb-4">
+                            <h1 className="text-2xl font-bold flex items-center gap-2">
+                                {topic === 'Reading & Writing' ? <BookOpen /> : <Calculator />}
+                                Study Session: {topic}
+                            </h1>
+                            <div className="text-sm font-semibold flex items-center gap-2 text-muted-foreground">
+                                <Clock className="h-5 w-5" />
+                                <span>{Math.floor(currentQuestionTime / 60).toString().padStart(2, '0')}:{(currentQuestionTime % 60).toString().padStart(2, '0')}</span>
+                            </div>
+                        </div>
+                        <div>
+                            <Progress value={progress} className="h-2" />
+                            <p className="text-xs text-muted-foreground mt-1">{currentQuestionIndex + 1} / {questions.length}</p>
+                        </div>
+                    </header>
 
+                    <main>
+                        <div className="space-y-6">
+                            {currentQuestion.passage && (
+                                <blockquote className="border-l-4 pl-4 italic text-muted-foreground bg-muted p-4 rounded-r-lg">
+                                    {currentQuestion.passage}
+                                </blockquote>
+                            )}
+                            <p className="font-semibold text-lg">{currentQuestion.question}</p>
+                            
+                            <RadioGroup 
+                                value={selectedAnswer || ''} 
+                                onValueChange={(value) => setUserAnswers(prev => ({ ...prev, [currentQuestionIndex]: value }))}
+                                disabled={isCurrentAnswered}
+                            >
+                                <div className="space-y-3">
+                                    {currentQuestion.options.map((option, index) => (
+                                        <Label key={index} htmlFor={`option-${index}`} className={cn(
+                                            "flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-all",
+                                            isCurrentAnswered && option === currentQuestion.correctAnswer && "border-green-500 bg-green-500/10",
+                                            isCurrentAnswered && selectedAnswer === option && !isCorrect && "border-red-500 bg-red-500/10",
+                                            !isCurrentAnswered && selectedAnswer === option && "border-primary"
+                                        )}>
+                                            <RadioGroupItem value={option} id={`option-${index}`} />
+                                            <span>{option}</span>
+                                            {isCurrentAnswered && option === currentQuestion.correctAnswer && <CheckCircle className="h-5 w-5 text-green-500 ml-auto"/>}
+                                            {isCurrentAnswered && selectedAnswer === option && !isCorrect && <XCircle className="h-5 w-5 text-red-500 ml-auto"/>}
+                                        </Label>
+                                    ))}
+                                </div>
+                            </RadioGroup>
 
-const EmbeddedChat = ({ topic, currentQuestion }: { topic: string | null, currentQuestion: SatQuestion | null }) => {
-    const [isChatLoading, setIsChatLoading] = useState(false);
-    const [messages, setMessages] = useState<Message[]>([
-        { role: 'ai', content: `Any questions on ${topic}? I'm here to help.` }
-    ]);
-    const [chatInput, setChatInput] = useState('');
-    const { toast } = useToast();
-    const [user] = useAuthState(auth);
-
-    const handleChatSubmit = async () => {
-        if (!chatInput.trim() || !user || !currentQuestion) return;
-    
-        const userMessage: Message = { role: 'user', content: chatInput };
-        const newMessages = [...messages, userMessage];
-        setMessages(newMessages);
-        setChatInput('');
-        setIsChatLoading(true);
-    
-        try {
-          const response = await generateTutorResponse({ 
-              studyContext: `The user is in an SAT study session about ${topic}.`, 
-              currentQuestion: `Passage: ${currentQuestion.passage || 'N/A'}\nQuestion: ${currentQuestion.question}\nOptions: ${currentQuestion.options.join(', ')}`,
-              question: chatInput,
-              history: newMessages 
-          });
-    
-          const aiMessage: Message = { role: 'ai', content: response.answer };
-          setMessages([...newMessages, aiMessage]);
-    
-        } catch (error) {
-          console.error(error);
-          setMessages(messages); // Revert on error
-          toast({ variant: 'destructive', title: 'Error', description: 'Could not get a response from the AI.'})
-        } finally {
-          setIsChatLoading(false);
-        }
-    }
-
-    return (
-        <div className="p-4 border-r h-full flex flex-col bg-card">
-             <header className="p-2 mb-4">
-                <h3 className="font-semibold text-center">Ask Tutorin</h3>
-            </header>
-            <ScrollArea className="flex-1 -mx-4">
-                <div className="px-4 space-y-4">
-                    {messages.map((message, index) => (
-                        <div key={index} className={cn("flex items-start gap-3", message.role === 'user' && 'justify-end')}>
-                            {message.role === 'ai' && (
-                                <div className="w-10 h-10 flex-shrink-0">
-                                    <AIBuddy className="w-10 h-10" />
+                            {isCurrentAnswered && (
+                                <div className="border rounded-lg p-6 space-y-4">
+                                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
+                                        <Badge className={cn(difficultyColors[currentQuestion.difficulty])}>{currentQuestion.difficulty}</Badge>
+                                        <span className="font-medium">{currentQuestion.topic}</span>
+                                        <span>&bull;</span>
+                                        <span>{currentQuestion.subTopic}</span>
+                                    </div>
+                                    
+                                    <h4 className="font-bold text-lg">Explanation</h4>
+                                    <p className="text-muted-foreground">{currentQuestion.explanation}</p>
                                 </div>
                             )}
-                             <div className={cn("p-3 rounded-lg max-w-[85%]", message.role === 'ai' ? 'bg-muted rounded-bl-none' : 'bg-primary text-primary-foreground rounded-br-none')}>
-                                <p className="text-sm">{message.content}</p>
-                            </div>
                         </div>
-                    ))}
-                    {isChatLoading && (
-                        <div className="flex items-start gap-3">
-                            <div className="w-10 h-10 flex-shrink-0">
-                                <AIBuddy className="w-10 h-10" />
-                            </div>
-                            <div className="bg-muted p-3 rounded-lg rounded-bl-none animate-pulse">
-                                <p className="text-sm">Thinking...</p>
-                            </div>
-                        </div>
-                    )}
+                    </main>
+
+                    <footer className="mt-8 pt-4 border-t flex justify-between items-center">
+                        <Button variant="outline" onClick={handlePrevious} disabled={currentQuestionIndex === 0}>
+                            <ArrowLeft className="mr-2 h-4 w-4" /> Previous
+                        </Button>
+                        {isCurrentAnswered ? (
+                            <Button onClick={handleNext}>
+                                {currentQuestionIndex === questions.length - 1 ? 'Finish Session' : 'Next'} <ArrowRight className="ml-2 h-4 w-4" />
+                            </Button>
+                        ) : (
+                            <Button onClick={handleSubmit} disabled={!selectedAnswer}>Submit</Button>
+                        )}
+                    </footer>
                 </div>
-            </ScrollArea>
-            <div className="relative mt-4">
-                <Input 
-                    placeholder="Ask anything..."
-                    className="h-12 rounded-full pl-6 pr-16 text-base"
-                    value={chatInput}
-                    onChange={(e) => setChatInput(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleChatSubmit()}
-                    disabled={isChatLoading}
-                />
-                <Button 
-                    size="icon" 
-                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full h-9 w-9"
-                    onClick={handleChatSubmit}
-                    disabled={isChatLoading}
-                >
-                    <Send className="h-4 w-4" />
-                </Button>
             </div>
         </div>
     );
 }
+
 
 export default function StudySessionPage() {
     const searchParams = useSearchParams();
@@ -551,3 +549,4 @@ export default function StudySessionPage() {
         </Suspense>
     );
 }
+
