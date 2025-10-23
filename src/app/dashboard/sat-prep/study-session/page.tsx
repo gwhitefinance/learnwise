@@ -30,7 +30,7 @@ import type { Message } from '@/components/floating-chat';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { FloatingChatContext } from '@/components/floating-chat';
-import { addDoc, collection } from 'firebase/firestore';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import GeneratingSession from '../GeneratingSession';
 import { generateSatStudySessionAction, generateMiniCourse, generateTutorResponse, generateFeedbackAction } from '@/lib/actions';
@@ -77,7 +77,7 @@ const EmbeddedChat = ({ topic, currentQuestion }: { topic: string | null, curren
 
     return (
         <div className="p-4 border-r h-full flex flex-col bg-card">
-            <header className="p-2 mb-4 flex items-center gap-2 bg-muted rounded-lg">
+            <header className="p-2 mb-4 flex items-center gap-2 rounded-lg">
                 <Button variant="ghost" size="icon" className="bg-muted h-9 w-9" onClick={() => router.push('/dashboard/sat-prep')}>
                     <ArrowLeft className="h-5 w-5"/>
                 </Button>
@@ -263,7 +263,6 @@ function StudySessionPageContent({ topic }: { topic: 'Math' | 'Reading & Writing
         if (currentQuestionIndex < questions.length - 1) {
             setCurrentQuestionIndex(prev => prev + 1);
         } else {
-            // End of session, calculate results
             setFeedbackLoading(true);
             setSessionState('results');
             const totalTime = Object.values(questionTimers).reduce((sum, time) => sum + time, 0);
@@ -315,6 +314,22 @@ function StudySessionPageContent({ topic }: { topic: 'Math' | 'Reading & Writing
             };
             setResultsData(results);
             setFeedbackLoading(false);
+
+            if (user) {
+                try {
+                    await addDoc(collection(db, "satStudySessions"), {
+                        userId: user.uid,
+                        topic,
+                        timestamp: serverTimestamp(),
+                        score: results.accuracy,
+                        results: results,
+                        questions,
+                        userAnswers,
+                    });
+                } catch (error) {
+                    console.error("Error saving study session results:", error);
+                }
+            }
         }
     };
     
@@ -580,3 +595,4 @@ export default function StudySessionPage() {
     
 
     
+

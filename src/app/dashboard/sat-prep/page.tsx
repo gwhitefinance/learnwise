@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useContext } from 'react';
@@ -17,7 +18,7 @@ import Link from 'next/link';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
-import { format } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 
@@ -28,6 +29,15 @@ type TestResult = {
     readingWriting: number;
     math: number;
     timestamp: { toDate: () => Date };
+};
+
+type StudySessionResult = {
+    id: string;
+    userId: string;
+    topic: string;
+    score: number;
+    timestamp: { toDate: () => Date };
+    results: any; 
 };
 
 const DailyQuestion = () => {
@@ -133,7 +143,8 @@ export default function SatPrepPage() {
     const router = useRouter();
     
     const [user, authLoading] = useAuthState(auth);
-    const [pastResults, setPastResults] = useState<TestResult[]>([]);
+    const [pastTestResults, setPastTestResults] = useState<TestResult[]>([]);
+    const [pastStudySessions, setPastStudySessions] = useState<StudySessionResult[]>([]);
     const [resultsLoading, setResultsLoading] = useState(true);
     const [goalScore, setGoalScore] = useState(1200);
 
@@ -144,11 +155,17 @@ export default function SatPrepPage() {
             return;
         }
 
-        const q = query(collection(db, 'satTestResults'), where('userId', '==', user.uid), orderBy('timestamp', 'desc'));
-        const unsubscribe = onSnapshot(q, (snapshot) => {
+        const qTests = query(collection(db, 'satTestResults'), where('userId', '==', user.uid), orderBy('timestamp', 'desc'));
+        const unsubscribeTests = onSnapshot(qTests, (snapshot) => {
             const results = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as TestResult));
-            setPastResults(results);
+            setPastTestResults(results);
             setResultsLoading(false);
+        });
+        
+        const qSessions = query(collection(db, 'satStudySessions'), where('userId', '==', user.uid), orderBy('timestamp', 'desc'));
+        const unsubscribeSessions = onSnapshot(qSessions, (snapshot) => {
+            const results = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as StudySessionResult));
+            setPastStudySessions(results);
         });
 
         const storedGrade = localStorage.getItem('onboardingGradeLevel');
@@ -160,7 +177,10 @@ export default function SatPrepPage() {
             setGoalScore(parseInt(storedGoalScore, 10));
         }
 
-        return () => unsubscribe();
+        return () => {
+            unsubscribeTests();
+            unsubscribeSessions();
+        }
     }, [user, authLoading, router]);
 
     const handleGoalScoreChange = (value: number[]) => {
@@ -204,9 +224,7 @@ export default function SatPrepPage() {
                  <div className="space-y-4">
                     <h1 className="text-5xl font-bold tracking-tight">Welcome, {user?.displayName?.split(' ')[0] || 'Student'}! 👋</h1>
                     <p className="text-muted-foreground text-lg max-w-2xl">
-                        I'm Tutorin, your personal SAT tutor. I'll guide you every step of the way and help you
-                        reach your goal. To get started, jump into a study session or a practice test. This will help me check your current level, estimate your score, and build
-                        your personalised study plan.
+                        I'm Tutorin, your personal SAT tutor. Let's start with a study session to check your current level and build a personalized plan.
                     </p>
                 </div>
                  <div className="space-y-4">
@@ -224,29 +242,30 @@ export default function SatPrepPage() {
                         </Button>
                     </div>
                 </div>
-                <Card>
+                 <Card>
                     <CardHeader>
-                        <CardTitle>Past Results</CardTitle>
+                        <CardTitle>Past Practice Sessions</CardTitle>
                     </CardHeader>
                     <CardContent>
                         {resultsLoading ? (
                             <Skeleton className="h-24 w-full" />
-                        ) : pastResults.length > 0 ? (
+                        ) : pastStudySessions.length > 0 ? (
                             <div className="space-y-3">
-                                {pastResults.slice(0, 3).map(result => (
-                                    <Link key={result.id} href={`/dashboard/sat-prep/${result.id}`}>
-                                        <div className="flex justify-between items-center p-3 rounded-lg hover:bg-muted">
-                                            <div>
-                                                <p className="font-semibold">{result.total}</p>
-                                                <p className="text-xs text-muted-foreground">{format(result.timestamp.toDate(), 'MMM d, yyyy')}</p>
-                                            </div>
-                                            <Trophy className="h-5 w-5 text-yellow-500"/>
+                                {pastStudySessions.slice(0, 5).map(session => (
+                                    <div key={session.id} className="flex justify-between items-center p-3 rounded-lg hover:bg-muted">
+                                        <div>
+                                            <p className="font-semibold">{session.topic}</p>
+                                            <p className="text-xs text-muted-foreground">{formatDistanceToNow(session.timestamp.toDate(), { addSuffix: true })}</p>
                                         </div>
-                                    </Link>
+                                        <div className="flex items-center gap-4">
+                                            <p className="font-semibold text-primary">{session.score.toFixed(0)}%</p>
+                                            <Button variant="ghost" size="sm">Review</Button>
+                                        </div>
+                                    </div>
                                 ))}
                             </div>
                         ) : (
-                            <p className="text-center text-sm text-muted-foreground py-4">No past test results.</p>
+                            <p className="text-center text-sm text-muted-foreground py-4">Your past study sessions will appear here.</p>
                         )}
                     </CardContent>
                 </Card>
@@ -264,6 +283,32 @@ export default function SatPrepPage() {
                                 Start Full-Length Test <ArrowRight className="ml-2 h-4 w-4"/>
                             </Link>
                         </Button>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Past Test Results</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        {resultsLoading ? (
+                            <Skeleton className="h-24 w-full" />
+                        ) : pastTestResults.length > 0 ? (
+                            <div className="space-y-3">
+                                {pastTestResults.slice(0, 3).map(result => (
+                                    <Link key={result.id} href={`/dashboard/sat-prep/${result.id}`}>
+                                        <div className="flex justify-between items-center p-3 rounded-lg hover:bg-muted">
+                                            <div>
+                                                <p className="font-semibold">{result.total}</p>
+                                                <p className="text-xs text-muted-foreground">{result.timestamp.toDate().toLocaleDateString()}</p>
+                                            </div>
+                                            <Trophy className="h-5 w-5 text-yellow-500"/>
+                                        </div>
+                                    </Link>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-center text-sm text-muted-foreground py-4">No past test results.</p>
+                        )}
                     </CardContent>
                 </Card>
                 <Card>
@@ -313,5 +358,3 @@ export default function SatPrepPage() {
         </div>
     );
 }
-
-    
