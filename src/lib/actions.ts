@@ -32,6 +32,7 @@ import { generateMindfulnessExercise } from '@/ai/flows/mindfulness-flow';
 import { generateConceptExplanation } from '@/ai/flows/concept-explanation-flow';
 import { generateSatStudySessionAction } from '@/ai/flows/sat-study-session-flow';
 import { generateFeedbackFlow } from '@/ai/flows/sat-feedback-flow';
+import { generateHint } from '@/ai/flows/quiz-hint-flow';
 
 
 // Re-exporting all AI functions as Server Actions
@@ -66,4 +67,5 @@ export {
     generateConceptExplanation,
     generateSatStudySessionAction,
     generateFeedbackFlow as generateFeedbackAction,
+    generateHint,
 };

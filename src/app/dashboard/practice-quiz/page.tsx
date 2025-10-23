@@ -8,21 +8,21 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowRight, RotateCcw, Lightbulb, CheckCircle, XCircle, PenSquare, Palette, Brush, Eraser, Minimize, Maximize } from 'lucide-react';
+import { ArrowRight, RotateCcw, Lightbulb, CheckCircle, XCircle, PenSquare, Palette, Brush, Eraser, Minimize, Maximize, Gem } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { GenerateQuizInput, GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
 import { Progress } from '@/components/ui/progress';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
-import { generateExplanation } from '@/lib/actions';
+import { generateExplanation, generateHint } from '@/lib/actions';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Slider } from '@/components/ui/slider';
 import AudioPlayer from '@/components/audio-player';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
-import { doc, updateDoc, increment, collection, addDoc, serverTimestamp, onSnapshot, query, where } from 'firebase/firestore';
+import { doc, updateDoc, increment, collection, addDoc, serverTimestamp, onSnapshot, query, where, getDoc } from 'firebase/firestore';
 import { generateQuizAction } from '@/lib/actions';
 import { RewardContext } from '@/context/RewardContext';
 import Loading from './loading';
@@ -75,6 +75,9 @@ function PracticeQuizComponent() {
     const [color, setColor] = useState('#000000');
     const [brushSize, setBrushSize] = useState(5);
 
+    const [userCoins, setUserCoins] = useState(0);
+    const [isHintLoading, setIsHintLoading] = useState(false);
+
      useEffect(() => {
         const urlTopic = searchParams.get('topic');
         if (urlTopic) {
@@ -85,7 +88,7 @@ function PracticeQuizComponent() {
     useEffect(() => {
         if (!authLoading && user) {
             const q = query(collection(db, "courses"), where("userId", "==", user.uid));
-            const unsubscribe = onSnapshot(q, (querySnapshot) => {
+            const unsubscribeCourses = onSnapshot(q, (querySnapshot) => {
                 const userCourses = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
                 setCourses(userCourses);
                 // Pre-select course if topic matches
@@ -94,7 +97,18 @@ function PracticeQuizComponent() {
                     setSelectedCourseId(matchingCourse.id);
                 }
             });
-            return () => unsubscribe();
+
+            const userDocRef = doc(db, 'users', user.uid);
+            const unsubscribeUser = onSnapshot(userDocRef, (doc) => {
+                if (doc.exists()) {
+                    setUserCoins(doc.data().coins || 0);
+                }
+            });
+
+            return () => {
+                unsubscribeCourses();
+                unsubscribeUser();
+            };
         }
     }, [user, authLoading, initialTopic]);
 
@@ -294,6 +308,44 @@ function PracticeQuizComponent() {
         }
     }
 
+    const handleGetHint = async () => {
+        if (!quiz || !user) return;
+        if (userCoins < 10) {
+            toast({ variant: 'destructive', title: "Not enough coins!", description: "You need 10 coins to get a hint."});
+            return;
+        }
+
+        setIsHintLoading(true);
+        try {
+            const userRef = doc(db, 'users', user.uid);
+            await updateDoc(userRef, { coins: increment(-10) });
+
+            const currentQuestion = quiz.questions[currentQuestionIndex];
+            const { hint } = await generateHint({
+                question: currentQuestion.question,
+                options: currentQuestion.options || [],
+                correctAnswer: currentQuestion.answer
+            });
+            
+            toast({
+                title: 'Here\'s a hint!',
+                description: hint,
+                duration: 10000,
+            });
+
+        } catch (error) {
+            console.error("Failed to get hint:", error);
+            toast({ variant: 'destructive', title: 'Could not get a hint.' });
+             // Refund coins on failure
+            const userRef = doc(db, 'users', user.uid);
+            await updateDoc(userRef, { coins: increment(10) });
+
+        } finally {
+            setIsHintLoading(false);
+        }
+    };
+
+
     // Whiteboard functions
     const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
         const canvas = canvasRef.current;
@@ -394,66 +446,71 @@ function PracticeQuizComponent() {
                             </div>
                         </RadioGroup>
                          <div className="mt-8 flex justify-between items-center">
-                             <Sheet onOpenChange={onSheetOpenChange}>
-                                <SheetTrigger asChild>
-                                    <Button variant="outline"><PenSquare className="mr-2 h-4 w-4"/> Whiteboard</Button>
-                                </SheetTrigger>
-                                <SheetContent side="bottom" className="h-[80vh]">
-                                    <SheetHeader className="mb-4">
-                                        <SheetTitle className="flex justify-between items-center">
-                                            <span>Digital Whiteboard</span>
-                                            <div className="flex items-center gap-2">
-                                            <Popover>
-                                                <PopoverTrigger asChild>
-                                                <Button variant="outline" size="icon"><Palette /></Button>
-                                                </PopoverTrigger>
-                                                <PopoverContent className="w-auto p-2">
-                                                <div className="flex gap-1">
-                                                    {whiteboardColors.map(c => (
-                                                    <button 
-                                                        key={c}
-                                                        onClick={() => setColor(c)}
-                                                        className={`w-8 h-8 rounded-full border-2 ${color === c ? 'border-primary' : 'border-transparent'}`}
-                                                        style={{ backgroundColor: c }}
-                                                    />
-                                                    ))}
+                            <div className="flex gap-2">
+                                <Sheet onOpenChange={onSheetOpenChange}>
+                                    <SheetTrigger asChild>
+                                        <Button variant="outline"><PenSquare className="mr-2 h-4 w-4"/> Whiteboard</Button>
+                                    </SheetTrigger>
+                                    <SheetContent side="bottom" className="h-[80vh]">
+                                        <SheetHeader className="mb-4">
+                                            <SheetTitle className="flex justify-between items-center">
+                                                <span>Digital Whiteboard</span>
+                                                <div className="flex items-center gap-2">
+                                                <Popover>
+                                                    <PopoverTrigger asChild>
+                                                    <Button variant="outline" size="icon"><Palette /></Button>
+                                                    </PopoverTrigger>
+                                                    <PopoverContent className="w-auto p-2">
+                                                    <div className="flex gap-1">
+                                                        {whiteboardColors.map(c => (
+                                                        <button 
+                                                            key={c}
+                                                            onClick={() => setColor(c)}
+                                                            className={`w-8 h-8 rounded-full border-2 ${color === c ? 'border-primary' : 'border-transparent'}`}
+                                                            style={{ backgroundColor: c }}
+                                                        />
+                                                        ))}
+                                                    </div>
+                                                    </PopoverContent>
+                                                </Popover>
+
+                                                <Popover>
+                                                    <PopoverTrigger asChild>
+                                                    <Button variant="outline" size="icon"><Brush /></Button>
+                                                    </PopoverTrigger>
+                                                    <PopoverContent className="w-40 p-2">
+                                                    <Slider
+                                                        defaultValue={[brushSize]}
+                                                        max={30}
+                                                        min={1}
+                                                        step={1}
+                                                        onValueChange={(value) => setBrushSize(value[0])}
+                                                        />
+                                                    </PopoverContent>
+                                                </Popover>
+
+                                                <Button variant="destructive" size="icon" onClick={clearCanvas}>
+                                                    <Eraser />
+                                                </Button>
                                                 </div>
-                                                </PopoverContent>
-                                            </Popover>
-
-                                            <Popover>
-                                                <PopoverTrigger asChild>
-                                                <Button variant="outline" size="icon"><Brush /></Button>
-                                                </PopoverTrigger>
-                                                <PopoverContent className="w-40 p-2">
-                                                <Slider
-                                                    defaultValue={[brushSize]}
-                                                    max={30}
-                                                    min={1}
-                                                    step={1}
-                                                    onValueChange={(value) => setBrushSize(value[0])}
-                                                    />
-                                                </PopoverContent>
-                                            </Popover>
-
-                                            <Button variant="destructive" size="icon" onClick={clearCanvas}>
-                                                <Eraser />
-                                            </Button>
-                                            </div>
-                                        </SheetTitle>
-                                    </SheetHeader>
-                                    <div className="bg-muted rounded-lg border border-dashed h-[calc(100%-80px)]">
-                                        <canvas
-                                            ref={canvasRef}
-                                            className="w-full h-full"
-                                            onMouseDown={startDrawing}
-                                            onMouseMove={draw}
-                                            onMouseUp={stopDrawing}
-                                            onMouseLeave={stopDrawing}
-                                        />
-                                    </div>
-                                </SheetContent>
-                            </Sheet>
+                                            </SheetTitle>
+                                        </SheetHeader>
+                                        <div className="bg-muted rounded-lg border border-dashed h-[calc(100%-80px)]">
+                                            <canvas
+                                                ref={canvasRef}
+                                                className="w-full h-full"
+                                                onMouseDown={startDrawing}
+                                                onMouseMove={draw}
+                                                onMouseUp={stopDrawing}
+                                                onMouseLeave={stopDrawing}
+                                            />
+                                        </div>
+                                    </SheetContent>
+                                </Sheet>
+                                <Button variant="outline" onClick={handleGetHint} disabled={isHintLoading || answerState === 'answered'}>
+                                    <Gem className="mr-2 h-4 w-4"/> Hint (10 Coins)
+                                </Button>
+                            </div>
                             {answerState === 'unanswered' ? (
                                 <Button onClick={handleSubmitAnswer} disabled={!selectedAnswer}>
                                     Submit
