@@ -5,7 +5,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { GraduationCap, Heart, Search, Filter, ArrowRight, MoreHorizontal, Check, Plus, Loader2, Sparkles, Save, MapPin } from 'lucide-react';
+import { GraduationCap, Heart, Search, Filter, ArrowRight, MoreHorizontal, Check, Plus, Loader2, Sparkles, Save, MapPin, Trash2, Edit } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Loading from './loading';
 import Link from 'next/link';
@@ -59,6 +59,7 @@ export default function CollegePrepPage() {
     const [enhancedActivity, setEnhancedActivity] = useState<EnhancedActivity | null>(null);
     const [activityTitle, setActivityTitle] = useState('');
     const [savedActivities, setSavedActivities] = useState<SavedActivity[]>([]);
+    const [editingActivityId, setEditingActivityId] = useState<string | null>(null);
     
     // Academic Profile State
     const [satScore, setSatScore] = useState(1200);
@@ -145,12 +146,13 @@ export default function CollegePrepPage() {
         localStorage.setItem('favoritedColleges', JSON.stringify(favoritedColleges));
     }, [favoritedColleges]);
 
-     useEffect(() => {
+    useEffect(() => {
         // This effect ensures that whenever savedActivities state changes, it is persisted to localStorage.
-        if (savedActivities.length > 0 || localStorage.getItem('savedExtracurriculars')) {
+        // The check for loading=false prevents overwriting saved data with an empty array on initial load.
+        if (!loading) {
             localStorage.setItem('savedExtracurriculars', JSON.stringify(savedActivities));
         }
-    }, [savedActivities]);
+    }, [savedActivities, loading]);
 
     useEffect(() => {
         if (searchTerm.trim().length < 3) {
@@ -188,7 +190,9 @@ export default function CollegePrepPage() {
         if (!activityInput.trim()) return;
         setIsEnhancing(true);
         setEnhancedActivity(null);
-        setActivityTitle('');
+        if (!editingActivityId) {
+            setActivityTitle('');
+        }
         try {
             const result = await enhanceExtracurricular({ activityDescription: activityInput });
             setEnhancedActivity(result);
@@ -203,19 +207,43 @@ export default function CollegePrepPage() {
         if (!enhancedActivity || !activityTitle.trim()) {
             return;
         }
-        const newActivity: SavedActivity = {
-            id: crypto.randomUUID(),
-            title: activityTitle,
-            description: enhancedActivity.enhancedDescription,
-            strength: enhancedActivity.strength,
-        };
-        setSavedActivities(prev => [...prev, newActivity]);
+
+        if (editingActivityId) {
+            // Update existing activity
+            setSavedActivities(prev => prev.map(act => 
+                act.id === editingActivityId 
+                ? { ...act, title: activityTitle, description: enhancedActivity.enhancedDescription, strength: enhancedActivity.strength }
+                : act
+            ));
+        } else {
+            // Add new activity
+             const newActivity: SavedActivity = {
+                id: crypto.randomUUID(),
+                title: activityTitle,
+                description: enhancedActivity.enhancedDescription,
+                strength: enhancedActivity.strength,
+            };
+            setSavedActivities(prev => [...prev, newActivity]);
+        }
         
         // Reset fields after saving
         setEnhancedActivity(null);
         setActivityInput('');
         setActivityTitle('');
+        setEditingActivityId(null);
     };
+    
+    const handleEditActivity = (activity: SavedActivity) => {
+        setEditingActivityId(activity.id);
+        setActivityTitle(activity.title);
+        setActivityInput(activity.description); // Use the saved description to re-enhance
+        setEnhancedActivity(null); // Clear previous enhancement
+    };
+
+    const handleDeleteActivity = (id: string) => {
+        setSavedActivities(prev => prev.filter(act => act.id !== id));
+    };
+
 
     const handleSatScoreChange = (value: number[]) => {
         const newScore = value[0];
@@ -347,7 +375,7 @@ export default function CollegePrepPage() {
                             />
                             <Button onClick={handleEnhanceActivity} disabled={isEnhancing}>
                                 {isEnhancing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-                                Enhance with AI
+                                {editingActivityId ? 'Re-Enhance' : 'Enhance with AI'}
                             </Button>
                             {enhancedActivity && (
                                 <div className="pt-4 space-y-4 border-t">
@@ -370,7 +398,7 @@ export default function CollegePrepPage() {
                                         />
                                         <Button onClick={handleSaveActivity} disabled={!activityTitle.trim()}>
                                             <Save className="mr-2 h-4 w-4"/>
-                                            Save to Profile
+                                            {editingActivityId ? 'Update Activity' : 'Save to Profile'}
                                         </Button>
                                     </div>
                                 </div>
@@ -386,9 +414,15 @@ export default function CollegePrepPage() {
                             {savedActivities.length > 0 ? (
                                 <div className="space-y-4">
                                     {savedActivities.map(activity => (
-                                        <div key={activity.id} className="p-4 rounded-lg bg-muted">
-                                            <h4 className="font-semibold">{activity.title}</h4>
-                                            <p className="text-sm text-muted-foreground mt-1">{activity.description}</p>
+                                        <div key={activity.id} className="p-4 rounded-lg bg-muted flex justify-between items-start">
+                                            <div>
+                                                <h4 className="font-semibold">{activity.title}</h4>
+                                                <p className="text-sm text-muted-foreground mt-1">{activity.description}</p>
+                                            </div>
+                                            <div className="flex flex-col gap-1">
+                                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEditActivity(activity)}><Edit className="h-4 w-4"/></Button>
+                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDeleteActivity(activity.id)}><Trash2 className="h-4 w-4"/></Button>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
