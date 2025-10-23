@@ -22,8 +22,6 @@ import { analyzeImage } from '@/ai/flows/image-analysis-flow';
 import { generateNoteFromChat } from '@/ai/flows/chat-to-note-flow';
 import { generateMidtermExam } from '@/ai/flows/midterm-exam-flow';
 import { generateModuleContent } from '@/ai/flows/module-content-flow';
-import { generateImage } from '@/ai/flows/image-generation-flow';
-import { generateVideo } from '@/ai/flows/video-generation-flow';
 import { generatePodcastEpisode } from '@/ai/flows/podcast-flow';
 import { generateSatQuestion } from '@/ai/flows/sat-question-flow';
 import { generateInitialCourseAndRoadmap } from '@/ai/flows/initial-course-flow';
@@ -57,8 +55,6 @@ export {
     generateNoteFromChat,
     generateMidtermExam,
     generateModuleContent,
-    generateImage,
-    generateVideo,
     generatePodcastEpisode,
     generateSatQuestion,
     generateInitialCourseAndRoadmap,

@@ -241,11 +241,16 @@ const sidebarItems: SidebarItem[] = [
 const SidebarNavItem = ({ item, pathname, setMobileMenuOpen }: { item: SidebarItem, pathname: string, setMobileMenuOpen: (open: boolean) => void }) => {
     const [isOpen, setIsOpen] = useState(false);
     const hasChildren = item.children && item.children.length > 0;
+    const router = useRouter();
 
     const getIsActive = (item: SidebarItem): boolean => {
         if (!item.href && !item.children) return false;
         
         if (item.href) {
+            // For courses, only be active if no courseId is present
+            if (item.href === '/dashboard/courses') {
+                return pathname === item.href && !useSearchParams().has('courseId');
+            }
             return pathname === item.href || pathname.startsWith(item.href + '/');
         }
         
@@ -263,6 +268,16 @@ const SidebarNavItem = ({ item, pathname, setMobileMenuOpen }: { item: SidebarIt
             setIsOpen(true);
         }
     }, [isActive, item.children, pathname]);
+
+    const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, href?: string) => {
+        if (href === '/dashboard/courses') {
+            e.preventDefault();
+            router.push('/dashboard/courses');
+            setMobileMenuOpen(false);
+        } else {
+             setMobileMenuOpen(false);
+        }
+    }
 
     if (hasChildren) {
         return (
@@ -288,9 +303,9 @@ const SidebarNavItem = ({ item, pathname, setMobileMenuOpen }: { item: SidebarIt
                                 id={child.id}
                                 className={cn(
                                 "flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm font-medium",
-                                (pathname === child.href || pathname.startsWith(child.href + '/')) ? "text-primary" : "hover:bg-muted text-muted-foreground",
+                                (pathname.startsWith(child.href)) ? "text-primary" : "hover:bg-muted text-muted-foreground",
                                 )}
-                                onClick={() => setMobileMenuOpen(false)}
+                                onClick={(e) => handleLinkClick(e, child.href)}
                             >
                                 {child.icon}
                                 <span>{child.title}</span>
@@ -310,7 +325,7 @@ const SidebarNavItem = ({ item, pathname, setMobileMenuOpen }: { item: SidebarIt
             "flex w-full items-center justify-between rounded-2xl px-3 py-2 text-sm font-medium",
             pathname === item.href ? "bg-primary/10 text-primary" : "hover:bg-muted",
             )}
-            onClick={() => setMobileMenuOpen(false)}
+            onClick={(e) => handleLinkClick(e, item.href)}
         >
             <div className="flex items-center gap-3">
             {item.icon}
