@@ -150,39 +150,43 @@ function StudySessionPageContent({ topic }: { topic: 'Math' | 'Reading & Writing
     const [resultsData, setResultsData] = useState<any>(null);
     const [feedbackLoading, setFeedbackLoading] = useState(false);
     const [user] = useAuthState(auth);
+    const [learnerType, setLearnerType] = useState<string | null>(null);
 
     const { toast } = useToast();
 
     const { openChatWithPrompt } = useContext(FloatingChatContext) as any;
 
     useEffect(() => {
-        if (!topic) {
-            toast({ variant: 'destructive', title: 'No topic selected!' });
-            router.push('/dashboard/sat-prep');
+        const type = localStorage.getItem('learnerType');
+        setLearnerType(type);
+    }, []);
+
+    useEffect(() => {
+        if (!topic || !learnerType) {
             return;
         }
 
-        const storedData = sessionStorage.getItem('satStudySessionData');
-        if (storedData) {
+        const fetchQuestions = async () => {
+            setIsLoading(true);
             try {
-                const parsedQuestions = JSON.parse(storedData);
-                if (parsedQuestions && parsedQuestions.length > 0) {
-                    setQuestions(parsedQuestions);
-                    setIsLoading(false);
+                const result = await generateSatStudySessionAction({ category: topic, learnerType: learnerType as any });
+                if (result.questions && result.questions.length > 0) {
+                    setQuestions(result.questions);
                 } else {
-                    toast({ variant: 'destructive', title: 'Session Expired', description: 'Could not load session data. Please start a new session.' });
+                    toast({ variant: 'destructive', title: 'Generation Failed', description: 'Could not generate questions. Please try again.' });
                     router.push('/dashboard/sat-prep');
                 }
             } catch (e) {
-                console.error("Failed to parse study session data from sessionStorage", e);
-                toast({ variant: 'destructive', title: 'Session Expired', description: 'Could not load session data. Please start a new session.' });
+                console.error("Failed to generate study session:", e);
+                toast({ variant: 'destructive', title: 'Error', description: 'An error occurred while creating your session.' });
                 router.push('/dashboard/sat-prep');
+            } finally {
+                setIsLoading(false);
             }
-        } else {
-             toast({ variant: 'destructive', title: 'Session Expired', description: 'Could not load session data. Please start a new session.' });
-             router.push('/dashboard/sat-prep');
-        }
-    }, [topic, router, toast]);
+        };
+
+        fetchQuestions();
+    }, [topic, learnerType, router, toast]);
 
     useEffect(() => {
         if (sessionState === 'studying') {
@@ -444,12 +448,7 @@ function StudySessionPageContent({ topic }: { topic: 'Math' | 'Reading & Writing
     }
 
     if (questions.length === 0) {
-        return (
-             <div className="flex flex-col items-center justify-center h-full text-center">
-                 <h1 className="text-2xl font-bold">Generating Your Session...</h1>
-                 <p className="text-muted-foreground">This may take a moment.</p>
-             </div>
-        )
+        return <GeneratingSession topic={topic || 'SAT Session'} />;
     }
 
     const currentQuestion = questions[currentQuestionIndex];
@@ -498,27 +497,36 @@ function StudySessionPageContent({ topic }: { topic: 'Math' | 'Reading & Writing
                                 )}
                                 <p className="font-semibold text-lg">{currentQuestion.question}</p>
                                 
-                                <RadioGroup 
-                                    value={selectedAnswer || ''} 
-                                    onValueChange={(value) => setUserAnswers(prev => ({ ...prev, [currentQuestionIndex]: value }))}
-                                    disabled={isCurrentAnswered}
-                                >
-                                    <div className="space-y-3">
-                                        {currentQuestion.options.map((option, index) => (
-                                            <Label key={index} htmlFor={`option-${index}`} className={cn(
-                                                "flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-all",
-                                                isCurrentAnswered && option === currentQuestion.correctAnswer && "border-green-500 bg-green-500/10",
-                                                isCurrentAnswered && selectedAnswer === option && !isCorrect && "border-red-500 bg-red-500/10",
-                                                !isCurrentAnswered && selectedAnswer === option && "border-primary"
-                                            )}>
-                                                <RadioGroupItem value={option} id={`option-${index}`} />
-                                                <span>{option}</span>
-                                                {isCurrentAnswered && option === currentQuestion.correctAnswer && <CheckCircle className="h-5 w-5 text-green-500 ml-auto"/>}
-                                                {isCurrentAnswered && selectedAnswer === option && !isCorrect && <XCircle className="h-5 w-5 text-red-500 ml-auto"/>}
-                                            </Label>
-                                        ))}
-                                    </div>
-                                </RadioGroup>
+                                {currentQuestion.options && currentQuestion.options.length > 0 ? (
+                                    <RadioGroup 
+                                        value={selectedAnswer || ''} 
+                                        onValueChange={(value) => setUserAnswers(prev => ({ ...prev, [currentQuestionIndex]: value }))}
+                                        disabled={isCurrentAnswered}
+                                    >
+                                        <div className="space-y-3">
+                                            {currentQuestion.options.map((option, index) => (
+                                                <Label key={index} htmlFor={`option-${index}`} className={cn(
+                                                    "flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-all",
+                                                    isCurrentAnswered && option === currentQuestion.correctAnswer && "border-green-500 bg-green-500/10",
+                                                    isCurrentAnswered && selectedAnswer === option && !isCorrect && "border-red-500 bg-red-500/10",
+                                                    !isCurrentAnswered && selectedAnswer === option && "border-primary"
+                                                )}>
+                                                    <RadioGroupItem value={option} id={`option-${index}`} />
+                                                    <span>{option}</span>
+                                                    {isCurrentAnswered && option === currentQuestion.correctAnswer && <CheckCircle className="h-5 w-5 text-green-500 ml-auto"/>}
+                                                    {isCurrentAnswered && selectedAnswer === option && !isCorrect && <XCircle className="h-5 w-5 text-red-500 ml-auto"/>}
+                                                </Label>
+                                            ))}
+                                        </div>
+                                    </RadioGroup>
+                                ) : (
+                                     <Input
+                                        placeholder="Enter your answer"
+                                        value={userAnswers[currentQuestionIndex] || ''}
+                                        onChange={(e) => setUserAnswers(prev => ({...prev, [currentQuestionIndex]: e.target.value}))}
+                                        disabled={isCurrentAnswered}
+                                    />
+                                )}
 
                                 {isCurrentAnswered && (
                                     <div className="border rounded-lg p-6 space-y-4">
