@@ -73,27 +73,32 @@ export default function CollegePrepPage() {
         const rigorWeight = 0.20;
         const extracurricularWeight = 0.15;
     
-        // SAT score percentage
-        const satPercentage = ((satScore - 400) / (1600 - 400)) * 100;
+        // SAT score percentage (scaled from 400-1600 range to 0-100)
+        const satPercentage = Math.max(0, ((satScore - 400) / (1600 - 400)) * 100);
         
-        // GPA percentage (using weighted GPA on a 5.0 scale)
+        // GPA percentage (using weighted GPA, assuming a 5.0 scale is a strong benchmark)
         const gpaValue = parseFloat(weightedGpa);
         const gpaPercentage = !isNaN(gpaValue) ? Math.min(100, (gpaValue / 5.0) * 100) : 0;
     
-        // Course rigor score
+        // Course rigor score (AP courses are weighted more heavily)
         const apCourses = courses.filter((c: any) => c.type === 'AP').length;
         const honorsCourses = courses.filter((c: any) => c.type === 'Honors').length;
         const totalCourses = courses.length > 0 ? courses.length : 1; // Avoid division by zero
-        // Give more weight to AP. Max score is 100 if all courses are AP.
+        // Score is based on proportion of advanced courses. APs count as 2 points, Honors as 1. Max possible score is if all are APs.
         const rigorScore = Math.min(100, ((apCourses * 2 + honorsCourses) / (totalCourses * 2)) * 100);
 
-        // Extracurricular score
+        // Extracurricular score (average of all saved activity strengths)
         const totalActivityStrength = savedActivities.reduce((sum, activity) => sum + activity.strength, 0);
         const averageActivityStrength = savedActivities.length > 0 ? totalActivityStrength / savedActivities.length : 0;
     
-        // Combine scores
-        const combinedStrength = (satPercentage * satWeight) + (gpaPercentage * gpaWeight) + (rigorScore * rigorWeight) + (averageActivityStrength * extracurricularWeight);
+        // Combine scores based on their weights
+        const combinedStrength = 
+            (satPercentage * satWeight) + 
+            (gpaPercentage * gpaWeight) + 
+            (rigorScore * rigorWeight) + 
+            (averageActivityStrength * extracurricularWeight);
         
+        // Ensure the final score is between 0 and 100
         return Math.round(Math.max(0, Math.min(100, combinedStrength)));
     }, [savedActivities, satScore, weightedGpa, courses]);
 
@@ -442,7 +447,7 @@ export default function CollegePrepPage() {
                                     {applicationStrength}%
                                 </div>
                             </div>
-                            <p className="text-xs text-muted-foreground mt-4 text-center">Based on SAT, GPA, and extracurriculars.</p>
+                            <p className="text-xs text-muted-foreground mt-4 text-center">Based on SAT, GPA, course rigor, and extracurriculars.</p>
                         </CardContent>
                     </Card>
 
