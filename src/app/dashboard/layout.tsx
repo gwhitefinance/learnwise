@@ -269,15 +269,45 @@ const SidebarNavItem = ({ item, pathname, setMobileMenuOpen }: { item: SidebarIt
         }
     }, [isActive, item.children, pathname]);
 
-    const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, href?: string) => {
-        if (href === '/dashboard/courses') {
-            e.preventDefault();
-            router.push('/dashboard/courses');
-            setMobileMenuOpen(false);
-        } else {
-             setMobileMenuOpen(false);
+    const handleLinkClick = (href?: string) => {
+        if (href) {
+            router.push(href);
         }
+        setMobileMenuOpen(false);
     }
+    
+    const renderNavItem = (child: SidebarChild) => {
+        if (child.href === '/dashboard/courses') {
+            return (
+                <button
+                    onClick={() => handleLinkClick(child.href)}
+                    className={cn(
+                        "flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm font-medium text-left",
+                        pathname.startsWith(child.href) ? "text-primary" : "hover:bg-muted text-muted-foreground"
+                    )}
+                >
+                    {child.icon}
+                    <span>{child.title}</span>
+                </button>
+            );
+        }
+        return (
+            <Link
+                key={child.title}
+                href={child.href || '#'}
+                id={child.id}
+                className={cn(
+                    "flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm font-medium",
+                    pathname.startsWith(child.href) ? "text-primary" : "hover:bg-muted text-muted-foreground"
+                )}
+                onClick={() => handleLinkClick()}
+            >
+                {child.icon}
+                <span>{child.title}</span>
+            </Link>
+        );
+    }
+
 
     if (hasChildren) {
         return (
@@ -297,19 +327,7 @@ const SidebarNavItem = ({ item, pathname, setMobileMenuOpen }: { item: SidebarIt
                 <CollapsibleContent className="py-1 pl-8">
                     <div className="flex flex-col space-y-1">
                         {item.children.map((child: SidebarChild) => (
-                             <Link
-                                key={child.title}
-                                href={child.href || '#'}
-                                id={child.id}
-                                className={cn(
-                                "flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm font-medium",
-                                (pathname.startsWith(child.href)) ? "text-primary" : "hover:bg-muted text-muted-foreground",
-                                )}
-                                onClick={(e) => handleLinkClick(e, child.href)}
-                            >
-                                {child.icon}
-                                <span>{child.title}</span>
-                            </Link>
+                             renderNavItem(child)
                         ))}
                     </div>
                 </CollapsibleContent>
@@ -325,7 +343,7 @@ const SidebarNavItem = ({ item, pathname, setMobileMenuOpen }: { item: SidebarIt
             "flex w-full items-center justify-between rounded-2xl px-3 py-2 text-sm font-medium",
             pathname === item.href ? "bg-primary/10 text-primary" : "hover:bg-muted",
             )}
-            onClick={(e) => handleLinkClick(e, item.href)}
+            onClick={() => handleLinkClick()}
         >
             <div className="flex items-center gap-3">
             {item.icon}
