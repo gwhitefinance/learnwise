@@ -17,7 +17,6 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { generateExplanation, generateHint } from '@/lib/actions';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Slider } from '@/components/ui/slider';
 import AudioPlayer from '@/components/audio-player';
@@ -27,6 +26,7 @@ import { doc, updateDoc, increment, collection, addDoc, serverTimestamp, onSnaps
 import { generateQuizAction } from '@/lib/actions';
 import { RewardContext } from '@/context/RewardContext';
 import Loading from './loading';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 export const dynamic = "force-dynamic";
 
@@ -75,6 +75,9 @@ function PracticeQuizComponent() {
     const [isDrawing, setIsDrawing] = useState(false);
     const [color, setColor] = useState('#000000');
     const [brushSize, setBrushSize] = useState(5);
+    const [isWhiteboardOpen, setIsWhiteboardOpen] = useState(false);
+    const [whiteboardData, setWhiteboardData] = useState<Record<number, string>>({});
+
 
     const [userCoins, setUserCoins] = useState(0);
     const [isHintLoading, setIsHintLoading] = useState(false);
@@ -254,6 +257,7 @@ function PracticeQuizComponent() {
         setExplanation(null);
         setSelectedAnswer(null);
         setAnswerState('unanswered');
+        setIsWhiteboardOpen(false);
         
         if (currentQuestionIndex < quiz.questions.length - 1) {
             setCurrentQuestionIndex(prev => prev + 1);
@@ -300,6 +304,8 @@ function PracticeQuizComponent() {
         setSelectedCourseId(null);
         setFeedback(null);
         setAnswerState('unanswered');
+        setWhiteboardData({});
+        setIsWhiteboardOpen(false);
     }
 
     const handleCourseSelection = (courseId: string) => {
@@ -373,10 +379,14 @@ function PracticeQuizComponent() {
 
     const stopDrawing = () => {
         const canvas = canvasRef.current;
-        if (!canvas) return;
+        if (!canvas || !isDrawing) return;
         const context = canvas.getContext('2d');
         if (context) {
-        context.closePath();
+            context.closePath();
+            setWhiteboardData(prev => ({
+                ...prev,
+                [currentQuestionIndex]: canvas.toDataURL()
+            }));
         }
         setIsDrawing(false);
     };
@@ -387,9 +397,14 @@ function PracticeQuizComponent() {
         const context = canvas.getContext('2d');
         if (!context) return;
         context.clearRect(0, 0, canvas.width, canvas.height);
+        setWhiteboardData(prev => ({
+            ...prev,
+            [currentQuestionIndex]: ''
+        }));
     };
     
-    const onSheetOpenChange = (open: boolean) => {
+    const onWhiteboardOpenChange = (open: boolean) => {
+        setIsWhiteboardOpen(open);
         if (open) {
              setTimeout(() => {
                 const canvas = canvasRef.current;
@@ -397,7 +412,16 @@ function PracticeQuizComponent() {
                     const parent = canvas.parentElement;
                     if (parent) {
                         canvas.width = parent.clientWidth;
-                        canvas.height = parent.clientHeight;
+                        canvas.height = 300; // Fixed height for consistency
+                        
+                        const context = canvas.getContext('2d');
+                        if (context && whiteboardData[currentQuestionIndex]) {
+                            const img = new Image();
+                            img.onload = () => {
+                                context.drawImage(img, 0, 0);
+                            };
+                            img.src = whiteboardData[currentQuestionIndex];
+                        }
                     }
                 }
             }, 0);
@@ -445,66 +469,11 @@ function PracticeQuizComponent() {
                         </RadioGroup>
                          <div className="mt-8 flex justify-between items-center">
                             <div className="flex gap-2">
-                                <Sheet onOpenChange={onSheetOpenChange}>
-                                    <SheetTrigger asChild>
+                                <Collapsible open={isWhiteboardOpen} onOpenChange={onWhiteboardOpenChange}>
+                                    <CollapsibleTrigger asChild>
                                         <Button variant="outline"><PenSquare className="mr-2 h-4 w-4"/> Whiteboard</Button>
-                                    </SheetTrigger>
-                                    <SheetContent side="bottom" className="h-[80vh]">
-                                        <SheetHeader className="mb-4">
-                                            <SheetTitle className="flex justify-between items-center">
-                                                <span>Digital Whiteboard</span>
-                                                <div className="flex items-center gap-2">
-                                                <Popover>
-                                                    <PopoverTrigger asChild>
-                                                    <Button variant="outline" size="icon"><Palette /></Button>
-                                                    </PopoverTrigger>
-                                                    <PopoverContent className="w-auto p-2">
-                                                    <div className="flex gap-1">
-                                                        {whiteboardColors.map(c => (
-                                                        <button 
-                                                            key={c}
-                                                            onClick={() => setColor(c)}
-                                                            className={`w-8 h-8 rounded-full border-2 ${color === c ? 'border-primary' : 'border-transparent'}`}
-                                                            style={{ backgroundColor: c }}
-                                                        />
-                                                        ))}
-                                                    </div>
-                                                    </PopoverContent>
-                                                </Popover>
-
-                                                <Popover>
-                                                    <PopoverTrigger asChild>
-                                                    <Button variant="outline" size="icon"><Brush /></Button>
-                                                    </PopoverTrigger>
-                                                    <PopoverContent className="w-40 p-2">
-                                                    <Slider
-                                                        defaultValue={[brushSize]}
-                                                        max={30}
-                                                        min={1}
-                                                        step={1}
-                                                        onValueChange={(value) => setBrushSize(value[0])}
-                                                        />
-                                                    </PopoverContent>
-                                                </Popover>
-
-                                                <Button variant="destructive" size="icon" onClick={clearCanvas}>
-                                                    <Eraser />
-                                                </Button>
-                                                </div>
-                                            </SheetTitle>
-                                        </SheetHeader>
-                                        <div className="bg-muted rounded-lg border border-dashed h-[calc(100%-80px)]">
-                                            <canvas
-                                                ref={canvasRef}
-                                                className="w-full h-full"
-                                                onMouseDown={startDrawing}
-                                                onMouseMove={draw}
-                                                onMouseUp={stopDrawing}
-                                                onMouseLeave={stopDrawing}
-                                            />
-                                        </div>
-                                    </SheetContent>
-                                </Sheet>
+                                    </CollapsibleTrigger>
+                                </Collapsible>
                                 <Button variant="outline" onClick={handleGetHint} disabled={isHintLoading || answerState === 'answered'}>
                                     {isHintLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Gem className="mr-2 h-4 w-4"/>}
                                     Hint (10 Coins)
@@ -521,6 +490,54 @@ function PracticeQuizComponent() {
                                 </Button>
                             )}
                         </div>
+                         <CollapsibleContent>
+                            <div className="mt-4 p-4 border rounded-lg">
+                                <div className="flex justify-end items-center gap-2 mb-2">
+                                     <Popover>
+                                        <PopoverTrigger asChild>
+                                        <Button variant="outline" size="icon"><Palette /></Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-2">
+                                        <div className="flex gap-1">
+                                            {whiteboardColors.map(c => (
+                                            <button 
+                                                key={c}
+                                                onClick={() => setColor(c)}
+                                                className={`w-8 h-8 rounded-full border-2 ${color === c ? 'border-primary' : 'border-transparent'}`}
+                                                style={{ backgroundColor: c }}
+                                            />
+                                            ))}
+                                        </div>
+                                        </PopoverContent>
+                                    </Popover>
+                                     <Popover>
+                                        <PopoverTrigger asChild>
+                                        <Button variant="outline" size="icon"><Brush /></Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-40 p-2">
+                                        <Slider
+                                            defaultValue={[brushSize]}
+                                            max={30}
+                                            min={1}
+                                            step={1}
+                                            onValueChange={(value) => setBrushSize(value[0])}
+                                            />
+                                        </PopoverContent>
+                                    </Popover>
+                                     <Button variant="destructive" size="icon" onClick={clearCanvas}>
+                                        <Eraser />
+                                    </Button>
+                                </div>
+                                <canvas
+                                    ref={canvasRef}
+                                    className="w-full h-[300px] bg-muted rounded-md border border-dashed"
+                                    onMouseDown={startDrawing}
+                                    onMouseMove={draw}
+                                    onMouseUp={stopDrawing}
+                                    onMouseLeave={stopDrawing}
+                                />
+                            </div>
+                        </CollapsibleContent>
                     </CardContent>
                 </Card>
                 
@@ -592,7 +609,7 @@ function PracticeQuizComponent() {
                     <CardContent className="p-8 text-center">
                         <h2 className="text-2xl font-semibold">Your Score</h2>
                         <p className="text-6xl font-bold text-primary my-4">{score} / {totalQuestions}</p>
-                        <p className="text-muted-foreground">You answered {((score / totalQuestions) * 100).toFixed(0)}% of the questions correctly.</p>
+                        <p className="text-muted-foreground">You answered {totalQuestions > 0 ? ((score / totalQuestions) * 100).toFixed(0) : 0}% of the questions correctly.</p>
 
                         <div className="mt-8">
                             <Button onClick={handleStartNewQuiz}>
@@ -724,3 +741,5 @@ export default function PracticeQuizPage() {
         </Suspense>
     )
 }
+
+```
