@@ -741,5 +741,3 @@ export default function PracticeQuizPage() {
         </Suspense>
     )
 }
-
-```
