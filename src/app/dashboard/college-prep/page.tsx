@@ -69,6 +69,8 @@ export default function CollegePrepPage() {
     const [courses, setCourses] = useState([]);
     const [userState, setUserState] = useState('');
     const [volunteerHours, setVolunteerHours] = useState('');
+    const [classRank, setClassRank] = useState('');
+    const [classSize, setClassSize] = useState('');
 
 
     const applicationStrength = useMemo(() => {
@@ -85,7 +87,10 @@ export default function CollegePrepPage() {
         const gpaValue = parseFloat(weightedGpa);
         let gpaPercentage = 0;
         if (!isNaN(gpaValue)) {
-            gpaPercentage = Math.max(0, (gpaValue / 5.0) * 100);
+            const baseGpaScore = Math.max(0, gpaValue / 5.0) * 100;
+            gpaPercentage = baseGpaScore;
+            // Penalize lower GPAs more significantly
+            if(gpaValue < 3.0) gpaPercentage *= 0.8;
         }
 
         // Course rigor score (AP=2, Honors=1, Regular=0)
@@ -94,7 +99,7 @@ export default function CollegePrepPage() {
         const totalCourses = courses.length > 0 ? courses.length : 1;
         const rigorPoints = (apCourses * 2 + honorsCourses);
         // A rigor index of 1.5 is very strong. We scale it to be a percentage.
-        const rigorIndex = rigorPoints / totalCourses;
+        const rigorIndex = rigorPoints / totalCourses; 
         const rigorScore = Math.min(100, (rigorIndex / 1.5) * 100);
 
         // Extracurricular score
@@ -158,6 +163,12 @@ export default function CollegePrepPage() {
         if (storedVolunteerHours) {
             setVolunteerHours(storedVolunteerHours);
         }
+
+        const storedClassRank = localStorage.getItem('classRank');
+        if (storedClassRank) setClassRank(storedClassRank);
+        const storedClassSize = localStorage.getItem('classSize');
+        if (storedClassSize) setClassSize(storedClassSize);
+
 
         setLoading(false);
     }, []);
@@ -288,6 +299,17 @@ export default function CollegePrepPage() {
     const handleUserStateChange = (stateAbbreviation: string) => {
         setUserState(stateAbbreviation);
         localStorage.setItem('userState', stateAbbreviation);
+    }
+
+    const handleRankChange = (type: 'rank' | 'size', value: string) => {
+        const sanitizedValue = value.replace(/[^0-9]/g, '');
+        if (type === 'rank') {
+            setClassRank(sanitizedValue);
+            localStorage.setItem('classRank', sanitizedValue);
+        } else {
+            setClassSize(sanitizedValue);
+            localStorage.setItem('classSize', sanitizedValue);
+        }
     }
 
 
@@ -481,6 +503,16 @@ export default function CollegePrepPage() {
                                 <div className="space-y-2">
                                     <label className="font-semibold text-sm">Unweighted GPA</label>
                                     <Input placeholder="e.g., 3.8" value={unweightedGpa} onChange={(e) => handleGpaChange('unweighted', e.target.value)} />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="class-rank">Class Rank</Label>
+                                    <Input id="class-rank" placeholder="e.g., 10" value={classRank} onChange={(e) => handleRankChange('rank', e.target.value)} />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="class-size">Class Size</Label>
+                                    <Input id="class-size" placeholder="e.g., 500" value={classSize} onChange={(e) => handleRankChange('size', e.target.value)} />
                                 </div>
                             </div>
                              <div className="space-y-2">
