@@ -5,7 +5,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { GraduationCap, Heart, Search, Filter, ArrowRight, MoreHorizontal, Check, Plus, Loader2, Sparkles, Save, MapPin, Trash2, Edit } from 'lucide-react';
+import { GraduationCap, Heart, Search, Filter, ArrowRight, MoreHorizontal, Check, Plus, Loader2, Sparkles, Save, MapPin, Trash2, Edit, Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Loading from './loading';
 import Link from 'next/link';
@@ -67,52 +67,56 @@ export default function CollegePrepPage() {
     const [unweightedGpa, setUnweightedGpa] = useState('');
     const [courses, setCourses] = useState([]);
     const [userState, setUserState] = useState('');
+    const [volunteerHours, setVolunteerHours] = useState('');
 
 
     const applicationStrength = useMemo(() => {
-        const satWeight = 0.35;
-        const gpaWeight = 0.30;
+        const satWeight = 0.30;
+        const gpaWeight = 0.25;
         const rigorWeight = 0.20;
         const extracurricularWeight = 0.15;
-    
-        // SAT score (scaled from 400-1600 range to 0-100, but with a curve)
-        // A score of 1000 is considered average (50th percentile)
-        const satPercentage = Math.pow((satScore - 400) / 1200, 0.8) * 100;
+        const volunteerWeight = 0.10;
 
-        // GPA percentage (using weighted GPA, 4.0 is a strong benchmark)
+        // SAT score (scaled from 400-1600 range)
+        const satPercentage = Math.max(0, ((satScore - 400) / 1200) * 100);
+
+        // GPA percentage (using weighted GPA, 5.0 scale)
         const gpaValue = parseFloat(weightedGpa);
         let gpaPercentage = 0;
         if (!isNaN(gpaValue)) {
-            // Scores above 4.0 give a bonus, below harm it. Capped at a reasonable range.
-            const baseGpaScore = Math.min(1.2, gpaValue / 4.0);
-            gpaPercentage = baseGpaScore * 100;
+            gpaPercentage = Math.max(0, (gpaValue / 5.0) * 100);
         }
-    
-        // Course rigor score (AP=2, Honors=1, Regular=0). We create a "rigor index".
+
+        // Course rigor score (AP=2, Honors=1, Regular=0)
         const apCourses = courses.filter((c: any) => c.type === 'AP').length;
         const honorsCourses = courses.filter((c: any) => c.type === 'Honors').length;
         const totalCourses = courses.length > 0 ? courses.length : 1;
         const rigorPoints = (apCourses * 2 + honorsCourses);
-        // A rigor index of 1.0 means every class is at least Honors. 1.5 is very strong.
-        const rigorIndex = rigorPoints / totalCourses; 
-        const rigorScore = Math.min(120, rigorIndex * 80); // Capped at 120%
+        // A rigor index of 1.5 is very strong. We scale it to be a percentage.
+        const rigorIndex = rigorPoints / totalCourses;
+        const rigorScore = Math.min(100, (rigorIndex / 1.5) * 100);
 
         // Extracurricular score
         const totalActivityStrength = savedActivities.reduce((sum, activity) => {
-            // Activities below 50 have neutral impact, above 50 adds a bonus.
-            const impact = activity.strength > 50 ? (activity.strength - 50) : 0;
-            return sum + 50 + impact; // Base of 50 for participation
+            const impact = activity.strength > 50 ? (activity.strength - 50) : (activity.strength - 50) / 2;
+            return sum + 50 + impact;
         }, 0);
-        const averageActivityStrength = savedActivities.length > 0 ? totalActivityStrength / savedActivities.length : 50; // Default to 50 if no activities
-    
-        const combinedStrength = 
-            (satPercentage * satWeight) + 
-            (gpaPercentage * gpaWeight) + 
-            (rigorScore * rigorWeight) + 
-            (averageActivityStrength * extracurricularWeight);
+        const averageActivityStrength = savedActivities.length > 0 ? totalActivityStrength / savedActivities.length : 0;
         
+        // Volunteer hours score
+        const hours = parseInt(volunteerHours, 10) || 0;
+        // Scale so that 200 hours is a very strong score (100%), but it doesn't cap harshly.
+        const volunteerScore = Math.min(100, Math.pow(hours / 200, 0.7) * 100);
+
+        const combinedStrength =
+            (satPercentage * satWeight) +
+            (gpaPercentage * gpaWeight) +
+            (rigorScore * rigorWeight) +
+            (averageActivityStrength * extracurricularWeight) +
+            (volunteerScore * volunteerWeight);
+
         return Math.round(Math.max(0, Math.min(100, combinedStrength)));
-    }, [savedActivities, satScore, weightedGpa, courses]);
+    }, [savedActivities, satScore, weightedGpa, courses, volunteerHours]);
 
 
     useEffect(() => {
@@ -121,12 +125,12 @@ export default function CollegePrepPage() {
         
         const savedFavorites = localStorage.getItem('favoritedColleges');
         if (savedFavorites) {
-            setFavoritedColleges(JSON.parse(savedFavorites));
+            try { setFavoritedColleges(JSON.parse(savedFavorites)); } catch (e) { console.error(e); }
         }
         
         const savedActivitiesData = localStorage.getItem('savedExtracurriculars');
         if (savedActivitiesData) {
-            setSavedActivities(JSON.parse(savedActivitiesData));
+            try { setSavedActivities(JSON.parse(savedActivitiesData)); } catch(e) { console.error(e); }
         }
         
         const storedSatScore = localStorage.getItem('satScore');
@@ -141,20 +145,27 @@ export default function CollegePrepPage() {
         
         const storedCourses = localStorage.getItem('transcriptCourses');
         if (storedCourses) {
-            setCourses(JSON.parse(storedCourses));
+            try { setCourses(JSON.parse(storedCourses)); } catch(e) { console.error(e); }
         }
 
         const storedUserState = localStorage.getItem('userState');
         if (storedUserState) {
             setUserState(storedUserState);
         }
+        
+        const storedVolunteerHours = localStorage.getItem('volunteerHours');
+        if (storedVolunteerHours) {
+            setVolunteerHours(storedVolunteerHours);
+        }
 
         setLoading(false);
     }, []);
     
     useEffect(() => {
-        localStorage.setItem('favoritedColleges', JSON.stringify(favoritedColleges));
-    }, [favoritedColleges]);
+        if (!loading) {
+            localStorage.setItem('favoritedColleges', JSON.stringify(favoritedColleges));
+        }
+    }, [favoritedColleges, loading]);
 
     useEffect(() => {
         if (!loading) {
@@ -265,6 +276,12 @@ export default function CollegePrepPage() {
             setUnweightedGpa(sanitizedValue);
             localStorage.setItem('unweightedGpa', sanitizedValue);
         }
+    }
+
+    const handleVolunteerHoursChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const hours = e.target.value.replace(/[^0-9]/g, '');
+        setVolunteerHours(hours);
+        localStorage.setItem('volunteerHours', hours);
     }
     
     const handleUserStateChange = (stateAbbreviation: string) => {
@@ -480,6 +497,21 @@ export default function CollegePrepPage() {
                             </div>
                              <Button variant="outline" className="w-full" asChild>
                                 <Link href="/dashboard/college-prep/transcript">Manage Transcript</Link>
+                            </Button>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Community Service</CardTitle>
+                            <CardDescription>Log your volunteer hours.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="volunteer-hours">Total Volunteer Hours</Label>
+                                <Input id="volunteer-hours" type="number" placeholder="e.g., 150" value={volunteerHours} onChange={handleVolunteerHoursChange} />
+                            </div>
+                            <Button variant="outline" className="w-full">
+                                <Upload className="mr-2 h-4 w-4"/> Upload Proof
                             </Button>
                         </CardContent>
                     </Card>
