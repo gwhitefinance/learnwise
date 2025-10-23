@@ -11,17 +11,14 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import type { SatQuestion } from '@/ai/schemas/sat-study-session-schema';
-import { generateSatQuestion, generateSatStudySessionAction } from '@/lib/actions';
+import { generateSatQuestion } from '@/lib/actions';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
 import { format } from 'date-fns';
-import { FloatingChatContext } from '@/components/floating-chat';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import GeneratingSession from './GeneratingSession';
+import { Slider } from '@/components/ui/slider';
 
 type TestResult = {
     id: string;
@@ -133,15 +130,11 @@ export default function SatPrepPage() {
     const [gradeLevel, setGradeLevel] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
-    const { toast } = useToast();
     
     const [user, authLoading] = useAuthState(auth);
     const [pastResults, setPastResults] = useState<TestResult[]>([]);
     const [resultsLoading, setResultsLoading] = useState(true);
-    const [streak, setStreak] = useState(0);
-    const [chatInput, setChatInput] = useState('');
-    const { openChatWithVoice } = useContext(FloatingChatContext);
-    const [isGenerating, setIsGenerating] = useState<string | null>(null);
+    const [goalScore, setGoalScore] = useState(1200);
 
     useEffect(() => {
         if (authLoading) return;
@@ -161,51 +154,20 @@ export default function SatPrepPage() {
         setGradeLevel(storedGrade);
         setLoading(false);
         
-        // Mock streak
-        const lastVisit = localStorage.getItem('lastVisit');
-        const today = new Date().toDateString();
-        if (lastVisit === today) {
-            setStreak(Number(localStorage.getItem('streakCount')) || 0);
-        } else {
-             const yesterday = new Date();
-            yesterday.setDate(yesterday.getDate() - 1);
-            if (lastVisit === yesterday.toDateString()) {
-                setStreak((Number(localStorage.getItem('streakCount')) || 0) + 1);
-            } else {
-                setStreak(0);
-            }
+        const storedGoalScore = localStorage.getItem('satGoalScore');
+        if (storedGoalScore) {
+            setGoalScore(parseInt(storedGoalScore, 10));
         }
 
         return () => unsubscribe();
     }, [user, authLoading, router]);
 
-    const handleChatSubmit = () => {
-        if (!chatInput.trim()) return;
-        toast({ title: 'Opening chat...', description: `You asked: ${chatInput}`});
-        openChatWithVoice(); 
-        setChatInput('');
-    }
-
-    const handleGenerateSession = async (topic: 'Math' | 'Reading & Writing') => {
-        setIsGenerating(topic);
-        try {
-            const learnerType = localStorage.getItem('learnerType') as any || 'Reading/Writing';
-            const result = await generateSatStudySessionAction({ category: topic, learnerType });
-            
-            // Store the result in sessionStorage to pass to the next page
-            sessionStorage.setItem('satStudySessionData', JSON.stringify(result.questions));
-
-            router.push(`/dashboard/sat-prep/study-session?topic=${encodeURIComponent(topic)}`);
-        } catch (error) {
-            console.error("Failed to generate study session:", error);
-            toast({ variant: "destructive", title: "Generation Failed", description: "Could not create your study session. Please try again." });
-            setIsGenerating(null);
-        }
+    const handleGoalScoreChange = (value: number[]) => {
+        const newScore = value[0];
+        setGoalScore(newScore);
+        localStorage.setItem('satGoalScore', String(newScore));
     };
 
-    if (isGenerating) {
-        return <GeneratingSession topic={isGenerating} />;
-    }
 
     if (loading || authLoading) {
         return (
@@ -234,8 +196,6 @@ export default function SatPrepPage() {
             </div>
         );
     }
-    
-    const todayIndex = new Date().getDay();
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
@@ -251,21 +211,15 @@ export default function SatPrepPage() {
                  <div className="space-y-4">
                     <h2 className="text-2xl font-bold flex items-center gap-2"><Rocket className="text-primary"/> Let's begin:</h2>
                      <div className="flex flex-col sm:flex-row gap-4">
-                        <Button 
-                            onClick={() => handleGenerateSession('Reading & Writing')} 
-                            className="w-full justify-start text-base py-6" 
-                            variant="outline"
-                            disabled={!!isGenerating}
-                        >
-                            <BookOpen className="mr-2 h-5 w-5" /> Study Session: Reading
+                        <Button asChild className="w-full justify-start text-base py-6" variant="outline">
+                            <Link href="/dashboard/sat-prep/study-session?topic=Reading+%26+Writing">
+                                <BookOpen className="mr-2 h-5 w-5" /> Study Session: Reading
+                            </Link>
                         </Button>
-                        <Button 
-                            onClick={() => handleGenerateSession('Math')} 
-                            className="w-full justify-start text-base py-6" 
-                            variant="outline"
-                            disabled={!!isGenerating}
-                        >
-                            <Calculator className="mr-2 h-5 w-5" /> Study Session: Math
+                        <Button asChild className="w-full justify-start text-base py-6" variant="outline">
+                           <Link href="/dashboard/sat-prep/study-session?topic=Math">
+                                <Calculator className="mr-2 h-5 w-5" /> Study Session: Math
+                            </Link>
                         </Button>
                     </div>
                 </div>
@@ -298,13 +252,13 @@ export default function SatPrepPage() {
                  <DailyQuestion />
             </div>
             <div className="lg:col-span-1 space-y-8">
-                <Card className="bg-primary/10 border-primary/20">
+                <Card className="bg-primary text-primary-foreground">
                     <CardHeader>
-                        <CardTitle className="text-primary">Full Practice Test</CardTitle>
-                        <CardDescription>Simulate the real test environment to gauge your progress.</CardDescription>
+                        <CardTitle>Full Practice Test</CardTitle>
+                        <CardDescription className="text-primary-foreground/80">Simulate the real test environment to gauge your progress.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <Button className="w-full md:w-auto" asChild size="lg">
+                        <Button className="w-full bg-white text-black hover:bg-gray-200" asChild size="lg">
                             <Link href="/dashboard/sat-prep/practice-test">
                                 Start Full-Length Test <ArrowRight className="ml-2 h-4 w-4"/>
                             </Link>
@@ -338,7 +292,25 @@ export default function SatPrepPage() {
                         </div>
                     </CardContent>
                 </Card>
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Goal SAT Score</CardTitle>
+                        <CardDescription>Adjust the slider to set your target score.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-center font-bold text-4xl text-primary mb-6">{goalScore}</div>
+                        <Slider
+                            defaultValue={[goalScore]}
+                            max={1600}
+                            min={400}
+                            step={10}
+                            onValueChange={handleGoalScoreChange}
+                        />
+                    </CardContent>
+                </Card>
             </div>
         </div>
     );
 }
+
+    
