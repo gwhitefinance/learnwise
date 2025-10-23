@@ -269,21 +269,7 @@ export default function SatPrepPage() {
                         </Button>
                     </div>
                 </div>
-                 <DailyQuestion />
-                 <Card>
-                    <CardHeader>
-                        <CardTitle>Full Practice Test</CardTitle>
-                        <CardDescription>Simulate the real test environment to gauge your progress.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <Button className="w-full md:w-auto" asChild size="lg">
-                            <Link href="/dashboard/sat-prep/practice-test">
-                                Start Full-Length Test <ArrowRight className="ml-2 h-4 w-4"/>
-                            </Link>
-                        </Button>
-                    </CardContent>
-                </Card>
-                 <Card>
+                <Card>
                     <CardHeader>
                         <CardTitle>Past Results</CardTitle>
                     </CardHeader>
@@ -309,6 +295,7 @@ export default function SatPrepPage() {
                         )}
                     </CardContent>
                 </Card>
+                 <DailyQuestion />
                 <div className="pt-8">
                      <div className="relative">
                         <Input 
@@ -325,25 +312,17 @@ export default function SatPrepPage() {
                 </div>
             </div>
             <div className="lg:col-span-1 space-y-8">
-                <Card>
+                <Card className="bg-primary/10 border-primary/20">
                     <CardHeader>
-                        <CardTitle>Study Streak</CardTitle>
+                        <CardTitle className="text-primary">Full Practice Test</CardTitle>
+                        <CardDescription>Simulate the real test environment to gauge your progress.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <p className="font-bold text-lg mb-2">{streak} Days study streak</p>
-                         <div className="flex justify-between gap-1">
-                            {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => (
-                                <div key={day} className="text-center space-y-1">
-                                    <div className={cn(
-                                        "h-10 w-10 rounded-full bg-muted flex items-center justify-center",
-                                        i < streak % 7 && "bg-green-500/20",
-                                        i === streak % 7 && "bg-primary text-primary-foreground"
-                                    )}>
-                                        <p className="font-bold text-sm">{day.charAt(0)}</p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
+                        <Button className="w-full md:w-auto" asChild size="lg">
+                            <Link href="/dashboard/sat-prep/practice-test">
+                                Start Full-Length Test <ArrowRight className="ml-2 h-4 w-4"/>
+                            </Link>
+                        </Button>
                     </CardContent>
                 </Card>
                 <Card>
