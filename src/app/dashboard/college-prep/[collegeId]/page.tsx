@@ -42,23 +42,16 @@ const StatCard = ({ title, value, icon }: { title: string; value: string | numbe
 const ChanceIndicator = ({ label, userStat, collegeStat, higherIsBetter = true }: { label: string, userStat: number | null, collegeStat: number | null, higherIsBetter?: boolean }) => {
     let comparison: 'Below' | 'On Par' | 'Above' | 'N/A' = 'N/A';
 
-    if (userStat !== null) {
-         // Special handling for App Strength which doesn't have a direct college stat to compare to.
-        if (collegeStat === null && label === 'App Strength') {
-            if (userStat >= 75) comparison = 'Above';
-            else if (userStat >= 50) comparison = 'On Par';
-            else comparison = 'Below';
-        } else if (collegeStat !== null) {
-            const difference = userStat - collegeStat;
-            const threshold = label === 'SAT' ? 50 : 10;
-            
-            if (Math.abs(difference) <= threshold) {
-                comparison = 'On Par';
-            } else if (difference > threshold) {
-                comparison = higherIsBetter ? 'Above' : 'Below';
-            } else {
-                comparison = higherIsBetter ? 'Below' : 'Above';
-            }
+    if (userStat !== null && collegeStat !== null) {
+        const difference = userStat - collegeStat;
+        let threshold = 0.05 * collegeStat; // 5% threshold
+
+        if (Math.abs(difference) <= threshold) {
+            comparison = 'On Par';
+        } else if (difference > 0) {
+            comparison = higherIsBetter ? 'Above' : 'Below';
+        } else {
+            comparison = higherIsBetter ? 'Below' : 'Above';
         }
     }
 
@@ -101,14 +94,23 @@ export default function CollegeDetailPage() {
             setUserSatScore(parseInt(storedSatScore, 10));
         }
         
-        // This is a simplified version of the logic from the previous page
         const savedActivitiesData = localStorage.getItem('savedExtracurriculars');
-        if (savedActivitiesData && storedSatScore) {
+        if (savedActivitiesData) {
             const savedActivities = JSON.parse(savedActivitiesData);
             const totalActivityStrength = savedActivities.reduce((sum: number, activity: { strength: number }) => sum + activity.strength, 0);
             const averageActivityStrength = savedActivities.length > 0 ? totalActivityStrength / savedActivities.length : 0;
-            const satPercentage = ((parseInt(storedSatScore, 10) - 400) / (1600 - 400)) * 100;
-            const combinedStrength = (averageActivityStrength * 0.5) + (satPercentage * 0.5);
+            const satScore = localStorage.getItem('satScore');
+            const satPercentage = satScore ? ((parseInt(satScore, 10) - 400) / (1600 - 400)) * 100 : 0;
+            const weightedGpa = localStorage.getItem('weightedGpa');
+            const gpaValue = weightedGpa ? parseFloat(weightedGpa) : 0;
+            const gpaPercentage = !isNaN(gpaValue) ? Math.min(100, (gpaValue / 5.0) * 100) : 0;
+            const transcriptCourses = localStorage.getItem('transcriptCourses');
+            const courses = transcriptCourses ? JSON.parse(transcriptCourses) : [];
+            const apCourses = courses.filter((c: any) => c.type === 'AP').length;
+            const honorsCourses = courses.filter((c: any) => c.type === 'Honors').length;
+            const totalCourses = courses.length > 0 ? courses.length : 1;
+            const rigorScore = Math.min(100, ((apCourses * 2 + honorsCourses) / (totalCourses * 2)) * 100);
+            const combinedStrength = (satPercentage * 0.35) + (gpaPercentage * 0.30) + (rigorScore * 0.20) + (averageActivityStrength * 0.15);
             setUserAppStrength(Math.round(Math.max(0, Math.min(100, combinedStrength))));
         }
 
@@ -148,33 +150,33 @@ export default function CollegeDetailPage() {
             return { percentage: null, description: 'Enter your profile details to see your chances.' };
         }
 
-        const baseAcceptanceRate = college['latest.admissions.admission_rate.overall'] ?? 0.5; // Default to 50% if not available
-        const avgSat = college['latest.admissions.sat_scores.average.overall'] ?? 1200; // Default to 1200
+        const baseAcceptanceRate = college['latest.admissions.admission_rate.overall'] ?? 0.5;
+        const avgSat = college['latest.admissions.sat_scores.average.overall'] ?? 1200;
         
-        // 1. SAT Score Factor (Weight: 50%)
+        // 1. SAT Score Factor
         const satDifference = userSatScore - avgSat;
-        // SAT score boost/penalty can adjust chance by up to +/- 25%
-        const satFactor = Math.max(-0.25, Math.min(0.25, satDifference / 400)); // Capped at +/- 100 points difference
-        
-        // 2. App Strength Factor (Weight: 50%)
-        let expectedAppStrength = 50; // Default for 'Less Selective'
-        if (baseAcceptanceRate <= 0.25) expectedAppStrength = 80; // Highly Selective
-        else if (baseAcceptanceRate <= 0.50) expectedAppStrength = 65; // Selective
-        
-        const appStrengthDifference = (userAppStrength - expectedAppStrength) / 100;
-        // App strength can adjust chance by up to +/- 20%
-        const appStrengthFactor = Math.max(-0.20, Math.min(0.20, appStrengthDifference));
+        const satFactor = Math.max(-0.4, Math.min(0.4, satDifference / 200));
 
-        // Calculate final chance
-        let calculatedChance = baseAcceptanceRate + (satFactor * 0.5) + (appStrengthFactor * 0.5);
-        calculatedChance = Math.max(0.01, Math.min(0.99, calculatedChance)); // Clamp between 1% and 99%
+        // 2. App Strength Factor
+        let expectedAppStrength = 50; 
+        if (baseAcceptanceRate <= 0.15) expectedAppStrength = 85; // Highly Selective
+        else if (baseAcceptanceRate <= 0.35) expectedAppStrength = 70; // Selective
+        else if (baseAcceptanceRate <= 0.60) expectedAppStrength = 55; // Moderately Selective
+
+        const appStrengthDifference = (userAppStrength - expectedAppStrength);
+        const appStrengthFactor = Math.max(-0.3, Math.min(0.3, appStrengthDifference / 50));
+
+        let calculatedChance = baseAcceptanceRate + (satFactor * 0.6) + (appStrengthFactor * 0.4);
+        calculatedChance = Math.max(0.01, Math.min(0.99, calculatedChance));
 
         const percentage = Math.round(calculatedChance * 100);
         
         let description = "This is an estimate based on your profile and school data.";
         if (percentage >= 75) description = "You have a strong profile for this school. Keep up the great work!";
         else if (percentage >= 40) description = "You're a competitive applicant. Focus on your essays and recommendations to stand out.";
-        else description = "This is a reach. Focus on strengthening every part of your application.";
+        else if (percentage >= 15) description = "This is a reach, but possible. Focus on strengthening every part of your application.";
+        else description = "This is a significant reach. Consider building up your profile or exploring other options.";
+
 
         return { percentage, description };
 
