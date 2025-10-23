@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import React, { useState, useEffect, useRef, useContext, Suspense } from 'react';
@@ -140,7 +139,7 @@ function PracticeQuizComponent() {
             setIsFocusMode(true);
             startQuiz(); // Start the quiz right after entering fullscreen
         }).catch(err => {
-            console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+            console.error(`Error attempting to enable full-screen mode: ${'${err.message}'} (${'${err.name}'})`);
             setIsFocusMode(false);
             startQuiz();
         });
@@ -258,6 +257,7 @@ function PracticeQuizComponent() {
         setSelectedAnswer(null);
         setAnswerState('unanswered');
         setIsWhiteboardOpen(false);
+        setHint(null);
         
         if (currentQuestionIndex < quiz.questions.length - 1) {
             setCurrentQuestionIndex(prev => prev + 1);
@@ -306,6 +306,7 @@ function PracticeQuizComponent() {
         setAnswerState('unanswered');
         setWhiteboardData({});
         setIsWhiteboardOpen(false);
+        setHint(null);
     }
 
     const handleCourseSelection = (courseId: string) => {
@@ -469,11 +470,7 @@ function PracticeQuizComponent() {
                         </RadioGroup>
                          <div className="mt-8 flex justify-between items-center">
                             <div className="flex gap-2">
-                                <Collapsible open={isWhiteboardOpen} onOpenChange={onWhiteboardOpenChange}>
-                                    <CollapsibleTrigger asChild>
-                                        <Button variant="outline"><PenSquare className="mr-2 h-4 w-4"/> Whiteboard</Button>
-                                    </CollapsibleTrigger>
-                                </Collapsible>
+                                <Button variant="outline" onClick={() => onWhiteboardOpenChange(!isWhiteboardOpen)}><PenSquare className="mr-2 h-4 w-4"/> Whiteboard</Button>
                                 <Button variant="outline" onClick={handleGetHint} disabled={isHintLoading || answerState === 'answered'}>
                                     {isHintLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Gem className="mr-2 h-4 w-4"/>}
                                     Hint (10 Coins)
@@ -490,54 +487,56 @@ function PracticeQuizComponent() {
                                 </Button>
                             )}
                         </div>
-                         <CollapsibleContent>
-                            <div className="mt-4 p-4 border rounded-lg">
-                                <div className="flex justify-end items-center gap-2 mb-2">
-                                     <Popover>
-                                        <PopoverTrigger asChild>
-                                        <Button variant="outline" size="icon"><Palette /></Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-auto p-2">
-                                        <div className="flex gap-1">
-                                            {whiteboardColors.map(c => (
-                                            <button 
-                                                key={c}
-                                                onClick={() => setColor(c)}
-                                                className={`w-8 h-8 rounded-full border-2 ${color === c ? 'border-primary' : 'border-transparent'}`}
-                                                style={{ backgroundColor: c }}
-                                            />
-                                            ))}
-                                        </div>
-                                        </PopoverContent>
-                                    </Popover>
-                                     <Popover>
-                                        <PopoverTrigger asChild>
-                                        <Button variant="outline" size="icon"><Brush /></Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-40 p-2">
-                                        <Slider
-                                            defaultValue={[brushSize]}
-                                            max={30}
-                                            min={1}
-                                            step={1}
-                                            onValueChange={(value) => setBrushSize(value[0])}
-                                            />
-                                        </PopoverContent>
-                                    </Popover>
-                                     <Button variant="destructive" size="icon" onClick={clearCanvas}>
-                                        <Eraser />
-                                    </Button>
+                        <Collapsible open={isWhiteboardOpen} onOpenChange={onWhiteboardOpenChange}>
+                             <CollapsibleContent>
+                                <div className="mt-4 p-4 border rounded-lg">
+                                    <div className="flex justify-end items-center gap-2 mb-2">
+                                         <Popover>
+                                            <PopoverTrigger asChild>
+                                            <Button variant="outline" size="icon"><Palette /></Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-2">
+                                            <div className="flex gap-1">
+                                                {whiteboardColors.map(c => (
+                                                <button 
+                                                    key={c}
+                                                    onClick={() => setColor(c)}
+                                                    className={`w-8 h-8 rounded-full border-2 ${color === c ? 'border-primary' : 'border-transparent'}`}
+                                                    style={{ backgroundColor: c }}
+                                                />
+                                                ))}
+                                            </div>
+                                            </PopoverContent>
+                                        </Popover>
+                                         <Popover>
+                                            <PopoverTrigger asChild>
+                                            <Button variant="outline" size="icon"><Brush /></Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-40 p-2">
+                                            <Slider
+                                                defaultValue={[brushSize]}
+                                                max={30}
+                                                min={1}
+                                                step={1}
+                                                onValueChange={(value) => setBrushSize(value[0])}
+                                                />
+                                            </PopoverContent>
+                                        </Popover>
+                                         <Button variant="destructive" size="icon" onClick={clearCanvas}>
+                                            <Eraser />
+                                        </Button>
+                                    </div>
+                                    <canvas
+                                        ref={canvasRef}
+                                        className="w-full h-[300px] bg-muted rounded-md border border-dashed"
+                                        onMouseDown={startDrawing}
+                                        onMouseMove={draw}
+                                        onMouseUp={stopDrawing}
+                                        onMouseLeave={stopDrawing}
+                                    />
                                 </div>
-                                <canvas
-                                    ref={canvasRef}
-                                    className="w-full h-[300px] bg-muted rounded-md border border-dashed"
-                                    onMouseDown={startDrawing}
-                                    onMouseMove={draw}
-                                    onMouseUp={stopDrawing}
-                                    onMouseLeave={stopDrawing}
-                                />
-                            </div>
-                        </CollapsibleContent>
+                            </CollapsibleContent>
+                        </Collapsible>
                     </CardContent>
                 </Card>
                 
