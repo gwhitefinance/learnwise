@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useState, useEffect, useRef, useContext, Suspense } from 'react';
@@ -8,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowRight, RotateCcw, Lightbulb, CheckCircle, XCircle, PenSquare, Palette, Brush, Eraser, Minimize, Maximize, Gem } from 'lucide-react';
+import { ArrowRight, RotateCcw, Lightbulb, CheckCircle, XCircle, PenSquare, Palette, Brush, Eraser, Minimize, Maximize, Gem, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { GenerateQuizInput, GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
 import { Progress } from '@/components/ui/progress';
@@ -77,6 +78,7 @@ function PracticeQuizComponent() {
 
     const [userCoins, setUserCoins] = useState(0);
     const [isHintLoading, setIsHintLoading] = useState(false);
+    const [hint, setHint] = useState<string | null>(null);
 
      useEffect(() => {
         const urlTopic = searchParams.get('topic');
@@ -327,11 +329,7 @@ function PracticeQuizComponent() {
                 correctAnswer: currentQuestion.answer
             });
             
-            toast({
-                title: 'Here\'s a hint!',
-                description: hint,
-                duration: 10000,
-            });
+            setHint(hint);
 
         } catch (error) {
             console.error("Failed to get hint:", error);
@@ -508,7 +506,8 @@ function PracticeQuizComponent() {
                                     </SheetContent>
                                 </Sheet>
                                 <Button variant="outline" onClick={handleGetHint} disabled={isHintLoading || answerState === 'answered'}>
-                                    <Gem className="mr-2 h-4 w-4"/> Hint (10 Coins)
+                                    {isHintLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Gem className="mr-2 h-4 w-4"/>}
+                                    Hint (10 Coins)
                                 </Button>
                             </div>
                             {answerState === 'unanswered' ? (
@@ -525,6 +524,22 @@ function PracticeQuizComponent() {
                     </CardContent>
                 </Card>
                 
+                 <Dialog open={!!hint} onOpenChange={(open) => !open && setHint(null)}>
+                    <DialogContent className="sm:max-w-md bg-gradient-to-br from-amber-200 to-yellow-300">
+                        <DialogHeader>
+                            <DialogTitle className="flex items-center gap-2 text-amber-900">
+                                <Lightbulb /> Here's a Hint!
+                            </DialogTitle>
+                        </DialogHeader>
+                        <div className="py-4 text-amber-800 font-medium">
+                            {hint}
+                        </div>
+                         <DialogFooter>
+                            <Button onClick={() => setHint(null)} className="bg-amber-800 hover:bg-amber-900 text-white">Got it</Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+
                 <Dialog open={answerState === 'answered' && !feedback?.isCorrect} onOpenChange={(open) => !open && handleNextQuestion()}>
                     <DialogContent>
                         <DialogHeader>
