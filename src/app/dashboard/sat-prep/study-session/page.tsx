@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, Suspense, useContext } from 'react';
@@ -11,7 +10,7 @@ import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { SatQuestion, AnswerFeedback as FeedbackAnswer, FeedbackInput } from '@/ai/schemas/sat-study-session-schema';
 import { cn } from '@/lib/utils';
-import { ArrowLeft, ArrowRight, CheckCircle, Clock, XCircle, FileText, BookOpen, Calculator, Send, Bot, Wand2, Star } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle, Clock, XCircle, FileText, BookOpen, Calculator, Send, Bot, Wand2, Star, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import AIBuddy from '@/components/ai-buddy';
 import { Input } from '@/components/ui/input';
@@ -24,10 +23,8 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { FloatingChatContext } from '@/components/floating-chat';
 import { addDoc, collection } from 'firebase/firestore';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import GeneratingCourse from '@/app/dashboard/courses/GeneratingCourse';
-import { generateFeedbackFlow } from '@/ai/flows/sat-feedback-flow';
-import { generateExplanation, generateSatStudySessionAction, generateTutorResponse, generateMiniCourse } from '@/lib/actions';
 import GeneratingSession from '../GeneratingSession';
+import { generateFeedbackAction, generateSatStudySessionAction, generateMiniCourse, generateTutorResponse } from '@/lib/actions';
 
 
 const EmbeddedChat = ({ topic, currentQuestion }: { topic: string | null, currentQuestion: SatQuestion | null }) => {
@@ -70,8 +67,11 @@ const EmbeddedChat = ({ topic, currentQuestion }: { topic: string | null, curren
 
     return (
         <div className="p-4 border-r h-full flex flex-col bg-card">
-             <header className="p-2 mb-4">
-                <h3 className="font-semibold text-center">Ask Tutorin</h3>
+             <header className="p-2 mb-4 flex items-center gap-2">
+                <Button variant="ghost" size="icon" className="bg-muted h-9 w-9">
+                    <ArrowLeft className="h-5 w-5"/>
+                </Button>
+                <h3 className="font-semibold text-center flex-1">Ask Tutorin</h3>
             </header>
             <ScrollArea className="flex-1 -mx-4">
                 <div className="px-4 space-y-4">
@@ -168,6 +168,9 @@ function StudySessionPageContent({ topic }: { topic: 'Math' | 'Reading & Writing
                 toast({ variant: 'destructive', title: 'Session Expired', description: 'Could not load session data. Please start a new session.' });
                 router.push('/dashboard/sat-prep');
             }
+        } else {
+             toast({ variant: 'destructive', title: 'Session Expired', description: 'Could not load session data. Please start a new session.' });
+             router.push('/dashboard/sat-prep');
         }
     }, [topic, router, toast]);
 
@@ -285,7 +288,7 @@ function StudySessionPageContent({ topic }: { topic: 'Math' | 'Reading & Writing
                 }))
             };
 
-            const feedbackResult = await generateFeedbackFlow(feedbackInput);
+            const feedbackResult = await generateFeedbackAction(feedbackInput);
 
             const results = {
                 accuracy: (correctAnswers / questions.length) * 100,
@@ -323,7 +326,7 @@ function StudySessionPageContent({ topic }: { topic: 'Math' | 'Reading & Writing
             .map(([topic]) => topic);
 
         const courseName = `Personalized SAT Review: ${strugglingTopics.join(', ')}`;
-        return <GeneratingCourse courseName={courseName} />;
+        return <GeneratingSession courseName={courseName} />;
     }
 
     if (sessionState === 'results' && resultsData) {
@@ -441,95 +444,97 @@ function StudySessionPageContent({ topic }: { topic: 'Math' | 'Reading & Writing
     const isCorrect = selectedAnswer === currentQuestion.correctAnswer;
     const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
     
-    const difficultyColors = {
+    const difficultyColors: Record<string, string> = {
         'Easy': 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300',
         'Medium': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300',
         'Hard': 'bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300',
     };
 
     return (
-        <div className="h-full flex">
-            <div className="w-96 flex-shrink-0">
-                <EmbeddedChat topic={topic} currentQuestion={currentQuestion} />
-            </div>
-            <div className="flex-1 overflow-y-auto p-4 md:p-8">
-                <div className="max-w-3xl mx-auto">
-                    <header className="mb-8">
-                        <div className="flex justify-between items-center mb-4">
-                            <h1 className="text-2xl font-bold flex items-center gap-2">
-                                {topic === 'Reading & Writing' ? <BookOpen /> : <Calculator />}
-                                Study Session: {topic}
-                            </h1>
-                            <div className="text-sm font-semibold flex items-center gap-2 text-muted-foreground">
-                                <Clock className="h-5 w-5" />
-                                <span>{Math.floor(currentQuestionTime / 60).toString().padStart(2, '0')}:{(currentQuestionTime % 60).toString().padStart(2, '0')}</span>
+        <div className="h-full flex flex-col">
+            <div className="flex-1 flex overflow-hidden">
+                <div className="w-96 flex-shrink-0">
+                    <EmbeddedChat topic={topic} currentQuestion={currentQuestion} />
+                </div>
+                <div className="flex-1 overflow-y-auto p-4 md:p-8">
+                    <div className="max-w-3xl mx-auto">
+                        <header className="mb-8">
+                            <div className="flex justify-between items-center mb-4">
+                                <h1 className="text-2xl font-bold flex items-center gap-2">
+                                    {topic === 'Reading & Writing' ? <BookOpen /> : <Calculator />}
+                                    Study Session: {topic}
+                                </h1>
+                                <div className="text-sm font-semibold flex items-center gap-2 text-muted-foreground">
+                                    <Clock className="h-5 w-5" />
+                                    <span>{Math.floor(currentQuestionTime / 60).toString().padStart(2, '0')}:{(currentQuestionTime % 60).toString().padStart(2, '0')}</span>
+                                </div>
                             </div>
-                        </div>
-                        <div>
-                            <Progress value={progress} className="h-2" />
-                            <p className="text-xs text-muted-foreground mt-1">{currentQuestionIndex + 1} / {questions.length}</p>
-                        </div>
-                    </header>
+                            <div>
+                                <Progress value={progress} className="h-2" />
+                                <p className="text-xs text-muted-foreground mt-1">{currentQuestionIndex + 1} / {questions.length}</p>
+                            </div>
+                        </header>
 
-                    <main>
-                        <div className="space-y-6">
-                            {currentQuestion.passage && (
-                                <blockquote className="border-l-4 pl-4 italic text-muted-foreground bg-muted p-4 rounded-r-lg">
-                                    {currentQuestion.passage}
-                                </blockquote>
-                            )}
-                            <p className="font-semibold text-lg">{currentQuestion.question}</p>
-                            
-                            <RadioGroup 
-                                value={selectedAnswer || ''} 
-                                onValueChange={(value) => setUserAnswers(prev => ({ ...prev, [currentQuestionIndex]: value }))}
-                                disabled={isCurrentAnswered}
-                            >
-                                <div className="space-y-3">
-                                    {currentQuestion.options.map((option, index) => (
-                                        <Label key={index} htmlFor={`option-${index}`} className={cn(
-                                            "flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-all",
-                                            isCurrentAnswered && option === currentQuestion.correctAnswer && "border-green-500 bg-green-500/10",
-                                            isCurrentAnswered && selectedAnswer === option && !isCorrect && "border-red-500 bg-red-500/10",
-                                            !isCurrentAnswered && selectedAnswer === option && "border-primary"
-                                        )}>
-                                            <RadioGroupItem value={option} id={`option-${index}`} />
-                                            <span>{option}</span>
-                                            {isCurrentAnswered && option === currentQuestion.correctAnswer && <CheckCircle className="h-5 w-5 text-green-500 ml-auto"/>}
-                                            {isCurrentAnswered && selectedAnswer === option && !isCorrect && <XCircle className="h-5 w-5 text-red-500 ml-auto"/>}
-                                        </Label>
-                                    ))}
-                                </div>
-                            </RadioGroup>
-
-                            {isCurrentAnswered && (
-                                <div className="border rounded-lg p-6 space-y-4">
-                                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
-                                        <Badge className={cn(difficultyColors[currentQuestion.difficulty])}>{currentQuestion.difficulty}</Badge>
-                                        <span className="font-medium">{currentQuestion.topic}</span>
-                                        <span>&bull;</span>
-                                        <span>{currentQuestion.subTopic}</span>
+                        <main>
+                            <div className="space-y-6">
+                                {currentQuestion.passage && (
+                                    <blockquote className="border-l-4 pl-4 italic text-muted-foreground bg-muted p-4 rounded-r-lg">
+                                        {currentQuestion.passage}
+                                    </blockquote>
+                                )}
+                                <p className="font-semibold text-lg">{currentQuestion.question}</p>
+                                
+                                <RadioGroup 
+                                    value={selectedAnswer || ''} 
+                                    onValueChange={(value) => setUserAnswers(prev => ({ ...prev, [currentQuestionIndex]: value }))}
+                                    disabled={isCurrentAnswered}
+                                >
+                                    <div className="space-y-3">
+                                        {currentQuestion.options.map((option, index) => (
+                                            <Label key={index} htmlFor={`option-${index}`} className={cn(
+                                                "flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-all",
+                                                isCurrentAnswered && option === currentQuestion.correctAnswer && "border-green-500 bg-green-500/10",
+                                                isCurrentAnswered && selectedAnswer === option && !isCorrect && "border-red-500 bg-red-500/10",
+                                                !isCurrentAnswered && selectedAnswer === option && "border-primary"
+                                            )}>
+                                                <RadioGroupItem value={option} id={`option-${index}`} />
+                                                <span>{option}</span>
+                                                {isCurrentAnswered && option === currentQuestion.correctAnswer && <CheckCircle className="h-5 w-5 text-green-500 ml-auto"/>}
+                                                {isCurrentAnswered && selectedAnswer === option && !isCorrect && <XCircle className="h-5 w-5 text-red-500 ml-auto"/>}
+                                            </Label>
+                                        ))}
                                     </div>
-                                    
-                                    <h4 className="font-bold text-lg">Explanation</h4>
-                                    <p className="text-muted-foreground">{currentQuestion.explanation}</p>
-                                </div>
-                            )}
-                        </div>
-                    </main>
+                                </RadioGroup>
 
-                    <footer className="mt-8 pt-4 border-t flex justify-between items-center">
-                        <Button variant="outline" onClick={handlePrevious} disabled={currentQuestionIndex === 0}>
-                            <ArrowLeft className="mr-2 h-4 w-4" /> Previous
-                        </Button>
-                        {isCurrentAnswered ? (
-                            <Button onClick={handleNext}>
-                                {currentQuestionIndex === questions.length - 1 ? 'Finish Session' : 'Next'} <ArrowRight className="ml-2 h-4 w-4" />
+                                {isCurrentAnswered && (
+                                    <div className="border rounded-lg p-6 space-y-4">
+                                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
+                                            <Badge className={cn(difficultyColors[currentQuestion.difficulty])}>{currentQuestion.difficulty}</Badge>
+                                            <span className="font-medium">{currentQuestion.topic}</span>
+                                            <span>&bull;</span>
+                                            <span>{currentQuestion.subTopic}</span>
+                                        </div>
+                                        
+                                        <h4 className="font-bold text-lg">Explanation</h4>
+                                        <p className="text-muted-foreground">{currentQuestion.explanation}</p>
+                                    </div>
+                                )}
+                            </div>
+                        </main>
+
+                        <footer className="mt-8 pt-4 border-t flex justify-between items-center">
+                            <Button variant="outline" onClick={handlePrevious} disabled={currentQuestionIndex === 0}>
+                                <ArrowLeft className="mr-2 h-4 w-4" /> Previous
                             </Button>
-                        ) : (
-                            <Button onClick={handleSubmit} disabled={!selectedAnswer}>Submit</Button>
-                        )}
-                    </footer>
+                            {isCurrentAnswered ? (
+                                <Button onClick={handleNext}>
+                                    {currentQuestionIndex === questions.length - 1 ? 'Finish Session' : 'Next'} <ArrowRight className="ml-2 h-4 w-4" />
+                                </Button>
+                            ) : (
+                                <Button onClick={handleSubmit} disabled={!selectedAnswer}>Submit</Button>
+                            )}
+                        </footer>
+                    </div>
                 </div>
             </div>
         </div>
@@ -549,4 +554,3 @@ export default function StudySessionPage() {
         </Suspense>
     );
 }
-
