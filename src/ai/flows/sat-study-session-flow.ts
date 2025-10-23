@@ -10,7 +10,7 @@ import { SatStudySessionInputSchema, SatStudySessionOutputSchema, type SatStudyS
 
 const prompt = ai.definePrompt({
     name: 'satStudySessionPrompt',
-    model: googleAI.model('gemini-2.0-flash'),
+    model: googleAI.model('gemini-2.5-flash'),
     input: { schema: SatStudySessionInputSchema },
     output: { schema: SatStudySessionOutputSchema },
     prompt: `You are an expert SAT test creator. Your task is to generate a 10-question, high-difficulty, SAT-level practice study session.
@@ -25,11 +25,11 @@ const prompt = ai.definePrompt({
         -   **Expression of Ideas** (~2 questions): Focus on rhetorical synthesis and transitions.
         -   **Standard English Conventions** (~2 questions): Focus on boundaries (punctuation), and form, structure, and sense.
     2.  **Passages are Mandatory**: For EVERY 'Reading & Writing' question, you MUST include a relevant, concise passage (a few sentences to a short paragraph) that provides the necessary context to answer the question.
-    3.  **Complete Data**: Ensure every field (difficulty, topic, subTopic, question, options, correctAnswer, explanation) is fully populated for every question. Do not return "N/A".
+    3.  **Complete Data**: Ensure every field (difficulty, topic, subTopic, question, options, correctAnswer, explanation) is fully populated for every question. Do not return "N/A" or leave any field blank.
 
     For each of the 10 questions, provide:
     - A 'difficulty' ('Easy', 'Medium', or 'Hard').
-    - A main 'topic' from one of the four domains listed above.
+    - A main 'topic' from one of the four domains listed above for Reading & Writing, or an appropriate Math domain.
     - A specific 'subTopic' (e.g., 'Words in Context', 'Linear Equations').
     - The question text.
     - An array of four multiple-choice options.
