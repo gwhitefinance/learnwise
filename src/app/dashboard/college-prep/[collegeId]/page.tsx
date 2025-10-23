@@ -44,7 +44,7 @@ const ChanceIndicator = ({ label, userStat, collegeStat, higherIsBetter = true }
 
     if (userStat !== null && collegeStat !== null) {
         const difference = userStat - collegeStat;
-        let threshold = 0.05 * collegeStat; // 5% threshold
+        let threshold = 0.05 * collegeStat; 
 
         if (Math.abs(difference) <= threshold) {
             comparison = 'On Par';
@@ -103,20 +103,42 @@ export default function CollegeDetailPage() {
         const savedActivitiesData = localStorage.getItem('savedExtracurriculars');
         if (savedActivitiesData) {
             const savedActivities = JSON.parse(savedActivitiesData);
-            const totalActivityStrength = savedActivities.reduce((sum: number, activity: { strength: number }) => sum + activity.strength, 0);
-            const averageActivityStrength = savedActivities.length > 0 ? totalActivityStrength / savedActivities.length : 0;
-            const satScore = localStorage.getItem('satScore');
-            const satPercentage = satScore ? ((parseInt(satScore, 10) - 400) / (1600 - 400)) * 100 : 0;
-            const weightedGpa = localStorage.getItem('weightedGpa');
-            const gpaValue = weightedGpa ? parseFloat(weightedGpa) : 0;
-            const gpaPercentage = !isNaN(gpaValue) ? Math.min(100, (gpaValue / 5.0) * 100) : 0;
-            const transcriptCourses = localStorage.getItem('transcriptCourses');
-            const courses = transcriptCourses ? JSON.parse(transcriptCourses) : [];
-            const apCourses = courses.filter((c: any) => c.type === 'AP').length;
-            const honorsCourses = courses.filter((c: any) => c.type === 'Honors').length;
-            const totalCourses = courses.length > 0 ? courses.length : 1;
-            const rigorScore = Math.min(100, ((apCourses * 2 + honorsCourses) / (totalCourses * 2)) * 100);
-            const combinedStrength = (satPercentage * 0.35) + (gpaPercentage * 0.30) + (rigorScore * 0.20) + (averageActivityStrength * 0.15);
+            const satScore = localStorage.getItem('satScore') ? parseInt(localStorage.getItem('satScore')!, 10) : 1000;
+            const weightedGpa = localStorage.getItem('weightedGpa') ? parseFloat(localStorage.getItem('weightedGpa')!) : 3.0;
+            const transcriptCourses = localStorage.getItem('transcriptCourses') ? JSON.parse(localStorage.getItem('transcriptCourses')!) : [];
+
+            const satWeight = 0.35;
+            const gpaWeight = 0.30;
+            const rigorWeight = 0.20;
+            const extracurricularWeight = 0.15;
+        
+            const satPercentage = Math.pow((satScore - 400) / 1200, 0.8) * 100;
+        
+            let gpaPercentage = 0;
+            if (!isNaN(weightedGpa)) {
+                const baseGpaScore = Math.min(1.2, weightedGpa / 4.0);
+                gpaPercentage = baseGpaScore * 100;
+            }
+        
+            const apCourses = transcriptCourses.filter((c: any) => c.type === 'AP').length;
+            const honorsCourses = transcriptCourses.filter((c: any) => c.type === 'Honors').length;
+            const totalCourses = transcriptCourses.length > 0 ? transcriptCourses.length : 1;
+            const rigorPoints = (apCourses * 2 + honorsCourses);
+            const rigorIndex = rigorPoints / totalCourses; 
+            const rigorScore = Math.min(120, rigorIndex * 80);
+    
+            const totalActivityStrength = savedActivities.reduce((sum: number, activity: { strength: number }) => {
+                const impact = activity.strength > 50 ? (activity.strength - 50) : 0;
+                return sum + 50 + impact;
+            }, 0);
+            const averageActivityStrength = savedActivities.length > 0 ? totalActivityStrength / savedActivities.length : 50;
+        
+            const combinedStrength = 
+                (satPercentage * satWeight) + 
+                (gpaPercentage * gpaWeight) + 
+                (rigorScore * rigorWeight) + 
+                (averageActivityStrength * extracurricularWeight);
+            
             setUserAppStrength(Math.round(Math.max(0, Math.min(100, combinedStrength))));
         }
 
@@ -181,9 +203,7 @@ export default function CollegeDetailPage() {
         
         // 3. In-State Factor
         const isInState = userState && college['school.state'] === userState;
-        // For simplicity, we assume public schools benefit more from in-state applicants.
-        // A more complex model could check school type. This is a reasonable approximation.
-        const inStateBonus = isInState ? Math.min(baseAcceptanceRate * 0.5, 0.15) : 0; // Up to 15% bonus, but no more than 50% of original rate
+        const inStateBonus = isInState ? Math.min(baseAcceptanceRate * 0.5, 0.15) : 0; 
 
         let calculatedChance = baseAcceptanceRate + satFactor + appStrengthFactor + inStateBonus;
         calculatedChance = Math.max(0.01, Math.min(0.99, calculatedChance));

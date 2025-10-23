@@ -75,32 +75,42 @@ export default function CollegePrepPage() {
         const rigorWeight = 0.20;
         const extracurricularWeight = 0.15;
     
-        // SAT score percentage (scaled from 400-1600 range to 0-100)
-        const satPercentage = Math.max(0, ((satScore - 400) / (1600 - 400)) * 100);
-        
-        // GPA percentage (using weighted GPA, assuming a 5.0 scale is a strong benchmark)
+        // SAT score (scaled from 400-1600 range to 0-100, but with a curve)
+        // A score of 1000 is considered average (50th percentile)
+        const satPercentage = Math.pow((satScore - 400) / 1200, 0.8) * 100;
+
+        // GPA percentage (using weighted GPA, 4.0 is a strong benchmark)
         const gpaValue = parseFloat(weightedGpa);
-        const gpaPercentage = !isNaN(gpaValue) ? Math.min(100, (gpaValue / 5.0) * 100) : 0;
+        let gpaPercentage = 0;
+        if (!isNaN(gpaValue)) {
+            // Scores above 4.0 give a bonus, below harm it. Capped at a reasonable range.
+            const baseGpaScore = Math.min(1.2, gpaValue / 4.0);
+            gpaPercentage = baseGpaScore * 100;
+        }
     
-        // Course rigor score (AP courses are weighted more heavily)
+        // Course rigor score (AP=2, Honors=1, Regular=0). We create a "rigor index".
         const apCourses = courses.filter((c: any) => c.type === 'AP').length;
         const honorsCourses = courses.filter((c: any) => c.type === 'Honors').length;
-        const totalCourses = courses.length > 0 ? courses.length : 1; // Avoid division by zero
-        // Score is based on proportion of advanced courses. APs count as 2 points, Honors as 1. Max possible score is if all are APs.
-        const rigorScore = Math.min(100, ((apCourses * 2 + honorsCourses) / (totalCourses * 2)) * 100);
+        const totalCourses = courses.length > 0 ? courses.length : 1;
+        const rigorPoints = (apCourses * 2 + honorsCourses);
+        // A rigor index of 1.0 means every class is at least Honors. 1.5 is very strong.
+        const rigorIndex = rigorPoints / totalCourses; 
+        const rigorScore = Math.min(120, rigorIndex * 80); // Capped at 120%
 
-        // Extracurricular score (average of all saved activity strengths)
-        const totalActivityStrength = savedActivities.reduce((sum, activity) => sum + activity.strength, 0);
-        const averageActivityStrength = savedActivities.length > 0 ? totalActivityStrength / savedActivities.length : 0;
+        // Extracurricular score
+        const totalActivityStrength = savedActivities.reduce((sum, activity) => {
+            // Activities below 50 have neutral impact, above 50 adds a bonus.
+            const impact = activity.strength > 50 ? (activity.strength - 50) : 0;
+            return sum + 50 + impact; // Base of 50 for participation
+        }, 0);
+        const averageActivityStrength = savedActivities.length > 0 ? totalActivityStrength / savedActivities.length : 50; // Default to 50 if no activities
     
-        // Combine scores based on their weights
         const combinedStrength = 
             (satPercentage * satWeight) + 
             (gpaPercentage * gpaWeight) + 
             (rigorScore * rigorWeight) + 
             (averageActivityStrength * extracurricularWeight);
         
-        // Ensure the final score is between 0 and 100
         return Math.round(Math.max(0, Math.min(100, combinedStrength)));
     }, [savedActivities, satScore, weightedGpa, courses]);
 
@@ -147,8 +157,6 @@ export default function CollegePrepPage() {
     }, [favoritedColleges]);
 
     useEffect(() => {
-        // This effect ensures that whenever savedActivities state changes, it is persisted to localStorage.
-        // The check for loading=false prevents overwriting saved data with an empty array on initial load.
         if (!loading) {
             localStorage.setItem('savedExtracurriculars', JSON.stringify(savedActivities));
         }
@@ -209,14 +217,12 @@ export default function CollegePrepPage() {
         }
 
         if (editingActivityId) {
-            // Update existing activity
             setSavedActivities(prev => prev.map(act => 
                 act.id === editingActivityId 
                 ? { ...act, title: activityTitle, description: enhancedActivity.enhancedDescription, strength: enhancedActivity.strength }
                 : act
             ));
         } else {
-            // Add new activity
              const newActivity: SavedActivity = {
                 id: crypto.randomUUID(),
                 title: activityTitle,
@@ -226,7 +232,6 @@ export default function CollegePrepPage() {
             setSavedActivities(prev => [...prev, newActivity]);
         }
         
-        // Reset fields after saving
         setEnhancedActivity(null);
         setActivityInput('');
         setActivityTitle('');
@@ -236,8 +241,8 @@ export default function CollegePrepPage() {
     const handleEditActivity = (activity: SavedActivity) => {
         setEditingActivityId(activity.id);
         setActivityTitle(activity.title);
-        setActivityInput(activity.description); // Use the saved description to re-enhance
-        setEnhancedActivity(null); // Clear previous enhancement
+        setActivityInput(activity.description);
+        setEnhancedActivity(null); 
     };
 
     const handleDeleteActivity = (id: string) => {
@@ -460,7 +465,7 @@ export default function CollegePrepPage() {
                                     <Input placeholder="e.g., 3.8" value={unweightedGpa} onChange={(e) => handleGpaChange('unweighted', e.target.value)} />
                                 </div>
                             </div>
-                            <div className="space-y-2">
+                             <div className="space-y-2">
                                 <label className="font-semibold text-sm flex items-center gap-2"><MapPin className="h-4 w-4"/> My Home State</label>
                                 <Select value={userState} onValueChange={handleUserStateChange}>
                                     <SelectTrigger>
