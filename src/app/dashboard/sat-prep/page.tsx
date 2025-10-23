@@ -296,20 +296,6 @@ export default function SatPrepPage() {
                     </CardContent>
                 </Card>
                  <DailyQuestion />
-                <div className="pt-8">
-                     <div className="relative">
-                        <Input 
-                            placeholder="Ask Tutorin anything" 
-                            className="h-14 rounded-full pl-6 pr-16 text-lg"
-                            value={chatInput}
-                            onChange={(e) => setChatInput(e.target.value)}
-                            onKeyDown={(e) => e.key === 'Enter' && handleChatSubmit()}
-                        />
-                        <Button size="icon" className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full h-10 w-10" onClick={handleChatSubmit}>
-                            <Send className="h-5 w-5" />
-                        </Button>
-                    </div>
-                </div>
             </div>
             <div className="lg:col-span-1 space-y-8">
                 <Card className="bg-primary/10 border-primary/20">
