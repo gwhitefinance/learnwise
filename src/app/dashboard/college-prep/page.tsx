@@ -63,29 +63,39 @@ export default function CollegePrepPage() {
     // GPA state
     const [weightedGpa, setWeightedGpa] = useState('');
     const [unweightedGpa, setUnweightedGpa] = useState('');
+    
+    // Transcript state
+    const [courses, setCourses] = useState([]);
 
     const applicationStrength = useMemo(() => {
-        const extracurricularWeight = 0.3;
-        const satWeight = 0.4;
-        const gpaWeight = 0.3;
-
-        // Calculate extracurricular score
-        const totalActivityStrength = savedActivities.reduce((sum, activity) => sum + activity.strength, 0);
-        const averageActivityStrength = savedActivities.length > 0 ? totalActivityStrength / savedActivities.length : 0;
-        
-        // Calculate SAT score percentage (assuming max score of 1600 and min of 400)
+        const satWeight = 0.35;
+        const gpaWeight = 0.30;
+        const rigorWeight = 0.20;
+        const extracurricularWeight = 0.15;
+    
+        // SAT score percentage
         const satPercentage = ((satScore - 400) / (1600 - 400)) * 100;
         
-        // Calculate GPA percentage (assuming weighted GPA is on a 5.0 scale for calculation)
+        // GPA percentage (using weighted GPA on a 5.0 scale)
         const gpaValue = parseFloat(weightedGpa);
-        const gpaPercentage = !isNaN(gpaValue) ? (gpaValue / 5.0) * 100 : 0;
+        const gpaPercentage = !isNaN(gpaValue) ? Math.min(100, (gpaValue / 5.0) * 100) : 0;
+    
+        // Course rigor score
+        const apCourses = courses.filter((c: any) => c.type === 'AP').length;
+        const honorsCourses = courses.filter((c: any) => c.type === 'Honors').length;
+        const totalCourses = courses.length > 0 ? courses.length : 1; // Avoid division by zero
+        // Give more weight to AP. Max score is 100 if all courses are AP.
+        const rigorScore = Math.min(100, ((apCourses * 2 + honorsCourses) / (totalCourses * 2)) * 100);
 
-
+        // Extracurricular score
+        const totalActivityStrength = savedActivities.reduce((sum, activity) => sum + activity.strength, 0);
+        const averageActivityStrength = savedActivities.length > 0 ? totalActivityStrength / savedActivities.length : 0;
+    
         // Combine scores
-        const combinedStrength = (averageActivityStrength * extracurricularWeight) + (satPercentage * satWeight) + (gpaPercentage * gpaWeight);
+        const combinedStrength = (satPercentage * satWeight) + (gpaPercentage * gpaWeight) + (rigorScore * rigorWeight) + (averageActivityStrength * extracurricularWeight);
         
         return Math.round(Math.max(0, Math.min(100, combinedStrength)));
-    }, [savedActivities, satScore, weightedGpa]);
+    }, [savedActivities, satScore, weightedGpa, courses]);
 
 
     useEffect(() => {
@@ -111,6 +121,11 @@ export default function CollegePrepPage() {
         if(storedWeightedGpa) setWeightedGpa(storedWeightedGpa);
         const storedUnweightedGpa = localStorage.getItem('unweightedGpa');
         if(storedUnweightedGpa) setUnweightedGpa(storedUnweightedGpa);
+        
+        const storedCourses = localStorage.getItem('transcriptCourses');
+        if (storedCourses) {
+            setCourses(JSON.parse(storedCourses));
+        }
 
         setLoading(false);
     }, []);
@@ -372,7 +387,7 @@ export default function CollegePrepPage() {
                         </CardHeader>
                         <CardContent className="space-y-6">
                              <div>
-                                <label className="font-semibold text-sm">SAT Score</label>
+                                <label className="font-semibold text-sm">My SAT Score</label>
                                 <div className="text-center font-bold text-3xl text-primary my-2">{satScore}</div>
                                 <Slider
                                     defaultValue={[satScore]}
@@ -392,6 +407,9 @@ export default function CollegePrepPage() {
                                     <Input placeholder="e.g., 3.8" value={unweightedGpa} onChange={(e) => handleGpaChange('unweighted', e.target.value)} />
                                 </div>
                             </div>
+                             <Button variant="outline" className="w-full" asChild>
+                                <Link href="/dashboard/college-prep/transcript">Manage Transcript</Link>
+                            </Button>
                         </CardContent>
                     </Card>
                     <Card>
