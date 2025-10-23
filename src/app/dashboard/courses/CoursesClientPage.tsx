@@ -7,7 +7,7 @@ import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Play, Pause, ChevronLeft, ChevronRight, Wand2, FlaskConical, Lightbulb, Copy, RefreshCw, Check, Star, CheckCircle, Send, Bot, GitMerge, PanelLeft, Minimize, Maximize, Loader2, Plus, Trash2, MoreVertical, XCircle, ArrowRight, RotateCcw, Video, Image as ImageIcon, BookCopy, Link as LinkIcon, Headphones, Underline, Highlighter, Rabbit, Snail, Turtle, Book, Mic, Bookmark, Brain, KeySquare } from 'lucide-react';
+import { Play, Pause, ChevronLeft, ChevronRight, Wand2, FlaskConical, Lightbulb, Copy, RefreshCw, Check, Star, CheckCircle, Send, Bot, GitMerge, PanelLeft, Minimize, Maximize, Loader2, Plus, Trash2, MoreVertical, XCircle, ArrowRight, RotateCcw, Video, Image as ImageIcon, BookCopy, Link as LinkIcon, Headphones, Underline, Highlighter, Rabbit, Snail, Turtle, Book, Mic, Bookmark, Brain, KeySquare, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
@@ -768,7 +768,7 @@ function CoursesComponent() {
   const toggleFocusMode = () => {
     if (!document.fullscreenElement) {
         document.documentElement.requestFullscreen().catch(err => {
-            alert(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+            alert(`Error attempting to enable full-screen mode: ${'${err.message}'} (${'${err.name}'})`);
         });
     } else {
         document.exitFullscreen();
@@ -1407,7 +1407,10 @@ function CoursesComponent() {
              <div className="flex flex-col h-full">
                 <div className="mb-4">
                     <div className="flex items-center justify-between">
-                        <div className="flex-1 overflow-hidden">
+                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={startNewCourse}>
+                            <ArrowLeft className="h-4 w-4" />
+                        </Button>
+                        <div className="flex-1 overflow-hidden text-center">
                              <h2 className="text-lg font-bold truncate">{activeCourse?.name}</h2>
                             <p className="text-sm text-muted-foreground">{chapterCount > 0 ? `${chapterCount} Chapters` : 'No units created'}</p>
                         </div>
