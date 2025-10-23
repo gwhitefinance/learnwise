@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, Suspense, useContext } from 'react';
@@ -43,6 +44,7 @@ const EmbeddedChat = ({ topic, currentQuestion }: { topic: string | null, curren
     const [chatInput, setChatInput] = useState('');
     const { toast } = useToast();
     const [user] = useAuthState(auth);
+    const router = useRouter();
 
     const handleChatSubmit = async () => {
         if (!chatInput.trim() || !user || !currentQuestion) return;
@@ -76,7 +78,7 @@ const EmbeddedChat = ({ topic, currentQuestion }: { topic: string | null, curren
     return (
         <div className="p-4 border-r h-full flex flex-col bg-card">
             <header className="p-2 mb-4 flex items-center gap-2 bg-muted rounded-lg">
-                <Button variant="ghost" size="icon" className="bg-muted h-9 w-9">
+                <Button variant="ghost" size="icon" className="bg-muted h-9 w-9" onClick={() => router.push('/dashboard/sat-prep')}>
                     <ArrowLeft className="h-5 w-5"/>
                 </Button>
                 <h3 className="font-semibold text-center flex-1">Ask Tutorin</h3>
@@ -259,6 +261,7 @@ function StudySessionPageContent({ topic }: { topic: 'Math' | 'Reading & Writing
         } else {
             // End of session, calculate results
             setFeedbackLoading(true);
+            setSessionState('results');
             const totalTime = Object.values(questionTimers).reduce((sum, time) => sum + time, 0);
             const correctAnswers = questions.filter((q, i) => userAnswers[i] === q.correctAnswer).length;
             
@@ -301,14 +304,13 @@ function StudySessionPageContent({ topic }: { topic: 'Math' | 'Reading & Writing
             const results = {
                 accuracy: (correctAnswers / questions.length) * 100,
                 totalQuestions: questions.length,
-                avgTime: totalTime / questions.length,
+                avgTime: questions.length > 0 ? totalTime / questions.length : 0,
                 accuracyByTopic,
                 accuracyByDifficulty,
                 feedback: feedbackResult.feedback,
             };
             setResultsData(results);
             setFeedbackLoading(false);
-            setSessionState('results');
         }
     };
     
@@ -566,5 +568,7 @@ export default function StudySessionPage() {
         </Suspense>
     );
 }
+
+    
 
     
