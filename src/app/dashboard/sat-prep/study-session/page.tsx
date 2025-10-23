@@ -9,7 +9,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { SatQuestion, AnswerFeedback as FeedbackAnswer, FeedbackInput } from '@/ai/schemas/sat-study-session-schema';
+import type { SatQuestion, FeedbackInput } from '@/ai/schemas/sat-study-session-schema';
 import { cn } from '@/lib/utils';
 import { ArrowLeft, ArrowRight, CheckCircle, Clock, XCircle, FileText, BookOpen, Calculator, Send, Bot, Wand2, Star, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -68,7 +68,7 @@ const EmbeddedChat = ({ topic, currentQuestion }: { topic: string | null, curren
 
     return (
         <div className="p-4 border-r h-full flex flex-col bg-card">
-             <header className="p-2 mb-4 flex items-center gap-2 bg-muted rounded-lg">
+            <header className="p-2 mb-4 flex items-center gap-2 bg-muted rounded-lg">
                 <Button variant="ghost" size="icon" className="bg-muted h-9 w-9">
                     <ArrowLeft className="h-5 w-5"/>
                 </Button>
@@ -555,3 +555,5 @@ export default function StudySessionPage() {
         </Suspense>
     );
 }
+
+    
