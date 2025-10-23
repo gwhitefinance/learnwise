@@ -64,7 +64,7 @@ export default function CollegePrepPage() {
     const [savedActivities, setSavedActivities] = useState<SavedActivity[]>([]);
     
     // SAT Score state
-    const [goalScore, setGoalScore] = useState(1200);
+    const [satScore, setSatScore] = useState(1200);
 
 
     useEffect(() => {
@@ -81,9 +81,9 @@ export default function CollegePrepPage() {
             setSavedActivities(JSON.parse(savedActivitiesData));
         }
         
-        const storedGoalScore = localStorage.getItem('satGoalScore');
-        if (storedGoalScore) {
-            setGoalScore(parseInt(storedGoalScore, 10));
+        const storedSatScore = localStorage.getItem('satScore');
+        if (storedSatScore) {
+            setSatScore(parseInt(storedSatScore, 10));
         }
 
         setLoading(false);
@@ -161,10 +161,10 @@ export default function CollegePrepPage() {
         setActivityTitle('');
     };
 
-    const handleGoalScoreChange = (value: number[]) => {
+    const handleSatScoreChange = (value: number[]) => {
         const newScore = value[0];
-        setGoalScore(newScore);
-        localStorage.setItem('satGoalScore', String(newScore));
+        setSatScore(newScore);
+        localStorage.setItem('satScore', String(newScore));
     };
 
 
@@ -329,17 +329,17 @@ export default function CollegePrepPage() {
                 <div className="space-y-6">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Goal SAT Score</CardTitle>
-                            <CardDescription>Adjust the slider to set your target score.</CardDescription>
+                            <CardTitle>My SAT Score</CardTitle>
+                            <CardDescription>Set your obtained SAT score.</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-center font-bold text-4xl text-primary mb-6">{goalScore}</div>
+                            <div className="text-center font-bold text-4xl text-primary mb-6">{satScore}</div>
                             <Slider
-                                defaultValue={[goalScore]}
+                                defaultValue={[satScore]}
                                 max={1600}
                                 min={400}
                                 step={10}
-                                onValueChange={handleGoalScoreChange}
+                                onValueChange={handleSatScoreChange}
                             />
                         </CardContent>
                     </Card>
