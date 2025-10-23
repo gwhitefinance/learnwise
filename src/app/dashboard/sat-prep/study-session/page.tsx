@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, Suspense, useContext } from 'react';
@@ -24,7 +25,7 @@ import { FloatingChatContext } from '@/components/floating-chat';
 import { addDoc, collection } from 'firebase/firestore';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import GeneratingSession from '../GeneratingSession';
-import { generateFeedbackAction, generateSatStudySessionAction, generateMiniCourse, generateTutorResponse } from '@/lib/actions';
+import { generateSatStudySessionAction, generateMiniCourse, generateTutorResponse, generateFeedbackAction } from '@/lib/actions';
 
 
 const EmbeddedChat = ({ topic, currentQuestion }: { topic: string | null, currentQuestion: SatQuestion | null }) => {
@@ -67,7 +68,7 @@ const EmbeddedChat = ({ topic, currentQuestion }: { topic: string | null, curren
 
     return (
         <div className="p-4 border-r h-full flex flex-col bg-card">
-             <header className="p-2 mb-4 flex items-center gap-2">
+             <header className="p-2 mb-4 flex items-center gap-2 bg-muted rounded-lg">
                 <Button variant="ghost" size="icon" className="bg-muted h-9 w-9">
                     <ArrowLeft className="h-5 w-5"/>
                 </Button>
