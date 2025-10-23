@@ -8,13 +8,17 @@ import { Button } from '@/components/ui/button';
 import { GraduationCap, Heart, Search, Filter, ArrowRight, MoreHorizontal, Check, Plus, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Loading from './loading';
-import { allUSColleges } from '@/lib/colleges';
 import Link from 'next/link';
+import { searchColleges } from './actions';
 
 type College = {
-    id: string;
-    name: string;
-    location: string;
+    id: number;
+    'school.name': string;
+    'school.city': string;
+    'school.state': string;
+};
+
+type FavoriteCollege = College & {
     isFavorited: boolean;
 };
 
@@ -30,36 +34,49 @@ export default function CollegePrepPage() {
     const [loading, setLoading] = useState(true);
     const router = useRouter();
 
-    const [favoritedColleges, setFavoritedColleges] = useState<College[]>([
-        { id: '133658', name: 'University of Florida', location: 'Gainesville, FL', isFavorited: true },
-    ]);
+    const [favoritedColleges, setFavoritedColleges] = useState<FavoriteCollege[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState<College[]>([]);
+    const [isSearching, setIsSearching] = useState(false);
 
     useEffect(() => {
         const storedGrade = localStorage.getItem('onboardingGradeLevel');
         setGradeLevel(storedGrade);
+        
+        // Load favorites from local storage
+        const savedFavorites = localStorage.getItem('favoritedColleges');
+        if (savedFavorites) {
+            setFavoritedColleges(JSON.parse(savedFavorites));
+        }
+
         setLoading(false);
     }, []);
     
     useEffect(() => {
-        if (searchTerm.trim().length < 2) {
+        // Save favorites to local storage whenever they change
+        localStorage.setItem('favoritedColleges', JSON.stringify(favoritedColleges));
+    }, [favoritedColleges]);
+
+    useEffect(() => {
+        if (searchTerm.trim().length < 3) {
             setSearchResults([]);
             return;
         }
 
-        const lowerCaseSearchTerm = searchTerm.toLowerCase();
-        const filtered = allUSColleges
-            .filter(college => college.name.toLowerCase().includes(lowerCaseSearchTerm))
-            .slice(0, 10) // Limit to top 10 results for performance
-            .map(college => ({
-                ...college,
-                isFavorited: favoritedColleges.some(fav => fav.id === college.id),
-            }));
+        const handleSearch = async () => {
+            setIsSearching(true);
+            const results = await searchColleges(searchTerm);
+            setSearchResults(results);
+            setIsSearching(false);
+        };
         
-        setSearchResults(filtered);
+        const debounce = setTimeout(() => {
+            handleSearch();
+        }, 300);
 
-    }, [searchTerm, favoritedColleges]);
+        return () => clearTimeout(debounce);
+
+    }, [searchTerm]);
     
     const toggleFavorite = (college: College) => {
         setFavoritedColleges(prev => {
@@ -70,7 +87,6 @@ export default function CollegePrepPage() {
                 return [...prev, { ...college, isFavorited: true }];
             }
         });
-         setSearchResults(prev => prev.map(res => res.id === college.id ? {...res, isFavorited: !res.isFavorited} : res));
     };
 
     if (loading) {
@@ -115,30 +131,31 @@ export default function CollegePrepPage() {
                             <div className="flex gap-2 mb-4">
                                 <div className="relative flex-1">
                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                    <input 
-                                        placeholder="Search colleges by name..." 
+                                    <Input 
+                                        placeholder="Search over 6,000 colleges by name..." 
                                         className="w-full pl-10 pr-4 py-2 h-10 rounded-md border bg-background" 
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                     />
+                                    {isSearching && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin" />}
                                 </div>
                                 <Button variant="outline"><Filter className="mr-2 h-4 w-4" /> Filters</Button>
                             </div>
                             
-                            {searchResults.length > 0 && (
+                            {searchResults.length > 0 && searchTerm.length >= 3 && (
                                 <div className="border rounded-lg max-h-60 overflow-y-auto mb-4">
                                     {searchResults.map(college => (
-                                        <Link key={college.id} href={`/dashboard/college-prep/${college.id}`} className="block">
-                                            <div className="flex items-center justify-between p-3 border-b hover:bg-muted">
+                                        <div key={college.id} className="flex items-center justify-between p-3 border-b hover:bg-muted">
+                                            <Link href={`/dashboard/college-prep/${college.id}`} className="block flex-1">
                                                 <div>
-                                                    <p className="font-semibold">{college.name}</p>
-                                                    <p className="text-xs text-muted-foreground">{college.location}</p>
+                                                    <p className="font-semibold">{college['school.name']}</p>
+                                                    <p className="text-xs text-muted-foreground">{college['school.city']}, {college['school.state']}</p>
                                                 </div>
-                                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.preventDefault(); toggleFavorite(college);}}>
-                                                    <Heart className={cn("h-4 w-4", college.isFavorited ? "fill-red-500 text-red-500" : "text-muted-foreground")} />
-                                                </Button>
-                                            </div>
-                                        </Link>
+                                            </Link>
+                                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.preventDefault(); toggleFavorite(college);}}>
+                                                <Heart className={cn("h-4 w-4", favoritedColleges.some(fav => fav.id === college.id) ? "fill-red-500 text-red-500" : "text-muted-foreground")} />
+                                            </Button>
+                                        </div>
                                     ))}
                                 </div>
                             )}
@@ -149,8 +166,8 @@ export default function CollegePrepPage() {
                                     <Link key={college.id} href={`/dashboard/college-prep/${college.id}`} className="block">
                                         <div className="flex items-center justify-between p-3 rounded-lg bg-muted hover:bg-muted/80">
                                             <div>
-                                                <p className="font-semibold">{college.name}</p>
-                                                <p className="text-xs text-muted-foreground">{college.location}</p>
+                                                <p className="font-semibold">{college['school.name']}</p>
+                                                <p className="text-xs text-muted-foreground">{college['school.city']}, {college['school.state']}</p>
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.preventDefault(); toggleFavorite(college); }}>
