@@ -5,12 +5,15 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { GraduationCap, Heart, Search, Filter, ArrowRight, MoreHorizontal, Check, Plus, Loader2 } from 'lucide-react';
+import { GraduationCap, Heart, Search, Filter, ArrowRight, MoreHorizontal, Check, Plus, Loader2, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Loading from './loading';
 import Link from 'next/link';
 import { searchColleges } from './actions';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { enhanceExtracurricular } from '@/lib/actions';
+import { Progress } from '@/components/ui/progress';
 
 type College = {
     id: number;
@@ -21,6 +24,11 @@ type College = {
 
 type FavoriteCollege = College & {
     isFavorited: boolean;
+};
+
+type EnhancedActivity = {
+    enhancedDescription: string;
+    strength: number;
 };
 
 const mockChecklist = [
@@ -39,6 +47,12 @@ export default function CollegePrepPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState<College[]>([]);
     const [isSearching, setIsSearching] = useState(false);
+    
+    // Extracurricular state
+    const [activityInput, setActivityInput] = useState('');
+    const [isEnhancing, setIsEnhancing] = useState(false);
+    const [enhancedActivity, setEnhancedActivity] = useState<EnhancedActivity | null>(null);
+
 
     useEffect(() => {
         const storedGrade = localStorage.getItem('onboardingGradeLevel');
@@ -89,6 +103,21 @@ export default function CollegePrepPage() {
             }
         });
     };
+    
+    const handleEnhanceActivity = async () => {
+        if (!activityInput.trim()) return;
+        setIsEnhancing(true);
+        setEnhancedActivity(null);
+        try {
+            const result = await enhanceExtracurricular({ activityDescription: activityInput });
+            setEnhancedActivity(result);
+        } catch (error) {
+            console.error("Failed to enhance activity:", error);
+        } finally {
+            setIsEnhancing(false);
+        }
+    };
+
 
     if (loading) {
         return <Loading />; 
@@ -182,6 +211,38 @@ export default function CollegePrepPage() {
                                     <div className="text-sm text-center text-muted-foreground p-4">Your favorited colleges will appear here.</div>
                                 )}
                             </div>
+                        </CardContent>
+                    </Card>
+                     <Card>
+                        <CardHeader>
+                            <CardTitle>Extracurricular Enhancer</CardTitle>
+                            <CardDescription>Let AI help you word your activities professionally for college apps.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <Textarea 
+                                placeholder="Describe an activity, e.g., 'I was the captain of the debate team and we won the state championship.'"
+                                value={activityInput}
+                                onChange={(e) => setActivityInput(e.target.value)}
+                            />
+                            <Button onClick={handleEnhanceActivity} disabled={isEnhancing}>
+                                {isEnhancing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                                Enhance with AI
+                            </Button>
+                            {enhancedActivity && (
+                                <div className="pt-4 space-y-4">
+                                    <div>
+                                        <h4 className="font-semibold">Suggested Description:</h4>
+                                        <p className="text-muted-foreground p-3 bg-muted rounded-lg mt-1">{enhancedActivity.enhancedDescription}</p>
+                                    </div>
+                                    <div>
+                                         <h4 className="font-semibold">Strength Score:</h4>
+                                          <div className="flex items-center gap-4">
+                                            <Progress value={enhancedActivity.strength} className="w-full"/>
+                                            <span className="font-bold text-primary text-lg">{enhancedActivity.strength}%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
                     <Card>
