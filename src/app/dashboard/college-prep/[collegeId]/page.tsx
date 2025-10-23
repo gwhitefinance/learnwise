@@ -40,18 +40,27 @@ const StatCard = ({ title, value, icon }: { title: string; value: string | numbe
 
 const ChanceIndicator = ({ label, userStat, collegeStat, higherIsBetter = true }: { label: string, userStat: number | null, collegeStat: number | null, higherIsBetter?: boolean }) => {
     let comparison: 'Below' | 'On Par' | 'Above' | 'N/A' = 'N/A';
-    if (userStat !== null && collegeStat !== null) {
-        const difference = userStat - collegeStat;
-        const threshold = label === 'SAT' ? 50 : 10;
-        
-        if (Math.abs(difference) <= threshold) {
-            comparison = 'On Par';
-        } else if (difference > threshold) {
-            comparison = higherIsBetter ? 'Above' : 'Below';
-        } else {
-            comparison = higherIsBetter ? 'Below' : 'Above';
+
+    if (userStat !== null) {
+         // Special handling for App Strength which doesn't have a direct college stat to compare to.
+        if (collegeStat === null && label === 'App Strength') {
+            if (userStat >= 75) comparison = 'Above';
+            else if (userStat >= 50) comparison = 'On Par';
+            else comparison = 'Below';
+        } else if (collegeStat !== null) {
+            const difference = userStat - collegeStat;
+            const threshold = label === 'SAT' ? 50 : 10;
+            
+            if (Math.abs(difference) <= threshold) {
+                comparison = 'On Par';
+            } else if (difference > threshold) {
+                comparison = higherIsBetter ? 'Above' : 'Below';
+            } else {
+                comparison = higherIsBetter ? 'Below' : 'Above';
+            }
         }
     }
+
 
     const colors = {
         'Above': 'text-green-500',
@@ -64,7 +73,7 @@ const ChanceIndicator = ({ label, userStat, collegeStat, higherIsBetter = true }
         <div className="flex justify-between items-center text-sm">
             <span className="text-muted-foreground">{label}</span>
             <div className="flex items-center gap-2">
-                <span className="font-bold">{userStat ?? 'N/A'} vs {collegeStat ?? 'N/A'}</span>
+                <span className="font-bold">{userStat ?? 'N/A'}{collegeStat !== null ? ` vs ${collegeStat}`: ''}</span>
                 <span className={cn("font-semibold", colors[comparison])}>{comparison}</span>
             </div>
         </div>
@@ -115,48 +124,49 @@ export default function CollegeDetailPage() {
     }, [collegeId]);
     
      const admissionChance = useMemo(() => {
-        if (!college || userAppStrength === null) return { category: 'N/A', description: 'Enter your profile details to see your chances.' };
+        if (!college || userAppStrength === null || userSatScore === null) {
+            return { percentage: null, description: 'Enter your profile details to see your chances.' };
+        }
 
-        const acceptanceRate = college['latest.admissions.admission_rate.overall'];
-        if (acceptanceRate === null) return { category: 'N/A', description: 'Admission data not available.' };
-
-        // Define school selectivity tiers
-        let schoolTier: 'Highly Selective' | 'Selective' | 'Less Selective';
-        if (acceptanceRate <= 0.25) schoolTier = 'Highly Selective';
-        else if (acceptanceRate <= 0.50) schoolTier = 'Selective';
-        else schoolTier = 'Less Selective';
-
-        // Categorize user's application strength
-        let userTier: 'Strong' | 'Competitive' | 'Developing';
-        if (userAppStrength >= 75) userTier = 'Strong';
-        else if (userAppStrength >= 50) userTier = 'Competitive';
-        else userTier = 'Developing';
+        const baseAcceptanceRate = college['latest.admissions.admission_rate.overall'] ?? 0.5; // Default to 50% if not available
+        const avgSat = college['latest.admissions.sat_scores.average.overall'] ?? 1200; // Default to 1200
         
-        // Determine admission chance
-        if (schoolTier === 'Highly Selective') {
-            if (userTier === 'Strong') return { category: 'Target', description: 'Your strong profile makes this a reasonable goal, but admission is still very competitive.' };
-            return { category: 'Reach', description: 'Admission is highly competitive. Focus on strengthening every part of your application.' };
-        }
-        if (schoolTier === 'Selective') {
-            if (userTier === 'Strong') return { category: 'Likely', description: 'Your profile is strong for this school, making it a likely admission.' };
-            if (userTier === 'Competitive') return { category: 'Target', description: 'Your profile is a good match for this school. A solid application should give you a good chance.' };
-            return { category: 'Reach', description: 'This could be a reach. Focus on your essays and recommendations to stand out.' };
-        }
-        if (schoolTier === 'Less Selective') {
-            if (userTier === 'Strong' || userTier === 'Competitive') return { category: 'Likely', description: 'You have a very strong chance of admission with a complete application.' };
-            return { category: 'Target', description: 'Your profile is competitive. Ensure your application is well-polished.' };
-        }
+        // 1. SAT Score Factor (Weight: 50%)
+        const satDifference = userSatScore - avgSat;
+        // SAT score boost/penalty can adjust chance by up to +/- 25%
+        const satFactor = Math.max(-0.25, Math.min(0.25, satDifference / 400)); // Capped at +/- 100 points difference
         
-        return { category: 'N/A', description: 'Could not determine admission chance.' };
+        // 2. App Strength Factor (Weight: 50%)
+        let expectedAppStrength = 50; // Default for 'Less Selective'
+        if (baseAcceptanceRate <= 0.25) expectedAppStrength = 80; // Highly Selective
+        else if (baseAcceptanceRate <= 0.50) expectedAppStrength = 65; // Selective
+        
+        const appStrengthDifference = (userAppStrength - expectedAppStrength) / 100;
+        // App strength can adjust chance by up to +/- 20%
+        const appStrengthFactor = Math.max(-0.20, Math.min(0.20, appStrengthDifference));
 
-    }, [college, userAppStrength]);
+        // Calculate final chance
+        let calculatedChance = baseAcceptanceRate + (satFactor * 0.5) + (appStrengthFactor * 0.5);
+        calculatedChance = Math.max(0.01, Math.min(0.99, calculatedChance)); // Clamp between 1% and 99%
+
+        const percentage = Math.round(calculatedChance * 100);
+        
+        let description = "This is an estimate based on your profile and school data.";
+        if (percentage >= 75) description = "You have a strong profile for this school. Keep up the great work!";
+        else if (percentage >= 40) description = "You're a competitive applicant. Focus on your essays and recommendations to stand out.";
+        else description = "This is a reach. Focus on strengthening every part of your application.";
+
+        return { percentage, description };
+
+    }, [college, userAppStrength, userSatScore]);
     
-    const chanceColors = {
-        'Likely': 'bg-green-500/10 text-green-600 border-green-500/20',
-        'Target': 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20',
-        'Reach': 'bg-red-500/10 text-red-600 border-red-500/20',
-        'N/A': 'bg-muted text-muted-foreground border-border'
+    const getChanceColor = (percentage: number | null) => {
+        if (percentage === null) return 'bg-muted text-muted-foreground border-border';
+        if (percentage >= 75) return 'bg-green-500/10 text-green-600 border-green-500/20';
+        if (percentage >= 40) return 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20';
+        return 'bg-red-500/10 text-red-600 border-red-500/20';
     }
+
 
     if (loading) {
         return <Loading />;
@@ -190,16 +200,16 @@ export default function CollegeDetailPage() {
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                  <div className="md:col-span-2">
-                     <Card className={cn("h-full", chanceColors[admissionChance.category as keyof typeof chanceColors])}>
+                     <Card className={cn("h-full", getChanceColor(admissionChance.percentage))}>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2"><Trophy/> Your Admission Chances</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="text-center">
-                                <p className="text-4xl font-bold">{admissionChance.category}</p>
+                                <p className="text-6xl font-bold">{admissionChance.percentage !== null ? `${admissionChance.percentage}%` : 'N/A'}</p>
                                 <p className="text-sm text-muted-foreground mt-1">{admissionChance.description}</p>
                             </div>
-                            <div className="space-y-2 pt-4 border-t">
+                             <div className="space-y-2 pt-4 border-t">
                                 <ChanceIndicator label="SAT" userStat={userSatScore} collegeStat={college['latest.admissions.sat_scores.average.overall']} />
                                  <ChanceIndicator label="App Strength" userStat={userAppStrength} collegeStat={null} />
                             </div>
