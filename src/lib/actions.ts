@@ -33,6 +33,7 @@ import { generateFeedbackFlow } from '@/ai/flows/sat-feedback-flow';
 import { generateHint } from '@/ai/flows/quiz-hint-flow';
 import { enhanceExtracurricular } from '@/ai/flows/extracurricular-enhancer-flow';
 import { generateCollegeDescription } from '@/ai/flows/college-description-flow';
+import { generateCollegeChecklist } from '@/ai/flows/college-checklist-flow';
 
 
 // Re-exporting all AI functions as Server Actions
@@ -68,4 +69,5 @@ export {
     generateHint,
     enhanceExtracurricular,
     generateCollegeDescription,
+    generateCollegeChecklist,
 };

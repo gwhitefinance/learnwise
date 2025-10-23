@@ -32,3 +32,4 @@ import './flows/sat-feedback-flow';
 import './flows/quiz-hint-flow';
 import './flows/extracurricular-enhancer-flow';
 import './flows/college-description-flow';
+import './flows/college-checklist-flow';

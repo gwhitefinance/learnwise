@@ -7,10 +7,10 @@ import { getCollegeDetails } from '../actions';
 import { notFound } from 'next/navigation';
 import Loading from './loading';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, BookOpen, ExternalLink, GraduationCap, Percent, School, BarChart, Trophy, Star } from 'lucide-react';
+import { ArrowLeft, BookOpen, ExternalLink, GraduationCap, Percent, School, BarChart, Trophy, Star, CheckCircle, XCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { generateCollegeDescription } from '@/lib/actions';
+import { generateCollegeDescription, generateCollegeChecklist } from '@/lib/actions';
 import { Skeleton } from '@/components/ui/skeleton';
 
 type CollegeDetails = {
@@ -26,6 +26,16 @@ type CollegeDetails = {
     'latest.cost.tuition.in_state': number | null;
     'latest.cost.tuition.out_of_state': number | null;
 };
+
+type ChecklistItem = {
+    name: string;
+    level: 'Very Important' | 'Considered' | 'Not Considered';
+}
+
+type CollegeChecklist = {
+    checklist: ChecklistItem[];
+}
+
 
 const StatCard = ({ title, value, icon }: { title: string; value: string | number | null; icon: React.ReactNode }) => (
     <Card>
@@ -86,6 +96,8 @@ export default function CollegeDetailPage() {
     const [userState, setUserState] = useState<string | null>(null);
     const [description, setDescription] = useState<string | null>(null);
     const [isDescriptionLoading, setIsDescriptionLoading] = useState(true);
+    const [checklist, setChecklist] = useState<CollegeChecklist | null>(null);
+    const [isChecklistLoading, setIsChecklistLoading] = useState(true);
 
     useEffect(() => {
         if (typeof collegeId !== 'string') return;
@@ -106,18 +118,22 @@ export default function CollegeDetailPage() {
             const satScore = localStorage.getItem('satScore') ? parseInt(localStorage.getItem('satScore')!, 10) : 1000;
             const weightedGpa = localStorage.getItem('weightedGpa') ? parseFloat(localStorage.getItem('weightedGpa')!) : 3.0;
             const transcriptCourses = localStorage.getItem('transcriptCourses') ? JSON.parse(localStorage.getItem('transcriptCourses')!) : [];
+            const volunteerHours = localStorage.getItem('volunteerHours') ? parseInt(localStorage.getItem('volunteerHours')!, 10) : 0;
 
-            const satWeight = 0.35;
-            const gpaWeight = 0.30;
+            const satWeight = 0.30;
+            const gpaWeight = 0.25;
             const rigorWeight = 0.20;
             const extracurricularWeight = 0.15;
+            const volunteerWeight = 0.10;
         
-            const satPercentage = Math.pow((satScore - 400) / 1200, 0.8) * 100;
+            const satPercentage = Math.max(0, ((satScore - 400) / 1200) * 100);
         
+            const gpaValue = weightedGpa;
             let gpaPercentage = 0;
-            if (!isNaN(weightedGpa)) {
-                const baseGpaScore = Math.min(1.2, weightedGpa / 4.0);
-                gpaPercentage = baseGpaScore * 100;
+            if (!isNaN(gpaValue)) {
+                const baseGpaScore = Math.max(0, gpaValue / 5.0) * 100;
+                gpaPercentage = baseGpaScore;
+                if(gpaValue < 3.0) gpaPercentage *= 0.8;
             }
         
             const apCourses = transcriptCourses.filter((c: any) => c.type === 'AP').length;
@@ -125,19 +141,23 @@ export default function CollegeDetailPage() {
             const totalCourses = transcriptCourses.length > 0 ? transcriptCourses.length : 1;
             const rigorPoints = (apCourses * 2 + honorsCourses);
             const rigorIndex = rigorPoints / totalCourses; 
-            const rigorScore = Math.min(120, rigorIndex * 80);
+            const rigorScore = Math.min(100, (rigorIndex / 1.5) * 100);
     
-            const totalActivityStrength = savedActivities.reduce((sum: number, activity: { strength: number }) => {
-                const impact = activity.strength > 50 ? (activity.strength - 50) : 0;
+             const totalActivityStrength = savedActivities.reduce((sum: number, activity: { strength: number }) => {
+                const impact = activity.strength > 50 ? (activity.strength - 50) : (activity.strength - 50) / 2;
                 return sum + 50 + impact;
             }, 0);
-            const averageActivityStrength = savedActivities.length > 0 ? totalActivityStrength / savedActivities.length : 50;
+            const averageActivityStrength = savedActivities.length > 0 ? totalActivityStrength / savedActivities.length : 0;
+            
+            const hours = volunteerHours;
+            const volunteerScore = Math.min(100, Math.pow(hours / 200, 0.7) * 100);
         
-            const combinedStrength = 
-                (satPercentage * satWeight) + 
-                (gpaPercentage * gpaWeight) + 
-                (rigorScore * rigorWeight) + 
-                (averageActivityStrength * extracurricularWeight);
+            const combinedStrength =
+                (satPercentage * satWeight) +
+                (gpaPercentage * gpaWeight) +
+                (rigorScore * rigorWeight) +
+                (averageActivityStrength * extracurricularWeight) +
+                (volunteerScore * volunteerWeight);
             
             setUserAppStrength(Math.round(Math.max(0, Math.min(100, combinedStrength))));
         }
@@ -170,6 +190,23 @@ export default function CollegeDetailPage() {
                 .finally(() => {
                     setIsDescriptionLoading(false);
                 });
+
+            setIsChecklistLoading(true);
+            generateCollegeChecklist({
+                collegeName: college['school.name'],
+                acceptanceRate: college['latest.admissions.admission_rate.overall'],
+                satScore: college['latest.admissions.sat_scores.average.overall'],
+            })
+            .then(result => {
+                setChecklist(result);
+            })
+            .catch(err => {
+                console.error("Failed to generate checklist:", err);
+                setChecklist(null);
+            })
+            .finally(() => {
+                setIsChecklistLoading(false);
+            });
         }
     }, [college]);
     
@@ -181,27 +218,23 @@ export default function CollegeDetailPage() {
         const baseAcceptanceRate = college['latest.admissions.admission_rate.overall'] ?? 0.5;
         const avgSat = college['latest.admissions.sat_scores.average.overall'] ?? 1200;
         
-        // 1. SAT Score Factor
         const satDifference = userSatScore - avgSat;
         let satFactor = 0;
-        // More impactful factor based on SAT difference
         if (satDifference > 0) {
-            satFactor = Math.min(0.25, (satDifference / 200)); // Cap bonus
+            satFactor = Math.min(0.25, (satDifference / 200));
         } else {
-            satFactor = Math.max(-0.35, (satDifference / 150)); // Cap penalty
+            satFactor = Math.max(-0.35, (satDifference / 150));
         }
 
 
-        // 2. App Strength Factor
         let expectedAppStrength = 50; 
-        if (baseAcceptanceRate <= 0.15) expectedAppStrength = 85; // Highly Selective
-        else if (baseAcceptanceRate <= 0.35) expectedAppStrength = 70; // Selective
-        else if (baseAcceptanceRate <= 0.60) expectedAppStrength = 55; // Moderately Selective
+        if (baseAcceptanceRate <= 0.15) expectedAppStrength = 85;
+        else if (baseAcceptanceRate <= 0.35) expectedAppStrength = 70;
+        else if (baseAcceptanceRate <= 0.60) expectedAppStrength = 55;
 
         const appStrengthDifference = (userAppStrength - expectedAppStrength);
         const appStrengthFactor = Math.max(-0.2, Math.min(0.2, appStrengthDifference / 100));
         
-        // 3. In-State Factor
         const isInState = userState && college['school.state'] === userState;
         const inStateBonus = isInState ? Math.min(baseAcceptanceRate * 0.5, 0.15) : 0; 
 
@@ -246,6 +279,16 @@ export default function CollegeDetailPage() {
         if (value === null) return 'N/A';
         return `${(value * 100).toFixed(1)}%`;
     }
+
+    const ChecklistIcon = ({ level }: { level: ChecklistItem['level'] }) => {
+        switch(level) {
+            case 'Very Important': return <CheckCircle className="h-5 w-5 text-green-500" />;
+            case 'Considered': return <CheckCircle className="h-5 w-5 text-yellow-500" />;
+            case 'Not Considered': return <XCircle className="h-5 w-5 text-red-500" />;
+            default: return null;
+        }
+    };
+
 
     return (
         <div className="max-w-5xl mx-auto p-4 md:p-8 space-y-8">
@@ -317,6 +360,34 @@ export default function CollegeDetailPage() {
                                 </div>
                             ) : (
                                 <p className="text-muted-foreground">{description}</p>
+                            )}
+                        </CardContent>
+                    </Card>
+                     <Card>
+                        <CardHeader>
+                            <CardTitle>What They Consider</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {isChecklistLoading ? (
+                                <div className="space-y-3">
+                                    <Skeleton className="h-6 w-full" />
+                                    <Skeleton className="h-6 w-full" />
+                                    <Skeleton className="h-6 w-full" />
+                                </div>
+                            ) : checklist ? (
+                                <ul className="space-y-3">
+                                {checklist.checklist.map(item => (
+                                    <li key={item.name} className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                                        <span className="font-medium">{item.name}</span>
+                                        <div className="flex items-center gap-2 text-sm">
+                                            <ChecklistIcon level={item.level} />
+                                            <span>{item.level}</span>
+                                        </div>
+                                    </li>
+                                ))}
+                                </ul>
+                            ) : (
+                                <p className="text-muted-foreground text-center">Could not load admission considerations.</p>
                             )}
                         </CardContent>
                     </Card>
