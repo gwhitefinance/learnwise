@@ -31,3 +31,4 @@ import './flows/sat-study-session-flow';
 import './flows/sat-feedback-flow';
 import './flows/quiz-hint-flow';
 import './flows/extracurricular-enhancer-flow';
+import './flows/college-description-flow';

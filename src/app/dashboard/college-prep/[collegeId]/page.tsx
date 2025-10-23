@@ -10,7 +10,8 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, BookOpen, ExternalLink, GraduationCap, Percent, School, BarChart, Trophy, Star } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import AIBuddy from '@/components/ai-buddy';
+import { generateCollegeDescription } from '@/lib/actions';
+import { Skeleton } from '@/components/ui/skeleton';
 
 type CollegeDetails = {
     id: number;
@@ -89,6 +90,8 @@ export default function CollegeDetailPage() {
     const [loading, setLoading] = useState(true);
     const [userSatScore, setUserSatScore] = useState<number | null>(null);
     const [userAppStrength, setUserAppStrength] = useState<number | null>(null);
+    const [description, setDescription] = useState<string | null>(null);
+    const [isDescriptionLoading, setIsDescriptionLoading] = useState(true);
 
     useEffect(() => {
         if (typeof collegeId !== 'string') return;
@@ -122,6 +125,23 @@ export default function CollegeDetailPage() {
         
         fetchDetails();
     }, [collegeId]);
+
+    useEffect(() => {
+        if (college) {
+            setIsDescriptionLoading(true);
+            generateCollegeDescription({ collegeName: college['school.name'] })
+                .then(result => {
+                    setDescription(result.description);
+                })
+                .catch(err => {
+                    console.error("Failed to generate description:", err);
+                    setDescription("Could not load description for this college.");
+                })
+                .finally(() => {
+                    setIsDescriptionLoading(false);
+                });
+        }
+    }, [college]);
     
      const admissionChance = useMemo(() => {
         if (!college || userAppStrength === null || userSatScore === null) {
@@ -248,7 +268,15 @@ export default function CollegeDetailPage() {
                             <CardTitle>About {college['school.name']}</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <p className="text-muted-foreground">Detailed description coming soon. For now, you can visit the school's website for more information, or ask me any questions you have about this college!</p>
+                            {isDescriptionLoading ? (
+                                <div className="space-y-2">
+                                    <Skeleton className="h-4 w-full" />
+                                    <Skeleton className="h-4 w-full" />
+                                    <Skeleton className="h-4 w-3/4" />
+                                </div>
+                            ) : (
+                                <p className="text-muted-foreground">{description}</p>
+                            )}
                         </CardContent>
                     </Card>
                 </div>
