@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -36,15 +36,9 @@ type SavedActivity = {
     id: string;
     title: string;
     description: string;
+    strength: number;
 };
 
-
-const mockChecklist = [
-    { id: '1', task: 'Draft personal statement', completed: true },
-    { id: '2', task: 'Request teacher recommendations', completed: true },
-    { id: '3', task: 'Complete FAFSA', completed: false },
-    { id: '4', task: 'Research 5 new scholarships', completed: false },
-];
 
 export default function CollegePrepPage() {
     const [gradeLevel, setGradeLevel] = useState<string | null>(null);
@@ -65,6 +59,23 @@ export default function CollegePrepPage() {
     
     // SAT Score state
     const [satScore, setSatScore] = useState(1200);
+
+    const applicationStrength = useMemo(() => {
+        const extracurricularWeight = 0.5;
+        const satWeight = 0.5;
+
+        // Calculate extracurricular score
+        const totalActivityStrength = savedActivities.reduce((sum, activity) => sum + activity.strength, 0);
+        const averageActivityStrength = savedActivities.length > 0 ? totalActivityStrength / savedActivities.length : 0;
+        
+        // Calculate SAT score percentage (assuming max score of 1600 and min of 400)
+        const satPercentage = ((satScore - 400) / (1600 - 400)) * 100;
+
+        // Combine scores
+        const combinedStrength = (averageActivityStrength * extracurricularWeight) + (satPercentage * satWeight);
+        
+        return Math.round(Math.max(0, Math.min(100, combinedStrength)));
+    }, [savedActivities, satScore]);
 
 
     useEffect(() => {
@@ -152,6 +163,7 @@ export default function CollegePrepPage() {
             id: crypto.randomUUID(),
             title: activityTitle,
             description: enhancedActivity.enhancedDescription,
+            strength: enhancedActivity.strength,
         };
         setSavedActivities(prev => [...prev, newActivity]);
         
@@ -345,20 +357,35 @@ export default function CollegePrepPage() {
                     </Card>
                     <Card>
                         <CardHeader>
-                            <CardTitle>Application Checklist</CardTitle>
+                            <CardTitle>Application Strength</CardTitle>
+                            <CardDescription>An estimate based on your current profile.</CardDescription>
                         </CardHeader>
-                        <CardContent>
-                             <div className="space-y-3">
-                                {mockChecklist.map(item => (
-                                    <div key={item.id} className="flex items-center gap-3">
-                                        <div className={cn("h-6 w-6 rounded-full flex items-center justify-center border-2", item.completed ? "bg-green-500 border-green-500 text-white" : "border-muted-foreground")}>
-                                            {item.completed && <Check className="h-4 w-4"/>}
-                                        </div>
-                                        <span className={cn("flex-1", item.completed && "line-through text-muted-foreground")}>{item.task}</span>
-                                    </div>
-                                ))}
-                                <Button variant="outline" size="sm" className="w-full mt-2"><Plus className="h-4 w-4 mr-2"/> Add Task</Button>
+                        <CardContent className="flex flex-col items-center justify-center">
+                            <div className="relative w-40 h-40">
+                                <svg className="w-full h-full" viewBox="0 0 36 36">
+                                    <path
+                                        className="text-muted"
+                                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="3"
+                                    />
+                                    <path
+                                        className="text-primary"
+                                        stroke="currentColor"
+                                        strokeWidth="3"
+                                        strokeDasharray={`${applicationStrength}, 100`}
+                                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                        fill="none"
+                                        strokeLinecap="round"
+                                        transform="rotate(-90 18 18)"
+                                    />
+                                </svg>
+                                 <div className="absolute inset-0 flex items-center justify-center text-4xl font-bold">
+                                    {applicationStrength}%
+                                </div>
                             </div>
+                            <p className="text-xs text-muted-foreground mt-4 text-center">Based on SAT score and extracurriculars.</p>
                         </CardContent>
                     </Card>
 
