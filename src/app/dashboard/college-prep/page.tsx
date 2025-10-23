@@ -146,7 +146,10 @@ export default function CollegePrepPage() {
     }, [favoritedColleges]);
 
      useEffect(() => {
-        localStorage.setItem('savedExtracurriculars', JSON.stringify(savedActivities));
+        // This effect ensures that whenever savedActivities state changes, it is persisted to localStorage.
+        if (savedActivities.length > 0 || localStorage.getItem('savedExtracurriculars')) {
+            localStorage.setItem('savedExtracurriculars', JSON.stringify(savedActivities));
+        }
     }, [savedActivities]);
 
     useEffect(() => {
