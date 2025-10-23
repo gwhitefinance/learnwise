@@ -582,14 +582,16 @@ export default function CollegePrepPage() {
                         </CardContent>
                     </Card>
 
-                    <Card className="bg-purple-500/10 border-purple-500/20">
-                         <CardHeader>
-                            <CardTitle className="text-purple-700 flex items-center gap-2"><GraduationCap /> AI College Coach</CardTitle>
+                     <Card className="bg-purple-500/10 border-purple-500/20">
+                        <CardHeader>
+                            <CardTitle className="text-purple-700 flex items-center gap-2"><GraduationCap /> College Essay Coach</CardTitle>
                         </CardHeader>
                         <CardContent>
-                           <p className="text-sm text-muted-foreground mb-4">Get personalized advice for essays, extracurriculars, and improving your admission chances.</p>
-                           <Button className="w-full bg-purple-500 hover:bg-purple-600 text-white">
-                                Chat with Coach <ArrowRight className="h-4 w-4 ml-2"/>
+                           <p className="text-sm text-muted-foreground mb-4">Get personalized feedback to brainstorm ideas, structure your narrative, and polish your final draft.</p>
+                           <Button asChild className="w-full bg-purple-500 hover:bg-purple-600 text-white">
+                                <Link href="/dashboard/college-prep/essay-coach">
+                                    Chat with Coach <ArrowRight className="h-4 w-4 ml-2"/>
+                                </Link>
                            </Button>
                         </CardContent>
                     </Card>
