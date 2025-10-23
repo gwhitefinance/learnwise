@@ -280,6 +280,7 @@ const SidebarNavItem = ({ item, pathname, setMobileMenuOpen }: { item: SidebarIt
         if (child.href === '/dashboard/courses') {
             return (
                 <button
+                    key={child.id}
                     onClick={() => handleLinkClick(child.href)}
                     className={cn(
                         "flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm font-medium text-left",
@@ -293,7 +294,7 @@ const SidebarNavItem = ({ item, pathname, setMobileMenuOpen }: { item: SidebarIt
         }
         return (
             <Link
-                key={child.title}
+                key={child.id}
                 href={child.href || '#'}
                 id={child.id}
                 className={cn(
@@ -314,7 +315,7 @@ const SidebarNavItem = ({ item, pathname, setMobileMenuOpen }: { item: SidebarIt
             <Collapsible open={isOpen} onOpenChange={setIsOpen} id={item.id}>
                  <CollapsibleTrigger asChild>
                     <button className={cn(
-                          "flex w-full items-center justify-between rounded-2xl px-3 py-2 text-sm font-medium",
+                          "flex w-full items-center justify-between rounded-2xl px-3 py-2 text-sm font-medium transition-colors",
                           isActive ? "bg-primary/10 text-primary" : "hover:bg-muted"
                         )}>
                         <div className="flex items-center gap-3">
