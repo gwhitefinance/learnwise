@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { useState, useEffect, useContext, Suspense, useRef } from 'react';
@@ -7,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Play, Pause, ChevronLeft, ChevronRight, Wand2, FlaskConical, Lightbulb, Copy, RefreshCw, Check, Star, CheckCircle, Send, Bot, GitMerge, PanelLeft, Minimize, Maximize, Loader2, Plus, Trash2, MoreVertical, XCircle, ArrowRight, RotateCcw, Video, Image as ImageIcon, BookCopy, Link as LinkIcon, Headphones, Underline, Highlighter, Rabbit, Snail, Turtle, Book, Mic, Bookmark, Brain, KeySquare, ArrowLeft } from 'lucide-react';
+import { Play, Pause, ChevronLeft, ChevronRight, Wand2, FlaskConical, Lightbulb, Copy, RefreshCw, Check, Star, CheckCircle, Send, Bot, User, GitMerge, PanelLeft, Minimize, Maximize, Loader2, Plus, Trash2, MoreVertical, XCircle, ArrowRight, RotateCcw, Video, Image as ImageIcon, BookCopy, Link as LinkIcon, Headphones, Underline, Highlighter, Rabbit, Snail, Turtle, Book, Mic, Bookmark, Brain, KeySquare, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
@@ -751,7 +749,7 @@ function CoursesComponent() {
 
     try {
         const response = await generateTutorResponse({
-            chapterContext: currentChapterContent,
+            studyContext: currentChapterContent, // FIX 1: Was 'chapterContext'
             question: chatInput,
         });
         const aiMessage: ChatMessage = { role: 'ai', content: response.answer };
@@ -1119,7 +1117,7 @@ function CoursesComponent() {
                                         <DropdownMenuContent align="end">
                                             <AlertDialog>
                                                 <AlertDialogTrigger asChild>
-                                                     <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
+                                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
                                                         <Trash2 className="mr-2 h-4 w-4"/> Delete Course
                                                     </DropdownMenuItem>
                                                 </AlertDialogTrigger>
@@ -1156,7 +1154,14 @@ function CoursesComponent() {
                                     </Button>
                                 ) : (
                                     <Button className="w-full" onClick={() => {
-                                        setNewCourse(course);
+                                        // FIX 2: Convert Course type to newCourse state type
+                                        setNewCourse({
+                                            name: course.name,
+                                            instructor: course.instructor || '',
+                                            credits: String(course.credits || ''),
+                                            url: course.url || '',
+                                            description: course.description || '',
+                                        });
                                         setIsNewTopic(true); // Trigger "learning something new" flow
                                         setAddCourseStep(2);
                                         setAddCourseOpen(true);
@@ -1358,8 +1363,8 @@ function CoursesComponent() {
               <div className="py-4 space-y-4">
                   <div className="pt-4">
                       <div className="flex justify-between items-center">
-                        <p className="text-xs text-muted-foreground mb-1">Preparing next chapter...</p>
-                        <span className="text-xs font-semibold">{Math.round(nextChapterProgress)}%</span>
+                          <p className="text-xs text-muted-foreground mb-1">Preparing next chapter...</p>
+                          <span className="text-xs font-semibold">{Math.round(nextChapterProgress)}%</span>
                       </div>
                       <Progress value={nextChapterProgress} className="h-2"/>
                   </div>
@@ -1368,18 +1373,18 @@ function CoursesComponent() {
       </Dialog>
 
       <Dialog open={isNoteFromHighlightOpen} onOpenChange={setIsNoteFromHighlightOpen}>
-         <DialogContent>
-            <DialogHeader>
-                <DialogTitle>Save Highlight as Note</DialogTitle>
-            </DialogHeader>
-            <div className="py-4 space-y-4">
-                <Textarea value={noteContent} readOnly className="h-32 bg-muted"/>
-                <p className="text-sm text-muted-foreground">This note will be saved under the current course: <strong>{activeCourse?.name}</strong>.</p>
-            </div>
-            <DialogFooter>
-                <Button variant="ghost" onClick={() => setIsNoteFromHighlightOpen(false)}>Cancel</Button>
-                <Button onClick={handleSaveNoteFromHighlight}>Save Note</Button>
-            </DialogFooter>
+       <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Save Highlight as Note</DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <Textarea value={noteContent} readOnly className="h-32 bg-muted"/>
+            <p className="text-sm text-muted-foreground">This note will be saved under the current course: <strong>{activeCourse?.name}</strong>.</p>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setIsNoteFromHighlightOpen(false)}>Cancel</Button>
+            <Button onClick={handleSaveNoteFromHighlight}>Save Note</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
       <Dialog open={isCourseReadyDialogOpen} onOpenChange={setIsCourseReadyDialogOpen}>
@@ -1443,7 +1448,7 @@ function CoursesComponent() {
                 </div>
                  <Accordion type="multiple" defaultValue={activeCourse?.units?.map(u => u.id)} className="w-full flex-1 overflow-y-auto">
                     {activeCourse?.units?.map((unit, mIndex) => {
-                       const arePreviousModulesComplete = activeCourse.units!.slice(0, mIndex).every(prevModule => 
+                        const arePreviousModulesComplete = activeCourse.units!.slice(0, mIndex).every(prevModule => 
                             prevModule.chapters.every(chap => activeCourse.completedChapters?.includes(chap.id))
                         );
 
@@ -1499,7 +1504,7 @@ function CoursesComponent() {
                  <div className="mt-4 pt-4 border-t">
                      <Button variant="outline" className="w-full" onClick={startNewCourse}>Back to Courses Overview</Button>
                  </div>
-             </div>
+            </div>
         </aside>
         
         <main className="flex-1 p-6 overflow-y-auto relative">
@@ -1509,7 +1514,7 @@ function CoursesComponent() {
                 </Button>
                 <div className="flex items-center gap-2">
                     <Button variant="outline" size="sm" onClick={() => setIsListenAssistantVisible(true)}>
-                      <Headphones className="mr-2 h-4 w-4"/> Listen to Chapter
+                        <Headphones className="mr-2 h-4 w-4"/> Listen to Chapter
                     </Button>
                     <Button variant="outline" onClick={toggleFocusMode}>
                         {isFocusMode ? <Minimize className="mr-2 h-4 w-4"/> : <Maximize className="mr-2 h-4 w-4"/>}
@@ -1536,7 +1541,7 @@ function CoursesComponent() {
                             <Skeleton className="h-4 w-full" />
                             <Skeleton className="h-4 w-5/6" />
                         </div>
-                    ) : currentChapter.content ? (
+                      ) : currentChapter.content ? (
                          <div 
                             ref={contentRef}
                             onMouseUp={handleMouseUp}
@@ -1603,19 +1608,19 @@ function CoursesComponent() {
                                 <p>{currentChapter.content}</p>
                             )}
                         </div>
-                     ) : (
+                       ) : (
                          <div className="text-center p-8 border-2 border-dashed rounded-lg">
-                            <h3 className="text-lg font-semibold">This chapter's content hasn't been generated yet.</h3>
-                             {activeCourse.isNewTopic && <p className="text-muted-foreground mt-1 mb-4">Click "Complete and Continue" on the previous chapter to unlock this one.</p>}
-                        </div>
-                     )}
+                             <h3 className="text-lg font-semibold">This chapter's content hasn't been generated yet.</h3>
+                              {activeCourse.isNewTopic && <p className="text-muted-foreground mt-1 mb-4">Click "Complete and Continue" on the previous chapter to unlock this one.</p>}
+                         </div>
+                       )}
                      
                      <div className="p-6 bg-amber-500/10 rounded-lg border border-amber-500/20">
-                        <h5 className="font-semibold flex items-center gap-2 text-amber-700"><Lightbulb size={18}/> Suggested Activity</h5>
-                        <div className="text-muted-foreground mt-2">
+                         <h5 className="font-semibold flex items-center gap-2 text-amber-700"><Lightbulb size={18}/> Suggested Activity</h5>
+                         <div className="text-muted-foreground mt-2">
                              {isChapterContentLoading[currentChapter.id] && !currentChapter.activity ? <Skeleton className="h-4 w-1/2" /> : <p>{currentChapter.activity || 'Generate chapter content to see an activity.'}</p>}
-                        </div>
-                    </div>
+                         </div>
+                     </div>
                      
                     <Card>
                         <CardHeader>
@@ -1629,8 +1634,8 @@ function CoursesComponent() {
                                          {msg.role === 'ai' && <Avatar><AvatarFallback><Bot size={20}/></AvatarFallback></Avatar>}
                                          <div className={cn("rounded-lg p-3 max-w-lg", msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-background border')}>
                                             <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
-                                         </div>
-                                         {msg.role === 'user' && <Avatar><AvatarFallback><User size={20}/></AvatarFallback></Avatar>}
+                                        </div>
+                                         {msg.role === 'user' && <Avatar><AvatarFallback><User size={20}/></AvatarFallback></Avatar>} {/* FIX 3: Was <User> */}
                                     </div>
                                 ))}
                                 {isTutorLoading && (

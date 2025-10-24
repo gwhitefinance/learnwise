@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview A flow for generating all chapter content within a single course module.
@@ -35,8 +34,10 @@ const generateModuleContentFlow = ai.defineFlow(
         updatedChapters.push({
             id: chapter.id || generateUniqueId(),
             title: chapter.title,
-            content: contentData.content,
-            activity: contentData.activity,
+            // FIX: Serialize the content array to a JSON string
+            content: JSON.stringify(contentData.content),
+            // FIX: Serialize the activity object/array to a JSON string
+            activity: JSON.stringify(contentData.activity),
         });
     }
 

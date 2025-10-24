@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { useState, useEffect, Suspense, useContext } from 'react';
@@ -17,7 +15,8 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { SatQuestion, FeedbackInput } from '@/ai/schemas/sat-study-session-schema';
+// FIX 1: Removed SatQuestion from this import
+import type { FeedbackInput } from '@/ai/schemas/sat-study-session-schema';
 import { cn } from '@/lib/utils';
 import { ArrowLeft, ArrowRight, CheckCircle, Clock, XCircle, FileText, BookOpen, Calculator, Send, Bot, Wand2, Star, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -26,7 +25,8 @@ import { Input } from '@/components/ui/input';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { Badge } from '@/components/ui/badge';
-import type { Message } from '@/components/floating-chat';
+// FIX 2: Removed this entire import line
+// import type { Message } from '@/components/floating-chat';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { FloatingChatContext } from '@/components/floating-chat';
@@ -34,6 +34,25 @@ import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import GeneratingSession from '../GeneratingSession';
 import { generateSatStudySessionAction, generateMiniCourse, generateTutorResponse, generateFeedbackAction } from '@/lib/actions';
+
+// FIX 1 (Continued): Added local type definition for SatQuestion
+type SatQuestion = {
+    category: string;
+    passage?: string;
+    question: string;
+    options: string[];
+    correctAnswer: string;
+    explanation: string;
+    topic: string;
+    difficulty: 'Easy' | 'Medium' | 'Hard' | string;
+    subTopic: string;
+};
+
+// FIX 2 (Continued): Added local type definition for Message
+type Message = {
+    role: 'user' | 'ai';
+    content: string;
+};
 
 
 const EmbeddedChat = ({ topic, currentQuestion }: { topic: string | null, currentQuestion: SatQuestion | null }) => {
@@ -355,7 +374,8 @@ function StudySessionPageContent({ topic }: { topic: 'Math' | 'Reading & Writing
             .map(([topic]) => topic);
 
         const courseName = `Personalized SAT Review: ${strugglingTopics.join(', ')}`;
-        return <GeneratingSession courseName={courseName} />;
+        // FIX 3: Changed 'courseName' prop to 'topic'
+        return <GeneratingSession topic={courseName} />;
     }
 
     if (sessionState === 'results' && resultsData) {
@@ -519,7 +539,8 @@ function StudySessionPageContent({ topic }: { topic: 'Math' | 'Reading & Writing
                                         disabled={isCurrentAnswered}
                                     >
                                         <div className="space-y-3">
-                                            {currentQuestion.options.map((option, index) => (
+                                            {/* FIX 4 & 5: Added types for 'option' and 'index' */}
+                                            {currentQuestion.options.map((option: string, index: number) => (
                                                 <Label key={index} htmlFor={`option-${index}`} className={cn(
                                                     "flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-all",
                                                     isCurrentAnswered && option === currentQuestion.correctAnswer && "border-green-500 bg-green-500/10",
@@ -591,8 +612,3 @@ export default function StudySessionPage() {
         </Suspense>
     );
 }
-
-    
-
-    
-

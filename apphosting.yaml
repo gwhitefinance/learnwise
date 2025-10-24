@@ -20,20 +20,6 @@ env:
     availability:
       - BUILD
       - RUNTIME
-  - variable: NEXT_PUBLIC_GOOGLE_CLIENT_ID
-    secret: GOOGLE_CLIENT_ID
-    availability:
-      - BUILD
-      - RUNTIME
-  - variable: GOOGLE_CLIENT_SECRET
-    secret: GOOGLE_CLIENT_SECRET
-    availability:
-      - RUNTIME # Secret is only needed at runtime for OAuth
-  - variable: NEXT_PUBLIC_GOOGLE_REDIRECT_URI
-    secret: GOOGLE_REDIRECT_URI
-    availability:
-      - BUILD
-      - RUNTIME
   - variable: ELEVENLABS_API_KEY
     secret: ELEVENLABS_API_KEY
     availability:
@@ -42,5 +28,3 @@ env:
     secret: COLLEGE_SCORECARD_API_KEY
     availability:
       - RUNTIME
-
-    

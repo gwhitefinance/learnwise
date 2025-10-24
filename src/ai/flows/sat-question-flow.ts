@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview A flow for generating a daily SAT practice question.
@@ -6,7 +5,8 @@
 import { ai } from '@/ai/genkit';
 import { googleAI } from '@genkit-ai/google-genai';
 import { z } from 'zod';
-import { SatQuestionSchema, GenerateSatQuestionInputSchema, GenerateSatQuestionInput } from '@/ai/schemas/sat-question-schema';
+// FIX: Added 'SatQuestion' to the import list
+import { SatQuestionSchema, GenerateSatQuestionInputSchema, GenerateSatQuestionInput, SatQuestion } from '@/ai/schemas/sat-question-schema';
 
 const prompt = ai.definePrompt({
     name: 'satQuestionPrompt',

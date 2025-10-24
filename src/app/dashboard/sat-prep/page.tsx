@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useContext } from 'react';
@@ -10,7 +9,7 @@ import { cn } from '@/lib/utils';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import type { SatQuestion } from '@/ai/schemas/sat-study-session-schema';
+// import type { SatQuestion } from '@/ai/schemas/sat-study-session-schema'; // <-- REMOVED THIS LINE
 import { generateSatQuestion } from '@/lib/actions';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
@@ -38,6 +37,18 @@ type StudySessionResult = {
     timestamp: { toDate: () => Date };
     results: any; 
 };
+
+// --- THIS IS THE FIX ---
+// Added a local type definition for SatQuestion based on its usage
+type SatQuestion = {
+  category: string;
+  passage?: string;
+  question: string;
+  options: string[];
+  correctAnswer: string;
+  explanation: string;
+};
+// -----------------------
 
 const DailyQuestion = () => {
     const [questionData, setQuestionData] = useState<SatQuestion | null>(null);

@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import React, { useEffect, useState, useRef, createContext, useContext, Suspense, useCallback } from 'react';
@@ -241,16 +239,11 @@ const sidebarItems: SidebarItem[] = [
 const SidebarNavItem = ({ item, pathname, setMobileMenuOpen }: { item: SidebarItem, pathname: string, setMobileMenuOpen: (open: boolean) => void }) => {
     const [isOpen, setIsOpen] = useState(false);
     const hasChildren = item.children && item.children.length > 0;
-    const router = useRouter();
 
     const getIsActive = (item: SidebarItem): boolean => {
         if (!item.href && !item.children) return false;
         
         if (item.href) {
-            // For courses, only be active if no courseId is present
-            if (item.href === '/dashboard/courses') {
-                return pathname === item.href && !useSearchParams().has('courseId');
-            }
             return pathname === item.href || pathname.startsWith(item.href + '/');
         }
         
@@ -269,53 +262,12 @@ const SidebarNavItem = ({ item, pathname, setMobileMenuOpen }: { item: SidebarIt
         }
     }, [isActive, item.children, pathname]);
 
-    const handleLinkClick = (href?: string) => {
-        if (href) {
-            router.push(href);
-        }
-        setMobileMenuOpen(false);
-    }
-    
-    const renderNavItem = (child: SidebarChild) => {
-        if (child.href === '/dashboard/courses') {
-            return (
-                <button
-                    key={child.id}
-                    onClick={() => handleLinkClick(child.href)}
-                    className={cn(
-                        "flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm font-medium text-left",
-                        pathname.startsWith(child.href) ? "text-primary" : "hover:bg-muted text-muted-foreground"
-                    )}
-                >
-                    {child.icon}
-                    <span>{child.title}</span>
-                </button>
-            );
-        }
-        return (
-            <Link
-                key={child.id}
-                href={child.href || '#'}
-                id={child.id}
-                className={cn(
-                    "flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm font-medium",
-                    pathname.startsWith(child.href) ? "text-primary" : "hover:bg-muted text-muted-foreground"
-                )}
-                onClick={() => handleLinkClick()}
-            >
-                {child.icon}
-                <span>{child.title}</span>
-            </Link>
-        );
-    }
-
-
     if (hasChildren) {
         return (
             <Collapsible open={isOpen} onOpenChange={setIsOpen} id={item.id}>
                  <CollapsibleTrigger asChild>
                     <button className={cn(
-                          "flex w-full items-center justify-between rounded-2xl px-3 py-2 text-sm font-medium transition-colors",
+                          "flex w-full items-center justify-between rounded-2xl px-3 py-2 text-sm font-medium",
                           isActive ? "bg-primary/10 text-primary" : "hover:bg-muted"
                         )}>
                         <div className="flex items-center gap-3">
@@ -327,8 +279,20 @@ const SidebarNavItem = ({ item, pathname, setMobileMenuOpen }: { item: SidebarIt
                 </CollapsibleTrigger>
                 <CollapsibleContent className="py-1 pl-8">
                     <div className="flex flex-col space-y-1">
-                        {item.children.map((child: SidebarChild) => (
-                             renderNavItem(child)
+                        {item.children?.map((child: SidebarChild) => (
+                             <Link
+                                key={child.title}
+                                href={child.href || '#'}
+                                id={child.id}
+                                className={cn(
+                                "flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm font-medium",
+                                (pathname === child.href || pathname.startsWith(child.href + '/')) ? "text-primary" : "hover:bg-muted text-muted-foreground",
+                                )}
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                {child.icon}
+                                <span>{child.title}</span>
+                            </Link>
                         ))}
                     </div>
                 </CollapsibleContent>
@@ -344,7 +308,7 @@ const SidebarNavItem = ({ item, pathname, setMobileMenuOpen }: { item: SidebarIt
             "flex w-full items-center justify-between rounded-2xl px-3 py-2 text-sm font-medium",
             pathname === item.href ? "bg-primary/10 text-primary" : "hover:bg-muted",
             )}
-            onClick={() => handleLinkClick()}
+            onClick={() => setMobileMenuOpen(false)}
         >
             <div className="flex items-center gap-3">
             {item.icon}
@@ -498,17 +462,27 @@ function DashboardLayoutContent({
 
 
   const filteredSidebarItems = currentSidebarItems.map(item => {
-    if (!item.children) {
-      return item.title.toLowerCase().includes(searchQuery.toLowerCase()) ? item : null;
+    // If the item has children
+    if (item.children) {
+      const filteredChildren = item.children.filter(child => child.title.toLowerCase().includes(searchQuery.toLowerCase()));
+      
+      // If any children match the search, return the item with only those children
+      if (filteredChildren.length > 0) {
+        return { ...item, children: filteredChildren };
+      }
+      
+      // If no children match, but the parent's title matches, return the parent with no children
+      if (item.title.toLowerCase().includes(searchQuery.toLowerCase())) {
+          return { ...item, children: [] };
+      }
+
+      // If neither the parent nor any children match
+      return null;
     }
-    const filteredChildren = item.children.filter(child => child.title.toLowerCase().includes(searchQuery.toLowerCase()));
-    if (filteredChildren.length > 0) {
-      return { ...item, children: filteredChildren };
-    }
-    if (item.title.toLowerCase().includes(searchQuery.toLowerCase())) {
-        return { ...item, children: [] };
-    }
-    return null;
+
+    // If the item has NO children, just check if its title matches
+    return item.title.toLowerCase().includes(searchQuery.toLowerCase()) ? item : null;
+
   }).filter((item): item is SidebarItem => item !== null);
 
   if (loading || !isMounted) {

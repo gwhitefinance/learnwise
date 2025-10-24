@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -71,7 +70,7 @@ const SidebarNavItem = ({ item, pathname }: { item: SidebarItem, pathname: strin
     const hasChildren = item.children && item.children.length > 0;
     
     const isActive = hasChildren 
-        ? item.children.some(child => pathname.startsWith(child.href)) 
+        ? item.children?.some(child => pathname.startsWith(child.href)) 
         : pathname === item.href;
 
     React.useEffect(() => {
@@ -97,7 +96,7 @@ const SidebarNavItem = ({ item, pathname }: { item: SidebarItem, pathname: strin
                 </CollapsibleTrigger>
                 <CollapsibleContent className="py-1 pl-8">
                     <div className="flex flex-col space-y-1">
-                        {item.children.map((child: SidebarChild) => (
+                        {item.children?.map((child: SidebarChild) => (
                              <Link
                                 key={child.href}
                                 href={child.href || '#'}

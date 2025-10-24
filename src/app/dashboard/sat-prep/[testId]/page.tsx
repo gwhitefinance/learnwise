@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useParams, useRouter, notFound } from 'next/navigation';
@@ -34,9 +33,9 @@ type Question = {
     type: 'multiple-choice' | 'grid-in';
 };
 
-const allQuestions = [
-    ...practiceTestData.reading_writing.modules.flatMap(m => m.questions),
-    ...practiceTestData.math.modules.flatMap(m => m.questions)
+const allQuestions: Question[] = [
+    ...(practiceTestData.reading_writing.modules.flatMap(m => m.questions) as any),
+    ...(practiceTestData.math.modules.flatMap(m => m.questions) as any)
 ];
 
 export default function TestResultPage() {
@@ -154,4 +153,3 @@ export default function TestResultPage() {
         </div>
     );
 }
-

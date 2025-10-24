@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { useState, useEffect, useContext } from 'react';
@@ -174,7 +172,7 @@ import { AnimatePresence } from 'framer-motion';
       isExplanationLoading: boolean;
       practiceAnswer?: string;
       practiceFeedback?: 'correct' | 'incorrect';
-      remediationChapter?: { title: string; content: string; };
+      remediationChapter?: { title: string; content: string; }; // content is a JSON string
   };
   
   type Flashcard = {
@@ -208,7 +206,7 @@ const paces = [
             </Link>
         ) : (
             <div className="flex flex-col flex-grow cursor-pointer">
-                 <div>
+               <div>
                     <div className="bg-primary/10 text-primary p-3 rounded-xl inline-block mb-4">
                         {icon}
                     </div>
@@ -485,7 +483,7 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
             return;
         }
         if (!user) return;
-  
+
         setIsSavingCourse(true);
         if (isNewTopic) { // Learning something new
             setIsRoadmapGenerating(true);
@@ -597,7 +595,7 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
         setFiles(null);
         setUploadOpen(false);
     };
-      
+     
     const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
         e.stopPropagation();
@@ -741,7 +739,8 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                     [topic]: prev[topic].map(l => l.attempt.id === attemptId ? { 
                         ...l,
                         isExplanationLoading: false,
-                        remediationChapter: { title: `Deep Dive: ${attempt.topic}`, content: remediationContent.content },
+                        // FIX: Stringify the content
+                        remediationChapter: { title: `Deep Dive: ${attempt.topic}`, content: JSON.stringify(remediationContent.content) },
                         explanation: undefined, // Clear old explanation and question
                     } : l)
                 }));
@@ -841,46 +840,46 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                         onDrop={handleDrop}
                     >
                          <DialogHeader>
-                            <DialogTitle>Upload Study Materials</DialogTitle>
-                        </DialogHeader>
-                        <div 
+                           <DialogTitle>Upload Study Materials</DialogTitle>
+                         </DialogHeader>
+                         <div 
                             className={cn(
                                 "relative flex flex-col items-center justify-center w-full p-12 border-2 border-dashed rounded-lg cursor-pointer transition-colors",
                                 isDragging ? "border-primary bg-primary/10" : "border-border hover:border-primary/50"
                             )}
                             onClick={() => document.getElementById('file-upload-input')?.click()}
-                          >
-                            <input 
-                              id="file-upload-input"
-                              type="file" 
-                              multiple 
-                              className="hidden"
-                              onChange={(e) => handleFileChange(e.target.files)}
-                            />
-                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                              <UploadCloud className="w-10 h-10 mb-4 text-muted-foreground" />
-                              <p className="mb-2 text-lg font-semibold">
-                                Drag and drop your files here
-                              </p>
-                              <p className="text-sm text-muted-foreground">
-                                Or click to browse
-                              </p>
-                            </div>
-                        </div>
-                        {files && files.length > 0 && (
-                          <div className="mt-4">
-                              <h3 className="text-lg font-semibold">Selected files:</h3>
-                              <ul className="list-disc list-inside mt-2 text-sm text-muted-foreground">
-                                  {Array.from(files).map((file, index) => (
-                                      <li key={index}>{file.name}</li>
-                                  ))}
-                              </ul>
-                          </div>
-                        )}
-                        <DialogFooter>
-                            <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
-                            <Button onClick={handleUpload}>Upload</Button>
-                        </DialogFooter>
+                           >
+                           <input 
+                             id="file-upload-input"
+                             type="file" 
+                             multiple 
+                             className="hidden"
+                             onChange={(e) => handleFileChange(e.target.files)}
+                           />
+                           <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                             <UploadCloud className="w-10 h-10 mb-4 text-muted-foreground" />
+                             <p className="mb-2 text-lg font-semibold">
+                               Drag and drop your files here
+                             </p>
+                             <p className="text-sm text-muted-foreground">
+                               Or click to browse
+                             </p>
+                           </div>
+                         </div>
+                         {files && files.length > 0 && (
+                           <div className="mt-4">
+                               <h3 className="text-lg font-semibold">Selected files:</h3>
+                               <ul className="list-disc list-inside mt-2 text-sm text-muted-foreground">
+                                    {Array.from(files).map((file, index) => (
+                                        <li key={index}>{file.name}</li>
+                                    ))}
+                               </ul>
+                           </div>
+                         )}
+                         <DialogFooter>
+                             <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
+                             <Button onClick={handleUpload}>Upload</Button>
+                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
                 
@@ -983,33 +982,33 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                              isHalloweenTheme ? 'halloween-welcome' : 'bg-gradient-to-r from-violet-600 via-indigo-600 to-blue-600'
                         )}
                     >
-                         {isHalloweenTheme && (
+                        {isHalloweenTheme && (
                             <div className="halloween-scene">
                                 <div className="bat-container"><div className="bat"></div></div>
                                 <div className="bat-container" style={{animationDelay: '1s'}}><div className="bat"></div></div>
                                 <div className="bat-container" style={{animationDelay: '2s'}}><div className="bat"></div></div>
                             </div>
                         )}
-                        <div className="relative flex-1 space-y-4">
-                            <Badge className="bg-white/20 text-white hover:bg-white/30 rounded-xl">Get Started</Badge>
-                            <h2 className="text-3xl font-bold">Welcome back, {user?.displayName?.split(' ')[0] || 'Learner'}!</h2>
-                            <p className="max-w-md text-white/80">
-                                This is your central hub for all your learning activities. Let's make today a productive one!
-                            </p>
-                             <div className="mt-4 flex gap-4">
-                                <div className="animated-button-container group w-full max-w-[280px]">
-                                  <Spotlight />
-                                    <Button asChild variant="outline" className="relative w-full bg-white text-black hover:bg-gray-100 rounded-xl font-semibold flex items-center gap-2 overflow-hidden h-11 text-base">
-                                       <Link href="/dashboard/courses" >
-                                        <Logo className="w-5 h-5"/>
-                                        Start Tutorin
-                                      </Link>
-                                    </Button>
-                                </div>
+                      <div className="relative flex-1 space-y-4">
+                        <Badge className="bg-white/20 text-white hover:bg-white/30 rounded-xl">Get Started</Badge>
+                        <h2 className="text-3xl font-bold">Welcome back, {user?.displayName?.split(' ')[0] || 'Learner'}!</h2>
+                        <p className="max-w-md text-white/80">
+                            This is your central hub for all your learning activities. Let's make today a productive one!
+                        </p>
+                         <div className="mt-4 flex gap-4">
+                            <div className="animated-button-container group w-full max-w-[280px]">
+                              <Spotlight />
+                                <Button asChild variant="outline" className="relative w-full bg-white text-black hover:bg-gray-100 rounded-xl font-semibold flex items-center gap-2 overflow-hidden h-11 text-base">
+                                   <Link href="/dashboard/courses" >
+                                    <Logo className="w-5 h-5"/>
+                                    Start Tutorin
+                                  </Link>
+                                </Button>
                             </div>
                         </div>
-                         <div className="relative hidden lg:flex items-center justify-center gap-8">
-                            
+                      </div>
+                       <div className="relative hidden lg:flex items-center justify-center gap-8">
+                           
                             <AIBuddy 
                                 className="w-32 h-32"
                                 color={customizations.color}
@@ -1117,9 +1116,9 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                         </Card>
                         <Card id="recent-files-card">
                              <CardHeader>
-                                <CardTitle>Recent Files</CardTitle>
-                                <CardDescription>Your most recently accessed documents.</CardDescription>
-                            </CardHeader>
+                               <CardTitle>Recent Files</CardTitle>
+                               <CardDescription>Your most recently accessed documents.</CardDescription>
+                             </CardHeader>
                             <CardContent>
                                 <Table>
                                     <TableHeader>
@@ -1153,12 +1152,12 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
 
                     <section className="space-y-4" id="active-courses">
                         <div className="flex items-center justify-between">
-                        <h2 className="text-2xl font-semibold">Active Courses</h2>
-                        <Link href="/dashboard/courses">
-                            <Button variant="ghost" className="rounded-2xl">
-                                View All
-                            </Button>
-                        </Link>
+                          <h2 className="text-2xl font-semibold">Active Courses</h2>
+                          <Link href="/dashboard/courses">
+                              <Button variant="ghost" className="rounded-2xl">
+                                  View All
+                              </Button>
+                          </Link>
                         </div>
                          <div className="space-y-4">
                             {isDataLoading ? (
@@ -1383,7 +1382,7 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                         <Dialog open={isAddProjectOpen} onOpenChange={setAddProjectOpen}>
                             <DialogTrigger asChild>
                                 <Button className="mt-4">
-                                    <Plus className="mr-2 h-4 w-4" /> Add Project
+                                <Plus className="mr-2 h-4 w-4" /> Add Project
                                 </Button>
                             </DialogTrigger>
                              <DialogContent>
@@ -1440,13 +1439,13 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                     {Object.entries(weakestLinks).map(([topic, states]) => (
                          <AccordionItem key={topic} value={topic} className="bg-amber-500/5 border border-amber-500/20 rounded-lg">
                             <AccordionTrigger className="p-6">
-                                 <div className="flex items-center gap-3">
-                                    <Lightbulb className="h-6 w-6 text-amber-500" />
-                                    <div>
-                                        <h3 className="font-semibold text-lg text-left">Weakest Link Workout: {topic}</h3>
-                                        <p className="text-sm text-muted-foreground text-left">{states.length} questions to review</p>
-                                    </div>
-                                </div>
+                               <div className="flex items-center gap-3">
+                                  <Lightbulb className="h-6 w-6 text-amber-500" />
+                                  <div>
+                                    <h3 className="font-semibold text-lg text-left">Weakest Link Workout: {topic}</h3>
+                                    <p className="text-sm text-muted-foreground text-left">{states.length} questions to review</p>
+                                  </div>
+                               </div>
                             </AccordionTrigger>
                             <AccordionContent>
                                <div className="px-6 pb-6 space-y-8">
@@ -1467,14 +1466,27 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                             {state.remediationChapter ? (
                                                 <div className="mt-4 p-4 bg-background rounded-lg border space-y-4">
                                                      <h4 className="font-semibold flex items-center gap-2 text-primary"><BrainCircuit size={18}/> Remediation Chapter: {state.remediationChapter.title}</h4>
-                                                     <div className="text-muted-foreground text-sm whitespace-pre-wrap leading-relaxed">{state.remediationChapter.content}</div>
-                                                      <Button size="sm" onClick={() => {
-                                                          toast({ title: 'Concept Mastered!', description: 'This topic has been cleared from your workout.'});
-                                                          setWeakestLinks(prev => ({...prev, [topic]: prev[topic].filter(l => l.attempt.id !== state.attempt.id)}));
-                                                          deleteDoc(doc(db, 'quizAttempts', state.attempt.id));
-                                                      }}>
-                                                          I Understand Now, Mark as Mastered
-                                                      </Button>
+                                                     {/* Assuming content is a stringified JSON array */}
+                                                     <div className="text-muted-foreground text-sm whitespace-pre-wrap leading-relaxed">
+                                                        {(() => {
+                                                            try {
+                                                                const parsedContent = JSON.parse(state.remediationChapter.content);
+                                                                if (Array.isArray(parsedContent)) {
+                                                                    return parsedContent.map((block, idx) => (
+                                                                        block.type === 'text' ? <p key={idx} className="mb-4">{block.content}</p> : null
+                                                                    ));
+                                                                }
+                                                            } catch (e) { console.error("Error parsing remediation content", e); }
+                                                            return <p>{state.remediationChapter.content}</p>; // Fallback
+                                                        })()}
+                                                    </div>
+                                                     <Button size="sm" onClick={() => {
+                                                         toast({ title: 'Concept Mastered!', description: 'This topic has been cleared from your workout.'});
+                                                         setWeakestLinks(prev => ({...prev, [topic]: prev[topic].filter(l => l.attempt.id !== state.attempt.id)}));
+                                                         deleteDoc(doc(db, 'quizAttempts', state.attempt.id));
+                                                     }}>
+                                                        I Understand Now, Mark as Mastered
+                                                    </Button>
                                                 </div>
                                             ) : state.explanation ? (
                                                 <div className="space-y-4 pt-4">
@@ -1496,7 +1508,7 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                                             <div className="space-y-2">
                                                                 {state.explanation.practiceQuestion.options.map((option, i) => {
                                                                     return(
-                                                                        <Label key={`${state.attempt.id}-${i}`} htmlFor={`pq-${state.attempt.id}-${i}`} className="flex items-center gap-4 p-3 rounded-lg border transition-all cursor-pointer text-sm">
+                                                                         <Label key={`${state.attempt.id}-${i}`} htmlFor={`pq-${state.attempt.id}-${i}`} className="flex items-center gap-4 p-3 rounded-lg border transition-all cursor-pointer text-sm">
                                                                             <RadioGroupItem value={option} id={`pq-${state.attempt.id}-${i}`} />
                                                                             <span>{option}</span>
                                                                         </Label>
