@@ -1,10 +1,11 @@
 
+
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
-import { Eraser, Palette, Save, Trash2, Type, NotebookText, ArrowUpDown, Wand2, Loader2, GitMerge, Brush } from 'lucide-react';
+import { Eraser, Palette, Save, Trash2, Type, NotebookText, ArrowUpDown } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Slider } from '@/components/ui/slider';
 import Draggable from 'react-draggable';
@@ -16,8 +17,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Image from 'next/image';
 import { formatDistanceToNow } from 'date-fns';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { enhanceDrawing } from '@/lib/actions';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 type StickyNoteType = {
     id: number;
@@ -47,8 +46,6 @@ export default function WhiteboardClientPage() {
     const [notes, setNotes] = useState<StickyNoteType[]>([]);
     const [savedWhiteboards, setSavedWhiteboards] = useState<SavedWhiteboard[]>([]);
     const [isLoadingSaved, setIsLoadingSaved] = useState(true);
-    const [isEnhancing, setIsEnhancing] = useState(false);
-    const [enhancedImage, setEnhancedImage] = useState<string | null>(null);
     const { toast } = useToast();
     const [user] = useAuthState(auth);
     const nodeRefs = useRef<{ [key: number]: React.RefObject<HTMLDivElement> }>({});
@@ -153,7 +150,6 @@ export default function WhiteboardClientPage() {
         if (!context) return;
         context.clearRect(0, 0, canvas.width, canvas.height);
         setNotes([]);
-        setEnhancedImage(null);
     };
 
     const addNote = (x: number, y: number, value = 'Type here...', type: 'text' | 'note') => {
@@ -175,26 +171,6 @@ export default function WhiteboardClientPage() {
         setNotes(prev => prev.filter(note => note.id !== id));
     };
     
-    const handleEnhanceDrawing = async () => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-
-        setIsEnhancing(true);
-        toast({ title: 'AI is enhancing your drawing...' });
-
-        try {
-            const imageDataUri = canvas.toDataURL('image/png');
-            const result = await enhanceDrawing({ imageDataUri });
-            setEnhancedImage(result.enhancedImageDataUri);
-            toast({ title: 'Drawing Enhanced!', description: 'Your sketch has been polished.' });
-        } catch (error) {
-            console.error("Error enhancing drawing:", error);
-            toast({ variant: 'destructive', title: 'Enhancement Failed' });
-        } finally {
-            setIsEnhancing(false);
-        }
-    };
-
     const handleSaveAsNote = async () => {
         if (!user) {
             toast({ variant: 'destructive', title: 'You must be logged in to save notes.' });
@@ -213,18 +189,8 @@ export default function WhiteboardClientPage() {
         tempCtx.fillStyle = '#f3f4f6';
         tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
         
-        // Draw the enhanced image if it exists, otherwise the original canvas
-        if (enhancedImage) {
-            const img = new window.Image();
-            img.src = enhancedImage;
-            img.onload = () => {
-                tempCtx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.height);
-                finalizeSave(tempCanvas);
-            }
-        } else {
-            tempCtx.drawImage(canvas, 0, 0);
-            finalizeSave(tempCanvas);
-        }
+        tempCtx.drawImage(canvas, 0, 0);
+        finalizeSave(tempCanvas);
     };
     
     const finalizeSave = async (canvas: HTMLCanvasElement) => {
@@ -306,7 +272,7 @@ export default function WhiteboardClientPage() {
                      <main className="h-[70vh] w-full bg-muted rounded-lg border border-dashed relative overflow-hidden">
                         <aside className="absolute top-4 left-1/2 -translate-x-1/2 z-20">
                             <Card className="p-2 flex gap-2">
-                                <Button variant={tool === 'pen' ? 'secondary' : 'ghost'} size="icon" onClick={() => setTool('pen')}><Brush /></Button>
+                                <Button variant={tool === 'pen' ? 'secondary' : 'ghost'} size="icon" onClick={() => setTool('pen')}><NotebookText /></Button>
                                 <Popover>
                                     <PopoverTrigger asChild><Button variant="ghost" size="icon"><Palette /></Button></PopoverTrigger>
                                     <PopoverContent side="bottom" className="w-auto p-2"><div className="flex gap-1">{colors.map(c => (<button key={c} onClick={() => setColor(c)} className={`w-8 h-8 rounded-full border-2 ${color === c ? 'border-primary' : 'border-transparent'}`} style={{ backgroundColor: c }} />))}</div></PopoverContent>
@@ -318,25 +284,6 @@ export default function WhiteboardClientPage() {
                                 <Button variant={tool === 'eraser' ? 'secondary' : 'ghost'} size="icon" onClick={() => setTool('eraser')}><Eraser /></Button>
                                 <Button variant={tool === 'text' ? 'secondary' : 'ghost'} size="icon" onClick={() => setTool('text')}><Type /></Button>
                                 <Button variant={tool === 'note' ? 'secondary' : 'ghost'} size="icon" onClick={() => setTool('note')}><NotebookText /></Button>
-                                
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant='ghost' size="icon" disabled={isEnhancing}>
-                                            {isEnhancing ? <Loader2 className="animate-spin" /> : <Wand2 />}
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent>
-                                        <DropdownMenuItem onSelect={handleEnhanceDrawing}>
-                                            <Wand2 className="mr-2 h-4 w-4"/>
-                                            Enhance Drawing
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem disabled>
-                                            <GitMerge className="mr-2 h-4 w-4"/>
-                                            Generate Mind Map (Soon)
-                                        </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-
                                  <AlertDialog>
                                     <AlertDialogTrigger asChild>
                                         <Button variant='ghost' size="icon"><Trash2 className="text-destructive"/></Button>
@@ -364,16 +311,6 @@ export default function WhiteboardClientPage() {
                             onMouseUp={stopDrawing} 
                             onMouseLeave={stopDrawing} 
                         />
-                         {enhancedImage && (
-                            <div className="absolute inset-0 z-0 pointer-events-none">
-                                <Image
-                                    src={enhancedImage}
-                                    alt="Enhanced Drawing"
-                                    layout="fill"
-                                    objectFit="contain"
-                                />
-                            </div>
-                        )}
                         {notes.map((note) => (
                             <Draggable key={note.id} nodeRef={nodeRefs.current[note.id]} defaultPosition={{ x: note.x, y: note.y }} bounds="parent" handle=".drag-handle">
                                 <div ref={nodeRefs.current[note.id]} className="absolute w-48 pointer-events-auto">
