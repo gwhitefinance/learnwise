@@ -157,7 +157,7 @@ export default function MemoryMatchClientPage() {
                 }, 1000);
             }
         }
-    }, [flippedCards, cards, moves, toast]);
+    }, [flippedCards, cards]);
 
     const restartGame = () => {
         setGameStarted(false);
