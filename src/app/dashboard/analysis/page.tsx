@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useContext } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BrainCircuit, Lightbulb, TrendingDown } from 'lucide-react';
@@ -12,6 +12,7 @@ import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { PieChart, Pie, Cell } from 'recharts';
+import { FloatingChatContext } from '@/components/floating-chat';
 
 type Course = {
     id: string;
@@ -31,6 +32,7 @@ function AnalysisPage() {
   const [loading, setLoading] = useState(true);
   const [weakestCourse, setWeakestCourse] = useState<Course | null>(null);
   const [courses, setCourses] = useState<Course[]>([]);
+  const { openChatWithPrompt } = useContext(FloatingChatContext);
   
   const [user, authLoading] = useAuthState(auth);
 
@@ -100,6 +102,11 @@ function AnalysisPage() {
         { topic: 'Needs Work', count: needsWorkCount, fill: 'hsl(var(--muted))' }
       ];
   }, [courses]);
+
+  const handleStartTutorChat = () => {
+    const prompt = `Can you help me with my weakest course, ${weakestCourse?.name ?? 'which seems to be my weakest area'}?`;
+    openChatWithPrompt(prompt);
+  };
 
   if (loading || authLoading) {
       return (
@@ -202,19 +209,17 @@ function AnalysisPage() {
                 </Link>
             </CardContent>
           </Card>
-           <Card className="hover:bg-muted/50 transition-colors">
+           <Card className="hover:bg-muted/50 transition-colors cursor-pointer" onClick={handleStartTutorChat}>
             <CardContent className="p-6">
-              <Link href={`/dashboard?courseId=${weakestCourse?.id ?? ''}`}>
-                    <div className="flex items-start gap-4">
-                         <div className="p-3 bg-primary/10 rounded-lg text-primary"><BrainCircuit /></div>
-                         <div>
-                            <h3 className="text-lg font-semibold mb-1">Chat with an AI Tutor</h3>
-                            <p className="text-muted-foreground text-sm">
-                                Start a conversation with your AI study partner. Ask for explanations, examples, or a study plan for {weakestCourse?.name ?? 'any course'}.
-                            </p>
-                         </div>
-                    </div>
-              </Link>
+              <div className="flex items-start gap-4">
+                   <div className="p-3 bg-primary/10 rounded-lg text-primary"><BrainCircuit /></div>
+                   <div>
+                      <h3 className="text-lg font-semibold mb-1">Chat with an AI Tutor</h3>
+                      <p className="text-muted-foreground text-sm">
+                          Start a conversation with your AI study partner. Ask for explanations, examples, or a study plan for {weakestCourse?.name ?? 'any course'}.
+                      </p>
+                   </div>
+              </div>
             </CardContent>
           </Card>
         </div>

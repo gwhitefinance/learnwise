@@ -742,6 +742,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
   };
 
   const handleStartChatWithPrompt = async (prompt: string) => {
+    setIsOpen(true);
     setActiveTab('conversation');
     const newSessionId = await createNewSession(prompt);
     if (newSessionId) {
