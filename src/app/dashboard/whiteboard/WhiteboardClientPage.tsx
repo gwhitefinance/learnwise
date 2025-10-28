@@ -4,7 +4,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
-import { Eraser, Palette, Brush, Type, StickyNote, Save } from 'lucide-react';
+import { Eraser, Palette, Brush, StickyNote, Save } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Slider } from '@/components/ui/slider';
 import Draggable from 'react-draggable';
@@ -101,7 +101,7 @@ export default function WhiteboardClientPage() {
           x: 100,
           y: 100,
           value: 'New Note',
-          isEditing: false,
+          isEditing: true, // Start editing immediately
       };
       setNotes(prev => [...prev, newNote]);
   }
@@ -164,7 +164,7 @@ export default function WhiteboardClientPage() {
 
             tempCtx.fillStyle = '#333';
             tempCtx.font = '16px sans-serif';
-            const lines = note.value.split('\n');
+            const lines = note.value.split('\\n');
             lines.forEach((line, i) => {
                 tempCtx.fillText(line, x + 10, y + 20 + (i * 20));
             });
@@ -195,8 +195,8 @@ export default function WhiteboardClientPage() {
   const colors = ['#000000', '#ffffff', '#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6'];
 
   return (
-    <div className="flex flex-col h-full">
-      <h1 className="text-3xl font-bold mb-4">Whiteboard</h1>
+    <div className="flex flex-col h-full space-y-4">
+      <h1 className="text-3xl font-bold">Whiteboard</h1>
       <Card className="flex-1 flex flex-col">
         <CardHeader>
           <CardTitle>Digital Whiteboard</CardTitle>
@@ -206,7 +206,7 @@ export default function WhiteboardClientPage() {
                 <Button variant={tool === 'pen' ? 'secondary' : 'outline'} size="icon" onClick={() => setTool('pen')}>
                     <Brush />
                 </Button>
-                <Button variant={tool === 'text' ? 'secondary' : 'outline'} size="icon" onClick={addNote}>
+                <Button variant={'outline'} size="icon" onClick={addNote}>
                     <StickyNote />
                 </Button>
               <Popover>
@@ -251,7 +251,7 @@ export default function WhiteboardClientPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="flex-1 relative">
-          <div className="absolute inset-0 bg-muted rounded-lg border border-dashed h-full w-full">
+          <div className="absolute inset-0 bg-muted rounded-lg border border-dashed">
             <canvas
               ref={canvasRef}
               className="absolute inset-0 z-0"
@@ -263,10 +263,10 @@ export default function WhiteboardClientPage() {
              <div className="absolute inset-0 z-10 pointer-events-none">
                 {notes.map((note) => (
                     <Draggable 
-                        key={note.id} 
+                        key={note.id}
+                        nodeRef={nodeRefs.current[note.id]} 
                         defaultPosition={{x: note.x, y: note.y}} 
                         bounds="parent"
-                        nodeRef={nodeRefs.current[note.id]}
                     >
                          <div 
                             ref={nodeRefs.current[note.id]}
