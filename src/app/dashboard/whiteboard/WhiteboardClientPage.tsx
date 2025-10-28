@@ -131,6 +131,7 @@ export default function WhiteboardClientPage() {
         if (canvas) {
             const parent = canvas.parentElement;
             if (parent) {
+                // Delay resizing to allow parent to render
                 setTimeout(() => {
                     canvas.width = parent.clientWidth;
                     canvas.height = parent.clientHeight;
@@ -248,8 +249,8 @@ export default function WhiteboardClientPage() {
                     </TabsList>
                      <Button onClick={handleSaveAsNote}><Save className="mr-2 h-4 w-4" /> Save as Note</Button>
                 </div>
-                <TabsContent value="current" className="flex-1 relative mt-4">
-                    <aside className="absolute top-1/2 -translate-y-1/2 left-4 z-20">
+                <TabsContent value="current" className="flex-1 mt-4 relative">
+                    <aside className="absolute top-4 left-4 z-20">
                         <Card className="p-2 space-y-2">
                             <Button variant={tool === 'pen' ? 'secondary' : 'ghost'} size="icon" onClick={() => setTool('pen')}><Brush /></Button>
                             <Popover>
@@ -330,4 +331,3 @@ export default function WhiteboardClientPage() {
         </div>
     );
 }
-
