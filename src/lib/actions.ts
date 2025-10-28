@@ -9,7 +9,7 @@ import { generateSummary } from '@/ai/flows/note-summary-flow';
 import { generateFlashcardsFromNote } from '@/ai/flows/note-to-flashcard-flow';
 import { generateQuizFromNote } from '@/ai/flows/note-to-quiz-flow';
 import { generateMiniCourse } from '@/ai/flows/mini-course-flow';
-import { generateQuizFromModule } from '@/aiflows/module-quiz-flow';
+import { generateQuizFromModule } from '@/ai/flows/module-quiz-flow';
 import { generateFlashcardsFromModule } from '@/ai/flows/module-flashcard-flow';
 import { generateTutoringSession } from '@/ai/flows/image-tutoring-flow';
 import { studyPlannerFlow } from '@/ai/flows/study-planner-flow';
