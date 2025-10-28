@@ -2,9 +2,9 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
-import { Eraser, Palette, Brush, StickyNote, Save, Trash2, Type } from 'lucide-react';
+import { Eraser, Palette, Brush, Save, Trash2, Type } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Slider } from '@/components/ui/slider';
 import Draggable from 'react-draggable';
@@ -150,7 +150,7 @@ export default function WhiteboardClientPage() {
         setNotes([]);
     };
 
-    const addNote = (x: number, y: number, value = 'New Note') => {
+    const addNote = (x: number, y: number, value = 'Type here...') => {
         const newNote: StickyNoteType = {
             id: Date.now(),
             x: x,
@@ -199,18 +199,11 @@ export default function WhiteboardClientPage() {
                     y = parseFloat(match[2]);
                 }
                 
-                tempCtx.shadowColor = 'rgba(0,0,0,0.1)';
-                tempCtx.shadowBlur = 10;
-                tempCtx.shadowOffsetY = 4;
-                tempCtx.fillStyle = '#fef3c7';
-                tempCtx.fillRect(x, y, 208, 150); // 208px = w-52
-                tempCtx.shadowColor = 'transparent';
-
                 tempCtx.fillStyle = '#333';
-                tempCtx.font = '14px sans-serif';
+                tempCtx.font = '16px sans-serif';
                 const lines = note.value.split('\n');
                 lines.forEach((line, i) => {
-                    tempCtx.fillText(line, x + 8, y + 34 + (i * 20));
+                    tempCtx.fillText(line, x + 8, y + 24 + (i * 20));
                 });
             }
         });
@@ -254,6 +247,7 @@ export default function WhiteboardClientPage() {
                     <h1 className="text-3xl font-bold">Whiteboard</h1>
                     <p className="text-muted-foreground">Brainstorm, draw, and take visual notes.</p>
                 </div>
+                 <Button onClick={handleSaveAsNote}><Save className="mr-2 h-4 w-4" /> Save as Note</Button>
             </header>
             <Tabs defaultValue="current" className="flex-1 flex flex-col">
                  <div className="flex justify-between items-center">
@@ -261,24 +255,22 @@ export default function WhiteboardClientPage() {
                         <TabsTrigger value="current">Current Session</TabsTrigger>
                         <TabsTrigger value="saved">Saved Whiteboards</TabsTrigger>
                     </TabsList>
-                     <Button onClick={handleSaveAsNote}><Save className="mr-2 h-4 w-4" /> Save as Note</Button>
                 </div>
                 <TabsContent value="current" className="flex-1 mt-4">
-                    <main className="h-[70vh] w-full bg-muted rounded-lg border border-dashed relative overflow-hidden">
-                        <aside className="absolute top-4 left-4 z-20">
-                            <Card className="p-2 space-y-2">
+                     <main className="h-[70vh] w-full bg-muted rounded-lg border border-dashed relative overflow-hidden">
+                        <aside className="absolute top-4 left-1/2 -translate-x-1/2 z-20">
+                            <Card className="p-2 flex gap-2">
                                 <Button variant={tool === 'pen' ? 'secondary' : 'ghost'} size="icon" onClick={() => setTool('pen')}><Brush /></Button>
                                 <Popover>
                                     <PopoverTrigger asChild><Button variant="ghost" size="icon"><Palette /></Button></PopoverTrigger>
-                                    <PopoverContent side="right" className="w-auto p-2"><div className="flex gap-1">{colors.map(c => (<button key={c} onClick={() => setColor(c)} className={`w-8 h-8 rounded-full border-2 ${color === c ? 'border-primary' : 'border-transparent'}`} style={{ backgroundColor: c }} />))}</div></PopoverContent>
+                                    <PopoverContent side="bottom" className="w-auto p-2"><div className="flex gap-1">{colors.map(c => (<button key={c} onClick={() => setColor(c)} className={`w-8 h-8 rounded-full border-2 ${color === c ? 'border-primary' : 'border-transparent'}`} style={{ backgroundColor: c }} />))}</div></PopoverContent>
                                 </Popover>
                                 <Popover>
                                     <PopoverTrigger asChild><Button variant="ghost" size="icon"><Brush /></Button></PopoverTrigger>
-                                    <PopoverContent side="right" className="w-40 p-2"><Slider defaultValue={[brushSize]} max={50} min={1} step={1} onValueChange={(value) => setBrushSize(value[0])} /></PopoverContent>
+                                    <PopoverContent side="bottom" className="w-40 p-2"><Slider defaultValue={[brushSize]} max={50} min={1} step={1} onValueChange={(value) => setBrushSize(value[0])} /></PopoverContent>
                                 </Popover>
                                 <Button variant={tool === 'eraser' ? 'secondary' : 'ghost'} size="icon" onClick={() => setTool('eraser')}><Eraser /></Button>
                                 <Button variant={tool === 'text' ? 'secondary' : 'ghost'} size="icon" onClick={() => setTool('text')}><Type /></Button>
-                                <Button variant="ghost" size="icon" onClick={() => addNote(150,150)}><StickyNote /></Button>
                             </Card>
                         </aside>
                          <canvas 
@@ -291,13 +283,19 @@ export default function WhiteboardClientPage() {
                         />
                         {notes.map((note) => (
                             <Draggable key={note.id} nodeRef={nodeRefs.current[note.id]} defaultPosition={{ x: note.x, y: note.y }} bounds="parent" handle=".drag-handle">
-                                <div ref={nodeRefs.current[note.id]} className="absolute w-52 h-40 bg-yellow-100 shadow-lg flex flex-col rounded-lg overflow-hidden pointer-events-auto">
-                                    <div className="drag-handle cursor-move bg-yellow-200 h-6 w-full flex items-center justify-end pr-1">
-                                        <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => deleteNote(note.id)}>
-                                            <Trash2 className="h-3 w-3 text-gray-600" />
+                                <div ref={nodeRefs.current[note.id]} className="absolute w-52 pointer-events-auto">
+                                    <div className="absolute -top-3 -right-3">
+                                        <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/80" onClick={() => deleteNote(note.id)}>
+                                            <Trash2 className="h-3 w-3" />
                                         </Button>
                                     </div>
-                                    <textarea value={note.value} onChange={(e) => updateNoteText(note.id, e.target.value)} className="flex-1 w-full bg-transparent resize-none focus:outline-none p-2 text-sm text-gray-800" />
+                                    <textarea
+                                        value={note.value}
+                                        onChange={(e) => updateNoteText(note.id, e.target.value)}
+                                        className="w-full h-auto bg-transparent border-2 border-dashed border-gray-400 focus:border-primary focus:outline-none resize-none p-2 text-base"
+                                        placeholder='Type here...'
+                                        rows={4}
+                                    />
                                 </div>
                             </Draggable>
                         ))}
