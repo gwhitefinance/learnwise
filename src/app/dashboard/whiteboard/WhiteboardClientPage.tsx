@@ -5,21 +5,32 @@
 import { useEffect, useRef, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
-import { Eraser, Palette, Brush, Type } from 'lucide-react';
+import { Eraser, Palette, Brush, Type, StickyNote, Save } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Slider } from '@/components/ui/slider';
 import Draggable from 'react-draggable';
+import { useToast } from '@/hooks/use-toast';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { auth, db } from '@/lib/firebase';
+import { addDoc, collection, Timestamp } from 'firebase/firestore';
 
+type StickyNoteType = {
+    id: number;
+    x: number;
+    y: number;
+    value: string;
+    isEditing: boolean;
+};
 
 export default function WhiteboardClientPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const textRef = useRef<HTMLTextAreaElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [color, setColor] = useState('#000000');
   const [brushSize, setBrushSize] = useState(5);
   const [tool, setTool] = useState<'pen' | 'text'>('pen');
-
-  const [textBox, setTextBox] = useState<{x: number, y: number, value: string, isEditing: boolean} | null>(null);
+  const [notes, setNotes] = useState<StickyNoteType[]>([]);
+  const { toast } = useToast();
+  const [user] = useAuthState(auth);
 
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (tool !== 'pen') return;
@@ -64,6 +75,7 @@ export default function WhiteboardClientPage() {
     const context = canvas.getContext('2d');
     if (!context) return;
     context.clearRect(0, 0, canvas.width, canvas.height);
+    setNotes([]);
   };
 
   useEffect(() => {
@@ -77,32 +89,90 @@ export default function WhiteboardClientPage() {
     }
   }, []);
 
-  const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (tool === 'text') {
-        if (textBox && textBox.isEditing) {
-            drawTextOnCanvas(textBox);
-            setTextBox(null);
-        } else {
-            setTextBox({
-                x: e.nativeEvent.offsetX,
-                y: e.nativeEvent.offsetY,
-                value: '',
-                isEditing: true
-            });
-        }
+  const addNote = () => {
+      const newNote: StickyNoteType = {
+          id: Date.now(),
+          x: 100,
+          y: 100,
+          value: 'New Note',
+          isEditing: false,
+      };
+      setNotes(prev => [...prev, newNote]);
+  }
+  
+  const updateNoteText = (id: number, newValue: string) => {
+      setNotes(prev => prev.map(note => note.id === id ? {...note, value: newValue} : note));
+  }
+
+  const handleNoteDoubleClick = (id: number) => {
+      setNotes(prev => prev.map(note => note.id === id ? {...note, isEditing: true} : note));
+  }
+  
+  const handleNoteBlur = (id: number) => {
+       setNotes(prev => prev.map(note => note.id === id ? {...note, isEditing: false} : note));
+  }
+  
+  const handleSaveAsNote = async () => {
+    if (!user) {
+        toast({ variant: 'destructive', title: 'You must be logged in to save notes.'});
+        return;
+    }
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    // Create a temporary canvas to merge drawings and notes
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = canvas.width;
+    tempCanvas.height = canvas.height;
+    const tempCtx = tempCanvas.getContext('2d');
+
+    if (!tempCtx) return;
+
+    // Draw the background
+    tempCtx.fillStyle = '#f3f4f6'; // Muted background color
+    tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+
+    // Draw the existing canvas content (drawings)
+    tempCtx.drawImage(canvas, 0, 0);
+
+    // Draw each sticky note
+    notes.forEach(note => {
+        tempCtx.fillStyle = '#fefce8'; // yellow-50
+        tempCtx.shadowColor = 'rgba(0,0,0,0.1)';
+        tempCtx.shadowBlur = 10;
+        tempCtx.shadowOffsetY = 4;
+        tempCtx.fillRect(note.x, note.y, 200, 100);
+        tempCtx.shadowColor = 'transparent';
+
+        tempCtx.fillStyle = '#333';
+        tempCtx.font = '16px sans-serif';
+        const lines = note.value.split('\n');
+        lines.forEach((line, i) => {
+            tempCtx.fillText(line, note.x + 10, note.y + 20 + (i * 20));
+        });
+    });
+
+    const imageDataUrl = tempCanvas.toDataURL('image/png');
+
+    try {
+        await addDoc(collection(db, "notes"), {
+            title: `Whiteboard - ${new Date().toLocaleString()}`,
+            content: `Whiteboard content saved as an image.`,
+            imageUrl: imageDataUrl, // Storing image as a data URL
+            date: Timestamp.now(),
+            color: 'bg-indigo-100 dark:bg-indigo-900/20',
+            isImportant: false,
+            isCompleted: false,
+            userId: user.uid,
+        });
+        toast({ title: "Whiteboard Saved!", description: "A new note has been created with your whiteboard content." });
+    } catch (e) {
+        console.error(e);
+        toast({ variant: "destructive", title: "Error", description: "Could not save whiteboard as a note." });
     }
   };
 
-  const drawTextOnCanvas = (box: {x: number, y: number, value: string}) => {
-    const canvas = canvasRef.current;
-    if (!canvas || !box.value) return;
-    const context = canvas.getContext('2d');
-    if (!context) return;
-
-    context.fillStyle = color;
-    context.font = `${brushSize * 4}px sans-serif`;
-    context.fillText(box.value, box.x, box.y);
-  };
 
   const colors = ['#000000', '#ffffff', '#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6'];
 
@@ -115,12 +185,12 @@ export default function WhiteboardClientPage() {
           <CardDescription className="flex justify-between items-center">
             <span>Use this space for brainstorming, drawing diagrams, and taking notes.</span>
             <div className="flex items-center gap-2">
-               <Button variant={tool === 'pen' ? 'secondary' : 'outline'} size="icon" onClick={() => setTool('pen')}>
-                  <Brush />
-              </Button>
-               <Button variant={tool === 'text' ? 'secondary' : 'outline'} size="icon" onClick={() => setTool('text')}>
-                <Type />
-              </Button>
+                <Button variant={tool === 'pen' ? 'secondary' : 'outline'} size="icon" onClick={() => setTool('pen')}>
+                    <Brush />
+                </Button>
+                <Button variant={tool === 'text' ? 'secondary' : 'outline'} size="icon" onClick={addNote}>
+                    <StickyNote />
+                </Button>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="outline" size="icon"><Palette /></Button>
@@ -153,7 +223,9 @@ export default function WhiteboardClientPage() {
                     />
                 </PopoverContent>
               </Popover>
-
+               <Button variant="outline" size="icon" onClick={handleSaveAsNote}>
+                  <Save />
+              </Button>
               <Button variant="destructive" size="icon" onClick={clearCanvas}>
                 <Eraser />
               </Button>
@@ -161,50 +233,37 @@ export default function WhiteboardClientPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="flex-1 relative">
-          <div className="aspect-video bg-muted rounded-lg border border-dashed h-full">
+          <div className="absolute inset-0 bg-muted rounded-lg border border-dashed h-full w-full">
             <canvas
               ref={canvasRef}
-              className="w-full h-full"
+              className="absolute inset-0 z-0"
               onMouseDown={startDrawing}
               onMouseMove={draw}
               onMouseUp={stopDrawing}
               onMouseLeave={stopDrawing}
-              onClick={handleCanvasClick}
             />
-            {textBox && textBox.isEditing && (
-              <Draggable
-                nodeRef={textRef}
-                defaultPosition={{x: textBox.x, y: textBox.y}}
-                onStop={(_, data) => setTextBox(t => t ? {...t, x: data.x, y: data.y} : null)}
-              >
-                  <textarea
-                      ref={textRef}
-                      autoFocus
-                      value={textBox.value}
-                      onChange={(e) => setTextBox(t => t ? {...t, value: e.target.value} : null)}
-                      onBlur={() => {
-                          if (textBox) drawTextOnCanvas(textBox);
-                          setTextBox(null);
-                      }}
-                      style={{
-                          position: 'absolute',
-                          top: 0, 
-                          left: 0,
-                          color: color,
-                          fontSize: `${brushSize * 4}px`,
-                          background: 'transparent',
-                          border: '1px dashed grey',
-                          outline: 'none',
-                          resize: 'none',
-                          lineHeight: 1,
-                      }}
-                      className="p-1"
-                  />
-              </Draggable>
-            )}
+             <div className="absolute inset-0 z-10 pointer-events-none">
+                {notes.map((note) => (
+                    <Draggable key={note.id} defaultPosition={{x: note.x, y: note.y}} bounds="parent">
+                         <div 
+                            className="w-48 h-24 bg-yellow-200 shadow-lg p-2 flex flex-col pointer-events-auto"
+                            onDoubleClick={() => handleNoteDoubleClick(note.id)}
+                        >
+                            <textarea 
+                                value={note.value}
+                                onChange={(e) => updateNoteText(note.id, e.target.value)}
+                                onBlur={() => handleNoteBlur(note.id)}
+                                className="w-full h-full bg-transparent resize-none focus:outline-none focus:ring-1 focus:ring-yellow-400"
+                                autoFocus={note.isEditing}
+                            />
+                        </div>
+                    </Draggable>
+                ))}
+            </div>
           </div>
         </CardContent>
       </Card>
     </div>
   );
 }
+
