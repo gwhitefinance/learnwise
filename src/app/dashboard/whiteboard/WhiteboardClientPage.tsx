@@ -4,7 +4,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
-import { Eraser, Palette, Brush, StickyNote, Save, Shapes, LayoutTemplate, Trash2 } from 'lucide-react';
+import { Eraser, Palette, Brush, StickyNote, Save, Trash2 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Slider } from '@/components/ui/slider';
 import Draggable from 'react-draggable';
@@ -131,7 +131,6 @@ export default function WhiteboardClientPage() {
         if (canvas) {
             const parent = canvas.parentElement;
             if (parent) {
-                // Delay resizing to allow parent to render
                 setTimeout(() => {
                     canvas.width = parent.clientWidth;
                     canvas.height = parent.clientHeight;
@@ -150,9 +149,15 @@ export default function WhiteboardClientPage() {
         setNotes(prev => [...prev, newNote]);
     };
 
+
     const updateNoteText = (id: number, newValue: string) => {
         setNotes(prev => prev.map(note => note.id === id ? { ...note, value: newValue } : note));
     };
+
+    const deleteNote = (id: number) => {
+        setNotes(prev => prev.filter(note => note.id !== id));
+    };
+
 
     const handleSaveAsNote = async () => {
         if (!user) {
@@ -208,7 +213,7 @@ export default function WhiteboardClientPage() {
                 title: `Whiteboard - ${new Date().toLocaleString()}`,
                 content: `Whiteboard content saved as an image.`,
                 imageUrl: imageDataUrl,
-                isWhiteboardNote: true, // Add this flag
+                isWhiteboardNote: true,
                 date: Timestamp.now(),
                 color: 'bg-indigo-100 dark:bg-indigo-900/20',
                 isImportant: false,
@@ -249,28 +254,32 @@ export default function WhiteboardClientPage() {
                     </TabsList>
                      <Button onClick={handleSaveAsNote}><Save className="mr-2 h-4 w-4" /> Save as Note</Button>
                 </div>
-                <TabsContent value="current" className="flex-1 mt-4 relative">
-                    <aside className="absolute top-4 left-4 z-20">
-                        <Card className="p-2 space-y-2">
-                            <Button variant={tool === 'pen' ? 'secondary' : 'ghost'} size="icon" onClick={() => setTool('pen')}><Brush /></Button>
-                            <Popover>
-                                <PopoverTrigger asChild><Button variant="ghost" size="icon"><Palette /></Button></PopoverTrigger>
-                                <PopoverContent side="right" className="w-auto p-2"><div className="flex gap-1">{colors.map(c => (<button key={c} onClick={() => setColor(c)} className={`w-8 h-8 rounded-full border-2 ${color === c ? 'border-primary' : 'border-transparent'}`} style={{ backgroundColor: c }} />))}</div></PopoverContent>
-                            </Popover>
-                            <Popover>
-                                <PopoverTrigger asChild><Button variant="ghost" size="icon"><Brush /></Button></PopoverTrigger>
-                                <PopoverContent side="right" className="w-40 p-2"><Slider defaultValue={[brushSize]} max={50} min={1} step={1} onValueChange={(value) => setBrushSize(value[0])} /></PopoverContent>
-                            </Popover>
-                            <Button variant={tool === 'eraser' ? 'secondary' : 'ghost'} size="icon" onClick={() => setTool('eraser')}><Eraser /></Button>
-                            <Button variant="ghost" size="icon" onClick={addNote}><StickyNote /></Button>
-                        </Card>
-                    </aside>
-                    <main className="h-full w-full bg-muted rounded-lg border border-dashed relative overflow-hidden">
+                <TabsContent value="current" className="flex-1 mt-4">
+                     <main className="h-full w-full bg-muted rounded-lg border border-dashed relative overflow-hidden">
+                        <aside className="absolute top-4 left-4 z-20">
+                            <Card className="p-2 space-y-2">
+                                <Button variant={tool === 'pen' ? 'secondary' : 'ghost'} size="icon" onClick={() => setTool('pen')}><Brush /></Button>
+                                <Popover>
+                                    <PopoverTrigger asChild><Button variant="ghost" size="icon"><Palette /></Button></PopoverTrigger>
+                                    <PopoverContent side="right" className="w-auto p-2"><div className="flex gap-1">{colors.map(c => (<button key={c} onClick={() => setColor(c)} className={`w-8 h-8 rounded-full border-2 ${color === c ? 'border-primary' : 'border-transparent'}`} style={{ backgroundColor: c }} />))}</div></PopoverContent>
+                                </Popover>
+                                <Popover>
+                                    <PopoverTrigger asChild><Button variant="ghost" size="icon"><Brush /></Button></PopoverTrigger>
+                                    <PopoverContent side="right" className="w-40 p-2"><Slider defaultValue={[brushSize]} max={50} min={1} step={1} onValueChange={(value) => setBrushSize(value[0])} /></PopoverContent>
+                                </Popover>
+                                <Button variant={tool === 'eraser' ? 'secondary' : 'ghost'} size="icon" onClick={() => setTool('eraser')}><Eraser /></Button>
+                                <Button variant="ghost" size="icon" onClick={addNote}><StickyNote /></Button>
+                            </Card>
+                        </aside>
                         <canvas ref={canvasRef} className="absolute inset-0 z-0" onMouseDown={startDrawing} onMouseMove={draw} onMouseUp={stopDrawing} onMouseLeave={stopDrawing} />
                         {notes.map((note) => (
                             <Draggable key={note.id} nodeRef={nodeRefs.current[note.id]} defaultPosition={{ x: note.x, y: note.y }} bounds="parent" handle=".drag-handle">
-                                <div ref={nodeRefs.current[note.id]} className="absolute w-52 h-36 bg-yellow-100 shadow-lg flex flex-col rounded-lg overflow-hidden">
-                                    <div className="drag-handle cursor-move bg-yellow-200 h-6 w-full flex items-center justify-center"><div className="h-1 w-8 bg-gray-400 rounded-full"></div></div>
+                                <div ref={nodeRefs.current[note.id]} className="absolute w-52 bg-yellow-100 shadow-lg flex flex-col rounded-lg overflow-hidden">
+                                    <div className="drag-handle cursor-move bg-yellow-200 h-6 w-full flex items-center justify-end pr-1">
+                                        <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => deleteNote(note.id)}>
+                                            <Trash2 className="h-3 w-3 text-gray-600" />
+                                        </Button>
+                                    </div>
                                     <textarea value={note.value} onChange={(e) => updateNoteText(note.id, e.target.value)} className="w-full h-full bg-transparent resize-none focus:outline-none p-2 text-sm" />
                                 </div>
                             </Draggable>
