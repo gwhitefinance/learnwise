@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -47,6 +46,8 @@ const SHAPES = {
 
 type Shape = keyof typeof SHAPES;
 
+type Difficulty = 'Easy' | 'Medium' | 'Hard';
+
 const createEmptyBoard = () => Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(0));
 
 const getRandomShape = (): Shape => {
@@ -90,6 +91,7 @@ export default function BlockPuzzleClientPage() {
     const [isQuestionLoading, setIsQuestionLoading] = useState(false);
     const [isQuestionModalOpen, setIsQuestionModalOpen] = useState(false);
     const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+    const [difficulty, setDifficulty] = useState<Difficulty>('Easy');
     
     const { toast } = useToast();
     const [user, authLoading] = useAuthState(auth);
@@ -124,7 +126,7 @@ export default function BlockPuzzleClientPage() {
             const result = await generateQuiz({ 
                 topics: `${course.name} ${Math.random()}`,
                 questionType: 'Multiple Choice',
-                difficulty: 'Easy',
+                difficulty: difficulty,
                 numQuestions: 1,
             });
             if (result.questions && result.questions.length > 0) {
@@ -139,7 +141,7 @@ export default function BlockPuzzleClientPage() {
         } finally {
             setIsQuestionLoading(false);
         }
-    }, [selectedCourseId, courses, toast]);
+    }, [selectedCourseId, courses, toast, difficulty]);
 
 
     useEffect(() => {
@@ -295,6 +297,7 @@ export default function BlockPuzzleClientPage() {
         setGameOver(false);
         setGameStarted(false); // Go back to course selection
         setSelectedCourseId(courses.length > 0 ? courses[0].id : null);
+        setDifficulty('Easy');
     };
 
     const startGame = () => {
@@ -306,6 +309,7 @@ export default function BlockPuzzleClientPage() {
         setScore(0);
         setGameOver(false);
         setGameStarted(true);
+        setDifficulty('Easy');
     }
     
     const handleAnswerSubmit = () => {
@@ -316,8 +320,14 @@ export default function BlockPuzzleClientPage() {
         if (isCorrect) {
             toast({ title: "Correct!", description: "+100 bonus points!" });
             setScore(s => s + 100);
+            if (difficulty === 'Easy') {
+                setDifficulty('Medium');
+            } else if (difficulty === 'Medium') {
+                setDifficulty('Hard');
+            }
         } else {
             toast({ variant: 'destructive', title: "Incorrect!", description: `The correct answer was: ${question.answer}` });
+            setDifficulty('Easy');
         }
         setIsQuestionModalOpen(false);
         setSelectedAnswer(null);

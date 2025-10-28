@@ -24,6 +24,8 @@ type Course = {
 
 type Question = GenerateQuizOutput['questions'][0];
 
+type Difficulty = 'Easy' | 'Medium' | 'Hard';
+
 const GRID_SIZE = 20;
 const CANVAS_SIZE = 600;
 const TILE_COUNT = CANVAS_SIZE / GRID_SIZE;
@@ -39,6 +41,7 @@ export default function SnakeClientPage() {
     const [isQuestionLoading, setIsQuestionLoading] = useState(false);
     const [isQuestionModalOpen, setIsQuestionModalOpen] = useState(false);
     const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+    const [difficulty, setDifficulty] = useState<Difficulty>('Easy');
 
     const { toast } = useToast();
     const [user, authLoading] = useAuthState(auth);
@@ -76,7 +79,7 @@ export default function SnakeClientPage() {
             const result = await generateQuiz({ 
                 topics: course.name,
                 questionType: 'Multiple Choice',
-                difficulty: 'Easy',
+                difficulty: difficulty,
                 numQuestions: 1,
             });
             if (result.questions && result.questions.length > 0) {
@@ -92,7 +95,7 @@ export default function SnakeClientPage() {
         } finally {
             setIsQuestionLoading(false);
         }
-    }, [selectedCourseId, courses, toast]);
+    }, [selectedCourseId, courses, toast, difficulty]);
 
     const draw = useCallback((ctx: CanvasRenderingContext2D) => {
         ctx.fillStyle = 'black';
@@ -194,6 +197,7 @@ export default function SnakeClientPage() {
         };
         setScore(0);
         setGameOver(false);
+        setDifficulty('Easy');
     };
 
     const startGame = () => {
@@ -215,10 +219,16 @@ export default function SnakeClientPage() {
         if (isCorrect) {
             toast({ title: "Correct!", description: "Keep going!" });
             gameState.current.isPaused = false;
+            if (difficulty === 'Easy') {
+                setDifficulty('Medium');
+            } else if (difficulty === 'Medium') {
+                setDifficulty('Hard');
+            }
         } else {
             toast({ variant: 'destructive', title: "Incorrect!", description: `The correct answer was: ${question.answer}. Game Over.` });
             setGameOver(true);
             setGameStarted(false);
+            setDifficulty('Easy');
         }
     };
 

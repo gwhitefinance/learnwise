@@ -32,6 +32,8 @@ type Bullet = {
     y: number;
 };
 
+type Difficulty = 'Easy' | 'Medium' | 'Hard';
+
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 600;
 const SHIP_WIDTH = 40;
@@ -49,6 +51,7 @@ export default function TriviaBlasterClientPage() {
     const [bullets, setBullets] = useState<Bullet[]>([]);
     const [shipX, setShipX] = useState(CANVAS_WIDTH / 2);
     const [isLoading, setIsLoading] = useState(false);
+    const [difficulty, setDifficulty] = useState<Difficulty>('Easy');
 
     const { toast } = useToast();
     const [user, authLoading] = useAuthState(auth);
@@ -78,7 +81,7 @@ export default function TriviaBlasterClientPage() {
             const result = await generateQuiz({
                 topics: course.name,
                 questionType: 'Multiple Choice',
-                difficulty: 'Medium',
+                difficulty: difficulty,
                 numQuestions: 1,
             });
             if (result.questions && result.questions.length > 0 && result.questions[0].options) {
@@ -101,7 +104,7 @@ export default function TriviaBlasterClientPage() {
         } finally {
             setIsLoading(false);
         }
-    }, [selectedCourseId, courses, toast]);
+    }, [selectedCourseId, courses, toast, difficulty]);
 
     const resetGame = () => {
         setScore(0);
@@ -109,6 +112,7 @@ export default function TriviaBlasterClientPage() {
         setBullets([]);
         setAsteroids([]);
         setQuestion(null);
+        setDifficulty('Easy');
     };
 
     const startGame = () => {
@@ -181,9 +185,12 @@ export default function TriviaBlasterClientPage() {
                     if (asteroid.isCorrect) {
                         toast({ title: "Correct!" });
                         setScore(s => s + 10);
+                        if(difficulty === 'Easy') setDifficulty('Medium');
+                        else if(difficulty === 'Medium') setDifficulty('Hard');
                         getNewQuestion(); // Load next question
                     } else {
                         toast({ variant: 'destructive', title: "Wrong Answer!" });
+                        setDifficulty('Easy');
                         setGameOver(true);
                         setGameStarted(false);
                     }
@@ -208,7 +215,7 @@ export default function TriviaBlasterClientPage() {
         setBullets(finalBullets);
         setAsteroids(finalAsteroids);
 
-    }, [gameStarted, gameOver, isLoading, shipX, bullets, asteroids, getNewQuestion, toast]);
+    }, [gameStarted, gameOver, isLoading, shipX, bullets, asteroids, getNewQuestion, toast, difficulty]);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
