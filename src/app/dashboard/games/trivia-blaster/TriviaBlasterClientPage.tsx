@@ -12,6 +12,8 @@ import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { generateQuiz } from '@/ai/flows/quiz-flow';
 import type { GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
 import { Label } from '@/components/ui/label';
+import { useRouter } from 'next/navigation';
+import { ArrowLeft } from 'lucide-react';
 
 type Course = {
     id: string;
@@ -63,6 +65,7 @@ export default function TriviaBlasterClientPage() {
 
     const { toast } = useToast();
     const [user, authLoading] = useAuthState(auth);
+    const router = useRouter();
 
     useEffect(() => {
         if (authLoading || !user) return;
@@ -253,7 +256,11 @@ export default function TriviaBlasterClientPage() {
 
 
     return (
-        <div className="flex flex-col items-center p-4">
+        <div className="flex flex-col items-center p-4 relative">
+             <Button variant="ghost" onClick={() => router.push('/dashboard/games')} className="absolute top-4 left-4">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Games
+            </Button>
             <h1 className="text-4xl font-bold mb-4">Trivia Blaster</h1>
 
             {!gameStarted ? (

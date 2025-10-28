@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
-import { RotateCw } from 'lucide-react';
+import { RotateCw, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
@@ -17,6 +17,7 @@ import type { GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
+import { useRouter } from 'next/navigation';
 
 const GRID_SIZE = 10;
 const BLOCK_SIZE = 35;
@@ -99,6 +100,7 @@ export default function BlockPuzzleClientPage() {
     
     const { toast } = useToast();
     const [user, authLoading] = useAuthState(auth);
+    const router = useRouter();
 
     useEffect(() => {
         if (authLoading || !user) return;
@@ -343,6 +345,10 @@ export default function BlockPuzzleClientPage() {
     if (!gameStarted) {
         return (
             <div className="flex flex-col items-center p-4">
+                <Button variant="ghost" onClick={() => router.push('/dashboard/games')} className="absolute top-4 left-4">
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back to Games
+                </Button>
                 <h1 className="text-4xl font-bold mb-4">Puzzle Blocks</h1>
                 <Card className="w-full max-w-md p-8 text-center">
                     <p className="text-muted-foreground mb-4">Select a course to start the game!</p>
@@ -384,7 +390,11 @@ export default function BlockPuzzleClientPage() {
     }
 
     return (
-        <div className="flex flex-col items-center p-4">
+        <div className="flex flex-col items-center p-4 relative">
+             <Button variant="ghost" onClick={() => router.push('/dashboard/games')} className="absolute top-4 left-4">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Games
+            </Button>
             {draggedPieceInfo && dragPosition && (
                 <div 
                     className="pointer-events-none fixed z-50 opacity-70"

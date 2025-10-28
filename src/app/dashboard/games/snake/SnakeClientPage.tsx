@@ -16,6 +16,8 @@ import { generateQuiz } from '@/ai/flows/quiz-flow';
 import type { GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useRouter } from 'next/navigation';
+import { ArrowLeft } from 'lucide-react';
 
 type Course = {
     id: string;
@@ -50,6 +52,7 @@ export default function SnakeClientPage() {
 
     const { toast } = useToast();
     const [user, authLoading] = useAuthState(auth);
+    const router = useRouter();
 
     const gameState = useRef({
         snake: [{ x: 10, y: 10 }],
@@ -246,6 +249,10 @@ export default function SnakeClientPage() {
 
     return (
         <div className="flex flex-col items-center p-4 relative">
+             <Button variant="ghost" onClick={() => router.push('/dashboard/games')} className="absolute top-4 left-4">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Games
+            </Button>
             <h1 className="text-4xl font-bold mb-4">Study Snake</h1>
 
             {!gameStarted ? (

@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RotateCw, ArrowLeft, ArrowRight, ArrowDown } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 
 // Game constants
 const COLS = 10;
@@ -62,6 +62,7 @@ export default function ConceptTetrisClientPage() {
     const [level, setLevel] = useState(1);
     const [gameOver, setGameOver] = useState(false);
     const [isPaused, setIsPaused] = useState(false);
+    const router = useRouter();
 
     const gameLoopRef = useRef<NodeJS.Timeout>();
 
@@ -228,7 +229,11 @@ export default function ConceptTetrisClientPage() {
     }
 
     return (
-        <div className="flex flex-col items-center p-4">
+        <div className="flex flex-col items-center p-4 relative">
+             <Button variant="ghost" onClick={() => router.push('/dashboard/games')} className="absolute top-4 left-4">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Games
+            </Button>
             <h1 className="text-4xl font-bold mb-4">Concept Tetris</h1>
             <div className="flex gap-8 items-start">
                 <div style={{ position: 'relative', border: '2px solid #fff' }}>
