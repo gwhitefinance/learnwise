@@ -25,6 +25,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { generateSummary, generateFlashcardsFromNote, generateQuizFromNote } from '@/lib/actions';
 import ListenToNote from '@/components/ListenToNote';
+import Image from 'next/image';
 
 type Unit = {
     id: string;
@@ -48,6 +49,8 @@ type Note = {
   userId?: string;
   courseId?: string;
   unitId?: string;
+  isWhiteboardNote?: boolean;
+  imageUrl?: string;
 };
 
 type FirestoreNote = Omit<Note, 'date' | 'id'> & {
@@ -72,13 +75,13 @@ const NoteCard = ({ note, onDelete, onToggleImportant, onToggleComplete, onSumma
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                 <DropdownMenuItem onClick={() => onSummarize(note.content)}>
+                 <DropdownMenuItem onClick={() => onSummarize(note.content)} disabled={note.isWhiteboardNote}>
                     <Wand2 className="mr-2 h-4 w-4 text-purple-500"/> Summarize with AI
                 </DropdownMenuItem>
-                 <DropdownMenuItem onClick={() => onGenerateFlashcards(note.content)}>
+                 <DropdownMenuItem onClick={() => onGenerateFlashcards(note.content)} disabled={note.isWhiteboardNote}>
                     <Copy className="mr-2 h-4 w-4 text-blue-500"/> Generate Flashcards
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onGenerateQuiz(note.content)}>
+                <DropdownMenuItem onClick={() => onGenerateQuiz(note.content)} disabled={note.isWhiteboardNote}>
                     <Lightbulb className="mr-2 h-4 w-4 text-yellow-500"/> Generate Quiz
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -94,7 +97,13 @@ const NoteCard = ({ note, onDelete, onToggleImportant, onToggleComplete, onSumma
               </DropdownMenuContent>
             </DropdownMenu>
         </div>
-        <CardDescription className="text-sm pt-2">{note.content}</CardDescription>
+        {note.isWhiteboardNote && note.imageUrl ? (
+            <div className="mt-2 aspect-video relative bg-muted rounded-md overflow-hidden">
+                <Image src={note.imageUrl} alt={note.title} layout="fill" objectFit="contain" />
+            </div>
+        ) : (
+            <CardDescription className="text-sm pt-2">{note.content}</CardDescription>
+        )}
       </CardHeader>
       <CardContent className="p-4 pt-0">
          <p className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(note.date), { addSuffix: true })}</p>
