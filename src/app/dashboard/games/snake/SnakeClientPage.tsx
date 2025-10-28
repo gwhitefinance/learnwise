@@ -1,8 +1,7 @@
-
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Card } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -27,6 +26,7 @@ type Course = {
 type Question = GenerateQuizOutput['questions'][0];
 
 type Difficulty = 'Easy' | 'Medium' | 'Hard';
+type GameMode = 'Easy' | 'Medium' | 'Hard' | 'Adaptive';
 
 const GRID_SIZE = 20;
 const CANVAS_SIZE = 600;
@@ -44,6 +44,7 @@ export default function SnakeClientPage() {
     const [isQuestionModalOpen, setIsQuestionModalOpen] = useState(false);
     const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
     const [difficulty, setDifficulty] = useState<Difficulty>('Easy');
+    const [gameMode, setGameMode] = useState<GameMode>('Adaptive');
     const [countdown, setCountdown] = useState<number | null>(null);
 
     const { toast } = useToast();
@@ -82,7 +83,7 @@ export default function SnakeClientPage() {
             const result = await generateQuiz({ 
                 topics: course.name,
                 questionType: 'Multiple Choice',
-                difficulty: difficulty,
+                difficulty: gameMode === 'Adaptive' ? difficulty : gameMode,
                 numQuestions: 1,
             });
             if (result.questions && result.questions.length > 0) {
@@ -98,7 +99,7 @@ export default function SnakeClientPage() {
         } finally {
             setIsQuestionLoading(false);
         }
-    }, [selectedCourseId, courses, toast, difficulty]);
+    }, [selectedCourseId, courses, toast, difficulty, gameMode]);
 
     const draw = useCallback((ctx: CanvasRenderingContext2D) => {
         ctx.fillStyle = 'black';
@@ -125,14 +126,12 @@ export default function SnakeClientPage() {
         head.x += gameState.current.velocity.x;
         head.y += gameState.current.velocity.y;
 
-        // Wall collision
         if (head.x < 0 || head.x >= TILE_COUNT || head.y < 0 || head.y >= TILE_COUNT) {
             setGameOver(true);
             setGameStarted(false);
             return;
         }
 
-        // Self collision
         for (let i = 1; i < gameState.current.snake.length; i++) {
             if (head.x === gameState.current.snake[i].x && head.y === gameState.current.snake[i].y) {
                 setGameOver(true);
@@ -143,7 +142,6 @@ export default function SnakeClientPage() {
         
         const newSnake = [head, ...gameState.current.snake];
         
-        // Food collision
         if (head.x === gameState.current.food.x && head.y === gameState.current.food.y) {
             setScore(s => s + 1);
             getNewQuestion();
@@ -197,7 +195,6 @@ export default function SnakeClientPage() {
             const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
             return () => clearTimeout(timer);
         } else {
-            // Countdown finished
             setCountdown(null);
             gameState.current.isPaused = false;
         }
@@ -233,17 +230,16 @@ export default function SnakeClientPage() {
 
         if (isCorrect) {
             toast({ title: "Correct!", description: "Get ready to move!" });
-            setCountdown(3); // Start countdown
-            if (difficulty === 'Easy') {
-                setDifficulty('Medium');
-            } else if (difficulty === 'Medium') {
-                setDifficulty('Hard');
+            if (gameMode === 'Adaptive') {
+                if (difficulty === 'Easy') setDifficulty('Medium');
+                else if (difficulty === 'Medium') setDifficulty('Hard');
             }
+            setCountdown(3);
         } else {
             toast({ variant: 'destructive', title: "Incorrect!", description: `The correct answer was: ${question.answer}. Game Over.` });
+            if (gameMode === 'Adaptive') setDifficulty('Easy');
             setGameOver(true);
             setGameStarted(false);
-            setDifficulty('Easy');
         }
     };
 
@@ -255,17 +251,34 @@ export default function SnakeClientPage() {
                 <Card className="w-full max-w-md p-8 text-center">
                     <p className="text-muted-foreground mb-4">Answer questions to grow your snake!</p>
                      <div className="flex flex-col items-center gap-4">
-                        <Select onValueChange={setSelectedCourseId} value={selectedCourseId ?? ''} disabled={courses.length === 0}>
-                            <SelectTrigger className="w-[280px]">
-                                <SelectValue placeholder="Select a course..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {courses.map(course => (
-                                    <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        <Button onClick={startGame} disabled={!selectedCourseId || authLoading}>
+                        <div className="w-full space-y-2 text-left">
+                            <Label htmlFor="course-select">Select a Course</Label>
+                            <Select onValueChange={setSelectedCourseId} value={selectedCourseId ?? ''} disabled={courses.length === 0}>
+                                <SelectTrigger id="course-select" className="w-full">
+                                    <SelectValue placeholder="Select a course..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {courses.map(course => (
+                                        <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="w-full space-y-2 text-left">
+                           <Label htmlFor="difficulty-select">Difficulty</Label>
+                           <Select onValueChange={(v) => setGameMode(v as GameMode)} defaultValue={gameMode}>
+                                <SelectTrigger id="difficulty-select" className="w-full">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="Adaptive">Adaptive</SelectItem>
+                                    <SelectItem value="Easy">Easy</SelectItem>
+                                    <SelectItem value="Medium">Medium</SelectItem>
+                                    <SelectItem value="Hard">Hard</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <Button onClick={startGame} disabled={!selectedCourseId || authLoading} className="w-full">
                             {gameOver ? "Play Again" : "Start Game"}
                         </Button>
                     </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RotateCw } from 'lucide-react';
@@ -47,6 +47,7 @@ const SHAPES = {
 type Shape = keyof typeof SHAPES;
 
 type Difficulty = 'Easy' | 'Medium' | 'Hard';
+type GameMode = 'Easy' | 'Medium' | 'Hard' | 'Adaptive';
 
 const createEmptyBoard = () => Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(0));
 
@@ -91,6 +92,8 @@ export default function BlockPuzzleClientPage() {
     const [isQuestionLoading, setIsQuestionLoading] = useState(false);
     const [isQuestionModalOpen, setIsQuestionModalOpen] = useState(false);
     const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+    
+    const [gameMode, setGameMode] = useState<GameMode>('Adaptive');
     const [difficulty, setDifficulty] = useState<Difficulty>('Easy');
     
     const { toast } = useToast();
@@ -126,7 +129,7 @@ export default function BlockPuzzleClientPage() {
             const result = await generateQuiz({ 
                 topics: `${course.name} ${Math.random()}`,
                 questionType: 'Multiple Choice',
-                difficulty: difficulty,
+                difficulty: gameMode === 'Adaptive' ? difficulty : gameMode,
                 numQuestions: 1,
             });
             if (result.questions && result.questions.length > 0) {
@@ -137,11 +140,11 @@ export default function BlockPuzzleClientPage() {
         } catch (error) {
             console.error("Failed to generate question:", error);
             toast({ variant: 'destructive', title: 'Could not fetch a question.' });
-            setIsQuestionModalOpen(false); // Close modal if question fails
+            setIsQuestionModalOpen(false);
         } finally {
             setIsQuestionLoading(false);
         }
-    }, [selectedCourseId, courses, toast, difficulty]);
+    }, [selectedCourseId, courses, toast, difficulty, gameMode]);
 
 
     useEffect(() => {
@@ -204,7 +207,6 @@ export default function BlockPuzzleClientPage() {
             });
         });
 
-        // Check for and clear completed lines
         let rowsToClear: number[] = [];
         let colsToClear: number[] = [];
         
@@ -295,7 +297,7 @@ export default function BlockPuzzleClientPage() {
         setBoard(createEmptyBoard());
         setScore(0);
         setGameOver(false);
-        setGameStarted(false); // Go back to course selection
+        setGameStarted(false);
         setSelectedCourseId(courses.length > 0 ? courses[0].id : null);
         setDifficulty('Easy');
     };
@@ -320,14 +322,13 @@ export default function BlockPuzzleClientPage() {
         if (isCorrect) {
             toast({ title: "Correct!", description: "+100 bonus points!" });
             setScore(s => s + 100);
-            if (difficulty === 'Easy') {
-                setDifficulty('Medium');
-            } else if (difficulty === 'Medium') {
-                setDifficulty('Hard');
+            if (gameMode === 'Adaptive') {
+                if (difficulty === 'Easy') setDifficulty('Medium');
+                else if (difficulty === 'Medium') setDifficulty('Hard');
             }
         } else {
             toast({ variant: 'destructive', title: "Incorrect!", description: `The correct answer was: ${question.answer}` });
-            setDifficulty('Easy');
+            if (gameMode === 'Adaptive') setDifficulty('Easy');
         }
         setIsQuestionModalOpen(false);
         setSelectedAnswer(null);
@@ -345,18 +346,35 @@ export default function BlockPuzzleClientPage() {
                 <Card className="w-full max-w-md p-8 text-center">
                     <p className="text-muted-foreground mb-4">Select a course to start the game!</p>
                      <div className="flex flex-col items-center gap-4">
-                        <Select onValueChange={setSelectedCourseId} value={selectedCourseId ?? ''} disabled={courses.length === 0}>
-                            <SelectTrigger className="w-[280px]">
-                                <SelectValue placeholder="Select a course..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {courses.map(course => (
-                                    <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        <Button onClick={startGame} disabled={!selectedCourseId || authLoading}>
-                            Start Game
+                        <div className="w-full space-y-2 text-left">
+                            <Label htmlFor="course-select">Select a Course</Label>
+                            <Select onValueChange={setSelectedCourseId} value={selectedCourseId ?? ''} disabled={courses.length === 0}>
+                                <SelectTrigger id="course-select" className="w-full">
+                                    <SelectValue placeholder="Select a course..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {courses.map(course => (
+                                        <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="w-full space-y-2 text-left">
+                           <Label htmlFor="difficulty-select">Difficulty</Label>
+                           <Select onValueChange={(v) => setGameMode(v as GameMode)} defaultValue={gameMode}>
+                                <SelectTrigger id="difficulty-select" className="w-full">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="Adaptive">Adaptive</SelectItem>
+                                    <SelectItem value="Easy">Easy</SelectItem>
+                                    <SelectItem value="Medium">Medium</SelectItem>
+                                    <SelectItem value="Hard">Hard</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <Button onClick={startGame} disabled={!selectedCourseId || authLoading} className="w-full">
+                            {gameOver ? "Play Again" : "Start Game"}
                         </Button>
                     </div>
                 </Card>

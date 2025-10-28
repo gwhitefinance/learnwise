@@ -1,8 +1,7 @@
-
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Card } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
@@ -11,6 +10,7 @@ import { auth, db } from '@/lib/firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { generateQuiz } from '@/ai/flows/quiz-flow';
 import type { GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
+import { Label } from '@/components/ui/label';
 
 type Course = {
     id: string;
@@ -25,6 +25,7 @@ type Asteroid = {
     x: number;
     y: number;
     text: string;
+    width: number;
     isCorrect: boolean;
 };
 
@@ -34,11 +35,14 @@ type Bullet = {
 };
 
 type Difficulty = 'Easy' | 'Medium' | 'Hard';
+type GameMode = 'Easy' | 'Medium' | 'Hard' | 'Adaptive';
 
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 600;
 const SHIP_WIDTH = 40;
 const SHIP_HEIGHT = 20;
+const ASTEROID_HEIGHT = 40;
+const PADDING = 20;
 
 export default function TriviaBlasterClientPage() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -52,6 +56,8 @@ export default function TriviaBlasterClientPage() {
     const [bullets, setBullets] = useState<Bullet[]>([]);
     const [shipX, setShipX] = useState(CANVAS_WIDTH / 2);
     const [isLoading, setIsLoading] = useState(false);
+    
+    const [gameMode, setGameMode] = useState<GameMode>('Adaptive');
     const [difficulty, setDifficulty] = useState<Difficulty>('Easy');
 
     const { toast } = useToast();
@@ -82,16 +88,23 @@ export default function TriviaBlasterClientPage() {
             const result = await generateQuiz({
                 topics: course.name,
                 questionType: 'Multiple Choice',
-                difficulty: difficulty,
+                difficulty: gameMode === 'Adaptive' ? difficulty : gameMode,
                 numQuestions: 1,
             });
             if (result.questions && result.questions.length > 0 && result.questions[0].options) {
                 const q = result.questions[0];
                 setQuestion(q);
+                
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                if (!ctx) return;
+                ctx.font = '16px Arial';
+
                 const newAsteroids = (q.options ?? []).map(option => ({
-                    x: Math.random() * (CANVAS_WIDTH - 100),
+                    x: Math.random() * (CANVAS_WIDTH - 150),
                     y: -50 - Math.random() * 300,
                     text: option,
+                    width: ctx.measureText(option).width + PADDING,
                     isCorrect: option === q.answer,
                 }));
                 setAsteroids(newAsteroids);
@@ -105,7 +118,7 @@ export default function TriviaBlasterClientPage() {
         } finally {
             setIsLoading(false);
         }
-    }, [selectedCourseId, courses, toast, difficulty]);
+    }, [selectedCourseId, courses, toast, difficulty, gameMode]);
 
     const resetGame = () => {
         setScore(0);
@@ -136,11 +149,9 @@ export default function TriviaBlasterClientPage() {
 
         ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
         
-        // Draw space background
         ctx.fillStyle = 'black';
         ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-        // Draw Ship
         ctx.fillStyle = 'white';
         ctx.beginPath();
         ctx.moveTo(shipX, CANVAS_HEIGHT - 30);
@@ -149,36 +160,34 @@ export default function TriviaBlasterClientPage() {
         ctx.closePath();
         ctx.fill();
 
-        // Update and Draw Bullets
         const newBullets = bullets.map(b => ({ ...b, y: b.y - 10 })).filter(b => b.y > 0);
         ctx.fillStyle = 'yellow';
         newBullets.forEach(b => {
             ctx.fillRect(b.x - 2, b.y, 4, 10);
         });
 
-        // Update and Draw Asteroids
-        const newAsteroids = asteroids.map(a => ({ ...a, y: a.y + 1 }));
-        ctx.fillStyle = 'grey';
+        const newAsteroids = asteroids.map(a => ({ ...a, y: a.y + 2 }));
+        ctx.fillStyle = '#6b7280';
         ctx.font = '16px Arial';
         ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
         newAsteroids.forEach(a => {
             ctx.beginPath();
-            ctx.arc(a.x + 50, a.y + 25, 30, 0, Math.PI * 2);
+            ctx.roundRect(a.x, a.y, a.width, ASTEROID_HEIGHT, 15);
             ctx.fill();
             ctx.fillStyle = 'white';
-            ctx.fillText(a.text, a.x + 50, a.y + 30);
-            ctx.fillStyle = 'grey';
+            ctx.fillText(a.text, a.x + a.width / 2, a.y + ASTEROID_HEIGHT / 2);
+            ctx.fillStyle = '#6b7280';
         });
         
-        // Collision Detection
         let bulletsToRemove: number[] = [];
         let asteroidsToRemove: number[] = [];
 
         newBullets.forEach((bullet, bIndex) => {
             newAsteroids.forEach((asteroid, aIndex) => {
                 if(
-                    bullet.x > asteroid.x && bullet.x < asteroid.x + 100 &&
-                    bullet.y > asteroid.y && bullet.y < asteroid.y + 50
+                    bullet.x > asteroid.x && bullet.x < asteroid.x + asteroid.width &&
+                    bullet.y > asteroid.y && bullet.y < asteroid.y + ASTEROID_HEIGHT
                 ) {
                     bulletsToRemove.push(bIndex);
                     asteroidsToRemove.push(aIndex);
@@ -186,12 +195,14 @@ export default function TriviaBlasterClientPage() {
                     if (asteroid.isCorrect) {
                         toast({ title: "Correct!" });
                         setScore(s => s + 10);
-                        if(difficulty === 'Easy') setDifficulty('Medium');
-                        else if(difficulty === 'Medium') setDifficulty('Hard');
-                        getNewQuestion(); // Load next question
+                        if(gameMode === 'Adaptive') {
+                            if(difficulty === 'Easy') setDifficulty('Medium');
+                            else if(difficulty === 'Medium') setDifficulty('Hard');
+                        }
+                        getNewQuestion();
                     } else {
                         toast({ variant: 'destructive', title: "Wrong Answer!", description: `The correct answer was: ${question?.answer}` });
-                        setDifficulty('Easy');
+                        if(gameMode === 'Adaptive') setDifficulty('Easy');
                         setGameOver(true);
                         setGameStarted(false);
                     }
@@ -199,7 +210,6 @@ export default function TriviaBlasterClientPage() {
             });
         });
         
-        // Handle asteroid reaching bottom
         newAsteroids.forEach(a => {
             if (a.y > CANVAS_HEIGHT) {
                 if (a.isCorrect) {
@@ -216,7 +226,7 @@ export default function TriviaBlasterClientPage() {
         setBullets(finalBullets);
         setAsteroids(finalAsteroids);
 
-    }, [gameStarted, gameOver, isLoading, shipX, bullets, asteroids, getNewQuestion, toast, difficulty, question]);
+    }, [gameStarted, gameOver, isLoading, shipX, bullets, asteroids, getNewQuestion, toast, difficulty, question, gameMode]);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -249,17 +259,34 @@ export default function TriviaBlasterClientPage() {
                 <Card className="w-full max-w-md p-8 text-center">
                     <p className="text-muted-foreground mb-4">Shoot the correct answer to score points!</p>
                     <div className="flex flex-col items-center gap-4">
-                        <Select onValueChange={setSelectedCourseId} value={selectedCourseId ?? ''} disabled={courses.length === 0}>
-                            <SelectTrigger className="w-[280px]">
-                                <SelectValue placeholder="Select a course..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {courses.map(course => (
-                                    <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        <Button onClick={startGame} disabled={!selectedCourseId || authLoading}>
+                        <div className="w-full space-y-2 text-left">
+                            <Label htmlFor="course-select">Select a Course</Label>
+                            <Select onValueChange={setSelectedCourseId} value={selectedCourseId ?? ''} disabled={courses.length === 0}>
+                                <SelectTrigger id="course-select" className="w-full">
+                                    <SelectValue placeholder="Select a course..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {courses.map(course => (
+                                        <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="w-full space-y-2 text-left">
+                           <Label htmlFor="difficulty-select">Difficulty</Label>
+                           <Select onValueChange={(v) => setGameMode(v as GameMode)} defaultValue={gameMode}>
+                                <SelectTrigger id="difficulty-select" className="w-full">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="Adaptive">Adaptive</SelectItem>
+                                    <SelectItem value="Easy">Easy</SelectItem>
+                                    <SelectItem value="Medium">Medium</SelectItem>
+                                    <SelectItem value="Hard">Hard</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <Button onClick={startGame} disabled={!selectedCourseId || authLoading} className="w-full">
                             {gameOver ? "Play Again" : "Start Game"}
                         </Button>
                     </div>
