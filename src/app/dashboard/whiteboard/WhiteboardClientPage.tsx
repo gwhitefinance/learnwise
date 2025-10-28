@@ -4,7 +4,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
-import { Eraser, Palette, Brush, Save, Trash2, Type, NotebookText, ArrowUpDown } from 'lucide-react';
+import { Eraser, Palette, Brush, Save, Trash2, Type, NotebookText, ArrowUpDown, Wand2, Loader2 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Slider } from '@/components/ui/slider';
 import Draggable from 'react-draggable';
@@ -16,6 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Image from 'next/image';
 import { formatDistanceToNow } from 'date-fns';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { enhanceDrawing } from '@/lib/actions';
 
 type StickyNoteType = {
     id: number;
@@ -45,6 +46,7 @@ export default function WhiteboardClientPage() {
     const [notes, setNotes] = useState<StickyNoteType[]>([]);
     const [savedWhiteboards, setSavedWhiteboards] = useState<SavedWhiteboard[]>([]);
     const [isLoadingSaved, setIsLoadingSaved] = useState(true);
+    const [isEnhancing, setIsEnhancing] = useState(false);
     const { toast } = useToast();
     const [user] = useAuthState(auth);
     const nodeRefs = useRef<{ [key: number]: React.RefObject<HTMLDivElement> }>({});
@@ -169,6 +171,37 @@ export default function WhiteboardClientPage() {
     const deleteNote = (id: number) => {
         setNotes(prev => prev.filter(note => note.id !== id));
     };
+    
+    const handleEnhanceDrawing = async () => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+
+        setIsEnhancing(true);
+        toast({ title: 'AI is enhancing your drawing...' });
+
+        try {
+            const imageDataUri = canvas.toDataURL('image/png');
+            const result = await enhanceDrawing({ imageDataUri });
+
+            const context = canvas.getContext('2d');
+            if (context) {
+                // Clear only the drawing, not the notes
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                
+                const img = new window.Image();
+                img.onload = () => {
+                    context.drawImage(img, 0, 0);
+                    toast({ title: 'Drawing Enhanced!', description: 'Your sketch has been polished.' });
+                };
+                img.src = result.enhancedImageDataUri;
+            }
+        } catch (error) {
+            console.error("Error enhancing drawing:", error);
+            toast({ variant: 'destructive', title: 'Enhancement Failed' });
+        } finally {
+            setIsEnhancing(false);
+        }
+    };
 
     const handleSaveAsNote = async () => {
         if (!user) {
@@ -274,6 +307,9 @@ export default function WhiteboardClientPage() {
                                 <Button variant={tool === 'eraser' ? 'secondary' : 'ghost'} size="icon" onClick={() => setTool('eraser')}><Eraser /></Button>
                                 <Button variant={tool === 'text' ? 'secondary' : 'ghost'} size="icon" onClick={() => setTool('text')}><Type /></Button>
                                 <Button variant={tool === 'note' ? 'secondary' : 'ghost'} size="icon" onClick={() => setTool('note')}><NotebookText /></Button>
+                                <Button onClick={handleEnhanceDrawing} variant='ghost' size="icon" disabled={isEnhancing}>
+                                    {isEnhancing ? <Loader2 className="animate-spin" /> : <Wand2 />}
+                                </Button>
                                  <AlertDialog>
                                     <AlertDialogTrigger asChild>
                                         <Button variant='ghost' size="icon"><Trash2 className="text-destructive"/></Button>
