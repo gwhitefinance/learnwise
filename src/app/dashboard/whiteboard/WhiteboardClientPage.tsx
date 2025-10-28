@@ -4,7 +4,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
-import { Eraser, Palette, Brush, Save, Trash2, Type, NotebookText } from 'lucide-react';
+import { Eraser, Palette, Brush, Save, Trash2, Type, NotebookText, ArrowUpDown } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Slider } from '@/components/ui/slider';
 import Draggable from 'react-draggable';
@@ -268,7 +268,7 @@ export default function WhiteboardClientPage() {
                                     <PopoverContent side="bottom" className="w-auto p-2"><div className="flex gap-1">{colors.map(c => (<button key={c} onClick={() => setColor(c)} className={`w-8 h-8 rounded-full border-2 ${color === c ? 'border-primary' : 'border-transparent'}`} style={{ backgroundColor: c }} />))}</div></PopoverContent>
                                 </Popover>
                                 <Popover>
-                                    <PopoverTrigger asChild><Button variant="ghost" size="icon"><Brush /></Button></PopoverTrigger>
+                                    <PopoverTrigger asChild><Button variant="ghost" size="icon"><ArrowUpDown /></Button></PopoverTrigger>
                                     <PopoverContent side="bottom" className="w-40 p-2"><Slider defaultValue={[brushSize]} max={50} min={1} step={1} onValueChange={(value) => setBrushSize(value[0])} /></PopoverContent>
                                 </Popover>
                                 <Button variant={tool === 'eraser' ? 'secondary' : 'ghost'} size="icon" onClick={() => setTool('eraser')}><Eraser /></Button>
