@@ -16,7 +16,7 @@ const enhanceDrawingPrompt = ai.definePrompt({
         responseModalities: ['TEXT', 'IMAGE'],
     },
     prompt: [
-        { media: { url: '{{imageDataUri}}' } },
+        { media: { url: '{{imageDataUri}}', contentType: 'image/png' } },
         { text: 'You are a graphic design assistant. Redraw the provided rough sketch, diagram, or handwriting to be clearer, more polished, and visually appealing. Maintain the original layout and all core concepts, but improve the line quality, straighten shapes, and make text more legible. Respond only with the enhanced drawing. Do not add any elements that were not in the original sketch.' },
     ],
 });
