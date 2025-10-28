@@ -31,6 +31,13 @@ export default function WhiteboardClientPage() {
   const [notes, setNotes] = useState<StickyNoteType[]>([]);
   const { toast } = useToast();
   const [user] = useAuthState(auth);
+  const nodeRefs = useRef<{[key: number]: React.RefObject<HTMLDivElement>}>({});
+
+  notes.forEach((note) => {
+    if (!nodeRefs.current[note.id]) {
+      nodeRefs.current[note.id] = React.createRef<HTMLDivElement>();
+    }
+  });
 
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (tool !== 'pen') return;
@@ -142,15 +149,27 @@ export default function WhiteboardClientPage() {
         tempCtx.shadowColor = 'rgba(0,0,0,0.1)';
         tempCtx.shadowBlur = 10;
         tempCtx.shadowOffsetY = 4;
-        tempCtx.fillRect(note.x, note.y, 200, 100);
-        tempCtx.shadowColor = 'transparent';
+        
+        const noteElement = nodeRefs.current[note.id]?.current;
+        if (noteElement) {
+            const transform = noteElement.style.transform;
+            const translateMatch = transform.match(/translate\((\d+)px, (\d+)px\)/);
+            let x = note.x;
+            let y = note.y;
+            if (translateMatch) {
+                x = parseInt(translateMatch[1], 10);
+                y = parseInt(translateMatch[2], 10);
+            }
+            tempCtx.fillRect(x, y, 200, 100);
+            tempCtx.shadowColor = 'transparent';
 
-        tempCtx.fillStyle = '#333';
-        tempCtx.font = '16px sans-serif';
-        const lines = note.value.split('\n');
-        lines.forEach((line, i) => {
-            tempCtx.fillText(line, note.x + 10, note.y + 20 + (i * 20));
-        });
+            tempCtx.fillStyle = '#333';
+            tempCtx.font = '16px sans-serif';
+            const lines = note.value.split('\n');
+            lines.forEach((line, i) => {
+                tempCtx.fillText(line, x + 10, y + 20 + (i * 20));
+            });
+        }
     });
 
     const imageDataUrl = tempCanvas.toDataURL('image/png');
@@ -244,8 +263,14 @@ export default function WhiteboardClientPage() {
             />
              <div className="absolute inset-0 z-10 pointer-events-none">
                 {notes.map((note) => (
-                    <Draggable key={note.id} defaultPosition={{x: note.x, y: note.y}} bounds="parent">
+                    <Draggable 
+                        key={note.id} 
+                        defaultPosition={{x: note.x, y: note.y}} 
+                        bounds="parent"
+                        nodeRef={nodeRefs.current[note.id]}
+                    >
                          <div 
+                            ref={nodeRefs.current[note.id]}
                             className="w-48 h-24 bg-yellow-200 shadow-lg p-2 flex flex-col pointer-events-auto"
                             onDoubleClick={() => handleNoteDoubleClick(note.id)}
                         >
@@ -266,4 +291,3 @@ export default function WhiteboardClientPage() {
     </div>
   );
 }
-
