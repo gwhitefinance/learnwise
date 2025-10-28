@@ -115,6 +115,9 @@ export default function WhiteboardClientPage() {
           <CardDescription className="flex justify-between items-center">
             <span>Use this space for brainstorming, drawing diagrams, and taking notes.</span>
             <div className="flex items-center gap-2">
+               <Button variant={tool === 'pen' ? 'secondary' : 'outline'} size="icon" onClick={() => setTool('pen')}>
+                  <Brush />
+              </Button>
                <Button variant={tool === 'text' ? 'secondary' : 'outline'} size="icon" onClick={() => setTool('text')}>
                 <Type />
               </Button>
