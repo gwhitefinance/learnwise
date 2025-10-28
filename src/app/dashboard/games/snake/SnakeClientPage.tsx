@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -14,6 +15,7 @@ import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { generateQuiz } from '@/ai/flows/quiz-flow';
 import type { GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
 import { cn } from '@/lib/utils';
+import { motion, AnimatePresence } from 'framer-motion';
 
 type Course = {
     id: string;
@@ -42,6 +44,7 @@ export default function SnakeClientPage() {
     const [isQuestionModalOpen, setIsQuestionModalOpen] = useState(false);
     const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
     const [difficulty, setDifficulty] = useState<Difficulty>('Easy');
+    const [countdown, setCountdown] = useState<number | null>(null);
 
     const { toast } = useToast();
     const [user, authLoading] = useAuthState(auth);
@@ -188,6 +191,18 @@ export default function SnakeClientPage() {
         };
     }, [gameLoop]);
 
+    useEffect(() => {
+        if (countdown === null) return;
+        if (countdown > 0) {
+            const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+            return () => clearTimeout(timer);
+        } else {
+            // Countdown finished
+            setCountdown(null);
+            gameState.current.isPaused = false;
+        }
+    }, [countdown]);
+
     const resetGame = () => {
         gameState.current = {
             snake: [{ x: 10, y: 10 }],
@@ -217,8 +232,8 @@ export default function SnakeClientPage() {
         setSelectedAnswer(null);
 
         if (isCorrect) {
-            toast({ title: "Correct!", description: "Keep going!" });
-            gameState.current.isPaused = false;
+            toast({ title: "Correct!", description: "Get ready to move!" });
+            setCountdown(3); // Start countdown
             if (difficulty === 'Easy') {
                 setDifficulty('Medium');
             } else if (difficulty === 'Medium') {
@@ -233,7 +248,7 @@ export default function SnakeClientPage() {
     };
 
     return (
-        <div className="flex flex-col items-center p-4">
+        <div className="flex flex-col items-center p-4 relative">
             <h1 className="text-4xl font-bold mb-4">Study Snake</h1>
 
             {!gameStarted ? (
@@ -260,12 +275,30 @@ export default function SnakeClientPage() {
                 <p className="text-xl font-semibold mb-2">Score: {score}</p>
             )}
             
-            <canvas
-                ref={canvasRef}
-                width={CANVAS_SIZE}
-                height={CANVAS_SIZE}
-                className="bg-black rounded-lg mt-4"
-            />
+            <div className="relative">
+                <canvas
+                    ref={canvasRef}
+                    width={CANVAS_SIZE}
+                    height={CANVAS_SIZE}
+                    className="bg-black rounded-lg mt-4"
+                />
+                <AnimatePresence>
+                    {countdown !== null && countdown > 0 && (
+                        <motion.div
+                            key={countdown}
+                            initial={{ scale: 0.5, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 1.5, opacity: 0 }}
+                            transition={{ duration: 0.5 }}
+                            className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                        >
+                            <span className="text-9xl font-bold text-white" style={{ textShadow: '0 0 15px black' }}>
+                                {countdown}
+                            </span>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </div>
             
             <Dialog open={isQuestionModalOpen}>
                 <DialogContent onInteractOutside={(e) => e.preventDefault()}>
