@@ -15,10 +15,6 @@ const enhanceDrawingPrompt = ai.definePrompt({
     config: {
         responseModalities: ['TEXT', 'IMAGE'],
     },
-    prompt: [
-        { media: { url: (input) => input.imageDataUri, contentType: 'image/png' } },
-        { text: 'You are a graphic design assistant. Redraw the provided rough sketch, diagram, or handwriting to be clearer, more polished, and visually appealing. Maintain the original layout and all core concepts, but improve the line quality, straighten shapes, and make text more legible. Respond only with the enhanced drawing. Do not add any elements that were not in the original sketch.' },
-    ],
 });
 
 const enhanceDrawingFlow = ai.defineFlow(
@@ -28,7 +24,13 @@ const enhanceDrawingFlow = ai.defineFlow(
     outputSchema: EnhanceDrawingOutputSchema,
   },
   async (input) => {
-    const { media } = await enhanceDrawingPrompt(input);
+    const { media } = await enhanceDrawingPrompt({
+      prompt: [
+        { media: { url: input.imageDataUri, contentType: 'image/png' } },
+        { text: 'You are a graphic design assistant. Redraw the provided rough sketch, diagram, or handwriting to be clearer, more polished, and visually appealing. Maintain the original layout and all core concepts, but improve the line quality, straighten shapes, and make text more legible. Respond only with the enhanced drawing. Do not add any elements that were not in the original sketch.' },
+      ],
+      ...input
+    });
     
     if (!media || !media.url) {
         throw new Error('Failed to generate enhanced image.');
