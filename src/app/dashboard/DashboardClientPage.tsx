@@ -115,6 +115,7 @@ import { AnimatePresence } from 'framer-motion';
     files: number; // This might be a count or can be removed if we calculate it
     userId?: string;
     units?: Unit[];
+    completedChapters?: string[];
     isNewTopic?: boolean;
   };
 
@@ -1163,32 +1164,38 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                             {isDataLoading ? (
                                 Array.from({length: 2}).map((_, i) => <Skeleton key={i} className="h-36 w-full" />)
                             ) : courses.length > 0 ? (
-                                courses.slice(0, 2).map((course) => (
-                                    <Card key={course.id}>
-                                        <CardContent className="p-4">
-                                            <div className="flex items-center justify-between mb-2">
-                                                <h3 className="font-medium">{course.name}</h3>
-                                                <Badge variant="outline" className="rounded-xl">
-                                                In Progress
-                                                </Badge>
-                                            </div>
-                                            <p className="text-sm text-muted-foreground mb-3">{course.description}</p>
-                                            <div className="space-y-2">
-                                                <div className="flex items-center justify-between text-sm">
-                                                <span>Progress</span>
-                                                <span>{course.progress}%</span>
+                                courses.slice(0, 2).map((course) => {
+                                    const totalChapters = course.units?.reduce((acc, unit) => acc + (unit.chapters?.length ?? 0), 0) ?? 0;
+                                    const completedCount = course.completedChapters?.length ?? 0;
+                                    const courseProgress = totalChapters > 0 ? Math.round((completedCount / totalChapters) * 100) : 0;
+
+                                    return (
+                                        <Card key={course.id}>
+                                            <CardContent className="p-4">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <h3 className="font-medium">{course.name}</h3>
+                                                    <Badge variant="outline" className="rounded-xl">
+                                                    In Progress
+                                                    </Badge>
                                                 </div>
-                                                <Progress value={course.progress} className="h-2 rounded-xl" />
-                                            </div>
-                                            <div className="flex items-center justify-between mt-3 text-sm text-muted-foreground">
-                                                <div className="flex items-center">
-                                                <FileText className="mr-1 h-4 w-4" />
-                                                {course.files} files
+                                                <p className="text-sm text-muted-foreground mb-3">{course.description}</p>
+                                                <div className="space-y-2">
+                                                    <div className="flex items-center justify-between text-sm">
+                                                    <span>Progress</span>
+                                                    <span>{courseProgress}%</span>
+                                                    </div>
+                                                    <Progress value={courseProgress} className="h-2 rounded-xl" />
                                                 </div>
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                ))
+                                                <div className="flex items-center justify-between mt-3 text-sm text-muted-foreground">
+                                                    <div className="flex items-center">
+                                                    <FileText className="mr-1 h-4 w-4" />
+                                                    {course.files || 0} files
+                                                    </div>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    );
+                                })
                             ) : (
                                 <Card><CardContent className="p-8 text-center text-muted-foreground">You haven't added any courses yet.</CardContent></Card>
                             )}
