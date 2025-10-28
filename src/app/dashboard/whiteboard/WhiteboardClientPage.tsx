@@ -4,7 +4,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
-import { Eraser, Palette, Brush, Save, Trash2, Type } from 'lucide-react';
+import { Eraser, Palette, Brush, Save, Trash2, Type, NotebookText } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Slider } from '@/components/ui/slider';
 import Draggable from 'react-draggable';
@@ -22,6 +22,7 @@ type StickyNoteType = {
     x: number;
     y: number;
     value: string;
+    type: 'text' | 'note';
 };
 
 type SavedWhiteboard = {
@@ -40,7 +41,7 @@ export default function WhiteboardClientPage() {
     const [isDrawing, setIsDrawing] = useState(false);
     const [color, setColor] = useState('#000000');
     const [brushSize, setBrushSize] = useState(5);
-    const [tool, setTool] = useState<'pen' | 'eraser' | 'text'>('pen');
+    const [tool, setTool] = useState<'pen' | 'eraser' | 'text' | 'note'>('pen');
     const [notes, setNotes] = useState<StickyNoteType[]>([]);
     const [savedWhiteboards, setSavedWhiteboards] = useState<SavedWhiteboard[]>([]);
     const [isLoadingSaved, setIsLoadingSaved] = useState(true);
@@ -132,11 +133,11 @@ export default function WhiteboardClientPage() {
     };
 
     const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
-        if (tool === 'text') {
+        if (tool === 'text' || tool === 'note') {
             const canvas = canvasRef.current;
             if(!canvas) return;
             const rect = canvas.getBoundingClientRect();
-            addNote(e.clientX - rect.left, e.clientY - rect.top, '');
+            addNote(e.clientX - rect.left, e.clientY - rect.top, '', tool);
         }
     };
 
@@ -150,12 +151,13 @@ export default function WhiteboardClientPage() {
         setNotes([]);
     };
 
-    const addNote = (x: number, y: number, value = 'Type here...') => {
+    const addNote = (x: number, y: number, value = 'Type here...', type: 'text' | 'note') => {
         const newNote: StickyNoteType = {
             id: Date.now(),
             x: x,
             y: y,
             value,
+            type,
         };
         setNotes(prev => [...prev, newNote]);
     };
@@ -271,6 +273,7 @@ export default function WhiteboardClientPage() {
                                 </Popover>
                                 <Button variant={tool === 'eraser' ? 'secondary' : 'ghost'} size="icon" onClick={() => setTool('eraser')}><Eraser /></Button>
                                 <Button variant={tool === 'text' ? 'secondary' : 'ghost'} size="icon" onClick={() => setTool('text')}><Type /></Button>
+                                <Button variant={tool === 'note' ? 'secondary' : 'ghost'} size="icon" onClick={() => setTool('note')}><NotebookText /></Button>
                             </Card>
                         </aside>
                          <canvas 
@@ -283,16 +286,20 @@ export default function WhiteboardClientPage() {
                         />
                         {notes.map((note) => (
                             <Draggable key={note.id} nodeRef={nodeRefs.current[note.id]} defaultPosition={{ x: note.x, y: note.y }} bounds="parent" handle=".drag-handle">
-                                <div ref={nodeRefs.current[note.id]} className="absolute w-52 pointer-events-auto">
+                                <div ref={nodeRefs.current[note.id]} className="absolute w-48 pointer-events-auto">
                                     <div className="absolute -top-3 -right-3">
-                                        <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/80" onClick={() => deleteNote(note.id)}>
+                                        <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/80 drag-handle" onClick={() => deleteNote(note.id)}>
                                             <Trash2 className="h-3 w-3" />
                                         </Button>
                                     </div>
                                     <textarea
                                         value={note.value}
                                         onChange={(e) => updateNoteText(note.id, e.target.value)}
-                                        className="w-full h-auto bg-transparent border-2 border-dashed border-gray-400 focus:border-primary focus:outline-none resize-none p-2 text-base"
+                                        className={`w-full h-auto border-2 focus:border-primary focus:outline-none resize-none p-2 text-base drag-handle ${
+                                            note.type === 'note'
+                                            ? 'bg-yellow-200 border-yellow-300 shadow-lg'
+                                            : 'bg-transparent border-dashed border-gray-400'
+                                        }`}
                                         placeholder='Type here...'
                                         rows={4}
                                     />
