@@ -4,7 +4,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
-import { Eraser, Palette, Save, Trash2, Type, NotebookText, ArrowUpDown, Wand2, Loader2, GitMerge } from 'lucide-react';
+import { Eraser, Palette, Save, Trash2, Type, NotebookText, ArrowUpDown, Wand2, Loader2, GitMerge, Brush } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Slider } from '@/components/ui/slider';
 import Draggable from 'react-draggable';
@@ -217,10 +217,21 @@ export default function WhiteboardClientPage() {
         if (enhancedImage) {
             const img = new window.Image();
             img.src = enhancedImage;
-            tempCtx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.height);
+            img.onload = () => {
+                tempCtx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.height);
+                finalizeSave(tempCanvas);
+            }
         } else {
             tempCtx.drawImage(canvas, 0, 0);
+            finalizeSave(tempCanvas);
         }
+    };
+    
+    const finalizeSave = async (canvas: HTMLCanvasElement) => {
+        if (!user) return;
+        
+        const tempCtx = canvas.getContext('2d');
+        if (!tempCtx) return;
 
         notes.forEach(note => {
             const noteElement = nodeRefs.current[note.id]?.current;
@@ -243,7 +254,7 @@ export default function WhiteboardClientPage() {
             }
         });
         
-        const imageDataUrl = tempCanvas.toDataURL('image/png');
+        const imageDataUrl = canvas.toDataURL('image/png');
 
         try {
             await addDoc(collection(db, "notes"), {
@@ -262,7 +273,7 @@ export default function WhiteboardClientPage() {
             console.error(e);
             toast({ variant: "destructive", title: "Error", description: "Could not save whiteboard as a note." });
         }
-    };
+    }
     
     const handleDeleteSavedWhiteboard = async (id: string) => {
         try {
