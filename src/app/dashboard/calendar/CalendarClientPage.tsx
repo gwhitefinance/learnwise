@@ -36,7 +36,7 @@ import { useAuthState } from "react-firebase-hooks/auth";
 import { auth, db } from "@/lib/firebase";
 import { collection, addDoc, query, where, getDocs, deleteDoc, doc, updateDoc, onSnapshot, orderBy } from "firebase/firestore";
 import { useRouter, useSearchParams } from "next/navigation";
-import { format, eachDayOfInterval, startOfWeek, endOfWeek, startOfMonth, endOfMonth, getDay, isToday, isEqual, addMonths, subMonths, eachWeekOfInterval, addDays, getWeek } from 'date-fns';
+import { format, eachDayOfInterval, startOfWeek, endOfWeek, startOfMonth, endOfMonth, getDay, isToday, isEqual, addMonths, subMonths, eachWeekOfInterval, addDays, getWeek, addWeeks, subWeeks } from 'date-fns';
 import AIBuddy from "@/components/ai-buddy";
 
 
@@ -480,6 +480,26 @@ export default function CalendarClientPage() {
       setEventDialogOpen(true);
   }
 
+  const handlePrev = () => {
+    if (currentView === 'month') {
+        setCurrentDate(subMonths(currentDate, 1));
+    } else if (currentView === 'week') {
+        setCurrentDate(subWeeks(currentDate, 1));
+    } else {
+        setCurrentDate(addDays(currentDate, -1));
+    }
+  };
+
+  const handleNext = () => {
+      if (currentView === 'month') {
+          setCurrentDate(addMonths(currentDate, 1));
+      } else if (currentView === 'week') {
+          setCurrentDate(addWeeks(currentDate, 1));
+      } else {
+          setCurrentDate(addDays(currentDate, 1));
+      }
+  };
+
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-white">
@@ -713,10 +733,10 @@ export default function CalendarClientPage() {
             <div className="flex items-center gap-4">
               <Button onClick={() => setCurrentDate(new Date())} variant="outline" className={`px-4 py-2 ${textClass} rounded-md`}>Today</Button>
               <div className="flex">
-                <button onClick={() => setCurrentDate(currentView === 'month' ? subMonths(currentDate, 1) : addDays(currentDate, -1))} className={`p-2 ${textClass} hover:bg-white/10 rounded-l-md`}>
+                <button onClick={handlePrev} className={`p-2 ${textClass} hover:bg-white/10 rounded-l-md`}>
                   <ChevronLeft className="h-5 w-5" />
                 </button>
-                <button onClick={() => setCurrentDate(currentView === 'month' ? addMonths(currentDate, 1) : addDays(currentDate, 1))} className={`p-2 ${textClass} hover:bg-white/10 rounded-r-md`}>
+                <button onClick={handleNext} className={`p-2 ${textClass} hover:bg-white/10 rounded-r-md`}>
                   <ChevronRight className="h-5 w-5" />
                 </button>
               </div>
@@ -992,5 +1012,3 @@ export default function CalendarClientPage() {
     </div>
   )
 }
-
-    
