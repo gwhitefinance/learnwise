@@ -11,7 +11,6 @@ const enhanceDrawingPrompt = ai.definePrompt({
     name: 'enhanceDrawingPrompt',
     model: googleAI.model('gemini-2.5-flash-image-preview'),
     input: { schema: EnhanceDrawingInputSchema },
-    output: { schema: EnhanceDrawingOutputSchema },
     config: {
         responseModalities: ['TEXT', 'IMAGE'],
     },
