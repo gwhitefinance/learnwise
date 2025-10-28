@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -189,7 +190,7 @@ export default function TriviaBlasterClientPage() {
                         else if(difficulty === 'Medium') setDifficulty('Hard');
                         getNewQuestion(); // Load next question
                     } else {
-                        toast({ variant: 'destructive', title: "Wrong Answer!" });
+                        toast({ variant: 'destructive', title: "Wrong Answer!", description: `The correct answer was: ${question?.answer}` });
                         setDifficulty('Easy');
                         setGameOver(true);
                         setGameStarted(false);
@@ -215,7 +216,7 @@ export default function TriviaBlasterClientPage() {
         setBullets(finalBullets);
         setAsteroids(finalAsteroids);
 
-    }, [gameStarted, gameOver, isLoading, shipX, bullets, asteroids, getNewQuestion, toast, difficulty]);
+    }, [gameStarted, gameOver, isLoading, shipX, bullets, asteroids, getNewQuestion, toast, difficulty, question]);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -237,7 +238,7 @@ export default function TriviaBlasterClientPage() {
             window.removeEventListener('keydown', handleKeyDown);
             clearInterval(intervalId);
         };
-    }, [gameStarted, gameLoop]);
+    }, [gameStarted, gameLoop, shipX]);
 
 
     return (
