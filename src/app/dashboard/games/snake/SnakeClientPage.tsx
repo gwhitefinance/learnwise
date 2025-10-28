@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -81,7 +82,7 @@ export default function SnakeClientPage() {
         gameState.current.isPaused = true;
         try {
             const result = await generateQuiz({ 
-                topics: course.name,
+                topics: `${course.name} ${Math.random()}`,
                 questionType: 'Multiple Choice',
                 difficulty: gameMode === 'Adaptive' ? difficulty : gameMode,
                 numQuestions: 1,
