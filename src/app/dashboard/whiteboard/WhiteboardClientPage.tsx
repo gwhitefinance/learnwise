@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
 import { Eraser, Palette, Brush, StickyNote, Save, Trash2 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -80,6 +80,20 @@ export default function WhiteboardClientPage() {
 
         return () => unsubscribe();
     }, [user]);
+    
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (canvas) {
+            const parent = canvas.parentElement;
+            if (parent) {
+                // Delay to ensure parent has rendered and has dimensions
+                setTimeout(() => {
+                    canvas.width = parent.clientWidth;
+                    canvas.height = parent.clientHeight;
+                }, 0);
+            }
+        }
+    }, []);
 
     const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
         const canvas = canvasRef.current;
@@ -126,19 +140,6 @@ export default function WhiteboardClientPage() {
         setNotes([]);
     };
 
-    useEffect(() => {
-        const canvas = canvasRef.current;
-        if (canvas) {
-            const parent = canvas.parentElement;
-            if (parent) {
-                setTimeout(() => {
-                    canvas.width = parent.clientWidth;
-                    canvas.height = parent.clientHeight;
-                }, 0);
-            }
-        }
-    }, []);
-
     const addNote = () => {
         const newNote: StickyNoteType = {
             id: Date.now(),
@@ -149,7 +150,6 @@ export default function WhiteboardClientPage() {
         setNotes(prev => [...prev, newNote]);
     };
 
-
     const updateNoteText = (id: number, newValue: string) => {
         setNotes(prev => prev.map(note => note.id === id ? { ...note, value: newValue } : note));
     };
@@ -157,7 +157,6 @@ export default function WhiteboardClientPage() {
     const deleteNote = (id: number) => {
         setNotes(prev => prev.filter(note => note.id !== id));
     };
-
 
     const handleSaveAsNote = async () => {
         if (!user) {
@@ -227,7 +226,7 @@ export default function WhiteboardClientPage() {
         }
     };
     
-     const handleDeleteSavedWhiteboard = async (id: string) => {
+    const handleDeleteSavedWhiteboard = async (id: string) => {
         try {
             await deleteDoc(doc(db, 'notes', id));
             toast({ title: 'Whiteboard deleted' });
@@ -247,7 +246,7 @@ export default function WhiteboardClientPage() {
                 </div>
             </header>
             <Tabs defaultValue="current" className="flex-1 flex flex-col">
-                <div className="flex justify-between items-center">
+                 <div className="flex justify-between items-center">
                     <TabsList>
                         <TabsTrigger value="current">Current Session</TabsTrigger>
                         <TabsTrigger value="saved">Saved Whiteboards</TabsTrigger>
@@ -255,7 +254,7 @@ export default function WhiteboardClientPage() {
                      <Button onClick={handleSaveAsNote}><Save className="mr-2 h-4 w-4" /> Save as Note</Button>
                 </div>
                 <TabsContent value="current" className="flex-1 mt-4">
-                     <main className="h-full w-full bg-muted rounded-lg border border-dashed relative overflow-hidden">
+                     <main className="h-[70vh] w-full bg-muted rounded-lg border border-dashed relative overflow-hidden">
                         <aside className="absolute top-4 left-4 z-20">
                             <Card className="p-2 space-y-2">
                                 <Button variant={tool === 'pen' ? 'secondary' : 'ghost'} size="icon" onClick={() => setTool('pen')}><Brush /></Button>
@@ -274,13 +273,13 @@ export default function WhiteboardClientPage() {
                         <canvas ref={canvasRef} className="absolute inset-0 z-0" onMouseDown={startDrawing} onMouseMove={draw} onMouseUp={stopDrawing} onMouseLeave={stopDrawing} />
                         {notes.map((note) => (
                             <Draggable key={note.id} nodeRef={nodeRefs.current[note.id]} defaultPosition={{ x: note.x, y: note.y }} bounds="parent" handle=".drag-handle">
-                                <div ref={nodeRefs.current[note.id]} className="absolute w-52 bg-yellow-100 shadow-lg flex flex-col rounded-lg overflow-hidden">
+                                <div ref={nodeRefs.current[note.id]} className="absolute w-52 bg-yellow-100 shadow-lg flex flex-col rounded-lg overflow-hidden pointer-events-auto">
                                     <div className="drag-handle cursor-move bg-yellow-200 h-6 w-full flex items-center justify-end pr-1">
                                         <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => deleteNote(note.id)}>
                                             <Trash2 className="h-3 w-3 text-gray-600" />
                                         </Button>
                                     </div>
-                                    <textarea value={note.value} onChange={(e) => updateNoteText(note.id, e.target.value)} className="w-full h-full bg-transparent resize-none focus:outline-none p-2 text-sm" />
+                                    <textarea value={note.value} onChange={(e) => updateNoteText(note.id, e.target.value)} className="w-full h-full bg-transparent resize-none focus:outline-none p-2 text-sm text-gray-800" />
                                 </div>
                             </Draggable>
                         ))}
@@ -340,3 +339,5 @@ export default function WhiteboardClientPage() {
         </div>
     );
 }
+
+    
