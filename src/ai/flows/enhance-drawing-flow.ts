@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI flow to enhance and beautify user drawings from a whiteboard.
@@ -30,7 +31,7 @@ const enhanceDrawingFlow = ai.defineFlow(
       {
         prompt: [
             { media: { url: input.imageDataUri, contentType: 'image/png' } },
-            { text: 'Enhance this drawing. Make the lines cleaner, the shapes more defined, and the text more legible. Do not add new elements. Respond only with the improved image.' },
+            { text: 'Enhance this drawing. Make the lines cleaner, the shapes more defined, and the text more legible. Do not add new elements. Respond only with the improved image on a transparent background.' },
         ],
       }
     );
