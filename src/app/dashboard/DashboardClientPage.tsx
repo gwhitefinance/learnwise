@@ -46,6 +46,7 @@ import {
   ChevronLeft,
   ChevronRight,
   RefreshCw,
+  Target,
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -181,86 +182,16 @@ import { AnimatePresence } from 'framer-motion';
     back: string;
   };
 
+  type TodoItem = {
+      id: string;
+      text: string;
+      completed: boolean;
+  }
+
 const paces = [
   { value: "6", label: "Casual", description: "A relaxed pace for exploring.", icon: <Snail className="h-6 w-6" /> },
   { value: "3", label: "Steady", description: "A balanced pace for consistent learning.", icon: <Turtle className="h-6 w-6" /> },
   { value: "1", label: "Intense", description: "A fast-paced schedule for quick mastery.", icon: <Rabbit className="h-6 w-6" /> },
-];
-  
-  const AppCard = ({ title, description, icon, href, actionButton, id, onClick }: { title: string; description: string; icon: React.ReactNode; href?: string, actionButton?: React.ReactNode, id?: string, onClick?: () => void }) => (
-    <motion.div
-        whileHover={{ y: -5, scale: 1.02 }}
-        transition={{ type: 'spring', stiffness: 300 }}
-        className="relative group rounded-2xl border border-border/20 bg-background/50 p-6 overflow-hidden flex flex-col"
-        id={id}
-        onClick={onClick}
-    >
-        {href ? (
-            <Link href={href} className="flex flex-col flex-grow">
-                <div>
-                    <div className="bg-primary/10 text-primary p-3 rounded-xl inline-block mb-4">
-                        {icon}
-                    </div>
-                    <h3 className="text-xl font-bold">{title}</h3>
-                    <p className="text-muted-foreground mt-2">{description}</p>
-                </div>
-            </Link>
-        ) : (
-            <div className="flex flex-col flex-grow cursor-pointer">
-               <div>
-                    <div className="bg-primary/10 text-primary p-3 rounded-xl inline-block mb-4">
-                        {icon}
-                    </div>
-                    <h3 className="text-xl font-bold">{title}</h3>
-                    <p className="text-muted-foreground mt-2">{description}</p>
-                </div>
-            </div>
-        )}
-        {actionButton && (
-            <div className='mt-6' onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
-                {actionButton}
-            </div>
-        )}
-    </motion.div>
-);
-
-  const learningResources = [
-    { title: "The Feynman Technique", description: "A method for learning anything by explaining it in simple terms.", link: "#" },
-    { title: "Spaced Repetition", description: "An evidence-based learning technique that is usually performed with flashcards.", link: "#" },
-    { title: "Active Recall", description: "A process of actively stimulating memory during the learning process.", link: "#" },
-  ];
-
-  const integrations = [
-    {
-        name: "Google Calendar",
-        icon: "https://upload.wikimedia.org/wikipedia/commons/a/a5/Google_Calendar_icon_%282020%29.svg",
-        description: "Sync deadlines and study sessions automatically.",
-    },
-    {
-        name: "Notion",
-        icon: "https://upload.wikimedia.org/wikipedia/commons/4/45/Notion_app_logo.png",
-        description: "Connect your notes and knowledge bases.",
-    },
-    {
-        name: "Slack",
-        icon: "https://cdn.freebiesupply.com/logos/large/2x/slack-logo-icon.png",
-        description: "Get study reminders and form study groups.",
-    },
-    {
-        name: "Spotify",
-        icon: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Spotify_icon.svg/1982px-Spotify_icon.svg.png",
-        description: "Play your favorite focus playlists while you study.",
-    },
-    {
-        name: "Google Drive",
-        icon: "https://upload.wikimedia.org/wikipedia/commons/1/12/Google_Drive_icon_%282020%29.svg",
-        description: "Import documents and notes for analysis.",
-    },
-    {
-        name: "GitHub",
-        icon: "https://cdn.iconscout.com/icon/free/png-256/free-github-icon-svg-png-download-1597554.png?f=webp",
-        description: "Track coding projects alongside your coursework.",
-    },
 ];
 
 function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean }) {
@@ -307,6 +238,10 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
     const [currentFlashcardIndex, setCurrentFlashcardIndex] = useState(0);
     const [isFlipped, setIsFlipped] = useState(false);
 
+    // Today's Focus state
+    const [todos, setTodos] = useState<TodoItem[]>([]);
+    const [isPomodoroVisible, setIsPomodoroVisible] = useState(false);
+
 
      useEffect(() => {
         if (!user) return;
@@ -346,6 +281,21 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
         unsubscribes.push(onSnapshot(qCourses, (snapshot) => {
             const userCourses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
             setCourses(userCourses);
+
+             // Set initial todo item
+            const firstIncompleteCourse = userCourses.find(c => {
+                const totalChapters = c.units?.reduce((acc, unit) => acc + (unit.chapters?.length ?? 0), 0) ?? 0;
+                return totalChapters > (c.completedChapters?.length ?? 0);
+            });
+            if (firstIncompleteCourse) {
+                 const firstModule = firstIncompleteCourse.units?.find(u => u.chapters.some(ch => !firstIncompleteCourse.completedChapters?.includes(ch.id)));
+                 const firstChapter = firstModule?.chapters.find(ch => !firstIncompleteCourse.completedChapters?.includes(ch.id));
+                 if(firstChapter) {
+                    setTodos([{ id: `initial-${firstIncompleteCourse.id}`, text: `Continue "${firstIncompleteCourse.name}": ${firstChapter.title}`, completed: false }]);
+                 }
+            }
+
+
             setIsDataLoading(false);
         }));
 
@@ -811,6 +761,35 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
             setIsFlashcardLoading(false);
         }
     };
+    
+     const addTodo = (text: string) => {
+        setTodos(prev => [...prev, { id: crypto.randomUUID(), text, completed: false }]);
+    };
+
+    const toggleTodo = (id: string) => {
+        setTodos(prev => prev.map(todo => todo.id === id ? { ...todo, completed: !todo.completed } : todo));
+    };
+
+    const addCalendarEvent = async (text: string) => {
+        if (!user) return;
+        try {
+            await addDoc(collection(db, "calendarEvents"), {
+                title: text,
+                description: "Study session for today's focus.",
+                date: new Date().toISOString(),
+                startTime: "16:00",
+                endTime: "17:00",
+                type: 'Homework',
+                color: 'bg-blue-500',
+                userId: user.uid,
+                reminderMinutes: 10,
+            });
+            toast({ title: 'Event Added!', description: `"${text}" added to your calendar.`});
+        } catch (e) {
+            toast({ variant: 'destructive', title: "Error", description: "Could not add event to calendar." });
+        }
+    };
+
 
    
   return (
@@ -818,9 +797,8 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
         
         <Tabs defaultValue="home" id="main-tabs">
             <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4" id="main-tabs-nav">
-              <TabsList className="grid w-full max-w-[750px] grid-cols-6 rounded-2xl p-1">
+              <TabsList className="grid w-full grid-cols-5 rounded-2xl p-1">
                 <TabsTrigger value="home" className="rounded-xl data-[state=active]:rounded-xl" id="home-tab-trigger"><Home className="w-4 h-4 mr-2"/>Home</TabsTrigger>
-                <TabsTrigger value="apps" className="rounded-xl data-[state=active]:rounded-xl" id="apps-tab-trigger"><LayoutGrid className="w-4 h-4 mr-2"/>Apps</TabsTrigger>
                 <TabsTrigger value="files" className="rounded-xl data-[state=active]:rounded-xl"><Folder className="w-4 h-4 mr-2"/>Files</TabsTrigger>
                 <TabsTrigger value="projects" className="rounded-xl data-[state=active]:rounded-xl"><Briefcase className="w-4 h-4 mr-2"/>Projects</TabsTrigger>
                 <TabsTrigger value="learn" className="rounded-xl data-[state=active]:rounded-xl"><BookOpen className="w-4 h-4 mr-2"/>Learn</TabsTrigger>
@@ -1020,10 +998,75 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                         </div>
                     </motion.div>
                 </section>
-
-
-                <div className="grid grid-cols-1 gap-8 md:grid-cols-2 mt-8">
-                    <section className="space-y-4" id="recent-files">
+                
+                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
+                    <div className="lg:col-span-2 space-y-8">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <Target className="text-primary"/> Today's Focus
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                {todos.map(todo => (
+                                    <div key={todo.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                                        <div className="flex items-center gap-3">
+                                            <motion.button onClick={() => toggleTodo(todo.id)}>
+                                                <div className={cn("w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors", todo.completed ? "bg-primary border-primary" : "border-muted-foreground")}>
+                                                    {todo.completed && <CheckCircle className="w-4 h-4 text-primary-foreground"/>}
+                                                </div>
+                                            </motion.button>
+                                            <span className={cn("text-sm", todo.completed && "line-through text-muted-foreground")}>{todo.text}</span>
+                                        </div>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => addCalendarEvent(todo.text)}><Calendar className="h-4 w-4"/></Button>
+                                    </div>
+                                ))}
+                                 <Button variant="outline" className="w-full border-dashed" onClick={() => addTodo('New study task...')}>
+                                    <Plus className="w-4 h-4 mr-2"/>Add Task
+                                </Button>
+                            </CardContent>
+                             <CardFooter className="flex justify-between items-center">
+                                <Button variant="ghost" size="sm" onClick={() => setIsPomodoroVisible(!isPomodoroVisible)}><Clock className="w-4 h-4 mr-2"/> {isPomodoroVisible ? 'Hide' : 'Show'} Timer</Button>
+                                {isPomodoroVisible && <PomodoroTimer onHide={() => setIsPomodoroVisible(false)} />}
+                                <Button variant="ghost" size="sm"><Wand2 className="w-4 h-4 mr-2"/> AI Suggestions</Button>
+                            </CardFooter>
+                        </Card>
+                         <Card id="recent-files-card">
+                             <CardHeader>
+                               <CardTitle>Recent Files</CardTitle>
+                               <CardDescription>Your most recently accessed documents.</CardDescription>
+                             </CardHeader>
+                            <CardContent>
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Name</TableHead>
+                                            <TableHead>Subject</TableHead>
+                                            <TableHead>Last Modified</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {recentFiles.length > 0 ? (
+                                            recentFiles.slice(0, 3).map((file, index) => (
+                                                <TableRow key={index}>
+                                                    <TableCell className="font-medium">{file.name}</TableCell>
+                                                    <TableCell>{file.subject}</TableCell>
+                                                    <TableCell>{file.modified}</TableCell>
+                                                </TableRow>
+                                            ))
+                                        ) : (
+                                            <TableRow>
+                                                <TableCell colSpan={3} className="text-center text-muted-foreground p-8">
+                                                    You haven't uploaded any files yet.
+                                                </TableCell>
+                                            </TableRow>
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            </CardContent>
+                        </Card>
+                    </div>
+                     <div className="space-y-4">
                         <Card className="bg-orange-500/10 border-orange-500/20 text-orange-900 dark:text-orange-200" id="streak-card">
                            <CardContent className="p-6 flex items-center gap-6">
                                 <div className="p-4 bg-white/50 rounded-full">
@@ -1115,130 +1158,52 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                 </Dialog>
                            </CardContent>
                         </Card>
-                        <Card id="recent-files-card">
+                        <Card id="active-courses">
                              <CardHeader>
-                               <CardTitle>Recent Files</CardTitle>
-                               <CardDescription>Your most recently accessed documents.</CardDescription>
-                             </CardHeader>
+                                <div className="flex items-center justify-between">
+                                <h2 className="text-xl font-semibold">Active Courses</h2>
+                                <Link href="/dashboard/courses">
+                                    <Button variant="ghost" className="rounded-2xl text-sm">
+                                        View All
+                                    </Button>
+                                </Link>
+                                </div>
+                            </CardHeader>
                             <CardContent>
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Name</TableHead>
-                                            <TableHead>Subject</TableHead>
-                                            <TableHead>Last Modified</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {recentFiles.length > 0 ? (
-                                            recentFiles.slice(0, 5).map((file, index) => (
-                                                <TableRow key={index}>
-                                                    <TableCell className="font-medium">{file.name}</TableCell>
-                                                    <TableCell>{file.subject}</TableCell>
-                                                    <TableCell>{file.modified}</TableCell>
-                                                </TableRow>
-                                            ))
-                                        ) : (
-                                            <TableRow>
-                                                <TableCell colSpan={3} className="text-center text-muted-foreground p-8">
-                                                    You haven't uploaded any files yet.
-                                                </TableCell>
-                                            </TableRow>
-                                        )}
-                                    </TableBody>
-                                </Table>
+                                <div className="space-y-4">
+                                    {isDataLoading ? (
+                                        Array.from({length: 2}).map((_, i) => <Skeleton key={i} className="h-28 w-full" />)
+                                    ) : courses.length > 0 ? (
+                                        courses.slice(0, 2).map((course) => {
+                                            const totalChapters = course.units?.reduce((acc, unit) => acc + (unit.chapters?.length ?? 0), 0) ?? 0;
+                                            const completedCount = course.completedChapters?.length ?? 0;
+                                            const courseProgress = totalChapters > 0 ? Math.round((completedCount / totalChapters) * 100) : 0;
+
+                                            return (
+                                                <Card key={course.id} className="p-4">
+                                                        <div className="flex items-center justify-between mb-2">
+                                                            <h3 className="font-medium">{course.name}</h3>
+                                                            <Badge variant="outline" className="rounded-xl">
+                                                            In Progress
+                                                            </Badge>
+                                                        </div>
+                                                        <p className="text-sm text-muted-foreground mb-3">{course.description}</p>
+                                                        <div className="space-y-2">
+                                                            <div className="flex items-center justify-between text-sm">
+                                                            <span>Progress</span>
+                                                            <span>{courseProgress}%</span>
+                                                            </div>
+                                                            <Progress value={courseProgress} className="h-2 rounded-xl" />
+                                                        </div>
+                                                </Card>
+                                            );
+                                        })
+                                    ) : (
+                                        <div className="p-4 text-center text-muted-foreground">You haven't added any courses yet.</div>
+                                    )}
+                                </div>
                             </CardContent>
                         </Card>
-                    </section>
-
-                    <section className="space-y-4" id="active-courses">
-                        <div className="flex items-center justify-between">
-                          <h2 className="text-2xl font-semibold">Active Courses</h2>
-                          <Link href="/dashboard/courses">
-                              <Button variant="ghost" className="rounded-2xl">
-                                  View All
-                              </Button>
-                          </Link>
-                        </div>
-                         <div className="space-y-4">
-                            {isDataLoading ? (
-                                Array.from({length: 2}).map((_, i) => <Skeleton key={i} className="h-36 w-full" />)
-                            ) : courses.length > 0 ? (
-                                courses.slice(0, 2).map((course) => {
-                                    const totalChapters = course.units?.reduce((acc, unit) => acc + (unit.chapters?.length ?? 0), 0) ?? 0;
-                                    const completedCount = course.completedChapters?.length ?? 0;
-                                    const courseProgress = totalChapters > 0 ? Math.round((completedCount / totalChapters) * 100) : 0;
-
-                                    return (
-                                        <Card key={course.id}>
-                                            <CardContent className="p-4">
-                                                <div className="flex items-center justify-between mb-2">
-                                                    <h3 className="font-medium">{course.name}</h3>
-                                                    <Badge variant="outline" className="rounded-xl">
-                                                    In Progress
-                                                    </Badge>
-                                                </div>
-                                                <p className="text-sm text-muted-foreground mb-3">{course.description}</p>
-                                                <div className="space-y-2">
-                                                    <div className="flex items-center justify-between text-sm">
-                                                    <span>Progress</span>
-                                                    <span>{courseProgress}%</span>
-                                                    </div>
-                                                    <Progress value={courseProgress} className="h-2 rounded-xl" />
-                                                </div>
-                                                <div className="flex items-center justify-between mt-3 text-sm text-muted-foreground">
-                                                    <div className="flex items-center">
-                                                    <FileText className="mr-1 h-4 w-4" />
-                                                    {course.files || 0} files
-                                                    </div>
-                                                </div>
-                                            </CardContent>
-                                        </Card>
-                                    );
-                                })
-                            ) : (
-                                <Card><CardContent className="p-8 text-center text-muted-foreground">You haven't added any courses yet.</CardContent></Card>
-                            )}
-                        </div>
-                    </section>
-                </div>
-            </TabsContent>
-            
-            <TabsContent value="apps">
-                <div className="grid lg:grid-cols-2 gap-6 items-start">
-                    <div className="grid grid-cols-1 gap-6">
-                       <motion.div whileHover={{ y: -5, scale: 1.02 }} transition={{ type: 'spring', stiffness: 300 }}>
-                            <AppCard 
-                                id="ai-chat-app"
-                                title="AI Chat" 
-                                href="/dashboard" 
-                                description="Get instant answers and explanations from your AI study partner." 
-                                icon={<BrainCircuit className="w-8 h-8"/>} 
-                            />
-                        </motion.div>
-                       <motion.div whileHover={{ y: -5, scale: 1.02 }} transition={{ type: 'spring', stiffness: 300 }}>
-                            <AppCard 
-                                title="Practice Quiz" 
-                                href="/dashboard/practice-quiz" 
-                                description="Test your knowledge with AI quizzes." 
-                                icon={<Lightbulb className="w-8 h-8"/>}
-                                actionButton={<Button variant="outline" className="w-full">Generate Quiz <ArrowRight className="ml-2 h-4 w-4"/></Button>}
-                            />
-                        </motion.div>
-                         <motion.div whileHover={{ y: -5, scale: 1.02 }} transition={{ type: 'spring', stiffness: 300 }}>
-                            <AppCard 
-                                title="Key Concepts" 
-                                description="Master key terms with interactive flashcards." 
-                                icon={<Copy className="w-8 h-8"/>}
-                                onClick={() => setIsConceptsOpen(true)}
-                            />
-                        </motion.div>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                       <motion.div whileHover={{ y: -5, scale: 1.02 }} transition={{ type: 'spring', stiffness: 300 }}><AppCard title="Study Roadmaps" href="/dashboard/roadmaps" description="Plan your learning journey." icon={<GitMerge className="w-8 h-8"/>} /></motion.div>
-                       <motion.div whileHover={{ y: -5, scale: 1.02 }} transition={{ type: 'spring', stiffness: 300 }}><AppCard title="Whiteboard" href="/dashboard/whiteboard" description="Brainstorm and visualize ideas." icon={<PenSquare className="w-8 h-8"/>} /></motion.div>
-                       <motion.div whileHover={{ y: -5, scale: 1.02 }} transition={{ type: 'spring', stiffness: 300 }}><AppCard title="Notes" href="/dashboard/notes" description="Create, organize, and review your notes." icon={<Notebook className="w-8 h-8"/>} /></motion.div>
-                       <motion.div whileHover={{ y: -5, scale: 1.02 }} transition={{ type: 'spring', stiffness: 300 }}><AppCard title="Calendar" href="/dashboard/calendar" description="Manage your deadlines and study schedule." icon={<Calendar className="w-8 h-8"/>} /></motion.div>
                     </div>
                 </div>
             </TabsContent>

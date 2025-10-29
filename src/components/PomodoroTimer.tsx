@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -85,8 +84,8 @@ export default function PomodoroTimer({ onHide }: { onHide: () => void }) {
       <button 
         onClick={() => switchMode(target)}
         className={cn(
-            "px-4 py-1.5 rounded-full text-sm font-semibold transition-colors",
-            current === target ? "bg-white text-blue-600" : "text-white/80 hover:text-white"
+            "px-3 py-1 text-xs font-semibold transition-colors rounded-full",
+            current === target ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"
         )}
       >
         {children}
@@ -94,8 +93,8 @@ export default function PomodoroTimer({ onHide }: { onHide: () => void }) {
   );
 
   return (
-    <div className="bg-white/10 border-white/20 text-white w-64 text-center backdrop-blur-md rounded-2xl p-6 relative">
-       <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-6 w-6 text-white/50 hover:text-white" onClick={onHide}>
+    <div className="bg-card border-border border text-card-foreground w-64 text-center rounded-2xl p-4 relative shadow-lg">
+       <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-6 w-6 text-muted-foreground hover:text-foreground" onClick={onHide}>
         <X className="h-4 w-4" />
       </Button>
       <div className="flex justify-center gap-2 mb-4">
@@ -103,14 +102,14 @@ export default function PomodoroTimer({ onHide }: { onHide: () => void }) {
         <ModeButton current={mode} target='shortBreak'>Short Break</ModeButton>
         <ModeButton current={mode} target='longBreak'>Long Break</ModeButton>
       </div>
-      <div className="text-6xl font-bold font-mono my-6">
+      <div className="text-5xl font-bold font-mono my-4">
         {formatTime(timeRemaining)}
       </div>
       <div className="flex justify-center gap-4">
-         <Button onClick={toggleTimer} size="lg" className="rounded-full w-24 bg-blue-500 hover:bg-blue-600 border-none">
+         <Button onClick={toggleTimer} size="lg" className="rounded-full w-20 h-12 bg-primary hover:bg-primary/90">
             {isActive ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6" />}
           </Button>
-          <Button onClick={resetTimer} variant="outline" size="lg" className="rounded-full w-24 bg-transparent hover:bg-white/20 border-white/30 text-white hover:text-white">
+          <Button onClick={resetTimer} variant="outline" size="lg" className="rounded-full w-20 h-12">
             <RotateCcw className="h-6 w-6" />
           </Button>
       </div>
