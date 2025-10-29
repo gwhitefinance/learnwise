@@ -187,6 +187,7 @@ import { AnimatePresence } from 'framer-motion';
       id: string;
       text: string;
       completed: boolean;
+      isEditing?: boolean;
   }
 
 const paces = [
@@ -317,16 +318,18 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
             setCourses(userCourses);
 
              // Set initial todo item
-            const firstIncompleteCourse = userCourses.find(c => {
-                const totalChapters = c.units?.reduce((acc, unit) => acc + (unit.chapters?.length ?? 0), 0) ?? 0;
-                return totalChapters > (c.completedChapters?.length ?? 0);
-            });
-            if (firstIncompleteCourse) {
-                 const firstModule = firstIncompleteCourse.units?.find(u => u.chapters.some(ch => !firstIncompleteCourse.completedChapters?.includes(ch.id)));
-                 const firstChapter = firstModule?.chapters.find(ch => !firstIncompleteCourse.completedChapters?.includes(ch.id));
-                 if(firstChapter) {
-                    setTodos([{ id: `initial-${firstIncompleteCourse.id}`, text: `Continue "${firstIncompleteCourse.name}": ${firstChapter.title}`, completed: false }]);
-                 }
+            if (todos.length === 0) { // Only set initial if list is empty
+                const firstIncompleteCourse = userCourses.find(c => {
+                    const totalChapters = c.units?.reduce((acc, unit) => acc + (unit.chapters?.length ?? 0), 0) ?? 0;
+                    return totalChapters > (c.completedChapters?.length ?? 0);
+                });
+                if (firstIncompleteCourse) {
+                    const firstModule = firstIncompleteCourse.units?.find(u => u.chapters && u.chapters.some(ch => !firstIncompleteCourse.completedChapters?.includes(ch.id)));
+                    const firstChapter = firstModule?.chapters?.find(ch => !firstIncompleteCourse.completedChapters?.includes(ch.id));
+                    if(firstChapter) {
+                        setTodos([{ id: `initial-${firstIncompleteCourse.id}`, text: `Continue "${firstIncompleteCourse.name}": ${firstChapter.title}`, completed: false, isEditing: false }]);
+                    }
+                }
             }
 
 
@@ -796,13 +799,33 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
         }
     };
     
-     const addTodo = (text: string) => {
-        setTodos(prev => [...prev, { id: crypto.randomUUID(), text, completed: false }]);
+    const addTodo = () => {
+        const newTodo: TodoItem = {
+            id: crypto.randomUUID(),
+            text: '',
+            completed: false,
+            isEditing: true
+        };
+        setTodos(prev => [...prev, newTodo]);
     };
 
     const toggleTodo = (id: string) => {
-        setTodos(prev => prev.map(todo => todo.id === id ? { ...todo, completed: !todo.completed } : todo));
+        setTodos(prev => prev.map(todo => 
+            todo.id === id ? { ...todo, completed: !todo.completed, isEditing: false } : todo
+        ));
     };
+    
+    const updateTodoText = (id: string, newText: string) => {
+        setTodos(prev => prev.map(todo => 
+            todo.id === id ? { ...todo, text: newText } : todo
+        ));
+    }
+    
+    const saveTodo = (id: string) => {
+        setTodos(prev => prev.map(todo => 
+            todo.id === id ? { ...todo, isEditing: false } : todo
+        ));
+    }
 
     const addCalendarEvent = async (text: string) => {
         if (!user) return;
@@ -1044,18 +1067,29 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                             <CardContent className="space-y-4">
                                 {todos.map(todo => (
                                     <div key={todo.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                                        <div className="flex items-center gap-3">
+                                        <div className="flex items-center gap-3 flex-1">
                                             <motion.button onClick={() => toggleTodo(todo.id)}>
                                                 <div className={cn("w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors", todo.completed ? "bg-primary border-primary" : "border-muted-foreground")}>
                                                     {todo.completed && <CheckCircle className="w-4 h-4 text-primary-foreground"/>}
                                                 </div>
                                             </motion.button>
-                                            <span className={cn("text-sm", todo.completed && "line-through text-muted-foreground")}>{todo.text}</span>
+                                            {todo.isEditing ? (
+                                                <Input 
+                                                    autoFocus
+                                                    value={todo.text}
+                                                    onChange={(e) => updateTodoText(todo.id, e.target.value)}
+                                                    onBlur={() => saveTodo(todo.id)}
+                                                    onKeyDown={(e) => e.key === 'Enter' && saveTodo(todo.id)}
+                                                    className="h-8 text-sm"
+                                                />
+                                            ) : (
+                                                <span className={cn("text-sm", todo.completed && "line-through text-muted-foreground")}>{todo.text}</span>
+                                            )}
                                         </div>
                                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => addCalendarEvent(todo.text)}><Calendar className="h-4 w-4"/></Button>
                                     </div>
                                 ))}
-                                 <Button variant="outline" className="w-full border-dashed" onClick={() => addTodo('New study task...')}>
+                                 <Button variant="outline" className="w-full border-dashed" onClick={addTodo}>
                                     <Plus className="w-4 h-4 mr-2"/>Add Task
                                 </Button>
                             </CardContent>
