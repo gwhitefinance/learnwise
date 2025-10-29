@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useContext } from 'react';
@@ -192,6 +193,39 @@ const paces = [
   { value: "6", label: "Casual", description: "A relaxed pace for exploring.", icon: <Snail className="h-6 w-6" /> },
   { value: "3", label: "Steady", description: "A balanced pace for consistent learning.", icon: <Turtle className="h-6 w-6" /> },
   { value: "1", label: "Intense", description: "A fast-paced schedule for quick mastery.", icon: <Rabbit className="h-6 w-6" /> },
+];
+
+const integrations = [
+    {
+        name: "Google Classroom",
+        description: "Sync your roster, assignments, and grades seamlessly.",
+        icon: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/Google_Classroom_Logo.svg/2048px-Google_Classroom_Logo.svg.png",
+    },
+    {
+        name: "Microsoft Teams",
+        description: "Integrate Tutorin's tools directly into your Teams channels.",
+        icon: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Microsoft_Office_Teams_%282018%E2%80%93present%29.svg/2203px-Microsoft_Office_Teams_%282018%E2%80%93present%29.svg.png",
+    },
+    {
+        name: "Canvas",
+        description: "Connect with Canvas LMS for gradebook synchronization.",
+        icon: "https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/canvas-lms-logo-icon.png",
+    },
+     {
+        name: "Schoology",
+        description: "Import rosters and export grades to your Schoology courses.",
+        icon: "https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/schoology-logo-icon.png",
+    },
+     {
+        name: "Zoom",
+        description: "Launch and record study sessions directly within Tutorin.",
+        icon: "https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/zoom-icon.png",
+    },
+    {
+        name: "Edpuzzle",
+        description: "Embed interactive video lessons into your Tutorin courses.",
+        icon: "https://img.favpng.com/1/10/22/edpuzzle-logo-google-classroom-interactive-video-png-favpng-s5DPyVv2VjC4XA9gXy4GjC9sA.jpg",
+    },
 ];
 
 function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean }) {
