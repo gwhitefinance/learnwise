@@ -164,6 +164,20 @@
             "permissions": { "type": "object" }
         }
     },
+    "podcastEpisode": {
+        "title": "Podcast Episode",
+        "description": "A user-created podcast episode.",
+        "type": "object",
+        "properties": {
+            "userId": { "type": "string" },
+            "courseId": { "type": "string" },
+            "unitTitle": { "type": "string" },
+            "script": { "type": "string" },
+            "audioUrl": { "type": "string", "format": "uri" },
+            "videoUrl": { "type": "string", "format": "uri" },
+            "timestamp": { "type": "string", "format": "date-time" }
+        }
+    },
     "satTestResult": {
         "title": "SAT Test Result",
         "description": "The result of a completed full-length SAT practice test.",
@@ -231,6 +245,10 @@
     "/squads/{squadId}": {
         "schema": { "$ref": "#/entities/squad" },
         "description": "Stores learning squad information."
+    },
+     "/podcastEpisodes/{episodeId}": {
+        "schema": { "$ref": "#/entities/podcastEpisode" },
+        "description": "Stores user-created podcast episodes."
     },
     "/satTestResults/{resultId}": {
         "schema": { "$ref": "#/entities/satTestResult" },
