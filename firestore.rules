@@ -1,250 +1,298 @@
 /**
- * @fileoverview Firestore Security Rules for the application.
+ * @fileOverview Firestore Security Rules for the application.
  *
  * Core Philosophy:
  * This ruleset enforces a strict user-ownership model for most data,
- * ensuring that users can only access and modify their own data.
- * Public read access is granted in select cases to public collections.
+ * ensuring that users can only access and modify their own information.
+ * Public read access is allowed for a few collections, but write access
+ * to these collections is restricted to authenticated users who own the content.
  *
  * Data Structure:
- * - User profiles are stored under `/users/{userId}`.
- * - Courses, roadmaps, notes, chat sessions, quiz attempts/results, calendar events, podcast episodes,
- *   SAT test results/study sessions are stored in top-level collections,
- *   and each document contains a `userId` field linking it to the owner.
- * - Squads are stored under `/squads/{squadId}`, with access controlled by `ownerId` and `members` list.
+ * The Firestore database is organized into top-level collections for various
+ * data types (users, courses, roadmaps, notes, etc.). Most collections are
+ * secured to only allow access to the owner of the document.
  *
  * Key Security Decisions:
- * - Users can only read and write their own profile data.
- * - Courses, roadmaps, notes, chat sessions, quiz attempts/results, calendar events, podcast episodes,
- *   and SAT results/study sessions are private and accessible only to the owner.
- * - Squads are collaborative and managed by an owner with shared access for members.
- * - Data validation is relaxed in this prototyping phase, focusing only on authorization checks and relational integrity.
- *
- * Denormalization for Authorization:
- * The `userId` field is used throughout the database to link documents to their owners.
- * For squads, `ownerId` and `members` fields are used for collaborative access control.
+ * - User listing is disallowed to protect privacy.
+ * - Helper functions are used to encapsulate complex logic and improve readability.
+ * - Data required for authorization decisions is denormalized onto documents
+ *   to avoid costly `get()` calls in the rules.
+ * - Write rules are secured by checking authenticated `request.auth.uid` in comparison to the `resource.data.userId`
+ *   or `request.resource.data.userId` fields.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    /**
+     * @description Grants access to user profile information.
+     * @path /users/{userId}
+     * @allow (create) User with ID 'user123' can create their own profile.
+     * @allow (get) User with ID 'user123' can read their profile.
+     * @allow (update) User with ID 'user123' can update their profile.
+     * @allow (delete) User with ID 'user123' can delete their profile.
+     * @deny (create) User with ID 'user456' cannot create a profile for 'user123'.
+     * @principle Enforces document ownership for writes.
+     */
+    match /users/{userId} {
+      // isOwner function is used to compare the userId variable on the path to the request.auth.uid
+      allow get: if isSignedIn() && isOwner(userId);
+      allow list: if false; // User listing is disabled for privacy.
+      allow create: if isSignedIn() && isOwner(userId);
+      allow update: if isSignedIn() && isOwner(userId);
+      allow delete: if isSignedIn() && isOwner(userId);
+    }
+
+    /**
+     * @description Grants access to user courses.
+     * @path /courses/{courseId}
+     * @allow (create) User with ID 'user123' can create a course for themself.
+     * @allow (get) User with ID 'user123' can read a course they own.
+     * @allow (update) User with ID 'user123' can update a course they own.
+     * @allow (delete) User with ID 'user123' can delete a course they own.
+     * @deny (create) User with ID 'user456' cannot create a course for 'user123'.
+     * @principle Enforces document ownership for writes.
+     */
+    match /courses/{courseId} {
+      allow get: if isSignedIn() && isCourseOwner(resource.data.userId);
+      allow list: if false;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn() && isCourseOwner(request.resource.data.userId) && request.resource.data.userId == resource.data.userId;
+      allow delete: if isSignedIn() && isCourseOwner(resource.data.userId);
+
+      function isCourseOwner(userId) {
+        return request.auth.uid == userId;
+      }
+    }
+
+    /**
+     * @description Grants access to generated study roadmaps for courses.
+     * @path /roadmaps/{roadmapId}
+     * @allow (create) User with ID 'user123' can create a roadmap for themself.
+     * @allow (get) User with ID 'user123' can read a roadmap they own.
+     * @allow (update) User with ID 'user123' can update a roadmap they own.
+     * @allow (delete) User with ID 'user123' can delete a roadmap they own.
+     * @deny (create) User with ID 'user456' cannot create a roadmap for 'user123'.
+     * @principle Enforces document ownership for writes.
+     */
+    match /roadmaps/{roadmapId} {
+      allow get: if isSignedIn() && isRoadmapOwner(resource.data.userId);
+      allow list: if false;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn() && isRoadmapOwner(request.resource.data.userId) && request.resource.data.userId == resource.data.userId;
+      allow delete: if isSignedIn() && isRoadmapOwner(resource.data.userId);
+
+      function isRoadmapOwner(userId) {
+        return request.auth.uid == userId;
+      }
+    }
+
+    /**
+     * @description Grants access to user notes.
+     * @path /notes/{noteId}
+     * @allow (create) User with ID 'user123' can create a note for themself.
+     * @allow (get) User with ID 'user123' can read a note they own.
+     * @allow (update) User with ID 'user123' can update a note they own.
+     * @allow (delete) User with ID 'user123' can delete a note they own.
+     * @deny (create) User with ID 'user456' cannot create a note for 'user123'.
+     * @principle Enforces document ownership for writes.
+     */
+    match /notes/{noteId} {
+      allow get: if isSignedIn() && isNoteOwner(resource.data.userId);
+      allow list: if false;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn() && isNoteOwner(request.resource.data.userId) && request.resource.data.userId == resource.data.userId;
+      allow delete: if isSignedIn() && isNoteOwner(resource.data.userId);
+
+      function isNoteOwner(userId) {
+        return request.auth.uid == userId;
+      }
+    }
+
+    /**
+     * @description Grants access to user chat sessions.
+     * @path /chatSessions/{sessionId}
+     * @allow (create) User with ID 'user123' can create a chat session for themself.
+     * @allow (get) User with ID 'user123' can read a chat session they own.
+     * @allow (update) User with ID 'user123' can update a chat session they own.
+     * @allow (delete) User with ID 'user123' can delete a chat session they own.
+     * @deny (create) User with ID 'user456' cannot create a chat session for 'user123'.
+     * @principle Enforces document ownership for writes.
+     */
+    match /chatSessions/{sessionId} {
+      allow get: if isSignedIn() && isChatSessionOwner(resource.data.userId);
+      allow list: if false;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn() && isChatSessionOwner(request.resource.data.userId) && request.resource.data.userId == resource.data.userId;
+      allow delete: if isSignedIn() && isChatSessionOwner(resource.data.userId);
+
+      function isChatSessionOwner(userId) {
+        return request.auth.uid == userId;
+      }
+    }
+
+    /**
+     * @description Grants access to records of incorrect quiz answers.
+     * @path /quizAttempts/{attemptId}
+     * @allow (create) User with ID 'user123' can create a quiz attempt for themself.
+     * @allow (get) User with ID 'user123' can read a quiz attempt they own.
+     * @allow (update) User with ID 'user123' can update a quiz attempt they own.
+     * @allow (delete) User with ID 'user123' can delete a quiz attempt they own.
+     * @deny (create) User with ID 'user456' cannot create a quiz attempt for 'user123'.
+     * @principle Enforces document ownership for writes.
+     */
+    match /quizAttempts/{attemptId} {
+      allow get: if isSignedIn() && isQuizAttemptOwner(resource.data.userId);
+      allow list: if false;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn() && isQuizAttemptOwner(request.resource.data.userId) && request.resource.data.userId == resource.data.userId;
+      allow delete: if isSignedIn() && isQuizAttemptOwner(resource.data.userId);
+
+      function isQuizAttemptOwner(userId) {
+        return request.auth.uid == userId;
+      }
+    }
+
+    /**
+     * @description Grants access to the results of completed quizzes.
+     * @path /quizResults/{resultId}
+     * @allow (create) User with ID 'user123' can create a quiz result for themself.
+     * @allow (get) User with ID 'user123' can read a quiz result they own.
+     * @allow (update) User with ID 'user123' can update a quiz result they own.
+     * @allow (delete) User with ID 'user123' can delete a quiz result they own.
+     * @deny (create) User with ID 'user456' cannot create a quiz result for 'user123'.
+     * @principle Enforces document ownership for writes.
+     */
+    match /quizResults/{resultId} {
+      allow get: if isSignedIn() && isQuizResultOwner(resource.data.userId);
+      allow list: if false;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn() && isQuizResultOwner(request.resource.data.userId) && request.resource.data.userId == resource.data.userId;
+      allow delete: if isSignedIn() && isQuizResultOwner(resource.data.userId);
+
+      function isQuizResultOwner(userId) {
+        return request.auth.uid == userId;
+      }
+    }
+
+    /**
+     * @description Grants access to events for the user's calendar.
+     * @path /calendarEvents/{eventId}
+     * @allow (create) User with ID 'user123' can create a calendar event for themself.
+     * @allow (get) User with ID 'user123' can read a calendar event they own.
+     * @allow (update) User with ID 'user123' can update a calendar event they own.
+     * @allow (delete) User with ID 'user123' can delete a calendar event they own.
+     * @deny (create) User with ID 'user456' cannot create a calendar event for 'user123'.
+     * @principle Enforces document ownership for writes.
+     */
+    match /calendarEvents/{eventId} {
+      allow get: if isSignedIn() && isCalendarEventOwner(resource.data.userId);
+      allow list: if false;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn() && isCalendarEventOwner(request.resource.data.userId) && request.resource.data.userId == resource.data.userId;
+      allow delete: if isSignedIn() && isCalendarEventOwner(resource.data.userId);
+
+      function isCalendarEventOwner(userId) {
+        return request.auth.uid == userId;
+      }
+    }
+
+    /**
+     * @description Grants access to learning squad information.
+     * @path /squads/{squadId}
+     * @allow (create) User with ID 'user123' can create a squad they own.
+     * @allow (get) User with ID 'user123' can read a squad they own.
+     * @allow (update) User with ID 'user123' can update a squad they own.
+     * @allow (delete) User with ID 'user123' can delete a squad they own.
+     * @deny (create) User with ID 'user456' cannot create a squad for 'user123'.
+     * @principle Enforces document ownership for writes.
+     */
+    match /squads/{squadId} {
+      allow get: if isSignedIn() && isSquadOwner(resource.data.ownerId);
+      allow list: if false;
+      allow create: if isSignedIn() && request.resource.data.ownerId == request.auth.uid;
+      allow update: if isSignedIn() && isSquadOwner(request.resource.data.ownerId) && request.resource.data.ownerId == resource.data.ownerId;
+      allow delete: if isSignedIn() && isSquadOwner(resource.data.ownerId);
+
+      function isSquadOwner(ownerId) {
+        return request.auth.uid == ownerId;
+      }
+    }
+
+     /**
+     * @description Grants access to user-created podcast episodes.
+     * @path /podcastEpisodes/{episodeId}
+     * @allow (create) User with ID 'user123' can create a podcast episode for themself.
+     * @allow (get) User with ID 'user123' can read a podcast episode they own.
+     * @allow (update) User with ID 'user123' can update a podcast episode they own.
+     * @allow (delete) User with ID 'user123' can delete a podcast episode they own.
+     * @deny (create) User with ID 'user456' cannot create a podcast episode for 'user123'.
+     * @principle Enforces document ownership for writes.
+     */
+    match /podcastEpisodes/{episodeId} {
+      allow get: if isSignedIn() && isPodcastEpisodeOwner(resource.data.userId);
+      allow list: if false;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn() && isPodcastEpisodeOwner(request.resource.data.userId) && request.resource.data.userId == resource.data.userId;
+      allow delete: if isSignedIn() && isPodcastEpisodeOwner(resource.data.userId);
+
+      function isPodcastEpisodeOwner(userId) {
+        return request.auth.uid == userId;
+      }
+    }
+
+    /**
+     * @description Grants access to results from full-length SAT practice tests.
+     * @path /satTestResults/{resultId}
+     * @allow (create) User with ID 'user123' can create an SAT test result for themself.
+     * @allow (get) User with ID 'user123' can read an SAT test result they own.
+     * @allow (update) User with ID 'user123' can update an SAT test result they own.
+     * @allow (delete) User with ID 'user123' can delete an SAT test result they own.
+     * @deny (create) User with ID 'user456' cannot create an SAT test result for 'user123'.
+     * @principle Enforces document ownership for writes.
+     */
+    match /satTestResults/{resultId} {
+      allow get: if isSignedIn() && isSatTestResultOwner(resource.data.userId);
+      allow list: if false;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn() && isSatTestResultOwner(request.resource.data.userId) && request.resource.data.userId == resource.data.userId;
+      allow delete: if isSignedIn() && isSatTestResultOwner(resource.data.userId);
+
+      function isSatTestResultOwner(userId) {
+        return request.auth.uid == userId;
+      }
+    }
+
+    /**
+     * @description Grants access to results from focused SAT study sessions.
+     * @path /satStudySessions/{sessionId}
+     * @allow (create) User with ID 'user123' can create an SAT study session for themself.
+     * @allow (get) User with ID 'user123' can read an SAT study session they own.
+     * @allow (update) User with ID 'user123' can update an SAT study session they own.
+     * @allow (delete) User with ID 'user123' can delete an SAT study session they own.
+     * @deny (create) User with ID 'user456' cannot create an SAT study session for 'user123'.
+     * @principle Enforces document ownership for writes.
+     */
+    match /satStudySessions/{sessionId} {
+      allow get: if isSignedIn() && isSatStudySessionOwner(resource.data.userId);
+      allow list: if false;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn() && isSatStudySessionOwner(request.resource.data.userId) && request.resource.data.userId == resource.data.userId;
+      allow delete: if isSignedIn() && isSatStudySessionOwner(resource.data.userId);
+
+      function isSatStudySessionOwner(userId) {
+        return request.auth.uid == userId;
+      }
+    }
+
+    // Helper function to determine if the user is signed in.
     function isSignedIn() {
       return request.auth != null;
     }
 
+    // Helper function to determine if the user is the owner of the document.
     function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
-    }
-
-    function isExistingOwner(docId) {
-      return isSignedIn() && resource.data.userId == request.auth.uid;
-    }
-
-    /**
-     * @description Controls access to user profile information.
-     * @path /users/{userId}
-     * @allow (get, update, delete) if the user is the owner of the profile.
-     * @allow (create) if the user is creating their own profile.
-     * @deny (get, update, delete) if the user is not the owner of the profile.
-     * @principle Enforces document ownership for user profiles.
-     */
-    match /users/{userId} {
-      allow get: if isOwner(userId);
-      allow list: if false;
-      allow create: if isOwner(userId);
-      allow update: if isOwner(userId);
-      allow delete: if isOwner(userId);
-    }
-
-    /**
-     * @description Controls access to course data.
-     * @path /courses/{courseId}
-     * @allow (get, list) if true (public read access).
-     * @allow (create) if the userId matches the authenticated user.
-     * @allow (update, delete) if the user is the owner of the course.
-     * @deny (create) if the userId does not match the authenticated user.
-     * @deny (update, delete) if the user is not the owner of the course.
-     * @principle Enforces user-owned course data with public read access.
-     */
-    match /courses/{courseId} {
-      allow get, list: if true;
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update: if isSignedIn() && isExistingOwner(courseId);
-      allow delete: if isSignedIn() && isExistingOwner(courseId);
-    }
-
-    /**
-     * @description Controls access to roadmaps.
-     * @path /roadmaps/{roadmapId}
-     * @allow (get, list) if true (public read access).
-     * @allow (create) if the userId matches the authenticated user.
-     * @allow (update, delete) if the user is the owner of the roadmap.
-     * @deny (create) if the userId does not match the authenticated user.
-     * @deny (update, delete) if the user is not the owner of the roadmap.
-     * @principle Enforces user-owned roadmap data with public read access.
-     */
-    match /roadmaps/{roadmapId} {
-      allow get, list: if true;
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update: if isSignedIn() && isExistingOwner(roadmapId);
-      allow delete: if isSignedIn() && isExistingOwner(roadmapId);
-    }
-
-    /**
-     * @description Controls access to notes.
-     * @path /notes/{noteId}
-     * @allow (get, list) if true (public read access).
-     * @allow (create) if the userId matches the authenticated user.
-     * @allow (update, delete) if the user is the owner of the note.
-     * @deny (create) if the userId does not match the authenticated user.
-     * @deny (update, delete) if the user is not the owner of the note.
-     * @principle Enforces user-owned note data with public read access.
-     */
-    match /notes/{noteId} {
-      allow get, list: if true;
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update: if isSignedIn() && isExistingOwner(noteId);
-      allow delete: if isSignedIn() && isExistingOwner(noteId);
-    }
-
-    /**
-     * @description Controls access to chat sessions.
-     * @path /chatSessions/{sessionId}
-     * @allow (get, list) if true (public read access).
-     * @allow (create) if the userId matches the authenticated user.
-     * @allow (update, delete) if the user is the owner of the chat session.
-     * @deny (create) if the userId does not match the authenticated user.
-     * @deny (update, delete) if the user is not the owner of the chat session.
-     * @principle Enforces user-owned chat session data with public read access.
-     */
-    match /chatSessions/{sessionId} {
-      allow get, list: if true;
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update: if isSignedIn() && isExistingOwner(sessionId);
-      allow delete: if isSignedIn() && isExistingOwner(sessionId);
-    }
-
-    /**
-     * @description Controls access to quiz attempts.
-     * @path /quizAttempts/{attemptId}
-     * @allow (get, list) if true (public read access).
-     * @allow (create) if the userId matches the authenticated user.
-     * @allow (update, delete) if the user is the owner of the quiz attempt.
-     * @deny (create) if the userId does not match the authenticated user.
-     * @deny (update, delete) if the user is not the owner of the quiz attempt.
-     * @principle Enforces user-owned quiz attempt data with public read access.
-     */
-    match /quizAttempts/{attemptId} {
-      allow get, list: if true;
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update: if isSignedIn() && isExistingOwner(attemptId);
-      allow delete: if isSignedIn() && isExistingOwner(attemptId);
-    }
-
-    /**
-     * @description Controls access to quiz results.
-     * @path /quizResults/{resultId}
-     * @allow (get, list) if true (public read access).
-     * @allow (create) if the userId matches the authenticated user.
-     * @allow (update, delete) if the user is the owner of the quiz result.
-     * @deny (create) if the userId does not match the authenticated user.
-     * @deny (update, delete) if the user is not the owner of the quiz result.
-     * @principle Enforces user-owned quiz result data with public read access.
-     */
-    match /quizResults/{resultId} {
-      allow get, list: if true;
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update: if isSignedIn() && isExistingOwner(resultId);
-      allow delete: if isSignedIn() && isExistingOwner(resultId);
-    }
-
-    /**
-     * @description Controls access to calendar events.
-     * @path /calendarEvents/{eventId}
-     * @allow (get, list) if true (public read access).
-     * @allow (create) if the userId matches the authenticated user.
-     * @allow (update, delete) if the user is the owner of the calendar event.
-     * @deny (create) if the userId does not match the authenticated user.
-     * @deny (update, delete) if the user is not the owner of the calendar event.
-     * @principle Enforces user-owned calendar event data with public read access.
-     */
-    match /calendarEvents/{eventId} {
-      allow get, list: if true;
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update: if isSignedIn() && isExistingOwner(eventId);
-      allow delete: if isSignedIn() && isExistingOwner(eventId);
-    }
-
-    /**
-     * @description Controls access to squads.
-     * @path /squads/{squadId}
-     * @allow (get, list) if the user is the owner or a member of the squad.
-     * @allow (create) if the user is creating the squad and sets ownerId to their UID.
-     * @allow (update, delete) if the user is the owner of the squad.
-     * @deny (create) if the user is not setting ownerId to their UID.
-     * @deny (update, delete) if the user is not the owner of the squad.
-     * @principle Enforces owner-managed collaborative group access.
-     */
-    match /squads/{squadId} {
-        function isSquadMember() {
-            return isSignedIn() && (resource.data.ownerId == request.auth.uid || (resource.data.members is list && request.auth.uid in resource.data.members));
-        }
-
-        allow get, list: if isSquadMember();
-        allow create: if isSignedIn() && request.resource.data.ownerId == request.auth.uid;
-        allow update: if isSignedIn() && request.resource.data.ownerId == request.auth.uid;
-        allow delete: if isSignedIn() && request.resource.data.ownerId == request.auth.uid;
-    }
-
-     /**
-     * @description Controls access to podcast episodes.
-     * @path /podcastEpisodes/{episodeId}
-     * @allow (get, list) if true (public read access).
-     * @allow (create) if the userId matches the authenticated user.
-     * @allow (update, delete) if the user is the owner of the podcast episode.
-     * @deny (create) if the userId does not match the authenticated user.
-     * @deny (update, delete) if the user is not the owner of the podcast episode.
-     * @principle Enforces user-owned podcast episode data with public read access.
-     */
-    match /podcastEpisodes/{episodeId} {
-      allow get, list: if true;
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update: if isSignedIn() && isExistingOwner(episodeId);
-      allow delete: if isSignedIn() && isExistingOwner(episodeId);
-    }
-
-     /**
-     * @description Controls access to SAT test results.
-     * @path /satTestResults/{resultId}
-     * @allow (get, list) if true (public read access).
-     * @allow (create) if the userId matches the authenticated user.
-     * @allow (update, delete) if the user is the owner of the SAT test result.
-     * @deny (create) if the userId does not match the authenticated user.
-     * @deny (update, delete) if the user is not the owner of the SAT test result.
-     * @principle Enforces user-owned SAT test result data with public read access.
-     */
-    match /satTestResults/{resultId} {
-      allow get, list: if true;
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update: if isSignedIn() && isExistingOwner(resultId);
-      allow delete: if isSignedIn() && isExistingOwner(resultId);
-    }
-
-     /**
-     * @description Controls access to SAT study sessions.
-     * @path /satStudySessions/{sessionId}
-     * @allow (get, list) if true (public read access).
-     * @allow (create) if the userId matches the authenticated user.
-     * @allow (update, delete) if the user is the owner of the SAT study session.
-     * @deny (create) if the userId does not match the authenticated user.
-     * @deny (update, delete) if the user is not the owner of the SAT study session.
-     * @principle Enforces user-owned SAT study session data with public read access.
-     */
-    match /satStudySessions/{sessionId} {
-      allow get, list: if true;
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update: if isSignedIn() && isExistingOwner(sessionId);
-      allow delete: if isSignedIn() && isExistingOwner(sessionId);
+      return request.auth.uid == userId;
     }
   }
 }
