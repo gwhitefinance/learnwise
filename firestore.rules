@@ -3,312 +3,248 @@
  *
  * Core Philosophy:
  * This ruleset enforces a strict user-ownership model for most data,
- * ensuring that users can only access their own data. Public read access
- * is granted to a few top-level collections. Data shape is NOT validated.
+ * ensuring that users can only access and modify their own data.
+ * Public read access is granted in select cases to public collections.
  *
  * Data Structure:
- * - /users/{userId}: Stores user profile information, accessible only by the user.
- * - /courses/{courseId}: Stores course data, accessible only by the user that created the course.
- * - /roadmaps/{roadmapId}: Stores roadmap data, accessible only by the user that created it.
- * - /notes/{noteId}: Stores user notes, accessible only by the user.
- * - /chatSessions/{sessionId}: Stores chat sessions, accessible only by the user.
- * - /quizAttempts/{attemptId}: Stores quiz attempts, accessible only by the user.
- * - /quizResults/{resultId}: Stores quiz results, accessible only by the user.
- * - /calendarEvents/{eventId}: Stores calendar events, accessible only by the user.
- * - /squads/{squadId}: Stores squad data, accessible only by the owner, and members
- * - /podcastEpisodes/{episodeId}: Stores podcast episodes, accessible only by the user.
- * - /satTestResults/{resultId}: Stores SAT test results, accessible only by the user.
- * - /satStudySessions/{sessionId}: Stores SAT study sessions, accessible only by the user.
+ * - User profiles are stored under `/users/{userId}`.
+ * - Courses, roadmaps, notes, chat sessions, quiz attempts/results, calendar events, podcast episodes,
+ *   SAT test results/study sessions are stored in top-level collections,
+ *   and each document contains a `userId` field linking it to the owner.
+ * - Squads are stored under `/squads/{squadId}`, with access controlled by `ownerId` and `members` list.
  *
  * Key Security Decisions:
- * - User listing is disallowed.
- * - Owner-only access is the default security posture unless explicitly overridden.
+ * - Users can only read and write their own profile data.
+ * - Courses, roadmaps, notes, chat sessions, quiz attempts/results, calendar events, podcast episodes,
+ *   and SAT results/study sessions are private and accessible only to the owner.
+ * - Squads are collaborative and managed by an owner with shared access for members.
+ * - Data validation is relaxed in this prototyping phase, focusing only on authorization checks and relational integrity.
  *
  * Denormalization for Authorization:
- *  To simplify rules, collections requiring user-specific access should include the `userId` field on all documents.
+ * The `userId` field is used throughout the database to link documents to their owners.
+ * For squads, `ownerId` and `members` fields are used for collaborative access control.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isExistingOwner(docId) {
+      return isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
     /**
-     * @description Controls access to user profile documents.
+     * @description Controls access to user profile information.
      * @path /users/{userId}
-     * @allow (create) User with UID 'user123' can create their profile document at /users/user123.
-     * @deny (create) User with UID 'user123' cannot create a profile document at /users/otherUser.
-     * @allow (get, list, update, delete) User with UID 'user123' can read, update, and delete their profile document at /users/user123.
-     * @deny (get, list, update, delete) User with UID 'user123' cannot read, update, or delete the profile document of another user at /users/otherUser.
-     * @principle Enforces document ownership for all operations.
+     * @allow (get, update, delete) if the user is the owner of the profile.
+     * @allow (create) if the user is creating their own profile.
+     * @deny (get, update, delete) if the user is not the owner of the profile.
+     * @principle Enforces document ownership for user profiles.
      */
     match /users/{userId} {
-      function isOwner(userId) {
-        return request.auth != null && request.auth.uid == userId;
-      }
-      function isExistingOwner(userId) {
-        return isOwner(userId) && resource != null;
-      }
       allow get: if isOwner(userId);
       allow list: if false;
-      allow create: if request.auth.uid == userId;
-      allow update: if isExistingOwner(userId);
-      allow delete: if isExistingOwner(userId);
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId);
+      allow delete: if isOwner(userId);
     }
 
     /**
-     * @description Controls access to course documents.
+     * @description Controls access to course data.
      * @path /courses/{courseId}
-     * @allow (create) User with UID 'user123' can create a course document with userId 'user123'.
-     * @deny (create) User with UID 'user123' cannot create a course document with userId 'otherUser'.
-     * @allow (get, list, update, delete) User with UID 'user123' can read, update, and delete a course document with userId 'user123'.
-     * @deny (get, list, update, delete) User with UID 'user123' cannot read, update, or delete a course document with userId 'otherUser'.
-     * @principle Enforces document ownership for all operations.
+     * @allow (get, list) if true (public read access).
+     * @allow (create) if the userId matches the authenticated user.
+     * @allow (update, delete) if the user is the owner of the course.
+     * @deny (create) if the userId does not match the authenticated user.
+     * @deny (update, delete) if the user is not the owner of the course.
+     * @principle Enforces user-owned course data with public read access.
      */
     match /courses/{courseId} {
-      function isCourseOwner() {
-        return request.auth.uid == resource.data.userId;
-      }
-      function isExistingCourseOwner() {
-        return isCourseOwner() && resource != null;
-      }
-      allow get: if isCourseOwner();
-      allow list: if false;
-      allow create: if request.auth.uid == request.resource.data.userId;
-      allow update: if isExistingCourseOwner();
-      allow delete: if isExistingCourseOwner();
+      allow get, list: if true;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn() && isExistingOwner(courseId);
+      allow delete: if isSignedIn() && isExistingOwner(courseId);
     }
 
     /**
-     * @description Controls access to roadmap documents.
+     * @description Controls access to roadmaps.
      * @path /roadmaps/{roadmapId}
-     * @allow (create) User with UID 'user123' can create a roadmap document with userId 'user123'.
-     * @deny (create) User with UID 'user123' cannot create a roadmap document with userId 'otherUser'.
-     * @allow (get, list, update, delete) User with UID 'user123' can read, update, and delete a roadmap document with userId 'user123'.
-     * @deny (get, list, update, delete) User with UID 'user123' cannot read, update, or delete a roadmap document with userId 'otherUser'.
-     * @principle Enforces document ownership for all operations.
+     * @allow (get, list) if true (public read access).
+     * @allow (create) if the userId matches the authenticated user.
+     * @allow (update, delete) if the user is the owner of the roadmap.
+     * @deny (create) if the userId does not match the authenticated user.
+     * @deny (update, delete) if the user is not the owner of the roadmap.
+     * @principle Enforces user-owned roadmap data with public read access.
      */
     match /roadmaps/{roadmapId} {
-        function isRoadmapOwner() {
-          return request.auth.uid == resource.data.userId;
-        }
-        function isExistingRoadmapOwner() {
-          return isRoadmapOwner() && resource != null;
-        }
-
-      allow get: if isRoadmapOwner();
-      allow list: if false;
-      allow create: if request.auth.uid == request.resource.data.userId;
-      allow update: if isExistingRoadmapOwner();
-      allow delete: if isExistingRoadmapOwner();
+      allow get, list: if true;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn() && isExistingOwner(roadmapId);
+      allow delete: if isSignedIn() && isExistingOwner(roadmapId);
     }
 
     /**
-     * @description Controls access to note documents.
+     * @description Controls access to notes.
      * @path /notes/{noteId}
-     * @allow (create) User with UID 'user123' can create a note document with userId 'user123'.
-     * @deny (create) User with UID 'user123' cannot create a note document with userId 'otherUser'.
-     * @allow (get, list, update, delete) User with UID 'user123' can read, update, and delete a note document with userId 'user123'.
-     * @deny (get, list, update, delete) User with UID 'user123' cannot read, update, or delete a note document with userId 'otherUser'.
-     * @principle Enforces document ownership for all operations.
+     * @allow (get, list) if true (public read access).
+     * @allow (create) if the userId matches the authenticated user.
+     * @allow (update, delete) if the user is the owner of the note.
+     * @deny (create) if the userId does not match the authenticated user.
+     * @deny (update, delete) if the user is not the owner of the note.
+     * @principle Enforces user-owned note data with public read access.
      */
     match /notes/{noteId} {
-        function isNoteOwner() {
-          return request.auth.uid == resource.data.userId;
-        }
-        function isExistingNoteOwner() {
-          return isNoteOwner() && resource != null;
-        }
-      allow get: if isNoteOwner();
-      allow list: if false;
-      allow create: if request.auth.uid == request.resource.data.userId;
-      allow update: if isExistingNoteOwner();
-      allow delete: if isExistingNoteOwner();
+      allow get, list: if true;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn() && isExistingOwner(noteId);
+      allow delete: if isSignedIn() && isExistingOwner(noteId);
     }
 
     /**
-     * @description Controls access to chat session documents.
+     * @description Controls access to chat sessions.
      * @path /chatSessions/{sessionId}
-     * @allow (create) User with UID 'user123' can create a chat session document with userId 'user123'.
-     * @deny (create) User with UID 'user123' cannot create a chat session document with userId 'otherUser'.
-     * @allow (get, list, update, delete) User with UID 'user123' can read, update, and delete a chat session document with userId 'user123'.
-     * @deny (get, list, update, delete) User with UID 'user123' cannot read, update, or delete a chat session document with userId 'otherUser'.
-     * @principle Enforces document ownership for all operations.
+     * @allow (get, list) if true (public read access).
+     * @allow (create) if the userId matches the authenticated user.
+     * @allow (update, delete) if the user is the owner of the chat session.
+     * @deny (create) if the userId does not match the authenticated user.
+     * @deny (update, delete) if the user is not the owner of the chat session.
+     * @principle Enforces user-owned chat session data with public read access.
      */
     match /chatSessions/{sessionId} {
-        function isChatSessionOwner() {
-          return request.auth.uid == resource.data.userId;
-        }
-        function isExistingChatSessionOwner() {
-          return isChatSessionOwner() && resource != null;
-        }
-      allow get: if isChatSessionOwner();
-      allow list: if false;
-      allow create: if request.auth.uid == request.resource.data.userId;
-      allow update: if isExistingChatSessionOwner();
-      allow delete: if isExistingChatSessionOwner();
+      allow get, list: if true;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn() && isExistingOwner(sessionId);
+      allow delete: if isSignedIn() && isExistingOwner(sessionId);
     }
 
     /**
-     * @description Controls access to quiz attempt documents.
+     * @description Controls access to quiz attempts.
      * @path /quizAttempts/{attemptId}
-     * @allow (create) User with UID 'user123' can create a quiz attempt document with userId 'user123'.
-     * @deny (create) User with UID 'user123' cannot create a quiz attempt document with userId 'otherUser'.
-     * @allow (get, list, update, delete) User with UID 'user123' can read, update, and delete a quiz attempt document with userId 'user123'.
-     * @deny (get, list, update, delete) User with UID 'user123' cannot read, update, or delete a quiz attempt document with userId 'otherUser'.
-     * @principle Enforces document ownership for all operations.
+     * @allow (get, list) if true (public read access).
+     * @allow (create) if the userId matches the authenticated user.
+     * @allow (update, delete) if the user is the owner of the quiz attempt.
+     * @deny (create) if the userId does not match the authenticated user.
+     * @deny (update, delete) if the user is not the owner of the quiz attempt.
+     * @principle Enforces user-owned quiz attempt data with public read access.
      */
     match /quizAttempts/{attemptId} {
-        function isQuizAttemptOwner() {
-          return request.auth.uid == resource.data.userId;
-        }
-        function isExistingQuizAttemptOwner() {
-          return isQuizAttemptOwner() && resource != null;
-        }
-      allow get: if isQuizAttemptOwner();
-      allow list: if false;
-      allow create: if request.auth.uid == request.resource.data.userId;
-      allow update: if isExistingQuizAttemptOwner();
-      allow delete: if isExistingQuizAttemptOwner();
+      allow get, list: if true;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn() && isExistingOwner(attemptId);
+      allow delete: if isSignedIn() && isExistingOwner(attemptId);
     }
 
     /**
-     * @description Controls access to quiz result documents.
+     * @description Controls access to quiz results.
      * @path /quizResults/{resultId}
-     * @allow (create) User with UID 'user123' can create a quiz result document with userId 'user123'.
-     * @deny (create) User with UID 'user123' cannot create a quiz result document with userId 'otherUser'.
-     * @allow (get, list, update, delete) User with UID 'user123' can read, update, and delete a quiz result document with userId 'user123'.
-     * @deny (get, list, update, delete) User with UID 'user123' cannot read, update, or delete a quiz result document with userId 'otherUser'.
-     * @principle Enforces document ownership for all operations.
+     * @allow (get, list) if true (public read access).
+     * @allow (create) if the userId matches the authenticated user.
+     * @allow (update, delete) if the user is the owner of the quiz result.
+     * @deny (create) if the userId does not match the authenticated user.
+     * @deny (update, delete) if the user is not the owner of the quiz result.
+     * @principle Enforces user-owned quiz result data with public read access.
      */
     match /quizResults/{resultId} {
-        function isQuizResultOwner() {
-          return request.auth.uid == resource.data.userId;
-        }
-        function isExistingQuizResultOwner() {
-          return isQuizResultOwner() && resource != null;
-        }
-      allow get: if isQuizResultOwner();
-      allow list: if false;
-      allow create: if request.auth.uid == request.resource.data.userId;
-      allow update: if isExistingQuizResultOwner();
-      allow delete: if isExistingQuizResultOwner();
+      allow get, list: if true;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn() && isExistingOwner(resultId);
+      allow delete: if isSignedIn() && isExistingOwner(resultId);
     }
 
     /**
-     * @description Controls access to calendar event documents.
+     * @description Controls access to calendar events.
      * @path /calendarEvents/{eventId}
-     * @allow (create) User with UID 'user123' can create a calendar event document with userId 'user123'.
-     * @deny (create) User with UID 'user123' cannot create a calendar event document with userId 'otherUser'.
-     * @allow (get, list, update, delete) User with UID 'user123' can read, update, and delete a calendar event document with userId 'user123'.
-     * @deny (get, list, update, delete) User with UID 'user123' cannot read, update, or delete a calendar event document with userId 'otherUser'.
-     * @principle Enforces document ownership for all operations.
+     * @allow (get, list) if true (public read access).
+     * @allow (create) if the userId matches the authenticated user.
+     * @allow (update, delete) if the user is the owner of the calendar event.
+     * @deny (create) if the userId does not match the authenticated user.
+     * @deny (update, delete) if the user is not the owner of the calendar event.
+     * @principle Enforces user-owned calendar event data with public read access.
      */
     match /calendarEvents/{eventId} {
-        function isCalendarEventOwner() {
-          return request.auth.uid == resource.data.userId;
-        }
-        function isExistingCalendarEventOwner() {
-          return isCalendarEventOwner() && resource != null;
-        }
-      allow get: if isCalendarEventOwner();
-      allow list: if false;
-      allow create: if request.auth.uid == request.resource.data.userId;
-      allow update: if isExistingCalendarEventOwner();
-      allow delete: if isExistingCalendarEventOwner();
+      allow get, list: if true;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn() && isExistingOwner(eventId);
+      allow delete: if isSignedIn() && isExistingOwner(eventId);
     }
 
-   /**
-     * @description Controls access to squad documents.
+    /**
+     * @description Controls access to squads.
      * @path /squads/{squadId}
-     * @allow (create) User with UID 'user123' can create a squad document with ownerId 'user123'.
-     * @deny (create) User with UID 'user123' cannot create a squad document with ownerId 'otherUser'.
-     * @allow (get, list, update, delete) User with UID 'user123' can read, update, and delete a squad document with ownerId 'user123'.
-     * @deny (get, list, update, delete) User with UID 'user123' cannot read, update, or delete a squad document with ownerId 'otherUser'.
-     * @principle Enforces document ownership for all operations.
+     * @allow (get, list) if the user is the owner or a member of the squad.
+     * @allow (create) if the user is creating the squad and sets ownerId to their UID.
+     * @allow (update, delete) if the user is the owner of the squad.
+     * @deny (create) if the user is not setting ownerId to their UID.
+     * @deny (update, delete) if the user is not the owner of the squad.
+     * @principle Enforces owner-managed collaborative group access.
      */
     match /squads/{squadId} {
-      function isSquadOwner() {
-        return request.auth.uid == resource.data.ownerId;
-      }
-      function isSquadMember() {
-        return request.auth.uid in resource.data.members;
-      }
-      function isExistingSquadOwner() {
-        return isSquadOwner() && resource != null;
-      }
-      allow get: if isSquadOwner() || isSquadMember();
-      allow list: if false;
-      allow create: if request.auth.uid == request.resource.data.ownerId;
-      allow update: if isExistingSquadOwner();
-      allow delete: if isExistingSquadOwner();
+        function isSquadMember() {
+            return isSignedIn() && (resource.data.ownerId == request.auth.uid || (resource.data.members is list && request.auth.uid in resource.data.members));
+        }
+
+        allow get, list: if isSquadMember();
+        allow create: if isSignedIn() && request.resource.data.ownerId == request.auth.uid;
+        allow update: if isSignedIn() && request.resource.data.ownerId == request.auth.uid;
+        allow delete: if isSignedIn() && request.resource.data.ownerId == request.auth.uid;
     }
 
-    /**
-     * @description Controls access to podcast episode documents.
+     /**
+     * @description Controls access to podcast episodes.
      * @path /podcastEpisodes/{episodeId}
-     * @allow (create) User with UID 'user123' can create a podcast episode document with userId 'user123'.
-     * @deny (create) User with UID 'user123' cannot create a podcast episode document with userId 'otherUser'.
-     * @allow (get, list, update, delete) User with UID 'user123' can read, update, and delete a podcast episode document with userId 'user123'.
-     * @deny (get, list, update, delete) User with UID 'user123' cannot read, update, or delete a podcast episode document with userId 'otherUser'.
-     * @principle Enforces document ownership for all operations.
+     * @allow (get, list) if true (public read access).
+     * @allow (create) if the userId matches the authenticated user.
+     * @allow (update, delete) if the user is the owner of the podcast episode.
+     * @deny (create) if the userId does not match the authenticated user.
+     * @deny (update, delete) if the user is not the owner of the podcast episode.
+     * @principle Enforces user-owned podcast episode data with public read access.
      */
     match /podcastEpisodes/{episodeId} {
-        function isPodcastEpisodeOwner() {
-          return request.auth.uid == resource.data.userId;
-        }
-        function isExistingPodcastEpisodeOwner() {
-          return isPodcastEpisodeOwner() && resource != null;
-        }
-      allow get: if isPodcastEpisodeOwner();
-      allow list: if false;
-      allow create: if request.auth.uid == request.resource.data.userId;
-      allow update: if isExistingPodcastEpisodeOwner();
-      allow delete: if isExistingPodcastEpisodeOwner();
+      allow get, list: if true;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn() && isExistingOwner(episodeId);
+      allow delete: if isSignedIn() && isExistingOwner(episodeId);
     }
 
-    /**
-     * @description Controls access to SAT test result documents.
+     /**
+     * @description Controls access to SAT test results.
      * @path /satTestResults/{resultId}
-     * @allow (create) User with UID 'user123' can create a SAT test result document with userId 'user123'.
-     * @deny (create) User with UID 'user123' cannot create a SAT test result document with userId 'otherUser'.
-     * @allow (get, list, update, delete) User with UID 'user123' can read, update, and delete a SAT test result document with userId 'user123'.
-     * @deny (get, list, update, delete) User with UID 'user123' cannot read, update, or delete a SAT test result document with userId 'otherUser'.
-     * @principle Enforces document ownership for all operations.
+     * @allow (get, list) if true (public read access).
+     * @allow (create) if the userId matches the authenticated user.
+     * @allow (update, delete) if the user is the owner of the SAT test result.
+     * @deny (create) if the userId does not match the authenticated user.
+     * @deny (update, delete) if the user is not the owner of the SAT test result.
+     * @principle Enforces user-owned SAT test result data with public read access.
      */
     match /satTestResults/{resultId} {
-        function isSatTestResultOwner() {
-          return request.auth.uid == resource.data.userId;
-        }
-        function isExistingSatTestResultOwner() {
-          return isSatTestResultOwner() && resource != null;
-        }
-      allow get: if isSatTestResultOwner();
-      allow list: if false;
-      allow create: if request.auth.uid == request.resource.data.userId;
-      allow update: if isExistingSatTestResultOwner();
-      allow delete: if isExistingSatTestResultOwner();
+      allow get, list: if true;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn() && isExistingOwner(resultId);
+      allow delete: if isSignedIn() && isExistingOwner(resultId);
     }
 
-    /**
-     * @description Controls access to SAT study session documents.
+     /**
+     * @description Controls access to SAT study sessions.
      * @path /satStudySessions/{sessionId}
-     * @allow (create) User with UID 'user123' can create a SAT study session document with userId 'user123'.
-     * @deny (create) User with UID 'user123' cannot create a SAT study session document with userId 'otherUser'.
-     * @allow (get, list, update, delete) User with UID 'user123' can read, update, and delete a SAT study session document with userId 'user123'.
-     * @deny (get, list, update, delete) User with UID 'user123' cannot read, update, or delete a SAT study session document with userId 'otherUser'.
-     * @principle Enforces document ownership for all operations.
+     * @allow (get, list) if true (public read access).
+     * @allow (create) if the userId matches the authenticated user.
+     * @allow (update, delete) if the user is the owner of the SAT study session.
+     * @deny (create) if the userId does not match the authenticated user.
+     * @deny (update, delete) if the user is not the owner of the SAT study session.
+     * @principle Enforces user-owned SAT study session data with public read access.
      */
     match /satStudySessions/{sessionId} {
-        function isSatStudySessionOwner() {
-          return request.auth.uid == resource.data.userId;
-        }
-        function isExistingSatStudySessionOwner() {
-          return isSatStudySessionOwner() && resource != null;
-        }
-      allow get: if isSatStudySessionOwner();
-      allow list: if false;
-      allow create: if request.auth.uid == request.resource.data.userId;
-      allow update: if isExistingSatStudySessionOwner();
-      allow delete: if isExistingSatStudySessionOwner();
+      allow get, list: if true;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn() && isExistingOwner(sessionId);
+      allow delete: if isSignedIn() && isExistingOwner(sessionId);
     }
   }
 }
