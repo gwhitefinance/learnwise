@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useEffect, useState, useRef, createContext, useContext, Suspense, useCallback } from 'react';
@@ -207,10 +208,10 @@ const sidebarItems: SidebarItem[] = [
             id: "mindfulness-link",
         },
         {
-            title: "Podcasts",
-            icon: <Podcast />,
-            href: "/dashboard/podcasts",
-            id: "podcasts-link",
+            title: "Video Studio",
+            icon: <Video />,
+            href: "/dashboard/video-studio",
+            id: "video-studio-link",
         },
         {
             title: "Upload",
