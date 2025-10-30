@@ -22,6 +22,7 @@ import './flows/chat-to-note-flow';
 import './flows/midterm-exam-flow';
 import './flows/module-content-flow';
 import './flows/tutor-chat-flow';
+import './flows/podcast-flow';
 import './flows/video-flow';
 import './flows/sat-question-flow';
 import './flows/initial-course-flow';

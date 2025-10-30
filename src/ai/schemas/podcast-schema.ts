@@ -1,1 +1,14 @@
-// DELETED
+
+import { z } from 'zod';
+
+export const generatePodcastScriptInputSchema = z.object({
+  courseName: z.string().describe('The name of the overall course.'),
+  episodeTitle: z.string().describe('The title of this specific episode (unit).'),
+  episodeContent: z.string().describe('The text content for this episode to be converted into a podcast script.'),
+});
+export type GeneratePodcastScriptInput = z.infer<typeof generatePodcastScriptInputSchema>;
+
+export const generatePodcastScriptOutputSchema = z.object({
+  script: z.string().describe('The generated podcast script, formatted for conversational delivery.'),
+});
+export type GeneratePodcastScriptOutput = z.infer<typeof generatePodcastScriptOutputSchema>;
