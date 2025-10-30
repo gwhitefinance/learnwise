@@ -75,7 +75,7 @@ const generateVideoFlow = ai.defineFlow(
             model: googleAI.model('veo-2.0-generate-001'),
             prompt: `Create an engaging, educational video about ${input.episodeTitle}. The video should be visually appealing with animated text, diagrams, and stock footage related to these concepts: ${input.episodeContent.substring(0, 500)}`,
             config: {
-              durationSeconds: 8,
+              durationSeconds: 5,
               aspectRatio: '16:9',
             },
         });
@@ -112,3 +112,5 @@ const generateVideoFlow = ai.defineFlow(
 export async function generateVideo(input: GenerateVideoInput): Promise<GenerateVideoOutput> {
     return generateVideoFlow(input);
 }
+
+    

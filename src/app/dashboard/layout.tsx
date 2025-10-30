@@ -178,6 +178,12 @@ const sidebarItems: SidebarItem[] = [
             id: "whiteboard-link",
         },
         {
+            title: "Upload",
+            icon: <UploadCloud />,
+            href: "/dashboard/upload",
+            id: "upload-link",
+        },
+        {
             title: "Games",
             icon: <Gamepad2 />,
             href: "/dashboard/games",
@@ -213,12 +219,6 @@ const sidebarItems: SidebarItem[] = [
             icon: <Podcast />,
             href: "/dashboard/podcasts",
             id: "podcasts-link",
-        },
-        {
-            title: "Video Studio",
-            icon: <Video />,
-            href: "/dashboard/video-studio",
-            id: "video-studio-link",
         },
       ]
     },
@@ -778,3 +778,5 @@ export default function DashboardLayout({
     </RewardProvider>
   )
 }
+
+    

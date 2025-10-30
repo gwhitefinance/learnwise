@@ -23,7 +23,7 @@ import AudioPlayer from '@/components/audio-player';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { generateInitialCourseAndRoadmap, generateQuizFromModule, generateTutorResponse, generateChapterContent, generateMidtermExam, generateRoadmap, generateCourseFromUrl, generateSummary } from '@/lib/actions';
+import { generateInitialCourseAndRoadmap, generateQuizFromModule, generateTutorResponse, generateChapterContent, generateMidtermExam, generateRoadmap, generateCourseFromUrl, generateSummary, generateVideo } from '@/lib/actions';
 import { RewardContext } from '@/context/RewardContext';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import Loading from './loading';
@@ -172,6 +172,13 @@ function CoursesComponent() {
   const [isListenAssistantVisible, setIsListenAssistantVisible] = useState(false);
 
   const [inlineQuizStates, setInlineQuizStates] = useState<Record<string, InlineQuizState>>({});
+
+  // Video generation state
+  const [isVideoDialogOpen, setIsVideoDialogOpen] = useState(false);
+  const [isVideoGenerating, setIsVideoGenerating] = useState(false);
+  const [generatedVideoUrl, setGeneratedVideoUrl] = useState<string | null>(null);
+  const [videoForChapter, setVideoForChapter] = useState<string | null>(null);
+
 
   const currentModule = activeCourse?.units?.[currentModuleIndex];
   const currentChapter = currentModule?.chapters[currentChapterIndex];
@@ -986,6 +993,35 @@ function CoursesComponent() {
     }));
   };
 
+  const handleGenerateVideoForChapter = async () => {
+      if (!activeCourse || !currentChapter) return;
+      
+      const content = Array.isArray(currentChapter.content) ? currentChapter.content.map(c => c.content).join(' ') : currentChapter.content;
+      if (!content) {
+          toast({ variant: 'destructive', title: 'No content to generate video from.' });
+          return;
+      }
+      
+      setVideoForChapter(currentChapter.title);
+      setIsVideoDialogOpen(true);
+      setIsVideoGenerating(true);
+      setGeneratedVideoUrl(null);
+      
+      try {
+        const result = await generateVideo({
+            courseName: activeCourse.name,
+            episodeTitle: currentChapter.title,
+            episodeContent: content,
+        });
+        setGeneratedVideoUrl(result.videoUrl);
+      } catch(e: any) {
+          toast({ variant: 'destructive', title: 'Video Generation Failed', description: e.message });
+          setGeneratedVideoUrl(null);
+      } finally {
+          setIsVideoGenerating(false);
+      }
+  }
+
   const chapterCount = activeCourse?.units?.reduce((acc, unit) => acc + (unit.chapters?.length ?? 0), 0) ?? 0;
   const completedChaptersCount = activeCourse?.completedChapters?.length ?? 0;
   const progress = chapterCount > 0 ? (completedChaptersCount / chapterCount) * 100 : 0;
@@ -1374,6 +1410,25 @@ function CoursesComponent() {
               </div>
           </DialogContent>
       </Dialog>
+      <Dialog open={isVideoDialogOpen} onOpenChange={(open) => { if (!open) { setGeneratedVideoUrl(null); setVideoForChapter(null); } setIsVideoDialogOpen(open); }}>
+          <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>AI Video for "{videoForChapter}"</DialogTitle>
+              </DialogHeader>
+               <div className="py-4">
+                {isVideoGenerating ? (
+                    <div className="flex flex-col items-center justify-center h-64">
+                        <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+                        <p className="text-muted-foreground">Generating your video. This can take up to a minute...</p>
+                    </div>
+                ) : generatedVideoUrl ? (
+                     <video controls src={generatedVideoUrl} className="w-full rounded-lg"></video>
+                ) : (
+                    <p className="text-center text-muted-foreground">Video could not be generated.</p>
+                )}
+            </div>
+          </DialogContent>
+      </Dialog>
 
       <Dialog open={isNoteFromHighlightOpen} onOpenChange={setIsNoteFromHighlightOpen}>
        <DialogContent>
@@ -1618,12 +1673,21 @@ function CoursesComponent() {
                          </div>
                        )}
                      
-                     <div className="p-6 bg-amber-500/10 rounded-lg border border-amber-500/20">
-                         <h5 className="font-semibold flex items-center gap-2 text-amber-700"><Lightbulb size={18}/> Suggested Activity</h5>
-                         <div className="text-muted-foreground mt-2">
-                             {isChapterContentLoading[currentChapter.id] && !currentChapter.activity ? <Skeleton className="h-4 w-1/2" /> : <p>{currentChapter.activity || 'Generate chapter content to see an activity.'}</p>}
+                    <div className="space-y-4 pt-8">
+                         <div className="p-6 bg-amber-500/10 rounded-lg border border-amber-500/20">
+                             <h5 className="font-semibold flex items-center gap-2 text-amber-700"><Lightbulb size={18}/> Suggested Activity</h5>
+                             <div className="text-muted-foreground mt-2">
+                                 {isChapterContentLoading[currentChapter.id] && !currentChapter.activity ? <Skeleton className="h-4 w-1/2" /> : <p>{currentChapter.activity || 'Generate chapter content to see an activity.'}</p>}
+                             </div>
                          </div>
-                     </div>
+                          <div className="p-6 bg-blue-500/10 rounded-lg border border-blue-500/20">
+                             <h5 className="font-semibold flex items-center gap-2 text-blue-700"><Video size={18}/> AI Video</h5>
+                             <div className="text-muted-foreground mt-2 flex items-center justify-between">
+                                 <p>Bring this chapter to life with a short AI-generated video.</p>
+                                 <Button size="sm" onClick={handleGenerateVideoForChapter}>Generate Video</Button>
+                             </div>
+                         </div>
+                    </div>
                      
                     <Card>
                         <CardHeader>
@@ -1720,3 +1784,5 @@ export default function CoursesClientPage() {
         </Suspense>
     )
 }
+
+    
