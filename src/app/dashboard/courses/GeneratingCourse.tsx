@@ -6,6 +6,10 @@ import { motion } from 'framer-motion';
 import { Progress } from '@/components/ui/progress';
 import AIBuddy from '@/components/ai-buddy';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import MemoryMatchGame from '@/components/MemoryMatchGame';
+import { Gamepad2 } from 'lucide-react';
 
 const quotes = [
     "The beautiful thing about learning is that no one can take it from you.",
@@ -102,7 +106,8 @@ export default function GeneratingCourse({ courseName }: { courseName: string })
                 </div>
                 
                 <h1 className="text-3xl font-bold">Building your course:</h1>
-                <h2 className="text-2xl font-bold text-primary mb-8">{courseName}</h2>
+                <h2 className="text-2xl font-bold text-primary mb-4">{courseName}</h2>
+                <p className="text-muted-foreground max-w-md mx-auto mb-8">This may take a minute, grab some popcorn. I promise it will all be worth it!</p>
 
                 <div className="w-full max-w-md mx-auto">
                      <div className="flex justify-between items-center mb-1">
@@ -111,7 +116,21 @@ export default function GeneratingCourse({ courseName }: { courseName: string })
                         </p>
                          <p className="text-sm font-semibold text-primary">{progress}%</p>
                     </div>
-                    <Progress value={progress} className="mb-2 h-2"/>
+                    <Progress value={progress} className="mb-6 h-2"/>
+
+                    <Dialog>
+                        <DialogTrigger asChild>
+                            <Button variant="outline" size="lg">
+                                <Gamepad2 className="mr-2 h-5 w-5" /> Play a Game While You Wait
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-2xl">
+                            <DialogHeader>
+                                <DialogTitle>AI Buddy Memory Match</DialogTitle>
+                            </DialogHeader>
+                            <MemoryMatchGame />
+                        </DialogContent>
+                    </Dialog>
                 </div>
             </motion.div>
         </div>
