@@ -1009,24 +1009,12 @@ function CoursesComponent() {
       setGeneratedVideoUrl(null);
       
       try {
-        const operation = await startVideoGenerationFlow({
+        const { videoUrl } = await startVideoGenerationFlow({
             episodeContent: content,
         });
         
-        let finalOperation = operation;
-        while (!finalOperation.done) {
-            await new Promise(resolve => setTimeout(resolve, 20000)); // Poll every 20 seconds
-            finalOperation = await checkVideoOperation(finalOperation);
-        }
-
-        if (finalOperation.error) {
-            throw new Error('Video generation failed: ' + finalOperation.error.message);
-        }
-        
-        const video = finalOperation.output?.message?.content.find((p: any) => !!p.media);
-
-        if (video && video.media?.url) {
-            setGeneratedVideoUrl(video.media.url);
+        if (videoUrl) {
+            setGeneratedVideoUrl(videoUrl);
         } else {
              throw new Error('No video URL was returned from the operation.');
         }
@@ -1714,7 +1702,7 @@ function CoursesComponent() {
                         <CardContent>
                             <div className="space-y-4 h-64 overflow-y-auto p-4 bg-muted rounded-md mb-4">
                                 {chatHistory.map((msg, index) => (
-                                    <div key={index} className={`flex items-start gap-3 ${msg.role === 'user' ? 'justify-end' : ''}`}>
+                                    <div key={index} className={cn("flex items-start gap-3", msg.role === 'user' ? 'justify-end' : '')}>
                                          {msg.role === 'ai' && <Avatar><AvatarFallback><Bot size={20}/></AvatarFallback></Avatar>}
                                          <div className={cn("rounded-lg p-3 max-w-lg", msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-background border')}>
                                             <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
@@ -1812,4 +1800,3 @@ export default function CoursesClientPage() {
     
 
     
-
