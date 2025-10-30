@@ -777,7 +777,7 @@ function CoursesComponent() {
   const toggleFocusMode = () => {
     if (!document.fullscreenElement) {
         document.documentElement.requestFullscreen().catch(err => {
-            alert(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+            alert(`Error attempting to enable full-screen mode: ${'${err.message}'} (${'${err.name}'})`);
         });
     } else {
         document.exitFullscreen();
@@ -1010,14 +1010,12 @@ function CoursesComponent() {
       
       try {
         const operation = await startVideoGenerationFlow({
-            courseName: activeCourse.name,
-            episodeTitle: currentChapter.title,
             episodeContent: content,
         });
         
         let finalOperation = operation;
         while (!finalOperation.done) {
-            await new Promise(resolve => setTimeout(resolve, 5000)); // Poll every 5 seconds
+            await new Promise(resolve => setTimeout(resolve, 10000)); // Poll every 10 seconds
             finalOperation = await checkVideoOperation(finalOperation);
         }
 
@@ -1810,3 +1808,5 @@ export default function CoursesClientPage() {
         </Suspense>
     )
 }
+
+    
