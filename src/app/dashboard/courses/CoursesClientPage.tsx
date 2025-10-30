@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useContext, Suspense, useRef } from 'react';
@@ -1152,7 +1153,7 @@ function CoursesComponent() {
                             <CardFooter className="flex flex-col sm:flex-row gap-2">
                                 {(course.units && course.units.length > 0) ? (
                                     <Button className="w-full" onClick={() => setSelectedCourseId(course.id)}>
-                                        Continue Learning
+                                        {courseProgress > 0 ? 'Continue Learning' : 'Start Learning!'}
                                     </Button>
                                 ) : (
                                     <Button className="w-full" onClick={() => {
