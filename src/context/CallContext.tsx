@@ -4,7 +4,7 @@
 import React, { createContext, useState, useCallback, ReactNode, useEffect, useRef } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '@/lib/firebase';
-import { studyPlannerFlow } from '@/lib/actions';
+import { studyPlannerFlow, generateSpeechFlow } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 
 export type CallParticipant = {
@@ -75,39 +75,32 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
   const [localParticipant, setLocalParticipant] = useState<CallParticipant | null>(null);
   const [incomingCall, setIncomingCall] = useState<CallParticipant | null>(null);
   
-  // New state for conversational AI
   const [isTutorinListening, setIsTutorinListening] = useState(false);
   const [isTutorinSpeaking, setIsTutorinSpeaking] = useState(false);
   const [conversationHistory, setConversationHistory] = useState<Message[]>([]);
   const recognitionRef = useRef<any>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const speak = useCallback((text: string) => {
-    if (!('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    
-    const voices = window.speechSynthesis.getVoices();
-    // Prefer a high-quality Google voice
-    let selectedVoice = voices.find(voice => voice.name === 'Google US English');
+  const speak = useCallback(async (text: string) => {
+    if (!text) return;
+    setIsTutorinSpeaking(true);
+    try {
+        const { audioUrl } = await generateSpeechFlow({ text });
+        if (audioUrl) {
+            const audio = new Audio(audioUrl);
+            audioRef.current = audio;
+            audio.play();
+            audio.onended = () => {
+                setIsTutorinSpeaking(false);
+            };
+        }
+    } catch (error) {
+        console.error("Error generating or playing speech:", error);
+        toast({ variant: 'destructive', title: 'Could not play audio response.' });
+        setIsTutorinSpeaking(false);
+    }
+  }, [toast]);
 
-    // Fallback to find any other male US English voice
-    if (!selectedVoice) {
-      selectedVoice = voices.find(voice => voice.lang === 'en-US' && voice.name.toLowerCase().includes('male'));
-    }
-    
-    // Final fallback to the default US English voice
-    if (!selectedVoice) {
-        selectedVoice = voices.find(voice => voice.lang === 'en-US');
-    }
-    
-    if (selectedVoice) {
-        utterance.voice = selectedVoice;
-    }
-
-    utterance.onstart = () => setIsTutorinSpeaking(true);
-    utterance.onend = () => setIsTutorinSpeaking(false);
-    window.speechSynthesis.speak(utterance);
-  }, []);
 
   const startCall = useCallback((callParticipants: CallParticipant[]) => {
     if (!user) return;
@@ -155,7 +148,11 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
     setParticipants([]);
     setLocalParticipant(null);
     if (recognitionRef.current) recognitionRef.current.stop();
-    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+    }
+    setIsTutorinSpeaking(false);
   }, []);
   
   const answerCall = () => {
@@ -220,7 +217,10 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
   const startTutorinListening = useCallback(() => {
     if (!recognitionRef.current) return;
     if (isTutorinSpeaking) {
-      window.speechSynthesis.cancel();
+        if (audioRef.current) {
+            audioRef.current.pause();
+        }
+        setIsTutorinSpeaking(false);
     }
     recognitionRef.current.start();
   }, [isTutorinSpeaking]);

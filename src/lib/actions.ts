@@ -38,6 +38,7 @@ import { generateDailyFocus } from '@/ai/flows/daily-focus-flow';
 import { generateTextTutoringSession } from '@/ai/flows/text-tutoring-flow';
 import { enhanceDrawing } from '@/ai/flows/enhance-drawing-flow';
 import { generateSummary } from '@/ai/flows/summary-flow';
+import { generateSpeechFlow } from '@/ai/flows/text-to-speech-flow';
 
 // Re-exporting all AI functions as Server Actions
 export { 
@@ -78,4 +79,5 @@ export {
     generateDailyFocus,
     generateTextTutoringSession,
     enhanceDrawing,
+    generateSpeechFlow,
 };
