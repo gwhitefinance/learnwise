@@ -148,17 +148,17 @@ const EmbeddedChat = ({ topic, currentQuestion }: { topic: string | null, curren
 }
 
 
-function StudySessionPageContent({ topic }: { topic: 'Math' | 'Reading & Writing' | null }) {
+function StudySessionPageContent({ topic, savedSession }: { topic: 'Math' | 'Reading & Writing' | null, savedSession: any }) {
     const router = useRouter();
 
-    const [questions, setQuestions] = useState<SatQuestion[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-    const [userAnswers, setUserAnswers] = useState<Record<number, string>>({});
-    const [isSubmitted, setIsSubmitted] = useState<Record<number, boolean>>({});
+    const [questions, setQuestions] = useState<SatQuestion[]>(savedSession?.questions || []);
+    const [isLoading, setIsLoading] = useState(!savedSession);
+    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(savedSession?.currentQuestionIndex || 0);
+    const [userAnswers, setUserAnswers] = useState<Record<number, string>>(savedSession?.userAnswers || {});
+    const [isSubmitted, setIsSubmitted] = useState<Record<number, boolean>>(savedSession?.isSubmitted || {});
     const [isExplanationLoading, setIsExplanationLoading] = useState(false);
     
-    const [questionTimers, setQuestionTimers] = useState<Record<number, number>>({});
+    const [questionTimers, setQuestionTimers] = useState<Record<number, number>>(savedSession?.questionTimers || {});
     const [currentQuestionTime, setCurrentQuestionTime] = useState(0);
 
     const [isSubmittingCourse, setIsSubmittingCourse] = useState(false);
@@ -179,11 +179,12 @@ function StudySessionPageContent({ topic }: { topic: 'Math' | 'Reading & Writing
     }, []);
 
     useEffect(() => {
-        if (!topic || !learnerType) {
-            return;
-        }
-
         const fetchQuestions = async () => {
+            if (!topic || !learnerType || savedSession) {
+                if(savedSession) setIsLoading(false);
+                return;
+            };
+
             setIsLoading(true);
             try {
                 const result = await generateSatStudySessionAction({ category: topic, learnerType: learnerType as any });
@@ -203,7 +204,37 @@ function StudySessionPageContent({ topic }: { topic: 'Math' | 'Reading & Writing
         };
 
         fetchQuestions();
-    }, [topic, learnerType, router, toast]);
+    }, [topic, learnerType, router, toast, savedSession]);
+    
+     useEffect(() => {
+        const saveSession = () => {
+             if (sessionState === 'studying' && questions.length > 0) {
+                const sessionToSave = {
+                    topic,
+                    questions,
+                    currentQuestionIndex,
+                    userAnswers,
+                    isSubmitted,
+                    questionTimers,
+                };
+                localStorage.setItem('inProgressSatSession', JSON.stringify(sessionToSave));
+            }
+        };
+
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            if (sessionState === 'studying') {
+                saveSession();
+            }
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+
+        // Save when component unmounts (e.g., navigating away with back button)
+        return () => {
+            saveSession();
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+        };
+    }, [sessionState, questions, currentQuestionIndex, userAnswers, isSubmitted, questionTimers, topic]);
 
     useEffect(() => {
         if (sessionState === 'studying') {
@@ -352,6 +383,9 @@ function StudySessionPageContent({ topic }: { topic: 'Math' | 'Reading & Writing
             };
             setResultsData(results);
             setFeedbackLoading(false);
+            
+            localStorage.removeItem('inProgressSatSession');
+
 
             if (user) {
                 try {
@@ -601,7 +635,7 @@ function StudySessionPageContent({ topic }: { topic: 'Math' | 'Reading & Writing
                                     {currentQuestionIndex === questions.length - 1 ? 'Finish Session' : 'Next'} <ArrowRight className="ml-2 h-4 w-4" />
                                 </Button>
                             ) : (
-                                <Button onClick={handleSubmit} disabled={!selectedAnswer}>Submit</Button>
+                                <Button onClick={handleSubmit} disabled={!userAnswers[currentQuestionIndex]}>Submit</Button>
                             )}
                         </footer>
                     </div>
@@ -614,12 +648,37 @@ function StudySessionPageContent({ topic }: { topic: 'Math' | 'Reading & Writing
 
 export default function StudySessionPage() {
     const searchParams = useSearchParams();
-    const topic = searchParams.get('topic') as 'Math' | 'Reading & Writing' | null;
+    const [savedSession, setSavedSession] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+    
+    // Check for a saved session when the component mounts
+    useEffect(() => {
+        const savedData = localStorage.getItem('inProgressSatSession');
+        if (savedData) {
+            try {
+                const parsedData = JSON.parse(savedData);
+                // If there's a topic in the URL, it's a new session, so ignore saved data
+                if (!searchParams.get('topic')) {
+                    setSavedSession(parsedData);
+                }
+            } catch (e) {
+                console.error("Failed to parse saved session", e);
+                localStorage.removeItem('inProgressSatSession');
+            }
+        }
+        setLoading(false);
+    }, [searchParams]);
+
+    if (loading) {
+        return <Skeleton className="h-full w-full" />;
+    }
+
+    const topic = (savedSession?.topic || searchParams.get('topic')) as 'Math' | 'Reading & Writing' | null;
 
     return (
         <Suspense fallback={<Skeleton className="h-full w-full" />}>
              <div className="h-full">
-                <StudySessionPageContent topic={topic} />
+                <StudySessionPageContent topic={topic} savedSession={savedSession} />
             </div>
         </Suspense>
     );

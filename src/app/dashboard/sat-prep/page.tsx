@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useContext } from 'react';
@@ -9,7 +10,7 @@ import { cn } from '@/lib/utils';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-// import type { SatQuestion } from '@/ai/schemas/sat-study-session-schema'; // <-- REMOVED THIS LINE
+import type { SatQuestion } from '@/ai/schemas/sat-question-schema';
 import { generateSatQuestion } from '@/lib/actions';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
@@ -19,6 +20,8 @@ import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestor
 import { formatDistanceToNow } from 'date-fns';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+
 
 type TestResult = {
     id: string;
@@ -38,17 +41,13 @@ type StudySessionResult = {
     results: any; 
 };
 
-// --- THIS IS THE FIX ---
-// Added a local type definition for SatQuestion based on its usage
-type SatQuestion = {
-  category: string;
-  passage?: string;
-  question: string;
-  options: string[];
-  correctAnswer: string;
-  explanation: string;
+type InProgressSession = {
+    topic: 'Math' | 'Reading & Writing';
+    currentQuestionIndex: number;
+    questions: SatQuestion[];
+    userAnswers: Record<number, string>;
 };
-// -----------------------
+
 
 const DailyQuestion = () => {
     const [questionData, setQuestionData] = useState<SatQuestion | null>(null);
@@ -158,6 +157,8 @@ export default function SatPrepPage() {
     const [resultsLoading, setResultsLoading] = useState(true);
     const [goalScore, setGoalScore] = useState(1200);
 
+    const [inProgressSession, setInProgressSession] = useState<InProgressSession | null>(null);
+
     useEffect(() => {
         if (authLoading) return;
         if (!user) {
@@ -180,12 +181,23 @@ export default function SatPrepPage() {
 
         const storedGrade = localStorage.getItem('onboardingGradeLevel');
         setGradeLevel(storedGrade);
-        setLoading(false);
         
         const storedGoalScore = localStorage.getItem('satGoalScore');
         if (storedGoalScore) {
             setGoalScore(parseInt(storedGoalScore, 10));
         }
+
+        const savedSession = localStorage.getItem('inProgressSatSession');
+        if(savedSession) {
+            try {
+                setInProgressSession(JSON.parse(savedSession));
+            } catch (e) {
+                console.error("Could not parse saved session", e);
+                localStorage.removeItem('inProgressSatSession');
+            }
+        }
+
+        setLoading(false);
 
         return () => {
             unsubscribeTests();
@@ -198,6 +210,11 @@ export default function SatPrepPage() {
         setGoalScore(newScore);
         localStorage.setItem('satGoalScore', String(newScore));
     };
+
+    const handleStartNewSession = (topic: 'Math' | 'Reading & Writing') => {
+        localStorage.removeItem('inProgressSatSession');
+        router.push(`/dashboard/sat-prep/study-session?topic=${encodeURIComponent(topic)}`);
+    }
 
 
     if (loading || authLoading) {
@@ -228,6 +245,9 @@ export default function SatPrepPage() {
         );
     }
 
+    const progressPercent = inProgressSession ? (Object.keys(inProgressSession.userAnswers).length / inProgressSession.questions.length) * 100 : 0;
+
+
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             <div className="lg:col-span-2 space-y-8">
@@ -237,18 +257,36 @@ export default function SatPrepPage() {
                         I'm Tutorin, your personal SAT tutor. Let's start with a study session to check your current level and build a personalized plan.
                     </p>
                 </div>
+
+                {inProgressSession && (
+                     <Card className="bg-primary/10 border-primary/20">
+                        <CardHeader>
+                            <CardTitle>Session in Progress</CardTitle>
+                            <CardDescription>You have an unfinished study session.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                             <div className="flex justify-between items-center mb-1">
+                                <p className="font-semibold">{inProgressSession.topic}</p>
+                                <span className="text-sm font-medium text-muted-foreground">{progressPercent.toFixed(0)}% Complete</span>
+                            </div>
+                            <Progress value={progressPercent} className="h-2"/>
+                        </CardContent>
+                        <CardFooter>
+                            <Button asChild>
+                                <Link href="/dashboard/sat-prep/study-session">Continue Session <ArrowRight className="ml-2 h-4 w-4"/></Link>
+                            </Button>
+                        </CardFooter>
+                    </Card>
+                )}
+
                  <div className="space-y-4">
                     <h2 className="text-2xl font-bold flex items-center gap-2"><Rocket className="text-primary"/> Let's begin:</h2>
                      <div className="flex flex-col sm:flex-row gap-4">
-                        <Button asChild className="w-full justify-start text-base py-6" variant="outline">
-                            <Link href="/dashboard/sat-prep/study-session?topic=Reading+%26+Writing">
-                                <BookOpen className="mr-2 h-5 w-5" /> Study Session: Reading
-                            </Link>
+                        <Button onClick={() => handleStartNewSession('Reading & Writing')} className="w-full justify-start text-base py-6" variant="outline">
+                            <BookOpen className="mr-2 h-5 w-5" /> Study Session: Reading & Writing
                         </Button>
-                        <Button asChild className="w-full justify-start text-base py-6" variant="outline">
-                           <Link href="/dashboard/sat-prep/study-session?topic=Math">
-                                <Calculator className="mr-2 h-5 w-5" /> Study Session: Math
-                            </Link>
+                        <Button onClick={() => handleStartNewSession('Math')} className="w-full justify-start text-base py-6" variant="outline">
+                           <Calculator className="mr-2 h-5 w-5" /> Study Session: Math
                         </Button>
                     </div>
                 </div>
@@ -327,33 +365,6 @@ export default function SatPrepPage() {
                         ) : (
                             <p className="text-center text-sm text-muted-foreground py-4">No past test results.</p>
                         )}
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Do this next:</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                         <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-muted-foreground">Study Session</p>
-                                <div className="flex items-center gap-2">
-                                    <div className={cn("h-2 w-2 rounded-full", 'bg-purple-500')}/>
-                                    <p className="font-semibold">Math</p>
-                                </div>
-                            </div>
-                            <p className="text-sm font-medium">0/10</p>
-                        </div>
-                         <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-muted-foreground">Study Session</p>
-                                <div className="flex items-center gap-2">
-                                    <div className={cn("h-2 w-2 rounded-full", 'bg-green-500')}/>
-                                    <p className="font-semibold">Reading and Writing</p>
-                                </div>
-                            </div>
-                            <p className="text-sm font-medium">1/10</p>
-                        </div>
                     </CardContent>
                 </Card>
                  <Card>
