@@ -242,7 +242,6 @@ function CoursesComponent() {
                         if (!courseData.completedChapters?.includes(chapter.id)) {
                             setCurrentModuleIndex(mIdx);
                             setCurrentChapterIndex(cIdx);
-                            await handleGenerateChapterContent(mIdx, cIdx, courseData);
                             found = true;
                             break;
                         }
@@ -1009,12 +1008,12 @@ function CoursesComponent() {
       setGeneratedVideoUrl(null);
       
       try {
-        const { videoUrl } = await startVideoGenerationFlow({
+        const result = await startVideoGenerationFlow({
             episodeContent: content,
         });
         
-        if (videoUrl) {
-            setGeneratedVideoUrl(videoUrl);
+        if (result && result.videoUrl) {
+            setGeneratedVideoUrl(result.videoUrl);
         } else {
              throw new Error('No video URL was returned from the operation.');
         }
@@ -1800,3 +1799,4 @@ export default function CoursesClientPage() {
     
 
     
+
