@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -37,7 +36,7 @@ const professionalInterests = [
 ]
 
 export default function InterestsPage() {
-    const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
+    const [selectedInterest, setSelectedInterest] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const router = useRouter();
     const { toast } = useToast();
@@ -55,20 +54,16 @@ export default function InterestsPage() {
         }
     }, []);
 
-    const toggleInterest = (interest: string) => {
-        setSelectedInterests(prev => 
-            prev.includes(interest) 
-            ? prev.filter(i => i !== interest) 
-            : [...prev, interest]
-        );
+    const handleSelectInterest = (interest: string) => {
+        setSelectedInterest(interest);
     };
 
     const handleNext = async () => {
-        if (selectedInterests.length === 0) {
+        if (!selectedInterest) {
             toast({
                 variant: 'destructive',
-                title: 'Select at least one interest',
-                description: 'This helps us create the best starter courses for you.',
+                title: 'Select an interest',
+                description: 'This helps us create the best starter course for you.',
             });
             return;
         }
@@ -80,38 +75,34 @@ export default function InterestsPage() {
         }
 
         setIsSubmitting(true);
-        toast({ title: "Building your first course(s)...", description: "This will only take a moment."});
+        toast({ title: "Building your first course...", description: "This will only take a moment."});
         
         try {
-            const courseCreationPromises = selectedInterests.map(interest => 
-                generateOnboardingCourse({
-                    gradeLevel: gradeLevel,
-                    interest: interest,
-                }).then(courseConcept => 
-                    addDoc(collection(db, "courses"), {
-                        name: courseConcept.courseTitle,
-                        description: courseConcept.courseDescription,
-                        instructor: "AI Assistant",
-                        credits: 3,
-                        url: '',
-                        progress: 0,
-                        files: 0,
-                        userId: user.uid,
-                        units: [],
-                        isNewTopic: true,
-                    })
-                )
-            );
+            const courseConcept = await generateOnboardingCourse({
+                gradeLevel: gradeLevel,
+                interest: selectedInterest,
+            });
 
-            await Promise.all(courseCreationPromises);
+            await addDoc(collection(db, "courses"), {
+                name: courseConcept.courseTitle,
+                description: courseConcept.courseDescription,
+                instructor: "AI Assistant",
+                credits: 3,
+                url: '',
+                progress: 0,
+                files: 0,
+                userId: user.uid,
+                units: [],
+                isNewTopic: true,
+            });
             
-            toast({ title: 'Course Concepts Created!', description: 'Next, let\'s set your learning pace.'});
+            toast({ title: 'Course Concept Created!', description: 'Next, let\'s set your learning pace.'});
             
             router.push('/onboarding/pace');
 
         } catch (error) {
             console.error("Course concept generation failed:", error);
-            toast({ variant: 'destructive', title: 'Course Generation Failed', description: 'There was an error creating your course concepts.' });
+            toast({ variant: 'destructive', title: 'Course Generation Failed', description: 'There was an error creating your course concept.' });
             setIsSubmitting(false);
         }
     };
@@ -129,8 +120,8 @@ export default function InterestsPage() {
                     <Progress value={50} />
                 </div>
 
-                <h1 className="text-4xl font-bold text-center mb-4">What are you passionate about?</h1>
-                <p className="text-center text-muted-foreground mb-12">Select one or more interests to generate personalized starter courses.</p>
+                <h1 className="text-4xl font-bold text-center mb-4">What are you MOST passionate about?</h1>
+                <p className="text-center text-muted-foreground mb-12">Select one interest to generate a personalized starter course.</p>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {interestsList.map(({ name, icon }) => (
@@ -140,10 +131,10 @@ export default function InterestsPage() {
                             whileTap={{ scale: 0.95 }}
                         >
                             <button
-                                onClick={() => toggleInterest(name)}
+                                onClick={() => handleSelectInterest(name)}
                                 className={cn(
                                     "flex flex-col items-center justify-center gap-2 p-6 rounded-lg border w-full h-full text-center transition-all",
-                                    selectedInterests.includes(name)
+                                    selectedInterest === name
                                         ? "border-primary bg-primary/10 ring-2 ring-primary text-primary"
                                         : "border-border hover:bg-muted"
                                 )}
@@ -156,11 +147,11 @@ export default function InterestsPage() {
                 </div>
 
                 <div className="mt-12 flex justify-end">
-                    <Button size="lg" onClick={handleNext} disabled={selectedInterests.length === 0 || isSubmitting}>
+                    <Button size="lg" onClick={handleNext} disabled={!selectedInterest || isSubmitting}>
                         {isSubmitting ? (
                             <>
                                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                                Generating Courses...
+                                Generating Course...
                             </>
                         ) : (
                              <>
