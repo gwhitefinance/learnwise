@@ -34,7 +34,8 @@ interface CallContextType {
   toggleMute: () => void;
   toggleCamera: () => void;
   toggleMinimize: () => void;
-  toggleTutorinListening: () => void;
+  startTutorinListening: () => void;
+  stopTutorinListening: () => void;
   ringParticipant: (uid: string) => void;
   answerCall: () => void;
   declineCall: () => void;
@@ -55,7 +56,8 @@ export const CallContext = createContext<CallContextType>({
   toggleMute: () => {},
   toggleCamera: () => {},
   toggleMinimize: () => {},
-  toggleTutorinListening: () => {},
+  startTutorinListening: () => {},
+  stopTutorinListening: () => {},
   ringParticipant: () => {},
   answerCall: () => {},
   declineCall: () => {},
@@ -81,8 +83,27 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
 
   const speak = useCallback((text: string) => {
     if (!('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel(); // Cancel any ongoing speech
+    window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
+    
+    const voices = window.speechSynthesis.getVoices();
+    // Prefer a high-quality Google voice
+    let selectedVoice = voices.find(voice => voice.name === 'Google US English');
+
+    // Fallback to find any other male US English voice
+    if (!selectedVoice) {
+      selectedVoice = voices.find(voice => voice.lang === 'en-US' && voice.name.toLowerCase().includes('male'));
+    }
+    
+    // Final fallback to the default US English voice
+    if (!selectedVoice) {
+        selectedVoice = voices.find(voice => voice.lang === 'en-US');
+    }
+    
+    if (selectedVoice) {
+        utterance.voice = selectedVoice;
+    }
+
     utterance.onstart = () => setIsTutorinSpeaking(true);
     utterance.onend = () => setIsTutorinSpeaking(false);
     window.speechSynthesis.speak(utterance);
@@ -196,21 +217,21 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-
-  const toggleTutorinListening = useCallback(() => {
+  const startTutorinListening = useCallback(() => {
     if (!recognitionRef.current) return;
-    if (isTutorinListening) {
-      recognitionRef.current.stop();
-    } else {
-      if (isTutorinSpeaking) {
-        window.speechSynthesis.cancel();
-      }
-      recognitionRef.current.start();
+    if (isTutorinSpeaking) {
+      window.speechSynthesis.cancel();
     }
-  }, [isTutorinListening, isTutorinSpeaking]);
+    recognitionRef.current.start();
+  }, [isTutorinSpeaking]);
+
+  const stopTutorinListening = useCallback(() => {
+    if (!recognitionRef.current) return;
+    recognitionRef.current.stop();
+  }, []);
   
   useEffect(() => {
-    const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
       if(isInCall && participants.some(p => p.uid === 'tutorin-ai')) {
           toast({ variant: 'destructive', title: 'Voice input not supported in this browser.' });
@@ -226,6 +247,9 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
     recognition.onend = () => setIsTutorinListening(false);
     recognition.onerror = (event: any) => {
       console.error('Speech recognition error:', event.error);
+      if (event.error !== 'no-speech' && event.error !== 'aborted') {
+        toast({ variant: 'destructive', title: 'Voice recognition error.' });
+      }
       setIsTutorinListening(false);
     };
     
@@ -236,7 +260,7 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
     
     recognitionRef.current = recognition;
 
-  }, [isInCall, participants, user, toast, speak]);
+  }, [isInCall, participants, user, toast, processUserSpeech]);
 
   useEffect(() => {
     const handleIncomingCall = (event: any) => {
@@ -268,7 +292,8 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
       toggleMute,
       toggleCamera,
       toggleMinimize,
-      toggleTutorinListening,
+      startTutorinListening,
+      stopTutorinListening,
       ringParticipant,
       answerCall,
       declineCall,
