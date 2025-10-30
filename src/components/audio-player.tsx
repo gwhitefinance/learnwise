@@ -4,7 +4,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Play, StopCircle, Loader2 } from 'lucide-react';
-import { generateAudio } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 
 interface AudioPlayerProps {
@@ -13,50 +12,62 @@ interface AudioPlayerProps {
 
 export default function AudioPlayer({ textToPlay }: AudioPlayerProps) {
   const [learnerType, setLearnerType] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
     const type = localStorage.getItem('learnerType');
     setLearnerType(type);
     
-    audioRef.current = new Audio();
-    const audio = audioRef.current;
-    
-    const onEnded = () => setIsPlaying(false);
-    audio.addEventListener('ended', onEnded);
-    
-    return () => {
-      audio.removeEventListener('ended', onEnded);
-      audio.pause();
-    };
-  }, []);
+    if ('speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance(textToPlay);
+      utterance.lang = 'en-US';
+      utterance.rate = 1;
+      utterance.pitch = 1;
 
-  const handlePlayPause = async () => {
-    if (isPlaying) {
-      audioRef.current?.pause();
-      audioRef.current!.currentTime = 0;
-      setIsPlaying(false);
-      return;
-    }
-    
-    setIsLoading(true);
-    setIsPlaying(true); // Optimistically set playing state
-
-    try {
-        const { audio } = await generateAudio({ text: textToPlay });
-        if (audioRef.current) {
-            audioRef.current.src = audio;
-            await audioRef.current.play();
+      const setVoice = () => {
+        const voices = window.speechSynthesis.getVoices();
+        const preferredVoice = voices.find(voice => voice.name === 'Google US English' && voice.lang === 'en-US');
+        if (preferredVoice) {
+          utterance.voice = preferredVoice;
         }
-    } catch(e) {
-        console.error(e);
+      }
+
+      if (window.speechSynthesis.getVoices().length > 0) {
+        setVoice();
+      } else {
+        window.speechSynthesis.onvoiceschanged = setVoice;
+      }
+      
+      utterance.onend = () => setIsPlaying(false);
+      utterance.onerror = (e) => {
+        console.error('SpeechSynthesis Error', e);
         toast({ variant: 'destructive', title: 'Could not play audio.' });
-        setIsPlaying(false); // Revert on error
-    } finally {
-        setIsLoading(false);
+        setIsPlaying(false);
+      };
+      utteranceRef.current = utterance;
+    }
+
+    return () => {
+      if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, [textToPlay, toast]);
+
+  const handlePlayPause = () => {
+    if (!utteranceRef.current) {
+        toast({ variant: 'destructive', title: 'Text-to-speech not supported or initialized.' });
+        return;
+    }
+
+    if (isPlaying) {
+      window.speechSynthesis.cancel();
+      setIsPlaying(false);
+    } else {
+      window.speechSynthesis.speak(utteranceRef.current);
+      setIsPlaying(true);
     }
   };
 
@@ -66,15 +77,13 @@ export default function AudioPlayer({ textToPlay }: AudioPlayerProps) {
 
   return (
     <div className="mb-2">
-      <Button onClick={handlePlayPause} variant="outline" size="sm" disabled={isLoading}>
-        {isLoading ? (
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-        ) : isPlaying ? (
+      <Button onClick={handlePlayPause} variant="outline" size="sm">
+        {isPlaying ? (
           <StopCircle className="mr-2 h-4 w-4" />
         ) : (
           <Play className="mr-2 h-4 w-4" />
         )}
-        {isLoading ? 'Preparing...' : (isPlaying ? 'Stop' : 'Listen')}
+        {isPlaying ? 'Stop' : 'Listen'}
       </Button>
     </div>
   );
