@@ -14,6 +14,7 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { generateMiniCourse, generateChapterContent } from '@/lib/actions';
 import { collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
+import GeneratingCourse from '@/app/dashboard/courses/GeneratingCourse';
 
 
 const questions = [
@@ -75,6 +76,7 @@ export default function LearnerTypeQuizPage() {
     const [answers, setAnswers] = useState<Record<number, string>>({});
     const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [generatingCourseName, setGeneratingCourseName] = useState('');
     const router = useRouter();
     const { toast } = useToast();
     const [user] = useAuthState(auth);
@@ -134,6 +136,10 @@ export default function LearnerTypeQuizPage() {
             const querySnapshot = await getDocs(coursesQuery);
             const userCourses = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
 
+            if (userCourses.length > 0) {
+                 setGeneratingCourseName(userCourses[0].name);
+            }
+
             for (const course of userCourses) {
                 // 1. Generate the course outline
                 const miniCourseResult = await generateMiniCourse({
@@ -168,8 +174,6 @@ export default function LearnerTypeQuizPage() {
                 const courseRef = doc(db, 'courses', course.id);
                 await updateDoc(courseRef, { 
                     units: newUnits,
-                    isNewTopic: true, // Mark as a newly generated topic
-                    completedChapters: [],
                 });
             }
             
@@ -181,12 +185,17 @@ export default function LearnerTypeQuizPage() {
 
         } catch (error) {
             console.error("Course generation failed:", error);
-            toast({ variant: 'destructive', title: 'Setup Failed', description: 'Could not generate course content. You can generate it later from the dashboard.'});
+            toast({ variant: 'destructive', title: 'Setup Failed', description: 'Could not generate course content. You can generate them later.'});
             router.push('/dashboard'); // Still go to dashboard
         } finally {
-            setIsSubmitting(false);
+            // We don't set isSubmitting to false, as we redirect away
         }
     };
+
+    if (isSubmitting) {
+        return <GeneratingCourse courseName={generatingCourseName || 'Your First Course'} />;
+    }
+
 
     const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
     const currentQuestion = questions[currentQuestionIndex];

@@ -110,6 +110,7 @@ function CoursesComponent() {
   
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generatingCourseName, setGeneratingCourseName] = useState('');
   const [isChapterContentLoading, setChapterContentLoading] = useState<Record<string, boolean>>({});
 
   const { toast } = useToast();
@@ -302,6 +303,7 @@ function CoursesComponent() {
     
     setAddCourseOpen(false);
     setIsGenerating(true);
+    setGeneratingCourseName(newCourse.name);
     
     try {
         const result = await generateInitialCourseAndRoadmap({
@@ -749,7 +751,7 @@ function CoursesComponent() {
 
     try {
         const response = await generateTutorResponse({
-            studyContext: currentChapterContent, // FIX 1: Was 'chapterContext'
+            studyContext: currentChapterContent,
             question: chatInput,
         });
         const aiMessage: ChatMessage = { role: 'ai', content: response.answer };
@@ -766,7 +768,7 @@ function CoursesComponent() {
   const toggleFocusMode = () => {
     if (!document.fullscreenElement) {
         document.documentElement.requestFullscreen().catch(err => {
-            alert(`Error attempting to enable full-screen mode: ${'${err.message}'} (${'${err.name}'})`);
+            alert(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
         });
     } else {
         document.exitFullscreen();
@@ -992,7 +994,7 @@ function CoursesComponent() {
     : currentChapter?.content || '';
 
   if (isGenerating) {
-    return <GeneratingCourse courseName={newCourse.name} />;
+    return <GeneratingCourse courseName={generatingCourseName} />;
   }
   
   if (isLoading) {
@@ -1148,13 +1150,13 @@ function CoursesComponent() {
                                 )}
                             </CardContent>
                             <CardFooter className="flex flex-col sm:flex-row gap-2">
-                                {(course.units && course.units.length > 0) || !course.isNewTopic ? (
+                                {(course.units && course.units.length > 0) ? (
                                     <Button className="w-full" onClick={() => setSelectedCourseId(course.id)}>
                                         Continue Learning
                                     </Button>
                                 ) : (
                                     <Button className="w-full" onClick={() => {
-                                        // FIX 2: Convert Course type to newCourse state type
+                                        setGeneratingCourseName(course.name);
                                         setNewCourse({
                                             name: course.name,
                                             instructor: course.instructor || '',
@@ -1162,7 +1164,7 @@ function CoursesComponent() {
                                             url: course.url || '',
                                             description: course.description || '',
                                         });
-                                        setIsNewTopic(true); // Trigger "learning something new" flow
+                                        setIsNewTopic(true);
                                         setAddCourseStep(2);
                                         setAddCourseOpen(true);
                                     }} disabled={isGenerating}>
@@ -1635,7 +1637,7 @@ function CoursesComponent() {
                                          <div className={cn("rounded-lg p-3 max-w-lg", msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-background border')}>
                                             <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
                                         </div>
-                                         {msg.role === 'user' && <Avatar><AvatarFallback><User size={20}/></AvatarFallback></Avatar>} {/* FIX 3: Was <User> */}
+                                         {msg.role === 'user' && <Avatar><AvatarFallback><User size={20}/></AvatarFallback></Avatar>}
                                     </div>
                                 ))}
                                 {isTutorLoading && (

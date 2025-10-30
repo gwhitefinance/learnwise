@@ -41,6 +41,10 @@ export default function DashboardPageWrapper() {
     localStorage.removeItem('quizCompleted');
   };
 
+  if (!showDashboard && !showWelcome) {
+      return null;
+  }
+
   return (
     <>
       <AnimatePresence>
