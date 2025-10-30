@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
@@ -69,6 +70,7 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ chapterContent, onClo
       recognitionRef.current.onend = () => {
         setIsListening(false);
       };
+
     }
     
     return () => {
@@ -80,7 +82,6 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ chapterContent, onClo
   }, [toast]);
   
   const speak = useCallback(async (text: string) => {
-    // FIX 1: Changed 'Hl' to 'src'
     if (audioRef.current?.src) {
         audioRef.current.pause();
     }
@@ -109,7 +110,6 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ chapterContent, onClo
     setTranscript('');
     setIsThinking(true);
     try {
-      // FIX 2: Changed 'chapterContext' to 'studyContext'
       const tutorResponse = await generateTutorResponse({ studyContext: chapterContent, question: text });
       setIsThinking(false);
       speak(tutorResponse.answer);
