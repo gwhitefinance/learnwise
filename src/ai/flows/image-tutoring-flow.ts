@@ -14,7 +14,25 @@ const tutoringPrompt = ai.definePrompt({
     model: googleAI.model('gemini-2.5-flash'),
     input: { schema: TutoringSessionInputSchema },
     output: { schema: TutoringSessionOutputSchema },
-    prompt: `You are a friendly, expert AI tutor. Your goal is to help a student understand the concepts in the provided image of their homework. You will break down the problems, explain the core concepts, and provide practice material.
+});
+
+
+const generateTutoringSessionFlow = ai.defineFlow(
+  {
+    name: 'generateTutoringSessionFlow',
+    inputSchema: TutoringSessionInputSchema,
+    outputSchema: TutoringSessionOutputSchema,
+  },
+  async (input) => {
+    // Extract mime type from data uri
+    const contentType = input.imageDataUri.match(/data:(.*);base64,/)?.[1] ?? 'image/jpeg';
+
+    const { output } = await tutoringPrompt(
+        {
+            ...input
+        },
+        {
+            prompt: `You are a friendly, expert AI tutor. Your goal is to help a student understand the concepts in the provided image of their homework. You will break down the problems, explain the core concepts, and provide practice material.
 
     **CRITICAL**: For any mathematical expressions, especially exponents and fractions, use proper notation. For example, use 'x²' instead of 'x^2', and use Unicode characters like '½' for fractions instead of '1/2'.
 
@@ -31,19 +49,13 @@ const tutoringPrompt = ai.definePrompt({
     4.  **Practice Question**: A single, new multiple-choice practice question based on the homework, including four options and the correct answer.
     5.  **Personalized Advice**: A short (1-2 sentences) piece of advice on how to approach this topic based on their learning style.
 
-    User's Question/Prompt: {{#if prompt}}{{prompt}}{{else}}No specific question provided.{{/if}}
-    Image for analysis: {{media url=imageDataUri}}`,
-});
-
-
-const generateTutoringSessionFlow = ai.defineFlow(
-  {
-    name: 'generateTutoringSessionFlow',
-    inputSchema: TutoringSessionInputSchema,
-    outputSchema: TutoringSessionOutputSchema,
-  },
-  async (input) => {
-    const { output } = await tutoringPrompt(input);
+    User's Question/Prompt: {{#if prompt}}{{prompt}}{{else}}No specific question provided.{{/if}}`,
+            context: [
+              { media: { url: input.imageDataUri, contentType } },
+            ]
+        }
+    );
+    
     if (!output) {
         throw new Error('Failed to generate tutoring session.');
     }
