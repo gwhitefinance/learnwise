@@ -3,7 +3,7 @@
 
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Phone, Mic, MicOff, Video, VideoOff, Minimize2, Maximize2, PhoneOff, User } from 'lucide-react';
+import { Phone, Mic, MicOff, Video, VideoOff, Minimize2, Maximize2, PhoneOff, User, Radio } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { CallContext, CallParticipant } from '@/context/CallContext';
@@ -11,42 +11,74 @@ import { cn } from '@/lib/utils';
 import Draggable from 'react-draggable';
 import AIBuddy from './ai-buddy';
 
-const ParticipantVideo = ({ participant, isLocalUser, videoRef, isCameraOn, onRing }: { participant: CallParticipant, isLocalUser: boolean, videoRef?: React.RefObject<HTMLVideoElement>, isCameraOn?: boolean, onRing?: (uid: string) => void }) => (
-    <div className="relative aspect-video bg-muted rounded-lg overflow-hidden flex items-center justify-center border">
-        {isLocalUser ? (
-             <div className="w-full h-full bg-black flex items-center justify-center">
-                <video ref={videoRef} className={cn("w-full h-full object-cover", !isCameraOn && "hidden")} autoPlay muted playsInline />
-                 {!isCameraOn && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                        <User className="h-20 w-20 text-muted-foreground" />
-                    </div>
-                )}
-             </div>
-        ) : participant.uid === 'tutorin-ai' ? (
-            <AIBuddy isStatic={false} className="w-24 h-24" />
-        ) : (
-             <Avatar className="h-20 w-20">
-                <AvatarImage src={participant.photoURL} />
-                <AvatarFallback>{participant.displayName?.[0]}</AvatarFallback>
-            </Avatar>
-        )}
-        <div className="absolute bottom-2 left-2 bg-black/50 text-white text-xs px-2 py-1 rounded-md">
-            {participant.displayName} {isLocalUser && "(You)"}
+const ParticipantVideo = ({ participant, isLocalUser, videoRef, isCameraOn, onRing }: { participant: CallParticipant, isLocalUser: boolean, videoRef?: React.RefObject<HTMLVideoElement>, isCameraOn?: boolean, onRing?: (uid: string) => void }) => {
+    const { isTutorinListening, isTutorinSpeaking } = useContext(CallContext);
+    
+    return (
+        <div className="relative aspect-video bg-muted rounded-lg overflow-hidden flex items-center justify-center border">
+            {isLocalUser ? (
+                <div className="w-full h-full bg-black flex items-center justify-center">
+                    <video ref={videoRef} className={cn("w-full h-full object-cover", !isCameraOn && "hidden")} autoPlay muted playsInline />
+                    {!isCameraOn && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <User className="h-20 w-20 text-muted-foreground" />
+                        </div>
+                    )}
+                </div>
+            ) : participant.uid === 'tutorin-ai' ? (
+                <div className="w-full h-full flex items-center justify-center relative">
+                    <AIBuddy isStatic={false} className="w-24 h-24" />
+                    <AnimatePresence>
+                    {isTutorinListening && (
+                        <motion.div 
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.8 }}
+                            className="absolute inset-0 bg-primary/20 flex items-center justify-center"
+                        >
+                            <Radio className="h-12 w-12 text-primary animate-pulse"/>
+                        </motion.div>
+                    )}
+                     {isTutorinSpeaking && (
+                         <motion.div 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="absolute bottom-4 left-4 right-4"
+                        >
+                           <div className="flex justify-center items-center gap-1">
+                                <motion.div className="h-2 w-2 bg-primary rounded-full" animate={{ y: [0, -5, 0] }} transition={{ duration: 0.8, repeat: Infinity, ease: "easeInOut" }} />
+                                <motion.div className="h-2 w-2 bg-primary rounded-full" animate={{ y: [0, -5, 0] }} transition={{ duration: 0.8, repeat: Infinity, ease: "easeInOut", delay: 0.2 }} />
+                                <motion.div className="h-2 w-2 bg-primary rounded-full" animate={{ y: [0, -5, 0] }} transition={{ duration: 0.8, repeat: Infinity, ease: "easeInOut", delay: 0.4 }}/>
+                           </div>
+                        </motion.div>
+                    )}
+                    </AnimatePresence>
+                </div>
+            ) : (
+                <Avatar className="h-20 w-20">
+                    <AvatarImage src={participant.photoURL} />
+                    <AvatarFallback>{participant.displayName?.[0]}</AvatarFallback>
+                </Avatar>
+            )}
+            <div className="absolute bottom-2 left-2 bg-black/50 text-white text-xs px-2 py-1 rounded-md">
+                {participant.displayName} {isLocalUser && "(You)"}
+            </div>
+            {participant.status && participant.status !== 'Online' && participant.status !== 'In Call' && !isLocalUser && (
+                <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                    <p className="text-white font-semibold animate-pulse">{participant.status}...</p>
+                </div>
+            )}
+            {!isLocalUser && participant.status === 'Online' && onRing && (
+                <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                    <Button onClick={() => onRing(participant.uid)} size="lg" className="rounded-full h-16 w-16 bg-green-500 hover:bg-green-600">
+                        <Phone className="h-8 w-8" />
+                    </Button>
+                </div>
+            )}
         </div>
-        {participant.status && participant.status !== 'Online' && participant.status !== 'In Call' && !isLocalUser && (
-            <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                <p className="text-white font-semibold animate-pulse">{participant.status}...</p>
-            </div>
-        )}
-        {!isLocalUser && participant.status === 'Online' && onRing && (
-            <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                <Button onClick={() => onRing(participant.uid)} size="lg" className="rounded-full h-16 w-16 bg-green-500 hover:bg-green-600">
-                    <Phone className="h-8 w-8" />
-                </Button>
-            </div>
-        )}
-    </div>
-);
+    );
+};
 
 
 export default function CallView() {
@@ -62,6 +94,8 @@ export default function CallView() {
         endCall,
         toggleMinimize,
         ringParticipant,
+        isTutorinListening,
+        toggleTutorinListening,
     } = useContext(CallContext);
     
     const nodeRef = React.useRef(null);
@@ -124,8 +158,8 @@ export default function CallView() {
                         </div>
 
                         <div className="p-4 bg-background/50 border-t flex justify-center gap-4">
-                            <Button variant={isMuted ? 'secondary' : 'default'} size="icon" onClick={toggleMute} className="rounded-full h-12 w-12">
-                                {isMuted ? <MicOff /> : <Mic />}
+                            <Button variant={isTutorinListening ? 'destructive' : 'secondary'} size="icon" onClick={toggleTutorinListening} className="rounded-full h-12 w-12">
+                                <Mic />
                             </Button>
                             <Button variant={isCameraOff ? 'secondary' : 'default'} size="icon" onClick={toggleCamera} className="rounded-full h-12 w-12">
                                 {isCameraOff ? <VideoOff /> : <Video />}
