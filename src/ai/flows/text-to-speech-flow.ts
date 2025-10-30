@@ -47,7 +47,7 @@ export const generateSpeechFlow = ai.defineFlow(
             responseModalities: ['AUDIO'],
             speechConfig: {
                 voiceConfig: {
-                    prebuiltVoiceConfig: { voiceName: 'Achernar' }, // Using a supported male voice
+                    prebuiltVoiceConfig: { voiceName: 'Algenib' }, // Using a different supported male voice
                 },
             },
         },
