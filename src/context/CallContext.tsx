@@ -69,6 +69,8 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
         status: 'In Call',
     });
 
+    const isTutorinInCall = callParticipants.some(p => p.uid === 'tutorin-ai');
+
     const remoteParticipants = callParticipants
         .filter(p => p.uid !== user.uid)
         .map(p => {
@@ -82,6 +84,26 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
     setIsMinimized(false);
     setIsCameraOff(false); // Default to camera on when starting a call
     setIsMuted(false);
+
+    if (isTutorinInCall && 'speechSynthesis' in window) {
+      const greeting = `Hello, ${user.displayName?.split(' ')[0] || 'there'}! Let's start Tutorin'.`;
+      const utterance = new SpeechSynthesisUtterance(greeting);
+      
+      const setVoice = () => {
+        const voices = window.speechSynthesis.getVoices();
+        const preferredVoice = voices.find(voice => voice.name.includes('Google') && voice.lang.startsWith('en-US'));
+        if (preferredVoice) {
+          utterance.voice = preferredVoice;
+        }
+        window.speechSynthesis.speak(utterance);
+      };
+      
+      if(window.speechSynthesis.getVoices().length > 0) {
+        setVoice();
+      } else {
+        window.speechSynthesis.onvoiceschanged = setVoice;
+      }
+    }
 
   }, [user]);
 
@@ -99,6 +121,9 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
     setIsInCall(false);
     setParticipants([]);
     setLocalParticipant(null);
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
   }, []);
   
   const answerCall = () => {
@@ -129,14 +154,7 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const toggleCamera = useCallback(() => {
-    setIsCameraOff(prev => {
-        // If turning camera off, also stop the tracks.
-        if (!prev === true) {
-            // This logic will be inside the CallView component where videoRef exists.
-            // For now, we just toggle the state.
-        }
-        return !prev;
-    });
+    setIsCameraOff(prev => !prev);
   }, []);
 
 
