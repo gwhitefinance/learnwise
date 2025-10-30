@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import type { TutoringSessionOutput, PracticeQuestion } from '@/ai/schemas/image-tutoring-schema';
-import { scrapeWebpageTool } from '@/ai/tools/web-scraper-tool';
+import { getYouTubeTranscript } from '@/ai/tools/youtube-transcript-tool';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import Image from 'next/image';
@@ -317,17 +317,17 @@ export default function UploadPage() {
                     <div className="flex justify-end">
                         <Button 
                             onClick={async () => {
-                                if (!url) {
-                                    toast({ variant: 'destructive', title: 'No URL provided.' });
+                                if (!url || !url.includes('youtube.com')) {
+                                    toast({ variant: 'destructive', title: 'Invalid YouTube URL.' });
                                     return;
                                 }
                                 setIsLoading(true);
                                 setTutoringSession(null);
                                 try {
-                                    toast({ title: 'Scraping video transcript...' });
-                                    const transcript = await scrapeWebpageTool({ url });
-                                    if (transcript.includes('Failed to scrape content')) {
-                                         toast({ variant: 'destructive', title: 'Could not get transcript', description: 'Please make sure the video has a transcript available.' });
+                                    toast({ title: 'Fetching video transcript...' });
+                                    const transcript = await getYouTubeTranscript({ url });
+                                    if (!transcript || transcript.startsWith('Error')) {
+                                         toast({ variant: 'destructive', title: 'Could not get transcript', description: transcript || 'Please make sure the video has captions available.' });
                                          setIsLoading(false);
                                          return;
                                     }

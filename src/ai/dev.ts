@@ -16,6 +16,7 @@ import './flows/course-from-url-flow';
 import './flows/chapter-content-flow';
 import './tools/course-tool';
 import './tools/web-scraper-tool';
+import './tools/youtube-transcript-tool';
 import './flows/image-analysis-flow';
 import './flows/chat-to-note-flow';
 import './flows/midterm-exam-flow';
@@ -36,4 +37,3 @@ import './flows/college-checklist-flow';
 import './flows/essay-coach-flow';
 import './flows/daily-focus-flow';
 import './flows/text-tutoring-flow';
-
