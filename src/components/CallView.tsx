@@ -30,7 +30,8 @@ const ParticipantVideo = ({ participant, isLocalUser, videoRef, isCameraOn, onRi
                     <AIBuddy isStatic={false} className="w-24 h-24" />
                     <AnimatePresence>
                     {isTutorinListening && (
-                        <motion.div 
+                        <motion.div
+                            key="listening-indicator"
                             initial={{ opacity: 0, scale: 0.8 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.8 }}
@@ -40,7 +41,8 @@ const ParticipantVideo = ({ participant, isLocalUser, videoRef, isCameraOn, onRi
                         </motion.div>
                     )}
                      {isTutorinSpeaking && (
-                         <motion.div 
+                         <motion.div
+                            key="speaking-indicator"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
@@ -158,8 +160,8 @@ export default function CallView() {
                         </div>
 
                         <div className="p-4 bg-background/50 border-t flex justify-center gap-4">
-                            <Button variant={isTutorinListening ? 'destructive' : 'secondary'} size="icon" onClick={toggleTutorinListening} className="rounded-full h-12 w-12">
-                                <Mic />
+                            <Button variant={isMuted ? 'secondary' : 'default'} size="icon" onClick={toggleMute} className="rounded-full h-12 w-12">
+                                {isMuted ? <MicOff /> : <Mic />}
                             </Button>
                             <Button variant={isCameraOff ? 'secondary' : 'default'} size="icon" onClick={toggleCamera} className="rounded-full h-12 w-12">
                                 {isCameraOff ? <VideoOff /> : <Video />}
