@@ -1130,7 +1130,7 @@ function CoursesComponent() {
                                     <>
                                         <Button variant="ghost" onClick={() => { setAddCourseOpen(false); resetAddCourseDialog();}}>Cancel</Button>
                                         {isNewTopic === true ? (
-                                            <Button onClick={() => setAddCourseStep(2)} disabled={isSaving || isNewTopic === null || !newCourse.name}>
+                                            <Button onClick={()={() => setAddCourseStep(2)} disabled={isSaving || isNewTopic === null || !newCourse.name}>
                                                 Next
                                             </Button>
                                         ) : (
@@ -1209,7 +1209,7 @@ function CoursesComponent() {
                                         {courseProgress > 0 ? 'Continue Learning' : 'Start Learning!'}
                                     </Button>
                                 ) : (
-                                    <Button className="w-full" onClick={() => {
+                                    <Button className="w-full" onClick={()={() => {
                                         setGeneratingCourseName(course.name);
                                         setNewCourse({
                                             name: course.name,
@@ -1256,7 +1256,7 @@ function CoursesComponent() {
                     <p className="text-muted-foreground mt-2">Good luck!</p>
                     <div className="mt-8 flex gap-4">
                         {currentModule.chapters.slice(0, -1).map((chapter, index) => (
-                            <Button key={chapter.id} variant="outline" onClick={() => {
+                            <Button key={chapter.id} variant="outline" onClick={()={() => {
                                 setCurrentModuleIndex(currentModuleIndex);
                                 setCurrentChapterIndex(index);
                             }}>
@@ -1359,7 +1359,7 @@ function CoursesComponent() {
                         <CardContent className="p-8 text-center">
                             <h2 className="text-2xl font-semibold">Your Score</h2>
                             <p className="text-6xl font-bold text-primary my-4">{score} / {totalQuestions}</p>
-                            <p className="text-muted-foreground">You answered {totalQuestions > 0 ? ((score / totalQuestions) * 100).toFixed(0) : 0}% of the questions correctly.</p>
+                            <p className="text-muted-foreground">You answered {totalQuestions > 0 ? ((score / totalQuestions) * 100).toFixed(0)}% of the questions correctly.</p>
 
                             <div className="mt-8 flex justify-center gap-4">
                                 <Button variant="outline" onClick={handleCompleteAndContinue}>
@@ -1439,7 +1439,7 @@ function CoursesComponent() {
                         <p className="text-muted-foreground">Generating your video. This can take up to a minute...</p>
                     </div>
                 ) : generatedVideoUrl ? (
-                     <video controls src={generatedVideoUrl} className="w-full rounded-lg"></video>
+                     <video controls src={generatedVideoUrl} className="w-full rounded-lg aspect-video"></video>
                 ) : (
                     <p className="text-center text-muted-foreground">Video could not be generated.</p>
                 )}
@@ -1548,7 +1548,7 @@ function CoursesComponent() {
                                         return (
                                         <li key={chapter.id}>
                                             <button 
-                                                onClick={() => {
+                                                onClick={()={() => {
                                                     setCurrentModuleIndex(mIndex);
                                                     setCurrentChapterIndex(cIndex);
                                                 }}
