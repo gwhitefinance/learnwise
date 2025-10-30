@@ -14,7 +14,6 @@ import './flows/image-tutoring-flow';
 import './flows/onboarding-course-flow';
 import './flows/course-from-url-flow';
 import './flows/chapter-content-flow';
-import './tools/course-tool';
 import './tools/web-scraper-tool';
 import './tools/youtube-transcript-tool';
 import './flows/image-analysis-flow';

@@ -8,7 +8,6 @@
  */
 import { ai } from '@/ai/genkit';
 import { googleAI } from '@genkit-ai/google-genai';
-import { getCoursesTool } from '@/ai/tools/course-tool';
 import { z } from 'zod';
 
 const MessageSchema = z.object({
@@ -39,7 +38,6 @@ const StudyPlannerInputSchema = z.object({
 const prompt = ai.definePrompt({
     name: 'studyPlannerPrompt',
     model: googleAI.model('gemini-2.5-flash'),
-    tools: [getCoursesTool],
     prompt: `You are a friendly, encouraging, and highly conversational AI study partner. Your main goal is to help users learn and plan their studies effectively. Your personality is that of a helpful and patient friend who is an expert tutor. You are not just a machine; you are a companion on their learning journey.
 
     **CRITICAL**: For any mathematical expressions, especially exponents and fractions, use proper notation. For example, use 'x²' instead of 'x^2', and use Unicode characters like '½' for fractions instead of '1/2'.
@@ -116,4 +114,3 @@ export const studyPlannerFlow = ai.defineFlow(
     return response.text ?? "I'm sorry, I am unable to answer that question. Please try rephrasing it.";
   }
 );
-
