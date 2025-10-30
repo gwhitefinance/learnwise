@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, Suspense, useContext } from 'react';
@@ -276,26 +277,23 @@ function StudySessionPageContent({ topic }: { topic: 'Math' | 'Reading & Writing
 
         const currentQuestion = questions[currentQuestionIndex];
         const selectedAnswer = userAnswers[currentQuestionIndex];
-        const isCorrect = selectedAnswer === currentQuestion.correctAnswer;
+        
+        setIsExplanationLoading(true);
+        try {
+            const { explanation } = await generateExplanation({
+                question: currentQuestion.question,
+                userAnswer: selectedAnswer || "No answer",
+                correctAnswer: currentQuestion.correctAnswer,
+                learnerType: learnerType as any,
+                provideFullExplanation: true,
+            });
+            setQuestions(prev => prev.map((q, i) => i === currentQuestionIndex ? { ...q, explanation } : q));
 
-        if (!isCorrect) {
-            setIsExplanationLoading(true);
-            try {
-                 const { explanation } = await generateExplanation({
-                    question: currentQuestion.question,
-                    userAnswer: selectedAnswer || "No answer",
-                    correctAnswer: currentQuestion.correctAnswer,
-                    learnerType: learnerType as any,
-                    provideFullExplanation: true,
-                });
-                 setQuestions(prev => prev.map((q, i) => i === currentQuestionIndex ? { ...q, explanation } : q));
-
-            } catch (e) {
-                 console.error("Failed to generate explanation:", e);
-                 setQuestions(prev => prev.map((q, i) => i === currentQuestionIndex ? { ...q, explanation: "Could not load explanation." } : q));
-            } finally {
-                setIsExplanationLoading(false);
-            }
+        } catch (e) {
+            console.error("Failed to generate explanation:", e);
+            setQuestions(prev => prev.map((q, i) => i === currentQuestionIndex ? { ...q, explanation: "Could not load explanation." } : q));
+        } finally {
+            setIsExplanationLoading(false);
         }
     };
 
