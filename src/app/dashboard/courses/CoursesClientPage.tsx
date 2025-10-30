@@ -24,7 +24,7 @@ import AudioPlayer from '@/components/audio-player';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { generateInitialCourseAndRoadmap, generateQuizFromModule, generateTutorResponse, generateChapterContent, generateMidtermExam, generateRoadmap, generateCourseFromUrl, generateSummary, checkVideoOperation, startVideoGenerationFlow } from '@/lib/actions';
+import { generateInitialCourseAndRoadmap, generateQuizFromModule, generateTutorResponse, generateChapterContent, generateMidtermExam, generateRoadmap, generateCourseFromUrl, generateSummary, startVideoGenerationFlow } from '@/lib/actions';
 import { RewardContext } from '@/context/RewardContext';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import Loading from './loading';
@@ -179,6 +179,7 @@ function CoursesComponent() {
   const [isVideoGenerating, setIsVideoGenerating] = useState(false);
   const [generatedVideoUrl, setGeneratedVideoUrl] = useState<string | null>(null);
   const [videoForChapter, setVideoForChapter] = useState<string | null>(null);
+  const [chapterVideos, setChapterVideos] = useState<Record<string, string>>({});
 
 
   const currentModule = activeCourse?.units?.[currentModuleIndex];
@@ -263,7 +264,9 @@ function CoursesComponent() {
         }
         setIsLoading(false);
     }
-    loadCourseData();
+    if (selectedCourseId) {
+        loadCourseData();
+    }
   }, [selectedCourseId, user]);
   
 
@@ -1004,6 +1007,14 @@ function CoursesComponent() {
       
       setVideoForChapter(currentChapter.title);
       setIsVideoDialogOpen(true);
+      
+      const existingUrl = chapterVideos[currentChapter.id];
+      if (existingUrl) {
+          setGeneratedVideoUrl(existingUrl);
+          setIsVideoGenerating(false);
+          return;
+      }
+      
       setIsVideoGenerating(true);
       setGeneratedVideoUrl(null);
       
@@ -1014,6 +1025,7 @@ function CoursesComponent() {
         
         if (result && result.videoUrl) {
             setGeneratedVideoUrl(result.videoUrl);
+            setChapterVideos(prev => ({ ...prev, [currentChapter!.id]: result.videoUrl }));
         } else {
              throw new Error('No video URL was returned from the operation.');
         }
@@ -1412,7 +1424,7 @@ function CoursesComponent() {
               </div>
           </DialogContent>
       </Dialog>
-      <Dialog open={isVideoDialogOpen} onOpenChange={(open) => { if (!open) { setGeneratedVideoUrl(null); setVideoForChapter(null); } setIsVideoDialogOpen(open); }}>
+      <Dialog open={isVideoDialogOpen} onOpenChange={(open) => { if (!open) { setVideoForChapter(null); } setIsVideoDialogOpen(open); }}>
           <DialogContent className="max-w-2xl">
               <DialogHeader>
                 <DialogTitle>AI Video for "{videoForChapter}"</DialogTitle>
@@ -1688,7 +1700,9 @@ function CoursesComponent() {
                              <h5 className="font-semibold flex items-center gap-2 text-blue-700"><Video size={18}/> AI Video</h5>
                              <div className="text-muted-foreground mt-2 flex items-center justify-between">
                                  <p>Bring this chapter to life with a short AI-generated video.</p>
-                                 <Button size="sm" onClick={handleGenerateVideoForChapter}>Generate Video</Button>
+                                 <Button size="sm" onClick={handleGenerateVideoForChapter}>
+                                    {chapterVideos[currentChapter.id] ? 'Watch Video Again' : 'Generate Video'}
+                                </Button>
                              </div>
                          </div>
                     </div>
@@ -1795,8 +1809,3 @@ export default function CoursesClientPage() {
         </Suspense>
     )
 }
-
-    
-
-    
-
