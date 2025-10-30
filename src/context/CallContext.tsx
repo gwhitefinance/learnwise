@@ -71,7 +71,10 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
 
     const remoteParticipants = callParticipants
         .filter(p => p.uid !== user.uid)
-        .map(p => ({ ...p, status: 'Online' as const }));
+        .map(p => {
+            const isAI = p.uid === 'tutorin-ai';
+            return { ...p, status: isAI ? 'In Call' : 'Online' } as CallParticipant;
+        });
 
     setParticipants(remoteParticipants);
     

@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { CallContext, CallParticipant } from '@/context/CallContext';
 import { cn } from '@/lib/utils';
 import Draggable from 'react-draggable';
+import AIBuddy from './ai-buddy';
 
 const ParticipantVideo = ({ participant, isLocalUser, videoRef, isCameraOn, onRing }: { participant: CallParticipant, isLocalUser: boolean, videoRef?: React.RefObject<HTMLVideoElement>, isCameraOn?: boolean, onRing?: (uid: string) => void }) => (
     <div className="relative aspect-video bg-muted rounded-lg overflow-hidden flex items-center justify-center border">
@@ -21,6 +22,8 @@ const ParticipantVideo = ({ participant, isLocalUser, videoRef, isCameraOn, onRi
                     </div>
                 )}
              </div>
+        ) : participant.uid === 'tutorin-ai' ? (
+            <AIBuddy isStatic={false} className="w-24 h-24" />
         ) : (
              <Avatar className="h-20 w-20">
                 <AvatarImage src={participant.photoURL} />
@@ -30,7 +33,7 @@ const ParticipantVideo = ({ participant, isLocalUser, videoRef, isCameraOn, onRi
         <div className="absolute bottom-2 left-2 bg-black/50 text-white text-xs px-2 py-1 rounded-md">
             {participant.displayName} {isLocalUser && "(You)"}
         </div>
-        {participant.status && participant.status !== 'Online' && !isLocalUser && (
+        {participant.status && participant.status !== 'Online' && participant.status !== 'In Call' && !isLocalUser && (
             <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
                 <p className="text-white font-semibold animate-pulse">{participant.status}...</p>
             </div>
@@ -78,7 +81,7 @@ export default function CallView() {
                 }
             };
             getCameraStream();
-        } else if (videoRef.current && videoRef.current.srcObject) {
+        } else if (videoRef.current?.srcObject) {
             (videoRef.current.srcObject as MediaStream).getTracks().forEach(track => track.stop());
             videoRef.current.srcObject = null;
         }
