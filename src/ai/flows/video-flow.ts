@@ -86,7 +86,7 @@ const generateVideoFlow = ai.defineFlow(
 
         // Wait until the operation completes.
         while (!operation.done) {
-            await new Promise((resolve) => setTimeout(resolve, 5000));
+            await new Promise((resolve) => setTimeout(resolve, 10000)); // Increased polling delay
             operation = await ai.checkOperation(operation);
         }
 
