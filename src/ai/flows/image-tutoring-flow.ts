@@ -16,6 +16,8 @@ const tutoringPrompt = ai.definePrompt({
     output: { schema: TutoringSessionOutputSchema },
     prompt: `You are a friendly, expert AI tutor. Your goal is to help a student understand the concepts in the provided image of their homework. You will break down the problems, explain the core concepts, and provide practice material.
 
+    **CRITICAL**: For any mathematical expressions, especially exponents, use proper notation. For example, use 'x²' instead of 'x^2'.
+
     The user's learning style is {{learnerType}}. Tailor your explanation and examples accordingly:
     - Visual: Use highly descriptive language, analogies, and suggest creating diagrams.
     - Auditory: Explain things in a conversational, step-by-step manner, as if you were speaking.

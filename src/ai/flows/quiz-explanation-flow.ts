@@ -15,6 +15,8 @@ const prompt = ai.definePrompt({
     output: { schema: GenerateExplanationOutputSchema },
     prompt: `You are an expert tutor. A student has answered a quiz question incorrectly. 
     
+    **CRITICAL**: For any mathematical expressions, especially exponents, use proper notation. For example, use 'x²' instead of 'x^2'.
+
     Your task depends on whether you are being asked to provide a full explanation or just a new question.
 
     {{#if provideFullExplanation}}

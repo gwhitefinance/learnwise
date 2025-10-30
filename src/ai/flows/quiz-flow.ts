@@ -21,6 +21,8 @@ const prompt = ai.definePrompt({
     - Question Type: {{questionType}}
     - Difficulty Level: {{difficulty}}
 
+    **CRITICAL**: For any mathematical expressions, especially exponents, use proper notation. For example, use 'x²' instead of 'x^2'.
+
     For each question, provide the question text, options (if multiple choice), and the correct answer.
     `,
 });

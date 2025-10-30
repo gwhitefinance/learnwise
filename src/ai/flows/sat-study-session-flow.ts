@@ -27,13 +27,14 @@ const prompt = ai.definePrompt({
     3.  **Complete Data**: Ensure every field (difficulty, topic, subTopic, question, options, correctAnswer, explanation) is fully populated for every question. Do not return "N/A" or leave any field blank.
 
     **CRITICAL INSTRUCTIONS for 'Math' Category:**
-    1.  **Diverse Topics**: You MUST generate questions that cover the full spectrum of the SAT Math test. Distribute the 10 questions across these four domains:
+    1.  **Mathematical Notation**: For ALL mathematical expressions, especially exponents, use proper notation. For example, use 'x²' instead of 'x^2'.
+    2.  **Diverse Topics**: You MUST generate questions that cover the full spectrum of the SAT Math test. Distribute the 10 questions across these four domains:
         -   **Algebra** (~3 questions)
         -   **Advanced Math** (~3 questions)
         -   **Problem-Solving and Data Analysis** (~2 questions)
         -   **Geometry and Trigonometry** (~2 questions)
-    2.  **Varied Question Types**: You MUST generate a mix of question formats. Create ~7-8 multiple-choice questions (with four options: A, B, C, D) and ~2-3 student-produced response (grid-in) questions. For grid-in questions, the 'options' array should be empty.
-    3.  **Complete Data**: Ensure every field (difficulty, topic, subTopic, question, options, correctAnswer, explanation) is fully populated for every question. Do not return "N/A" or leave any field blank.
+    3.  **Varied Question Types**: You MUST generate a mix of question formats. Create ~7-8 multiple-choice questions (with four options: A, B, C, D) and ~2-3 student-produced response (grid-in) questions. For grid-in questions, the 'options' array should be empty.
+    4.  **Complete Data**: Ensure every field (difficulty, topic, subTopic, question, options, correctAnswer, explanation) is fully populated for every question. Do not return "N/A" or leave any field blank.
 
     For each of the 10 questions, provide:
     - A 'difficulty' ('Easy', 'Medium', or 'Hard').

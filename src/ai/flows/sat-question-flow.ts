@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview A flow for generating a daily SAT practice question.
@@ -5,8 +6,7 @@
 import { ai } from '@/ai/genkit';
 import { googleAI } from '@genkit-ai/google-genai';
 import { z } from 'zod';
-// FIX: Added 'SatQuestion' to the import list
-import { SatQuestionSchema, GenerateSatQuestionInputSchema, GenerateSatQuestionInput, SatQuestion } from '@/ai/schemas/sat-question-schema';
+import { SatQuestionSchema, GenerateSatQuestionInputSchema, GenerateSatQuestionInput, type SatQuestion } from '@/ai/schemas/sat-question-schema';
 
 const prompt = ai.definePrompt({
     name: 'satQuestionPrompt',
@@ -17,6 +17,7 @@ const prompt = ai.definePrompt({
 
     - The question should be unique based on the provided seed: "{{seed}}".
     - You must alternate between 'Math' and 'Reading & Writing' categories daily. Use the provided seed to decide. If the seed's length is even, create a 'Math' question. If odd, create a 'Reading & Writing' question.
+    - **CRITICAL**: For any mathematical expressions, especially exponents, use proper notation. For example, use 'x²' instead of 'x^2'.
     - For 'Reading & Writing' questions, you may optionally include a short passage (1-3 sentences) if it's relevant to the question.
     - All questions must be multiple-choice with exactly four options (A, B, C, D).
     - Provide a clear and concise explanation for why the correct answer is correct, tailored to a {{learnerType}} learner.

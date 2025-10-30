@@ -21,6 +21,7 @@ const prompt = ai.definePrompt({
     **CRITICAL INSTRUCTIONS**:
     1.  **Be Concise**: Keep your answer to 2-3 sentences.
     2.  **No Markdown**: Do NOT use any markdown formatting like asterisks for bolding or italics.
+    3.  **Mathematical Notation**: For ALL mathematical expressions, especially exponents, use proper notation. For example, use 'x²' instead of 'x^2'.
 
     CURRENT STUDY CONTEXT:
     - The student is in a study session for the '{{studyContext}}' section of the SAT.
