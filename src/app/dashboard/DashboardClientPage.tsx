@@ -282,6 +282,33 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
     const [focusTimer, setFocusTimer] = useState<number | null>(null);
     const [dailyRewardClaimed, setDailyRewardClaimed] = useState(false);
 
+    const handleAiSuggestions = useCallback(async () => {
+        setIsAiSuggesting(true);
+        try {
+            const courseNames = courses.map(c => c.name);
+            const weakestTopics = Object.entries(weakestLinks).map(([topic]) => topic);
+            
+            const result = await generateDailyFocus({ courseNames, weakestTopics });
+            const newAiTodos: TodoItem[] = result.tasks.map(task => ({
+                id: crypto.randomUUID(),
+                text: task,
+                completed: false,
+                isEditing: false,
+                isAiGenerated: true,
+            }));
+            setTodos(prev => [...prev.filter(t => !t.isAiGenerated), ...newAiTodos]);
+            setDailyRewardClaimed(false);
+            if(user) {
+                localStorage.removeItem(`dailyFocusReward_${user.uid}_${new Date().toDateString()}`);
+            }
+        } catch (error) {
+            console.error("Failed to get AI suggestions:", error);
+            toast({ variant: 'destructive', title: "AI Error", description: "Could not generate focus tasks." });
+        } finally {
+            setIsAiSuggesting(false);
+        }
+    }, [courses, weakestLinks, user, toast]);
+
     useEffect(() => {
         if (!user) return;
         const rewardClaimed = localStorage.getItem(`dailyFocusReward_${user.uid}_${new Date().toDateString()}`);
@@ -303,6 +330,12 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
 
         return () => clearInterval(interval);
     }, [todos]);
+    
+    useEffect(() => {
+        if (focusTimer === 0) {
+            handleAiSuggestions();
+        }
+    }, [focusTimer, handleAiSuggestions]);
 
     useEffect(() => {
         if (dailyRewardClaimed) return;
@@ -894,33 +927,6 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
         }
     };
     
-    const handleAiSuggestions = async () => {
-        setIsAiSuggesting(true);
-        try {
-            const courseNames = courses.map(c => c.name);
-            const weakestTopics = Object.entries(weakestLinks).map(([topic]) => topic);
-            
-            const result = await generateDailyFocus({ courseNames, weakestTopics });
-            const newAiTodos: TodoItem[] = result.tasks.map(task => ({
-                id: crypto.randomUUID(),
-                text: task,
-                completed: false,
-                isEditing: false,
-                isAiGenerated: true,
-            }));
-            setTodos(prev => [...prev, ...newAiTodos]);
-            setDailyRewardClaimed(false);
-            if(user) {
-                localStorage.removeItem(`dailyFocusReward_${user.uid}_${new Date().toDateString()}`);
-            }
-        } catch (error) {
-            console.error("Failed to get AI suggestions:", error);
-            toast({ variant: 'destructive', title: "AI Error", description: "Could not generate focus tasks." });
-        } finally {
-            setIsAiSuggesting(false);
-        }
-    };
-
     const formatTime = (ms: number) => {
         const totalSeconds = Math.floor(ms / 1000);
         const hours = Math.floor(totalSeconds / 3600);
