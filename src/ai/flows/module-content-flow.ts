@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview A flow for generating all chapter content within a single course module.
@@ -18,30 +19,30 @@ const generateModuleContentFlow = ai.defineFlow(
   },
   async (input) => {
     
-    const updatedChapters: ChapterWithContent[] = [];
-
-    // Process chapters sequentially to avoid hitting rate limits.
-    for (const chapter of input.module.chapters) {
-        // 1. Generate text content for the current chapter.
-        const contentData = await generateChapterContent({
+    // Concurrently generate content for all chapters
+    const contentGenerationPromises = input.module.chapters.map(chapter =>
+        generateChapterContent({
             courseName: input.courseName,
             moduleTitle: input.module.title,
             chapterTitle: chapter.title,
             learnerType: input.learnerType,
-        });
+        })
+    );
 
-        // 2. Assemble the full chapter data.
-        updatedChapters.push({
+    const generatedContents = await Promise.all(contentGenerationPromises);
+    
+    // Assemble the full chapter data with the generated content
+    const updatedChapters: ChapterWithContent[] = input.module.chapters.map((chapter, index) => {
+        const contentData = generatedContents[index];
+        return {
             id: chapter.id || generateUniqueId(),
             title: chapter.title,
-            // FIX: Serialize the content array to a JSON string
             content: JSON.stringify(contentData.content),
-            // FIX: Serialize the activity object/array to a JSON string
             activity: JSON.stringify(contentData.activity),
-        });
-    }
+        };
+    });
 
-    // 3. Assemble the final module with all content.
+    // Assemble the final module with all content
     const updatedModule = {
         id: input.module.id || generateUniqueId(),
         title: input.module.title,
