@@ -51,7 +51,7 @@ const generateAudioFlow = ai.defineFlow(
             responseModalities: ['AUDIO'],
             speechConfig: {
                 voiceConfig: {
-                    prebuiltVoiceConfig: { voiceName: 'en-US-Studio-M' },
+                    prebuiltVoiceConfig: { voiceName: 'Algenib' },
                 },
             },
         },
