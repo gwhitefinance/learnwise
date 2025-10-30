@@ -97,7 +97,7 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ chapterContent, onClo
         recognitionRef.current.abort();
       }
     };
-  }, [chapterContent, toast]);
+  }, [chapterContent, toast, assistantState]);
 
   const handlePlayPause = () => {
     if (!utteranceRef.current) {
@@ -194,7 +194,6 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ chapterContent, onClo
             >
                 <p className="text-xl font-bold flex items-center gap-2">
                    {getStatusText()}
-                   {(assistantState === 'listening_question' || assistantState === 'processing_question') && <Loader2 className="h-5 w-5 animate-spin" />}
                 </p>
             </motion.div>
         </AnimatePresence>
