@@ -22,7 +22,7 @@ import { generateNoteFromChat } from '@/ai/flows/chat-to-note-flow';
 import { generateMidtermExam } from '@/ai/flows/midterm-exam-flow';
 import { generateModuleContent } from '@/ai/flows/module-content-flow';
 import { generatePodcastEpisode } from '@/ai/flows/podcast-flow';
-import generateVideoFlow from '@/ai/flows/video-flow';
+import { generateVideoFlow } from '@/ai/flows/video-flow';
 import { checkVideoOperation as checkVideoOperationFlow } from '@/ai/flows/video-flow';
 import { generateSatQuestion } from '@/ai/flows/sat-question-flow';
 import { generateInitialCourseAndRoadmap } from '@/ai/flows/initial-course-flow';
@@ -52,11 +52,6 @@ async function generateSummary(input: { noteContent: string; }): Promise<{ summa
 export async function checkVideoOperation(operation: any) {
     return checkVideoOperationFlow(operation);
 }
-
-export async function generateVideo(input: any) {
-    return generateVideoFlow(input);
-}
-
 
 // Re-exporting all AI functions as Server Actions
 export { 
@@ -96,4 +91,5 @@ export {
     generateDailyFocus,
     generateTextTutoringSession,
     enhanceDrawing,
+    generateVideoFlow as generateVideo,
 };

@@ -7,7 +7,7 @@ import { generateVideoInputSchema } from '@/ai/schemas/video-schema';
 import * as z from 'zod';
 
 
-const generateVideoFlow = ai.defineFlow(
+export const generateVideoFlow = ai.defineFlow(
     {
         name: 'generateVideoFlow',
         inputSchema: generateVideoInputSchema,
