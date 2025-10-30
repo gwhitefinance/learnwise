@@ -384,7 +384,7 @@ const AIToolsTab = ({ onStartChatWithPrompt }: { onStartChatWithPrompt: (prompt:
                        )
                     )}
                     {quickQuizState === 'results' && (
-                        <div className="text-center space-y-4">
+                        <div className="text-center space-y-4 py-12">
                             <h2 className="text-3xl font-bold">Quiz Complete!</h2>
                              <p className="text-5xl font-bold text-primary my-4">{answers.filter(a => a.isCorrect).length} / {generatedQuiz?.questions.length}</p>
                             <p className="text-muted-foreground">Great job practicing!</p>
@@ -577,10 +577,6 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
 
   const [isFullscreen, setIsFullscreen] = useState(false);
   
-  // Voice input state
-  const [isListening, setIsListening] = useState(false);
-  const recognitionRef = useRef<any>(null);
-
   const activeSession = sessions.find(s => s.id === activeSessionId);
 
   useEffect(() => {
@@ -711,6 +707,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
         aiBuddyName: aiBuddyName,
         history: updatedMessages,
         learnerType: learnerType || undefined,
+        allCourses: courses.map(c => ({ id: c.id, name: c.name, description: c.description })),
         courseContext: activeSession?.courseContext || undefined,
         calendarEvents: calendarEvents.map(e => ({
             id: e.id,
@@ -931,7 +928,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
     }
   };
   
-   const activateVoiceInput = () => {
+  const openChatWithVoice = () => {
     setIsOpen(true);
     setActiveTab('conversation');
 
@@ -941,41 +938,6 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
       toast({ variant: 'destructive', title: 'Voice input not supported in this browser.' });
       return;
     }
-
-    if (isListening) {
-      recognitionRef.current?.stop();
-      setIsListening(false);
-      return;
-    }
-
-    const recognition = new SpeechRecognition();
-    recognition.continuous = false;
-    recognition.interimResults = false;
-    recognition.lang = 'en-US';
-
-    recognition.onstart = () => {
-      setIsListening(true);
-    };
-
-    recognition.onresult = (event: any) => {
-      const transcript = event.results[0][0].transcript;
-      setInput(transcript);
-      handleSendMessage(transcript);
-      setIsListening(false);
-    };
-
-    recognition.onerror = (event: any) => {
-      console.error('Speech recognition error', event.error);
-      toast({ variant: 'destructive', title: 'Voice recognition error.' });
-      setIsListening(false);
-    };
-    
-    recognition.onend = () => {
-      setIsListening(false);
-    };
-
-    recognitionRef.current = recognition;
-    recognition.start();
   };
   
   const TabButton = ({ name, icon, currentTab, setTab }: {name: string, icon: React.ReactNode, currentTab: string, setTab: (tab:string) => void}) => (
@@ -1141,8 +1103,8 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                                             disabled={isLoading}
                                         />
                                         <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                                            <Button variant="ghost" size="icon" className={cn("h-8 w-8 rounded-full", isListening && "bg-red-500/20 text-red-500")} onClick={activateVoiceInput}>
-                                                {isListening ? <Hand className="h-4 w-4" /> : <Mic className="h-4 w-4"/>}
+                                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={openChatWithVoice}>
+                                                <Mic className="h-4 w-4"/>
                                             </Button>
                                             <Button size="icon" className="h-8 w-8 rounded-full" onClick={() => handleSendMessage()} disabled={isLoading}>
                                                 <Send className="h-4 w-4"/>
@@ -1168,7 +1130,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
   );
 
   return (
-    <FloatingChatContext.Provider value={{ openChatWithVoice: activateVoiceInput, openChatWithPrompt: handleStartChatWithPrompt }}>
+    <FloatingChatContext.Provider value={{ openChatWithVoice, openChatWithPrompt: handleStartChatWithPrompt }}>
       {children}
       {!isHidden && (
         isEmbedded ? ChatComponent : (

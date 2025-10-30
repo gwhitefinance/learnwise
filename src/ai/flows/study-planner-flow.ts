@@ -31,7 +31,8 @@ const StudyPlannerInputSchema = z.object({
     aiBuddyName: z.string().optional().describe("The user's custom name for the AI buddy. Defaults to Tutorin."),
     history: z.array(MessageSchema),
     learnerType: z.string().optional(),
-    courseContext: z.string().optional().describe('The name and description of the course the user is asking about.'),
+    allCourses: z.array(z.object({ id: z.string(), name: z.string(), description: z.string() })).optional().describe('A list of all courses the user is enrolled in.'),
+    courseContext: z.string().optional().describe('The name and description of the specific course the user is currently viewing, if any.'),
     calendarEvents: z.array(EventSchema).optional().describe('A list of the user\'s upcoming calendar events.'),
 });
 
@@ -57,10 +58,27 @@ const prompt = ai.definePrompt({
     - Ask clarifying questions when you need more information.
 
     **Your Capabilities**:
-    - If the user asks about their courses, use the getCoursesTool to retrieve and present the information. You can include course URLs if they ask for them.
-    - If the user asks about their schedule, calendar, or upcoming deadlines, use the provided list of calendar events to answer their questions accurately.
+    - You have access to the user's full course list and their calendar. Use this information to provide comprehensive and context-aware answers.
+    - If the user asks "what are my courses?", list the courses from the provided 'allCourses' data. You can also answer questions about their schedule using the 'calendarEvents' data.
 
-    **Context for this Conversation**:
+    **CONTEXT FOR THIS CONVERSATION**:
+    - **User's Learning Style**:
+    {{#if learnerType}}
+    The user is a {{learnerType}} learner. Tailor your advice and explanations to their style:
+    - For a **Visual** learner, use descriptive language that helps them visualize things. Suggest diagrams, charts, and videos.
+    - For an **Auditory** learner, suggest listening to lectures, discussions, and using mnemonic devices.
+    - For a **Kinesthetic** learner, recommend hands-on activities, real-world examples, and interactive exercises.
+    {{/if}}
+
+    - **User's Full Course List**:
+    {{#if allCourses}}
+        {{#each allCourses}}
+         - {{this.name}}: {{this.description}}
+        {{/each}}
+    {{else}}
+        The user has not provided a list of their courses.
+    {{/if}}
+
     - **User's upcoming events**:
     {{#if calendarEvents}}
         {{#each calendarEvents}}
@@ -70,20 +88,12 @@ const prompt = ai.definePrompt({
         The user has no upcoming events in their calendar.
     {{/if}}
 
-    - **Current Course Focus**:
+    - **Current Course Focus (if any)**:
     {{#if courseContext}}
-    The user is currently focused on the following course: {{courseContext}}. Try to tailor your suggestions and study plans to this specific course.
-    {{/if}}
-
-    - **User's Learning Style**:
-    {{#if learnerType}}
-    The user is a {{learnerType}} learner. Tailor your advice and explanations to their style:
-    - For a **Visual** learner, use descriptive language that helps them visualize things. Suggest diagrams, charts, and videos.
-    - For an **Auditory** learner, suggest listening to lectures, discussions, and using mnemonic devices.
-    - For a **Kinesthetic** learner, recommend hands-on activities, real-world examples, and interactive exercises.
+    The user is currently viewing the following course: {{courseContext}}. Prioritize this course in your answers if relevant, but remember you have access to all their other courses as well.
     {{/if}}
     
-    **Conversation History**:
+    **CONVERSATION HISTORY**:
     {{#each history}}
       {{role}}: {{content}}
     {{/each}}
@@ -106,3 +116,4 @@ export const studyPlannerFlow = ai.defineFlow(
     return response.text ?? "I'm sorry, I am unable to answer that question. Please try rephrasing it.";
   }
 );
+

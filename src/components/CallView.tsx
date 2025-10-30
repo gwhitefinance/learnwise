@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useContext, useEffect, useRef, useState } from 'react';
@@ -12,7 +13,7 @@ import Draggable from 'react-draggable';
 import AIBuddy from './ai-buddy';
 
 const ParticipantVideo = ({ participant, isLocalUser, videoRef, isCameraOn, onRing }: { participant: CallParticipant, isLocalUser: boolean, videoRef?: React.RefObject<HTMLVideoElement>, isCameraOn?: boolean, onRing?: (uid: string) => void }) => {
-    const { isTutorinListening, isTutorinSpeaking } = useContext(CallContext);
+    const { isTutorinSpeaking } = useContext(CallContext);
     
     return (
         <div className="relative aspect-video bg-muted rounded-lg overflow-hidden flex items-center justify-center border">
@@ -86,7 +87,6 @@ export default function CallView() {
         toggleMinimize,
         ringParticipant,
         isTutorinListening,
-        toggleTutorinListening,
     } = useContext(CallContext);
     
     const nodeRef = React.useRef(null);
@@ -111,8 +111,6 @@ export default function CallView() {
             videoRef.current.srcObject = null;
         }
     }, [isInCall, isCameraOff, toggleCamera, isMuted]);
-
-    const hasTutorin = participants.some(p => p.uid === 'tutorin-ai');
 
     return (
         <AnimatePresence>
@@ -151,26 +149,21 @@ export default function CallView() {
                         </div>
 
                         <div className="p-4 bg-background/50 border-t flex justify-center gap-4">
-                            <Button variant={isMuted ? 'secondary' : 'default'} size="icon" onClick={toggleMute} className="rounded-full h-12 w-12">
+                            <Button
+                                variant="default"
+                                size="icon"
+                                onClick={toggleMute}
+                                className={cn(
+                                    "rounded-full h-12 w-12",
+                                    isMuted ? "bg-secondary" : "bg-primary",
+                                    isTutorinListening && "ring-2 ring-primary animate-pulse"
+                                )}
+                            >
                                 {isMuted ? <MicOff /> : <Mic />}
                             </Button>
                             <Button variant={isCameraOff ? 'secondary' : 'default'} size="icon" onClick={toggleCamera} className="rounded-full h-12 w-12">
                                 {isCameraOff ? <VideoOff /> : <Video />}
                             </Button>
-                             {hasTutorin && (
-                                <Button
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={toggleTutorinListening}
-                                    className={cn(
-                                        "rounded-full h-12 w-12 relative",
-                                        isTutorinListening ? "border-primary ring-2 ring-primary" : ""
-                                    )}
-                                >
-                                    <Hand />
-                                    {isTutorinListening && <div className="absolute inset-0 rounded-full bg-primary/20 animate-pulse"></div>}
-                                </Button>
-                            )}
                             <Button variant="destructive" size="icon" onClick={endCall} className="rounded-full h-12 w-12">
                                 <PhoneOff />
                             </Button>

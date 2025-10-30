@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { createContext, useState, useCallback, ReactNode, useEffect, useRef } from 'react';
@@ -34,8 +35,6 @@ interface CallContextType {
   toggleMute: () => void;
   toggleCamera: () => void;
   toggleMinimize: () => void;
-  startTutorinListening: () => void;
-  stopTutorinListening: () => void;
   ringParticipant: (uid: string) => void;
   answerCall: () => void;
   declineCall: () => void;
@@ -56,8 +55,6 @@ export const CallContext = createContext<CallContextType>({
   toggleMute: () => {},
   toggleCamera: () => {},
   toggleMinimize: () => {},
-  startTutorinListening: () => {},
-  stopTutorinListening: () => {},
   ringParticipant: () => {},
   answerCall: () => {},
   declineCall: () => {},
@@ -93,6 +90,8 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
             audio.onended = () => {
                 setIsTutorinSpeaking(false);
             };
+        } else {
+             setIsTutorinSpeaking(false);
         }
     } catch (error) {
         console.error("Error generating or playing speech:", error);
@@ -213,22 +212,6 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
         speak(errorMessage);
     }
   };
-
-  const startTutorinListening = useCallback(() => {
-    if (!recognitionRef.current) return;
-    if (isTutorinSpeaking) {
-        if (audioRef.current) {
-            audioRef.current.pause();
-        }
-        setIsTutorinSpeaking(false);
-    }
-    recognitionRef.current.start();
-  }, [isTutorinSpeaking]);
-
-  const stopTutorinListening = useCallback(() => {
-    if (!recognitionRef.current) return;
-    recognitionRef.current.stop();
-  }, []);
   
   useEffect(() => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -261,6 +244,19 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
     recognitionRef.current = recognition;
 
   }, [isInCall, participants, user, toast, processUserSpeech]);
+  
+  useEffect(() => {
+      if (isInCall && !isMuted && !isTutorinSpeaking && !isTutorinListening) {
+          // A short delay to prevent it from picking up the end of the AI's speech
+          const startListeningTimeout = setTimeout(() => {
+            recognitionRef.current?.start();
+          }, 500); 
+          return () => clearTimeout(startListeningTimeout);
+      } else if ((isMuted || isTutorinSpeaking || isTutorinListening) && recognitionRef.current?.recognizing) {
+          recognitionRef.current.stop();
+      }
+  }, [isInCall, isMuted, isTutorinSpeaking, isTutorinListening]);
+
 
   useEffect(() => {
     const handleIncomingCall = (event: any) => {
@@ -292,8 +288,6 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
       toggleMute,
       toggleCamera,
       toggleMinimize,
-      startTutorinListening,
-      stopTutorinListening,
       ringParticipant,
       answerCall,
       declineCall,
