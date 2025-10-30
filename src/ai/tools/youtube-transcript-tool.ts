@@ -10,12 +10,22 @@ const YouTubeTranscriptInputSchema = z.object({
     url: z.string().url().describe('The URL of the YouTube video.'),
 });
 
-// A simplified XML parser to extract text from the transcript
+// A more robust XML parser to extract text from the transcript
 const parseTranscript = (xml: string): string => {
     try {
-        const textNodes = xml.match(/>(.*?)</g) || [];
+        // Use a regular expression to find all content within <text>...</text> tags
+        const textNodes = xml.match(/<text[^>]*>(.*?)<\/text>/g) || [];
         return textNodes
-            .map(node => node.replace(/>|</g, '').replace(/&amp;#39;/g, "'").replace(/&quot;/g, '"').trim())
+            .map(node => {
+                // Remove the tags themselves, leaving only the inner content
+                const innerText = node.replace(/<[^>]+>/g, '');
+                // Decode HTML entities like &#39; and &quot;
+                return innerText
+                    .replace(/&amp;#39;/g, "'")
+                    .replace(/&quot;/g, '"')
+                    .replace(/&#39;/g, "'")
+                    .trim();
+            })
             .filter(text => text.length > 0)
             .join(' ');
     } catch (e) {
