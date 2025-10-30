@@ -19,7 +19,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogC
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { motion, AnimatePresence } from 'framer-motion';
 import AudioPlayer from '@/components/audio-player';
-import { generateTutoringSession, generateFlashcardsFromNote, generateExplanation } from '@/lib/actions';
+import { generateTutoringSession, generateFlashcardsFromNote, generateExplanation, generateTextTutoringSession } from '@/lib/actions';
 
 type Flashcard = {
     front: string;
@@ -89,9 +89,9 @@ export default function UploadPage() {
         setTutoringSession(null);
 
         try {
-            const result = await generateTutoringSession({
-                imageDataUri: '', // No image needed for text/URL
-                prompt: `Based on the following content, ${prompt || 'give me a full tutoring session'}:\n\n${content}`,
+            const result = await generateTextTutoringSession({
+                textContent: content,
+                prompt: prompt || 'Give me a full tutoring session on this.',
                 learnerType: (learnerType as any) ?? 'Reading/Writing'
             });
             setTutoringSession(result);

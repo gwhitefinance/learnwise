@@ -35,3 +35,5 @@ import './flows/college-description-flow';
 import './flows/college-checklist-flow';
 import './flows/essay-coach-flow';
 import './flows/daily-focus-flow';
+import './flows/text-tutoring-flow';
+

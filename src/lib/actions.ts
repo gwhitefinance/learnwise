@@ -28,14 +28,14 @@ import { generateAudio } from '@/ai/flows/text-to-speech-flow';
 import { generateMindfulnessExercise } from '@/ai/flows/mindfulness-flow';
 import { generateConceptExplanation } from '@/ai/flows/concept-explanation-flow';
 import { generateSatStudySessionAction } from '@/ai/flows/sat-study-session-flow';
-import { generateFeedbackFlow } from '@/ai/flows/sat-feedback-flow';
+import { generateFeedbackFlow as generateFeedbackAction } from '@/ai/flows/sat-feedback-flow';
 import { generateHint } from '@/ai/flows/quiz-hint-flow';
 import { enhanceExtracurricular } from '@/ai/flows/extracurricular-enhancer-flow';
 import { generateCollegeDescription } from '@/ai/flows/college-description-flow';
 import { generateCollegeChecklist } from '@/ai/flows/college-checklist-flow';
 import { generateEssayFeedback } from '@/ai/flows/essay-coach-flow';
 import { generateDailyFocus } from '@/ai/flows/daily-focus-flow';
-
+import { generateTextTutoringSession } from '@/ai/flows/text-tutoring-flow';
 
 // Re-exporting all AI functions as Server Actions
 export { 
@@ -65,11 +65,12 @@ export {
     generateMindfulnessExercise,
     generateConceptExplanation,
     generateSatStudySessionAction,
-    generateFeedbackFlow as generateFeedbackAction,
+    generateFeedbackAction,
     generateHint,
     enhanceExtracurricular,
     generateCollegeDescription,
     generateCollegeChecklist,
     generateEssayFeedback,
     generateDailyFocus,
+    generateTextTutoringSession,
 };
