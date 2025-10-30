@@ -684,7 +684,7 @@ function CoursesComponent() {
         let progress = 0;
         const interval = setInterval(() => {
             progress += Math.random() * 10;
-            if (progress > 95) { // Don't let it hit 100 on its own
+            if (progress > 98) { // Don't let it hit 100 on its own
                 clearInterval(interval);
             } else {
                 setNextChapterProgress(progress);

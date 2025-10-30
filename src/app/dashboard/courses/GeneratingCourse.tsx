@@ -19,8 +19,8 @@ const generationSteps = [
     { progress: 10, label: "Drafting course outline..." },
     { progress: 40, label: "Writing the first chapter..." },
     { progress: 75, label: "Generating activities & multimedia prompts..." },
-    { progress: 95, label: "Building your personalized roadmap..." },
-    { progress: 100, label: "Almost there!" },
+    { progress: 99, label: "Building your personalized roadmap..." },
+    { progress: 99, label: "Almost there!" },
 ];
 
 export default function GeneratingCourse({ courseName }: { courseName: string }) {
@@ -55,7 +55,7 @@ export default function GeneratingCourse({ courseName }: { courseName: string })
                     stepIndex++;
                     stepStartTime = timestamp;
                 } else {
-                    setProgress(100);
+                    setProgress(99); // Stop at 99%
                     return;
                 }
             }
