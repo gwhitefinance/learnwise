@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, Suspense, useContext } from 'react';
@@ -30,7 +31,7 @@ import { FloatingChatContext } from '@/components/floating-chat';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import GeneratingSession from '../GeneratingSession';
-import { generateSatStudySessionAction, generateMiniCourse, generateTutorResponse, generateFeedbackAction } from '@/lib/actions';
+import { generateSatStudySessionAction, generateMiniCourse, generateTutorResponse, generateFeedbackAction, generateExplanation } from '@/lib/actions';
 
 type SatQuestion = {
     category: string;
@@ -154,6 +155,7 @@ function StudySessionPageContent({ topic }: { topic: 'Math' | 'Reading & Writing
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [userAnswers, setUserAnswers] = useState<Record<number, string>>({});
     const [isSubmitted, setIsSubmitted] = useState<Record<number, boolean>>({});
+    const [isExplanationLoading, setIsExplanationLoading] = useState(false);
     
     const [questionTimers, setQuestionTimers] = useState<Record<number, number>>({});
     const [currentQuestionTime, setCurrentQuestionTime] = useState(0);
@@ -268,9 +270,33 @@ function StudySessionPageContent({ topic }: { topic: 'Math' | 'Reading & Writing
     }
 
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         setIsSubmitted(prev => ({ ...prev, [currentQuestionIndex]: true }));
         setQuestionTimers(prev => ({...prev, [currentQuestionIndex]: currentQuestionTime}));
+
+        const currentQuestion = questions[currentQuestionIndex];
+        const selectedAnswer = userAnswers[currentQuestionIndex];
+        const isCorrect = selectedAnswer === currentQuestion.correctAnswer;
+
+        if (!isCorrect) {
+            setIsExplanationLoading(true);
+            try {
+                 const { explanation } = await generateExplanation({
+                    question: currentQuestion.question,
+                    userAnswer: selectedAnswer || "No answer",
+                    correctAnswer: currentQuestion.correctAnswer,
+                    learnerType: learnerType as any,
+                    provideFullExplanation: true,
+                });
+                 setQuestions(prev => prev.map((q, i) => i === currentQuestionIndex ? { ...q, explanation } : q));
+
+            } catch (e) {
+                 console.error("Failed to generate explanation:", e);
+                 setQuestions(prev => prev.map((q, i) => i === currentQuestionIndex ? { ...q, explanation: "Could not load explanation." } : q));
+            } finally {
+                setIsExplanationLoading(false);
+            }
+        }
     };
 
     const handleNext = async () => {
@@ -352,11 +378,6 @@ function StudySessionPageContent({ topic }: { topic: 'Math' | 'Reading & Writing
             setCurrentQuestionIndex(prev => prev - 1);
         }
     };
-
-    const handleAskTutorin = (question: SatQuestion) => {
-        const prompt = `I'm confused about this SAT question: "${question.question}". Can you explain it to me in a different way? The correct answer is ${question.correctAnswer}.`;
-        openChatWithPrompt(prompt);
-    }
 
     if (isLoading) {
         return <GeneratingSession topic={topic || 'SAT Session'} />;
@@ -567,7 +588,7 @@ function StudySessionPageContent({ topic }: { topic: 'Math' | 'Reading & Writing
                                         </div>
                                         
                                         <h4 className="font-bold text-lg">Explanation</h4>
-                                        <p className="text-muted-foreground">{currentQuestion.explanation}</p>
+                                        {isExplanationLoading ? <Skeleton className="h-16 w-full" /> : <p className="text-muted-foreground">{currentQuestion.explanation}</p>}
                                     </div>
                                 )}
                             </div>

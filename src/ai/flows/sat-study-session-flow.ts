@@ -13,7 +13,7 @@ const prompt = ai.definePrompt({
     model: googleAI.model('gemini-2.5-flash'),
     input: { schema: SatStudySessionInputSchema },
     output: { schema: SatStudySessionOutputSchema },
-    prompt: `You are an expert SAT test creator. Your task is to generate a 10-question, high-difficulty, SAT-level practice study session.
+    prompt: `You are an expert SAT test creator. Your task is to generate a 10-question, high-difficulty, SAT-level practice study session. Do NOT generate the explanation for the answer.
 
     - The session should focus exclusively on the requested category: {{category}}.
     
@@ -24,7 +24,7 @@ const prompt = ai.definePrompt({
         -   **Expression of Ideas** (~2 questions): Focus on rhetorical synthesis and transitions.
         -   **Standard English Conventions** (~2 questions): Focus on boundaries (punctuation), and form, structure, and sense.
     2.  **Passages are Mandatory**: For EVERY 'Reading & Writing' question, you MUST include a relevant, concise passage (a few sentences to a short paragraph) that provides the necessary context to answer the question.
-    3.  **Complete Data**: Ensure every field (difficulty, topic, subTopic, question, options, correctAnswer, explanation) is fully populated for every question. Do not return "N/A" or leave any field blank.
+    3.  **Complete Data**: Ensure every field (difficulty, topic, subTopic, question, options, correctAnswer) is fully populated for every question. Do not return "N/A" or leave any field blank.
 
     **CRITICAL INSTRUCTIONS for 'Math' Category:**
     1.  **Mathematical Notation**: For ALL mathematical expressions, especially exponents and fractions, use proper notation. For example, use 'x²' instead of 'x^2', and use Unicode characters like '½' for fractions instead of '1/2'.
@@ -34,7 +34,7 @@ const prompt = ai.definePrompt({
         -   **Problem-Solving and Data Analysis** (~2 questions)
         -   **Geometry and Trigonometry** (~2 questions)
     3.  **Varied Question Types**: You MUST generate a mix of question formats. Create ~7-8 multiple-choice questions (with four options: A, B, C, D) and ~2-3 student-produced response (grid-in) questions. For grid-in questions, the 'options' array should be empty.
-    4.  **Complete Data**: Ensure every field (difficulty, topic, subTopic, question, options, correctAnswer, explanation) is fully populated for every question. Do not return "N/A" or leave any field blank.
+    4.  **Complete Data**: Ensure every field (difficulty, topic, subTopic, question, options, correctAnswer) is fully populated for every question. Do not return "N/A" or leave any field blank.
 
     For each of the 10 questions, provide:
     - A 'difficulty' ('Easy', 'Medium', or 'Hard').
@@ -43,7 +43,7 @@ const prompt = ai.definePrompt({
     - The question text.
     - An array of four multiple-choice options (or an empty array for grid-in questions).
     - The correct answer.
-    - A clear, concise explanation for why the correct answer is correct, tailored to a {{learnerType}} learner.
+    - DO NOT PROVIDE an explanation.
     `,
 });
 
@@ -55,11 +55,14 @@ export const generateSatStudySessionFlow = ai.defineFlow(
     outputSchema: SatStudySessionOutputSchema,
   },
   async (input) => {
+    // This flow is now a simple wrapper. The parallel logic is removed.
     const { output } = await prompt(input);
-    if (!output) {
+    if (!output || !output.questions) {
         throw new Error('Failed to generate SAT study session.');
     }
-    return output;
+    // Ensure explanation is an empty string for all questions, as the model might still generate one.
+    const questions = output.questions.map(q => ({ ...q, explanation: '' }));
+    return { questions };
   }
 );
 
