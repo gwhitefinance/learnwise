@@ -15,7 +15,6 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
-// FIX 1: Removed SatQuestion from this import
 import type { FeedbackInput } from '@/ai/schemas/sat-study-session-schema';
 import { cn } from '@/lib/utils';
 import { ArrowLeft, ArrowRight, CheckCircle, Clock, XCircle, FileText, BookOpen, Calculator, Send, Bot, Wand2, Star, Loader2 } from 'lucide-react';
@@ -25,8 +24,6 @@ import { Input } from '@/components/ui/input';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { Badge } from '@/components/ui/badge';
-// FIX 2: Removed this entire import line
-// import type { Message } from '@/components/floating-chat';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { FloatingChatContext } from '@/components/floating-chat';
@@ -35,7 +32,6 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import GeneratingSession from '../GeneratingSession';
 import { generateSatStudySessionAction, generateMiniCourse, generateTutorResponse, generateFeedbackAction } from '@/lib/actions';
 
-// FIX 1 (Continued): Added local type definition for SatQuestion
 type SatQuestion = {
     category: string;
     passage?: string;
@@ -48,7 +44,6 @@ type SatQuestion = {
     subTopic: string;
 };
 
-// FIX 2 (Continued): Added local type definition for Message
 type Message = {
     role: 'user' | 'ai';
     content: string;
@@ -374,7 +369,6 @@ function StudySessionPageContent({ topic }: { topic: 'Math' | 'Reading & Writing
             .map(([topic]) => topic);
 
         const courseName = `Personalized SAT Review: ${strugglingTopics.join(', ')}`;
-        // FIX 3: Changed 'courseName' prop to 'topic'
         return <GeneratingSession topic={courseName} />;
     }
 
@@ -539,8 +533,7 @@ function StudySessionPageContent({ topic }: { topic: 'Math' | 'Reading & Writing
                                         disabled={isCurrentAnswered}
                                     >
                                         <div className="space-y-3">
-                                            {/* FIX 4 & 5: Added types for 'option' and 'index' */}
-                                            {currentQuestion.options.map((option: string, index: number) => (
+                                            {currentQuestion.options.map((option, index) => (
                                                 <Label key={index} htmlFor={`option-${index}`} className={cn(
                                                     "flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-all",
                                                     isCurrentAnswered && option === currentQuestion.correctAnswer && "border-green-500 bg-green-500/10",
