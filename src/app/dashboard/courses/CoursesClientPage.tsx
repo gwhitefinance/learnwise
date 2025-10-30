@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useContext, Suspense, useRef } from 'react';
@@ -23,7 +24,7 @@ import AudioPlayer from '@/components/audio-player';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { generateInitialCourseAndRoadmap, generateQuizFromModule, generateTutorResponse, generateChapterContent, generateMidtermExam, generateRoadmap, generateCourseFromUrl, generateSummary, generateVideo, checkVideoOperation } from '@/lib/actions';
+import { generateInitialCourseAndRoadmap, generateQuizFromModule, generateTutorResponse, generateChapterContent, generateMidtermExam, generateRoadmap, generateCourseFromUrl, generateSummary, startVideoGenerationFlow, checkVideoOperation } from '@/lib/actions';
 import { RewardContext } from '@/context/RewardContext';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import Loading from './loading';
@@ -1008,7 +1009,7 @@ function CoursesComponent() {
       setGeneratedVideoUrl(null);
       
       try {
-        const operation = await generateVideo({
+        const operation = await startVideoGenerationFlow({
             courseName: activeCourse.name,
             episodeTitle: currentChapter.title,
             episodeContent: content,
@@ -1023,10 +1024,11 @@ function CoursesComponent() {
         if (finalOperation.error) {
             throw new Error('Video generation failed: ' + finalOperation.error.message);
         }
+        
+        const video = finalOperation.output?.message?.content.find((p: any) => !!p.media);
 
-        const videoUrl = finalOperation.output?.videoUrl;
-        if (videoUrl) {
-            setGeneratedVideoUrl(videoUrl);
+        if (video && video.media?.url) {
+            setGeneratedVideoUrl(video.media.url);
         } else {
              throw new Error('No video URL was returned from the operation.');
         }

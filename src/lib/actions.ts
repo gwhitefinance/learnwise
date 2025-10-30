@@ -22,7 +22,7 @@ import { generateNoteFromChat } from '@/ai/flows/chat-to-note-flow';
 import { generateMidtermExam } from '@/ai/flows/midterm-exam-flow';
 import { generateModuleContent } from '@/ai/flows/module-content-flow';
 import { generatePodcastEpisode } from '@/ai/flows/podcast-flow';
-import { startVideoGenerationFlow, checkVideoOperation as checkVideoOperationFlow } from '@/ai/flows/video-flow';
+import { startVideoGenerationFlow, checkVideoOperation } from '@/ai/flows/video-flow';
 import { generateSatQuestion } from '@/ai/flows/sat-question-flow';
 import { generateInitialCourseAndRoadmap } from '@/ai/flows/initial-course-flow';
 import { generateAudio } from '@/ai/flows/text-to-speech-flow';
@@ -52,8 +52,8 @@ export async function generateVideo(input: { courseName: string, episodeTitle: s
     return startVideoGenerationFlow(input);
 }
 
-export async function checkVideoOperation(operation: any) {
-    return checkVideoOperationFlow(operation);
+export async function checkVideoOperationAction(operation: any) {
+    return checkVideoOperation(operation);
 }
 
 // Re-exporting all AI functions as Server Actions
