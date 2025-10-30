@@ -243,17 +243,19 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
         const calendarEvents = eventsSnapshot.docs.map(doc => doc.data() as CalendarEvent);
 
         const learnerType = localStorage.getItem('learnerType');
+        const aiBuddyName = localStorage.getItem('aiBuddyName');
         
-        const { response, tool_code } = await studyPlannerFlow({
+        const response = await studyPlannerFlow({
             userName: user?.displayName?.split(' ')[0],
+            aiBuddyName: aiBuddyName || undefined,
             history: newHistory,
             allCourses: courses,
             calendarEvents,
             learnerType: learnerType || undefined,
         });
 
-        if (tool_code && tool_code.includes('startProblemSolving')) {
-            const topicMatch = tool_code.match(/topic='([^']+)'/);
+        if (response.tool_code && response.tool_code.includes('startProblemSolving')) {
+            const topicMatch = response.tool_code.match(/topic='([^']+)'/);
             if (topicMatch) {
                 const topic = topicMatch[1];
                 const problemSession = await generateProblemSolvingSession({ topic });
@@ -262,10 +264,10 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
             }
         }
         
-        if (response) {
-            const aiMessage: Message = { role: 'ai', content: response };
+        if (response.response) {
+            const aiMessage: Message = { role: 'ai', content: response.response };
             setConversationHistory([...newHistory, aiMessage]);
-            speak(response);
+            speak(response.response);
         }
 
     } catch (error) {
@@ -292,6 +294,7 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
     recognition.onstart = () => setIsTutorinListening(true);
     recognition.onend = () => setIsTutorinListening(false);
     recognition.onerror = (event: any) => {
+      console.error('Speech recognition error:', event.error);
       if (event.error !== 'no-speech' && event.error !== 'aborted') {
         toast({ variant: 'destructive', title: 'Voice recognition error.' });
       }
