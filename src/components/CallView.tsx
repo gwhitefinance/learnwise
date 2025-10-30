@@ -3,7 +3,7 @@
 
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Phone, Mic, MicOff, Video, VideoOff, Minimize2, Maximize2, PhoneOff, User, Radio } from 'lucide-react';
+import { Phone, Mic, MicOff, Video, VideoOff, Minimize2, Maximize2, PhoneOff, User, Radio, Hand } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { CallContext, CallParticipant } from '@/context/CallContext';
@@ -27,34 +27,23 @@ const ParticipantVideo = ({ participant, isLocalUser, videoRef, isCameraOn, onRi
                 </div>
             ) : participant.uid === 'tutorin-ai' ? (
                 <div className="w-full h-full flex items-center justify-center relative">
-                    <AIBuddy isStatic={false} className="w-24 h-24" />
-                    <AnimatePresence>
-                    {isTutorinListening && (
-                        <motion.div
-                            key="listening-indicator"
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.8 }}
-                            className="absolute inset-0 bg-primary/20 flex items-center justify-center"
-                        >
-                            <Radio className="h-12 w-12 text-primary animate-pulse"/>
-                        </motion.div>
-                    )}
-                     {isTutorinSpeaking && (
-                         <motion.div
-                            key="speaking-indicator"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="absolute bottom-4 left-4 right-4"
-                        >
-                           <div className="flex justify-center items-center gap-1">
-                                <motion.div className="h-2 w-2 bg-primary rounded-full" animate={{ y: [0, -5, 0] }} transition={{ duration: 0.8, repeat: Infinity, ease: "easeInOut" }} />
-                                <motion.div className="h-2 w-2 bg-primary rounded-full" animate={{ y: [0, -5, 0] }} transition={{ duration: 0.8, repeat: Infinity, ease: "easeInOut", delay: 0.2 }} />
-                                <motion.div className="h-2 w-2 bg-primary rounded-full" animate={{ y: [0, -5, 0] }} transition={{ duration: 0.8, repeat: Infinity, ease: "easeInOut", delay: 0.4 }}/>
-                           </div>
-                        </motion.div>
-                    )}
+                    <AIBuddy isStatic={!isTutorinSpeaking} className="w-24 h-24" />
+                     <AnimatePresence>
+                        {isTutorinSpeaking && (
+                            <motion.div
+                                key="speaking-indicator"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="absolute bottom-4 left-4 right-4"
+                            >
+                               <div className="flex justify-center items-center gap-1">
+                                    <motion.div className="h-2 w-2 bg-primary rounded-full" animate={{ y: [0, -5, 0] }} transition={{ duration: 0.8, repeat: Infinity, ease: "easeInOut" }} />
+                                    <motion.div className="h-2 w-2 bg-primary rounded-full" animate={{ y: [0, -5, 0] }} transition={{ duration: 0.8, repeat: Infinity, ease: "easeInOut", delay: 0.2 }} />
+                                    <motion.div className="h-2 w-2 bg-primary rounded-full" animate={{ y: [0, -5, 0] }} transition={{ duration: 0.8, repeat: Infinity, ease: "easeInOut", delay: 0.4 }}/>
+                               </div>
+                            </motion.div>
+                        )}
                     </AnimatePresence>
                 </div>
             ) : (
@@ -123,6 +112,8 @@ export default function CallView() {
         }
     }, [isInCall, isCameraOff, toggleCamera, isMuted]);
 
+    const hasTutorin = participants.some(p => p.uid === 'tutorin-ai');
+
     return (
         <AnimatePresence>
             {isInCall && (
@@ -166,6 +157,20 @@ export default function CallView() {
                             <Button variant={isCameraOff ? 'secondary' : 'default'} size="icon" onClick={toggleCamera} className="rounded-full h-12 w-12">
                                 {isCameraOff ? <VideoOff /> : <Video />}
                             </Button>
+                             {hasTutorin && (
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={toggleTutorinListening}
+                                    className={cn(
+                                        "rounded-full h-12 w-12 relative",
+                                        isTutorinListening ? "border-primary ring-2 ring-primary" : ""
+                                    )}
+                                >
+                                    <Hand />
+                                    {isTutorinListening && <div className="absolute inset-0 rounded-full bg-primary/20 animate-pulse"></div>}
+                                </Button>
+                            )}
                             <Button variant="destructive" size="icon" onClick={endCall} className="rounded-full h-12 w-12">
                                 <PhoneOff />
                             </Button>

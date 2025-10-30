@@ -81,17 +81,12 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
 
   const speak = useCallback((text: string) => {
     if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel(); // Cancel any ongoing speech
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.onstart = () => setIsTutorinSpeaking(true);
-    utterance.onend = () => {
-      setIsTutorinSpeaking(false);
-      // After AI finishes speaking, start listening for user response
-      if (isInCall && participants.some(p => p.uid === 'tutorin-ai')) {
-        recognitionRef.current?.start();
-      }
-    };
+    utterance.onend = () => setIsTutorinSpeaking(false);
     window.speechSynthesis.speak(utterance);
-  }, [isInCall, participants]);
+  }, []);
 
   const startCall = useCallback((callParticipants: CallParticipant[]) => {
     if (!user) return;
@@ -206,28 +201,25 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
     if (!recognitionRef.current) return;
     if (isTutorinListening) {
       recognitionRef.current.stop();
-      setIsTutorinListening(false);
     } else {
+      if (isTutorinSpeaking) {
+        window.speechSynthesis.cancel();
+      }
       recognitionRef.current.start();
     }
-  }, [isTutorinListening]);
+  }, [isTutorinListening, isTutorinSpeaking]);
   
   useEffect(() => {
-    if (!isInCall || !participants.some(p => p.uid === 'tutorin-ai')) {
-        if (recognitionRef.current) {
-            recognitionRef.current.stop();
-        }
-        return;
-    };
-    
     const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      toast({ variant: 'destructive', title: 'Voice input not supported in this browser.' });
+      if(isInCall && participants.some(p => p.uid === 'tutorin-ai')) {
+          toast({ variant: 'destructive', title: 'Voice input not supported in this browser.' });
+      }
       return;
     }
     
     const recognition = new SpeechRecognition();
-    recognition.continuous = true;
+    recognition.continuous = false;
     recognition.interimResults = false;
     
     recognition.onstart = () => setIsTutorinListening(true);
@@ -238,10 +230,7 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
     };
     
     recognition.onresult = (event: any) => {
-      let transcript = '';
-      for (let i = event.resultIndex; i < event.results.length; ++i) {
-        transcript += event.results[i][0].transcript;
-      }
+      const transcript = event.results[0][0].transcript;
       processUserSpeech(transcript);
     };
     
