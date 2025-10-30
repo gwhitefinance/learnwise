@@ -23,7 +23,7 @@ import AudioPlayer from '@/components/audio-player';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { generateInitialCourseAndRoadmap, generateQuizFromModule, generateTutorResponse, generateChapterContent, generateMidtermExam, generateRoadmap, generateCourseFromUrl, generateSummary, generateVideo } from '@/lib/actions';
+import { generateInitialCourseAndRoadmap, generateQuizFromModule, generateTutorResponse, generateChapterContent, generateMidtermExam, generateRoadmap, generateCourseFromUrl, generateSummary, generateVideo, checkVideoOperation } from '@/lib/actions';
 import { RewardContext } from '@/context/RewardContext';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import Loading from './loading';
@@ -1008,12 +1008,29 @@ function CoursesComponent() {
       setGeneratedVideoUrl(null);
       
       try {
-        const result = await generateVideo({
+        const { operation } = await generateVideo({
             courseName: activeCourse.name,
             episodeTitle: currentChapter.title,
             episodeContent: content,
         });
-        setGeneratedVideoUrl(result.videoUrl);
+        
+        let finalOperation = operation;
+        while (!finalOperation.done) {
+            await new Promise(resolve => setTimeout(resolve, 5000)); // Poll every 5 seconds
+            finalOperation = await checkVideoOperation(finalOperation);
+        }
+
+        if (finalOperation.error) {
+            throw new Error('Video generation failed: ' + finalOperation.error.message);
+        }
+
+        const videoUrl = finalOperation.output?.videoUrl;
+        if (videoUrl) {
+            setGeneratedVideoUrl(videoUrl);
+        } else {
+             throw new Error('No video URL was returned from the operation.');
+        }
+
       } catch(e: any) {
           toast({ variant: 'destructive', title: 'Video Generation Failed', description: e.message });
           setGeneratedVideoUrl(null);

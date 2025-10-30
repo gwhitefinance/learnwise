@@ -22,7 +22,7 @@ import { generateNoteFromChat } from '@/ai/flows/chat-to-note-flow';
 import { generateMidtermExam } from '@/ai/flows/midterm-exam-flow';
 import { generateModuleContent } from '@/ai/flows/module-content-flow';
 import { generatePodcastEpisode } from '@/ai/flows/podcast-flow';
-import { generateVideo } from '@/ai/flows/video-flow';
+import { generateVideo, checkVideoOperation } from '@/ai/flows/video-flow';
 import { generateSatQuestion } from '@/ai/flows/sat-question-flow';
 import { generateInitialCourseAndRoadmap } from '@/ai/flows/initial-course-flow';
 import { generateAudio } from '@/ai/flows/text-to-speech-flow';
@@ -73,6 +73,7 @@ export {
     generateModuleContent,
     generatePodcastEpisode,
     generateVideo,
+    checkVideoOperation,
     generateSatQuestion,
     generateInitialCourseAndRoadmap,
     generateAudio,

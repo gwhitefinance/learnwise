@@ -73,7 +73,7 @@ const generateVideoFlow = ai.defineFlow(
         // 2. Generate the video from the script
         let { operation } = await ai.generate({
             model: googleAI.model('veo-3.0-generate-preview'),
-            prompt: `Create an animated video visualizing the key concepts from the following text: ${input.episodeContent}`,
+            prompt: `Create a short, 5-second animated video visualizing the key concepts from the following text: ${input.episodeContent}`,
         });
 
         if (!operation) {
