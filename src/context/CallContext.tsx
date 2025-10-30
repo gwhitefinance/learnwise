@@ -1,12 +1,12 @@
 
-
 'use client';
 
 import React, { createContext, useState, useCallback, ReactNode, useEffect, useRef } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { auth } from '@/lib/firebase';
-import { studyPlannerFlow, generateSpeechFlow } from '@/lib/actions';
+import { auth, db } from '@/lib/firebase';
+import { studyPlannerFlow, generateSpeechFlow, generateProblemSolvingSession } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 
 export type CallParticipant = {
     uid: string;
@@ -20,6 +20,30 @@ interface Message {
   content: string;
 }
 
+type CalendarEvent = {
+  id: string;
+  date: string;
+  title: string;
+  startTime: string;
+  type: 'Test' | 'Homework' | 'Quiz' | 'Event' | 'Project';
+  description: string;
+};
+
+type Course = {
+    id: string;
+    name: string;
+    description: string;
+};
+
+export type ProblemSolvingSession = {
+    exampleProblem: string;
+    stepByStepSolution: string[];
+    practiceProblem: {
+        question: string;
+        answer: string;
+    };
+};
+
 interface CallContextType {
   isInCall: boolean;
   isMuted: boolean;
@@ -30,6 +54,8 @@ interface CallContextType {
   incomingCall: CallParticipant | null;
   isTutorinListening: boolean;
   isTutorinSpeaking: boolean;
+  tutorScreenContent: ProblemSolvingSession | null;
+  showTutorScreen: boolean;
   startCall: (participants: CallParticipant[]) => void;
   endCall: () => void;
   toggleMute: () => void;
@@ -38,6 +64,7 @@ interface CallContextType {
   ringParticipant: (uid: string) => void;
   answerCall: () => void;
   declineCall: () => void;
+  setShowTutorScreen: (show: boolean) => void;
 }
 
 export const CallContext = createContext<CallContextType>({
@@ -50,6 +77,8 @@ export const CallContext = createContext<CallContextType>({
   incomingCall: null,
   isTutorinListening: false,
   isTutorinSpeaking: false,
+  tutorScreenContent: null,
+  showTutorScreen: false,
   startCall: () => {},
   endCall: () => {},
   toggleMute: () => {},
@@ -58,6 +87,7 @@ export const CallContext = createContext<CallContextType>({
   ringParticipant: () => {},
   answerCall: () => {},
   declineCall: () => {},
+  setShowTutorScreen: () => {},
 });
 
 export const CallProvider = ({ children }: { children: ReactNode }) => {
@@ -77,6 +107,10 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
   const [conversationHistory, setConversationHistory] = useState<Message[]>([]);
   const recognitionRef = useRef<any>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  
+  // New state for the Tutor Screen
+  const [tutorScreenContent, setTutorScreenContent] = useState<ProblemSolvingSession | null>(null);
+  const [showTutorScreen, setShowTutorScreen] = useState(false);
 
   const speak = useCallback(async (text: string) => {
     if (!text) return;
@@ -146,6 +180,8 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
     setIsInCall(false);
     setParticipants([]);
     setLocalParticipant(null);
+    setShowTutorScreen(false);
+    setTutorScreenContent(null);
     if (recognitionRef.current) recognitionRef.current.stop();
     if (audioRef.current) {
         audioRef.current.pause();
@@ -191,20 +227,47 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
   }, []);
   
   const processUserSpeech = async (transcript: string) => {
-    if (!transcript.trim()) return;
+    if (!transcript.trim() || !user) return;
 
     const userMessage: Message = { role: 'user', content: transcript };
     const newHistory = [...conversationHistory, userMessage];
     setConversationHistory(newHistory);
 
     try {
-        const response = await studyPlannerFlow({
+        const qCourses = query(collection(db, "courses"), where("userId", "==", user.uid));
+        const coursesSnapshot = await getDocs(qCourses);
+        const courses = coursesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
+        
+        const qEvents = query(collection(db, "calendarEvents"), where("userId", "==", user.uid));
+        const eventsSnapshot = await getDocs(qEvents);
+        const calendarEvents = eventsSnapshot.docs.map(doc => doc.data() as CalendarEvent);
+
+        const learnerType = localStorage.getItem('learnerType');
+        
+        const { response, tool_code } = await studyPlannerFlow({
             userName: user?.displayName?.split(' ')[0],
             history: newHistory,
+            allCourses: courses,
+            calendarEvents,
+            learnerType: learnerType || undefined,
         });
-        const aiMessage: Message = { role: 'ai', content: response };
-        setConversationHistory([...newHistory, aiMessage]);
-        speak(response);
+
+        if (tool_code && tool_code.includes('startProblemSolving')) {
+            const topicMatch = tool_code.match(/topic='([^']+)'/);
+            if (topicMatch) {
+                const topic = topicMatch[1];
+                const problemSession = await generateProblemSolvingSession({ topic });
+                setTutorScreenContent(problemSession);
+                setShowTutorScreen(true);
+            }
+        }
+        
+        if (response) {
+            const aiMessage: Message = { role: 'ai', content: response };
+            setConversationHistory([...newHistory, aiMessage]);
+            speak(response);
+        }
+
     } catch (error) {
         console.error("AI chat error in call:", error);
         const errorMessage = "Sorry, I had trouble understanding that. Could you say it again?";
@@ -229,7 +292,6 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
     recognition.onstart = () => setIsTutorinListening(true);
     recognition.onend = () => setIsTutorinListening(false);
     recognition.onerror = (event: any) => {
-      console.error('Speech recognition error:', event.error);
       if (event.error !== 'no-speech' && event.error !== 'aborted') {
         toast({ variant: 'destructive', title: 'Voice recognition error.' });
       }
@@ -247,7 +309,6 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
   
   useEffect(() => {
       if (isInCall && !isMuted && !isTutorinSpeaking && !isTutorinListening) {
-          // A short delay to prevent it from picking up the end of the AI's speech
           const startListeningTimeout = setTimeout(() => {
             recognitionRef.current?.start();
           }, 500); 
@@ -283,6 +344,8 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
       incomingCall,
       isTutorinListening,
       isTutorinSpeaking,
+      tutorScreenContent,
+      showTutorScreen,
       startCall,
       endCall,
       toggleMute,
@@ -291,6 +354,7 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
       ringParticipant,
       answerCall,
       declineCall,
+      setShowTutorScreen,
     }}>
       {children}
     </CallContext.Provider>
