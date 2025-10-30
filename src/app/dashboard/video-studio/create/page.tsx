@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -40,7 +40,7 @@ export default function CreateVideoPage() {
 
     const router = useRouter();
     const { toast } = useToast();
-    const [user] = useAuthState(auth);
+    const [user, authLoading] = useAuthState(auth);
 
     useEffect(() => {
         if (authLoading || !user) return;
