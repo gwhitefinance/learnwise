@@ -3,7 +3,7 @@
 
 import { ai } from '@/ai/genkit';
 import { googleAI } from '@genkit-ai/google-genai';
-import { generateVideoInputSchema, generateVideoOutputSchema, type GenerateVideoInput, type GenerateVideoOutput } from '@/ai/schemas/video-schema';
+import { generateVideoInputSchema } from '@/ai/schemas/video-schema';
 import * as z from 'zod';
 
 
@@ -29,6 +29,4 @@ const generateVideoFlow = ai.defineFlow(
     }
 );
 
-export async function generateVideo(input: GenerateVideoInput): Promise<{ operation: any }> {
-    return generateVideoFlow(input);
-}
+export default generateVideoFlow;
