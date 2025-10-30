@@ -3,28 +3,29 @@
 
 import React, { useState, useEffect, useRef, useCallback, useContext } from 'react';
 import { Button } from './ui/button';
-import { Headphones, Play, Pause, X, Mic, Hand, StopCircle, Square } from 'lucide-react';
+import { Headphones, Play, Pause, X, Mic, Hand, StopCircle, Square, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import AIBuddy from './ai-buddy';
 import Draggable from 'react-draggable';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FloatingChatContext } from './floating-chat';
-
+import { studyPlannerFlow } from '@/lib/actions';
 
 interface ListenAssistantProps {
   chapterContent: string;
   onClose: () => void;
 }
 
+type AssistantState = 'idle' | 'speaking_chapter' | 'listening_question' | 'processing_question' | 'speaking_answer';
+
 const ListenAssistant: React.FC<ListenAssistantProps> = ({ chapterContent, onClose }) => {
   const [isMounted, setIsMounted] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [assistantState, setAssistantState] = useState<AssistantState>('idle');
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const recognitionRef = useRef<any>(null);
   const { toast } = useToast();
   const draggableRef = useRef(null);
-  const { openChatWithPrompt } = useContext(FloatingChatContext);
-
 
   useEffect(() => {
     setIsMounted(true);
@@ -37,32 +38,63 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ chapterContent, onClo
       
       const setVoice = () => {
         const voices = window.speechSynthesis.getVoices();
-        // Let's try to find a high-quality voice
         const preferredVoice = voices.find(voice => voice.name.includes('Google') && voice.lang.startsWith('en')) || voices.find(voice => voice.lang.startsWith('en-US'));
         if (preferredVoice) {
           utterance.voice = preferredVoice;
         }
       }
       
-      // Voices are loaded asynchronously
       if(window.speechSynthesis.getVoices().length > 0) {
         setVoice();
       } else {
         window.speechSynthesis.onvoiceschanged = setVoice;
       }
 
-      utterance.onend = () => setIsPlaying(false);
+      utterance.onend = () => setAssistantState('idle');
       utterance.onerror = (e) => {
         console.error('SpeechSynthesis Error', e);
         toast({ variant: 'destructive', title: 'Could not play audio.' });
-        setIsPlaying(false);
+        setAssistantState('idle');
       };
       utteranceRef.current = utterance;
     }
 
+    // Setup Speech Recognition
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = false;
+      recognitionRef.current.lang = 'en-US';
+
+      recognitionRef.current.onresult = (event: any) => {
+        const userQuestion = event.results[0][0].transcript;
+        setAssistantState('processing_question');
+        handleAIResponse(userQuestion);
+      };
+
+      recognitionRef.current.onerror = (event: any) => {
+        console.error('Speech recognition error', event.error);
+        if (event.error !== 'no-speech' && event.error !== 'aborted') {
+             toast({ variant: 'destructive', title: 'Voice recognition error.' });
+        }
+        setAssistantState('idle');
+      };
+      
+       recognitionRef.current.onend = () => {
+         if (assistantState === 'listening_question') {
+            setAssistantState('idle');
+         }
+      };
+    }
+
+
     return () => {
       if (window.speechSynthesis) {
         window.speechSynthesis.cancel();
+      }
+      if (recognitionRef.current) {
+        recognitionRef.current.abort();
       }
     };
   }, [chapterContent, toast]);
@@ -73,29 +105,67 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ chapterContent, onClo
         return;
     }
 
-    if (isPlaying) {
-      window.speechSynthesis.pause(); // Use pause instead of cancel
-      setIsPlaying(false);
+    if (assistantState === 'speaking_chapter') {
+      window.speechSynthesis.pause(); 
+      setAssistantState('idle');
     } else {
         if(window.speechSynthesis.paused) {
              window.speechSynthesis.resume();
         } else {
              window.speechSynthesis.speak(utteranceRef.current);
         }
-      setIsPlaying(true);
+      setAssistantState('speaking_chapter');
     }
   };
 
   const handleRaiseHand = () => {
-    if (isPlaying) {
+    if (assistantState === 'speaking_chapter') {
         window.speechSynthesis.pause();
-        setIsPlaying(false);
     }
-    openChatWithPrompt(`I have a question about this: "${chapterContent.substring(0, 150)}..."`);
+    setAssistantState('listening_question');
+    if (recognitionRef.current) {
+        recognitionRef.current.start();
+    } else {
+        toast({ variant: 'destructive', title: 'Voice input not supported in this browser.' });
+        setAssistantState('idle');
+    }
+  };
+
+  const handleAIResponse = async (question: string) => {
+    try {
+        const response = await studyPlannerFlow({
+            history: [{role: 'user', content: `In the context of the following text: "${chapterContent.substring(0, 500)}...", the user asked: ${question}`}],
+        });
+        
+        const answerUtterance = new SpeechSynthesisUtterance(response);
+        answerUtterance.lang = 'en-US';
+        const voices = window.speechSynthesis.getVoices();
+        const preferredVoice = voices.find(voice => voice.name.includes('Google') && voice.lang.startsWith('en')) || voices.find(voice => voice.lang.startsWith('en-US'));
+        if (preferredVoice) {
+            answerUtterance.voice = preferredVoice;
+        }
+        answerUtterance.onstart = () => setAssistantState('speaking_answer');
+        answerUtterance.onend = () => setAssistantState('idle');
+        window.speechSynthesis.speak(answerUtterance);
+        
+    } catch(error) {
+        console.error("AI response error:", error);
+        toast({ variant: 'destructive', title: 'Could not get an answer from the AI.'});
+        setAssistantState('idle');
+    }
   };
   
   if (!isMounted) return null;
 
+  const getStatusText = () => {
+    switch (assistantState) {
+      case 'speaking_chapter': return "Reading Aloud...";
+      case 'listening_question': return "Listening...";
+      case 'processing_question': return "Thinking...";
+      case 'speaking_answer': return "Answering...";
+      default: return "Listen Assistant";
+    }
+  }
 
   return (
     <Draggable nodeRef={draggableRef} handle=".drag-handle">
@@ -111,31 +181,32 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ chapterContent, onClo
         
         <AIBuddy
             className="w-32 h-32 mb-4"
-            isStatic={!isPlaying}
+            isStatic={assistantState === 'idle'}
         />
         
         <AnimatePresence mode="wait">
             <motion.div
-                key={isPlaying ? 'speaking' : 'idle'}
+                key={assistantState}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 className="h-10 flex items-center justify-center"
             >
-                <p className="text-xl font-bold">
-                   {isPlaying ? "Reading Aloud..." : "Listen Assistant"}
+                <p className="text-xl font-bold flex items-center gap-2">
+                   {getStatusText()}
+                   {(assistantState === 'listening_question' || assistantState === 'processing_question') && <Loader2 className="h-5 w-5 animate-spin" />}
                 </p>
             </motion.div>
         </AnimatePresence>
 
         <div className="flex items-center justify-center gap-4 mt-6">
             <Button onClick={handlePlayPause} variant="outline" size="lg" className="rounded-full">
-                {isPlaying ? <Pause /> : <Play />}
-                <span className="ml-2">{isPlaying ? 'Pause' : 'Play'}</span>
+                {assistantState === 'speaking_chapter' ? <Pause /> : <Play />}
+                <span className="ml-2">{assistantState === 'speaking_chapter' ? 'Pause' : 'Play'}</span>
             </Button>
-             <Button onClick={handleRaiseHand} variant="secondary" size="lg" className="rounded-full">
+             <Button onClick={handleRaiseHand} variant="secondary" size="lg" className="rounded-full" disabled={assistantState !== 'idle' && assistantState !== 'speaking_chapter'}>
                 <Hand/>
-                <span className="ml-2">Raise Hand</span>
+                <span className="ml-2">Question</span>
             </Button>
         </div>
       </motion.div>
