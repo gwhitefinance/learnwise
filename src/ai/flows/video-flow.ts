@@ -73,7 +73,7 @@ const generateVideoFlow = ai.defineFlow(
         // 2. Generate the video from the script
         let { operation } = await ai.generate({
             model: googleAI.model('veo-2.0-generate-001'),
-            prompt: `Create an engaging, educational video about ${input.episodeTitle}. The video should be visually appealing with animated text, diagrams, and stock footage related to these concepts: ${input.episodeContent.substring(0, 500)}`,
+            prompt: `Create a 5-second animated video visualizing the key concepts from the following text: ${input.episodeContent}`,
             config: {
               durationSeconds: 5,
               aspectRatio: '16:9',
@@ -86,7 +86,7 @@ const generateVideoFlow = ai.defineFlow(
 
         // Wait until the operation completes.
         while (!operation.done) {
-            await new Promise((resolve) => setTimeout(resolve, 10000)); // Increased polling delay
+            await new Promise((resolve) => setTimeout(resolve, 10000));
             operation = await ai.checkOperation(operation);
         }
 
@@ -112,5 +112,3 @@ const generateVideoFlow = ai.defineFlow(
 export async function generateVideo(input: GenerateVideoInput): Promise<GenerateVideoOutput> {
     return generateVideoFlow(input);
 }
-
-    
