@@ -6,9 +6,9 @@ import { googleAI } from '@genkit-ai/google-genai';
 import { generateVideoInputSchema } from '@/ai/schemas/video-schema';
 import * as z from 'zod';
 
-const generateVideoFlow = ai.defineFlow(
+export const startVideoGenerationFlow = ai.defineFlow(
     {
-        name: 'generateVideoFlow',
+        name: 'startVideoGenerationFlow',
         inputSchema: generateVideoInputSchema,
         outputSchema: z.any(),
     },
@@ -26,16 +26,14 @@ const generateVideoFlow = ai.defineFlow(
     }
 );
 
-export const startVideoGeneration = ai.defineFlow(
+export const checkVideoOperation = ai.defineFlow(
   {
-    name: 'startVideoGeneration',
-    inputSchema: generateVideoInputSchema,
+    name: 'checkVideoOperation',
+    inputSchema: z.any(),
     outputSchema: z.any(),
   },
-  async (input) => {
-    // Use ai.run() to start the flow without waiting for it to complete.
-    // This returns immediately with the operation name.
-    const operation = await ai.run(generateVideoFlow, input);
-    return operation;
+  async (operation) => {
+    const result = await ai.checkOperation(operation);
+    return result;
   }
 );
