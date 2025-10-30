@@ -282,6 +282,11 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
     const [focusTimer, setFocusTimer] = useState<number | null>(null);
     const [dailyRewardClaimed, setDailyRewardClaimed] = useState(false);
 
+    const getTasksKey = useCallback(() => {
+        if (!user) return null;
+        return `dailyFocusTasks_${user.uid}_${new Date().toDateString()}`;
+    }, [user]);
+
     const handleAiSuggestions = useCallback(async () => {
         setIsAiSuggesting(true);
         try {
@@ -298,9 +303,9 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
             }));
             setTodos(prev => [...prev.filter(t => !t.isAiGenerated), ...newAiTodos]);
             setDailyRewardClaimed(false);
-            if(user) {
-                localStorage.removeItem(`dailyFocusReward_${user.uid}_${new Date().toDateString()}`);
-            }
+            const rewardKey = `dailyFocusReward_${user?.uid}_${new Date().toDateString()}`;
+            if(rewardKey) localStorage.removeItem(rewardKey);
+
         } catch (error) {
             console.error("Failed to get AI suggestions:", error);
             toast({ variant: 'destructive', title: "AI Error", description: "Could not generate focus tasks." });
@@ -311,9 +316,35 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
 
     useEffect(() => {
         if (!user) return;
-        const rewardClaimed = localStorage.getItem(`dailyFocusReward_${user.uid}_${new Date().toDateString()}`);
+        const tasksKey = getTasksKey();
+        if (!tasksKey) return;
+        
+        try {
+            const savedTasks = localStorage.getItem(tasksKey);
+            if (savedTasks) {
+                setTodos(JSON.parse(savedTasks));
+            } else {
+                 handleAiSuggestions();
+            }
+        } catch (error) {
+            console.error("Failed to load tasks from localStorage", error);
+        }
+        
+        const rewardKey = `dailyFocusReward_${user.uid}_${new Date().toDateString()}`;
+        const rewardClaimed = localStorage.getItem(rewardKey);
         if(rewardClaimed) setDailyRewardClaimed(true);
-    }, [user]);
+    }, [user, getTasksKey, handleAiSuggestions]);
+
+    useEffect(() => {
+        const tasksKey = getTasksKey();
+        if (!tasksKey) return;
+        try {
+            localStorage.setItem(tasksKey, JSON.stringify(todos));
+        } catch (error) {
+            console.error("Failed to save tasks to localStorage", error);
+        }
+    }, [todos, getTasksKey]);
+
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -332,13 +363,13 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
     }, [todos]);
     
     useEffect(() => {
-        if (focusTimer === 0) {
+        if (focusTimer !== null && focusTimer <= 0) {
             handleAiSuggestions();
         }
     }, [focusTimer, handleAiSuggestions]);
 
     useEffect(() => {
-        if (dailyRewardClaimed) return;
+        if (dailyRewardClaimed || !user) return;
         const aiTasks = todos.filter(t => t.isAiGenerated);
         if (aiTasks.length > 0 && aiTasks.every(t => t.completed)) {
             const reward = async () => {
@@ -347,7 +378,8 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                     await updateDoc(doc(db, 'users', user.uid), { coins: increment(50) });
                     showReward({ type: 'coins', amount: 50 });
                     toast({ title: "Daily Focus Complete!", description: "You've earned 50 coins!" });
-                    localStorage.setItem(`dailyFocusReward_${user.uid}_${new Date().toDateString()}`, 'true');
+                    const rewardKey = `dailyFocusReward_${user.uid}_${new Date().toDateString()}`;
+                    localStorage.setItem(rewardKey, 'true');
                     setDailyRewardClaimed(true);
                 } catch (e) {
                     console.error("Failed to give daily reward", e);
@@ -396,23 +428,6 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
         unsubscribes.push(onSnapshot(qCourses, (snapshot) => {
             const userCourses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
             setCourses(userCourses);
-
-             // Set initial todo item
-            if (todos.filter(t => !t.isAiGenerated).length === 0) { // Only set initial if list is empty
-                const firstIncompleteCourse = userCourses.find(c => {
-                    const totalChapters = c.units?.reduce((acc, unit) => acc + (unit.chapters?.length ?? 0), 0) ?? 0;
-                    return totalChapters > (c.completedChapters?.length ?? 0);
-                });
-                if (firstIncompleteCourse) {
-                    const firstModule = firstIncompleteCourse.units?.find(u => u.chapters && u.chapters.some(ch => !firstIncompleteCourse.completedChapters?.includes(ch.id)));
-                    const firstChapter = firstModule?.chapters?.find(ch => !firstIncompleteCourse.completedChapters?.includes(ch.id));
-                    if(firstChapter) {
-                        setTodos(prev => [...prev, { id: `initial-${firstIncompleteCourse.id}`, text: `Continue "${firstIncompleteCourse.name}": ${firstChapter.title}`, completed: false, isEditing: false }]);
-                    }
-                }
-            }
-
-
             setIsDataLoading(false);
         }));
 
