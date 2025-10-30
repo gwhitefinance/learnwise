@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useContext } from 'react';
 import { Button } from './ui/button';
 import { Headphones, Play, Pause, X, Mic, Hand, StopCircle, Square } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -9,6 +9,8 @@ import { cn } from '@/lib/utils';
 import AIBuddy from './ai-buddy';
 import Draggable from 'react-draggable';
 import { motion, AnimatePresence } from 'framer-motion';
+import { FloatingChatContext } from './floating-chat';
+
 
 interface ListenAssistantProps {
   chapterContent: string;
@@ -21,6 +23,8 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ chapterContent, onClo
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const { toast } = useToast();
   const draggableRef = useRef(null);
+  const { openChatWithPrompt } = useContext(FloatingChatContext);
+
 
   useEffect(() => {
     setIsMounted(true);
@@ -33,7 +37,8 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ chapterContent, onClo
       
       const setVoice = () => {
         const voices = window.speechSynthesis.getVoices();
-        const preferredVoice = voices.find(voice => voice.name === 'Google US English' && voice.lang === 'en-US');
+        // Let's try to find a high-quality voice
+        const preferredVoice = voices.find(voice => voice.name.includes('Google') && voice.lang.startsWith('en')) || voices.find(voice => voice.lang.startsWith('en-US'));
         if (preferredVoice) {
           utterance.voice = preferredVoice;
         }
@@ -69,12 +74,24 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ chapterContent, onClo
     }
 
     if (isPlaying) {
-      window.speechSynthesis.cancel();
+      window.speechSynthesis.pause(); // Use pause instead of cancel
       setIsPlaying(false);
     } else {
-      window.speechSynthesis.speak(utteranceRef.current);
+        if(window.speechSynthesis.paused) {
+             window.speechSynthesis.resume();
+        } else {
+             window.speechSynthesis.speak(utteranceRef.current);
+        }
       setIsPlaying(true);
     }
+  };
+
+  const handleRaiseHand = () => {
+    if (isPlaying) {
+        window.speechSynthesis.pause();
+        setIsPlaying(false);
+    }
+    openChatWithPrompt(`I have a question about this: "${chapterContent.substring(0, 150)}..."`);
   };
   
   if (!isMounted) return null;
@@ -113,8 +130,12 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ chapterContent, onClo
 
         <div className="flex items-center justify-center gap-4 mt-6">
             <Button onClick={handlePlayPause} variant="outline" size="lg" className="rounded-full">
-                {isPlaying ? <StopCircle /> : <Headphones />}
-                <span className="ml-2">{isPlaying ? 'Stop' : 'Listen'}</span>
+                {isPlaying ? <Pause /> : <Play />}
+                <span className="ml-2">{isPlaying ? 'Pause' : 'Play'}</span>
+            </Button>
+             <Button onClick={handleRaiseHand} variant="secondary" size="lg" className="rounded-full">
+                <Hand/>
+                <span className="ml-2">Raise Hand</span>
             </Button>
         </div>
       </motion.div>
