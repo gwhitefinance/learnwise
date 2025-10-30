@@ -77,7 +77,7 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
     
     setIsInCall(true);
     setIsMinimized(false);
-    setIsCameraOff(false);
+    setIsCameraOff(false); // Default to camera on when starting a call
     setIsMuted(false);
 
   }, [user]);
@@ -85,23 +85,11 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
   const ringParticipant = useCallback((uid: string) => {
     setParticipants(prev => prev.map(p => p.uid === uid ? { ...p, status: 'Ringing' } : p));
     
-    // In a real app, this event would be sent over a server to the specific user.
-    // Here we dispatch it globally for simulation purposes.
     if (localParticipant) {
          window.dispatchEvent(new CustomEvent('incoming-call-simulation', {
             detail: { caller: localParticipant, recipientId: uid }
         }));
     }
-
-    // Simulate user accepting the call after a delay
-    setTimeout(() => {
-      setParticipants(prev => prev.map(p => {
-        if (p.uid === uid && p.status === 'Ringing') {
-          return { ...p, status: 'In Call' };
-        }
-        return p;
-      }));
-    }, 8000); // Increased delay to allow for "answering"
   }, [localParticipant]);
 
   const endCall = useCallback(() => {
@@ -115,7 +103,6 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
     
     setIsInCall(true);
     setParticipants(prev => {
-        // Avoid adding the caller if they are already in the participants list from another context
         if (prev.some(p => p.uid === incomingCall.uid)) {
             return prev.map(p => p.uid === incomingCall.uid ? {...p, status: 'In Call'} : p);
         }
@@ -139,22 +126,27 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const toggleCamera = useCallback(() => {
-    setIsCameraOff(prev => !prev);
+    setIsCameraOff(prev => {
+        // If turning camera off, also stop the tracks.
+        if (!prev === true) {
+            // This logic will be inside the CallView component where videoRef exists.
+            // For now, we just toggle the state.
+        }
+        return !prev;
+    });
   }, []);
+
 
   const toggleMinimize = useCallback(() => {
     setIsMinimized(prev => !prev);
   }, []);
   
-  // This is a simulation effect for receiving a call
   useEffect(() => {
     const handleIncomingCall = (event: any) => {
         if (!user || event.detail.caller.uid === user.uid || event.detail.recipientId !== user.uid) {
-            // Don't show incoming call notification to the person who initiated it or if it's not for me.
             return;
         }
 
-        // Only show if the event is meant for this user
         if (!isInCall) {
            setIncomingCall(event.detail.caller);
         }

@@ -7,7 +7,7 @@ import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Play, Pause, ChevronLeft, ChevronRight, Wand2, FlaskConical, Lightbulb, Copy, RefreshCw, Check, Star, CheckCircle, Send, Bot, User, GitMerge, PanelLeft, Minimize, Maximize, Loader2, Plus, Trash2, MoreVertical, XCircle, ArrowRight, RotateCcw, Video, Image as ImageIcon, BookCopy, Link as LinkIcon, Headphones, Underline, Highlighter, Rabbit, Snail, Turtle, Book, Mic, Bookmark, Brain, KeySquare, ArrowLeft } from 'lucide-react';
+import { Play, Pause, ChevronLeft, ChevronRight, Wand2, FlaskConical, Lightbulb, Copy, RefreshCw, Check, Star, CheckCircle, Send, Bot, User, GitMerge, PanelLeft, Minimize, Maximize, Loader2, Plus, Trash2, MoreVertical, XCircle, ArrowRight, RotateCcw, Video, Image as ImageIcon, BookCopy, Link as LinkIcon, Headphones, Underline, Highlighter, Rabbit, Snail, Turtle, Book, Mic, Bookmark, Brain, KeySquare, ArrowLeft, Phone } from 'lucide-react';
 import Link from 'next/link';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
@@ -34,7 +34,7 @@ import Image from 'next/image';
 import { Textarea } from '@/components/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import GeneratingCourse from './GeneratingCourse';
-import ListenAssistant from '@/components/ListenAssistant';
+import { CallContext } from '@/context/CallContext';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import AIBuddy from '@/components/ai-buddy';
 
@@ -118,6 +118,7 @@ function CoursesComponent() {
   const { toast } = useToast();
   const [user, authLoading] = useAuthState(auth);
   const { showReward } = useContext(RewardContext);
+  const { startCall } = useContext(CallContext);
 
   const [currentModuleIndex, setCurrentModuleIndex] = useState(0);
   const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
@@ -169,8 +170,6 @@ function CoursesComponent() {
   const [summaryForPopup, setSummaryForPopup] = useState('');
   const [isSummaryLoading, setIsSummaryLoading] = useState(false);
   const [nextChapterProgress, setNextChapterProgress] = useState(0);
-
-  const [isListenAssistantVisible, setIsListenAssistantVisible] = useState(false);
 
   const [inlineQuizStates, setInlineQuizStates] = useState<Record<string, InlineQuizState>>({});
 
@@ -267,7 +266,7 @@ function CoursesComponent() {
     if (selectedCourseId) {
         loadCourseData();
     }
-  }, [selectedCourseId, user]);
+  }, [selectedCourseId, user, toast]);
   
 
     useEffect(() => {
@@ -1037,14 +1036,19 @@ function CoursesComponent() {
           setIsVideoGenerating(false);
       }
   }
+  
+  const handleStartTutorCall = () => {
+    const aiParticipant = {
+        uid: 'tutorin-ai',
+        displayName: 'Tutorin',
+        status: 'Online',
+    };
+    startCall([aiParticipant]);
+  };
 
   const chapterCount = activeCourse?.units?.reduce((acc, unit) => acc + (unit.chapters?.length ?? 0), 0) ?? 0;
   const completedChaptersCount = activeCourse?.completedChapters?.length ?? 0;
   const progress = chapterCount > 0 ? (completedChaptersCount / chapterCount) * 100 : 0;
-  
-  const fullChapterContentString = Array.isArray(currentChapter?.content)
-    ? currentChapter!.content.map(b => b.content || '').join('\n')
-    : currentChapter?.content || '';
 
   if (isGenerating) {
     return <GeneratingCourse courseName={generatingCourseName} />;
@@ -1400,12 +1404,6 @@ function CoursesComponent() {
 
   return (
     <>
-      {isListenAssistantVisible && fullChapterContentString && (
-        <ListenAssistant 
-            chapterContent={fullChapterContentString}
-            onClose={() => setIsListenAssistantVisible(false)}
-        />
-      )}
       <Dialog open={isSummaryDialogOpen} onOpenChange={setIsSummaryDialogOpen}>
           <DialogContent onInteractOutside={(e) => e.preventDefault()} className="sm:max-w-md">
               <DialogHeader>
@@ -1587,8 +1585,8 @@ function CoursesComponent() {
                     <PanelLeft className="h-5 w-5" />
                 </Button>
                 <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" onClick={() => setIsListenAssistantVisible(true)}>
-                        <Headphones className="mr-2 h-4 w-4"/> Listen to Chapter
+                    <Button variant="outline" size="sm" onClick={handleStartTutorCall}>
+                        <Phone className="mr-2 h-4 w-4"/> Start Tutorin Session
                     </Button>
                     <Button variant="outline" onClick={toggleFocusMode}>
                         {isFocusMode ? <Minimize className="mr-2 h-4 w-4"/> : <Maximize className="mr-2 h-4 w-4"/>}
