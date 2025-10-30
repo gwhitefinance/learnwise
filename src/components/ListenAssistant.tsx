@@ -112,6 +112,7 @@ const ListenAssistant: React.FC<ListenAssistantProps> = ({ chapterContent, onClo
         if(window.speechSynthesis.paused) {
              window.speechSynthesis.resume();
         } else {
+             window.speechSynthesis.cancel();
              window.speechSynthesis.speak(utteranceRef.current);
         }
       setAssistantState('speaking_chapter');
