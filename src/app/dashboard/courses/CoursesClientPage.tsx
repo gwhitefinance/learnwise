@@ -1008,7 +1008,7 @@ function CoursesComponent() {
       setGeneratedVideoUrl(null);
       
       try {
-        const { operation } = await generateVideo({
+        const operation = await generateVideo({
             courseName: activeCourse.name,
             episodeTitle: currentChapter.title,
             episodeContent: content,
@@ -1412,11 +1412,10 @@ function CoursesComponent() {
           <DialogContent onInteractOutside={(e) => e.preventDefault()} className="sm:max-w-md">
               <DialogHeader>
                   <DialogTitle className="flex items-center gap-2"><Book className="h-5 w-5 text-primary"/>Chapter Summary</DialogTitle>
-                  <DialogDescription>
-                      {summaryForPopup}
-                  </DialogDescription>
+                  <DialogDescription>A quick recap of what you just learned.</DialogDescription>
               </DialogHeader>
               <div className="py-4 space-y-4">
+                   <p className="text-muted-foreground">{summaryForPopup}</p>
                   <div className="pt-4">
                       <div className="flex justify-between items-center">
                           <p className="text-xs text-muted-foreground mb-1">Preparing next chapter...</p>
@@ -1431,6 +1430,7 @@ function CoursesComponent() {
           <DialogContent className="max-w-2xl">
               <DialogHeader>
                 <DialogTitle>AI Video for "{videoForChapter}"</DialogTitle>
+                <DialogDescription>A short animated video to help visualize the chapter content.</DialogDescription>
               </DialogHeader>
                <div className="py-4">
                 {isVideoGenerating ? (
@@ -1451,6 +1451,7 @@ function CoursesComponent() {
        <DialogContent>
           <DialogHeader>
             <DialogTitle>Save Highlight as Note</DialogTitle>
+            <DialogDescription>Your highlighted text will be saved as a new note.</DialogDescription>
           </DialogHeader>
           <div className="py-4 space-y-4">
             <Textarea value={noteContent} readOnly className="h-32 bg-muted"/>
@@ -1758,9 +1759,12 @@ function CoursesComponent() {
                                     <DialogContent>
                                         <DialogHeader>
                                             <DialogTitle>Add a New Unit</DialogTitle>
+                                            <DialogDescription>Create a new unit for your course.</DialogDescription>
+                                        </DialogHeader>
+                                        <div className="py-4">
                                             <Label htmlFor="unit-title">Unit Title</Label>
                                             <Input id="unit-title" value={newUnitTitle} onChange={(e) => setNewUnitTitle(e.target.value)} placeholder="e.g., Unit 1: Introduction"/>
-                                        </DialogHeader>
+                                        </div>
                                         <DialogFooter>
                                             <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
                                             <Button onClick={handleManualAddUnit}>Add Unit</Button>
@@ -1772,9 +1776,12 @@ function CoursesComponent() {
                                      <DialogContent>
                                         <DialogHeader>
                                             <DialogTitle>Generate Units from URL</DialogTitle>
+                                            <DialogDescription>Paste a URL (e.g., article, syllabus) to automatically generate units.</DialogDescription>
+                                        </DialogHeader>
+                                         <div className="py-4">
                                             <Label htmlFor="units-url">Content URL</Label>
                                             <Input id="units-url" value={newUnitsUrl} onChange={(e) => setNewUnitsUrl(e.target.value)} placeholder="https://example.com/course-syllabus"/>
-                                        </DialogHeader>
+                                        </div>
                                         <DialogFooter>
                                             <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
                                             <Button onClick={handleAddUnitsFromUrl} disabled={isGenerating}>
@@ -1801,5 +1808,3 @@ export default function CoursesClientPage() {
         </Suspense>
     )
 }
-
-    
