@@ -48,6 +48,7 @@ import {
   ChevronRight,
   RefreshCw,
   Target,
+  Loader2,
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -81,7 +82,7 @@ import dynamic from 'next/dynamic';
 import AIBuddy from '@/components/ai-buddy';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import rewardsData from '@/lib/rewards.json';
-import { generateExplanation, generateRoadmap, generateFlashcardsFromModule, generateChapterContent } from '@/lib/actions';
+import { generateExplanation, generateRoadmap, generateFlashcardsFromModule, generateChapterContent, generateDailyFocus } from '@/lib/actions';
 import AudioPlayer from '@/components/audio-player';
 import type { GenerateExplanationOutput } from '@/ai/schemas/quiz-explanation-schema';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -188,6 +189,7 @@ import { AnimatePresence } from 'framer-motion';
       text: string;
       completed: boolean;
       isEditing?: boolean;
+      isAiGenerated?: boolean;
   }
 
 const paces = [
@@ -276,6 +278,51 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
     // Today's Focus state
     const [todos, setTodos] = useState<TodoItem[]>([]);
     const [isPomodoroVisible, setIsPomodoroVisible] = useState(false);
+    const [isAiSuggesting, setIsAiSuggesting] = useState(false);
+    const [focusTimer, setFocusTimer] = useState<number | null>(null);
+    const [dailyRewardClaimed, setDailyRewardClaimed] = useState(false);
+
+    useEffect(() => {
+        if (!user) return;
+        const rewardClaimed = localStorage.getItem(`dailyFocusReward_${user.uid}_${new Date().toDateString()}`);
+        if(rewardClaimed) setDailyRewardClaimed(true);
+    }, [user]);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            const now = new Date();
+            const endOfDay = new Date();
+            endOfDay.setHours(23, 59, 59, 999);
+            const remaining = Math.max(0, endOfDay.getTime() - now.getTime());
+            if (todos.some(t => t.isAiGenerated)) {
+                setFocusTimer(remaining);
+            } else {
+                setFocusTimer(null);
+            }
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [todos]);
+
+    useEffect(() => {
+        if (dailyRewardClaimed) return;
+        const aiTasks = todos.filter(t => t.isAiGenerated);
+        if (aiTasks.length > 0 && aiTasks.every(t => t.completed)) {
+            const reward = async () => {
+                if (!user) return;
+                try {
+                    await updateDoc(doc(db, 'users', user.uid), { coins: increment(50) });
+                    showReward({ type: 'coins', amount: 50 });
+                    toast({ title: "Daily Focus Complete!", description: "You've earned 50 coins!" });
+                    localStorage.setItem(`dailyFocusReward_${user.uid}_${new Date().toDateString()}`, 'true');
+                    setDailyRewardClaimed(true);
+                } catch (e) {
+                    console.error("Failed to give daily reward", e);
+                }
+            };
+            reward();
+        }
+    }, [todos, user, showReward, dailyRewardClaimed]);
 
 
      useEffect(() => {
@@ -318,7 +365,7 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
             setCourses(userCourses);
 
              // Set initial todo item
-            if (todos.length === 0) { // Only set initial if list is empty
+            if (todos.filter(t => !t.isAiGenerated).length === 0) { // Only set initial if list is empty
                 const firstIncompleteCourse = userCourses.find(c => {
                     const totalChapters = c.units?.reduce((acc, unit) => acc + (unit.chapters?.length ?? 0), 0) ?? 0;
                     return totalChapters > (c.completedChapters?.length ?? 0);
@@ -327,7 +374,7 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                     const firstModule = firstIncompleteCourse.units?.find(u => u.chapters && u.chapters.some(ch => !firstIncompleteCourse.completedChapters?.includes(ch.id)));
                     const firstChapter = firstModule?.chapters?.find(ch => !firstIncompleteCourse.completedChapters?.includes(ch.id));
                     if(firstChapter) {
-                        setTodos([{ id: `initial-${firstIncompleteCourse.id}`, text: `Continue "${firstIncompleteCourse.name}": ${firstChapter.title}`, completed: false, isEditing: false }]);
+                        setTodos(prev => [...prev, { id: `initial-${firstIncompleteCourse.id}`, text: `Continue "${firstIncompleteCourse.name}": ${firstChapter.title}`, completed: false, isEditing: false }]);
                     }
                 }
             }
@@ -846,6 +893,41 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
             toast({ variant: 'destructive', title: "Error", description: "Could not add event to calendar." });
         }
     };
+    
+    const handleAiSuggestions = async () => {
+        setIsAiSuggesting(true);
+        try {
+            const courseNames = courses.map(c => c.name);
+            const weakestTopics = Object.entries(weakestLinks).map(([topic]) => topic);
+            
+            const result = await generateDailyFocus({ courseNames, weakestTopics });
+            const newAiTodos: TodoItem[] = result.tasks.map(task => ({
+                id: crypto.randomUUID(),
+                text: task,
+                completed: false,
+                isEditing: false,
+                isAiGenerated: true,
+            }));
+            setTodos(prev => [...prev, ...newAiTodos]);
+            setDailyRewardClaimed(false);
+            if(user) {
+                localStorage.removeItem(`dailyFocusReward_${user.uid}_${new Date().toDateString()}`);
+            }
+        } catch (error) {
+            console.error("Failed to get AI suggestions:", error);
+            toast({ variant: 'destructive', title: "AI Error", description: "Could not generate focus tasks." });
+        } finally {
+            setIsAiSuggesting(false);
+        }
+    };
+
+    const formatTime = (ms: number) => {
+        const totalSeconds = Math.floor(ms / 1000);
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    };
 
 
    
@@ -1060,9 +1142,17 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                     <div className="lg:col-span-2 space-y-8">
                         <Card>
                             <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Target className="text-primary"/> Today's Focus
-                                </CardTitle>
+                                <div className="flex justify-between items-center">
+                                    <CardTitle className="flex items-center gap-2">
+                                        <Target className="text-primary"/> Today's Focus
+                                    </CardTitle>
+                                    {focusTimer !== null && (
+                                        <div className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
+                                            <Clock className="w-4 h-4" />
+                                            <span>{formatTime(focusTimer)} remaining</span>
+                                        </div>
+                                    )}
+                                </div>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 {todos.map(todo => (
@@ -1096,7 +1186,10 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                              <CardFooter className="flex justify-between items-center">
                                 <Button variant="ghost" size="sm" onClick={() => setIsPomodoroVisible(!isPomodoroVisible)}><Clock className="w-4 h-4 mr-2"/> {isPomodoroVisible ? 'Hide' : 'Show'} Timer</Button>
                                 {isPomodoroVisible && <PomodoroTimer onHide={() => setIsPomodoroVisible(false)} />}
-                                <Button variant="ghost" size="sm"><Wand2 className="w-4 h-4 mr-2"/> AI Suggestions</Button>
+                                <Button variant="ghost" size="sm" onClick={handleAiSuggestions} disabled={isAiSuggesting}>
+                                    {isAiSuggesting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Wand2 className="w-4 h-4 mr-2"/>}
+                                    AI Suggestions
+                                </Button>
                             </CardFooter>
                         </Card>
                          <Card id="recent-files-card">

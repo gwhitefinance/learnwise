@@ -1,5 +1,4 @@
 
-
 'use server';
 
 // All AI flow imports are centralized here
@@ -36,6 +35,7 @@ import { enhanceExtracurricular } from '@/ai/flows/extracurricular-enhancer-flow
 import { generateCollegeDescription } from '@/ai/flows/college-description-flow';
 import { generateCollegeChecklist } from '@/ai/flows/college-checklist-flow';
 import { generateEssayFeedback } from '@/ai/flows/essay-coach-flow';
+import { generateDailyFocus } from '@/ai/flows/daily-focus-flow';
 
 
 // Re-exporting all AI functions as Server Actions
@@ -73,4 +73,5 @@ export {
     generateCollegeDescription,
     generateCollegeChecklist,
     generateEssayFeedback,
+    generateDailyFocus,
 };
