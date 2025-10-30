@@ -27,7 +27,7 @@ const prompt = ai.definePrompt({
     3.  **Complete Data**: Ensure every field (difficulty, topic, subTopic, question, options, correctAnswer, explanation) is fully populated for every question. Do not return "N/A" or leave any field blank.
 
     **CRITICAL INSTRUCTIONS for 'Math' Category:**
-    1.  **Mathematical Notation**: For ALL mathematical expressions, especially exponents, use proper notation. For example, use 'x²' instead of 'x^2'.
+    1.  **Mathematical Notation**: For ALL mathematical expressions, especially exponents and fractions, use proper notation. For example, use 'x²' instead of 'x^2', and use Unicode characters like '½' for fractions instead of '1/2'.
     2.  **Diverse Topics**: You MUST generate questions that cover the full spectrum of the SAT Math test. Distribute the 10 questions across these four domains:
         -   **Algebra** (~3 questions)
         -   **Advanced Math** (~3 questions)

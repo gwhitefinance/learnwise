@@ -29,7 +29,7 @@ const prompt = ai.definePrompt({
     2.  **Content Mix**: You MUST create a mix of 'text' blocks and 'question' blocks.
     3.  **Text Blocks**: Generate 4-5 substantial paragraphs of detailed educational content, each in its own 'text' block.
     4.  **Question Blocks**: After every 2-3 text paragraphs, insert one 'question' block. Each question block should contain a simple, multiple-choice question that reinforces the concepts from the preceding paragraphs. Include 4 options and the correct answer. You should generate a total of 1-2 question blocks for the entire chapter.
-    5.  **Mathematical Notation**: For ALL mathematical expressions, especially exponents, use proper notation. For example, use 'x²' instead of 'x^2'.
+    5.  **Mathematical Notation**: For ALL mathematical expressions, especially exponents and fractions, use proper notation. For example, use 'x²' instead of 'x^2', and use Unicode characters like '½' for fractions instead of '1/2'.
     6.  **Overall Length**: The entire chapter, combining all text and question blocks, should feel comprehensive and educational.
 
     The user is a {{learnerType}} learner. Tailor the content and the interactive activity accordingly.

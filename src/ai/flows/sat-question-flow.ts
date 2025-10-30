@@ -17,7 +17,7 @@ const prompt = ai.definePrompt({
 
     - The question should be unique based on the provided seed: "{{seed}}".
     - You must alternate between 'Math' and 'Reading & Writing' categories daily. Use the provided seed to decide. If the seed's length is even, create a 'Math' question. If odd, create a 'Reading & Writing' question.
-    - **CRITICAL**: For any mathematical expressions, especially exponents, use proper notation. For example, use 'x²' instead of 'x^2'.
+    - **CRITICAL**: For any mathematical expressions, especially exponents and fractions, use proper notation. For example, use 'x²' instead of 'x^2', and use Unicode characters like '½' for fractions instead of '1/2'.
     - For 'Reading & Writing' questions, you may optionally include a short passage (1-3 sentences) if it's relevant to the question.
     - All questions must be multiple-choice with exactly four options (A, B, C, D).
     - Provide a clear and concise explanation for why the correct answer is correct, tailored to a {{learnerType}} learner.
