@@ -19,7 +19,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogC
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { motion, AnimatePresence } from 'framer-motion';
 import AudioPlayer from '@/components/audio-player';
-import { generateSummary, generateTutoringSession, generateFlashcardsFromNote, generateExplanation } from '@/lib/actions';
+import { generateTutoringSession, generateFlashcardsFromNote, generateExplanation } from '@/lib/actions';
 
 type Flashcard = {
     front: string;
@@ -30,9 +30,6 @@ export default function UploadPage() {
   const [isDragging, setIsDragging] = useState(false);
   const { toast } = useToast();
   
-  // State for text input
-  const [textContent, setTextContent] = useState('');
-
   // State for URL input
   const [url, setUrl] = useState('');
   
@@ -43,7 +40,6 @@ export default function UploadPage() {
   
   // Shared state for results
   const [isLoading, setIsLoading] = useState(false);
-  const [summary, setSummary] = useState<string>('');
   const [tutoringSession, setTutoringSession] = useState<TutoringSessionOutput | null>(null);
   const [learnerType, setLearnerType] = useState<string | null>(null);
 
@@ -88,33 +84,26 @@ export default function UploadPage() {
     }
   };
 
-  const handleGenerateSummary = async () => {
-      if (!textContent && !url) {
-          toast({ variant: 'destructive', title: 'No content', description: 'Please paste text or provide a URL.' });
-          return;
-      }
-      
-      setIsLoading(true);
-      setSummary('');
-      setTutoringSession(null);
+    const handleGenerateFromContent = async (content: string, prompt?: string) => {
+        setIsLoading(true);
+        setTutoringSession(null);
 
-      try {
-          let contentToSummarize = textContent;
-          if (url) {
-              toast({ title: 'Scraping website...', description: 'Fetching content from the URL.'});
-              contentToSummarize = await scrapeWebpageTool({ url });
-          }
+        try {
+            const result = await generateTutoringSession({
+                imageDataUri: '', // No image needed for text/URL
+                prompt: `Based on the following content, ${prompt || 'give me a full tutoring session'}:\n\n${content}`,
+                learnerType: (learnerType as any) ?? 'Reading/Writing'
+            });
+            setTutoringSession(result);
+            toast({ title: 'Tutor is Ready!', description: 'The AI has analyzed the content.' });
+        } catch (error) {
+            console.error("Failed to generate session from content:", error);
+            toast({ variant: 'destructive', title: 'Analysis Failed', description: 'Could not process the provided content.' });
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
-          const result = await generateSummary({ noteContent: contentToSummarize });
-          setSummary(result.summary);
-          toast({ title: 'Summary Generated!', description: 'The AI has summarized the content.' });
-      } catch (error) {
-          console.error("Failed to generate summary:", error);
-          toast({ variant: 'destructive', title: 'Summarization Failed', description: 'Could not process the content.' });
-      } finally {
-          setIsLoading(false);
-      }
-  };
 
   const handleAnalyzeImage = async () => {
     if (!imageFile) {
@@ -123,7 +112,6 @@ export default function UploadPage() {
     }
     
     setIsLoading(true);
-    setSummary('');
     setTutoringSession(null);
     setPracticeAnswerFeedback(null);
     setSelectedPracticeAnswer(null);
@@ -261,7 +249,7 @@ export default function UploadPage() {
       <Tabs defaultValue="image">
         <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="image">Image Tutoring</TabsTrigger>
-            <TabsTrigger value="text-url">Text & URL Summary</TabsTrigger>
+            <TabsTrigger value="video">Video Tutoring</TabsTrigger>
         </TabsList>
         <TabsContent value="image">
             <Card>
@@ -315,31 +303,46 @@ export default function UploadPage() {
                 </CardContent>
             </Card>
         </TabsContent>
-        <TabsContent value="text-url">
+        <TabsContent value="video">
             <Card>
                 <CardHeader>
-                    <CardTitle>Summarize from Text or URL</CardTitle>
-                    <CardDescription>Paste text or enter a URL to generate a summary.</CardDescription>
+                    <CardTitle>Video Tutoring</CardTitle>
+                    <CardDescription>Paste a YouTube link to get a tutoring session on its content.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                      <div className="space-y-2">
-                        <Label htmlFor="url-input">URL</Label>
-                        <Input id="url-input" placeholder="https://example.com/article" value={url} onChange={(e) => setUrl(e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="text-content">Or Paste Text</Label>
-                        <Textarea 
-                            id="text-content"
-                            placeholder="Paste your course notes or assignment text here..." 
-                            className="h-48"
-                            value={textContent}
-                            onChange={(e) => setTextContent(e.target.value)}
-                        />
+                        <Label htmlFor="url-input">YouTube URL</Label>
+                        <Input id="url-input" placeholder="https://www.youtube.com/watch?v=..." value={url} onChange={(e) => setUrl(e.target.value)} />
                     </div>
                     <div className="flex justify-end">
-                        <Button onClick={handleGenerateSummary} disabled={isLoading || (!textContent && !url)}>
+                        <Button 
+                            onClick={async () => {
+                                if (!url) {
+                                    toast({ variant: 'destructive', title: 'No URL provided.' });
+                                    return;
+                                }
+                                setIsLoading(true);
+                                setTutoringSession(null);
+                                try {
+                                    toast({ title: 'Scraping video transcript...' });
+                                    const transcript = await scrapeWebpageTool({ url });
+                                    if (transcript.includes('Failed to scrape content')) {
+                                         toast({ variant: 'destructive', title: 'Could not get transcript', description: 'Please make sure the video has a transcript available.' });
+                                         setIsLoading(false);
+                                         return;
+                                    }
+                                    await handleGenerateFromContent(transcript, 'Create a tutoring session based on this video transcript');
+                                } catch (e) {
+                                    console.error(e);
+                                    toast({ variant: 'destructive', title: 'An error occurred.' });
+                                } finally {
+                                    setIsLoading(false);
+                                }
+                            }} 
+                            disabled={isLoading || !url}
+                        >
                             <Wand2 className="mr-2 h-4 w-4"/>
-                            {isLoading ? 'Generating...' : 'Generate Summary'}
+                            {isLoading ? 'Generating...' : 'Generate Tutoring Session'}
                         </Button>
                     </div>
                 </CardContent>
@@ -358,18 +361,6 @@ export default function UploadPage() {
                <Skeleton className="h-4 w-2/3" />
             </CardContent>
         </Card>
-      )}
-
-      {summary && !isLoading && (
-          <Card>
-            <CardHeader>
-                <CardTitle>AI Analysis</CardTitle>
-            </CardHeader>
-            <CardContent>
-                <AudioPlayer textToPlay={summary} />
-                <p className="text-muted-foreground whitespace-pre-wrap">{summary}</p>
-            </CardContent>
-          </Card>
       )}
 
       {tutoringSession && !isLoading && (
