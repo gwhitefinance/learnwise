@@ -39,3 +39,4 @@ import './flows/essay-coach-flow';
 import './flows/daily-focus-flow';
 import './flows/text-tutoring-flow';
 import './flows/enhance-drawing-flow';
+import './flows/summary-flow';

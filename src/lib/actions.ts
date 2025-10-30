@@ -38,15 +38,7 @@ import { generateEssayFeedback } from '@/ai/flows/essay-coach-flow';
 import { generateDailyFocus } from '@/ai/flows/daily-focus-flow';
 import { generateTextTutoringSession } from '@/ai/flows/text-tutoring-flow';
 import { enhanceDrawing } from '@/ai/flows/enhance-drawing-flow';
-
-
-// This action was mistakenly removed in a previous step.
-// It is not directly used by any UI component, but it's better to have a central place for AI actions.
-async function generateSummary(input: { noteContent: string; }): Promise<{ summary: string; }> {
-  // A real implementation would call an AI flow here.
-  // For now, we'll return a simple summary.
-  return { summary: `This is a summary of: ${input.noteContent.substring(0, 100)}...` };
-}
+import { generateSummary } from '@/ai/flows/summary-flow';
 
 // Re-exporting all AI functions as Server Actions
 export { 
