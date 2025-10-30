@@ -39,3 +39,5 @@ import './flows/text-tutoring-flow';
 import './flows/enhance-drawing-flow';
 import './flows/summary-flow';
 import './flows/text-to-speech-flow';
+import './flows/problem-solving-flow';
+import './tools/problem-solving-tool';

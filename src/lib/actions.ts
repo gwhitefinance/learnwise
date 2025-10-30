@@ -39,6 +39,7 @@ import { generateTextTutoringSession } from '@/ai/flows/text-tutoring-flow';
 import { enhanceDrawing } from '@/ai/flows/enhance-drawing-flow';
 import { generateSummary } from '@/ai/flows/summary-flow';
 import { generateSpeechFlow } from '@/ai/flows/text-to-speech-flow';
+import { generateProblemSolvingSession } from '@/ai/flows/problem-solving-flow';
 
 // Re-exporting all AI functions as Server Actions
 export { 
@@ -80,4 +81,5 @@ export {
     generateTextTutoringSession,
     enhanceDrawing,
     generateSpeechFlow,
+    generateProblemSolvingSession,
 };

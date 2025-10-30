@@ -4,9 +4,10 @@
 import React, { createContext, useState, useCallback, ReactNode, useEffect, useRef } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
-import { studyPlannerFlow, generateSpeechFlow, generateProblemSolvingSession } from '@/lib/actions';
+import { studyPlannerFlow, generateSpeechFlow } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { collection, getDocs, query, where } from 'firebase/firestore';
+import { generateProblemSolvingSession } from '@/ai/flows/problem-solving-flow';
 
 export type CallParticipant = {
     uid: string;
@@ -253,6 +254,8 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
             calendarEvents,
             learnerType: learnerType || undefined,
         });
+        
+        let responseText = '';
 
         if (response.tool_code && response.tool_code.includes('startProblemSolving')) {
             const topicMatch = response.tool_code.match(/topic='([^']+)'/);
@@ -264,10 +267,16 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
             }
         }
         
-        if (response.response) {
-            const aiMessage: Message = { role: 'ai', content: response.response };
+        if (typeof response === 'string') {
+            responseText = response;
+        } else if (response.response) {
+            responseText = response.response;
+        }
+        
+        if (responseText) {
+            const aiMessage: Message = { role: 'ai', content: responseText };
             setConversationHistory([...newHistory, aiMessage]);
-            speak(response.response);
+            speak(responseText);
         }
 
     } catch (error) {
@@ -294,8 +303,8 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
     recognition.onstart = () => setIsTutorinListening(true);
     recognition.onend = () => setIsTutorinListening(false);
     recognition.onerror = (event: any) => {
-      console.error('Speech recognition error:', event.error);
       if (event.error !== 'no-speech' && event.error !== 'aborted') {
+        console.error('Speech recognition error:', event.error);
         toast({ variant: 'destructive', title: 'Voice recognition error.' });
       }
       setIsTutorinListening(false);
