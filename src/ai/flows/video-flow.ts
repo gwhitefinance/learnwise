@@ -19,8 +19,11 @@ export const startVideoGenerationFlow = ai.defineFlow(
     },
     async (input) => {
         const { operation } = await ai.generate({
-            model: googleAI.model('veo-3.0-generate-preview'),
+            model: googleAI.model('veo-2.0-generate-001'),
             prompt: `Create a short, 5-second animated video visualizing the key concepts from the following text: ${input.episodeContent}`,
+            config: {
+                durationSeconds: 5,
+            }
         });
 
         if (!operation) {
