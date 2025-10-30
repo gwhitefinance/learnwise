@@ -48,14 +48,6 @@ async function generateSummary(input: { noteContent: string; }): Promise<{ summa
   return { summary: `This is a summary of: ${input.noteContent.substring(0, 100)}...` };
 }
 
-export async function generateVideo(input: { courseName: string, episodeTitle: string, episodeContent: string }) {
-    return startVideoGenerationFlow(input);
-}
-
-export async function checkVideoOperationAction(operation: any) {
-    return checkVideoOperation(operation);
-}
-
 // Re-exporting all AI functions as Server Actions
 export { 
     generateQuiz as generateQuizAction,
@@ -79,6 +71,8 @@ export {
     generateMidtermExam,
     generateModuleContent,
     generatePodcastEpisode,
+    startVideoGenerationFlow,
+    checkVideoOperation,
     generateSatQuestion,
     generateInitialCourseAndRoadmap,
     generateAudio,

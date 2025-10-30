@@ -3,8 +3,13 @@
 
 import { ai } from '@/ai/genkit';
 import { googleAI } from '@genkit-ai/google-genai';
-import { generateVideoInputSchema } from '@/ai/schemas/video-schema';
 import * as z from 'zod';
+
+// Input schema is just the text content of the chapter
+const generateVideoInputSchema = z.object({
+  episodeContent: z.string().describe('The text content for this episode to be converted into a short video.'),
+});
+
 
 export const startVideoGenerationFlow = ai.defineFlow(
     {
