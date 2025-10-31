@@ -33,6 +33,8 @@ export default function UploadPage() {
     const [practiceAnswer, setPracticeAnswer] = useState<string | undefined>(undefined);
     const [isAnswered, setIsAnswered] = useState(false);
     
+    const [isDragging, setIsDragging] = useState(false);
+    
     const { toast } = useToast();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -44,8 +46,9 @@ export default function UploadPage() {
     }, []);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            const file = e.target.files[0];
+        const files = e.target.files;
+        if (files && files[0]) {
+            const file = files[0];
             setImageFile(file);
             const reader = new FileReader();
             reader.onloadend = () => {
@@ -109,6 +112,41 @@ export default function UploadPage() {
     };
 
     const isCorrect = practiceAnswer === tutoringSession?.practiceQuestion.answer;
+
+    const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(true);
+    };
+    const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+    };
+    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!isDragging) setIsDragging(true);
+    };
+    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+        const droppedFiles = e.dataTransfer.files;
+        if (droppedFiles && droppedFiles.length > 0) {
+            const file = droppedFiles[0];
+            if (file.type.startsWith('image/')) {
+                setImageFile(file);
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    setImageUrl(reader.result as string);
+                };
+                reader.readAsDataURL(file);
+            } else {
+                toast({ variant: 'destructive', title: 'Invalid File', description: 'Please drop an image file.' });
+            }
+        }
+    };
     
     return (
          <div className="space-y-6">
@@ -129,9 +167,16 @@ export default function UploadPage() {
                         <CardContent>
                             <TabsContent value="image">
                                 <div className="space-y-4">
-                                    <div 
-                                        className="relative flex flex-col items-center justify-center w-full p-12 border-2 border-dashed rounded-lg cursor-pointer transition-colors"
+                                     <div 
+                                        className={cn(
+                                            "relative flex flex-col items-center justify-center w-full p-12 border-2 border-dashed rounded-lg cursor-pointer transition-colors",
+                                            isDragging ? "border-primary bg-primary/10" : "border-border hover:border-primary/50"
+                                        )}
                                         onClick={() => fileInputRef.current?.click()}
+                                        onDragEnter={handleDragEnter}
+                                        onDragLeave={handleDragLeave}
+                                        onDragOver={handleDragOver}
+                                        onDrop={handleDrop}
                                     >
                                         <input ref={fileInputRef} id="file-upload" type="file" className="hidden" accept="image/*" onChange={handleFileChange}/>
                                         {imageUrl ? (
