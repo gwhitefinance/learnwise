@@ -178,12 +178,6 @@ const sidebarItems: SidebarItem[] = [
             id: "whiteboard-link",
         },
         {
-            title: "Upload",
-            icon: <UploadCloud />,
-            href: "/dashboard/upload",
-            id: "upload-link",
-        },
-        {
             title: "Games",
             icon: <Gamepad2 />,
             href: "/dashboard/games",
@@ -207,6 +201,12 @@ const sidebarItems: SidebarItem[] = [
             icon: <BarChart3 />,
             href: "/dashboard/analysis",
             id: "analysis-link",
+        },
+        {
+            title: "Upload",
+            icon: <UploadCloud />,
+            href: "/dashboard/upload",
+            id: "upload-link",
         },
         {
             title: "Mindfulness",
