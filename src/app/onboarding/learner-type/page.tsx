@@ -26,7 +26,7 @@ const questions = [
       c: "By watching videos, looking at diagrams, or seeing demonstrations.",
       d: "By jumping in and trying it myself, learning through hands-on practice.",
     },
-    styles: { a: "Reading/Writing", b: "Auditory", c: "Visual", d: "Kinesthetic" },
+    styles: { a: "Visual", b: "Auditory", c: "Visual", d: "Kinesthetic" },
   },
   {
     question: "When you are trying to remember a phone number, you are most likely to:",
@@ -46,7 +46,7 @@ const questions = [
         c: "Look at the diagrams and pictures to see how it fits together.",
         d: "Start putting pieces together and figure it out as you go.",
     },
-    styles: { a: "Reading/Writing", b: "Auditory", c: "Visual", d: "Kinesthetic" },
+    styles: { a: "Visual", b: "Auditory", c: "Visual", d: "Kinesthetic" },
   },
    {
     question: "How do you best remember someone's name after meeting them?",
@@ -56,7 +56,7 @@ const questions = [
         c: "By picturing their face.",
         d: "By associating them with an action, like a firm handshake.",
     },
-    styles: { a: "Reading/Writing", b: "Auditory", c: "Visual", d: "Kinesthetic" },
+    styles: { a: "Visual", b: "Auditory", c: "Visual", d: "Kinesthetic" },
   },
   {
     question: "If you were learning a new dance step, you would prefer to:",
@@ -66,7 +66,7 @@ const questions = [
         c: "Watch a video of someone doing the step multiple times.",
         d: "Jump in and physically try to follow along.",
     },
-    styles: { a: "Reading/Writing", b: "Auditory", c: "Visual", d: "Kinesthetic" },
+    styles: { a: "Visual", b: "Auditory", c: "Visual", d: "Kinesthetic" },
   }
 ];
 
@@ -114,9 +114,12 @@ export default function LearnerTypeQuizPage() {
             }
         });
 
+        // Remove Reading/Writing from consideration for the dominant style
+        delete counts["Reading/Writing"];
+
         const dominantStyle = Object.keys(counts).reduce((a, b) =>
             counts[a as keyof typeof counts] > counts[b as keyof typeof counts] ? a : b
-        ) as "Visual" | "Auditory" | "Kinesthetic" | "Reading/Writing";
+        ) as "Visual" | "Auditory" | "Kinesthetic";
 
         localStorage.setItem('learnerType', dominantStyle);
         toast({
