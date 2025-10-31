@@ -18,6 +18,7 @@ import { PracticeQuestionSchema } from '@/ai/schemas/quiz-explanation-schema';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { cn } from '@/lib/utils';
 import ListenAssistant from '@/components/ListenAssistant';
+import { Skeleton } from '@/components/ui/skeleton';
 
 
 export default function UploadPage() {
