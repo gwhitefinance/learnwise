@@ -118,60 +118,60 @@ export default function UploadPage() {
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
                 <Card>
-                    <CardHeader>
-                        <Tabs value={activeTab} onValueChange={setActiveTab}>
+                    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                        <CardHeader>
                             <TabsList className="grid w-full grid-cols-3">
                                 <TabsTrigger value="image"><ImageIcon className="h-4 w-4 mr-2"/>Image</TabsTrigger>
                                 <TabsTrigger value="text"><FileText className="h-4 w-4 mr-2"/>Text</TabsTrigger>
                                 <TabsTrigger value="url"><LinkIcon className="h-4 w-4 mr-2"/>URL</TabsTrigger>
                             </TabsList>
-                        </Tabs>
-                    </CardHeader>
-                    <CardContent>
-                        <TabsContent value="image">
-                            <div className="space-y-4">
-                                <div 
-                                    className="relative flex flex-col items-center justify-center w-full p-12 border-2 border-dashed rounded-lg cursor-pointer transition-colors"
-                                    onClick={() => fileInputRef.current?.click()}
-                                >
-                                    <input ref={fileInputRef} id="file-upload" type="file" className="hidden" accept="image/*" onChange={handleFileChange}/>
-                                    {imageUrl ? (
-                                        <img src={imageUrl} alt="Preview" className="max-h-48 rounded-md" />
-                                    ) : (
-                                        <div className="flex flex-col items-center text-center text-muted-foreground">
-                                            <UploadCloud className="h-10 w-10 mb-2"/>
-                                            <span className="font-semibold">Click to upload or drag & drop</span>
-                                            <p className="text-xs mt-1">PNG, JPG, or GIF</p>
-                                        </div>
-                                    )}
+                        </CardHeader>
+                        <CardContent>
+                            <TabsContent value="image">
+                                <div className="space-y-4">
+                                    <div 
+                                        className="relative flex flex-col items-center justify-center w-full p-12 border-2 border-dashed rounded-lg cursor-pointer transition-colors"
+                                        onClick={() => fileInputRef.current?.click()}
+                                    >
+                                        <input ref={fileInputRef} id="file-upload" type="file" className="hidden" accept="image/*" onChange={handleFileChange}/>
+                                        {imageUrl ? (
+                                            <img src={imageUrl} alt="Preview" className="max-h-48 rounded-md" />
+                                        ) : (
+                                            <div className="flex flex-col items-center text-center text-muted-foreground">
+                                                <UploadCloud className="h-10 w-10 mb-2"/>
+                                                <span className="font-semibold">Click to upload or drag & drop</span>
+                                                <p className="text-xs mt-1">PNG, JPG, or GIF</p>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        </TabsContent>
-                         <TabsContent value="text">
-                            <div className="space-y-2">
-                                <Label htmlFor="text-input">Paste your text</Label>
-                                <Textarea id="text-input" placeholder="Paste your notes, an article, or any text here..." className="h-48" value={textInput} onChange={(e) => setTextInput(e.target.value)} />
-                            </div>
-                        </TabsContent>
-                         <TabsContent value="url">
-                            <div className="space-y-2">
-                                <Label htmlFor="url-input">Enter a URL</Label>
-                                <div className="flex gap-2">
-                                     <Input id="url-input" placeholder="https://example.com" value={urlInput} onChange={(e) => setUrlInput(e.target.value)} />
-                                     <Button variant="secondary" onClick={() => setUrlInput(prev => `https://youtube.com/watch?v=...`)}><Youtube className="h-5 w-5 text-red-500"/></Button>
+                            </TabsContent>
+                            <TabsContent value="text">
+                                <div className="space-y-2">
+                                    <Label htmlFor="text-input">Paste your text</Label>
+                                    <Textarea id="text-input" placeholder="Paste your notes, an article, or any text here..." className="h-48" value={textInput} onChange={(e) => setTextInput(e.target.value)} />
                                 </div>
-                            </div>
-                        </TabsContent>
+                            </TabsContent>
+                            <TabsContent value="url">
+                                <div className="space-y-2">
+                                    <Label htmlFor="url-input">Enter a URL</Label>
+                                    <div className="flex gap-2">
+                                        <Input id="url-input" placeholder="https://example.com" value={urlInput} onChange={(e) => setUrlInput(e.target.value)} />
+                                        <Button variant="secondary" onClick={() => setUrlInput(prev => `https://youtube.com/watch?v=...`)}><Youtube className="h-5 w-5 text-red-500"/></Button>
+                                    </div>
+                                </div>
+                            </TabsContent>
 
-                        <div className="space-y-2 mt-4">
-                            <Label htmlFor="prompt-input">What do you need help with? (Optional)</Label>
-                            <Input id="prompt-input" placeholder="e.g., Explain this like I'm 10, what are the key formulas?" value={userPrompt} onChange={(e) => setUserPrompt(e.target.value)} />
-                        </div>
-                        <Button onClick={handleGenerate} disabled={isLoading} className="w-full mt-6">
-                            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Wand2 className="mr-2 h-4 w-4"/>}
-                            {isLoading ? 'Analyzing...' : 'Generate Tutoring Session'}
-                        </Button>
-                    </CardContent>
+                            <div className="space-y-2 mt-4">
+                                <Label htmlFor="prompt-input">What do you need help with? (Optional)</Label>
+                                <Input id="prompt-input" placeholder="e.g., Explain this like I'm 10, what are the key formulas?" value={userPrompt} onChange={(e) => setUserPrompt(e.target.value)} />
+                            </div>
+                            <Button onClick={handleGenerate} disabled={isLoading} className="w-full mt-6">
+                                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Wand2 className="mr-2 h-4 w-4"/>}
+                                {isLoading ? 'Analyzing...' : 'Generate Tutoring Session'}
+                            </Button>
+                        </CardContent>
+                    </Tabs>
                 </Card>
 
                  <Card className="min-h-[400px]">
@@ -247,5 +247,3 @@ export default function UploadPage() {
         </div>
     );
 }
-
-    
