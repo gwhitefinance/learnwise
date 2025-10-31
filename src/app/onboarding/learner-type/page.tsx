@@ -13,7 +13,7 @@ import { ArrowRight, Loader2 } from 'lucide-react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { generateMiniCourse, generateChapterContent } from '@/lib/actions';
-import { collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, updateDoc, orderBy, limit } from 'firebase/firestore';
 import GeneratingCourse from '@/app/dashboard/courses/GeneratingCourse';
 
 
@@ -121,7 +121,7 @@ export default function LearnerTypeQuizPage() {
         localStorage.setItem('learnerType', dominantStyle);
         toast({
             title: 'Finalizing your setup...',
-            description: `You are a ${dominantStyle} learner. Generating your courses...`,
+            description: `You are a ${dominantStyle} learner. Generating your first course...`,
         });
 
         if (!user) {
@@ -131,51 +131,52 @@ export default function LearnerTypeQuizPage() {
         }
 
         try {
-            // Fetch the courses created during onboarding
-            const coursesQuery = query(collection(db, 'courses'), where('userId', '==', user.uid), where('units', '==', []));
+            // Fetch the most recently created course for the user
+            const coursesQuery = query(collection(db, 'courses'), where('userId', '==', user.uid), orderBy('__name__', 'desc'), limit(1));
             const querySnapshot = await getDocs(coursesQuery);
-            const userCourses = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
+            const courseDoc = querySnapshot.docs[0];
 
-            if (userCourses.length > 0) {
-                 setGeneratingCourseName(userCourses[0].name);
+            if (!courseDoc) {
+                throw new Error("No course found to generate content for.");
             }
+            
+            const course = { id: courseDoc.id, ...courseDoc.data() };
+            setGeneratingCourseName(course.name);
 
-            for (const course of userCourses) {
-                // 1. Generate the course outline
-                const miniCourseResult = await generateMiniCourse({
+            // 1. Generate the course outline
+            const miniCourseResult = await generateMiniCourse({
+                courseName: course.name,
+                courseDescription: course.description,
+                learnerType: dominantStyle,
+            });
+
+            const newUnits = miniCourseResult.modules.map(module => ({
+                id: crypto.randomUUID(),
+                title: module.title,
+                chapters: module.chapters.map(chapter => ({ ...chapter, id: crypto.randomUUID() })),
+            }));
+
+            // 2. Generate content for the first chapter
+            if (newUnits.length > 0 && newUnits[0].chapters.length > 0) {
+                const firstModule = newUnits[0];
+                const firstChapter = firstModule.chapters[0];
+                
+                const chapterContentResult = await generateChapterContent({
                     courseName: course.name,
-                    courseDescription: course.description,
+                    moduleTitle: firstModule.title,
+                    chapterTitle: firstChapter.title,
                     learnerType: dominantStyle,
                 });
-
-                const newUnits = miniCourseResult.modules.map(module => ({
-                    id: crypto.randomUUID(),
-                    title: module.title,
-                    chapters: module.chapters.map(chapter => ({ ...chapter, id: crypto.randomUUID() })),
-                }));
-
-                // 2. Generate content for the first chapter
-                if (newUnits.length > 0 && newUnits[0].chapters.length > 0) {
-                    const firstModule = newUnits[0];
-                    const firstChapter = firstModule.chapters[0];
-                    
-                    const chapterContentResult = await generateChapterContent({
-                        courseName: course.name,
-                        moduleTitle: firstModule.title,
-                        chapterTitle: firstChapter.title,
-                        learnerType: dominantStyle,
-                    });
-                    
-                    // Add the generated content to the chapter object
-                    newUnits[0].chapters[0] = { ...firstChapter, ...chapterContentResult };
-                }
-
-                // 3. Update the course in Firestore
-                const courseRef = doc(db, 'courses', course.id);
-                await updateDoc(courseRef, { 
-                    units: newUnits,
-                });
+                
+                // Add the generated content to the chapter object
+                newUnits[0].chapters[0] = { ...firstChapter, ...chapterContentResult, content: chapterContentResult.content as any };
             }
+
+            // 3. Update the course in Firestore
+            const courseRef = doc(db, 'courses', course.id);
+            await updateDoc(courseRef, { 
+                units: newUnits,
+            });
             
             // Set the flag to trigger the welcome popup on the dashboard
             localStorage.setItem('quizCompleted', 'true');
@@ -185,10 +186,8 @@ export default function LearnerTypeQuizPage() {
 
         } catch (error) {
             console.error("Course generation failed:", error);
-            toast({ variant: 'destructive', title: 'Setup Failed', description: 'Could not generate course content. You can generate them later.'});
+            toast({ variant: 'destructive', title: 'Setup Failed', description: 'Could not generate course content. You can generate it later.'});
             router.push('/dashboard'); // Still go to dashboard
-        } finally {
-            // We don't set isSubmitting to false, as we redirect away
         }
     };
 
@@ -243,4 +242,3 @@ export default function LearnerTypeQuizPage() {
         </div>
     );
 }
-

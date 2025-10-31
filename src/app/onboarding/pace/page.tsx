@@ -11,6 +11,10 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { ArrowRight, Rabbit, Snail, Turtle, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { auth, db } from '@/lib/firebase';
+import { collection, query, where, getDocs, addDoc, orderBy, limit } from 'firebase/firestore';
+import { generateRoadmap } from '@/lib/actions';
 
 const paces = [
   { value: "6", label: "Casual", description: "A relaxed pace, perfect for exploring topics without pressure.", icon: <Snail className="h-6 w-6" /> },
@@ -20,20 +24,77 @@ const paces = [
 
 export default function PacePage() {
     const [selectedPace, setSelectedPace] = useState<string | null>("3");
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const router = useRouter();
     const { toast } = useToast();
+    const [user] = useAuthState(auth);
 
-    const handleNext = () => {
-        if (!selectedPace) {
+    const handleNext = async () => {
+        if (!selectedPace || !user) {
             toast({
                 variant: 'destructive',
                 title: 'Please select a pace',
             });
             return;
         }
-        
+
+        setIsSubmitting(true);
         localStorage.setItem('learningPace', selectedPace);
-        router.push('/onboarding/learner-type');
+
+        try {
+            // Fetch the most recently created course for the user
+            const coursesRef = collection(db, 'courses');
+            const q = query(coursesRef, where('userId', '==', user.uid), orderBy('__name__', 'desc'), limit(1));
+            const querySnapshot = await getDocs(q);
+
+            if (querySnapshot.empty) {
+                throw new Error("No course found to generate a roadmap for.");
+            }
+
+            const courseDoc = querySnapshot.docs[0];
+            const course = { id: courseDoc.id, ...courseDoc.data() };
+            
+            toast({ title: "Generating your personalized roadmap..." });
+            
+            const roadmapResponse = await generateRoadmap({
+                courseName: course.name,
+                courseDescription: course.description,
+                courseUrl: course.url,
+                durationInMonths: parseInt(selectedPace, 10),
+            });
+
+            const roadmapData = {
+                courseId: course.id,
+                userId: user.uid,
+                goals: roadmapResponse.goals.map(g => ({ ...g, id: crypto.randomUUID() })),
+                milestones: roadmapResponse.milestones.map(m => ({ ...m, id: crypto.randomUUID(), completed: false }))
+            };
+            await addDoc(collection(db, 'roadmaps'), roadmapData);
+
+            // Add milestones to calendar events
+            for (const milestone of roadmapData.milestones) {
+                await addDoc(collection(db, 'calendarEvents'), {
+                    title: milestone.title,
+                    description: milestone.description,
+                    date: milestone.date,
+                    startTime: '09:00',
+                    endTime: '10:00',
+                    type: 'Homework',
+                    color: 'bg-blue-500',
+                    userId: user.uid,
+                });
+            }
+
+            toast({ title: 'Roadmap & Calendar Created!', description: "Next, let's find your learning style." });
+            router.push('/onboarding/learner-type');
+
+        } catch (error) {
+            console.error("Failed to generate roadmap:", error);
+            toast({ variant: 'destructive', title: 'Roadmap Generation Failed' });
+            setIsSubmitting(false);
+            // Even if it fails, let's move to the next step
+            router.push('/onboarding/learner-type');
+        }
     };
 
     return (
@@ -72,9 +133,18 @@ export default function PacePage() {
                 </RadioGroup>
 
                 <div className="mt-12 flex justify-end">
-                    <Button size="lg" onClick={handleNext} disabled={!selectedPace}>
-                        Next
-                        <ArrowRight className="ml-2 h-5 w-5" />
+                    <Button size="lg" onClick={handleNext} disabled={!selectedPace || isSubmitting}>
+                         {isSubmitting ? (
+                            <>
+                                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                                Generating Roadmap...
+                            </>
+                        ) : (
+                             <>
+                                Next
+                                <ArrowRight className="ml-2 h-5 w-5" />
+                            </>
+                        )}
                     </Button>
                 </div>
             </motion.div>

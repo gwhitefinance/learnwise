@@ -14,7 +14,7 @@ import AIBuddy from '@/components/ai-buddy';
  */
 export default function DashboardPageWrapper() {
   const [showWelcome, setShowWelcome] = useState(false);
-  const [showDashboard, setShowDashboard] = useState(false);
+  const [showDashboard, setShowDashboard] = useState(true); // Default to true now
   const router = useRouter();
 
   useEffect(() => {
@@ -23,7 +23,7 @@ export default function DashboardPageWrapper() {
 
     if (quizCompleted) {
       setShowWelcome(true);
-      setShowDashboard(false); // Ensure dashboard is hidden initially
+      setShowDashboard(false); // Ensure dashboard is hidden initially if welcome is shown
     } else {
       // If the quiz wasn't completed, just show the dashboard immediately.
       setShowDashboard(true);
@@ -40,10 +40,11 @@ export default function DashboardPageWrapper() {
     // We can now remove the quiz completion flag as it has served its purpose.
     localStorage.removeItem('quizCompleted');
   };
-
+  
   if (!showDashboard && !showWelcome) {
       return null;
   }
+
 
   return (
     <>
@@ -63,7 +64,7 @@ export default function DashboardPageWrapper() {
                 </div>
                 <h3 className="text-xl font-bold mb-2">Welcome to Tutorin!</h3>
                 <p className="text-sm text-muted-foreground mb-6">
-                  You're all set up. You can explore the dashboard now.
+                  You're all set! We've generated your first course and a personalized study plan.
                 </p>
                 <div className="flex justify-center w-full">
                   <Button size="lg" onClick={handleStartTour} className="w-full">
