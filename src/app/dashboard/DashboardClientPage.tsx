@@ -278,8 +278,28 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
 
     // Today's Focus state
     const [todos, setTodos] = useState<TodoItem[]>([]);
-    const [isPomodoroVisible, setIsPomodoroVisible] = useState(false);
     const [dailyRewardClaimed, setDailyRewardClaimed] = useState(false);
+    const [isFocusDialogOpen, setIsFocusDialogOpen] = useState(false);
+    const [timeUntilMidnight, setTimeUntilMidnight] = useState('');
+
+
+    useEffect(() => {
+        const calculateTimeUntilMidnight = () => {
+            const now = new Date();
+            const midnight = new Date();
+            midnight.setHours(24, 0, 0, 0);
+            const diff = midnight.getTime() - now.getTime();
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            setTimeUntilMidnight(`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+        };
+
+        calculateTimeUntilMidnight();
+        const intervalId = setInterval(calculateTimeUntilMidnight, 1000);
+
+        return () => clearInterval(intervalId);
+    }, []);
 
     const getTasksKey = useCallback(() => {
         if (!user) return null;
@@ -340,8 +360,6 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
         }
         
         const rewardKey = `dailyFocusReward_${user.uid}_${new Date().toDateString()}`;
-        // For testing, we can clear this. In production, remove this line.
-        // localStorage.removeItem(rewardKey); 
         const rewardClaimed = localStorage.getItem(rewardKey);
         setDailyRewardClaimed(!!rewardClaimed);
 
@@ -1148,40 +1166,6 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                 
                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
                     <div className="lg:col-span-2 space-y-8">
-                        <Card id="recent-files-card">
-                             <CardHeader>
-                               <CardTitle>Recent Files</CardTitle>
-                               <CardDescription>Your most recently accessed documents.</CardDescription>
-                             </CardHeader>
-                            <CardContent>
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Name</TableHead>
-                                            <TableHead>Subject</TableHead>
-                                            <TableHead>Last Modified</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {recentFiles.length > 0 ? (
-                                            recentFiles.slice(0, 3).map((file, index) => (
-                                                <TableRow key={index}>
-                                                    <TableCell className="font-medium">{file.name}</TableCell>
-                                                    <TableCell>{file.subject}</TableCell>
-                                                    <TableCell>{file.modified}</TableCell>
-                                                </TableRow>
-                                            ))
-                                        ) : (
-                                            <TableRow>
-                                                <TableCell colSpan={3} className="text-center text-muted-foreground p-8">
-                                                    You haven't uploaded any files yet.
-                                                </TableCell>
-                                            </TableRow>
-                                        )}
-                                    </TableBody>
-                                </Table>
-                            </CardContent>
-                        </Card>
                         <Card id="active-courses">
                              <CardHeader>
                                 <div className="flex items-center justify-between">
@@ -1228,54 +1212,7 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                 </div>
                             </CardContent>
                         </Card>
-                    </div>
-                     <div className="space-y-4">
-                         <Card>
-                             <CardHeader>
-                                <div className="flex justify-between items-center">
-                                    <CardTitle className="flex items-center gap-2">
-                                        <Target className="text-primary"/> Today's Focus
-                                    </CardTitle>
-                                    <div className="flex gap-1">
-                                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleAiSuggestions(true)}><RefreshCw className="h-4 w-4"/></Button>
-                                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={addTodo}><Plus className="h-4 w-4"/></Button>
-                                    </div>
-                                </div>
-                            </CardHeader>
-                            <CardContent className="space-y-3">
-                                {todos.length > 0 ? todos.slice(0, 3).map(todo => (
-                                    <div key={todo.id} className="flex items-center gap-3">
-                                        <button onClick={() => toggleTodo(todo.id)}>
-                                            <div className={cn("w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors", todo.completed ? "bg-primary border-primary" : "border-muted-foreground")}>
-                                                {todo.completed && <CheckCircle className="w-3.5 h-3.5 text-primary-foreground"/>}
-                                            </div>
-                                        </button>
-                                        {todo.isEditing ? (
-                                            <Input 
-                                                autoFocus
-                                                value={todo.text}
-                                                onChange={(e) => updateTodoText(todo.id, e.target.value)}
-                                                onBlur={() => saveTodo(todo.id)}
-                                                onKeyDown={(e) => e.key === 'Enter' && saveTodo(todo.id)}
-                                                className="h-8 text-sm"
-                                            />
-                                        ) : (
-                                            <span className={cn("text-sm flex-1", todo.completed && "line-through text-muted-foreground")}>{todo.text}</span>
-                                        )}
-                                    </div>
-                                )) : (
-                                    <p className="text-sm text-center text-muted-foreground py-4">No tasks yet. Add one or get AI suggestions!</p>
-                                )}
-                            </CardContent>
-                            <CardFooter>
-                                {dailyRewardClaimed && (
-                                    <div className="text-xs text-green-600 font-semibold flex items-center gap-1 w-full justify-center">
-                                        <CheckCircle className="w-3 h-3"/> Daily reward claimed!
-                                    </div>
-                                )}
-                            </CardFooter>
-                        </Card>
-                        <Card className="bg-orange-500/10 border-orange-500/20 text-orange-900 dark:text-orange-200" id="streak-card">
+                        <Card id="streak-card" className="bg-orange-500/10 border-orange-500/20 text-orange-900 dark:text-orange-200">
                             <CardContent className="p-6">
                                 <div className="flex flex-col items-center justify-center gap-4 text-center">
                                      <div className="p-4 bg-white/50 rounded-full">
@@ -1366,6 +1303,111 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                         </DialogContent>
                                     </Dialog>
                                 </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                     <div className="space-y-4">
+                        <Dialog open={isFocusDialogOpen} onOpenChange={setIsFocusDialogOpen}>
+                            <Card id="todays-focus-card">
+                                <CardHeader>
+                                    <div className="flex justify-between items-center">
+                                        <CardTitle className="flex items-center gap-2">
+                                            <Target className="text-primary"/> Today's Focus
+                                        </CardTitle>
+                                        <div className="flex gap-1">
+                                            <DialogTrigger asChild>
+                                                <Button variant="ghost" size="icon" className="h-7 w-7"><ListTodo className="h-4 w-4"/></Button>
+                                            </DialogTrigger>
+                                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={addTodo}><Plus className="h-4 w-4"/></Button>
+                                        </div>
+                                    </div>
+                                </CardHeader>
+                                <CardContent className="space-y-3">
+                                    {todos.length > 0 ? todos.slice(0, 3).map(todo => (
+                                        <div key={todo.id} className="flex items-center gap-3 group">
+                                            <button onClick={() => toggleTodo(todo.id)}>
+                                                <div className={cn("w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors", todo.completed ? "bg-primary border-primary" : "border-muted-foreground")}>
+                                                    {todo.completed && <CheckCircle className="w-3.5 h-3.5 text-primary-foreground"/>}
+                                                </div>
+                                            </button>
+                                            {todo.isEditing ? (
+                                                <Input 
+                                                    autoFocus
+                                                    value={todo.text}
+                                                    onChange={(e) => updateTodoText(todo.id, e.target.value)}
+                                                    onBlur={() => saveTodo(todo.id)}
+                                                    onKeyDown={(e) => e.key === 'Enter' && saveTodo(todo.id)}
+                                                    className="h-8 text-sm"
+                                                />
+                                            ) : (
+                                                <span className={cn("text-sm flex-1", todo.completed && "line-through text-muted-foreground")}>{todo.text}</span>
+                                            )}
+                                        </div>
+                                    )) : (
+                                        <p className="text-sm text-center text-muted-foreground py-4">No tasks yet. Add one or get AI suggestions!</p>
+                                    )}
+                                </CardContent>
+                                <CardFooter>
+                                    {dailyRewardClaimed && (
+                                        <div className="text-xs text-green-600 font-semibold flex items-center gap-1 w-full justify-center">
+                                            <CheckCircle className="w-3 h-3"/> Daily reward claimed!
+                                        </div>
+                                    )}
+                                </CardFooter>
+                            </Card>
+                             <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>Full Task List</DialogTitle>
+                                    <DialogDescription>
+                                        Time remaining today: <span className="font-mono font-semibold">{timeUntilMidnight}</span>
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <div className="py-4 space-y-3 max-h-80 overflow-y-auto">
+                                     {todos.map(todo => (
+                                        <div key={todo.id} className="flex items-center gap-3 group p-2 rounded-md hover:bg-muted">
+                                            <button onClick={() => toggleTodo(todo.id)}>
+                                                <div className={cn("w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors", todo.completed ? "bg-primary border-primary" : "border-muted-foreground")}>
+                                                    {todo.completed && <CheckCircle className="w-3.5 h-3.5 text-primary-foreground"/>}
+                                                </div>
+                                            </button>
+                                            <span className={cn("text-sm flex-1", todo.completed && "line-through text-muted-foreground")}>{todo.text}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </DialogContent>
+                        </Dialog>
+                        <Card id="recent-files-card">
+                             <CardHeader>
+                               <CardTitle>Recent Files</CardTitle>
+                               <CardDescription>Your most recently accessed documents.</CardDescription>
+                             </CardHeader>
+                            <CardContent>
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Name</TableHead>
+                                            <TableHead>Subject</TableHead>
+                                            <TableHead>Last Modified</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {recentFiles.length > 0 ? (
+                                            recentFiles.slice(0, 3).map((file, index) => (
+                                                <TableRow key={index}>
+                                                    <TableCell className="font-medium">{file.name}</TableCell>
+                                                    <TableCell>{file.subject}</TableCell>
+                                                    <TableCell>{file.modified}</TableCell>
+                                                </TableRow>
+                                            ))
+                                        ) : (
+                                            <TableRow>
+                                                <TableCell colSpan={3} className="text-center text-muted-foreground p-8">
+                                                    You haven't uploaded any files yet.
+                                                </TableCell>
+                                            </TableRow>
+                                        )}
+                                    </TableBody>
+                                </Table>
                             </CardContent>
                         </Card>
                     </div>
