@@ -76,7 +76,7 @@ import {
   } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DatePicker } from '@/components/ui/date-picker';
-import { format } from 'date-fns';
+import { format, endOfDay } from 'date-fns';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { collection, query, where, onSnapshot, addDoc, doc, Timestamp, updateDoc, increment, orderBy, limit, getDocs, deleteDoc } from 'firebase/firestore';
@@ -285,7 +285,16 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
     const [dailyRewardClaimed, setDailyRewardClaimed] = useState(false);
     const [newTodoInput, setNewTodoInput] = useState('');
     const [taskFilter, setTaskFilter] = useState<TaskFilter>('All');
-    
+    const [isTodoListOpen, setTodoListOpen] = useState(false);
+    const [timeUntilMidnight, setTimeUntilMidnight] = useState('');
+
+    const [editingTodoId, setEditingTodoId] = useState<string | null>(null);
+    const [editingTodoText, setEditingTodoText] = useState('');
+
+    const [eventToSchedule, setEventToSchedule] = useState<TodoItem | null>(null);
+    const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
+    const [scheduleForm, setScheduleForm] = useState({ date: new Date() as Date | undefined, type: 'Homework' as Project['status']});
+
     const itemsLeft = todos.filter(t => !t.completed).length;
 
     const filteredTodos = todos.filter(todo => {
@@ -390,6 +399,21 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
             reward();
         }
     }, [todos, user, showReward, toast, dailyRewardClaimed]);
+
+    useEffect(() => {
+        const timer = setInterval(() => {
+            const now = new Date();
+            const midnight = endOfDay(now);
+            const diff = midnight.getTime() - now.getTime();
+
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            
+            setTimeUntilMidnight(`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+        }, 1000);
+        return () => clearInterval(timer);
+    }, []);
 
 
      useEffect(() => {
@@ -916,9 +940,58 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
     const deleteTodo = (id: string) => {
         setTodos(prev => prev.filter(todo => todo.id !== id));
     };
+
+    const startEditing = (todo: TodoItem) => {
+        setEditingTodoId(todo.id);
+        setEditingTodoText(todo.text);
+    };
+
+    const cancelEditing = () => {
+        setEditingTodoId(null);
+        setEditingTodoText('');
+    };
+
+    const saveEditing = () => {
+        if (!editingTodoId) return;
+        setTodos(prev => prev.map(todo => 
+            todo.id === editingTodoId ? { ...todo, text: editingTodoText } : todo
+        ));
+        cancelEditing();
+    };
     
     const clearCompleted = () => {
         setTodos(prev => prev.filter(todo => !todo.completed));
+    };
+    
+    const handleOpenScheduleDialog = (task: TodoItem) => {
+        setEventToSchedule(task);
+        setScheduleForm({
+            date: new Date(),
+            type: 'Homework' as any,
+        });
+        setIsScheduleDialogOpen(true);
+    };
+
+    const handleConfirmSchedule = async () => {
+        if (!eventToSchedule || !user || !scheduleForm.date) return;
+
+        try {
+            await addDoc(collection(db, 'calendarEvents'), {
+                title: eventToSchedule.text,
+                date: scheduleForm.date.toISOString(),
+                startTime: '09:00', // Default time
+                endTime: '10:00',
+                type: scheduleForm.type,
+                userId: user.uid,
+            });
+            toast({ title: "Task Scheduled!", description: `${eventToSchedule.text} added to your calendar.`});
+        } catch (error) {
+            console.error("Error scheduling task:", error);
+            toast({ variant: 'destructive', title: "Scheduling failed."});
+        } finally {
+            setIsScheduleDialogOpen(false);
+            setEventToSchedule(null);
+        }
     };
 
 
@@ -1131,148 +1204,7 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                 
                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
                     <div className="lg:col-span-2 space-y-8">
-                       <Card id="todays-focus-card" className="dark:bg-[#1c1d27] dark:border-[#3b3f54]">
-                            <CardHeader className="flex items-center justify-between flex-row">
-                                <div className="flex items-center gap-3">
-                                    <div className="h-8 w-8 text-primary">
-                                        <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><g clipPath="url(#clip0_6_319)"><path d="M8.57829 8.57829C5.52816 11.6284 3.451 15.5145 2.60947 19.7452C1.76794 23.9758 2.19984 28.361 3.85056 32.3462C5.50128 36.3314 8.29667 39.7376 11.8832 42.134C15.4698 44.5305 19.6865 45.8096 24 45.8096C28.3135 45.8096 32.5302 44.5305 36.1168 42.134C39.7033 39.7375 42.4987 36.3314 44.1494 32.3462C45.8002 28.361 46.2321 23.9758 45.3905 19.7452C44.549 15.5145 42.4718 11.6284 39.4217 8.57829L24 24L8.57829 8.57829Z" fill="currentColor"></path></g><defs><clipPath id="clip0_6_319"><rect fill="white" height="48" width="48"></rect></clipPath></defs></svg>
-                                    </div>
-                                    <h2 className="text-xl font-bold tracking-tight">Tasks</h2>
-                                </div>
-                            </CardHeader>
-                            <CardContent className="space-y-6">
-                                <div className="flex items-center gap-2">
-                                    <div className="relative flex w-full flex-1 items-stretch">
-                                        <Plus className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-                                        <Input
-                                            className="h-14 pl-12 pr-4 text-base"
-                                            placeholder="What needs to be done?"
-                                            value={newTodoInput}
-                                            onChange={(e) => setNewTodoInput(e.target.value)}
-                                            onKeyDown={(e) => e.key === 'Enter' && addTodo(newTodoInput)}
-                                        />
-                                    </div>
-                                    <button onClick={() => addTodo(newTodoInput)} className="flex-shrink-0 flex items-center justify-center rounded-lg h-14 w-14 bg-primary text-white hover:bg-primary/90">
-                                        <Plus className="h-6 w-6" />
-                                    </button>
-                                </div>
-                                <div className="bg-background rounded-xl border">
-                                     <div className="flex p-2">
-                                        <div className="flex h-10 flex-1 items-center justify-center rounded-lg bg-muted p-1">
-                                             {(['All', 'Active', 'Completed'] as TaskFilter[]).map(filter => (
-                                                <label key={filter} className={cn("flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-md px-2 text-sm font-medium leading-normal", taskFilter === filter ? "bg-card shadow-sm" : "text-muted-foreground")}>
-                                                    <span className="truncate">{filter}</span>
-                                                    <input checked={taskFilter === filter} onChange={() => setTaskFilter(filter)} className="invisible w-0" name="task-filter" type="radio" value={filter}/>
-                                                </label>
-                                            ))}
-                                        </div>
-                                    </div>
-                                    <div className="divide-y">
-                                        {filteredTodos.length > 0 ? filteredTodos.map(todo => (
-                                            <div key={todo.id} className="task-item flex items-center gap-4 px-4 py-3 min-h-14 justify-between group">
-                                                <div className="flex items-center gap-4 flex-1 min-w-0">
-                                                    <input onChange={() => toggleTodo(todo.id)} checked={todo.completed} className="form-checkbox h-5 w-5 rounded-full border-muted-foreground/50 border-2 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0" type="checkbox"/>
-                                                    <p className={cn("text-base font-normal leading-normal flex-1 truncate", todo.completed && "line-through text-muted-foreground")}>{todo.text}</p>
-                                                </div>
-                                                <div className="task-actions shrink-0 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <button className="h-8 w-8 flex items-center justify-center text-muted-foreground hover:text-primary rounded-md"><Edit className="h-5 w-5" /></button>
-                                                    <button onClick={() => deleteTodo(todo.id)} className="h-8 w-8 flex items-center justify-center text-muted-foreground hover:text-red-500 rounded-md"><Trash2 className="h-5 w-5" /></button>
-                                                </div>
-                                            </div>
-                                        )) : (
-                                            <div className="text-center p-6 text-muted-foreground text-sm">No tasks here.</div>
-                                        )}
-                                    </div>
-                                    <CardFooter className="flex items-center justify-between p-4 text-sm text-muted-foreground">
-                                        <span>{itemsLeft} items left</span>
-                                        <button onClick={clearCompleted} className="font-medium hover:text-primary">Clear Completed</button>
-                                    </CardFooter>
-                                </div>
-                            </CardContent>
-                        </Card>
-                        <Card id="active-courses">
-                             <CardHeader>
-                                <div className="flex items-center justify-between">
-                                <h2 className="text-xl font-semibold">Active Courses</h2>
-                                <Link href="/dashboard/courses">
-                                    <Button variant="ghost" className="rounded-2xl text-sm">
-                                        View All
-                                    </Button>
-                                </Link>
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="space-y-4">
-                                    {isDataLoading ? (
-                                        Array.from({length: 2}).map((_, i) => <Skeleton key={i} className="h-28 w-full" />)
-                                    ) : courses.length > 0 ? (
-                                        courses.slice(0, 2).map((course) => {
-                                            const totalChapters = course.units?.reduce((acc, unit) => acc + (unit.chapters?.length ?? 0), 0) ?? 0;
-                                            const completedCount = course.completedChapters?.length ?? 0;
-                                            const courseProgress = totalChapters > 0 ? Math.round((completedCount / totalChapters) * 100) : 0;
-
-                                            return (
-                                                <Card key={course.id} className="p-4">
-                                                        <div className="flex items-center justify-between mb-2">
-                                                            <h3 className="font-medium">{course.name}</h3>
-                                                            <Badge variant="outline" className="rounded-xl">
-                                                            In Progress
-                                                            </Badge>
-                                                        </div>
-                                                        <p className="text-sm text-muted-foreground mb-3">{course.description}</p>
-                                                        <div className="space-y-2">
-                                                            <div className="flex items-center justify-between text-sm">
-                                                            <span>Progress</span>
-                                                            <span>{courseProgress}%</span>
-                                                            </div>
-                                                            <Progress value={courseProgress} className="h-2 rounded-xl" />
-                                                        </div>
-                                                </Card>
-                                            );
-                                        })
-                                    ) : (
-                                        <div className="p-4 text-center text-muted-foreground">You haven't added any courses yet.</div>
-                                    )}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-                     <div className="space-y-8">
-                         <Card id="recent-files-card">
-                             <CardHeader>
-                               <CardTitle>Recent Files</CardTitle>
-                               <CardDescription>Your most recently accessed documents.</CardDescription>
-                             </CardHeader>
-                            <CardContent>
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Name</TableHead>
-                                            <TableHead>Subject</TableHead>
-                                            <TableHead>Last Modified</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {recentFiles.length > 0 ? (
-                                            recentFiles.slice(0, 3).map((file, index) => (
-                                                <TableRow key={index}>
-                                                    <TableCell className="font-medium">{file.name}</TableCell>
-                                                    <TableCell>{file.subject}</TableCell>
-                                                    <TableCell>{file.modified}</TableCell>
-                                                </TableRow>
-                                            ))
-                                        ) : (
-                                            <TableRow>
-                                                <TableCell colSpan={3} className="text-center text-muted-foreground p-8">
-                                                    You haven't uploaded any files yet.
-                                                </TableCell>
-                                            </TableRow>
-                                        )}
-                                    </TableBody>
-                                </Table>
-                            </CardContent>
-                        </Card>
-                       <Card id="streak-card" className="bg-orange-500/10 border-orange-500/20 text-orange-900 dark:text-orange-200">
+                        <Card id="streak-card" className="bg-orange-500/10 border-orange-500/20 text-orange-900 dark:text-orange-200">
                             <CardContent className="p-6">
                                 <div className="flex items-center justify-center gap-4">
                                      <div className="p-4 bg-white/50 rounded-full">
@@ -1363,6 +1295,166 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                         </div>
                                     </DialogContent>
                                 </Dialog>
+                            </CardContent>
+                        </Card>
+                        <Card id="active-courses">
+                             <CardHeader>
+                                <div className="flex items-center justify-between">
+                                <h2 className="text-xl font-semibold">Active Courses</h2>
+                                <Link href="/dashboard/courses">
+                                    <Button variant="ghost" className="rounded-2xl text-sm">
+                                        View All
+                                    </Button>
+                                </Link>
+                                </div>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="space-y-4">
+                                    {isDataLoading ? (
+                                        Array.from({length: 2}).map((_, i) => <Skeleton key={i} className="h-28 w-full" />)
+                                    ) : courses.length > 0 ? (
+                                        courses.slice(0, 2).map((course) => {
+                                            const totalChapters = course.units?.reduce((acc, unit) => acc + (unit.chapters?.length ?? 0), 0) ?? 0;
+                                            const completedCount = course.completedChapters?.length ?? 0;
+                                            const courseProgress = totalChapters > 0 ? Math.round((completedCount / totalChapters) * 100) : 0;
+
+                                            return (
+                                                <Card key={course.id} className="p-4">
+                                                        <div className="flex items-center justify-between mb-2">
+                                                            <h3 className="font-medium">{course.name}</h3>
+                                                            <Badge variant="outline" className="rounded-xl">
+                                                            In Progress
+                                                            </Badge>
+                                                        </div>
+                                                        <p className="text-sm text-muted-foreground mb-3">{course.description}</p>
+                                                        <div className="space-y-2">
+                                                            <div className="flex items-center justify-between text-sm">
+                                                            <span>Progress</span>
+                                                            <span>{courseProgress}%</span>
+                                                            </div>
+                                                            <Progress value={courseProgress} className="h-2 rounded-xl" />
+                                                        </div>
+                                                </Card>
+                                            );
+                                        })
+                                    ) : (
+                                        <div className="p-4 text-center text-muted-foreground">You haven't added any courses yet.</div>
+                                    )}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                     <div className="space-y-8">
+                        <Card id="todays-focus-card">
+                            <CardHeader className="flex flex-row items-center justify-between pb-4">
+                                <CardTitle className="text-lg">Today's Focus</CardTitle>
+                                <Dialog open={isTodoListOpen} onOpenChange={setTodoListOpen}>
+                                    <DialogTrigger asChild>
+                                        <Button variant="ghost" size="icon"><ListTodo className="h-5 w-5"/></Button>
+                                    </DialogTrigger>
+                                    <DialogContent>
+                                        <header className="flex items-center justify-between whitespace-nowrap mb-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="h-8 w-8 text-primary">
+                                                    <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><g clipPath="url(#clip0_6_319)"><path d="M8.57829 8.57829C5.52816 11.6284 3.451 15.5145 2.60947 19.7452C1.76794 23.9758 2.19984 28.361 3.85056 32.3462C5.50128 36.3314 8.29667 39.7376 11.8832 42.134C15.4698 44.5305 19.6865 45.8096 24 45.8096C28.3135 45.8096 32.5302 44.5305 36.1168 42.134C39.7033 39.7375 42.4987 36.3314 44.1494 32.3462C45.8002 28.361 46.2321 23.9758 45.3905 19.7452C44.549 15.5145 42.4718 11.6284 39.4217 8.57829L24 24L8.57829 8.57829Z" fill="currentColor"></path></g><defs><clipPath id="clip0_6_319"><rect fill="white" height="48" width="48"></rect></clipPath></defs></svg>
+                                                </div>
+                                                <h1 className="text-3xl font-bold tracking-tight">Tasks</h1>
+                                            </div>
+                                            <p className="text-sm font-medium text-muted-foreground">{timeUntilMidnight} until day ends</p>
+                                        </header>
+                                        <div className="space-y-6">
+                                            <div className="flex items-center gap-2">
+                                                <div className="relative flex w-full flex-1 items-stretch">
+                                                    <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">add</span>
+                                                    <Input className="h-14 pl-12 pr-4 text-base" placeholder="What needs to be done?" value={newTodoInput} onChange={(e) => setNewTodoInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addTodo(newTodoInput)} />
+                                                </div>
+                                                <button onClick={() => addTodo(newTodoInput)} className="flex-shrink-0 flex items-center justify-center rounded-lg h-14 w-14 bg-primary text-white hover:bg-primary/90">
+                                                    <Plus className="h-6 w-6" />
+                                                </button>
+                                            </div>
+                                            <div className="bg-background rounded-xl border">
+                                                <div className="flex p-2">
+                                                    <div className="flex h-10 flex-1 items-center justify-center rounded-lg bg-muted p-1">
+                                                        {(['All', 'Active', 'Completed'] as TaskFilter[]).map(filter => (
+                                                            <label key={filter} className={cn("flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-md px-2 text-sm font-medium leading-normal", taskFilter === filter ? "bg-card shadow-sm" : "text-muted-foreground")}>
+                                                                <span className="truncate">{filter}</span>
+                                                                <input checked={taskFilter === filter} onChange={() => setTaskFilter(filter)} className="invisible w-0" name="task-filter" type="radio" value={filter}/>
+                                                            </label>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                                <div className="divide-y">
+                                                    {filteredTodos.map(todo => (
+                                                        <div key={todo.id} className="task-item flex items-center gap-4 px-4 py-3 min-h-14 justify-between group">
+                                                             <div className="flex items-center gap-4 flex-1 min-w-0">
+                                                                <button onClick={() => toggleTodo(todo.id)} className={cn("flex-shrink-0 h-6 w-6 rounded-full border-2 transition-all flex items-center justify-center", todo.completed ? "bg-primary border-primary" : "border-muted-foreground/50")}>
+                                                                    {todo.completed && <Check className="h-4 w-4 text-white" />}
+                                                                </button>
+                                                                <p className={cn("text-base font-normal leading-normal flex-1 truncate", todo.completed && "line-through text-muted-foreground")}>{todo.text}</p>
+                                                            </div>
+                                                            <div className="task-actions shrink-0 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                <button onClick={() => handleOpenScheduleDialog(todo)} className="h-8 w-8 flex items-center justify-center text-muted-foreground hover:text-primary rounded-md"><Calendar className="h-4 w-4"/></button>
+                                                                <button onClick={() => deleteTodo(todo.id)} className="h-8 w-8 flex items-center justify-center text-muted-foreground hover:text-red-500 rounded-md"><Trash2 className="h-4 w-4" /></button>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                    {filteredTodos.length === 0 && <div className="text-center p-6 text-muted-foreground text-sm">No tasks here.</div>}
+                                                </div>
+                                                <CardFooter className="flex items-center justify-between p-4 text-sm text-muted-foreground">
+                                                    <span>{itemsLeft} items left</span>
+                                                    <button onClick={clearCompleted} className="font-medium hover:text-primary">Clear Completed</button>
+                                                </CardFooter>
+                                            </div>
+                                        </div>
+                                    </DialogContent>
+                                </Dialog>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="space-y-2">
+                                {todos.slice(0, 3).map(todo => (
+                                    <div key={todo.id} className="flex items-center gap-3">
+                                        <button onClick={() => toggleTodo(todo.id)} className={cn("flex-shrink-0 h-5 w-5 rounded-full border-2 transition-all flex items-center justify-center", todo.completed ? "bg-primary border-primary" : "border-muted-foreground/50")}>
+                                            {todo.completed && <Check className="h-3 w-3 text-white" />}
+                                        </button>
+                                        <p className={cn("text-sm truncate", todo.completed && "line-through text-muted-foreground")}>{todo.text}</p>
+                                    </div>
+                                ))}
+                                {todos.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">No tasks for today. Great job!</p>}
+                                </div>
+                            </CardContent>
+                        </Card>
+                         <Card id="recent-files-card">
+                             <CardHeader>
+                               <CardTitle>Recent Files</CardTitle>
+                               <CardDescription>Your most recently accessed documents.</CardDescription>
+                             </CardHeader>
+                            <CardContent>
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Name</TableHead>
+                                            <TableHead>Subject</TableHead>
+                                            <TableHead>Last Modified</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {recentFiles.length > 0 ? (
+                                            recentFiles.slice(0, 3).map((file, index) => (
+                                                <TableRow key={index}>
+                                                    <TableCell className="font-medium">{file.name}</TableCell>
+                                                    <TableCell>{file.subject}</TableCell>
+                                                    <TableCell>{file.modified}</TableCell>
+                                                </TableRow>
+                                            ))
+                                        ) : (
+                                            <TableRow>
+                                                <TableCell colSpan={3} className="text-center text-muted-foreground p-8">
+                                                    You haven't uploaded any files yet.
+                                                </TableCell>
+                                            </TableRow>
+                                        )}
+                                    </TableBody>
+                                </Table>
                             </CardContent>
                         </Card>
                     </div>
@@ -1789,15 +1881,45 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                 </div>
             </DialogContent>
         </Dialog>
+         <Dialog open={isScheduleDialogOpen} onOpenChange={setIsScheduleDialogOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Add to Calendar</DialogTitle>
+                    <DialogDescription>Confirm the details for your new calendar event.</DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                    <div className="grid gap-2">
+                        <Label>Task</Label>
+                        <Input value={eventToSchedule?.text || ''} readOnly />
+                    </div>
+                     <div className="grid gap-2">
+                        <Label htmlFor="event-date">Date</Label>
+                        <DatePicker date={scheduleForm.date} setDate={(d) => setScheduleForm(prev => ({...prev, date: d}))} />
+                    </div>
+                     <div className="grid gap-2">
+                        <Label htmlFor="event-type">Type</Label>
+                        <Select value={scheduleForm.type} onValueChange={(v: any) => setScheduleForm(prev => ({...prev, type: v}))}>
+                            <SelectTrigger id="event-type">
+                                <SelectValue placeholder="Select type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="Homework">Homework</SelectItem>
+                                <SelectItem value="Test">Test</SelectItem>
+                                <SelectItem value="Quiz">Quiz</SelectItem>
+                                <SelectItem value="Project">Project</SelectItem>
+                                <SelectItem value="Event">Event</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </div>
+                <DialogFooter>
+                    <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
+                    <Button onClick={handleConfirmSchedule}>Add to Calendar</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     </div>
   )
 }
 
 export default DashboardClientPage;
-
-    
-    
-
-    
-
-
