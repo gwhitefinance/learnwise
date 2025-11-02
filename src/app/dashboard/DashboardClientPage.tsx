@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useContext, useCallback } from 'react';
+import { useState, useEffect, useContext, useCallback, useRef } from 'react';
 import { motion } from "framer-motion"
 import {
   FileText,
@@ -50,6 +50,8 @@ import {
   Target,
   Loader2,
   ListTodo,
+  Edit,
+  Trash2,
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -192,6 +194,8 @@ import { AnimatePresence } from 'framer-motion';
       isEditing?: boolean;
       isAiGenerated?: boolean;
   }
+  
+  type TaskFilter = 'All' | 'Active' | 'Completed';
 
 const paces = [
   { value: "6", label: "Casual", description: "A relaxed pace for exploring.", icon: <Snail className="h-6 w-6" /> },
@@ -279,31 +283,16 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
     // Today's Focus state
     const [todos, setTodos] = useState<TodoItem[]>([]);
     const [dailyRewardClaimed, setDailyRewardClaimed] = useState(false);
-    const [isFocusDialogOpen, setIsFocusDialogOpen] = useState(false);
-    const [timeUntilMidnight, setTimeUntilMidnight] = useState('');
+    const [newTodoInput, setNewTodoInput] = useState('');
+    const [taskFilter, setTaskFilter] = useState<TaskFilter>('All');
     
-    // Calendar Event from Task Dialog
-    const [isCalendarDialogOpen, setIsCalendarDialogOpen] = useState(false);
-    const [eventFromTask, setEventFromTask] = useState<{ title: string; date: Date | undefined; type: string } | null>(null);
+    const itemsLeft = todos.filter(t => !t.completed).length;
 
-
-    useEffect(() => {
-        const calculateTimeUntilMidnight = () => {
-            const now = new Date();
-            const midnight = new Date();
-            midnight.setHours(24, 0, 0, 0);
-            const diff = midnight.getTime() - now.getTime();
-            const hours = Math.floor(diff / (1000 * 60 * 60));
-            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-            setTimeUntilMidnight(`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
-        };
-
-        calculateTimeUntilMidnight();
-        const intervalId = setInterval(calculateTimeUntilMidnight, 1000);
-
-        return () => clearInterval(intervalId);
-    }, []);
+    const filteredTodos = todos.filter(todo => {
+        if (taskFilter === 'Active') return !todo.completed;
+        if (taskFilter === 'Completed') return todo.completed;
+        return true;
+    });
 
     const getTasksKey = useCallback(() => {
         if (!user) return null;
@@ -315,7 +304,6 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
         const tasksKey = getTasksKey();
         if (!tasksKey) return;
 
-        // If not forcing, and tasks already exist for today, do nothing.
         if (!force && localStorage.getItem(tasksKey)) {
             return;
         }
@@ -908,69 +896,30 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
         }
     };
     
-    const addTodo = () => {
+     const addTodo = (text: string) => {
+        if (!text.trim()) return;
         const newTodo: TodoItem = {
             id: crypto.randomUUID(),
-            text: '',
-            completed: false,
-            isEditing: true
+            text: text,
+            completed: false
         };
         setTodos(prev => [...prev, newTodo]);
+        setNewTodoInput('');
     };
 
     const toggleTodo = (id: string) => {
         setTodos(prev => prev.map(todo => 
-            todo.id === id ? { ...todo, completed: !todo.completed, isEditing: false } : todo
+            todo.id === id ? { ...todo, completed: !todo.completed } : todo
         ));
-    };
-    
-    const updateTodoText = (id: string, newText: string) => {
-        setTodos(prev => prev.map(todo => 
-            todo.id === id ? { ...todo, text: newText } : todo
-        ));
-    }
-    
-    const saveTodo = (id: string) => {
-        setTodos(prev => prev.map(todo => 
-            todo.id === id ? { ...todo, isEditing: false } : todo
-        ));
-    }
-
-    const openCalendarDialog = (text: string) => {
-        setEventFromTask({
-            title: text,
-            date: new Date(),
-            type: 'Homework',
-        });
-        setIsCalendarDialogOpen(true);
     };
 
-    const handleConfirmAddCalendarEvent = async () => {
-        if (!user || !eventFromTask || !eventFromTask.date) return;
-        try {
-            await addDoc(collection(db, "calendarEvents"), {
-                title: eventFromTask.title,
-                description: "Study session for today's focus.",
-                date: eventFromTask.date.toISOString(),
-                startTime: "16:00",
-                endTime: "17:00",
-                type: eventFromTask.type,
-                color: 'bg-blue-500',
-                userId: user.uid,
-                reminderMinutes: 10,
-            });
-            toast({ title: 'Event Added!', description: `"${eventFromTask.title}" added to your calendar.`});
-        } catch (e) {
-            toast({ variant: 'destructive', title: "Error", description: "Could not add event to calendar." });
-        } finally {
-            setIsCalendarDialogOpen(false);
-            setEventFromTask(null);
-        }
+    const deleteTodo = (id: string) => {
+        setTodos(prev => prev.filter(todo => todo.id !== id));
     };
     
-    const completedAiTasks = todos.filter(t => t.isAiGenerated && t.completed).length;
-    const totalAiTasks = todos.filter(t => t.isAiGenerated).length;
-    const progress = totalAiTasks > 0 ? (completedAiTasks / totalAiTasks) * 100 : 0;
+    const clearCompleted = () => {
+        setTodos(prev => prev.filter(todo => !todo.completed));
+    };
 
 
    
@@ -1182,6 +1131,65 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                 
                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
                     <div className="lg:col-span-2 space-y-8">
+                       <Card id="todays-focus-card" className="dark:bg-[#1c1d27] dark:border-[#3b3f54]">
+                            <CardHeader className="flex items-center justify-between flex-row">
+                                <div className="flex items-center gap-3">
+                                    <div className="h-8 w-8 text-primary">
+                                        <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><g clipPath="url(#clip0_6_319)"><path d="M8.57829 8.57829C5.52816 11.6284 3.451 15.5145 2.60947 19.7452C1.76794 23.9758 2.19984 28.361 3.85056 32.3462C5.50128 36.3314 8.29667 39.7376 11.8832 42.134C15.4698 44.5305 19.6865 45.8096 24 45.8096C28.3135 45.8096 32.5302 44.5305 36.1168 42.134C39.7033 39.7375 42.4987 36.3314 44.1494 32.3462C45.8002 28.361 46.2321 23.9758 45.3905 19.7452C44.549 15.5145 42.4718 11.6284 39.4217 8.57829L24 24L8.57829 8.57829Z" fill="currentColor"></path></g><defs><clipPath id="clip0_6_319"><rect fill="white" height="48" width="48"></rect></clipPath></defs></svg>
+                                    </div>
+                                    <h2 className="text-xl font-bold tracking-tight">Tasks</h2>
+                                </div>
+                            </CardHeader>
+                            <CardContent className="space-y-6">
+                                <div className="flex items-center gap-2">
+                                    <div className="relative flex w-full flex-1 items-stretch">
+                                        <Plus className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                                        <Input
+                                            className="h-14 pl-12 pr-4 text-base"
+                                            placeholder="What needs to be done?"
+                                            value={newTodoInput}
+                                            onChange={(e) => setNewTodoInput(e.target.value)}
+                                            onKeyDown={(e) => e.key === 'Enter' && addTodo(newTodoInput)}
+                                        />
+                                    </div>
+                                    <button onClick={() => addTodo(newTodoInput)} className="flex-shrink-0 flex items-center justify-center rounded-lg h-14 w-14 bg-primary text-white hover:bg-primary/90">
+                                        <Plus className="h-6 w-6" />
+                                    </button>
+                                </div>
+                                <div className="bg-background rounded-xl border">
+                                     <div className="flex p-2">
+                                        <div className="flex h-10 flex-1 items-center justify-center rounded-lg bg-muted p-1">
+                                             {(['All', 'Active', 'Completed'] as TaskFilter[]).map(filter => (
+                                                <label key={filter} className={cn("flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-md px-2 text-sm font-medium leading-normal", taskFilter === filter ? "bg-card shadow-sm" : "text-muted-foreground")}>
+                                                    <span className="truncate">{filter}</span>
+                                                    <input checked={taskFilter === filter} onChange={() => setTaskFilter(filter)} className="invisible w-0" name="task-filter" type="radio" value={filter}/>
+                                                </label>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="divide-y">
+                                        {filteredTodos.length > 0 ? filteredTodos.map(todo => (
+                                            <div key={todo.id} className="task-item flex items-center gap-4 px-4 py-3 min-h-14 justify-between group">
+                                                <div className="flex items-center gap-4 flex-1 min-w-0">
+                                                    <input onChange={() => toggleTodo(todo.id)} checked={todo.completed} className="form-checkbox h-5 w-5 rounded-full border-muted-foreground/50 border-2 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0" type="checkbox"/>
+                                                    <p className={cn("text-base font-normal leading-normal flex-1 truncate", todo.completed && "line-through text-muted-foreground")}>{todo.text}</p>
+                                                </div>
+                                                <div className="task-actions shrink-0 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <button className="h-8 w-8 flex items-center justify-center text-muted-foreground hover:text-primary rounded-md"><Edit className="h-5 w-5" /></button>
+                                                    <button onClick={() => deleteTodo(todo.id)} className="h-8 w-8 flex items-center justify-center text-muted-foreground hover:text-red-500 rounded-md"><Trash2 className="h-5 w-5" /></button>
+                                                </div>
+                                            </div>
+                                        )) : (
+                                            <div className="text-center p-6 text-muted-foreground text-sm">No tasks here.</div>
+                                        )}
+                                    </div>
+                                    <CardFooter className="flex items-center justify-between p-4 text-sm text-muted-foreground">
+                                        <span>{itemsLeft} items left</span>
+                                        <button onClick={clearCompleted} className="font-medium hover:text-primary">Clear Completed</button>
+                                    </CardFooter>
+                                </div>
+                            </CardContent>
+                        </Card>
                         <Card id="active-courses">
                              <CardHeader>
                                 <div className="flex items-center justify-between">
@@ -1228,101 +1236,8 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                 </div>
                             </CardContent>
                         </Card>
-                        <Card id="streak-card" className="bg-orange-500/10 border-orange-500/20 text-orange-900 dark:text-orange-200">
-                            <CardContent className="p-6">
-                                <div className="flex flex-col items-center justify-center gap-4 text-center">
-                                     <div className="p-4 bg-white/50 rounded-full">
-                                        <Flame className="w-8 h-8 text-orange-500" />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-3xl font-bold">{streak} Day Streak!</h3>
-                                        <p className="text-sm opacity-80 mt-1">
-                                            {streak > 1 ? "Keep the fire going! You're building a great habit." : "Every journey starts with a single step. Keep it up!"}
-                                        </p>
-                                    </div>
-                                    <Dialog onOpenChange={(open) => !open && setRewardState('idle')}>
-                                        <DialogTrigger asChild>
-                                            <Button variant="outline" className="rounded-full border-orange-500/50 bg-transparent hover:bg-white/20 mt-2">
-                                                View Streak Rewards
-                                            </Button>
-                                        </DialogTrigger>
-                                        <DialogContent>
-                                            <DialogHeader>
-                                                <DialogTitle className="flex items-center gap-2"><Trophy className="text-yellow-500" /> Your Reward Chests</DialogTitle>
-                                                <CardDescription>
-                                                    Claim chests by maintaining your study streak.
-                                                </CardDescription>
-                                            </DialogHeader>
-                                            <div className="py-4 space-y-4">
-                                                {rewardState === 'idle' && chests.map(chest => {
-                                                    const hasClaimedStreak = chest.unlocksAt && localStorage.getItem(`streakChestClaimed_${chest.id}_${user?.uid}`);
-                                                    const isStreakLocked = chest.unlocksAt && streak < chest.unlocksAt;
-                                                    const isFreeClaimed = chest.id === 'daily_free' && hasClaimedFreeChest;
-                                                    const isDisabled = isStreakLocked || (isFreeClaimed && chest.id === 'daily_free') || !!hasClaimedStreak;
-                                                    
-                                                    let buttonText: React.ReactNode = "Claim Reward";
-                                                    if(isFreeClaimed && chest.id === 'daily_free') {
-                                                        buttonText = 'Claimed Today';
-                                                    } else if (hasClaimedStreak) {
-                                                        buttonText = 'Claimed';
-                                                    } else if (isStreakLocked) {
-                                                        const daysLeft = chest.unlocksAt! - streak;
-                                                        buttonText = `Unlock in ${daysLeft} day${daysLeft > 1 ? 's' : ''}`;
-                                                    }
-
-
-                                                    return (
-                                                        <Card key={chest.id} className={cn("transition-all", isDisabled && "opacity-50")}>
-                                                            <CardContent className="p-4 flex items-center justify-between gap-2">
-                                                                <div className="flex items-center gap-4 flex-1">
-                                                                    <div className="p-3 rounded-lg bg-muted">
-                                                                        <Gift className="h-8 w-8 text-primary" />
-                                                                    </div>
-                                                                    <div className="flex-1">
-                                                                        <p className="font-semibold">{chest.name}</p>
-                                                                        <p className="text-sm text-muted-foreground">{chest.description}</p>
-                                                                    </div>
-                                                                </div>
-                                                                <Button size="sm" className="w-36" disabled={isDisabled} onClick={() => handleClaimChest(chest)}>
-                                                                    {buttonText}
-                                                                </Button>
-                                                            </CardContent>
-                                                        </Card>
-                                                    )
-                                                })}
-
-                                                {rewardState !== 'idle' && (
-                                                    <div className="flex flex-col items-center justify-center h-48">
-                                                        <motion.div
-                                                            className="relative w-32 h-32"
-                                                            animate={rewardState === 'opening' ? { y: [0, -20, 0, -10, 0], rotate: [0, 5, -5, 5, 0] } : {}}
-                                                            transition={rewardState === 'opening' ? { duration: 0.8, ease: 'easeInOut' } : {}}
-                                                        >
-                                                            <Gift className={cn("w-32 h-32 text-yellow-500 transition-all duration-500", rewardState === 'revealed' && 'scale-150 opacity-0')} />
-                                                            {rewardState === 'revealed' && (
-                                                                <motion.div 
-                                                                    className="absolute inset-0 flex items-center justify-center text-3xl font-bold text-amber-400"
-                                                                    initial={{ scale: 0, opacity: 0 }}
-                                                                    animate={{ scale: 1, opacity: 1 }}
-                                                                    transition={{ delay: 0.3, type: 'spring' }}
-                                                                >
-                                                                    <Gem className="mr-2 h-6 w-6"/> +{claimedCoins}
-                                                                </motion.div>
-                                                            )}
-                                                        </motion.div>
-                                                        {rewardState === 'revealed' && (
-                                                            <Button className="mt-8" onClick={() => setRewardState('idle')}>Awesome!</Button>
-                                                        )}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </DialogContent>
-                                    </Dialog>
-                                </div>
-                            </CardContent>
-                        </Card>
                     </div>
-                     <div className="space-y-4">
+                     <div className="space-y-8">
                          <Card id="recent-files-card">
                              <CardHeader>
                                <CardTitle>Recent Files</CardTitle>
@@ -1357,81 +1272,99 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                 </Table>
                             </CardContent>
                         </Card>
-                        <Dialog open={isFocusDialogOpen} onOpenChange={setIsFocusDialogOpen}>
-                            <Card id="todays-focus-card">
-                                <CardHeader>
-                                    <div className="flex justify-between items-center">
-                                        <CardTitle className="flex items-center gap-2">
-                                            <Target className="text-primary"/> Today's Focus
-                                        </CardTitle>
-                                        <div className="flex gap-1">
-                                            <DialogTrigger asChild>
-                                                <Button variant="ghost" size="icon" className="h-7 w-7"><ListTodo className="h-4 w-4"/></Button>
-                                            </DialogTrigger>
-                                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={addTodo}><Plus className="h-4 w-4"/></Button>
-                                        </div>
+                       <Card id="streak-card" className="bg-orange-500/10 border-orange-500/20 text-orange-900 dark:text-orange-200">
+                            <CardContent className="p-6">
+                                <div className="flex items-center justify-center gap-4">
+                                     <div className="p-4 bg-white/50 rounded-full">
+                                        <Flame className="w-8 h-8 text-orange-500" />
                                     </div>
-                                </CardHeader>
-                                <CardContent className="space-y-3">
-                                    {todos.length > 0 ? todos.slice(0, 3).map(todo => (
-                                        <div key={todo.id} className="flex items-center gap-3 group">
-                                            <button onClick={() => toggleTodo(todo.id)} className="flex-shrink-0">
-                                                <div className={cn("w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors", todo.completed ? "bg-primary border-primary" : "border-muted-foreground")}>
-                                                    {todo.completed && <CheckCircle className="w-3.5 h-3.5 text-primary-foreground"/>}
-                                                </div>
-                                            </button>
-                                            {todo.isEditing ? (
-                                                <Input 
-                                                    autoFocus
-                                                    value={todo.text}
-                                                    onChange={(e) => updateTodoText(todo.id, e.target.value)}
-                                                    onBlur={() => saveTodo(todo.id)}
-                                                    onKeyDown={(e) => e.key === 'Enter' && saveTodo(todo.id)}
-                                                    className="h-8 text-sm flex-1"
-                                                />
-                                            ) : (
-                                                <span className={cn("text-sm flex-1", todo.completed && "line-through text-muted-foreground")}>{todo.text}</span>
-                                            )}
-                                            <button className="opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => openCalendarDialog(todo.text)}>
-                                                <Calendar className="h-4 w-4 text-muted-foreground" />
-                                            </button>
-                                        </div>
-                                    )) : (
-                                        <p className="text-sm text-center text-muted-foreground py-4">No tasks yet. Add one or get AI suggestions!</p>
-                                    )}
-                                </CardContent>
-                                <CardFooter>
-                                    {dailyRewardClaimed && (
-                                        <div className="text-xs text-green-600 font-semibold flex items-center gap-1 w-full justify-center">
-                                            <CheckCircle className="w-3 h-3"/> Daily reward claimed!
-                                        </div>
-                                    )}
-                                </CardFooter>
-                            </Card>
-                             <DialogContent>
-                                <DialogHeader>
-                                    <DialogTitle>Full Task List</DialogTitle>
-                                    <DialogDescription>
-                                        Time remaining today: <span className="font-mono font-semibold">{timeUntilMidnight}</span>
-                                    </DialogDescription>
-                                </DialogHeader>
-                                <div className="py-4 space-y-2 max-h-80 overflow-y-auto">
-                                     {todos.map(todo => (
-                                        <div key={todo.id} className="flex items-center gap-3 group p-2 rounded-lg hover:bg-muted">
-                                            <button onClick={() => toggleTodo(todo.id)} className="flex-shrink-0">
-                                                <div className={cn("w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors", todo.completed ? "bg-primary border-primary" : "border-muted-foreground")}>
-                                                    {todo.completed && <CheckCircle className="w-3.5 h-3.5 text-primary-foreground"/>}
-                                                </div>
-                                            </button>
-                                            <span className={cn("text-sm flex-1", todo.completed && "line-through text-muted-foreground")}>{todo.text}</span>
-                                            <button className="opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => openCalendarDialog(todo.text)}>
-                                                <Calendar className="h-4 w-4 text-muted-foreground" />
-                                            </button>
-                                        </div>
-                                    ))}
+                                    <div>
+                                        <h3 className="text-3xl font-bold">{streak} Day Streak!</h3>
+                                        <p className="text-sm opacity-80 mt-1">
+                                            {streak > 1 ? "Keep the fire going! You're building a great habit." : "Every journey starts with a single step. Keep it up!"}
+                                        </p>
+                                    </div>
                                 </div>
-                            </DialogContent>
-                        </Dialog>
+                                <Dialog onOpenChange={(open) => !open && setRewardState('idle')}>
+                                    <DialogTrigger asChild>
+                                        <Button variant="outline" className="w-full rounded-full border-orange-500/50 bg-transparent hover:bg-white/20 mt-4">
+                                            View Streak Rewards
+                                        </Button>
+                                    </DialogTrigger>
+                                    <DialogContent>
+                                        <DialogHeader>
+                                            <DialogTitle className="flex items-center gap-2"><Trophy className="text-yellow-500" /> Your Reward Chests</DialogTitle>
+                                            <CardDescription>
+                                                Claim chests by maintaining your study streak.
+                                            </CardDescription>
+                                        </DialogHeader>
+                                        <div className="py-4 space-y-4">
+                                            {rewardState === 'idle' && chests.map(chest => {
+                                                const hasClaimedStreak = chest.unlocksAt && localStorage.getItem(`streakChestClaimed_${chest.id}_${user?.uid}`);
+                                                const isStreakLocked = chest.unlocksAt && streak < chest.unlocksAt;
+                                                const isFreeClaimed = chest.id === 'daily_free' && hasClaimedFreeChest;
+                                                const isDisabled = isStreakLocked || (isFreeClaimed && chest.id === 'daily_free') || !!hasClaimedStreak;
+                                                
+                                                let buttonText: React.ReactNode = "Claim Reward";
+                                                if(isFreeClaimed && chest.id === 'daily_free') {
+                                                    buttonText = 'Claimed Today';
+                                                } else if (hasClaimedStreak) {
+                                                    buttonText = 'Claimed';
+                                                } else if (isStreakLocked) {
+                                                    const daysLeft = chest.unlocksAt! - streak;
+                                                    buttonText = `Unlock in ${daysLeft} day${daysLeft > 1 ? 's' : ''}`;
+                                                }
+
+
+                                                return (
+                                                    <Card key={chest.id} className={cn("transition-all", isDisabled && "opacity-50")}>
+                                                        <CardContent className="p-4 flex items-center justify-between gap-2">
+                                                            <div className="flex items-center gap-4 flex-1">
+                                                                <div className="p-3 rounded-lg bg-muted">
+                                                                    <Gift className="h-8 w-8 text-primary" />
+                                                                </div>
+                                                                <div className="flex-1">
+                                                                    <p className="font-semibold">{chest.name}</p>
+                                                                    <p className="text-sm text-muted-foreground">{chest.description}</p>
+                                                                </div>
+                                                            </div>
+                                                            <Button size="sm" className="w-36" disabled={isDisabled} onClick={() => handleClaimChest(chest)}>
+                                                                {buttonText}
+                                                            </Button>
+                                                        </CardContent>
+                                                    </Card>
+                                                )
+                                            })}
+
+                                            {rewardState !== 'idle' && (
+                                                <div className="flex flex-col items-center justify-center h-48">
+                                                    <motion.div
+                                                        className="relative w-32 h-32"
+                                                        animate={rewardState === 'opening' ? { y: [0, -20, 0, -10, 0], rotate: [0, 5, -5, 5, 0] } : {}}
+                                                        transition={rewardState === 'opening' ? { duration: 0.8, ease: 'easeInOut' } : {}}
+                                                    >
+                                                        <Gift className={cn("w-32 h-32 text-yellow-500 transition-all duration-500", rewardState === 'revealed' && 'scale-150 opacity-0')} />
+                                                        {rewardState === 'revealed' && (
+                                                            <motion.div 
+                                                                className="absolute inset-0 flex items-center justify-center text-3xl font-bold text-amber-400"
+                                                                initial={{ scale: 0, opacity: 0 }}
+                                                                animate={{ scale: 1, opacity: 1 }}
+                                                                transition={{ delay: 0.3, type: 'spring' }}
+                                                            >
+                                                                <Gem className="mr-2 h-6 w-6"/> +{claimedCoins}
+                                                            </motion.div>
+                                                        )}
+                                                    </motion.div>
+                                                    {rewardState === 'revealed' && (
+                                                        <Button className="mt-8" onClick={() => setRewardState('idle')}>Awesome!</Button>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </DialogContent>
+                                </Dialog>
+                            </CardContent>
+                        </Card>
                     </div>
                 </div>
             </TabsContent>
@@ -1856,43 +1789,6 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                 </div>
             </DialogContent>
         </Dialog>
-         <Dialog open={isCalendarDialogOpen} onOpenChange={setIsCalendarDialogOpen}>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Add to Calendar</DialogTitle>
-                    <DialogDescription>Confirm the details for your new calendar event.</DialogDescription>
-                </DialogHeader>
-                 <div className="grid gap-4 py-4">
-                    <div className="grid gap-2">
-                        <Label>Title</Label>
-                        <Input value={eventFromTask?.title || ''} onChange={(e) => setEventFromTask(prev => prev ? { ...prev, title: e.target.value } : null)} />
-                    </div>
-                    <div className="grid gap-2">
-                        <Label>Date</Label>
-                        <DatePicker date={eventFromTask?.date} setDate={(date) => setEventFromTask(prev => prev ? { ...prev, date } : null)} />
-                    </div>
-                    <div className="grid gap-2">
-                        <Label>Type</Label>
-                        <Select value={eventFromTask?.type} onValueChange={(value) => setEventFromTask(prev => prev ? { ...prev, type: value } : null)}>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select event type..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="Homework">Homework</SelectItem>
-                                <SelectItem value="Test">Test</SelectItem>
-                                <SelectItem value="Quiz">Quiz</SelectItem>
-                                <SelectItem value="Project">Project</SelectItem>
-                                <SelectItem value="Event">Event</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </div>
-                <DialogFooter>
-                    <Button variant="ghost" onClick={() => setIsCalendarDialogOpen(false)}>Cancel</Button>
-                    <Button onClick={handleConfirmAddCalendarEvent}>Add to Calendar</Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
     </div>
   )
 }
@@ -1903,4 +1799,5 @@ export default DashboardClientPage;
     
 
     
+
 
