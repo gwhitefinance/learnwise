@@ -305,11 +305,6 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
             // Filter out old AI tasks but keep user-added tasks
             setTodos(prev => [...prev.filter(t => !t.isAiGenerated), ...newAiTodos]);
             
-            // Reset daily reward claim status
-            const rewardKey = `dailyFocusReward_${user.uid}_${new Date().toDateString()}`;
-            localStorage.removeItem(rewardKey);
-            setDailyRewardClaimed(false);
-
         } catch (error) {
             console.error("Failed to get AI suggestions:", error);
             toast({ variant: 'destructive', title: "AI Error", description: "Could not generate focus tasks." });
@@ -342,7 +337,7 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
 
     useEffect(() => {
         const tasksKey = getTasksKey();
-        if (!tasksKey) return;
+        if (!tasksKey || todos.length === 0) return;
         try {
             localStorage.setItem(tasksKey, JSON.stringify(todos));
         } catch (error) {
@@ -1197,41 +1192,7 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                 
                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
                     <div className="lg:col-span-2 space-y-8">
-                        <Card id="recent-files-card">
-                             <CardHeader>
-                               <CardTitle>Recent Files</CardTitle>
-                               <CardDescription>Your most recently accessed documents.</CardDescription>
-                             </CardHeader>
-                            <CardContent>
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Name</TableHead>
-                                            <TableHead>Subject</TableHead>
-                                            <TableHead>Last Modified</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {recentFiles.length > 0 ? (
-                                            recentFiles.slice(0, 3).map((file, index) => (
-                                                <TableRow key={index}>
-                                                    <TableCell className="font-medium">{file.name}</TableCell>
-                                                    <TableCell>{file.subject}</TableCell>
-                                                    <TableCell>{file.modified}</TableCell>
-                                                </TableRow>
-                                            ))
-                                        ) : (
-                                            <TableRow>
-                                                <TableCell colSpan={3} className="text-center text-muted-foreground p-8">
-                                                    You haven't uploaded any files yet.
-                                                </TableCell>
-                                            </TableRow>
-                                        )}
-                                    </TableBody>
-                                </Table>
-                            </CardContent>
-                        </Card>
-                         <Card id="active-courses">
+                        <Card id="active-courses">
                              <CardHeader>
                                 <div className="flex items-center justify-between">
                                 <h2 className="text-xl font-semibold">Active Courses</h2>
@@ -1275,6 +1236,40 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                         <div className="p-4 text-center text-muted-foreground">You haven't added any courses yet.</div>
                                     )}
                                 </div>
+                            </CardContent>
+                        </Card>
+                        <Card id="recent-files-card">
+                             <CardHeader>
+                               <CardTitle>Recent Files</CardTitle>
+                               <CardDescription>Your most recently accessed documents.</CardDescription>
+                             </CardHeader>
+                            <CardContent>
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Name</TableHead>
+                                            <TableHead>Subject</TableHead>
+                                            <TableHead>Last Modified</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {recentFiles.length > 0 ? (
+                                            recentFiles.slice(0, 3).map((file, index) => (
+                                                <TableRow key={index}>
+                                                    <TableCell className="font-medium">{file.name}</TableCell>
+                                                    <TableCell>{file.subject}</TableCell>
+                                                    <TableCell>{file.modified}</TableCell>
+                                                </TableRow>
+                                            ))
+                                        ) : (
+                                            <TableRow>
+                                                <TableCell colSpan={3} className="text-center text-muted-foreground p-8">
+                                                    You haven't uploaded any files yet.
+                                                </TableCell>
+                                            </TableRow>
+                                        )}
+                                    </TableBody>
+                                </Table>
                             </CardContent>
                         </Card>
                     </div>
@@ -1825,4 +1820,5 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
 
 export default DashboardClientPage;
 
+    
     
