@@ -1203,10 +1203,10 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
                     <div className="lg:col-span-2 space-y-8">
-                        <Card id="streak-card" className="bg-orange-500/10 border-orange-500/20 text-orange-900 dark:text-orange-200">
+                        <Card id="streak-card" className="bg-orange-500/5 border-orange-500/20 text-orange-900 dark:text-orange-200">
                            <CardContent className="p-6">
                                <div className="flex flex-col items-center justify-center gap-4 text-center">
-                                   <div className="p-4 bg-white/50 rounded-full">
+                                   <div className="p-4 bg-white dark:bg-orange-900/20 rounded-full shadow-inner">
                                        <Flame className="w-8 h-8 text-orange-500" />
                                    </div>
                                    <div className="flex-1">
@@ -1217,7 +1217,7 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                    </div>
                                    <Dialog onOpenChange={(open) => !open && setRewardState('idle')}>
                                        <DialogTrigger asChild>
-                                           <Button variant="outline" className="rounded-full border-orange-500/50 bg-transparent hover:bg-white/20 mt-2">
+                                           <Button variant="outline" className="rounded-full border-orange-500/50 bg-white/50 hover:bg-white/80 dark:bg-transparent dark:hover:bg-orange-900/10 dark:text-orange-300">
                                                View Streak Rewards
                                            </Button>
                                        </DialogTrigger>
@@ -1366,8 +1366,7 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                         <div className="space-y-6">
                                             <div className="flex items-center gap-2">
                                                 <div className="relative flex w-full flex-1 items-stretch">
-                                                    <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">add</span>
-                                                    <Input className="h-14 pl-12 pr-4 text-base" placeholder="What needs to be done?" value={newTodoInput} onChange={(e) => setNewTodoInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addTodo(newTodoInput)} />
+                                                    <Input className="h-14 pl-6 pr-14 text-base" placeholder="What needs to be done?" value={newTodoInput} onChange={(e) => setNewTodoInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addTodo(newTodoInput)} />
                                                 </div>
                                                 <button onClick={() => addTodo(newTodoInput)} className="flex-shrink-0 flex items-center justify-center rounded-lg h-14 w-14 bg-primary text-white hover:bg-primary/90">
                                                     <Plus className="h-6 w-6" />
@@ -1386,7 +1385,7 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                                 </div>
                                                 <div className="divide-y">
                                                     {filteredTodos.map(todo => (
-                                                         <div key={todo.id} className="task-item flex items-center gap-4 px-4 py-3 min-h-14 justify-between group hover:bg-muted/50 rounded-lg">
+                                                         <div key={todo.id} className="task-item flex items-center gap-4 px-4 py-3 min-h-14 justify-between group hover:bg-muted/50">
                                                              <div className="flex items-center gap-4 flex-1 min-w-0">
                                                                 <button onClick={() => toggleTodo(todo.id)} className={cn("flex-shrink-0 h-6 w-6 rounded-full border-2 transition-all flex items-center justify-center", todo.completed ? "bg-primary border-primary" : "border-muted-foreground/50")}>
                                                                     {todo.completed && <Check className="h-4 w-4 text-white" />}
@@ -1926,6 +1925,7 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
 }
 
 export default DashboardClientPage;
+
 
 
 
