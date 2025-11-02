@@ -28,7 +28,10 @@
         { "name": "Obsidian", "hex": "#343434", "price": 1500, "rarity": "Epic" },
         { "name": "Bronze", "hex": "#CD7F32", "price": 1500, "rarity": "Epic" },
         { "name": "Electric Lime", "hex": "#CCFF00", "price": 2500, "rarity": "Legendary" },
-        { "name": "Hot Pink", "hex": "#FF69B4", "price": 2500, "rarity": "Legendary" }
+        { "name": "Hot Pink", "hex": "#FF69B4", "price": 2500, "rarity": "Legendary" },
+        { "name": "Holographic", "hex": "#c2f0f0", "price": 5000, "rarity": "Legendary" },
+        { "name": "Cosmic", "hex": "#4b0082", "price": 5500, "rarity": "Legendary" },
+        { "name": "Starlight", "hex": "#f0f8ff", "price": 6000, "rarity": "Legendary" }
     ],
     "hats": [
         { "name": "None", "price": 0, "rarity": "Common" },
@@ -46,7 +49,10 @@
         { "name": "Crown", "price": 1500, "rarity": "Epic" },
         { "name": "Headphones", "price": 1200, "rarity": "Epic" },
         { "name": "Wizard Hat", "price": 3000, "rarity": "Legendary" },
-        { "name": "Flower Crown", "price": 2500, "rarity": "Legendary" }
+        { "name": "Flower Crown", "price": 2500, "rarity": "Legendary" },
+        { "name": "Knight Helmet", "price": 4000, "rarity": "Legendary" },
+        { "name": "Astronaut Helmet", "price": 4500, "rarity": "Legendary" },
+        { "name": "Plague Doctor Mask", "price": 5000, "rarity": "Legendary" }
     ],
     "shirts": [
         { "name": "None", "price": 0, "rarity": "Common" },
@@ -64,9 +70,12 @@
         { "name": "Football Jersey", "price": 1000, "rarity": "Epic" },
         { "name": "Tuxedo", "price": 1200, "rarity": "Epic" },
         { "name": "Lab Coat", "price": 1000, "rarity": "Epic" },
+        { "name": "Turkey Costume", "price": 1500, "rarity": "Epic" },
         { "name": "Superhero Cape", "price": 3000, "rarity": "Legendary" },
         { "name": "Overalls", "price": 2500, "rarity": "Legendary" },
-        { "name": "Turkey Costume", "price": 5000, "rarity": "Legendary" }
+        { "name": "Knight Armor", "price": 4000, "rarity": "Legendary" },
+        { "name": "Astronaut Suit", "price": 4500, "rarity": "Legendary" },
+        { "name": "Royal Robe", "price": 5500, "rarity": "Legendary" }
     ],
     "shoes": [
         { "name": "None", "price": 0, "rarity": "Common" },
@@ -82,6 +91,9 @@
         { "name": "Football Cleats", "price": 1000, "rarity": "Epic" },
         { "name": "Rocket Boots", "price": 1500, "rarity": "Epic" },
         { "name": "Ice Skates", "price": 1000, "rarity": "Epic" },
-        { "name": "Roller Skates", "price": 2500, "rarity": "Legendary" }
+        { "name": "Roller Skates", "price": 2500, "rarity": "Legendary" },
+        { "name": "Knight Boots", "price": 3500, "rarity": "Legendary" },
+        { "name": "Astronaut Boots", "price": 4000, "rarity": "Legendary" },
+        { "name": "Hover Boots", "price": 5000, "rarity": "Legendary" }
     ]
 }

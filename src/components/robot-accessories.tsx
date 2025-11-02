@@ -62,7 +62,7 @@ const hatComponents: Record<string, React.FC> = {
     ),
     "Pilgrim Hat": () => (
         <g transform="translate(60, 20) scale(0.9)">
-            <path d="M0,30 C0,25 5,25 10,20 H70 C75,25 80,25 80,30 V28 H0 Z" fill="#333"/>
+            <path d="M0,30 C0,25 5,25 10,20 H 70 C 75,25 80,25 80,30 V 28 H 0 Z" fill="#333"/>
             <rect x="15" y="0" width="50" height="25" fill="#333" />
             <rect x="25" y="15" width="30" height="10" fill="#777" />
             <rect x="30" y="17" width="20" height="6" fill="#f0e68c" />
@@ -130,6 +130,31 @@ const hatComponents: Record<string, React.FC> = {
             <circle cx="90" cy="-10" r="8" fill="#f87171" />
         </g>
     ),
+    "Knight Helmet": () => (
+        <g transform="translate(55, 25)">
+          <path d="M0 20 C0 -10, 90 -10, 90 20 V 50 H 0 Z" fill="#C0C0C0" stroke="#A9A9A9" strokeWidth="2" />
+          <path d="M45 -5 L 45 20" stroke="#A9A9A9" strokeWidth="2" />
+          <rect x="15" y="30" width="60" height="5" fill="#A9A9A9" />
+          <path d="M-5 15 L 95 15" stroke="#A9A9A9" strokeWidth="3" />
+        </g>
+    ),
+    "Astronaut Helmet": () => (
+        <g transform="translate(50, 20)">
+            <circle cx="50" cy="40" r="50" fill="white" stroke="#ccc" strokeWidth="2"/>
+            <circle cx="50" cy="40" r="35" fill="#222" />
+            <circle cx="50" cy="40" r="35" fill="url(#glassReflection)" />
+        </g>
+    ),
+    "Plague Doctor Mask": () => (
+        <g transform="translate(50, 40)">
+            <path d="M0 0 C0 -20, 80 -20, 80 0 V 30 H 0 Z" fill="#333"/>
+            <path d="M40 0 L 100 20 L 40 30 Z" fill="#222" />
+            <circle cx="20" cy="5" r="8" fill="#111" />
+            <circle cx="60" cy="5" r="8" fill="#111" />
+            <circle cx="20" cy="5" r="5" fill="red" opacity="0.7" />
+            <circle cx="60" cy="5" r="5" fill="red" opacity="0.7" />
+        </g>
+    ),
 };
 
 const shirtComponents: Record<string, React.FC> = {
@@ -195,7 +220,7 @@ const shirtComponents: Record<string, React.FC> = {
     "Football Jersey": () => (
          <g>
             <path d='M65 105 L135 105 L135 155 L65 155 Z' fill='darkgreen' />
-            <text x="100" y="140" fill="white" fontSize="40" fontWeight="bold" textAnchor="middle">88</text>
+            <text x="100" y="140" fill="white" fontSize="40" fontWeight="bold" textAnchor="middle">67</text>
         </g>
     ),
     "Striped Shirt": () => (
@@ -255,6 +280,42 @@ const shirtComponents: Record<string, React.FC> = {
             <path d="M70 110 L75 130" stroke="#3498db" strokeWidth="5"/>
             <path d="M130 110 L125 130" stroke="#3498db" strokeWidth="5"/>
             <path d="M85 130 L115 130 L115 140 L85 140 Z" fill="#2980b9" />
+        </g>
+    ),
+    "Turkey Costume": () => (
+        <g transform="translate(100, 140)">
+            {/* Feathers */}
+            <path d="M-50,0 Q-60,-40 -40,-50 Z" fill="#A0522D" />
+            <path d="M-30,-20 Q-40,-50 -20,-60 Z" fill="#FFC107" />
+            <path d="M0,-30 Q0,-60 20,-60 Z" fill="#d32f2f" />
+            <path d="M30,-20 Q40,-50 20,-60 Z" fill="#FFC107" />
+            <path d="M50,0 Q60,-40 40,-50 Z" fill="#A0522D" />
+            {/* Body */}
+            <path d="M-45,-20 a45,35 0 1,1 90,0 a45,35 0 1,1 -90,0" fill="#8B4513" />
+        </g>
+    ),
+    "Knight Armor": () => (
+        <g>
+            <path d='M65 105 L135 105 L135 155 L65 155 Z' fill='#C0C0C0' />
+            <path d='M65 105 L135 105 L135 115 L65 115 Z' fill='#A9A9A9' />
+            <path d='M80 120 L120 120' stroke='#A9A9A9' strokeWidth='2' />
+            <path d='M80 135 L120 135' stroke='#A9A9A9' strokeWidth='2' />
+        </g>
+    ),
+    "Astronaut Suit": () => (
+         <g>
+            <path d='M65 105 L135 105 L135 155 L65 155 Z' fill='white' />
+            <rect x="90" y="115" width="20" height="30" rx="5" fill="#A9A9A9" />
+            <circle cx="80" cy="120" r="4" fill="red" />
+            <circle cx="120" cy="120" r="4" fill="blue" />
+        </g>
+    ),
+    "Royal Robe": () => (
+        <g>
+            <path d="M60 105 L140 105 L150 170 L50 170 Z" fill="#800080" />
+            <path d="M60 105 L80 105 L80 170 L50 170 Z" fill="#F0E68C" />
+            <path d="M140 105 L120 105 L120 170 L150 170 Z" fill="#F0E68C" />
+            <circle cx="100" cy="125" r="8" fill="#DAA520" />
         </g>
     ),
 };
@@ -360,6 +421,26 @@ const shoeComponents: Record<string, React.FC> = {
             <path d='M105 175 L140 175 L135 185 L105 185 Z' fill='pink' />
             <circle cx='115' cy='190' r='5' fill='yellow' />
             <circle cx='130' cy='190' r='5' fill='yellow' />
+        </g>
+    ),
+     "Knight Boots": () => (
+        <g>
+            <path d="M70 170 L95 170 L100 185 L65 185 Z" fill="#A9A9A9" />
+            <path d="M105 170 L130 170 L135 185 L100 185 Z" fill="#A9A9A9" />
+        </g>
+    ),
+    "Astronaut Boots": () => (
+        <g>
+            <rect x="65" y="170" width="30" height="20" rx="8" fill="white" stroke="#ccc" strokeWidth="1" />
+            <rect x="105" y="170" width="30" height="20" rx="8" fill="white" stroke="#ccc" strokeWidth="1" />
+        </g>
+    ),
+    "Hover Boots": () => (
+        <g>
+            <rect x="70" y="175" width="20" height="10" rx="5" fill="#333" />
+            <rect x="110" y="175" width="20" height="10" rx="5" fill="#333" />
+            <ellipse cx="80" cy="190" rx="15" ry="4" fill="cyan" opacity="0.7" />
+            <ellipse cx="120" cy="190" rx="15" ry="4" fill="cyan" opacity="0.7" />
         </g>
     ),
 };
