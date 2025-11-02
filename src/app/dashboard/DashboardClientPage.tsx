@@ -1021,6 +1021,7 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                     >
                          <DialogHeader>
                            <DialogTitle>Upload Study Materials</DialogTitle>
+                           <DialogDescription>Drag and drop your files or click to browse.</DialogDescription>
                          </DialogHeader>
                          <div 
                             className={cn(
@@ -1200,8 +1201,101 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                     </motion.div>
                 </section>
                 
-                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
                     <div className="lg:col-span-2 space-y-8">
+                        <Card id="streak-card" className="bg-orange-500/10 border-orange-500/20 text-orange-900 dark:text-orange-200">
+                           <CardContent className="p-6">
+                               <div className="flex flex-col items-center justify-center gap-4 text-center">
+                                   <div className="p-4 bg-white/50 rounded-full">
+                                       <Flame className="w-8 h-8 text-orange-500" />
+                                   </div>
+                                   <div className="flex-1">
+                                       <h3 className="text-3xl font-bold">{streak} Day Streak!</h3>
+                                       <p className="text-sm opacity-80 mt-1 max-w-xs mx-auto">
+                                           {streak > 1 ? "Keep the fire going! You're building a great habit." : "Every journey starts with a single step. Keep it up!"}
+                                       </p>
+                                   </div>
+                                   <Dialog onOpenChange={(open) => !open && setRewardState('idle')}>
+                                       <DialogTrigger asChild>
+                                           <Button variant="outline" className="rounded-full border-orange-500/50 bg-transparent hover:bg-white/20 mt-2">
+                                               View Streak Rewards
+                                           </Button>
+                                       </DialogTrigger>
+                                       <DialogContent>
+                                           <DialogHeader>
+                                               <DialogTitle className="flex items-center gap-2"><Trophy className="text-yellow-500" /> Your Reward Chests</DialogTitle>
+                                               <DialogDescription>
+                                                   Claim chests by maintaining your study streak.
+                                               </DialogDescription>
+                                           </DialogHeader>
+                                           <div className="py-4 space-y-4">
+                                               {rewardState === 'idle' && chests.map(chest => {
+                                                   const hasClaimedStreak = chest.unlocksAt && localStorage.getItem(`streakChestClaimed_${chest.id}_${user?.uid}`);
+                                                   const isStreakLocked = chest.unlocksAt && streak < chest.unlocksAt;
+                                                   const isFreeClaimed = chest.id === 'daily_free' && hasClaimedFreeChest;
+                                                   const isDisabled = isStreakLocked || (isFreeClaimed && chest.id === 'daily_free') || !!hasClaimedStreak;
+                                                   
+                                                   let buttonText: React.ReactNode = "Claim Reward";
+                                                   if(isFreeClaimed && chest.id === 'daily_free') {
+                                                       buttonText = 'Claimed Today';
+                                                   } else if (hasClaimedStreak) {
+                                                       buttonText = 'Claimed';
+                                                   } else if (isStreakLocked) {
+                                                       const daysLeft = chest.unlocksAt! - streak;
+                                                       buttonText = `Unlock in ${daysLeft} day${daysLeft > 1 ? 's' : ''}`;
+                                                   }
+
+
+                                                   return (
+                                                       <Card key={chest.id} className={cn("transition-all", isDisabled && "opacity-50")}>
+                                                           <CardContent className="p-4 flex items-center justify-between gap-2">
+                                                               <div className="flex items-center gap-4 flex-1">
+                                                                   <div className="p-3 rounded-lg bg-muted">
+                                                                       <Gift className="h-8 w-8 text-primary" />
+                                                                   </div>
+                                                                   <div className="flex-1">
+                                                                       <p className="font-semibold">{chest.name}</p>
+                                                                       <p className="text-sm text-muted-foreground">{chest.description}</p>
+                                                                   </div>
+                                                               </div>
+                                                               <Button size="sm" className="w-36" disabled={isDisabled} onClick={() => handleClaimChest(chest)}>
+                                                                   {buttonText}
+                                                               </Button>
+                                                           </CardContent>
+                                                       </Card>
+                                                   )
+                                               })}
+
+                                               {rewardState !== 'idle' && (
+                                                   <div className="flex flex-col items-center justify-center h-48">
+                                                       <motion.div
+                                                           className="relative w-32 h-32"
+                                                           animate={rewardState === 'opening' ? { y: [0, -20, 0, -10, 0], rotate: [0, 5, -5, 5, 0] } : {}}
+                                                           transition={rewardState === 'opening' ? { duration: 0.8, ease: 'easeInOut' } : {}}
+                                                       >
+                                                           <Gift className={cn("w-32 h-32 text-yellow-500 transition-all duration-500", rewardState === 'revealed' && 'scale-150 opacity-0')} />
+                                                           {rewardState === 'revealed' && (
+                                                               <motion.div 
+                                                                   className="absolute inset-0 flex items-center justify-center text-3xl font-bold text-amber-400"
+                                                                   initial={{ scale: 0, opacity: 0 }}
+                                                                   animate={{ scale: 1, opacity: 1 }}
+                                                                   transition={{ delay: 0.3, type: 'spring' }}
+                                                               >
+                                                                   <Gem className="mr-2 h-6 w-6"/> +{claimedCoins}
+                                                               </motion.div>
+                                                           )}
+                                                       </motion.div>
+                                                       {rewardState === 'revealed' && (
+                                                           <Button className="mt-8" onClick={() => setRewardState('idle')}>Awesome!</Button>
+                                                       )}
+                                                   </div>
+                                               )}
+                                           </div>
+                                       </DialogContent>
+                                   </Dialog>
+                               </div>
+                           </CardContent>
+                       </Card>
                         <Card id="active-courses">
                              <CardHeader>
                                 <div className="flex items-center justify-between">
@@ -1248,143 +1342,16 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                 </div>
                             </CardContent>
                         </Card>
-                         <Card id="streak-card" className="bg-orange-500/10 border-orange-500/20 text-orange-900 dark:text-orange-200">
-                            <CardContent className="p-6">
-                                <div className="flex flex-col md:flex-row items-center justify-center gap-4 text-center md:text-left">
-                                    <div className="p-4 bg-white/50 rounded-full">
-                                        <Flame className="w-8 h-8 text-orange-500" />
-                                    </div>
-                                    <div className="flex-1">
-                                        <h3 className="text-3xl font-bold">{streak} Day Streak!</h3>
-                                        <p className="text-sm opacity-80 mt-1 max-w-xs mx-auto md:mx-0">
-                                            {streak > 1 ? "Keep the fire going! You're building a great habit." : "Every journey starts with a single step. Keep it up!"}
-                                        </p>
-                                    </div>
-                                    <Dialog onOpenChange={(open) => !open && setRewardState('idle')}>
-                                        <DialogTrigger asChild>
-                                            <Button variant="outline" className="rounded-full border-orange-500/50 bg-transparent hover:bg-white/20 mt-2 md:mt-0">
-                                                View Streak Rewards
-                                            </Button>
-                                        </DialogTrigger>
-                                        <DialogContent>
-                                            <DialogHeader>
-                                                <DialogTitle className="flex items-center gap-2"><Trophy className="text-yellow-500" /> Your Reward Chests</DialogTitle>
-                                                <DialogDescription>
-                                                    Claim chests by maintaining your study streak.
-                                                </DialogDescription>
-                                            </DialogHeader>
-                                            <div className="py-4 space-y-4">
-                                                {rewardState === 'idle' && chests.map(chest => {
-                                                    const hasClaimedStreak = chest.unlocksAt && localStorage.getItem(`streakChestClaimed_${chest.id}_${user?.uid}`);
-                                                    const isStreakLocked = chest.unlocksAt && streak < chest.unlocksAt;
-                                                    const isFreeClaimed = chest.id === 'daily_free' && hasClaimedFreeChest;
-                                                    const isDisabled = isStreakLocked || (isFreeClaimed && chest.id === 'daily_free') || !!hasClaimedStreak;
-                                                    
-                                                    let buttonText: React.ReactNode = "Claim Reward";
-                                                    if(isFreeClaimed && chest.id === 'daily_free') {
-                                                        buttonText = 'Claimed Today';
-                                                    } else if (hasClaimedStreak) {
-                                                        buttonText = 'Claimed';
-                                                    } else if (isStreakLocked) {
-                                                        const daysLeft = chest.unlocksAt! - streak;
-                                                        buttonText = `Unlock in ${daysLeft} day${daysLeft > 1 ? 's' : ''}`;
-                                                    }
-
-
-                                                    return (
-                                                        <Card key={chest.id} className={cn("transition-all", isDisabled && "opacity-50")}>
-                                                            <CardContent className="p-4 flex items-center justify-between gap-2">
-                                                                <div className="flex items-center gap-4 flex-1">
-                                                                    <div className="p-3 rounded-lg bg-muted">
-                                                                        <Gift className="h-8 w-8 text-primary" />
-                                                                    </div>
-                                                                    <div className="flex-1">
-                                                                        <p className="font-semibold">{chest.name}</p>
-                                                                        <p className="text-sm text-muted-foreground">{chest.description}</p>
-                                                                    </div>
-                                                                </div>
-                                                                <Button size="sm" className="w-36" disabled={isDisabled} onClick={() => handleClaimChest(chest)}>
-                                                                    {buttonText}
-                                                                </Button>
-                                                            </CardContent>
-                                                        </Card>
-                                                    )
-                                                })}
-
-                                                {rewardState !== 'idle' && (
-                                                    <div className="flex flex-col items-center justify-center h-48">
-                                                        <motion.div
-                                                            className="relative w-32 h-32"
-                                                            animate={rewardState === 'opening' ? { y: [0, -20, 0, -10, 0], rotate: [0, 5, -5, 5, 0] } : {}}
-                                                            transition={rewardState === 'opening' ? { duration: 0.8, ease: 'easeInOut' } : {}}
-                                                        >
-                                                            <Gift className={cn("w-32 h-32 text-yellow-500 transition-all duration-500", rewardState === 'revealed' && 'scale-150 opacity-0')} />
-                                                            {rewardState === 'revealed' && (
-                                                                <motion.div 
-                                                                    className="absolute inset-0 flex items-center justify-center text-3xl font-bold text-amber-400"
-                                                                    initial={{ scale: 0, opacity: 0 }}
-                                                                    animate={{ scale: 1, opacity: 1 }}
-                                                                    transition={{ delay: 0.3, type: 'spring' }}
-                                                                >
-                                                                    <Gem className="mr-2 h-6 w-6"/> +{claimedCoins}
-                                                                </motion.div>
-                                                            )}
-                                                        </motion.div>
-                                                        {rewardState === 'revealed' && (
-                                                            <Button className="mt-8" onClick={() => setRewardState('idle')}>Awesome!</Button>
-                                                        )}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </DialogContent>
-                                    </Dialog>
-                                </div>
-                            </CardContent>
-                        </Card>
                     </div>
                      <div className="space-y-8">
-                        <Card id="recent-files-card">
-                             <CardHeader>
-                               <CardTitle>Recent Files</CardTitle>
-                               <CardDescription>Your most recently accessed documents.</CardDescription>
-                             </CardHeader>
-                            <CardContent>
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Name</TableHead>
-                                            <TableHead>Subject</TableHead>
-                                            <TableHead>Last Modified</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {recentFiles.length > 0 ? (
-                                            recentFiles.slice(0, 3).map((file, index) => (
-                                                <TableRow key={index}>
-                                                    <TableCell className="font-medium">{file.name}</TableCell>
-                                                    <TableCell>{file.subject}</TableCell>
-                                                    <TableCell>{file.modified}</TableCell>
-                                                </TableRow>
-                                            ))
-                                        ) : (
-                                            <TableRow>
-                                                <TableCell colSpan={3} className="text-center text-muted-foreground p-8">
-                                                    You haven't uploaded any files yet.
-                                                </TableCell>
-                                            </TableRow>
-                                        )}
-                                    </TableBody>
-                                </Table>
-                            </CardContent>
-                        </Card>
-                         <Card id="todays-focus-card">
+                        <Card id="todays-focus-card">
                             <CardHeader className="flex flex-row items-center justify-between pb-4">
                                 <CardTitle className="text-lg">Today's Focus</CardTitle>
                                 <Dialog open={isTodoListOpen} onOpenChange={setTodoListOpen}>
                                     <DialogTrigger asChild>
                                         <Button variant="ghost" size="icon"><ListTodo className="h-5 w-5"/></Button>
                                     </DialogTrigger>
-                                    <DialogContent className="max-w-2xl">
+                                     <DialogContent className="max-w-2xl">
                                         <DialogHeader>
                                             <div className="flex items-center justify-between whitespace-nowrap mb-4">
                                                 <div className="flex items-center gap-3">
@@ -1419,7 +1386,7 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                                 </div>
                                                 <div className="divide-y">
                                                     {filteredTodos.map(todo => (
-                                                        <div key={todo.id} className="task-item flex items-center gap-4 px-4 py-3 min-h-14 justify-between group hover:bg-muted">
+                                                         <div key={todo.id} className="task-item flex items-center gap-4 px-4 py-3 min-h-14 justify-between group hover:bg-muted/50 rounded-lg">
                                                              <div className="flex items-center gap-4 flex-1 min-w-0">
                                                                 <button onClick={() => toggleTodo(todo.id)} className={cn("flex-shrink-0 h-6 w-6 rounded-full border-2 transition-all flex items-center justify-center", todo.completed ? "bg-primary border-primary" : "border-muted-foreground/50")}>
                                                                     {todo.completed && <Check className="h-4 w-4 text-white" />}
@@ -1455,6 +1422,40 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                 ))}
                                 {todos.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">No tasks for today. Great job!</p>}
                                 </div>
+                            </CardContent>
+                        </Card>
+                         <Card id="recent-files-card">
+                             <CardHeader>
+                               <CardTitle>Recent Files</CardTitle>
+                               <CardDescription>Your most recently accessed documents.</CardDescription>
+                             </CardHeader>
+                            <CardContent>
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Name</TableHead>
+                                            <TableHead>Subject</TableHead>
+                                            <TableHead>Last Modified</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {recentFiles.length > 0 ? (
+                                            recentFiles.slice(0, 3).map((file, index) => (
+                                                <TableRow key={index}>
+                                                    <TableCell className="font-medium">{file.name}</TableCell>
+                                                    <TableCell>{file.subject}</TableCell>
+                                                    <TableCell>{file.modified}</TableCell>
+                                                </TableRow>
+                                            ))
+                                        ) : (
+                                            <TableRow>
+                                                <TableCell colSpan={3} className="text-center text-muted-foreground p-8">
+                                                    You haven't uploaded any files yet.
+                                                </TableCell>
+                                            </TableRow>
+                                        )}
+                                    </TableBody>
+                                </Table>
                             </CardContent>
                         </Card>
                     </div>
@@ -1540,6 +1541,7 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                     <DialogContent>
                                         <DialogHeader>
                                             <DialogTitle>Add a New Project</DialogTitle>
+                                             <DialogDescription>Fill out the details for your new project.</DialogDescription>
                                         </DialogHeader>
                                         <div className="grid gap-4 py-4">
                                             <div className="grid gap-2">
@@ -1613,6 +1615,7 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                              <DialogContent>
                                 <DialogHeader>
                                     <DialogTitle>Add a New Project</DialogTitle>
+                                    <DialogDescription>Fill out the details for your new project.</DialogDescription>
                                 </DialogHeader>
                                 <div className="grid gap-4 py-4">
                                     <div className="grid gap-2">
@@ -1923,5 +1926,6 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
 }
 
 export default DashboardClientPage;
+
 
 
