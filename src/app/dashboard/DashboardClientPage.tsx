@@ -946,12 +946,12 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
     };
 
     const handleConfirmAddCalendarEvent = async () => {
-        if (!user || !eventFromTask) return;
+        if (!user || !eventFromTask || !eventFromTask.date) return;
         try {
             await addDoc(collection(db, "calendarEvents"), {
                 title: eventFromTask.title,
                 description: "Study session for today's focus.",
-                date: eventFromTask.date?.toISOString(),
+                date: eventFromTask.date.toISOString(),
                 startTime: "16:00",
                 endTime: "17:00",
                 type: eventFromTask.type,
@@ -1182,40 +1182,6 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                 
                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
                     <div className="lg:col-span-2 space-y-8">
-                        <Card id="recent-files-card">
-                             <CardHeader>
-                               <CardTitle>Recent Files</CardTitle>
-                               <CardDescription>Your most recently accessed documents.</CardDescription>
-                             </CardHeader>
-                            <CardContent>
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Name</TableHead>
-                                            <TableHead>Subject</TableHead>
-                                            <TableHead>Last Modified</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {recentFiles.length > 0 ? (
-                                            recentFiles.slice(0, 3).map((file, index) => (
-                                                <TableRow key={index}>
-                                                    <TableCell className="font-medium">{file.name}</TableCell>
-                                                    <TableCell>{file.subject}</TableCell>
-                                                    <TableCell>{file.modified}</TableCell>
-                                                </TableRow>
-                                            ))
-                                        ) : (
-                                            <TableRow>
-                                                <TableCell colSpan={3} className="text-center text-muted-foreground p-8">
-                                                    You haven't uploaded any files yet.
-                                                </TableCell>
-                                            </TableRow>
-                                        )}
-                                    </TableBody>
-                                </Table>
-                            </CardContent>
-                        </Card>
                         <Card id="active-courses">
                              <CardHeader>
                                 <div className="flex items-center justify-between">
@@ -1262,8 +1228,6 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                 </div>
                             </CardContent>
                         </Card>
-                    </div>
-                     <div className="space-y-4">
                         <Card id="streak-card" className="bg-orange-500/10 border-orange-500/20 text-orange-900 dark:text-orange-200">
                             <CardContent className="p-6">
                                 <div className="flex flex-col items-center justify-center gap-4 text-center">
@@ -1357,6 +1321,42 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                 </div>
                             </CardContent>
                         </Card>
+                    </div>
+                     <div className="space-y-4">
+                         <Card id="recent-files-card">
+                             <CardHeader>
+                               <CardTitle>Recent Files</CardTitle>
+                               <CardDescription>Your most recently accessed documents.</CardDescription>
+                             </CardHeader>
+                            <CardContent>
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Name</TableHead>
+                                            <TableHead>Subject</TableHead>
+                                            <TableHead>Last Modified</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {recentFiles.length > 0 ? (
+                                            recentFiles.slice(0, 3).map((file, index) => (
+                                                <TableRow key={index}>
+                                                    <TableCell className="font-medium">{file.name}</TableCell>
+                                                    <TableCell>{file.subject}</TableCell>
+                                                    <TableCell>{file.modified}</TableCell>
+                                                </TableRow>
+                                            ))
+                                        ) : (
+                                            <TableRow>
+                                                <TableCell colSpan={3} className="text-center text-muted-foreground p-8">
+                                                    You haven't uploaded any files yet.
+                                                </TableCell>
+                                            </TableRow>
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            </CardContent>
+                        </Card>
                         <Dialog open={isFocusDialogOpen} onOpenChange={setIsFocusDialogOpen}>
                             <Card id="todays-focus-card">
                                 <CardHeader>
@@ -1375,7 +1375,7 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                 <CardContent className="space-y-3">
                                     {todos.length > 0 ? todos.slice(0, 3).map(todo => (
                                         <div key={todo.id} className="flex items-center gap-3 group">
-                                            <button onClick={() => toggleTodo(todo.id)}>
+                                            <button onClick={() => toggleTodo(todo.id)} className="flex-shrink-0">
                                                 <div className={cn("w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors", todo.completed ? "bg-primary border-primary" : "border-muted-foreground")}>
                                                     {todo.completed && <CheckCircle className="w-3.5 h-3.5 text-primary-foreground"/>}
                                                 </div>
@@ -1387,7 +1387,7 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                                     onChange={(e) => updateTodoText(todo.id, e.target.value)}
                                                     onBlur={() => saveTodo(todo.id)}
                                                     onKeyDown={(e) => e.key === 'Enter' && saveTodo(todo.id)}
-                                                    className="h-8 text-sm"
+                                                    className="h-8 text-sm flex-1"
                                                 />
                                             ) : (
                                                 <span className={cn("text-sm flex-1", todo.completed && "line-through text-muted-foreground")}>{todo.text}</span>
@@ -1415,10 +1415,10 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                         Time remaining today: <span className="font-mono font-semibold">{timeUntilMidnight}</span>
                                     </DialogDescription>
                                 </DialogHeader>
-                                <div className="py-4 space-y-3 max-h-80 overflow-y-auto">
+                                <div className="py-4 space-y-2 max-h-80 overflow-y-auto">
                                      {todos.map(todo => (
-                                        <div key={todo.id} className="flex items-center gap-3 group p-2 rounded-md hover:bg-muted">
-                                            <button onClick={() => toggleTodo(todo.id)}>
+                                        <div key={todo.id} className="flex items-center gap-3 group p-2 rounded-lg hover:bg-muted">
+                                            <button onClick={() => toggleTodo(todo.id)} className="flex-shrink-0">
                                                 <div className={cn("w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors", todo.completed ? "bg-primary border-primary" : "border-muted-foreground")}>
                                                     {todo.completed && <CheckCircle className="w-3.5 h-3.5 text-primary-foreground"/>}
                                                 </div>
@@ -1865,15 +1865,26 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                  <div className="grid gap-4 py-4">
                     <div className="grid gap-2">
                         <Label>Title</Label>
-                        <Input value={eventFromTask?.title || ''} readOnly />
+                        <Input value={eventFromTask?.title || ''} onChange={(e) => setEventFromTask(prev => prev ? { ...prev, title: e.target.value } : null)} />
                     </div>
                     <div className="grid gap-2">
                         <Label>Date</Label>
-                        <Input value={eventFromTask?.date ? format(eventFromTask.date, 'PPP') : ''} readOnly />
+                        <DatePicker date={eventFromTask?.date} setDate={(date) => setEventFromTask(prev => prev ? { ...prev, date } : null)} />
                     </div>
                     <div className="grid gap-2">
                         <Label>Type</Label>
-                        <Input value={eventFromTask?.type || ''} readOnly />
+                        <Select value={eventFromTask?.type} onValueChange={(value) => setEventFromTask(prev => prev ? { ...prev, type: value } : null)}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select event type..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="Homework">Homework</SelectItem>
+                                <SelectItem value="Test">Test</SelectItem>
+                                <SelectItem value="Quiz">Quiz</SelectItem>
+                                <SelectItem value="Project">Project</SelectItem>
+                                <SelectItem value="Event">Event</SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
                 </div>
                 <DialogFooter>
@@ -1892,3 +1903,4 @@ export default DashboardClientPage;
     
 
     
+
