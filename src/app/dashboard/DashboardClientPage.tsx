@@ -1244,38 +1244,50 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                  {todos.length === 0 && <p className="text-sm text-center text-muted-foreground py-4">All tasks complete! Great job.</p>}
                             </CardContent>
                         </Card>
-                         <Card id="recent-files-card">
+                        <Card id="active-courses">
                              <CardHeader>
-                               <CardTitle>Recent Files</CardTitle>
-                               <CardDescription>Your most recently accessed documents.</CardDescription>
-                             </CardHeader>
+                                <div className="flex items-center justify-between">
+                                <h2 className="text-xl font-semibold">Active Courses</h2>
+                                <Link href="/dashboard/courses">
+                                    <Button variant="ghost" className="rounded-2xl text-sm">
+                                        View All
+                                    </Button>
+                                </Link>
+                                </div>
+                            </CardHeader>
                             <CardContent>
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Name</TableHead>
-                                            <TableHead>Subject</TableHead>
-                                            <TableHead>Last Modified</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {recentFiles.length > 0 ? (
-                                            recentFiles.slice(0, 3).map((file, index) => (
-                                                <TableRow key={index}>
-                                                    <TableCell className="font-medium">{file.name}</TableCell>
-                                                    <TableCell>{file.subject}</TableCell>
-                                                    <TableCell>{file.modified}</TableCell>
-                                                </TableRow>
-                                            ))
-                                        ) : (
-                                            <TableRow>
-                                                <TableCell colSpan={3} className="text-center text-muted-foreground p-8">
-                                                    You haven't uploaded any files yet.
-                                                </TableCell>
-                                            </TableRow>
-                                        )}
-                                    </TableBody>
-                                </Table>
+                                <div className="space-y-4">
+                                    {isDataLoading ? (
+                                        Array.from({length: 2}).map((_, i) => <Skeleton key={i} className="h-28 w-full" />)
+                                    ) : courses.length > 0 ? (
+                                        courses.slice(0, 2).map((course) => {
+                                            const totalChapters = course.units?.reduce((acc, unit) => acc + (unit.chapters?.length ?? 0), 0) ?? 0;
+                                            const completedCount = course.completedChapters?.length ?? 0;
+                                            const courseProgress = totalChapters > 0 ? Math.round((completedCount / totalChapters) * 100) : 0;
+
+                                            return (
+                                                <Card key={course.id} className="p-4">
+                                                        <div className="flex items-center justify-between mb-2">
+                                                            <h3 className="font-medium">{course.name}</h3>
+                                                            <Badge variant="outline" className="rounded-xl">
+                                                            In Progress
+                                                            </Badge>
+                                                        </div>
+                                                        <p className="text-sm text-muted-foreground mb-3">{course.description}</p>
+                                                        <div className="space-y-2">
+                                                            <div className="flex items-center justify-between text-sm">
+                                                            <span>Progress</span>
+                                                            <span>{courseProgress}%</span>
+                                                            </div>
+                                                            <Progress value={courseProgress} className="h-2 rounded-xl" />
+                                                        </div>
+                                                </Card>
+                                            );
+                                        })
+                                    ) : (
+                                        <div className="p-4 text-center text-muted-foreground">You haven't added any courses yet.</div>
+                                    )}
+                                </div>
                             </CardContent>
                         </Card>
                     </div>
@@ -1371,50 +1383,38 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                 </Dialog>
                             </CardContent>
                         </Card>
-                        <Card id="active-courses">
+                         <Card id="recent-files-card">
                              <CardHeader>
-                                <div className="flex items-center justify-between">
-                                <h2 className="text-xl font-semibold">Active Courses</h2>
-                                <Link href="/dashboard/courses">
-                                    <Button variant="ghost" className="rounded-2xl text-sm">
-                                        View All
-                                    </Button>
-                                </Link>
-                                </div>
-                            </CardHeader>
+                               <CardTitle>Recent Files</CardTitle>
+                               <CardDescription>Your most recently accessed documents.</CardDescription>
+                             </CardHeader>
                             <CardContent>
-                                <div className="space-y-4">
-                                    {isDataLoading ? (
-                                        Array.from({length: 2}).map((_, i) => <Skeleton key={i} className="h-28 w-full" />)
-                                    ) : courses.length > 0 ? (
-                                        courses.slice(0, 2).map((course) => {
-                                            const totalChapters = course.units?.reduce((acc, unit) => acc + (unit.chapters?.length ?? 0), 0) ?? 0;
-                                            const completedCount = course.completedChapters?.length ?? 0;
-                                            const courseProgress = totalChapters > 0 ? Math.round((completedCount / totalChapters) * 100) : 0;
-
-                                            return (
-                                                <Card key={course.id} className="p-4">
-                                                        <div className="flex items-center justify-between mb-2">
-                                                            <h3 className="font-medium">{course.name}</h3>
-                                                            <Badge variant="outline" className="rounded-xl">
-                                                            In Progress
-                                                            </Badge>
-                                                        </div>
-                                                        <p className="text-sm text-muted-foreground mb-3">{course.description}</p>
-                                                        <div className="space-y-2">
-                                                            <div className="flex items-center justify-between text-sm">
-                                                            <span>Progress</span>
-                                                            <span>{courseProgress}%</span>
-                                                            </div>
-                                                            <Progress value={courseProgress} className="h-2 rounded-xl" />
-                                                        </div>
-                                                </Card>
-                                            );
-                                        })
-                                    ) : (
-                                        <div className="p-4 text-center text-muted-foreground">You haven't added any courses yet.</div>
-                                    )}
-                                </div>
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Name</TableHead>
+                                            <TableHead>Subject</TableHead>
+                                            <TableHead>Last Modified</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {recentFiles.length > 0 ? (
+                                            recentFiles.slice(0, 3).map((file, index) => (
+                                                <TableRow key={index}>
+                                                    <TableCell className="font-medium">{file.name}</TableCell>
+                                                    <TableCell>{file.subject}</TableCell>
+                                                    <TableCell>{file.modified}</TableCell>
+                                                </TableRow>
+                                            ))
+                                        ) : (
+                                            <TableRow>
+                                                <TableCell colSpan={3} className="text-center text-muted-foreground p-8">
+                                                    You haven't uploaded any files yet.
+                                                </TableCell>
+                                            </TableRow>
+                                        )}
+                                    </TableBody>
+                                </Table>
                             </CardContent>
                         </Card>
                     </div>
