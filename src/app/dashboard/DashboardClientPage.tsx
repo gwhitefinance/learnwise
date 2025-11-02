@@ -1166,52 +1166,6 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                 
                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
                     <div className="lg:col-span-2 space-y-8">
-                        <Card id="active-courses">
-                             <CardHeader>
-                                <div className="flex items-center justify-between">
-                                <h2 className="text-xl font-semibold">Active Courses</h2>
-                                <Link href="/dashboard/courses">
-                                    <Button variant="ghost" className="rounded-2xl text-sm">
-                                        View All
-                                    </Button>
-                                </Link>
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="space-y-4">
-                                    {isDataLoading ? (
-                                        Array.from({length: 2}).map((_, i) => <Skeleton key={i} className="h-28 w-full" />)
-                                    ) : courses.length > 0 ? (
-                                        courses.slice(0, 2).map((course) => {
-                                            const totalChapters = course.units?.reduce((acc, unit) => acc + (unit.chapters?.length ?? 0), 0) ?? 0;
-                                            const completedCount = course.completedChapters?.length ?? 0;
-                                            const courseProgress = totalChapters > 0 ? Math.round((completedCount / totalChapters) * 100) : 0;
-
-                                            return (
-                                                <Card key={course.id} className="p-4">
-                                                        <div className="flex items-center justify-between mb-2">
-                                                            <h3 className="font-medium">{course.name}</h3>
-                                                            <Badge variant="outline" className="rounded-xl">
-                                                            In Progress
-                                                            </Badge>
-                                                        </div>
-                                                        <p className="text-sm text-muted-foreground mb-3">{course.description}</p>
-                                                        <div className="space-y-2">
-                                                            <div className="flex items-center justify-between text-sm">
-                                                            <span>Progress</span>
-                                                            <span>{courseProgress}%</span>
-                                                            </div>
-                                                            <Progress value={courseProgress} className="h-2 rounded-xl" />
-                                                        </div>
-                                                </Card>
-                                            );
-                                        })
-                                    ) : (
-                                        <div className="p-4 text-center text-muted-foreground">You haven't added any courses yet.</div>
-                                    )}
-                                </div>
-                            </CardContent>
-                        </Card>
                         <Card id="streak-card" className="bg-orange-500/10 border-orange-500/20 text-orange-900 dark:text-orange-200">
                             <CardContent className="p-6">
                                 <div className="flex flex-col items-center justify-center gap-4 text-center">
@@ -1305,6 +1259,52 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                 </div>
                             </CardContent>
                         </Card>
+                        <Card id="active-courses">
+                             <CardHeader>
+                                <div className="flex items-center justify-between">
+                                <h2 className="text-xl font-semibold">Active Courses</h2>
+                                <Link href="/dashboard/courses">
+                                    <Button variant="ghost" className="rounded-2xl text-sm">
+                                        View All
+                                    </Button>
+                                </Link>
+                                </div>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="space-y-4">
+                                    {isDataLoading ? (
+                                        Array.from({length: 2}).map((_, i) => <Skeleton key={i} className="h-28 w-full" />)
+                                    ) : courses.length > 0 ? (
+                                        courses.slice(0, 2).map((course) => {
+                                            const totalChapters = course.units?.reduce((acc, unit) => acc + (unit.chapters?.length ?? 0), 0) ?? 0;
+                                            const completedCount = course.completedChapters?.length ?? 0;
+                                            const courseProgress = totalChapters > 0 ? Math.round((completedCount / totalChapters) * 100) : 0;
+
+                                            return (
+                                                <Card key={course.id} className="p-4">
+                                                        <div className="flex items-center justify-between mb-2">
+                                                            <h3 className="font-medium">{course.name}</h3>
+                                                            <Badge variant="outline" className="rounded-xl">
+                                                            In Progress
+                                                            </Badge>
+                                                        </div>
+                                                        <p className="text-sm text-muted-foreground mb-3">{course.description}</p>
+                                                        <div className="space-y-2">
+                                                            <div className="flex items-center justify-between text-sm">
+                                                            <span>Progress</span>
+                                                            <span>{courseProgress}%</span>
+                                                            </div>
+                                                            <Progress value={courseProgress} className="h-2 rounded-xl" />
+                                                        </div>
+                                                </Card>
+                                            );
+                                        })
+                                    ) : (
+                                        <div className="p-4 text-center text-muted-foreground">You haven't added any courses yet.</div>
+                                    )}
+                                </div>
+                            </CardContent>
+                        </Card>
                     </div>
                      <div className="space-y-4">
                         <Dialog open={isFocusDialogOpen} onOpenChange={setIsFocusDialogOpen}>
@@ -1342,6 +1342,9 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                             ) : (
                                                 <span className={cn("text-sm flex-1", todo.completed && "line-through text-muted-foreground")}>{todo.text}</span>
                                             )}
+                                            <button className="opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => addCalendarEvent(todo.text)}>
+                                                <Calendar className="h-4 w-4 text-muted-foreground" />
+                                            </button>
                                         </div>
                                     )) : (
                                         <p className="text-sm text-center text-muted-foreground py-4">No tasks yet. Add one or get AI suggestions!</p>
@@ -1371,6 +1374,9 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                                 </div>
                                             </button>
                                             <span className={cn("text-sm flex-1", todo.completed && "line-through text-muted-foreground")}>{todo.text}</span>
+                                            <button className="opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => addCalendarEvent(todo.text)}>
+                                                <Calendar className="h-4 w-4 text-muted-foreground" />
+                                            </button>
                                         </div>
                                     ))}
                                 </div>
@@ -1841,4 +1847,6 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
 export default DashboardClientPage;
 
     
+    
+
     
