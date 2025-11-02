@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -11,7 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { collection, query, where, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
-import { generatePodcastEpisode } from '@/lib/actions';
+import { generatePodcastEpisode, generateSpeechFlow } from '@/lib/actions';
 import { Textarea } from '@/components/ui/textarea';
 
 type Course = {
@@ -82,6 +83,10 @@ export default function RecordPodcastPage() {
                 episodeContent: content,
             });
             setScript(result.script);
+
+            const speechResult = await generateSpeechFlow({ text: result.script });
+            setAudioUrl(speechResult.audioUrl);
+
         } catch (error) {
             console.error(error);
             toast({ variant: 'destructive', title: 'Failed to generate script.' });
@@ -180,26 +185,23 @@ export default function RecordPodcastPage() {
 
                     <Card>
                          <CardHeader>
-                            <CardTitle>2. Generate Script</CardTitle>
-                            <CardDescription>Let the AI create a podcast script for you.</CardDescription>
+                            <CardTitle>2. Generate Script & Audio</CardTitle>
+                            <CardDescription>Let the AI create a podcast script and audio for you.</CardDescription>
                         </CardHeader>
                          <CardContent>
                              <Button className="w-full" onClick={handleGenerateScript} disabled={isGenerating || !selectedUnit}>
                                 {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
-                                {isGenerating ? 'Generating...' : 'Generate Script'}
+                                {isGenerating ? 'Generating...' : 'Generate Script & Audio'}
                             </Button>
                         </CardContent>
                     </Card>
 
                     <Card>
                         <CardHeader>
-                            <CardTitle>3. Record & Save</CardTitle>
-                            <CardDescription>Record your audio and save the final episode.</CardDescription>
+                            <CardTitle>3. Review & Save</CardTitle>
+                            <CardDescription>Review your audio and save the final episode.</CardDescription>
                         </CardHeader>
                         <CardContent className="flex flex-col items-center gap-4">
-                            <Button onClick={toggleRecording} size="lg" className="rounded-full w-20 h-20" variant={isRecording ? 'destructive' : 'default'}>
-                                <Mic className="h-8 w-8" />
-                            </Button>
                             {audioUrl && (
                                 <audio controls src={audioUrl} className="w-full"></audio>
                             )}

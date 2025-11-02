@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useContext, useCallback, useRef } from 'react';
@@ -1206,98 +1207,98 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                     <div className="lg:col-span-2 space-y-8">
                         <Card id="streak-card" className="bg-orange-500/10 border-orange-500/20 text-orange-900 dark:text-orange-200">
                             <CardContent className="p-6">
-                                <div className="flex items-center justify-center gap-4">
+                                <div className="flex flex-col items-center justify-center gap-4 text-center">
                                      <div className="p-4 bg-white/50 rounded-full">
                                         <Flame className="w-8 h-8 text-orange-500" />
                                     </div>
                                     <div>
                                         <h3 className="text-3xl font-bold">{streak} Day Streak!</h3>
-                                        <p className="text-sm opacity-80 mt-1">
+                                        <p className="text-sm opacity-80 mt-1 max-w-xs mx-auto">
                                             {streak > 1 ? "Keep the fire going! You're building a great habit." : "Every journey starts with a single step. Keep it up!"}
                                         </p>
                                     </div>
-                                </div>
-                                <Dialog onOpenChange={(open) => !open && setRewardState('idle')}>
-                                    <DialogTrigger asChild>
-                                        <Button variant="outline" className="w-full rounded-full border-orange-500/50 bg-transparent hover:bg-white/20 mt-4">
-                                            View Streak Rewards
-                                        </Button>
-                                    </DialogTrigger>
-                                    <DialogContent>
-                                        <DialogHeader>
-                                            <DialogTitle className="flex items-center gap-2"><Trophy className="text-yellow-500" /> Your Reward Chests</DialogTitle>
-                                            <CardDescription>
-                                                Claim chests by maintaining your study streak.
-                                            </CardDescription>
-                                        </DialogHeader>
-                                        <div className="py-4 space-y-4">
-                                            {rewardState === 'idle' && chests.map(chest => {
-                                                const hasClaimedStreak = chest.unlocksAt && localStorage.getItem(`streakChestClaimed_${chest.id}_${user?.uid}`);
-                                                const isStreakLocked = chest.unlocksAt && streak < chest.unlocksAt;
-                                                const isFreeClaimed = chest.id === 'daily_free' && hasClaimedFreeChest;
-                                                const isDisabled = isStreakLocked || (isFreeClaimed && chest.id === 'daily_free') || !!hasClaimedStreak;
-                                                
-                                                let buttonText: React.ReactNode = "Claim Reward";
-                                                if(isFreeClaimed && chest.id === 'daily_free') {
-                                                    buttonText = 'Claimed Today';
-                                                } else if (hasClaimedStreak) {
-                                                    buttonText = 'Claimed';
-                                                } else if (isStreakLocked) {
-                                                    const daysLeft = chest.unlocksAt! - streak;
-                                                    buttonText = `Unlock in ${daysLeft} day${daysLeft > 1 ? 's' : ''}`;
-                                                }
+                                     <Dialog onOpenChange={(open) => !open && setRewardState('idle')}>
+                                        <DialogTrigger asChild>
+                                            <Button variant="outline" className="rounded-full border-orange-500/50 bg-transparent hover:bg-white/20 mt-2">
+                                                View Streak Rewards
+                                            </Button>
+                                        </DialogTrigger>
+                                        <DialogContent>
+                                            <DialogHeader>
+                                                <DialogTitle className="flex items-center gap-2"><Trophy className="text-yellow-500" /> Your Reward Chests</DialogTitle>
+                                                <DialogDescription>
+                                                    Claim chests by maintaining your study streak.
+                                                </DialogDescription>
+                                            </DialogHeader>
+                                            <div className="py-4 space-y-4">
+                                                {rewardState === 'idle' && chests.map(chest => {
+                                                    const hasClaimedStreak = chest.unlocksAt && localStorage.getItem(`streakChestClaimed_${chest.id}_${user?.uid}`);
+                                                    const isStreakLocked = chest.unlocksAt && streak < chest.unlocksAt;
+                                                    const isFreeClaimed = chest.id === 'daily_free' && hasClaimedFreeChest;
+                                                    const isDisabled = isStreakLocked || (isFreeClaimed && chest.id === 'daily_free') || !!hasClaimedStreak;
+                                                    
+                                                    let buttonText: React.ReactNode = "Claim Reward";
+                                                    if(isFreeClaimed && chest.id === 'daily_free') {
+                                                        buttonText = 'Claimed Today';
+                                                    } else if (hasClaimedStreak) {
+                                                        buttonText = 'Claimed';
+                                                    } else if (isStreakLocked) {
+                                                        const daysLeft = chest.unlocksAt! - streak;
+                                                        buttonText = `Unlock in ${daysLeft} day${daysLeft > 1 ? 's' : ''}`;
+                                                    }
 
 
-                                                return (
-                                                    <Card key={chest.id} className={cn("transition-all", isDisabled && "opacity-50")}>
-                                                        <CardContent className="p-4 flex items-center justify-between gap-2">
-                                                            <div className="flex items-center gap-4 flex-1">
-                                                                <div className="p-3 rounded-lg bg-muted">
-                                                                    <Gift className="h-8 w-8 text-primary" />
+                                                    return (
+                                                        <Card key={chest.id} className={cn("transition-all", isDisabled && "opacity-50")}>
+                                                            <CardContent className="p-4 flex items-center justify-between gap-2">
+                                                                <div className="flex items-center gap-4 flex-1">
+                                                                    <div className="p-3 rounded-lg bg-muted">
+                                                                        <Gift className="h-8 w-8 text-primary" />
+                                                                    </div>
+                                                                    <div className="flex-1">
+                                                                        <p className="font-semibold">{chest.name}</p>
+                                                                        <p className="text-sm text-muted-foreground">{chest.description}</p>
+                                                                    </div>
                                                                 </div>
-                                                                <div className="flex-1">
-                                                                    <p className="font-semibold">{chest.name}</p>
-                                                                    <p className="text-sm text-muted-foreground">{chest.description}</p>
-                                                                </div>
-                                                            </div>
-                                                            <Button size="sm" className="w-36" disabled={isDisabled} onClick={() => handleClaimChest(chest)}>
-                                                                {buttonText}
-                                                            </Button>
-                                                        </CardContent>
-                                                    </Card>
-                                                )
-                                            })}
+                                                                <Button size="sm" className="w-36" disabled={isDisabled} onClick={() => handleClaimChest(chest)}>
+                                                                    {buttonText}
+                                                                </Button>
+                                                            </CardContent>
+                                                        </Card>
+                                                    )
+                                                })}
 
-                                            {rewardState !== 'idle' && (
-                                                <div className="flex flex-col items-center justify-center h-48">
-                                                    <motion.div
-                                                        className="relative w-32 h-32"
-                                                        animate={rewardState === 'opening' ? { y: [0, -20, 0, -10, 0], rotate: [0, 5, -5, 5, 0] } : {}}
-                                                        transition={rewardState === 'opening' ? { duration: 0.8, ease: 'easeInOut' } : {}}
-                                                    >
-                                                        <Gift className={cn("w-32 h-32 text-yellow-500 transition-all duration-500", rewardState === 'revealed' && 'scale-150 opacity-0')} />
+                                                {rewardState !== 'idle' && (
+                                                    <div className="flex flex-col items-center justify-center h-48">
+                                                        <motion.div
+                                                            className="relative w-32 h-32"
+                                                            animate={rewardState === 'opening' ? { y: [0, -20, 0, -10, 0], rotate: [0, 5, -5, 5, 0] } : {}}
+                                                            transition={rewardState === 'opening' ? { duration: 0.8, ease: 'easeInOut' } : {}}
+                                                        >
+                                                            <Gift className={cn("w-32 h-32 text-yellow-500 transition-all duration-500", rewardState === 'revealed' && 'scale-150 opacity-0')} />
+                                                            {rewardState === 'revealed' && (
+                                                                <motion.div 
+                                                                    className="absolute inset-0 flex items-center justify-center text-3xl font-bold text-amber-400"
+                                                                    initial={{ scale: 0, opacity: 0 }}
+                                                                    animate={{ scale: 1, opacity: 1 }}
+                                                                    transition={{ delay: 0.3, type: 'spring' }}
+                                                                >
+                                                                    <Gem className="mr-2 h-6 w-6"/> +{claimedCoins}
+                                                                </motion.div>
+                                                            )}
+                                                        </motion.div>
                                                         {rewardState === 'revealed' && (
-                                                            <motion.div 
-                                                                className="absolute inset-0 flex items-center justify-center text-3xl font-bold text-amber-400"
-                                                                initial={{ scale: 0, opacity: 0 }}
-                                                                animate={{ scale: 1, opacity: 1 }}
-                                                                transition={{ delay: 0.3, type: 'spring' }}
-                                                            >
-                                                                <Gem className="mr-2 h-6 w-6"/> +{claimedCoins}
-                                                            </motion.div>
+                                                            <Button className="mt-8" onClick={() => setRewardState('idle')}>Awesome!</Button>
                                                         )}
-                                                    </motion.div>
-                                                    {rewardState === 'revealed' && (
-                                                        <Button className="mt-8" onClick={() => setRewardState('idle')}>Awesome!</Button>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </DialogContent>
-                                </Dialog>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </DialogContent>
+                                    </Dialog>
+                                </div>
                             </CardContent>
                         </Card>
-                        <Card id="active-courses">
+                         <Card id="active-courses">
                              <CardHeader>
                                 <div className="flex items-center justify-between">
                                 <h2 className="text-xl font-semibold">Active Courses</h2>
@@ -1353,15 +1354,17 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                         <Button variant="ghost" size="icon"><ListTodo className="h-5 w-5"/></Button>
                                     </DialogTrigger>
                                     <DialogContent>
-                                        <header className="flex items-center justify-between whitespace-nowrap mb-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="h-8 w-8 text-primary">
-                                                    <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><g clipPath="url(#clip0_6_319)"><path d="M8.57829 8.57829C5.52816 11.6284 3.451 15.5145 2.60947 19.7452C1.76794 23.9758 2.19984 28.361 3.85056 32.3462C5.50128 36.3314 8.29667 39.7376 11.8832 42.134C15.4698 44.5305 19.6865 45.8096 24 45.8096C28.3135 45.8096 32.5302 44.5305 36.1168 42.134C39.7033 39.7375 42.4987 36.3314 44.1494 32.3462C45.8002 28.361 46.2321 23.9758 45.3905 19.7452C44.549 15.5145 42.4718 11.6284 39.4217 8.57829L24 24L8.57829 8.57829Z" fill="currentColor"></path></g><defs><clipPath id="clip0_6_319"><rect fill="white" height="48" width="48"></rect></clipPath></defs></svg>
+                                        <DialogHeader>
+                                            <div className="flex items-center justify-between whitespace-nowrap mb-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="h-8 w-8 text-primary">
+                                                        <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><g clipPath="url(#clip0_6_319)"><path d="M8.57829 8.57829C5.52816 11.6284 3.451 15.5145 2.60947 19.7452C1.76794 23.9758 2.19984 28.361 3.85056 32.3462C5.50128 36.3314 8.29667 39.7376 11.8832 42.134C15.4698 44.5305 19.6865 45.8096 24 45.8096C28.3135 45.8096 32.5302 44.5305 36.1168 42.134C39.7033 39.7375 42.4987 36.3314 44.1494 32.3462C45.8002 28.361 46.2321 23.9758 45.3905 19.7452C44.549 15.5145 42.4718 11.6284 39.4217 8.57829L24 24L8.57829 8.57829Z" fill="currentColor"></path></g><defs><clipPath id="clip0_6_319"><rect fill="white" height="48" width="48"></rect></clipPath></defs></svg>
+                                                    </div>
+                                                    <DialogTitle className="text-3xl font-bold tracking-tight">Tasks</DialogTitle>
                                                 </div>
-                                                <h1 className="text-3xl font-bold tracking-tight">Tasks</h1>
+                                                <p className="text-sm font-medium text-muted-foreground">{timeUntilMidnight} until day ends</p>
                                             </div>
-                                            <p className="text-sm font-medium text-muted-foreground">{timeUntilMidnight} until day ends</p>
-                                        </header>
+                                        </DialogHeader>
                                         <div className="space-y-6">
                                             <div className="flex items-center gap-2">
                                                 <div className="relative flex w-full flex-1 items-stretch">
@@ -1385,7 +1388,7 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                                 </div>
                                                 <div className="divide-y">
                                                     {filteredTodos.map(todo => (
-                                                        <div key={todo.id} className="task-item flex items-center gap-4 px-4 py-3 min-h-14 justify-between group">
+                                                        <div key={todo.id} className="task-item flex items-center gap-4 px-4 py-3 min-h-14 justify-between group hover:bg-muted">
                                                              <div className="flex items-center gap-4 flex-1 min-w-0">
                                                                 <button onClick={() => toggleTodo(todo.id)} className={cn("flex-shrink-0 h-6 w-6 rounded-full border-2 transition-all flex items-center justify-center", todo.completed ? "bg-primary border-primary" : "border-muted-foreground/50")}>
                                                                     {todo.completed && <Check className="h-4 w-4 text-white" />}
@@ -1923,3 +1926,4 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
 }
 
 export default DashboardClientPage;
+
