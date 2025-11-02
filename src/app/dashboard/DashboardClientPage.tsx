@@ -280,8 +280,6 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
     const [isFocusDialogOpen, setIsFocusDialogOpen] = useState(false);
     const [todos, setTodos] = useState<TodoItem[]>([]);
     const [isPomodoroVisible, setIsPomodoroVisible] = useState(false);
-    const [isAiSuggesting, setIsAiSuggesting] = useState(false);
-    const [focusTimer, setFocusTimer] = useState<number | null>(null);
     const [dailyRewardClaimed, setDailyRewardClaimed] = useState(false);
 
     const getTasksKey = useCallback(() => {
@@ -290,10 +288,10 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
     }, [user]);
 
     const handleAiSuggestions = useCallback(async () => {
-        setIsAiSuggesting(true);
+        if (!user) return;
         try {
             const courseNames = courses.map(c => c.name);
-            const weakestTopics = Object.entries(weakestLinks).map(([topic]) => topic);
+            const weakestTopics = Object.keys(weakestLinks);
             
             const result = await generateDailyFocus({ courseNames, weakestTopics });
             const newAiTodos: TodoItem[] = result.tasks.map(task => ({
@@ -303,16 +301,18 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                 isEditing: false,
                 isAiGenerated: true,
             }));
+            
+            // Filter out old AI tasks but keep user-added tasks
             setTodos(prev => [...prev.filter(t => !t.isAiGenerated), ...newAiTodos]);
+            
+            // Reset daily reward claim status
+            const rewardKey = `dailyFocusReward_${user.uid}_${new Date().toDateString()}`;
+            localStorage.removeItem(rewardKey);
             setDailyRewardClaimed(false);
-            const rewardKey = `dailyFocusReward_${user?.uid}_${new Date().toDateString()}`;
-            if(rewardKey) localStorage.removeItem(rewardKey);
 
         } catch (error) {
             console.error("Failed to get AI suggestions:", error);
             toast({ variant: 'destructive', title: "AI Error", description: "Could not generate focus tasks." });
-        } finally {
-            setIsAiSuggesting(false);
         }
     }, [courses, weakestLinks, user, toast]);
 
@@ -330,11 +330,14 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
             }
         } catch (error) {
             console.error("Failed to load tasks from localStorage", error);
+            // If there's an error parsing, generate fresh tasks
+            handleAiSuggestions();
         }
         
         const rewardKey = `dailyFocusReward_${user.uid}_${new Date().toDateString()}`;
         const rewardClaimed = localStorage.getItem(rewardKey);
-        if(rewardClaimed) setDailyRewardClaimed(true);
+        setDailyRewardClaimed(!!rewardClaimed);
+
     }, [user, getTasksKey, handleAiSuggestions]);
 
     useEffect(() => {
@@ -346,34 +349,14 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
             console.error("Failed to save tasks to localStorage", error);
         }
     }, [todos, getTasksKey]);
-
-
-    useEffect(() => {
-        const interval = setInterval(() => {
-            const now = new Date();
-            const endOfDay = new Date();
-            endOfDay.setHours(23, 59, 59, 999);
-            const remaining = Math.max(0, endOfDay.getTime() - now.getTime());
-            if (todos.some(t => t.isAiGenerated)) {
-                setFocusTimer(remaining);
-            } else {
-                setFocusTimer(null);
-            }
-        }, 1000);
-
-        return () => clearInterval(interval);
-    }, [todos]);
     
     useEffect(() => {
-        if (focusTimer !== null && focusTimer <= 0) {
-            handleAiSuggestions();
-        }
-    }, [focusTimer, handleAiSuggestions]);
-
-    useEffect(() => {
         if (dailyRewardClaimed || !user) return;
+        
         const aiTasks = todos.filter(t => t.isAiGenerated);
-        if (aiTasks.length > 0 && aiTasks.every(t => t.completed)) {
+        const allAiTasksCompleted = aiTasks.length > 0 && aiTasks.every(t => t.completed);
+
+        if (allAiTasksCompleted) {
             const reward = async () => {
                 if (!user) return;
                 try {
@@ -389,7 +372,7 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
             };
             reward();
         }
-    }, [todos, user, showReward, dailyRewardClaimed]);
+    }, [todos, user, showReward, toast, dailyRewardClaimed]);
 
 
      useEffect(() => {
@@ -944,13 +927,9 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
         }
     };
     
-    const formatTime = (ms: number) => {
-        const totalSeconds = Math.floor(ms / 1000);
-        const hours = Math.floor(totalSeconds / 3600);
-        const minutes = Math.floor((totalSeconds % 3600) / 60);
-        const seconds = totalSeconds % 60;
-        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-    };
+    const completedAiTasks = todos.filter(t => t.isAiGenerated && t.completed).length;
+    const totalAiTasks = todos.filter(t => t.isAiGenerated).length;
+    const progress = totalAiTasks > 0 ? (completedAiTasks / totalAiTasks) * 100 : 0;
 
 
    
@@ -958,13 +937,16 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
     <div className="space-y-8 mt-0">
         
         <Dialog open={isFocusDialogOpen} onOpenChange={setIsFocusDialogOpen}>
-            <DialogContent>
+            <DialogContent className="max-w-md">
                 <DialogHeader>
-                    <DialogTitle>Today's Focus</DialogTitle>
+                    <DialogTitle className="flex items-center gap-2"><Target className="text-primary"/> Today's Focus</DialogTitle>
+                     <DialogDescription>
+                        Complete these AI-suggested tasks to earn a reward.
+                    </DialogDescription>
                 </DialogHeader>
-                 <div className="space-y-4 max-h-[60vh] overflow-y-auto p-1">
+                 <div className="space-y-3 max-h-[60vh] overflow-y-auto p-1">
                     {todos.map(todo => (
-                        <div key={todo.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                        <div key={todo.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg hover:bg-muted transition-all">
                             <div className="flex items-center gap-3 flex-1">
                                 <motion.button onClick={() => toggleTodo(todo.id)}>
                                     <div className={cn("w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors", todo.completed ? "bg-primary border-primary" : "border-muted-foreground")}>
@@ -984,14 +966,14 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                     <span className={cn("text-sm", todo.completed && "line-through text-muted-foreground")}>{todo.text}</span>
                                 )}
                             </div>
-                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => addCalendarEvent(todo.text)}><Calendar className="h-4 w-4"/></Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => addCalendarEvent(todo.text)} title="Add to calendar"><Calendar className="h-4 w-4"/></Button>
                         </div>
                     ))}
                      <Button variant="outline" className="w-full border-dashed" onClick={addTodo}>
                         <Plus className="w-4 h-4 mr-2"/>Add Task
                     </Button>
                 </div>
-                <DialogFooter className="flex justify-between items-center sm:justify-between w-full">
+                <DialogFooter className="flex justify-between items-center sm:justify-between w-full pt-4 border-t">
                     <Button variant="ghost" size="sm" onClick={() => setIsPomodoroVisible(!isPomodoroVisible)}><Clock className="w-4 h-4 mr-2"/> {isPomodoroVisible ? 'Hide' : 'Show'} Timer</Button>
                     <AnimatePresence>
                     {isPomodoroVisible && (
@@ -999,16 +981,12 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: 10 }}
-                            className="absolute bottom-16 left-4 z-10"
+                            className="absolute bottom-20 left-4 z-10"
                         >
                             <PomodoroTimer onHide={() => setIsPomodoroVisible(false)} />
                         </motion.div>
                     )}
                     </AnimatePresence>
-                     <Button variant="ghost" size="sm" onClick={handleAiSuggestions} disabled={isAiSuggesting}>
-                        {isAiSuggesting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Wand2 className="w-4 h-4 mr-2"/>}
-                        New Suggestions
-                    </Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
@@ -1219,32 +1197,41 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                 
                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
                     <div className="lg:col-span-2 space-y-8">
-                        <Card className="hover:shadow-md transition-all">
+                        <Card id="recent-files-card">
                              <CardHeader>
-                                <div className="flex justify-between items-center">
-                                    <CardTitle className="flex items-center gap-2">
-                                        <Target className="text-primary"/> Today's Focus
-                                    </CardTitle>
-                                    <Button variant="ghost" size="sm" onClick={() => setIsFocusDialogOpen(true)}>
-                                        <ListTodo className="mr-2 h-4 w-4"/> View All Tasks
-                                    </Button>
-                                </div>
-                            </CardHeader>
-                            <CardContent className="space-y-3">
-                                {todos.slice(0, 3).map(todo => (
-                                     <div key={todo.id} className="flex items-center gap-3">
-                                        <motion.button onClick={() => toggleTodo(todo.id)}>
-                                            <div className={cn("w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors", todo.completed ? "bg-primary border-primary" : "border-muted-foreground")}>
-                                                {todo.completed && <CheckCircle className="w-3 h-3 text-primary-foreground"/>}
-                                            </div>
-                                        </motion.button>
-                                        <span className={cn("text-sm flex-1", todo.completed && "line-through text-muted-foreground")}>{todo.text}</span>
-                                    </div>
-                                ))}
-                                 {todos.length === 0 && <p className="text-sm text-center text-muted-foreground py-4">All tasks complete! Great job.</p>}
+                               <CardTitle>Recent Files</CardTitle>
+                               <CardDescription>Your most recently accessed documents.</CardDescription>
+                             </CardHeader>
+                            <CardContent>
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Name</TableHead>
+                                            <TableHead>Subject</TableHead>
+                                            <TableHead>Last Modified</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {recentFiles.length > 0 ? (
+                                            recentFiles.slice(0, 3).map((file, index) => (
+                                                <TableRow key={index}>
+                                                    <TableCell className="font-medium">{file.name}</TableCell>
+                                                    <TableCell>{file.subject}</TableCell>
+                                                    <TableCell>{file.modified}</TableCell>
+                                                </TableRow>
+                                            ))
+                                        ) : (
+                                            <TableRow>
+                                                <TableCell colSpan={3} className="text-center text-muted-foreground p-8">
+                                                    You haven't uploaded any files yet.
+                                                </TableCell>
+                                            </TableRow>
+                                        )}
+                                    </TableBody>
+                                </Table>
                             </CardContent>
                         </Card>
-                        <Card id="active-courses">
+                         <Card id="active-courses">
                              <CardHeader>
                                 <div className="flex items-center justify-between">
                                 <h2 className="text-xl font-semibold">Active Courses</h2>
@@ -1292,20 +1279,45 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                         </Card>
                     </div>
                      <div className="space-y-4">
-                        <Card className="bg-orange-500/10 border-orange-500/20 text-orange-900 dark:text-orange-200" id="streak-card">
-                            <CardContent className="p-6 flex flex-col items-center justify-center gap-4 text-center">
-                                <div className="p-4 bg-white/50 rounded-full">
-                                    <Flame className="w-8 h-8 text-orange-500" />
+                         <Card className="hover:shadow-md transition-all cursor-pointer" onClick={() => setIsFocusDialogOpen(true)}>
+                             <CardHeader>
+                                <div className="flex justify-between items-center">
+                                    <CardTitle className="flex items-center gap-2">
+                                        <Target className="text-primary"/> Today's Focus
+                                    </CardTitle>
+                                    {dailyRewardClaimed && <Badge variant="secondary" className="bg-green-100 text-green-800"><CheckCircle className="w-3 h-3 mr-1"/> Done!</Badge>}
                                 </div>
-                                <div>
-                                    <h3 className="text-3xl font-bold">{streak} Day Streak!</h3>
-                                    <p className="text-sm opacity-80 mt-1">
-                                        {streak > 1 ? "Keep the fire going! You're building a great habit." : "Every journey starts with a single step. Keep it up!"}
-                                    </p>
+                            </CardHeader>
+                            <CardContent className="space-y-3">
+                                {totalAiTasks > 0 ? (
+                                    <>
+                                        <div className="flex justify-between items-center text-sm">
+                                            <span className="text-muted-foreground">Progress</span>
+                                            <span className="font-semibold">{completedAiTasks} / {totalAiTasks}</span>
+                                        </div>
+                                        <Progress value={progress} />
+                                    </>
+                                ) : (
+                                     <p className="text-sm text-center text-muted-foreground py-4">No AI tasks for today. Add some!</p>
+                                )}
+                            </CardContent>
+                        </Card>
+                        <Card className="bg-orange-500/10 border-orange-500/20 text-orange-900 dark:text-orange-200" id="streak-card">
+                            <CardContent className="p-6">
+                                <div className="flex flex-col items-center justify-center gap-4 text-center">
+                                     <div className="p-4 bg-white/50 rounded-full">
+                                        <Flame className="w-8 h-8 text-orange-500" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-3xl font-bold">{streak} Day Streak!</h3>
+                                        <p className="text-sm opacity-80 mt-1">
+                                            {streak > 1 ? "Keep the fire going! You're building a great habit." : "Every journey starts with a single step. Keep it up!"}
+                                        </p>
+                                    </div>
                                 </div>
                                 <Dialog onOpenChange={(open) => !open && setRewardState('idle')}>
                                     <DialogTrigger asChild>
-                                        <Button variant="outline" className="rounded-full border-orange-500/50 bg-transparent hover:bg-white/20">
+                                        <Button variant="outline" className="rounded-full border-orange-500/50 bg-transparent hover:bg-white/20 w-full mt-4">
                                             View Rewards
                                         </Button>
                                     </DialogTrigger>
@@ -1381,40 +1393,6 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                         </div>
                                     </DialogContent>
                                 </Dialog>
-                            </CardContent>
-                        </Card>
-                         <Card id="recent-files-card">
-                             <CardHeader>
-                               <CardTitle>Recent Files</CardTitle>
-                               <CardDescription>Your most recently accessed documents.</CardDescription>
-                             </CardHeader>
-                            <CardContent>
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Name</TableHead>
-                                            <TableHead>Subject</TableHead>
-                                            <TableHead>Last Modified</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {recentFiles.length > 0 ? (
-                                            recentFiles.slice(0, 3).map((file, index) => (
-                                                <TableRow key={index}>
-                                                    <TableCell className="font-medium">{file.name}</TableCell>
-                                                    <TableCell>{file.subject}</TableCell>
-                                                    <TableCell>{file.modified}</TableCell>
-                                                </TableRow>
-                                            ))
-                                        ) : (
-                                            <TableRow>
-                                                <TableCell colSpan={3} className="text-center text-muted-foreground p-8">
-                                                    You haven't uploaded any files yet.
-                                                </TableCell>
-                                            </TableRow>
-                                        )}
-                                    </TableBody>
-                                </Table>
                             </CardContent>
                         </Card>
                     </div>
@@ -1708,7 +1686,7 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                                 </div>
                                             ) : (
                                                 <Button size="sm" className="mt-4" onClick={() => handleGetExplanation(topic, state.attempt.id)} disabled={state.isExplanationLoading}>
-                                                    {state.isExplanationLoading ? "Thinking..." : "Explain with AI &amp; Give Me a New Question"}
+                                                    {state.isExplanationLoading ? "Thinking..." : "Explain with AI & Give Me a New Question"}
                                                 </Button>
                                             )}
                                         </div>
@@ -1846,3 +1824,5 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
 }
 
 export default DashboardClientPage;
+
+    
