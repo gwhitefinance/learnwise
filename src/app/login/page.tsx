@@ -46,101 +46,6 @@ const TypingBubble = () => {
     );
 };
 
-const HalloweenBackground = () => (
-    <div className="absolute inset-0 w-full h-full overflow-hidden rounded-2xl">
-        <svg width="100%" height="100%" preserveAspectRatio="xMidYMid slice" viewBox="0 0 400 400" className="opacity-80">
-            {/* -- Sky & Stars -- */}
-            <rect width="400" height="400" fill="#0d1a26" />
-            <g className="crescent-moon">
-                <circle cx="350" cy="50" r="20" fill="#f0e68c" />
-                <circle cx="340" cy="45" r="20" fill="#0d1a26" />
-            </g>
-
-            <circle cx="50" cy="80" r="1" fill="white" />
-            <circle cx="150" cy="40" r="1.5" fill="white" />
-            <circle cx="250" cy="90" r="1" fill="white" />
-            <circle cx="320" cy="150" r="1" fill="white" />
-            <circle cx="80" cy="180" r="1.2" fill="white" />
-            
-            {/* -- Bats -- */}
-            <g className="bat-1">
-              <path d="M10 10 C 15 5, 25 5, 30 10 L 20 15 Z" fill="black" />
-            </g>
-            <g className="bat-2">
-              <path d="M50 30 C 55 25, 65 25, 70 30 L 60 35 Z" fill="black" />
-            </g>
-             <g className="bat-3">
-              <path d="M100 20 C 105 15, 115 15, 120 20 L 110 25 Z" fill="black" />
-            </g>
-
-            {/* -- Trees -- */}
-            <path d="M380 400 L370 250 L360 400 M370 250 L350 220 M370 250 L390 230" stroke="#222" strokeWidth="3" fill="none" />
-            <path d="M20 400 L30 240 L40 400 M30 240 L10 210 M30 240 L50 220" stroke="#222" strokeWidth="4" fill="none" />
-
-            {/* -- Ground -- */}
-            <path d="M0 400 L0 320 C 100 300, 300 340, 400 320 L400 400 Z" fill="#2c1f21" />
-
-            {/* -- Ghost -- */}
-             <g className="ghost">
-                <path d="M150 320 Q 170 280, 190 320 L180 315 L170 320 L160 315 Z" fill="white" />
-                <circle cx="165" cy="305" r="3" fill="black" />
-                <circle cx="175" cy="305" r="3" fill="black" />
-            </g>
-
-            {/* -- Gravestones -- */}
-            <path d="M100 320 L100 260 A 20 20 0 0 1 140 260 L140 320 Z" fill="#4a4a4a" />
-            <text x="120" y="290" fontFamily="serif" fontSize="20" fill="#333" textAnchor="middle">RIP</text>
-            <g transform="rotate(-5 280 320)">
-                <path d="M260 320 L260 270 Q 280 250 300 270 L300 320 Z" fill="#555555" />
-            </g>
-
-            {/* -- Pumpkins -- */}
-            <g>
-              <ellipse cx="60" cy="330" rx="30" ry="25" fill="#f57d00"/>
-              <rect x="55" y="305" width="10" height="10" fill="green"/>
-              <g className="pumpkin-face">
-                <path d="M50 325 L45 320" stroke="black" strokeWidth="2" />
-                <path d="M70 325 L75 320" stroke="black" strokeWidth="2" />
-                <path d="M55 335 Q 60 340 65 335" stroke="black" strokeWidth="2" fill="none" />
-                <g className="pumpkin-glow-1">
-                    <path d="M50 325 L45 320" stroke="yellow" strokeWidth="2" />
-                    <path d="M70 325 L75 320" stroke="yellow" strokeWidth="2" />
-                </g>
-              </g>
-            </g>
-            <g>
-                <ellipse cx="200" cy="340" rx="25" ry="20" fill="#f57d00"/>
-                <rect x="195" y="320" width="10" height="8" fill="darkgreen"/>
-                 <g className="pumpkin-face">
-                    <path d="M190 335 L185 330" stroke="black" strokeWidth="2" />
-                    <path d="M210 335 L215 330" stroke="black" strokeWidth="2" />
-                    <rect x="193" y="340" width="14" height="3" fill="black" />
-                    <g className="pumpkin-glow-2">
-                       <path d="M190 335 L185 330" stroke="yellow" strokeWidth="2" />
-                       <path d="M210 335 L215 330" stroke="yellow" strokeWidth="2" />
-                    </g>
-                </g>
-            </g>
-            <ellipse cx="330" cy="335" rx="18" ry="15" fill="#f57d00"/>
-            <rect x="326" y="320" width="8" height="6" fill="green"/>
-
-            {/* -- Spider Web -- */}
-            <g transform="translate(0, 0)">
-                <path d="M 0 0 L 50 50" stroke="#aaa" strokeWidth="0.5" />
-                <path d="M 25 0 L 50 50" stroke="#aaa" strokeWidth="0.5" />
-                <path d="M 50 0 L 50 50" stroke="#aaa" strokeWidth="0.5" />
-                <path d="M 0 25 L 50 50" stroke="#aaa" strokeWidth="0.5" />
-                <path d="M 0 50 L 50 50" stroke="#aaa" strokeWidth="0.5" />
-                <path d="M 0 10 Q 10 10, 10 0" stroke="#aaa" strokeWidth="0.5" fill="none" />
-                <path d="M 0 20 Q 20 20, 20 0" stroke="#aaa" strokeWidth="0.5" fill="none" />
-                <path d="M 0 30 Q 30 30, 30 0" stroke="#aaa" strokeWidth="0.5" fill="none" />
-                <path d="M 0 40 Q 40 40, 40 0" stroke="#aaa" strokeWidth="0.5" fill="none" />
-                <path d="M 10 50 Q 50 40, 50 10" stroke="#aaa" strokeWidth="0.5" fill="none" />
-                <path d="M 20 50 Q 50 30, 50 20" stroke="#aaa" strokeWidth="0.5" fill="none" />
-            </g>
-        </svg>
-    </div>
-);
 
 export default function LoginPage() {
   const router = useRouter()
@@ -217,7 +122,6 @@ export default function LoginPage() {
       {/* Left Section */}
       <div className="relative hidden w-7/12 flex-col items-center justify-center p-8 lg:flex">
         <div className="relative w-full max-w-4xl h-[700px] bg-neutral-900 rounded-2xl flex flex-col items-center justify-center">
-            <HalloweenBackground />
              <div className="absolute top-20 text-center text-white w-full">
                 <h1 className="text-6xl font-bold">Welcome Back</h1>
             </div>

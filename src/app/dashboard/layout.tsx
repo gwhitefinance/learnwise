@@ -320,19 +320,6 @@ const SidebarNavItem = ({ item, pathname, setMobileMenuOpen }: { item: SidebarIt
     )
 }
 
-const PumpkinIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-        <path d="M21.24 9.51a8.5 8.5 0 1 0-18.48 0"/>
-        <path d="M12 2.02c1.88 4.5-3.32 8.7-3.32 8.7"/>
-        <path d="M12 2.02c-1.88 4.5 3.32 8.7 3.32 8.7"/>
-        <path d="M12 22a8.5 8.5 0 0 0 8.5-8.5c0-4.69-3.81-8.5-8.5-8.5s-8.5 3.81-8.5 8.5A8.5 8.5 0 0 0 12 22z" fill="#f97316"/>
-        <path d="M12 22c-4.7 0-8.5-3.8-8.5-8.5a8.5 8.5 0 0 1 8.5-8.5 8.5 8.5 0 0 1 8.5 8.5c0 4.7-3.8 8.5-8.5 8.5z" strokeWidth="0"/>
-        <path d="M8 14h8" stroke="black" strokeWidth="1.5" strokeLinecap="round"/>
-        <path d="M10 11l-1 1" stroke="black" strokeWidth="1.5" strokeLinecap="round"/>
-        <path d="M14 11l1 1" stroke="black" strokeWidth="1.5" strokeLinecap="round"/>
-    </svg>
-)
-
 function DashboardLayoutContent({
   children,
 }: {
@@ -349,7 +336,6 @@ function DashboardLayoutContent({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [userCoins, setUserCoins] = useState<number>(0);
-  const [isHalloweenTheme, setIsHalloweenTheme] = useState(false);
   const [gradeLevel, setGradeLevel] = useState<string | null>(null);
   
   const isFocusLayout = pathname.startsWith('/dashboard/sat-prep/study-session');
@@ -515,12 +501,11 @@ function DashboardLayoutContent({
   return (
     <>
       <div className={cn(
-          "relative min-h-screen overflow-hidden bg-background",
-          isHalloweenTheme && 'halloween-bg'
+          "relative min-h-screen overflow-hidden bg-background"
       )}>
         <input type="file" ref={fileInputRef} onChange={handleProfilePicChange} className="hidden" accept="image/*" />
         
-        {!isHalloweenTheme && !isFocusLayout && (
+        {!isFocusLayout && (
           <motion.div
               className="absolute inset-0 -z-10 opacity-20"
               animate={{
@@ -666,18 +651,6 @@ function DashboardLayoutContent({
                     <div className="flex flex-1 items-center justify-between">
                         <h1 className="text-xl font-semibold">Tutorin</h1>
                         <div className="flex items-center gap-3">
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="rounded-2xl" onClick={() => setIsHalloweenTheme(!isHalloweenTheme)}>
-                                        <PumpkinIcon className="h-5 w-5 text-orange-500"/>
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    {isHalloweenTheme ? 'Disable Halloween Theme' : 'Enable Halloween Theme'}
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
 
                         <TooltipProvider>
                             <Tooltip>
@@ -750,7 +723,7 @@ function DashboardLayoutContent({
 
             <main className="flex-1 flex flex-col relative p-4 md:p-6">
               <FloatingChat isHidden={isFocusLayout} isEmbedded={isFocusLayout}>
-                {React.cloneElement(children as React.ReactElement, { isHalloweenTheme })}
+                {React.cloneElement(children as React.ReactElement)}
               </FloatingChat>
             </main>
         </div>

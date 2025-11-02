@@ -238,7 +238,7 @@ const integrations = [
     },
 ];
 
-function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean }) {
+function DashboardClientPage() {
     const [courses, setCourses] = useState<Course[]>([]);
     const [isDataLoading, setIsDataLoading] = useState(true);
     const [projects, setProjects] = useState<Project[]>([]);
@@ -1160,16 +1160,9 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                         transition={{ duration: 0.5 }}
                         className={cn(
                             "relative overflow-hidden rounded-3xl p-8 text-white flex flex-col md:flex-row items-center justify-between gap-8",
-                             isHalloweenTheme ? 'halloween-welcome' : 'bg-gradient-to-r from-violet-600 via-indigo-600 to-blue-600'
+                             'bg-gradient-to-r from-violet-600 via-indigo-600 to-blue-600'
                         )}
                     >
-                        {isHalloweenTheme && (
-                            <div className="halloween-scene">
-                                <div className="bat-container"><div className="bat"></div></div>
-                                <div className="bat-container" style={{animationDelay: '1s'}}><div className="bat"></div></div>
-                                <div className="bat-container" style={{animationDelay: '2s'}}><div className="bat"></div></div>
-                            </div>
-                        )}
                       <div className="relative flex-1 space-y-4">
                         <Badge className="bg-white/20 text-white hover:bg-white/30 rounded-xl">Get Started</Badge>
                         <h2 className="text-3xl font-bold">Welcome back, {user?.displayName?.split(' ')[0] || 'Learner'}!</h2>
@@ -1925,6 +1918,7 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
 }
 
 export default DashboardClientPage;
+
 
 
 
