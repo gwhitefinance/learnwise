@@ -9,7 +9,7 @@ import { doc, onSnapshot, updateDoc, arrayUnion, increment } from 'firebase/fire
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Gem, Palette, Shirt, CheckCircle, Footprints, GraduationCap as HatIcon, Sparkles } from 'lucide-react';
+import { Gem, Palette, Shirt, CheckCircle, Footprints, GraduationCap as HatIcon, Sparkles, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import shopItemsData from '@/lib/shop-items.json';
 import { useToast } from '@/hooks/use-toast';
@@ -40,6 +40,76 @@ const rarityConfig = {
 
 const shopItems: Record<string, Item[]> = shopItemsData as Record<string, Item[]>;
 
+const DailyItemCard = ({ category, item, onBuy, onSelect, isEquipped, hasPurchased, userCoins }: { category: string, item: Item, onBuy: (category: string, itemName: string, price: number) => void, onSelect: (category: string, itemName: string) => void, isEquipped: boolean, hasPurchased: boolean, userCoins: number }) => {
+    const rarityClass = rarityConfig[item.rarity as keyof typeof rarityConfig] || rarityConfig.Common;
+    const categoryIcons = {
+        color: <Palette className="h-5 w-5" />,
+        hat: <HatIcon className="h-5 w-5" />,
+        shirt: <Shirt className="h-5 w-5" />,
+        shoes: <Footprints className="h-5 w-5" />,
+    };
+
+    return (
+        <Card 
+            onClick={() => hasPurchased && onSelect(category, item.name)}
+            className={cn(
+                "p-0 flex flex-col items-center gap-2 transition-all cursor-pointer relative overflow-hidden ring-2 w-full",
+                isEquipped ? 'ring-primary' : 'ring-transparent hover:ring-primary/50',
+                rarityClass.bg
+            )}
+        >
+            <div className="w-full aspect-square flex items-center justify-center p-3 relative">
+                <div className="absolute top-2 left-2 p-1.5 bg-background/50 rounded-full">
+                     {(categoryIcons as any)[category]}
+                </div>
+                {category === 'color' ? (
+                    <div className="w-20 h-20 rounded-full" style={{ backgroundColor: item.hex }}/>
+                ) : (
+                    <AIBuddy 
+                        className="w-24 h-24"
+                        {...{[category]: item.name}}
+                        color={category === 'hat' ? '#87CEEB' : 'transparent'} 
+                    />
+                )}
+            </div>
+            <div className="text-center w-full px-3 pt-0">
+                <p className={cn("text-xs font-bold uppercase", rarityClass.text)}>{item.rarity}</p>
+                <p className="text-sm font-semibold truncate">{item.name}</p>
+            </div>
+            
+            <div className="w-full p-2">
+                {!hasPurchased ? (
+                    <Button
+                        size="sm"
+                        className="h-8 text-xs w-full bg-blue-600 hover:bg-blue-700"
+                        onClick={(e) => { e.stopPropagation(); onBuy(category, item.name, item.price); }}
+                        disabled={userCoins < item.price}
+                    >
+                        <Gem className="w-3 h-3 mr-1.5" /> {item.price}
+                    </Button>
+                ) : isEquipped ? (
+                    <Button
+                        variant="secondary"
+                        size="sm"
+                        className="h-8 text-xs w-full bg-green-600 hover:bg-green-700 text-white cursor-default"
+                    >
+                        <CheckCircle className="w-3 h-3 mr-1.5" /> Equipped
+                    </Button>
+                ) : (
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 text-xs w-full"
+                        onClick={() => onSelect(category, item.name)}
+                    >
+                        Equip
+                    </Button>
+                )}
+            </div>
+        </Card>
+    )
+}
+
 export default function ShopClientPage() {
     const [user, authLoading] = useAuthState(auth);
     const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -53,6 +123,10 @@ export default function ShopClientPage() {
     const router = useRouter();
     const { toast } = useToast();
     const [isMounted, setIsMounted] = useState(false);
+
+    // Daily Shop State
+    const [dailyItems, setDailyItems] = useState<Record<string, Item>>({});
+    const [timeUntilRefresh, setTimeUntilRefresh] = useState('');
 
     useEffect(() => {
         setIsMounted(true);
@@ -75,7 +149,40 @@ export default function ShopClientPage() {
             setCustomizations(JSON.parse(savedCustomizations));
         }
 
-        return () => unsubscribe();
+        // --- Daily Shop Logic ---
+        const today = new Date();
+        const seed = today.getFullYear() * 1000 + today.getMonth() * 100 + today.getDate();
+        
+        function seededRandom(seed: number) {
+            let x = Math.sin(seed) * 10000;
+            return x - Math.floor(x);
+        }
+
+        const newDailyItems: Record<string, Item> = {};
+        const categories = ['colors', 'hats', 'shirts', 'shoes'];
+        categories.forEach((category, i) => {
+            const items = shopItems[category];
+            const randomIndex = Math.floor(seededRandom(seed + i) * items.length);
+            newDailyItems[category.slice(0, -1)] = items[randomIndex];
+        });
+        setDailyItems(newDailyItems);
+        
+        const timer = setInterval(() => {
+            const now = new Date();
+            const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+            const diff = midnight.getTime() - now.getTime();
+            
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+            setTimeUntilRefresh(`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+        }, 1000);
+
+        return () => {
+            unsubscribe();
+            clearInterval(timer);
+        };
     }, [user, authLoading, router]);
 
     const handleSelectItem = (category: string, name: string) => {
@@ -166,15 +273,38 @@ export default function ShopClientPage() {
                     <span>{profile.coins}</span>
                 </div>
             </div>
-
-            <div className="bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 text-white p-6 rounded-2xl flex items-center justify-center gap-4">
-                <Sparkles className="h-8 w-8"/>
-                <div className="text-center">
-                    <h2 className="text-2xl font-bold">The Fall Update is Here!</h2>
-                    <p className="opacity-90">Check out new spooky costumes and autumn colors!</p>
-                </div>
-                <Sparkles className="h-8 w-8"/>
-            </div>
+            
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex justify-between items-center">
+                        <div className="flex items-center gap-2">
+                            <Sparkles className="text-orange-400"/> Daily Shop
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground font-medium">
+                            <Clock className="h-4 w-4"/>
+                            <span>Refreshes in: {timeUntilRefresh}</span>
+                        </div>
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {Object.entries(dailyItems).map(([category, item]) => {
+                        const isEquipped = customizations[category] === item.name;
+                        const purchased = hasPurchased(category, item.name);
+                        return (
+                             <DailyItemCard 
+                                key={item.name}
+                                category={category} 
+                                item={item}
+                                onBuy={handleBuyItem}
+                                onSelect={handleSelectItem}
+                                isEquipped={isEquipped}
+                                hasPurchased={purchased}
+                                userCoins={profile.coins}
+                            />
+                        )
+                    })}
+                </CardContent>
+            </Card>
             
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                  {/* Right side: Robot Preview */}
@@ -209,64 +339,18 @@ export default function ShopClientPage() {
                                     {(category.items as Item[]).map((item: Item) => {
                                         const purchased = hasPurchased(category.id, item.name);
                                         const isEquipped = customizations[category.id] === item.name;
-                                        const rarityClass = rarityConfig[item.rarity as keyof typeof rarityConfig] || rarityConfig.Common;
                                         
                                         return (
-                                            <Card 
+                                            <DailyItemCard
                                                 key={item.name}
-                                                onClick={() => purchased && handleSelectItem(category.id, item.name)}
-                                                className={cn(
-                                                    "p-0 flex flex-col items-center gap-2 transition-all cursor-pointer relative overflow-hidden ring-2",
-                                                    isEquipped ? 'ring-primary' : 'ring-transparent hover:ring-primary/50',
-                                                    rarityClass.bg
-                                                )}
-                                            >
-                                                <div className="w-full aspect-square flex items-center justify-center p-3">
-                                                    {category.id === 'color' ? (
-                                                        <div className="w-16 h-16 rounded-full" style={{ backgroundColor: item.hex }}/>
-                                                    ) : (
-                                                        <AIBuddy 
-                                                            className="w-20 h-20"
-                                                            {...{[category.id]: item.name}}
-                                                            color={category.id === 'hat' ? '#87CEEB' : 'transparent'} // Show default body for hats, transparent otherwise
-                                                            />
-                                                    )}
-                                                </div>
-                                                <div className="text-center w-full p-3 pt-0">
-                                                    <p className={cn("text-xs font-bold uppercase", rarityClass.text)}>{item.rarity}</p>
-                                                    <p className="text-sm font-semibold truncate">{item.name}</p>
-                                                </div>
-                                                
-                                                <div className="w-full p-1">
-                                                    {!purchased ? (
-                                                        <Button
-                                                            size="sm"
-                                                            className="h-7 text-xs w-full bg-blue-600 hover:bg-blue-700"
-                                                            onClick={(e) => { e.stopPropagation(); handleBuyItem(category.id, item.name, item.price); }}
-                                                            disabled={profile.coins < item.price}
-                                                        >
-                                                            <Gem className="w-3 h-3 mr-1.5" /> {item.price}
-                                                        </Button>
-                                                    ) : isEquipped ? (
-                                                        <Button
-                                                            variant="secondary"
-                                                            size="sm"
-                                                            className="h-7 text-xs w-full bg-green-600 hover:bg-green-700 text-white cursor-default"
-                                                        >
-                                                            <CheckCircle className="w-3 h-3 mr-1.5" /> Equipped
-                                                        </Button>
-                                                    ) : (
-                                                        <Button
-                                                            variant="outline"
-                                                            size="sm"
-                                                            className="h-7 text-xs w-full"
-                                                            onClick={() => handleSelectItem(category.id, item.name)}
-                                                        >
-                                                            Equip
-                                                        </Button>
-                                                    )}
-                                                </div>
-                                            </Card>
+                                                category={category.id}
+                                                item={item}
+                                                onBuy={handleBuyItem}
+                                                onSelect={handleSelectItem}
+                                                isEquipped={isEquipped}
+                                                hasPurchased={purchased}
+                                                userCoins={profile.coins}
+                                            />
                                         )
                                     })}
                                 </div>
