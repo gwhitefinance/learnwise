@@ -69,17 +69,14 @@ const hatComponents: Record<string, React.FC> = {
         </g>
     ),
     "Turkey Hat": () => (
-        <g transform="translate(100, 70) scale(1.4)">
-            {/* Feathers */}
-            <path d="M-30,-20 Q-40,-50 -20,-60 Z" fill="#A0522D" />
-            <path d="M-10,-30 Q-20,-55 0,-65 Z" fill="#FFC107" />
-            <path d="M10,-30 Q20,-55 40,-60 Z" fill="#d32f2f" />
-            <path d="M30,-20 Q40,-50 20,-60 Z" fill="#A0522D" />
-            {/* Body */}
-            <path d="M-25,0 a25,20 0 1,1 50,0 a25,20 0 1,1 -50,0" fill="#8B4513" />
-            {/* Drumsticks */}
-            <rect x="-15" y="-10" width="10" height="5" fill="#DEB887" transform="rotate(-30 -15 -10)" />
-            <rect x="5" y="-10" width="10" height="5" fill="#DEB887" transform="rotate(30 5 -10)" />
+        <g transform="translate(100, 75) scale(1.6)">
+            <g>
+                <path d="M -15,-20 a 15,15 0 0,1 30,0" fill="#8B4513"/>
+                <path d="M -5,-35 a 10,10 0 0,1 10,0" fill="red" />
+                 <path d="M-20,-15 Q0,-40 20,-15" fill="none" stroke="#A0522D" stroke-width="5" />
+                 <path d="M-30,-5 Q0,-35 30,-5" fill="none" stroke="#d32f2f" stroke-width="5" />
+                 <path d="M-40,10 Q0,-30 40,10" fill="none" stroke="#FFC107" stroke-width="5" />
+            </g>
         </g>
     ),
     "Viking Helmet": () => (
@@ -284,14 +281,12 @@ const shirtComponents: Record<string, React.FC> = {
     ),
     "Turkey Costume": () => (
         <g transform="translate(100, 140)">
-            {/* Feathers */}
-            <path d="M-50,0 Q-60,-40 -40,-50 Z" fill="#A0522D" />
-            <path d="M-30,-20 Q-40,-50 -20,-60 Z" fill="#FFC107" />
-            <path d="M0,-30 Q0,-60 20,-60 Z" fill="#d32f2f" />
-            <path d="M30,-20 Q40,-50 20,-60 Z" fill="#FFC107" />
-            <path d="M50,0 Q60,-40 40,-50 Z" fill="#A0522D" />
-            {/* Body */}
-            <path d="M-45,-20 a45,35 0 1,1 90,0 a45,35 0 1,1 -90,0" fill="#8B4513" />
+            <g>
+                <path d="M0,-25 Q30,-40 50,0 Q30,10 0,-25" fill="#A0522D"/>
+                <path d="M0,-25 Q-30,-40 -50,0 Q-30,10 0,-25" fill="#A0522D"/>
+                <path d="M0,-25 a 25 25 0 0 0 0 50 a 25 25 0 0 0 0 -50" fill="#8B4513"/>
+                <circle cx="0" cy="0" r="25" fill="#8B4513"/>
+            </g>
         </g>
     ),
     "Knight Armor": () => (
@@ -318,6 +313,37 @@ const shirtComponents: Record<string, React.FC> = {
             <circle cx="100" cy="125" r="8" fill="#DAA520" />
         </g>
     ),
+    "Plain Tee": () => ( <path d='M70 110 L130 110 L130 150 L70 150 Z' fill='#f1f5f9' /> ),
+    "V-Neck": () => ( <path d='M70 110 L130 110 L130 150 L70 150 Z M80 110 L100 125 L120 110 Z' fill='#27272a' stroke='black' stroke-width='1'/> ),
+    "Pocket Tee": () => ( <g><path d='M70 110 L130 110 L130 150 L70 150 Z' fill='#64748b' /><rect x='75' y='115' width='15' height='15' fill='#475569' rx='2' /></g> ),
+    "Long-Sleeve Tee": () => ( <g><path d='M70 110 L130 110 L130 150 L70 150 Z' fill='#059669' /><rect x='45' y='110' width='25' height='35' fill='#059669' /><rect x='130' y='110' width='25' height='35' fill='#059669' /></g> ),
+    "Basic Tank Top": () => ( <path d='M80 105 L120 105 L125 150 L75 150 Z' fill='#e11d48'/> ),
+    "Henley Shirt": () => ( <g><path d='M70 110 L130 110 L130 150 L70 150 Z' fill='#f59e0b' /><rect x='95' y='110' width='10' height='20' fill='#d97706' /><circle cx='100' cy='115' r='2' fill='white' /><circle cx='100' cy='122' r='2' fill='white' /></g> ),
+    "Simple Polo": () => ( <g><path d='M70 110 L130 110 L130 150 L70 150 Z' fill='#0ea5e9'/><path d='M90 110 L85 120 L115 120 L110 110 Z' fill='#0284c7' /></g> ),
+    "Ringer Tee": () => ( <g><path d='M70 110 L130 110 L130 150 L70 150 Z' fill='white' /><rect x='70' y='110' width='60' height='5' fill='#dc2626' /><path d='M65 110 L70 115' stroke='#dc2626' stroke-width='4' /><path d='M135 110 L130 115' stroke='#dc2626' stroke-width='4' /></g> ),
+    "Raglan Shirt": () => ( <g><path d='M70 110 L130 110 L130 150 L70 150 Z' fill='white' /><path d='M70 110 L100 130 L130 110 Z' fill='#65a30d' /></g> ),
+    "Graphic Tee": () => ( <g><path d='M70 110 L130 110 L130 150 L70 150 Z' fill='#1e293b'/><text x='100' y='135' font-size='24' fill='white' text-anchor='middle'>AI</text></g> ),
+    "Hawaiian Shirt": () => ( <g><path d='M65 105 L135 105 L135 155 L65 155 Z' fill='#2563eb' /><text x='80' y='125' font-size='12'>🌴</text><text x='110' y='145' font-size='12'>🌺</text><text x='95' y='130' font-size='12'>☀️</text></g> ),
+    "Bowling Shirt": () => ( <g><path d='M70 105 L130 105 L130 155 L70 155 Z' fill='#ef4444' /><path d='M70 105 L95 105 L95 155 L70 155 Z' fill='#1f2937' /></g> ),
+    "Denim Shirt": () => ( <g><path d='M65 105 L135 105 L135 155 L65 155 Z' fill='#3b82f6' /><rect x='75' y='115' width='15' height='15' fill='#60a5fa' rx='2' /></g> ),
+    "Suspender Shirt": () => ( <g><path d='M65 105 L135 105 L135 155 L65 155 Z' fill='white' /><path d='M80 105 L90 155' stroke='#713f12' stroke-width='5' /><path d='M120 105 L110 155' stroke='#713f12' stroke-width='5' /></g> ),
+    "Argyle Sweater Vest": () => ( <g><path d='M75 105 L125 105 L125 155 L75 155 Z' fill='#eab308' /><path d='M100 105 L125 130 L100 155 L75 130 Z' fill='#f59e0b' /><path d='M75 130 L125 130' stroke='#dc2626' stroke-width='2' stroke-dasharray='4 4' /><path d='M100 105 L100 155' stroke='#dc2626' stroke-width='2' stroke-dasharray='4 4' /></g> ),
+    "Galaxy Print Shirt": () => ( <g><path d='M65 105 L135 105 L135 155 L65 155 Z' fill='black' /><circle cx='80' cy='120' r='2' fill='white'/><circle cx='90' cy='140' r='1' fill='white'/><circle cx='105' cy='115' r='2' fill='white'/><circle cx='120' cy='130' r='1' fill='white'/><path d='M90 125 Q 100 120 110 130' stroke='purple' stroke-width='3' fill='none' opacity='0.5' /></g> ),
+    "Tie-Dye Shirt": () => ( <g><circle cx='100' cy='130' r='35' fill='yellow' /><circle cx='100' cy='130' r='25' fill='orange' /><circle cx='100' cy='130' r='15' fill='red' /><path d='M65 105 L135 105 L135 155 L65 155 Z' fill='url(#tieDye)' clip-path='url(#shirt-clip)' /><defs><radialGradient id='tieDye'><stop offset='10%' stop-color='red' /><stop offset='50%' stop-color='yellow' /><stop offset='95%' stop-color='blue' /></radialGradient><clipPath id='shirt-clip'><path d='M65 105 L135 105 L135 155 L65 155 Z' /></clipPath></defs></g> ),
+    "Vertical Stripes": () => ( <g><rect x="65" y="105" width="70" height="50" fill="white" /><rect x="75" y="105" width="10" height="50" fill="#3b82f6" /><rect x="95" y="105" width="10" height="50" fill="#3b82f6" /><rect x="115" y="105" width="10" height="50" fill="#3b82f6" /></g> ),
+    "Checkerboard Shirt": () => ( <g><rect x="65" y="105" width="70" height="50" fill="white" /><path d='M65 105 h14 v10 h-14z M89 105 h14 v10 h-14z M113 105 h14 v10 h-14z M79 115 h14 v10 h-14z M103 115 h14 v10 h-14z M65 125 h14 v10 h-14z M89 125 h14 v10 h-14z M113 125 h14 v10 h-14z M79 135 h14 v10 h-14z M103 135 h14 v10 h-14z M65 145 h14 v10 h-14z M89 145 h14 v10 h-14z M113 145 h14 v10 h-14z' fill='black' /></g> ),
+    "Leather Jacket": () => ( <g><path d='M70 105 L130 105 L130 155 L70 155 Z' fill='#444' /><path d='M80 105 L95 155' stroke='black' stroke-width='3' /><path d='M120 105 L105 155' stroke='black' stroke-width='3'/></g> ),
+    "Blazer": () => ( <g><path d='M70 105 L130 105 L130 160 L70 160 Z' fill='#0f172a' /><path d='M85 105 L115 105 L100 135 Z' fill='white' /><circle cx='100' cy='118' r='3' fill='#e2e8f0' /><path d='M70 105 L95 115 L95 125 L70 115 Z' fill='#1e293b' /><path d='M130 105 L105 115 L105 125 L130 115 Z' fill='#1e293b'/></g> ),
+    "Kimono": () => ( <g><path d='M70 105 L130 105 L130 160 L70 160 Z' fill='#831843'/><path d='M70 105 L100 160' stroke='#fecdd3' stroke-width='5' /><path d='M130 105 L100 160' stroke='#fecdd3' stroke-width='5' /><rect x='90' y='120' width='20' height='5' fill='#f9a8d4' /></g> ),
+    "Raincoat": () => ( <g><path d='M65 105 L135 105 L135 160 L65 160 Z' fill='#facc15' /><path d='M65 90 C 65 70 135 70 135 90' fill='#facc15' /></g> ),
+    "Puffy Vest": () => ( <g><path d='M75 105 L125 105 L125 155 L75 155 Z' fill='#4f46e5' /><path d='M75 120 L125 120' stroke='white' stroke-opacity='0.2' stroke-width='4' /><path d='M75 135 L125 135' stroke='white' stroke-opacity='0.2' stroke-width='4' /></g> ),
+    "Fur Coat": () => ( <g><path d='M60 105 L140 105 L140 160 L60 160 Z' fill='#d2b48c' /><path d='M60 105 Q 100 90 140 105' fill='#f5f5dc'/></g> ),
+    "Dragon Scale Mail": () => ( <g><defs><pattern id='scales' patternUnits='userSpaceOnUse' width='10' height='10'><path d='M 5,0 l 5,5 l -5,5 l -5,-5 z' fill='#22c55e' stroke='#166534' stroke-width='0.5'/></pattern></defs><rect x='65' y='105' width='70' height='50' fill='url(#scales)' /></g> ),
+    "Star-Lord Jacket": () => ( <g><path d='M70 105 L130 105 L130 155 L70 155 Z' fill='#8c2d19'/><rect x='75' y='110' width='50' height='5' fill='#eab308' /><rect x='75' y='120' width='10' height='20' fill='#a16207' /></g> ),
+    "Magical Girl Outfit": () => ( <g><path d='M70 105 L130 105 L130 150 L70 150 Z' fill='white'/><path d='M85 105 L115 105 L100 120 Z' fill='#fb7185' /><path d='M80 125 L120 125 L120 140 L100 150 L80 140 Z' fill='#fb7185' /><circle cx='100' cy='105' r='8' fill='yellow'/></g> ),
+    "Steampunk Attire": () => ( <g><path d='M75 105 L125 105 L120 155 L80 155 Z' fill='#8B4513' /><path d='M80 105 L120 105 L115 150 L85 150 Z' fill='white' /><circle cx='85' cy='115' r='5' fill='#DAA520' /><circle cx='115' cy='135' r='8' stroke='#DAA520' stroke-width='2' fill='none'/></g> ),
+    "Glowing Runes": () => ( <g><path d='M70 105 L130 105 L130 155 L70 155 Z' fill='black'/><text x='100' y='135' font-size='30' fill='#0ea5e9' text-anchor='middle' style={{textShadow:'0 0 5px #0ea5e9'}}>ᛗ</text></g> ),
+
 };
 
 const shoeComponents: Record<string, React.FC> = {
@@ -477,4 +503,5 @@ export const Shoes: React.FC<{ name?: string }> = ({ name }) => {
     
 
     
+
 
