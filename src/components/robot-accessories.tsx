@@ -60,17 +60,26 @@ const hatComponents: Record<string, React.FC> = {
             <circle cx="25" cy="3" r="5" fill="orange" />
         </g>
     ),
-    "Pumpkin Hat": () => (
-        <g transform='translate(65, 20)'>
-            <path d='M0,25 a35,35 0 1,1 70,0 a35,35 0 1,1 -70,0' fill='#f57d00' />
-            <rect x="30" y="-8" width="10" height="15" rx="3" fill="green" />
+    "Pilgrim Hat": () => (
+        <g transform="translate(60, 20) scale(0.9)">
+            <path d="M0,30 C0,25 5,25 10,20 H70 C75,25 80,25 80,30 V28 H0 Z" fill="#333"/>
+            <rect x="15" y="0" width="50" height="25" fill="#333" />
+            <rect x="25" y="15" width="30" height="10" fill="#777" />
+            <rect x="30" y="17" width="20" height="6" fill="#f0e68c" />
         </g>
     ),
-    "Witch Hat": () => (
-        <g transform='translate(45, 20) scale(0.9)'>
-            <path d='M-10 40 L115 40 L115 30 L-10 30 Z' fill='#222' />
-            <path d='M55 -15 L20 35 L90 35 Z' fill='#222' />
-            <rect x="15" y="28" width="70" height="7" fill="#4A00B4" />
+    "Turkey Hat": () => (
+        <g transform="translate(100, 70) scale(1.4)">
+            {/* Feathers */}
+            <path d="M-30,-20 Q-40,-50 -20,-60 Z" fill="#A0522D" />
+            <path d="M-10,-30 Q-20,-55 0,-65 Z" fill="#FFC107" />
+            <path d="M10,-30 Q20,-55 40,-60 Z" fill="#d32f2f" />
+            <path d="M30,-20 Q40,-50 20,-60 Z" fill="#A0522D" />
+            {/* Body */}
+            <path d="M-25,0 a25,20 0 1,1 50,0 a25,20 0 1,1 -50,0" fill="#8B4513" />
+            {/* Drumsticks */}
+            <rect x="-15" y="-10" width="10" height="5" fill="#DEB887" transform="rotate(-30 -15 -10)" />
+            <rect x="5" y="-10" width="10" height="5" fill="#DEB887" transform="rotate(30 5 -10)" />
         </g>
     ),
     "Viking Helmet": () => (
@@ -148,11 +157,45 @@ const shirtComponents: Record<string, React.FC> = {
             <path d='M80 105 L120 105 L115 150 L85 150 Z' fill='white' />
         </g>
     ),
-    "Ghost Costume": () => (
+    "Plaid Shirt": () => (
         <g>
-            <path d='M60 100 L140 100 L150 180 L120 170 L100 180 L80 170 L50 180 Z' fill='rgba(255,255,255,0.9)' />
-            <circle cx="85" cy="120" r="4" fill="black" />
-            <circle cx="115" cy="120" r="4" fill="black" />
+            <path d='M65 105 L135 105 L135 155 L65 155 Z' fill='#d32f2f' />
+            <path d='M65 115 L135 115' stroke='black' strokeOpacity="0.5" strokeWidth='6' />
+            <path d='M65 135 L135 135' stroke='black' strokeOpacity="0.5" strokeWidth='6' />
+            <path d='M85 105 L85 155' stroke='black' strokeOpacity="0.5" strokeWidth='6' />
+            <path d='M115 105 L115 155' stroke='black' strokeOpacity="0.5" strokeWidth='6' />
+        </g>
+    ),
+    "Flannel": () => (
+        <g>
+            <path d='M65 105 L135 105 L135 155 L65 155 Z' fill='#222' />
+            <path d='M65 115 L135 115' stroke='#b91c1c' strokeOpacity="0.8" strokeWidth='6' />
+            <path d='M65 135 L135 135' stroke='#b91c1c' strokeOpacity="0.8" strokeWidth='6' />
+            <path d='M85 105 L85 155' stroke='#b91c1c' strokeOpacity="0.8" strokeWidth='6' />
+            <path d='M115 105 L115 155' stroke='#b91c1c' strokeOpacity="0.8" strokeWidth='6' />
+        </g>
+    ),
+    "Turtleneck": () => (
+         <g>
+            <path d='M70 105 L130 105 L130 155 L70 155 Z' fill='#D2B48C' />
+            <path d='M80 95 L120 95 L120 110 L80 110 Z' fill='#D2B48C' />
+        </g>
+    ),
+    "Ugly Thanksgiving Sweater": () => (
+        <g>
+            <path d='M65 105 L135 105 L135 155 L65 155 Z' fill='#f59e0b' />
+            {/* Turkey */}
+            <path transform="translate(85, 120) scale(0.3)" d="M-25,0 a25,20 0 1,1 50,0 a25,20 0 1,1 -50,0" fill="#8B4513" />
+            <rect transform="translate(85, 120) scale(0.3)" x="-15" y="-10" width="10" height="5" fill="#DEB887" transform="rotate(-30 -15 -10)" />
+            <rect transform="translate(85, 120) scale(0.3)" x="5" y="-10" width="10" height="5" fill="#DEB887" transform="rotate(30 5 -10)" />
+             {/* Leaf */}
+            <path transform="translate(110, 135) scale(0.3) rotate(30)" d="M0-25 C20-25 20,5 0,25 C-20,5 -20-25 0-25 Z" fill="#b33b00" />
+        </g>
+    ),
+    "Football Jersey": () => (
+         <g>
+            <path d='M65 105 L135 105 L135 155 L65 155 Z' fill='darkgreen' />
+            <text x="100" y="140" fill="white" fontSize="40" fontWeight="bold" textAnchor="middle">88</text>
         </g>
     ),
     "Striped Shirt": () => (
@@ -223,6 +266,40 @@ const shoeComponents: Record<string, React.FC> = {
             <rect x='105' y='170' width='25' height='15' rx='5' fill='#8B4513' />
         </g>
     ),
+     "Hiking Boots": () => (
+        <g>
+            <rect x='70' y='170' width='25' height='18' rx='5' fill='#a0522d' />
+            <rect x='70' y='180' width='25' height='8' fill='#654321' />
+            <rect x='105' y='170' width='25' height='18' rx='5' fill='#a0522d' />
+            <rect x='105' y='180' width='25' height='8' fill='#654321' />
+        </g>
+    ),
+     "Moccasins": () => (
+        <g>
+            <path d='M70 175 L95 175 L90 185 L75 185 Z' fill='#deb887' />
+            <path d='M105 175 L130 175 L125 185 L110 185 Z' fill='#deb887' />
+            <line x1="75" y1="175" x2="90" y2="175" stroke="#8B4513" strokeWidth="1" strokeDasharray="2,2"/>
+            <line x1="110" y1="175" x2="125" y2="175" stroke="#8B4513" strokeWidth="1" strokeDasharray="2,2"/>
+        </g>
+    ),
+     "Pilgrim Shoes": () => (
+        <g>
+            <path d='M65 175 L100 175 L95 188 L70 188 Z' fill='#222' />
+            <path d='M105 175 L140 175 L135 188 L110 188 Z' fill='#222' />
+            <rect x='78' y='173' width='10' height='6' fill='#f0e68c' />
+            <rect x='118' y='173' width='10' height='6' fill='#f0e68c' />
+        </g>
+    ),
+     "Football Cleats": () => (
+        <g>
+            <path d='M65 175 L100 175 L95 185 L65 185 Z' fill='black' />
+            <rect x='75' y='185' width='5' height='3' fill='white' />
+            <rect x='85' y='185' width='5' height='3' fill='white' />
+            <path d='M105 175 L140 175 L135 185 L105 185 Z' fill='black' />
+            <rect x='115' y='185' width='5' height='3' fill='white' />
+            <rect x='125' y='185' width='5' height='3' fill='white' />
+        </g>
+    ),
     "Sneakers": () => (
         <g>
             <path d='M70,175 L95,175 L95,185 L70,185 Z' fill='white' />
@@ -251,12 +328,6 @@ const shoeComponents: Record<string, React.FC> = {
         <g>
             <path d='M65 175 L100 175 L95 185 L65 185 Z' fill='black' />
             <path d='M100 175 L135 175 L135 185 L105 185 Z' fill='black' />
-        </g>
-    ),
-    "Pumpkin Shoes": () => (
-        <g>
-            <path d='M65,175 a15,15 0 1,1 30,0 a15,15 0 1,1 -30,0' fill='#f57d00' />
-            <path d='M105,175 a15,15 0 1,1 30,0 a15,15 0 1,1 -30,0' fill='#f57d00' />
         </g>
     ),
     "Flip Flops": () => (
