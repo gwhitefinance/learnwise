@@ -281,6 +281,10 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
     const [dailyRewardClaimed, setDailyRewardClaimed] = useState(false);
     const [isFocusDialogOpen, setIsFocusDialogOpen] = useState(false);
     const [timeUntilMidnight, setTimeUntilMidnight] = useState('');
+    
+    // Calendar Event from Task Dialog
+    const [isCalendarDialogOpen, setIsCalendarDialogOpen] = useState(false);
+    const [eventFromTask, setEventFromTask] = useState<{ title: string; date: Date | undefined; type: string } | null>(null);
 
 
     useEffect(() => {
@@ -644,7 +648,7 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                  console.error("Error adding existing course: ", error);
                 toast({ variant: 'destructive', title: 'Error', description: 'Could not add the course.' });
             } finally {
-                setIsSaving(false);
+                setIsSavingCourse(false);
             }
         }
     };
@@ -932,23 +936,35 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
         ));
     }
 
-    const addCalendarEvent = async (text: string) => {
-        if (!user) return;
+    const openCalendarDialog = (text: string) => {
+        setEventFromTask({
+            title: text,
+            date: new Date(),
+            type: 'Homework',
+        });
+        setIsCalendarDialogOpen(true);
+    };
+
+    const handleConfirmAddCalendarEvent = async () => {
+        if (!user || !eventFromTask) return;
         try {
             await addDoc(collection(db, "calendarEvents"), {
-                title: text,
+                title: eventFromTask.title,
                 description: "Study session for today's focus.",
-                date: new Date().toISOString(),
+                date: eventFromTask.date?.toISOString(),
                 startTime: "16:00",
                 endTime: "17:00",
-                type: 'Homework',
+                type: eventFromTask.type,
                 color: 'bg-blue-500',
                 userId: user.uid,
                 reminderMinutes: 10,
             });
-            toast({ title: 'Event Added!', description: `"${text}" added to your calendar.`});
+            toast({ title: 'Event Added!', description: `"${eventFromTask.title}" added to your calendar.`});
         } catch (e) {
             toast({ variant: 'destructive', title: "Error", description: "Could not add event to calendar." });
+        } finally {
+            setIsCalendarDialogOpen(false);
+            setEventFromTask(null);
         }
     };
     
@@ -1166,6 +1182,88 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                 
                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
                     <div className="lg:col-span-2 space-y-8">
+                        <Card id="recent-files-card">
+                             <CardHeader>
+                               <CardTitle>Recent Files</CardTitle>
+                               <CardDescription>Your most recently accessed documents.</CardDescription>
+                             </CardHeader>
+                            <CardContent>
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Name</TableHead>
+                                            <TableHead>Subject</TableHead>
+                                            <TableHead>Last Modified</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {recentFiles.length > 0 ? (
+                                            recentFiles.slice(0, 3).map((file, index) => (
+                                                <TableRow key={index}>
+                                                    <TableCell className="font-medium">{file.name}</TableCell>
+                                                    <TableCell>{file.subject}</TableCell>
+                                                    <TableCell>{file.modified}</TableCell>
+                                                </TableRow>
+                                            ))
+                                        ) : (
+                                            <TableRow>
+                                                <TableCell colSpan={3} className="text-center text-muted-foreground p-8">
+                                                    You haven't uploaded any files yet.
+                                                </TableCell>
+                                            </TableRow>
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            </CardContent>
+                        </Card>
+                        <Card id="active-courses">
+                             <CardHeader>
+                                <div className="flex items-center justify-between">
+                                <h2 className="text-xl font-semibold">Active Courses</h2>
+                                <Link href="/dashboard/courses">
+                                    <Button variant="ghost" className="rounded-2xl text-sm">
+                                        View All
+                                    </Button>
+                                </Link>
+                                </div>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="space-y-4">
+                                    {isDataLoading ? (
+                                        Array.from({length: 2}).map((_, i) => <Skeleton key={i} className="h-28 w-full" />)
+                                    ) : courses.length > 0 ? (
+                                        courses.slice(0, 2).map((course) => {
+                                            const totalChapters = course.units?.reduce((acc, unit) => acc + (unit.chapters?.length ?? 0), 0) ?? 0;
+                                            const completedCount = course.completedChapters?.length ?? 0;
+                                            const courseProgress = totalChapters > 0 ? Math.round((completedCount / totalChapters) * 100) : 0;
+
+                                            return (
+                                                <Card key={course.id} className="p-4">
+                                                        <div className="flex items-center justify-between mb-2">
+                                                            <h3 className="font-medium">{course.name}</h3>
+                                                            <Badge variant="outline" className="rounded-xl">
+                                                            In Progress
+                                                            </Badge>
+                                                        </div>
+                                                        <p className="text-sm text-muted-foreground mb-3">{course.description}</p>
+                                                        <div className="space-y-2">
+                                                            <div className="flex items-center justify-between text-sm">
+                                                            <span>Progress</span>
+                                                            <span>{courseProgress}%</span>
+                                                            </div>
+                                                            <Progress value={courseProgress} className="h-2 rounded-xl" />
+                                                        </div>
+                                                </Card>
+                                            );
+                                        })
+                                    ) : (
+                                        <div className="p-4 text-center text-muted-foreground">You haven't added any courses yet.</div>
+                                    )}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                     <div className="space-y-4">
                         <Card id="streak-card" className="bg-orange-500/10 border-orange-500/20 text-orange-900 dark:text-orange-200">
                             <CardContent className="p-6">
                                 <div className="flex flex-col items-center justify-center gap-4 text-center">
@@ -1259,54 +1357,6 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                 </div>
                             </CardContent>
                         </Card>
-                        <Card id="active-courses">
-                             <CardHeader>
-                                <div className="flex items-center justify-between">
-                                <h2 className="text-xl font-semibold">Active Courses</h2>
-                                <Link href="/dashboard/courses">
-                                    <Button variant="ghost" className="rounded-2xl text-sm">
-                                        View All
-                                    </Button>
-                                </Link>
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="space-y-4">
-                                    {isDataLoading ? (
-                                        Array.from({length: 2}).map((_, i) => <Skeleton key={i} className="h-28 w-full" />)
-                                    ) : courses.length > 0 ? (
-                                        courses.slice(0, 2).map((course) => {
-                                            const totalChapters = course.units?.reduce((acc, unit) => acc + (unit.chapters?.length ?? 0), 0) ?? 0;
-                                            const completedCount = course.completedChapters?.length ?? 0;
-                                            const courseProgress = totalChapters > 0 ? Math.round((completedCount / totalChapters) * 100) : 0;
-
-                                            return (
-                                                <Card key={course.id} className="p-4">
-                                                        <div className="flex items-center justify-between mb-2">
-                                                            <h3 className="font-medium">{course.name}</h3>
-                                                            <Badge variant="outline" className="rounded-xl">
-                                                            In Progress
-                                                            </Badge>
-                                                        </div>
-                                                        <p className="text-sm text-muted-foreground mb-3">{course.description}</p>
-                                                        <div className="space-y-2">
-                                                            <div className="flex items-center justify-between text-sm">
-                                                            <span>Progress</span>
-                                                            <span>{courseProgress}%</span>
-                                                            </div>
-                                                            <Progress value={courseProgress} className="h-2 rounded-xl" />
-                                                        </div>
-                                                </Card>
-                                            );
-                                        })
-                                    ) : (
-                                        <div className="p-4 text-center text-muted-foreground">You haven't added any courses yet.</div>
-                                    )}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-                     <div className="space-y-4">
                         <Dialog open={isFocusDialogOpen} onOpenChange={setIsFocusDialogOpen}>
                             <Card id="todays-focus-card">
                                 <CardHeader>
@@ -1342,7 +1392,7 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                             ) : (
                                                 <span className={cn("text-sm flex-1", todo.completed && "line-through text-muted-foreground")}>{todo.text}</span>
                                             )}
-                                            <button className="opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => addCalendarEvent(todo.text)}>
+                                            <button className="opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => openCalendarDialog(todo.text)}>
                                                 <Calendar className="h-4 w-4 text-muted-foreground" />
                                             </button>
                                         </div>
@@ -1374,7 +1424,7 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                                 </div>
                                             </button>
                                             <span className={cn("text-sm flex-1", todo.completed && "line-through text-muted-foreground")}>{todo.text}</span>
-                                            <button className="opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => addCalendarEvent(todo.text)}>
+                                            <button className="opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => openCalendarDialog(todo.text)}>
                                                 <Calendar className="h-4 w-4 text-muted-foreground" />
                                             </button>
                                         </div>
@@ -1382,40 +1432,6 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                 </div>
                             </DialogContent>
                         </Dialog>
-                        <Card id="recent-files-card">
-                             <CardHeader>
-                               <CardTitle>Recent Files</CardTitle>
-                               <CardDescription>Your most recently accessed documents.</CardDescription>
-                             </CardHeader>
-                            <CardContent>
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Name</TableHead>
-                                            <TableHead>Subject</TableHead>
-                                            <TableHead>Last Modified</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {recentFiles.length > 0 ? (
-                                            recentFiles.slice(0, 3).map((file, index) => (
-                                                <TableRow key={index}>
-                                                    <TableCell className="font-medium">{file.name}</TableCell>
-                                                    <TableCell>{file.subject}</TableCell>
-                                                    <TableCell>{file.modified}</TableCell>
-                                                </TableRow>
-                                            ))
-                                        ) : (
-                                            <TableRow>
-                                                <TableCell colSpan={3} className="text-center text-muted-foreground p-8">
-                                                    You haven't uploaded any files yet.
-                                                </TableCell>
-                                            </TableRow>
-                                        )}
-                                    </TableBody>
-                                </Table>
-                            </CardContent>
-                        </Card>
                     </div>
                 </div>
             </TabsContent>
@@ -1838,6 +1854,32 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                         )}
                     </div>
                 </div>
+            </DialogContent>
+        </Dialog>
+         <Dialog open={isCalendarDialogOpen} onOpenChange={setIsCalendarDialogOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Add to Calendar</DialogTitle>
+                    <DialogDescription>Confirm the details for your new calendar event.</DialogDescription>
+                </DialogHeader>
+                 <div className="grid gap-4 py-4">
+                    <div className="grid gap-2">
+                        <Label>Title</Label>
+                        <Input value={eventFromTask?.title || ''} readOnly />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label>Date</Label>
+                        <Input value={eventFromTask?.date ? format(eventFromTask.date, 'PPP') : ''} readOnly />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label>Type</Label>
+                        <Input value={eventFromTask?.type || ''} readOnly />
+                    </div>
+                </div>
+                <DialogFooter>
+                    <Button variant="ghost" onClick={() => setIsCalendarDialogOpen(false)}>Cancel</Button>
+                    <Button onClick={handleConfirmAddCalendarEvent}>Add to Calendar</Button>
+                </DialogFooter>
             </DialogContent>
         </Dialog>
     </div>
