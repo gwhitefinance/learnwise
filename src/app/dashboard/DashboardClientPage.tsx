@@ -1250,15 +1250,17 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                     </div>
                      <div className="space-y-4">
                         <Card className="bg-orange-500/10 border-orange-500/20 text-orange-900 dark:text-orange-200" id="streak-card">
-                           <CardContent className="p-6 flex items-center gap-6">
-                                <div className="p-4 bg-white/50 rounded-full">
-                                    <Flame className="w-8 h-8 text-orange-500" />
-                                </div>
-                                <div className="flex-1">
-                                    <h3 className="text-2xl font-bold">{streak} Day Streak!</h3>
-                                    <p className="text-sm opacity-80">
-                                        {streak > 1 ? "Keep the fire going! You're building a great habit." : "Every journey starts with a single step. Keep it up!"}
-                                    </p>
+                            <CardContent className="p-6 flex items-center justify-between gap-4">
+                                <div className="flex items-center gap-4">
+                                    <div className="p-4 bg-white/50 rounded-full">
+                                        <Flame className="w-8 h-8 text-orange-500" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <h3 className="text-2xl font-bold">{streak} Day Streak!</h3>
+                                        <p className="text-sm opacity-80">
+                                            {streak > 1 ? "Keep the fire going! You're building a great habit." : "Every journey starts with a single step. Keep it up!"}
+                                        </p>
+                                    </div>
                                 </div>
                                 <Dialog onOpenChange={(open) => !open && setRewardState('idle')}>
                                     <DialogTrigger asChild>
@@ -1338,7 +1340,7 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                         </div>
                                     </DialogContent>
                                 </Dialog>
-                           </CardContent>
+                            </CardContent>
                         </Card>
                         <Card id="active-courses">
                              <CardHeader>
