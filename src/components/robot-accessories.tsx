@@ -329,7 +329,7 @@ const shirtComponents: Record<string, React.FC> = {
     "Suspender Shirt": () => ( <g><path d='M65 105 L135 105 L135 155 L65 155 Z' fill='white' /><path d='M80 105 L90 155' stroke='#713f12' strokeWidth='5' /><path d='M120 105 L110 155' stroke='#713f12' strokeWidth='5' /></g> ),
     "Argyle Sweater Vest": () => ( <g><path d='M75 105 L125 105 L125 155 L75 155 Z' fill='#eab308' /><path d='M100 105 L125 130 L100 155 L75 130 Z' fill='#f59e0b' /><path d='M75 130 L125 130' stroke='#dc2626' strokeWidth='2' strokeDasharray='4 4' /><path d='M100 105 L100 155' stroke='#dc2626' strokeWidth='2' strokeDasharray='4 4' /></g> ),
     "Galaxy Print Shirt": () => ( <g><path d='M65 105 L135 105 L135 155 L65 155 Z' fill='black' /><circle cx='80' cy='120' r='2' fill='white'/><circle cx='90' cy='140' r='1' fill='white'/><circle cx='105' cy='115' r='2' fill='white'/><circle cx='120' cy='130' r='1' fill='white'/><path d='M90 125 Q 100 120 110 130' stroke='purple' strokeWidth='3' fill='none' opacity='0.5' /></g> ),
-    "Tie-Dye Shirt": () => ( <g><circle cx='100' cy='130' r='35' fill='yellow' /><circle cx='100' cy='130' r='25' fill='orange' /><circle cx='100' cy='130' r='15' fill='red' /><path d='M65 105 L135 105 L135 155 L65 155 Z' fill='url(#tieDye)' clipPath='url(#shirt-clip)' /><defs><radialGradient id='tieDye'><stop offset='10%' stop-color='red' /><stop offset='50%' stop-color='yellow' /><stop offset='95%' stop-color='blue' /></radialGradient><clipPath id='shirt-clip'><path d='M65 105 L135 105 L135 155 L65 155 Z' /></clipPath></defs></g> ),
+    "Tie-Dye Shirt": () => ( <g><circle cx='100' cy='130' r='35' fill='yellow' /><circle cx='100' cy='130' r='25' fill='orange' /><circle cx='100' cy='130' r='15' fill='red' /><path d='M65 105 L135 105 L135 155 L65 155 Z' fill='url(#tieDye)' clipPath='url(#shirt-clip)' /><defs><radialGradient id='tieDye'><stop offset='10%' stopColor='red' /><stop offset='50%' stopColor='yellow' /><stop offset='95%' stopColor='blue' /></radialGradient><clipPath id='shirt-clip'><path d='M65 105 L135 105 L135 155 L65 155 Z' /></clipPath></defs></g> ),
     "Vertical Stripes": () => ( <g><rect x="65" y="105" width="70" height="50" fill="white" /><rect x="75" y="105" width="10" height="50" fill="#3b82f6" /><rect x="95" y="105" width="10" height="50" fill="#3b82f6" /><rect x="115" y="105" width="10" height="50" fill="#3b82f6" /></g> ),
     "Checkerboard Shirt": () => ( <g><rect x="65" y="105" width="70" height="50" fill="white" /><path d='M65 105 h14 v10 h-14z M89 105 h14 v10 h-14z M113 105 h14 v10 h-14z M79 115 h14 v10 h-14z M103 115 h14 v10 h-14z M65 125 h14 v10 h-14z M89 125 h14 v10 h-14z M113 125 h14 v10 h-14z M79 135 h14 v10 h-14z M103 135 h14 v10 h-14z M65 145 h14 v10 h-14z M89 145 h14 v10 h-14z M113 145 h14 v10 h-14z' fill='black' /></g> ),
     "Leather Jacket": () => ( <g><path d='M70 105 L130 105 L130 155 L70 155 Z' fill='#444' /><path d='M80 105 L95 155' stroke='black' strokeWidth='3' /><path d='M120 105 L105 155' stroke='black' strokeWidth='3'/></g> ),
@@ -503,6 +503,7 @@ export const Shoes: React.FC<{ name?: string }> = ({ name }) => {
     
 
     
+
 
 
 
