@@ -49,6 +49,7 @@ import {
   RefreshCw,
   Target,
   Loader2,
+  ListTodo,
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -276,6 +277,7 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
     const [isFlipped, setIsFlipped] = useState(false);
 
     // Today's Focus state
+    const [isFocusDialogOpen, setIsFocusDialogOpen] = useState(false);
     const [todos, setTodos] = useState<TodoItem[]>([]);
     const [isPomodoroVisible, setIsPomodoroVisible] = useState(false);
     const [isAiSuggesting, setIsAiSuggesting] = useState(false);
@@ -634,7 +636,7 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                  console.error("Error adding existing course: ", error);
                 toast({ variant: 'destructive', title: 'Error', description: 'Could not add the course.' });
             } finally {
-                setIsSavingCourse(false);
+                setIsSaving(false);
             }
         }
     };
@@ -955,6 +957,62 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
   return (
     <div className="space-y-8 mt-0">
         
+        <Dialog open={isFocusDialogOpen} onOpenChange={setIsFocusDialogOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Today's Focus</DialogTitle>
+                </DialogHeader>
+                 <div className="space-y-4 max-h-[60vh] overflow-y-auto p-1">
+                    {todos.map(todo => (
+                        <div key={todo.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                            <div className="flex items-center gap-3 flex-1">
+                                <motion.button onClick={() => toggleTodo(todo.id)}>
+                                    <div className={cn("w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors", todo.completed ? "bg-primary border-primary" : "border-muted-foreground")}>
+                                        {todo.completed && <CheckCircle className="w-4 h-4 text-primary-foreground"/>}
+                                    </div>
+                                </motion.button>
+                                {todo.isEditing ? (
+                                    <Input 
+                                        autoFocus
+                                        value={todo.text}
+                                        onChange={(e) => updateTodoText(todo.id, e.target.value)}
+                                        onBlur={() => saveTodo(todo.id)}
+                                        onKeyDown={(e) => e.key === 'Enter' && saveTodo(todo.id)}
+                                        className="h-8 text-sm"
+                                    />
+                                ) : (
+                                    <span className={cn("text-sm", todo.completed && "line-through text-muted-foreground")}>{todo.text}</span>
+                                )}
+                            </div>
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => addCalendarEvent(todo.text)}><Calendar className="h-4 w-4"/></Button>
+                        </div>
+                    ))}
+                     <Button variant="outline" className="w-full border-dashed" onClick={addTodo}>
+                        <Plus className="w-4 h-4 mr-2"/>Add Task
+                    </Button>
+                </div>
+                <DialogFooter className="flex justify-between items-center sm:justify-between w-full">
+                    <Button variant="ghost" size="sm" onClick={() => setIsPomodoroVisible(!isPomodoroVisible)}><Clock className="w-4 h-4 mr-2"/> {isPomodoroVisible ? 'Hide' : 'Show'} Timer</Button>
+                    <AnimatePresence>
+                    {isPomodoroVisible && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 10 }}
+                            className="absolute bottom-16 left-4 z-10"
+                        >
+                            <PomodoroTimer onHide={() => setIsPomodoroVisible(false)} />
+                        </motion.div>
+                    )}
+                    </AnimatePresence>
+                     <Button variant="ghost" size="sm" onClick={handleAiSuggestions} disabled={isAiSuggesting}>
+                        {isAiSuggesting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Wand2 className="w-4 h-4 mr-2"/>}
+                        New Suggestions
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+
         <Tabs defaultValue="home" id="main-tabs">
             <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4" id="main-tabs-nav">
               <TabsList className="grid w-full grid-cols-5 rounded-2xl p-1">
@@ -1161,57 +1219,30 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                 
                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
                     <div className="lg:col-span-2 space-y-8">
-                        <Card>
-                            <CardHeader>
+                        <Card className="hover:shadow-md transition-all">
+                             <CardHeader>
                                 <div className="flex justify-between items-center">
                                     <CardTitle className="flex items-center gap-2">
                                         <Target className="text-primary"/> Today's Focus
                                     </CardTitle>
-                                    {focusTimer !== null && (
-                                        <div className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
-                                            <Clock className="w-4 h-4" />
-                                            <span>{formatTime(focusTimer)} remaining</span>
-                                        </div>
-                                    )}
+                                    <Button variant="ghost" size="sm" onClick={() => setIsFocusDialogOpen(true)}>
+                                        <ListTodo className="mr-2 h-4 w-4"/> View All Tasks
+                                    </Button>
                                 </div>
                             </CardHeader>
-                            <CardContent className="space-y-4">
-                                {todos.map(todo => (
-                                    <div key={todo.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                                        <div className="flex items-center gap-3 flex-1">
-                                            <motion.button onClick={() => toggleTodo(todo.id)}>
-                                                <div className={cn("w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors", todo.completed ? "bg-primary border-primary" : "border-muted-foreground")}>
-                                                    {todo.completed && <CheckCircle className="w-4 h-4 text-primary-foreground"/>}
-                                                </div>
-                                            </motion.button>
-                                            {todo.isEditing ? (
-                                                <Input 
-                                                    autoFocus
-                                                    value={todo.text}
-                                                    onChange={(e) => updateTodoText(todo.id, e.target.value)}
-                                                    onBlur={() => saveTodo(todo.id)}
-                                                    onKeyDown={(e) => e.key === 'Enter' && saveTodo(todo.id)}
-                                                    className="h-8 text-sm"
-                                                />
-                                            ) : (
-                                                <span className={cn("text-sm", todo.completed && "line-through text-muted-foreground")}>{todo.text}</span>
-                                            )}
-                                        </div>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => addCalendarEvent(todo.text)}><Calendar className="h-4 w-4"/></Button>
+                            <CardContent className="space-y-3">
+                                {todos.slice(0, 3).map(todo => (
+                                     <div key={todo.id} className="flex items-center gap-3">
+                                        <motion.button onClick={() => toggleTodo(todo.id)}>
+                                            <div className={cn("w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors", todo.completed ? "bg-primary border-primary" : "border-muted-foreground")}>
+                                                {todo.completed && <CheckCircle className="w-3 h-3 text-primary-foreground"/>}
+                                            </div>
+                                        </motion.button>
+                                        <span className={cn("text-sm flex-1", todo.completed && "line-through text-muted-foreground")}>{todo.text}</span>
                                     </div>
                                 ))}
-                                 <Button variant="outline" className="w-full border-dashed" onClick={addTodo}>
-                                    <Plus className="w-4 h-4 mr-2"/>Add Task
-                                </Button>
+                                 {todos.length === 0 && <p className="text-sm text-center text-muted-foreground py-4">All tasks complete! Great job.</p>}
                             </CardContent>
-                             <CardFooter className="flex justify-between items-center">
-                                <Button variant="ghost" size="sm" onClick={() => setIsPomodoroVisible(!isPomodoroVisible)}><Clock className="w-4 h-4 mr-2"/> {isPomodoroVisible ? 'Hide' : 'Show'} Timer</Button>
-                                {isPomodoroVisible && <PomodoroTimer onHide={() => setIsPomodoroVisible(false)} />}
-                                <Button variant="ghost" size="sm" onClick={handleAiSuggestions} disabled={isAiSuggesting}>
-                                    {isAiSuggesting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Wand2 className="w-4 h-4 mr-2"/>}
-                                    AI Suggestions
-                                </Button>
-                            </CardFooter>
                         </Card>
                          <Card id="recent-files-card">
                              <CardHeader>
@@ -1250,17 +1281,15 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                     </div>
                      <div className="space-y-4">
                         <Card className="bg-orange-500/10 border-orange-500/20 text-orange-900 dark:text-orange-200" id="streak-card">
-                            <CardContent className="p-6 flex items-center justify-between gap-4">
-                                <div className="flex items-center gap-4">
-                                    <div className="p-4 bg-white/50 rounded-full">
-                                        <Flame className="w-8 h-8 text-orange-500" />
-                                    </div>
-                                    <div className="flex-1">
-                                        <h3 className="text-2xl font-bold">{streak} Day Streak!</h3>
-                                        <p className="text-sm opacity-80">
-                                            {streak > 1 ? "Keep the fire going! You're building a great habit." : "Every journey starts with a single step. Keep it up!"}
-                                        </p>
-                                    </div>
+                            <CardContent className="p-6 flex flex-col items-center justify-center gap-4 text-center">
+                                <div className="p-4 bg-white/50 rounded-full">
+                                    <Flame className="w-8 h-8 text-orange-500" />
+                                </div>
+                                <div>
+                                    <h3 className="text-3xl font-bold">{streak} Day Streak!</h3>
+                                    <p className="text-sm opacity-80 mt-1">
+                                        {streak > 1 ? "Keep the fire going! You're building a great habit." : "Every journey starts with a single step. Keep it up!"}
+                                    </p>
                                 </div>
                                 <Dialog onOpenChange={(open) => !open && setRewardState('idle')}>
                                     <DialogTrigger asChild>
