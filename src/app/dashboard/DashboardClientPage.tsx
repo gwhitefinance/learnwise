@@ -53,6 +53,7 @@ import {
   ListTodo,
   Edit,
   Trash2,
+  Check,
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -309,14 +310,10 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
         return `dailyFocusTasks_${user.uid}_${new Date().toDateString()}`;
     }, [user]);
 
-    const handleAiSuggestions = useCallback(async (force = false) => {
+    const handleAiSuggestions = useCallback(async () => {
         if (!user) return;
         const tasksKey = getTasksKey();
         if (!tasksKey) return;
-
-        if (!force && localStorage.getItem(tasksKey)) {
-            return;
-        }
 
         try {
             const courseNames = courses.map(c => c.name);
@@ -1205,21 +1202,67 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                 
                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
                     <div className="lg:col-span-2 space-y-8">
-                        <Card id="streak-card" className="bg-orange-500/10 border-orange-500/20 text-orange-900 dark:text-orange-200">
+                        <Card id="active-courses">
+                             <CardHeader>
+                                <div className="flex items-center justify-between">
+                                <h2 className="text-xl font-semibold">Active Courses</h2>
+                                <Link href="/dashboard/courses">
+                                    <Button variant="ghost" className="rounded-2xl text-sm">
+                                        View All
+                                    </Button>
+                                </Link>
+                                </div>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="space-y-4">
+                                    {isDataLoading ? (
+                                        Array.from({length: 2}).map((_, i) => <Skeleton key={i} className="h-28 w-full" />)
+                                    ) : courses.length > 0 ? (
+                                        courses.slice(0, 2).map((course) => {
+                                            const totalChapters = course.units?.reduce((acc, unit) => acc + (unit.chapters?.length ?? 0), 0) ?? 0;
+                                            const completedCount = course.completedChapters?.length ?? 0;
+                                            const courseProgress = totalChapters > 0 ? Math.round((completedCount / totalChapters) * 100) : 0;
+
+                                            return (
+                                                <Card key={course.id} className="p-4">
+                                                        <div className="flex items-center justify-between mb-2">
+                                                            <h3 className="font-medium">{course.name}</h3>
+                                                            <Badge variant="outline" className="rounded-xl">
+                                                            In Progress
+                                                            </Badge>
+                                                        </div>
+                                                        <p className="text-sm text-muted-foreground mb-3">{course.description}</p>
+                                                        <div className="space-y-2">
+                                                            <div className="flex items-center justify-between text-sm">
+                                                            <span>Progress</span>
+                                                            <span>{courseProgress}%</span>
+                                                            </div>
+                                                            <Progress value={courseProgress} className="h-2 rounded-xl" />
+                                                        </div>
+                                                </Card>
+                                            );
+                                        })
+                                    ) : (
+                                        <div className="p-4 text-center text-muted-foreground">You haven't added any courses yet.</div>
+                                    )}
+                                </div>
+                            </CardContent>
+                        </Card>
+                         <Card id="streak-card" className="bg-orange-500/10 border-orange-500/20 text-orange-900 dark:text-orange-200">
                             <CardContent className="p-6">
-                                <div className="flex flex-col items-center justify-center gap-4 text-center">
-                                     <div className="p-4 bg-white/50 rounded-full">
+                                <div className="flex flex-col md:flex-row items-center justify-center gap-4 text-center md:text-left">
+                                    <div className="p-4 bg-white/50 rounded-full">
                                         <Flame className="w-8 h-8 text-orange-500" />
                                     </div>
-                                    <div>
+                                    <div className="flex-1">
                                         <h3 className="text-3xl font-bold">{streak} Day Streak!</h3>
-                                        <p className="text-sm opacity-80 mt-1 max-w-xs mx-auto">
+                                        <p className="text-sm opacity-80 mt-1 max-w-xs mx-auto md:mx-0">
                                             {streak > 1 ? "Keep the fire going! You're building a great habit." : "Every journey starts with a single step. Keep it up!"}
                                         </p>
                                     </div>
-                                     <Dialog onOpenChange={(open) => !open && setRewardState('idle')}>
+                                    <Dialog onOpenChange={(open) => !open && setRewardState('idle')}>
                                         <DialogTrigger asChild>
-                                            <Button variant="outline" className="rounded-full border-orange-500/50 bg-transparent hover:bg-white/20 mt-2">
+                                            <Button variant="outline" className="rounded-full border-orange-500/50 bg-transparent hover:bg-white/20 mt-2 md:mt-0">
                                                 View Streak Rewards
                                             </Button>
                                         </DialogTrigger>
@@ -1298,62 +1341,50 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                 </div>
                             </CardContent>
                         </Card>
-                         <Card id="active-courses">
-                             <CardHeader>
-                                <div className="flex items-center justify-between">
-                                <h2 className="text-xl font-semibold">Active Courses</h2>
-                                <Link href="/dashboard/courses">
-                                    <Button variant="ghost" className="rounded-2xl text-sm">
-                                        View All
-                                    </Button>
-                                </Link>
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="space-y-4">
-                                    {isDataLoading ? (
-                                        Array.from({length: 2}).map((_, i) => <Skeleton key={i} className="h-28 w-full" />)
-                                    ) : courses.length > 0 ? (
-                                        courses.slice(0, 2).map((course) => {
-                                            const totalChapters = course.units?.reduce((acc, unit) => acc + (unit.chapters?.length ?? 0), 0) ?? 0;
-                                            const completedCount = course.completedChapters?.length ?? 0;
-                                            const courseProgress = totalChapters > 0 ? Math.round((completedCount / totalChapters) * 100) : 0;
-
-                                            return (
-                                                <Card key={course.id} className="p-4">
-                                                        <div className="flex items-center justify-between mb-2">
-                                                            <h3 className="font-medium">{course.name}</h3>
-                                                            <Badge variant="outline" className="rounded-xl">
-                                                            In Progress
-                                                            </Badge>
-                                                        </div>
-                                                        <p className="text-sm text-muted-foreground mb-3">{course.description}</p>
-                                                        <div className="space-y-2">
-                                                            <div className="flex items-center justify-between text-sm">
-                                                            <span>Progress</span>
-                                                            <span>{courseProgress}%</span>
-                                                            </div>
-                                                            <Progress value={courseProgress} className="h-2 rounded-xl" />
-                                                        </div>
-                                                </Card>
-                                            );
-                                        })
-                                    ) : (
-                                        <div className="p-4 text-center text-muted-foreground">You haven't added any courses yet.</div>
-                                    )}
-                                </div>
-                            </CardContent>
-                        </Card>
                     </div>
                      <div className="space-y-8">
-                        <Card id="todays-focus-card">
+                        <Card id="recent-files-card">
+                             <CardHeader>
+                               <CardTitle>Recent Files</CardTitle>
+                               <CardDescription>Your most recently accessed documents.</CardDescription>
+                             </CardHeader>
+                            <CardContent>
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Name</TableHead>
+                                            <TableHead>Subject</TableHead>
+                                            <TableHead>Last Modified</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {recentFiles.length > 0 ? (
+                                            recentFiles.slice(0, 3).map((file, index) => (
+                                                <TableRow key={index}>
+                                                    <TableCell className="font-medium">{file.name}</TableCell>
+                                                    <TableCell>{file.subject}</TableCell>
+                                                    <TableCell>{file.modified}</TableCell>
+                                                </TableRow>
+                                            ))
+                                        ) : (
+                                            <TableRow>
+                                                <TableCell colSpan={3} className="text-center text-muted-foreground p-8">
+                                                    You haven't uploaded any files yet.
+                                                </TableCell>
+                                            </TableRow>
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            </CardContent>
+                        </Card>
+                         <Card id="todays-focus-card">
                             <CardHeader className="flex flex-row items-center justify-between pb-4">
                                 <CardTitle className="text-lg">Today's Focus</CardTitle>
                                 <Dialog open={isTodoListOpen} onOpenChange={setTodoListOpen}>
                                     <DialogTrigger asChild>
                                         <Button variant="ghost" size="icon"><ListTodo className="h-5 w-5"/></Button>
                                     </DialogTrigger>
-                                    <DialogContent>
+                                    <DialogContent className="max-w-2xl">
                                         <DialogHeader>
                                             <div className="flex items-center justify-between whitespace-nowrap mb-4">
                                                 <div className="flex items-center gap-3">
@@ -1424,40 +1455,6 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
                                 ))}
                                 {todos.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">No tasks for today. Great job!</p>}
                                 </div>
-                            </CardContent>
-                        </Card>
-                         <Card id="recent-files-card">
-                             <CardHeader>
-                               <CardTitle>Recent Files</CardTitle>
-                               <CardDescription>Your most recently accessed documents.</CardDescription>
-                             </CardHeader>
-                            <CardContent>
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Name</TableHead>
-                                            <TableHead>Subject</TableHead>
-                                            <TableHead>Last Modified</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {recentFiles.length > 0 ? (
-                                            recentFiles.slice(0, 3).map((file, index) => (
-                                                <TableRow key={index}>
-                                                    <TableCell className="font-medium">{file.name}</TableCell>
-                                                    <TableCell>{file.subject}</TableCell>
-                                                    <TableCell>{file.modified}</TableCell>
-                                                </TableRow>
-                                            ))
-                                        ) : (
-                                            <TableRow>
-                                                <TableCell colSpan={3} className="text-center text-muted-foreground p-8">
-                                                    You haven't uploaded any files yet.
-                                                </TableCell>
-                                            </TableRow>
-                                        )}
-                                    </TableBody>
-                                </Table>
                             </CardContent>
                         </Card>
                     </div>
@@ -1926,4 +1923,5 @@ function DashboardClientPage({ isHalloweenTheme }: { isHalloweenTheme?: boolean 
 }
 
 export default DashboardClientPage;
+
 
