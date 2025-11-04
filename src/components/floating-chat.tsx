@@ -30,6 +30,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 
 
 interface Message {
+  id: string;
   role: 'user' | 'ai';
   content: string;
   streaming?: boolean;
@@ -645,7 +646,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
     
     const newSessionData = {
         title: prompt ? "New Chat" : "New Chat",
-        messages: [{ role: 'ai', content: `Hey ${user.displayName?.split(' ')[0] || 'there'}! How can I help?` }],
+        messages: [{ role: 'ai', content: `Hey ${user.displayName?.split(' ')[0] || 'there'}! How can I help?`, id: crypto.randomUUID() }],
         timestamp: Timestamp.now(),
         titleGenerated: !!prompt,
         userId: user.uid,
@@ -665,111 +666,106 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
     }
   }
 
-  const handleSendMessage = async (prompt?: string) => {
-    const messageContent = prompt || input;
-    if (!messageContent.trim() || !user) return;
-  
-    let currentSessionId = activeSessionId;
-    let currentMessages: Message[] = [];
-  
-    if (!activeSession) {
-      const newId = await createNewSession(messageContent);
-      if (!newId) return;
-      currentSessionId = newId;
-      currentMessages = [{ role: 'ai', content: `Hey ${user.displayName?.split(' ')[0] || 'there'}! How can I help?` }];
-    } else {
-      currentMessages = activeSession.messages;
-    }
-  
-    if (!currentSessionId) return;
-  
-    const userMessage: Message = { role: 'user', content: messageContent };
-    const updatedMessages = [...currentMessages, userMessage];
+    const handleSendMessage = async (prompt?: string) => {
+        const messageContent = prompt || input;
+        if (!messageContent.trim() || !user || isLoading) return;
     
-    setSessions(prevSessions =>
-      prevSessions.map(s => s.id === currentSessionId ? { ...s, messages: updatedMessages } : s)
-    );
+        let currentSessionId = activeSessionId;
+        let currentMessages: Message[] = [];
     
-    setInput('');
-    setIsLoading(true);
+        if (!activeSession) {
+            const newId = await createNewSession(messageContent);
+            if (!newId) return;
+            currentSessionId = newId;
+            currentMessages = [{ role: 'ai', content: `Hey ${user.displayName?.split(' ')[0] || 'there'}! How can I help?`, id: crypto.randomUUID() }];
+        } else {
+            currentMessages = activeSession.messages;
+        }
     
-    const aiMessageId = Date.now();
-    setSessions(prev => prev.map(s => 
-      s.id === currentSessionId 
-        ? { ...s, messages: [...updatedMessages, { role: 'ai', content: '', streaming: true, id: aiMessageId } as any] }
-        : s
-    ));
-  
-    try {
-        const q = query(collection(db, "calendarEvents"), where("userId", "==", user.uid));
-        const querySnapshot = await getDocs(q);
-        const calendarEvents = querySnapshot.docs.map(doc => {
-            const data = doc.data() as CalendarEvent;
-            return { ...data, id: doc.id };
-        });
-        const learnerType = localStorage.getItem('learnerType');
-        const aiBuddyName = localStorage.getItem('aiBuddyName') || 'Tutorin';
+        if (!currentSessionId) return;
+    
+        const userMessage: Message = { role: 'user', content: messageContent, id: crypto.randomUUID() };
+        const updatedMessages = [...currentMessages, userMessage];
+        
+        setSessions(prevSessions =>
+          prevSessions.map(s => s.id === currentSessionId ? { ...s, messages: updatedMessages } : s)
+        );
+        
+        setInput('');
+        setIsLoading(true);
+    
+        try {
+            const q = query(collection(db, "calendarEvents"), where("userId", "==", user.uid));
+            const querySnapshot = await getDocs(q);
+            const calendarEvents = querySnapshot.docs.map(doc => {
+                const data = doc.data() as CalendarEvent;
+                return { ...data, id: doc.id };
+            });
+            const learnerType = localStorage.getItem('learnerType');
+            const aiBuddyName = localStorage.getItem('aiBuddyName') || 'Tutorin';
 
-        const responseText = await studyPlannerAction({
-            userName: user?.displayName?.split(' ')[0],
-            aiBuddyName: aiBuddyName,
-            history: updatedMessages,
-            learnerType: learnerType || undefined,
-            allCourses: courses.map(c => ({ id: c.id, name: c.name, description: c.description })),
-            courseContext: activeSession?.courseContext || undefined,
-            calendarEvents: calendarEvents.map(e => ({
-                id: e.id,
-                date: e.date,
-                title: e.title,
-                time: e.startTime,
-                type: e.type,
-                description: e.description,
-            })),
-        });
-
-        setIsLoading(false);
-        const fullResponse = responseText;
-
-        for (let i = 0; i < fullResponse.length; i++) {
-          await new Promise(resolve => setTimeout(resolve, 10)); // Adjust speed here
-          
-          setSessions(prev => prev.map(s => {
-            if (s.id === currentSessionId) {
-                const lastMsgIndex = s.messages.length - 1;
-                const updatedMsgs = [...s.messages];
-                updatedMsgs[lastMsgIndex] = { ...updatedMsgs[lastMsgIndex], content: fullResponse.slice(0, i + 1), streaming: true };
-                return { ...s, messages: updatedMsgs };
+            const responseText = await studyPlannerAction({
+                userName: user?.displayName?.split(' ')[0],
+                aiBuddyName: aiBuddyName,
+                history: updatedMessages,
+                learnerType: learnerType || undefined,
+                allCourses: courses.map(c => ({ id: c.id, name: c.name, description: c.description })),
+                courseContext: activeSession?.courseContext || undefined,
+                calendarEvents: calendarEvents.map(e => ({
+                    id: e.id,
+                    date: e.date,
+                    title: e.title,
+                    time: e.startTime,
+                    type: e.type,
+                    description: e.description,
+                })),
+            });
+            
+            const botMessageId = crypto.randomUUID();
+            setSessions(prev => prev.map(s => 
+                s.id === currentSessionId 
+                ? { ...s, messages: [...updatedMessages, { role: 'ai', content: '', streaming: true, id: botMessageId }] }
+                : s
+            ));
+            
+            for (let i = 0; i < responseText.length; i++) {
+              await new Promise(resolve => setTimeout(resolve, 10)); // Adjust speed
+              setSessions(prev => prev.map(s => {
+                if (s.id === currentSessionId) {
+                    const lastMsgIndex = s.messages.length - 1;
+                    const updatedMsgs = [...s.messages];
+                    if (updatedMsgs[lastMsgIndex].id === botMessageId) {
+                         updatedMsgs[lastMsgIndex] = { ...updatedMsgs[lastMsgIndex], content: responseText.slice(0, i + 1), streaming: true };
+                    }
+                    return { ...s, messages: updatedMsgs };
+                }
+                return s;
+              }));
             }
-            return s;
-          }));
+    
+            const finalMessages = [...updatedMessages, { role: 'ai', content: responseText, streaming: false, id: botMessageId }];
+            setSessions(prev => prev.map(s =>
+                s.id === currentSessionId ? { ...s, messages: finalMessages } : s
+            ));
+          
+            const sessionRef = doc(db, "chatSessions", currentSessionId);
+            await updateDoc(sessionRef, { messages: finalMessages, timestamp: Timestamp.now() });
+    
+            if (!activeSession?.titleGenerated && finalMessages.length <= 3) {
+                const { title } = await generateChatTitle({ messages: finalMessages });
+                await updateDoc(sessionRef, { title, titleGenerated: true });
+            }
+    
+        } catch (error) {
+            console.error(error);
+            const errorMessage: Message = { role: 'ai', content: "Sorry, I had trouble generating a response. Please try again.", id: crypto.randomUUID() };
+            setSessions(prev => prev.map(s =>
+                s.id === currentSessionId ? { ...s, messages: [...updatedMessages, errorMessage] } : s
+            ));
+        } finally {
+            setIsLoading(false);
         }
-
-        const finalMessages = [...updatedMessages, { role: 'ai', content: fullResponse, streaming: false }];
-        setSessions(prev => prev.map(s =>
-            s.id === currentSessionId ? { ...s, messages: finalMessages } : s
-        ));
-      
-        const sessionRef = doc(db, "chatSessions", currentSessionId);
-        await updateDoc(sessionRef, { messages: finalMessages, timestamp: Timestamp.now() });
-
-        // Generate title if needed
-        if (!activeSession?.titleGenerated && finalMessages.length <= 3) {
-            const { title } = await generateChatTitle({ messages: finalMessages });
-            await updateDoc(sessionRef, { title, titleGenerated: true });
-        }
-
-    } catch (error) {
-      console.error(error);
-      const errorMessage: Message = { role: 'ai', content: "Sorry, I had trouble generating a response. Please try again." };
-      setSessions(prev => prev.map(s =>
-        s.id === currentSessionId
-          ? { ...s, messages: [...updatedMessages, errorMessage] }
-          : s
-      ));
-      setIsLoading(false);
-    }
-  };
-
+    };
 
 
   const handleStartChatWithPrompt = async (prompt: string) => {
@@ -894,7 +890,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
     try {
         const sessionRef = doc(db, 'chatSessions', activeSessionId);
         await updateDoc(sessionRef, {
-            messages: [{ role: 'ai', content: `Hey ${user.displayName?.split(' ')[0] || 'there'}! How can I help?` }]
+            messages: [{ role: 'ai', content: `Hey ${user.displayName?.split(' ')[0] || 'there'}! How can I help?`, id: crypto.randomUUID() }]
         });
         toast({ title: 'Chat Cleared' });
     } catch(e) {
@@ -913,7 +909,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
     setUploadOpen(false);
 
     const userMessageContent = `I've uploaded an image: ${fileToUpload.name}. Can you help me with this?`;
-    const userMessage: Message = { role: 'user', content: userMessageContent };
+    const userMessage: Message = { role: 'user', content: userMessageContent, id: crypto.randomUUID() };
     const updatedMessages = activeSession ? [...activeSession.messages, userMessage] : [userMessage];
     setSessions(sessions.map(s => s.id === activeSessionId ? { ...s, messages: updatedMessages } : s));
 
@@ -927,7 +923,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
             }
             const { analysis } = await analyzeImage({ imageDataUri });
 
-            const aiMessage: Message = { role: 'ai', content: analysis };
+            const aiMessage: Message = { role: 'ai', content: analysis, id: crypto.randomUUID() };
             const finalMessages = [...updatedMessages, aiMessage];
             
             setIsLoading(false);
@@ -1087,7 +1083,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                                 <ScrollArea className="flex-1" viewportRef={scrollAreaRef}>
                                     <div className="p-4 space-y-4">
                                         {activeSession?.messages.map((msg, index) => (
-                                            <div key={index} className={cn("flex items-end gap-2", msg.role === 'user' ? 'justify-end' : '')}>
+                                            <div key={msg.id || index} className={cn("flex items-end gap-2", msg.role === 'user' ? 'justify-end' : '')}>
                                                 {msg.role === 'ai' && (
                                                      <Avatar className="h-10 w-10">
                                                         <AIBuddy
