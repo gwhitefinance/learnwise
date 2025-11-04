@@ -12,7 +12,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { collection, query, where, getDocs, onSnapshot, addDoc, doc, updateDoc, Timestamp, deleteDoc, orderBy } from 'firebase/firestore';
-import { studyPlannerFlow, generateChatTitle, generateNoteFromChat, analyzeImage, generateQuizAction, generateFlashcardsFromNote, generateExplanation } from '@/lib/actions';
+import { studyPlannerAction, generateChatTitle, generateNoteFromChat, analyzeImage, generateQuizAction, generateFlashcardsFromNote, generateExplanation } from '@/lib/actions';
 import { cn } from '@/lib/utils';
 import AIBuddy from './ai-buddy';
 import { useToast } from '@/hooks/use-toast';
@@ -636,7 +636,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
     if(scrollAreaRef.current) {
         scrollAreaRef.current.scrollTo({ top: scrollAreaRef.current.scrollHeight, behavior: 'smooth' });
     }
-  }, [activeSession?.messages, isOpen]);
+  }, [activeSession?.messages, isOpen, isLoading]);
 
   const createNewSession = async (prompt?: string): Promise<string> => {
     if (!user || isSessionCreating) return '';
@@ -702,7 +702,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
       const learnerType = localStorage.getItem('learnerType');
       const aiBuddyName = localStorage.getItem('aiBuddyName') || 'Tutorin';
 
-      const response = await studyPlannerFlow({
+      const response = await studyPlannerAction({
         userName: user?.displayName?.split(' ')[0],
         aiBuddyName: aiBuddyName,
         history: updatedMessages,
@@ -1051,7 +1051,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                                         </DropdownMenuContent>
                                     </DropdownMenu>
                                 </header>
-                                <ScrollArea className="flex-1" ref={scrollAreaRef}>
+                                <ScrollArea className="flex-1" viewportRef={scrollAreaRef}>
                                     <div className="p-4 space-y-4">
                                         {activeSession?.messages.map((msg, index) => (
                                             <div key={index} className={cn("flex items-end gap-2", msg.role === 'user' ? 'justify-end' : '')}>
