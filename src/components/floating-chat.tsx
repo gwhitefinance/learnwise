@@ -552,27 +552,37 @@ const mathQuizData = [
   {
     question: "What are the solutions to the quadratic equation x² - 4x + 3 = 0?",
     options: ["x = -3 and x = 1", "x = 3 and x = 1", "x = 3 and x = -1", "x = -3 and x = -1"],
-    correctAnswer: "x = 3 and x = 1"
+    correctAnswer: "x = 3 and x = 1",
+    explanation: "Factoring the equation as (x - 3)(x - 1) = 0 yields the solutions x = 3 and x = 1.",
+    incorrectExplanation: "This option is incorrect because substituting x = -3 into the original equation does not result in 0."
   },
   {
     question: "If a rectangle has a perimeter of 24 units and a length of 8 units, what is its width?",
     options: ["4 units", "6 units", "16 units", "2 units"],
-    correctAnswer: "4 units"
+    correctAnswer: "4 units",
+    explanation: "The formula for the perimeter is P = 2l + 2w. Plugging in the values, we get 24 = 2(8) + 2w, which simplifies to 24 = 16 + 2w. Solving for w gives w = 4.",
+    incorrectExplanation: "This answer would result in a perimeter of 2(8) + 2(other) != 24."
   },
   {
     question: "Simplify the expression: 3(x + 2) - 2(x - 1)",
     options: ["x + 8", "x + 4", "5x + 4", "x + 5"],
-    correctAnswer: "x + 8"
+    correctAnswer: "x + 8",
+    explanation: "Distribute the numbers: (3x + 6) - (2x - 2). Then, combine like terms: 3x - 2x + 6 + 2, which simplifies to x + 8.",
+    incorrectExplanation: "This option is incorrect due to a sign error when distributing the -2."
   },
   {
     question: "What is 15% of 200?",
     options: ["15", "20", "30", "40"],
-    correctAnswer: "30"
+    correctAnswer: "30",
+    explanation: "To find the percentage, multiply 200 by 0.15. 200 * 0.15 = 30.",
+    incorrectExplanation: "This option miscalculates the percentage."
   },
   {
     question: "If two angles in a triangle are 45° and 75°, what is the third angle?",
     options: ["45°", "50°", "60°", "65°"],
-    correctAnswer: "60°"
+    correctAnswer: "60°",
+    explanation: "The sum of angles in a triangle is 180°. So, the third angle is 180° - 45° - 75° = 60°.",
+    incorrectExplanation: "This answer does not make the sum of the angles equal to 180°."
   }
 ];
 
@@ -646,26 +656,39 @@ const InteractiveCanvas = () => {
                         {currentQuestionIndex + 1}. {currentQuestion.question}
                     </p>
                     <div className="space-y-3">
-                        {currentQuestion.options.map((option, index) => (
-                            <button
-                                key={index}
-                                onClick={() => setSelectedAnswer(option)}
-                                disabled={isAnswered}
-                                className={cn(
-                                    "w-full text-left p-4 rounded-lg transition-all border-2",
-                                    isAnswered && option === currentQuestion.correctAnswer && "bg-green-500/10 border-green-500",
-                                    isAnswered && selectedAnswer === option && !isCorrect && "bg-destructive/10 border-destructive",
-                                    !isAnswered && selectedAnswer === option && "bg-primary/10 border-primary",
-                                    !isAnswered && "bg-card border-border hover:bg-muted"
-                                )}
-                            >
-                                <span className="mr-4 font-semibold">{String.fromCharCode(65 + index)}.</span>
-                                <span>{option}</span>
-                            </button>
-                        ))}
-                    </div>
-                    <div className="mt-8 text-left">
-                        <button className="text-sm text-muted-foreground hover:text-foreground">Show hint</button>
+                        {currentQuestion.options.map((option, index) => {
+                            const isSelected = selectedAnswer === option;
+                            const isCorrectOption = option === currentQuestion.correctAnswer;
+                            
+                            return (
+                                <button
+                                    key={index}
+                                    onClick={() => setSelectedAnswer(option)}
+                                    disabled={isAnswered}
+                                    className={cn(
+                                        "w-full text-left p-4 rounded-lg transition-all border-2",
+                                        !isAnswered && (isSelected ? "bg-primary/10 border-primary" : "bg-card border-border hover:bg-muted"),
+                                        isAnswered && isCorrectOption && "bg-green-500/10 border-green-500",
+                                        isAnswered && isSelected && !isCorrectOption && "bg-red-500/10 border-red-500",
+                                        isAnswered && !isSelected && "bg-card border-border opacity-60"
+                                    )}
+                                >
+                                    <p className="font-semibold">{String.fromCharCode(65 + index)}. {option}</p>
+                                    {isAnswered && isCorrectOption && (
+                                        <div className="text-sm mt-2 pl-6">
+                                            <p className="font-bold text-green-600 flex items-center gap-1"><CheckCircle size={14}/> Right answer</p>
+                                            <p className="text-muted-foreground">{currentQuestion.explanation}</p>
+                                        </div>
+                                    )}
+                                    {isAnswered && isSelected && !isCorrectOption && (
+                                         <div className="text-sm mt-2 pl-6">
+                                            <p className="font-bold text-destructive flex items-center gap-1"><XCircle size={14}/> Not quite</p>
+                                            <p className="text-muted-foreground">{currentQuestion.incorrectExplanation}</p>
+                                        </div>
+                                    )}
+                                </button>
+                            );
+                        })}
                     </div>
                  </div>
             </div>
@@ -1192,7 +1215,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                                 </div>
                             ) : <div></div>}
                         </div>
-                        <div className="col-span-3 border-l bg-background">
+                        <div className="col-span-3 border-l">
                             <InteractiveCanvas />
                         </div>
                     </div>
