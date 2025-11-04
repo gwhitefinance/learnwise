@@ -28,6 +28,7 @@ import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuPortal } from './ui/dropdown-menu';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { Skeleton } from './ui/skeleton';
 
 
 interface Message {
@@ -547,13 +548,27 @@ interface FloatingChatProps {
     isEmbedded?: boolean;
 }
 
-const InteractiveCanvas = ({ quiz, onAnswer, onSubmit }: { quiz: GenerateQuizOutput, onAnswer: (answer: string) => void, onSubmit: () => void }) => {
+const InteractiveCanvas = ({ quiz, onAnswer, onSubmit }: { quiz: GenerateQuizOutput | null, onAnswer: (answer: string) => void, onSubmit: () => void }) => {
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
     const [correctCount, setCorrectCount] = useState(0);
     const [incorrectCount, setIncorrectCount] = useState(0);
     const [isAnswered, setIsAnswered] = useState(false);
 
+    if (!quiz) {
+        return (
+            <div className="bg-muted/30 h-full flex flex-col p-6 rounded-2xl items-center justify-center">
+                <Skeleton className="h-6 w-3/4 mb-4" />
+                <div className="space-y-4 w-full max-w-md">
+                    <Skeleton className="h-12 w-full" />
+                    <Skeleton className="h-12 w-full" />
+                    <Skeleton className="h-12 w-full" />
+                    <Skeleton className="h-12 w-full" />
+                </div>
+            </div>
+        );
+    }
+    
     const currentQuestion = quiz.questions[currentQuestionIndex];
     const isCorrect = selectedAnswer === currentQuestion.answer;
 
@@ -571,12 +586,13 @@ const InteractiveCanvas = ({ quiz, onAnswer, onSubmit }: { quiz: GenerateQuizOut
         if (currentQuestionIndex < quiz.questions.length - 1) {
             setCurrentQuestionIndex(prev => prev + 1);
         } else {
-            // End of quiz logic could go here
+            onSubmit();
         }
     }
     
     const handleSubmitAnswer = () => {
         if (!selectedAnswer) return;
+        onAnswer(selectedAnswer);
         setIsAnswered(true);
     };
 
@@ -637,13 +653,11 @@ const InteractiveCanvas = ({ quiz, onAnswer, onSubmit }: { quiz: GenerateQuizOut
                                     {isAnswered && isCorrectOption && (
                                         <div className="text-sm mt-2 pl-6">
                                             <p className="font-bold text-green-600 flex items-center gap-1"><CheckCircle size={14}/> Right answer</p>
-                                            {/* <p className="text-muted-foreground">{currentQuestion.explanation}</p> */}
                                         </div>
                                     )}
                                     {isAnswered && isSelected && !isCorrectOption && (
                                          <div className="text-sm mt-2 pl-6">
                                             <p className="font-bold text-destructive flex items-center gap-1"><XCircle size={14}/> Not quite</p>
-                                            {/* <p className="text-muted-foreground">{currentQuestion.incorrectExplanation}</p> */}
                                         </div>
                                     )}
                                 </button>
@@ -890,7 +904,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
             return;
         }
 
-        await streamResponse(response.text, currentSessionId, botMessageId);
+        streamResponse(response.text, currentSessionId, botMessageId);
 
         const sessionRef = doc(db, "chatSessions", currentSessionId);
         const sessionDoc = await getDoc(sessionRef);
