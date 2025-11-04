@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useRef, createContext, useContext } from 'react';
@@ -666,6 +667,31 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
     }
   }
 
+  const streamResponse = async (fullText: string, sessionId: string, botMessageId: string) => {
+    for (let i = 0; i < fullText.length; i++) {
+        await new Promise(resolve => setTimeout(resolve, 20)); // Slower typing speed
+        setSessions(prev => prev.map(s => 
+            s.id === sessionId 
+            ? { ...s, messages: s.messages.map(msg => 
+                    msg.id === botMessageId 
+                    ? { ...msg, content: fullText.slice(0, i + 1) } 
+                    : msg
+                )}
+            : s
+        ));
+    }
+
+    setSessions(prev => prev.map(s => 
+        s.id === sessionId 
+        ? { ...s, messages: s.messages.map(msg => 
+                msg.id === botMessageId 
+                ? { ...msg, streaming: false } 
+                : msg
+            )}
+        : s
+    ));
+};
+
   const handleSendMessage = async (prompt?: string) => {
     const messageContent = prompt || input;
     if (!messageContent.trim() || !user) return;
@@ -681,24 +707,15 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
     const userMessage: Message = { role: 'user', content: messageContent, id: crypto.randomUUID() };
     const botMessageId = crypto.randomUUID();
     
-    // Add user message and bot placeholder immediately
+    setInput('');
+    setIsLoading(true);
     setSessions(prev =>
       prev.map(s =>
         s.id === currentSessionId
-          ? {
-              ...s,
-              messages: [
-                ...s.messages,
-                userMessage,
-                { id: botMessageId, role: 'ai', content: '', streaming: true },
-              ],
-            }
+          ? { ...s, messages: [...s.messages, userMessage, { id: botMessageId, role: 'ai', content: '', streaming: true }] }
           : s
       )
     );
-  
-    setInput('');
-    setIsLoading(true);
   
     try {
       const q = query(collection(db, "calendarEvents"), where("userId", "==", user.uid));
@@ -710,7 +727,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
       const learnerType = localStorage.getItem('learnerType');
       const aiBuddyName = localStorage.getItem('aiBuddyName') || 'Tutorin';
   
-      const stream = await studyPlannerAction({
+      const responseText = await studyPlannerAction({
         userName: user?.displayName?.split(' ')[0],
         aiBuddyName: aiBuddyName,
         history: [...sessions.find(s => s.id === currentSessionId)?.messages || [], userMessage],
@@ -727,38 +744,24 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
         })),
       });
 
-      for await (const chunk of stream) {
-        setSessions(prev =>
-          prev.map(s => {
-            if (s.id === currentSessionId) {
-              const updatedMessages = s.messages.map(msg =>
-                msg.id === botMessageId ? { ...msg, content: msg.content + chunk } : msg
-              );
-              return { ...s, messages: updatedMessages };
-            }
-            return s;
-          })
-        );
+      setIsLoading(false);
+
+      await streamResponse(responseText, currentSessionId, botMessageId);
+
+      const finalMessages = sessions.find(s => s.id === currentSessionId)?.messages || [];
+      const updatedMessagesForDB = finalMessages.map(msg => msg.id === botMessageId ? {...msg, content: responseText, streaming: false} : msg);
+
+      updateDoc(doc(db, "chatSessions", currentSessionId!), {
+        messages: updatedMessagesForDB.map(({ id, ...rest }) => rest),
+        timestamp: Timestamp.now(),
+      });
+
+      const currentSession = sessions.find(s => s.id === currentSessionId);
+      if (currentSession && !currentSession.titleGenerated && updatedMessagesForDB.length <= 4) {
+        generateChatTitle({ messages: updatedMessagesForDB }).then(({title}) => {
+            updateDoc(doc(db, "chatSessions", currentSessionId!), { title, titleGenerated: true });
+        });
       }
-
-      setSessions(prev => prev.map(s => {
-        if(s.id === currentSessionId) {
-          const finalMessages = s.messages.map(msg => msg.id === botMessageId ? {...msg, streaming: false} : msg);
-          updateDoc(doc(db, "chatSessions", currentSessionId!), {
-            messages: finalMessages.map(({ id, ...rest }) => rest), // Strip temporary ID
-            timestamp: Timestamp.now(),
-          });
-
-          if (!s.titleGenerated && finalMessages.length <= 4) {
-            generateChatTitle({ messages: finalMessages }).then(({title}) => {
-                updateDoc(doc(db, "chatSessions", currentSessionId!), { title, titleGenerated: true });
-            });
-          }
-
-          return { ...s, messages: finalMessages };
-        }
-        return s;
-      }));
 
     } catch (error) {
       console.error(error);
@@ -770,8 +773,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
         }
         return s;
       }));
-    } finally {
-        setIsLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -1107,7 +1109,14 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                                                     "p-3 rounded-2xl max-w-[80%] text-sm prose dark:prose-invert prose-p:my-0 prose-headings:my-0 prose-table:my-0",
                                                     msg.role === 'user' ? "bg-primary text-primary-foreground rounded-br-none" : "bg-muted rounded-bl-none"
                                                 )}>
-                                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
+                                                    {msg.streaming && msg.content === '' ? (
+                                                        <div className="flex items-center gap-2 text-muted-foreground">
+                                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                                            <span>Tutorin's Thinking...</span>
+                                                        </div>
+                                                    ) : (
+                                                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
+                                                    )}
                                                 </div>
                                             </div>
                                         ))}

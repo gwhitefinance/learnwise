@@ -1,12 +1,11 @@
 
 'use server';
 /**
- * @fileOverview AI study planner flow that streams responses chunk by chunk.
+ * @fileOverview AI study planner flow that returns a complete text response.
  */
 import { ai, googleAI } from '@/ai/genkit';
 import { z } from 'zod';
 import { StudyPlannerInputSchema } from '@/ai/schemas/study-planner-schema';
-import { streamFlow } from '@genkit-ai/next';
 
 // This is the main AI prompt configuration
 const studyPlannerPrompt = ai.definePrompt(
@@ -71,25 +70,16 @@ ${input.historyText}
 Based on all of the above, give an **incredibly encouraging, best-friend style response**, strictly following all formatting rules.
 `,
   },
-  // The 'json' option is not used here, so we remove it.
-  // The default output is text, which is what we want for streaming.
 );
 
-export const studyPlannerAction = streamFlow(
-  {
-    name: 'studyPlannerFlow',
-    inputSchema: StudyPlannerInputSchema,
-    outputSchema: z.string(),
-  },
-  async function* (input) {
-    // 1. Prepare the context strings for the prompt
+export async function studyPlannerAction(input: z.infer<typeof StudyPlannerInputSchema>): Promise<string> {
     const aiBuddyName = input.aiBuddyName || 'Tutorin';
     let historyWithIntro: { role: 'user' | 'ai'; content: string }[] = input.history;
 
-    if (input.history.length <= 1 && input.history[0]?.role === 'user') {
+    if (input.history.length <= 1) {
       historyWithIntro = [
         { role: 'ai', content: `Hey! I'm ${aiBuddyName}, your personal AI study buddy! 🌟 Let's tackle your studies together step by step. What should we start with today?` },
-        ...input.history,
+        ...input.history.filter(m => m.role === 'user')
       ];
     }
     
@@ -100,19 +90,19 @@ export const studyPlannerAction = streamFlow(
     const eventsContext = `- Upcoming events:\n${input.calendarEvents?.map(e => `  - ${e.title} on ${e.date} at ${e.startTime} (${e.type})`).join('\n') || '  None'}`;
     const historyText = historyWithIntro.map(m => `${m.role}: ${m.content}`).join('\n');
 
-    // 2. Stream the AI response
-    const stream = await studyPlannerPrompt.stream({
+    const promptInput = {
         userNameContext,
         learnerTypeContext,
         coursesContext,
         courseFocusContext,
         eventsContext,
         historyText,
-    });
+    };
     
-    // 3. Yield the chunks of the stream
-    for await (const chunk of stream.text()) {
-      yield chunk;
-    }
-  }
-);
+    const { text } = await ai.generate({
+        model: googleAI.model('gemini-2.5-flash'),
+        prompt: await studyPlannerPrompt.render(promptInput),
+    });
+
+    return text || "Sorry, I had trouble generating a response. Please try again.";
+}
