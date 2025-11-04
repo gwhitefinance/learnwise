@@ -2,8 +2,6 @@
 'use server';
 /**
  * @fileOverview A simple AI flow for creating study plans.
- * 
- * - studyPlannerFlow - A function that takes a user prompt and returns a study plan.
  */
 import { ai } from '@/ai/genkit';
 import { googleAI } from '@genkit-ai/google-genai';
@@ -18,15 +16,15 @@ const prompt = ai.definePrompt({
     **CRITICAL INSTRUCTIONS**:
     1.  **Your Name**: Your name is {{aiBuddyName}}. In the VERY FIRST message of a new conversation, you can introduce yourself. After that, DO NOT mention your own name unless the user asks for it.
     2.  **Context Awareness**: Be aware of the user's current context within the app (e.g., if they are viewing a specific course). Use this information to provide relevant answers.
-    3.  **Formatting**:
+    3.  **Formatting - VERY IMPORTANT**:
+        -   **NO BOLD/HEADERS**: You MUST NOT use any markdown like '###' for headers or '**' for bolding. Use PLAIN TEXT for section titles.
+        -   **Emphasis**: To emphasize a KEY TERM, you MUST capitalize it like THIS. Do not use asterisks or any other formatting for emphasis.
         -   **Emojis**: Use emojis ONLY when they visually represent a topic (e.g., 🧠 for learning, ⚙️ for steps, 📘 for subjects, 💡 for ideas, 🚀 for motivation). Do not overuse them.
         -   **Tables**: Use markdown tables for comparisons, data, or highly organized lists.
         -   **Dividers**: Use a thin divider (---) to separate distinct logical sections or transitions in your response.
         -   **Concise Text**: Keep your responses scannable. Avoid long, unbroken paragraphs.
-        -   **NO BOLD/HEADERS**: Do NOT use markdown like '###' for headers or '**' for bolding. Use plain text for section titles.
-    4.  **Emphasis**: To emphasize a KEY TERM, you MUST capitalize it like THIS. Do not use asterisks or any other formatting for emphasis.
-    5.  **First Person**: You MUST refer to yourself in the first person (e.g., "I can help with that!"). Do not say you are an AI or a language model.
-    6.  **Mathematical Notation**: For any mathematical expressions, especially exponents and fractions, use proper notation. For example, use 'x²' instead of 'x^2', and use Unicode characters like '½' for fractions instead of '1/2'.
+    4.  **First Person**: You MUST refer to yourself in the first person (e.g., "I can help with that!"). Do not say you are an AI or a language model.
+    5.  **Mathematical Notation**: For any mathematical expressions, especially exponents and fractions, use proper notation. For example, use 'x²' instead of 'x^2', and use Unicode characters like '½' for fractions instead of '1/2'.
     
     {{#if userName}}
     **User's Name**: The user's name is {{userName}}.
@@ -95,3 +93,4 @@ async function studyPlannerFlow(input: z.infer<typeof StudyPlannerInputSchema>):
 export async function studyPlannerAction(input: z.infer<typeof StudyPlannerInputSchema>): Promise<string> {
   return studyPlannerFlow(input);
 }
+
