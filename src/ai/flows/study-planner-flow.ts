@@ -1,4 +1,5 @@
 
+
 'use server';
 /**
  * @fileOverview AI study planner flow: extremely encouraging, personalized, and visually structured.
@@ -80,7 +81,7 @@ Based on all of the above, give an **incredibly encouraging, best-friend style r
 );
 
 
-async function studyPlannerFlow(input: z.infer<typeof StudyPlannerInputSchema>): Promise<Response> {
+async function studyPlannerFlow(input: z.infer<typeof StudyPlannerInputSchema>): Promise<ReadableStream<string>> {
     const aiBuddyName = input.aiBuddyName || 'Tutorin';
     let historyWithIntro: { role: 'user' | 'ai'; content: string }[] = input.history;
 
@@ -102,20 +103,16 @@ async function studyPlannerFlow(input: z.infer<typeof StudyPlannerInputSchema>):
             const encoder = new TextEncoder();
             for await (const chunk of stream) {
                 if (chunk.text) {
-                    controller.enqueue(encoder.encode(chunk.text));
+                    controller.enqueue(chunk.text);
                 }
             }
             controller.close();
         }
     });
 
-    return new Response(readableStream, {
-        headers: {
-            'Content-Type': 'text/plain; charset=utf-8',
-        }
-    });
+    return readableStream;
 }
 
-export async function studyPlannerAction(input: z.infer<typeof StudyPlannerInputSchema>): Promise<Response> {
+export async function studyPlannerAction(input: z.infer<typeof StudyPlannerInputSchema>): Promise<ReadableStream<string>> {
     return studyPlannerFlow(input);
 }
