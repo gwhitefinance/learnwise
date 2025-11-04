@@ -86,8 +86,8 @@ async function studyPlannerFlow(input: z.infer<typeof StudyPlannerInputSchema>):
     }
     
     const { stream } = await ai.generateStream({
-        prompt: prompt.prompt,
         model: prompt.model,
+        prompt: prompt.prompt,
         history: historyWithIntro,
         input: input,
     });
