@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsTrigger, TabsList, TabsContent } from '@/components/ui/tabs';
-import { UploadCloud, Link as LinkIcon, Youtube, Wand2, Loader2, Image as ImageIcon, FileText, ArrowLeft, BookOpen, List, BrainCircuit, Lightbulb } from 'lucide-react';
+import { UploadCloud, Link as LinkIcon, Youtube, Wand2, Loader2, Image as ImageIcon, FileText, ArrowLeft, BookOpen, List, BrainCircuit, Lightbulb, Zap, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { generateCrunchTimeStudyGuide } from '@/lib/actions';
@@ -167,6 +167,7 @@ export default function CrunchTimePage() {
     const [studyGuide, setStudyGuide] = useState<CrunchTimeOutput | null>(null);
     const [learnerType, setLearnerType] = useState<string>('Unknown');
     const router = useRouter();
+    const { toast } = useToast();
 
     useEffect(() => {
         setLearnerType(localStorage.getItem('learnerType') || 'Unknown');
@@ -184,7 +185,7 @@ export default function CrunchTimePage() {
             setStudyGuide(result);
         } catch (error: any) {
             console.error("Crunch time generation failed:", error);
-            // toast({ variant: 'destructive', title: 'Generation Failed', description: error.message });
+            toast({ variant: 'destructive', title: 'Generation Failed', description: error.message });
         } finally {
             setIsLoading(false);
         }
@@ -192,7 +193,7 @@ export default function CrunchTimePage() {
     
     return (
         <div className="max-w-4xl mx-auto p-4 md:p-8 space-y-8">
-            <Button variant="ghost" onClick={() => router.back()} className="mb-4">
+            <Button variant="ghost" onClick={() => router.push('/dashboard')} className="mb-4">
                 <ArrowLeft className="mr-2 h-4 w-4"/>
                 Back to Dashboard
             </Button>
@@ -220,31 +221,6 @@ export default function CrunchTimePage() {
                     </Button>
                 </div>
             )}
-        </div>
-    );
-}
-
-```
-  </change>
-  <change>
-    <file>src/app/dashboard/crunch-time/loading.tsx</file>
-    <content><![CDATA[
-import { Skeleton } from '@/components/ui/skeleton';
-
-export default function Loading() {
-    return (
-        <div className="max-w-4xl mx-auto p-4 md:p-8 space-y-8">
-            <Skeleton className="h-10 w-48" />
-            <div className="text-center space-y-4">
-                <Skeleton className="h-10 w-64 mx-auto" />
-                <Skeleton className="h-4 w-full max-w-2xl mx-auto" />
-                <Skeleton className="h-4 w-full max-w-lg mx-auto" />
-            </div>
-
-            <div className="space-y-2">
-                <Skeleton className="h-64 w-full" />
-                <Skeleton className="h-12 w-full mt-4" />
-            </div>
         </div>
     );
 }
