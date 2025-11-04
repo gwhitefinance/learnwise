@@ -1,27 +1,97 @@
-
 'use server';
 /**
+ * @fileOverview AI study planner flow that streams responses chunk by chunk.
+ */
+import { ai, googleAI } from '@/ai/genkit';
+import { z } from 'zod';
+import { StudyPlannerInputSchema } from '@/ai/schemas/study-planner-schema';
+import { streamFlow } from 'genkit/next/server';
 
-* @fileOverview AI study planner flow: extremely encouraging, personalized, step-by-step, and visually structured like a best friend tutor.
-  */
-  import { ai } from '@/ai/genkit';
-  import { googleAI } from '@genkit-ai/google-genai';
-  import { z } from 'zod';
-  import { StudyPlannerInputSchema } from '@/ai/schemas/study-planner-schema';
+// This is the main AI prompt configuration
+const studyPlannerPrompt = ai.definePrompt(
+  {
+    name: 'studyPlannerPrompt',
+    model: googleAI.model('gemini-2.5-flash'),
+    input: {
+      schema: z.object({
+        userNameContext: z.string(),
+        learnerTypeContext: z.string(),
+        coursesContext: z.string(),
+        courseFocusContext: z.string(),
+        eventsContext: z.string(),
+        historyText: z.string(),
+      }),
+    },
+    system: `You are Tutorin AI, a friendly and knowledgeable study assistant.
+Your goal is to teach clearly using engaging and readable formatting.
 
-async function studyPlannerFlow(input: z.infer<typeof StudyPlannerInputSchema>): Promise<string> {
+Follow these formatting rules:
+- Use bold section titles and logical headers. For example, write "📘 Photosynthesis" instead of "📘 Topic: Photosynthesis".
+- Use markdown for all formatting, especially tables.
+- Include emojis only when visually relevant (ex: 📘 for textbook info, ⚡ for tips).
+- Use space and new lines to separate sections, not "---" dividers.
+- Keep tone encouraging and clear.
+
+Do NOT use random emojis or decoration. Everything should have visual meaning.
+
+---
+EXAMPLE 1
+---
+📘 **Photosynthesis**
+Plants convert sunlight into chemical energy.
+
+| Component   | Function                  |
+| ----------- | ------------------------- |
+| Chlorophyll | Absorbs light energy   |
+| CO₂ + H₂O   | Raw materials for glucose |
+| Glucose     | Stored energy             |
+
+💡 **Tip:** Remember — light reactions happen in the THYLAKOID!
+
+---
+
+🎯 TONE GUIDELINES:
+
+*   Be like the best study buddy ever: warm, fun, and motivating.
+*   Celebrate progress: "Awesome job!", "Look at how far you’ve come!", "I love your curiosity!".
+*   Ask questions to engage: "Does that make sense?", "Want me to show a trick to remember this faster?".
+*   Tailor explanations to the user’s learning style: visual, auditory, or kinesthetic.
+*   Always encourage small wins and next steps — even tiny ones count!
+`,
+    prompt: (input) => `${input.userNameContext}
+${input.learnerTypeContext}
+${input.coursesContext}
+${input.courseFocusContext}
+${input.eventsContext}
+
+📝 **Conversation History (Most recent messages are most important):**
+${input.historyText}
+
+Based on all of the above, give an **incredibly encouraging, best-friend style response**, strictly following all formatting rules.
+`,
+  },
+  // The 'json' option is not used here, so we remove it.
+  // The default output is text, which is what we want for streaming.
+);
+
+export const studyPlannerAction = streamFlow(
+  {
+    name: 'studyPlannerFlow',
+    inputSchema: StudyPlannerInputSchema,
+    outputSchema: z.string(),
+  },
+  async (input) => {
+    // 1. Prepare the context strings for the prompt
     const aiBuddyName = input.aiBuddyName || 'Tutorin';
     let historyWithIntro: { role: 'user' | 'ai'; content: string }[] = input.history;
 
-    // Insert introductory AI message if conversation is just starting
-    if (input.history.length <= 1) {
-        historyWithIntro = [
-            { role: 'ai', content: `Hey! I'm ${aiBuddyName}, your personal AI study buddy! 🌟 Let's tackle your studies together step by step. What should we start with today?` },
-            ...input.history.filter(m => m.role === 'user')
-        ];
+    if (input.history.length <= 1 && input.history[0]?.role === 'user') {
+      historyWithIntro = [
+        { role: 'ai', content: `Hey! I'm ${aiBuddyName}, your personal AI study buddy! 🌟 Let's tackle your studies together step by step. What should we start with today?` },
+        ...input.history,
+      ];
     }
-
-    // Build context sections
+    
     const userNameContext = input.userName ? `- User's name: ${input.userName} (address them personally)` : '';
     const learnerTypeContext = `- Learning style: ${input.learnerType || 'Unknown'} (tailor explanations to this style)`;
     const coursesContext = `- Courses:\n${input.allCourses?.map(c => `  - ${c.name}: ${c.description}`).join('\n') || '  None'}`;
@@ -29,76 +99,19 @@ async function studyPlannerFlow(input: z.infer<typeof StudyPlannerInputSchema>):
     const eventsContext = `- Upcoming events:\n${input.calendarEvents?.map(e => `  - ${e.title} on ${e.date} at ${e.startTime} (${e.type})`).join('\n') || '  None'}`;
     const historyText = historyWithIntro.map(m => `${m.role}: ${m.content}`).join('\n');
 
-    const finalPrompt = `
-You are Tutorin AI, a warm, encouraging, best-friend style study assistant who is also an expert tutor.
-Your goal is to guide the user step by step, explaining concepts in a way they can fully understand based on their learning style.
-
-Formatting rules:
-
- Use bold section titles only like this: 📘 Topic: Title
- Use emojis ONLY when they visually support the content (📘 for subjects, ⚡ for tips, 💡 for ideas, 🚀 for motivation)
- Use thin dividers--- to separate sections
- Use tables for organized information and comparisons
- Use bullet points for step-by-step explanations
- NEVER use asterisks or hash symbols for emphasis
- Keep text clear, encouraging, and scannable
- Build up explanations progressively, step by step, like you are guiding a friend
-
----
-
- EXAMPLES OF IDEAL FORMATTING
-
-📘 Topic: Photosynthesis
-Hey friend! 🌞 Let's explore how plants turn sunlight into energy in simple steps:
-
-| Component   | Function                  |
-| ----------- | ------------------------- |
-| Chlorophyll | Absorbs sunlight energy   |
-| CO₂ + H₂O   | Raw materials for glucose |
-| Glucose     | Stored energy             |
-
-💡 Tip: Light reactions happen in the THYLAKOID. Take it one piece at a time — you've got this! 🚀
-
----
-
-⚡ Quick Review: Newton’s Laws
-1️⃣ Objects stay in motion unless acted upon
-2️⃣ Force = mass × acceleration
-3️⃣ Every action has an equal and opposite reaction
-
----
-
-TONE AND ENGAGEMENT
-
- Be the user’s best friend: warm, supportive, motivating
-Celebrate progress: "Great job!", "Look how far you've come!", "I love your curiosity!"
-Ask questions to check understanding: "Does this make sense?", "Want me to show a trick to remember this?"
-Always guide step by step in a way they can understand
- Use their learning style to make examples relatable
-
----
-
-CONTEXT FOR THIS CONVERSATION
-${userNameContext}
-${learnerTypeContext}
-${coursesContext}
-${courseFocusContext}
-${eventsContext}
-
-📝 Conversation History:
-${historyText}
-
-Based on all of the above, give an **incredibly encouraging, best-friend style response**, explaining concepts step by step, using tables, bullet points, dividers, and emojis appropriately. NEVER break formatting rules.
-`;
-
-    const { text } = await ai.generate({
-        model: googleAI.model('gemini-2.5-flash'),
-        prompt: finalPrompt,
+    // 2. Stream the AI response
+    const stream = await studyPlannerPrompt.stream({
+        userNameContext,
+        learnerTypeContext,
+        coursesContext,
+        courseFocusContext,
+        eventsContext,
+        historyText,
     });
-
-    return text ?? 'Sorry, I had trouble generating a response.';
-}
-
-export async function studyPlannerAction(input: z.infer<typeof StudyPlannerInputSchema>): Promise<string> {
-    return studyPlannerFlow(input);
-}
+    
+    // 3. Yield the chunks of the stream
+    for await (const chunk of stream.text()) {
+      yield chunk;
+    }
+  }
+);

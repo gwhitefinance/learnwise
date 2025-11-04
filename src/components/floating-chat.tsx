@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useRef, createContext, useContext } from 'react';
@@ -26,6 +25,8 @@ import Link from 'next/link';
 import type { GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuPortal } from './ui/dropdown-menu';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 
 interface Message {
@@ -665,74 +666,35 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
     }
   }
 
-  const streamResponse = async (fullText: string, sessionId: string) => {
-    const botMessageId = crypto.randomUUID();
-    
-    // Add a placeholder for the streaming message
-    setSessions(prev => prev.map(s => 
-      s.id === sessionId 
-        ? { ...s, messages: [...s.messages, { id: botMessageId, role: 'ai', content: '', streaming: true }] }
-        : s
-    ));
-  
-    // Animate typing character by character
-    for (let i = 0; i < fullText.length; i++) {
-      await new Promise(resolve => setTimeout(resolve, 20)); // Adjust typing speed here
-      setSessions(prev => prev.map(s => {
-        if (s.id === sessionId) {
-          const updatedMessages = s.messages.map(msg => 
-            msg.id === botMessageId 
-              ? { ...msg, content: fullText.slice(0, i + 1) }
-              : msg
-          );
-          return { ...s, messages: updatedMessages };
-        }
-        return s;
-      }));
-    }
-  
-    // Finalize the message and save to Firestore
-    setSessions(prev => prev.map(s => {
-      if (s.id === sessionId) {
-        const finalMessages = s.messages.map(msg => 
-          msg.id === botMessageId 
-            ? { ...msg, streaming: false }
-            : msg
-        );
-        // Firestore update
-        updateDoc(doc(db, "chatSessions", sessionId), {
-            messages: finalMessages.map(({ id, ...rest }) => rest), // Remove temp ID
-            timestamp: Timestamp.now()
-        });
-        return { ...s, messages: finalMessages };
-      }
-      return s;
-    }));
-  };
-  
   const handleSendMessage = async (prompt?: string) => {
     const messageContent = prompt || input;
     if (!messageContent.trim() || !user) return;
   
     let currentSessionId = activeSessionId;
-    let currentMessages: Message[] = [];
   
-    if (!activeSession) {
+    if (!currentSessionId) {
       const newId = await createNewSession(messageContent);
       if (!newId) return;
       currentSessionId = newId;
-      currentMessages = [{ role: 'ai', content: `Hey ${user.displayName?.split(' ')[0] || 'there'}! How can I help?`, id: crypto.randomUUID() }];
-    } else {
-      currentMessages = activeSession.messages;
     }
   
-    if (!currentSessionId) return;
-  
     const userMessage: Message = { role: 'user', content: messageContent, id: crypto.randomUUID() };
-    const updatedMessages = [...currentMessages, userMessage];
-  
-    setSessions(prevSessions =>
-      prevSessions.map(s => s.id === currentSessionId ? { ...s, messages: updatedMessages } : s)
+    const botMessageId = crypto.randomUUID();
+    
+    // Add user message and bot placeholder immediately
+    setSessions(prev =>
+      prev.map(s =>
+        s.id === currentSessionId
+          ? {
+              ...s,
+              messages: [
+                ...s.messages,
+                userMessage,
+                { id: botMessageId, role: 'ai', content: '', streaming: true },
+              ],
+            }
+          : s
+      )
     );
   
     setInput('');
@@ -741,21 +703,21 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
     try {
       const q = query(collection(db, "calendarEvents"), where("userId", "==", user.uid));
       const querySnapshot = await getDocs(q);
-      const calendarEvents = querySnapshot.docs.map(doc => {
+      const calendarEventsData = querySnapshot.docs.map(doc => {
           const data = doc.data() as CalendarEvent;
           return { ...data, id: doc.id };
       });
       const learnerType = localStorage.getItem('learnerType');
       const aiBuddyName = localStorage.getItem('aiBuddyName') || 'Tutorin';
   
-      const responseText = await studyPlannerAction({
+      const stream = await studyPlannerAction({
         userName: user?.displayName?.split(' ')[0],
         aiBuddyName: aiBuddyName,
-        history: updatedMessages,
+        history: [...sessions.find(s => s.id === currentSessionId)?.messages || [], userMessage],
         learnerType: learnerType || undefined,
         allCourses: courses.map(c => ({ id: c.id, name: c.name, description: c.description })),
         courseContext: activeSession?.courseContext || undefined,
-        calendarEvents: calendarEvents.map(e => ({
+        calendarEvents: calendarEventsData.map(e => ({
             id: e.id,
             date: e.date,
             title: e.title,
@@ -765,21 +727,51 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
         })),
       });
 
-      setIsLoading(false);
-      await streamResponse(responseText, currentSessionId);
-      
-      const finalMessages = [...updatedMessages, { role: 'ai', content: responseText, id: crypto.randomUUID() }];
-
-      if (!sessions.find(s => s.id === currentSessionId)?.titleGenerated && finalMessages.length <= 4) {
-        const { title } = await generateChatTitle({ messages: finalMessages });
-        await updateDoc(doc(db, "chatSessions", currentSessionId), { title, titleGenerated: true });
+      for await (const chunk of stream) {
+        setSessions(prev =>
+          prev.map(s => {
+            if (s.id === currentSessionId) {
+              const updatedMessages = s.messages.map(msg =>
+                msg.id === botMessageId ? { ...msg, content: msg.content + chunk } : msg
+              );
+              return { ...s, messages: updatedMessages };
+            }
+            return s;
+          })
+        );
       }
-  
+
+      setSessions(prev => prev.map(s => {
+        if(s.id === currentSessionId) {
+          const finalMessages = s.messages.map(msg => msg.id === botMessageId ? {...msg, streaming: false} : msg);
+          updateDoc(doc(db, "chatSessions", currentSessionId!), {
+            messages: finalMessages.map(({ id, ...rest }) => rest), // Strip temporary ID
+            timestamp: Timestamp.now(),
+          });
+
+          if (!s.titleGenerated && finalMessages.length <= 4) {
+            generateChatTitle({ messages: finalMessages }).then(({title}) => {
+                updateDoc(doc(db, "chatSessions", currentSessionId!), { title, titleGenerated: true });
+            });
+          }
+
+          return { ...s, messages: finalMessages };
+        }
+        return s;
+      }));
+
     } catch (error) {
       console.error(error);
-      setIsLoading(false);
       const errorMessage = "Sorry, I had trouble generating a response. Please try again.";
-      await streamResponse(errorMessage, currentSessionId);
+       setSessions(prev => prev.map(s => {
+        if(s.id === currentSessionId) {
+          const finalMessages = s.messages.map(msg => msg.id === botMessageId ? {...msg, streaming: false, content: errorMessage} : msg);
+          return { ...s, messages: finalMessages };
+        }
+        return s;
+      }));
+    } finally {
+        setIsLoading(false);
     }
   };
 
@@ -1112,29 +1104,13 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                                                     </Avatar>
                                                 )}
                                                 <div className={cn(
-                                                    "p-3 rounded-2xl max-w-[80%] text-sm",
+                                                    "p-3 rounded-2xl max-w-[80%] text-sm prose dark:prose-invert prose-p:my-0 prose-headings:my-0 prose-table:my-0",
                                                     msg.role === 'user' ? "bg-primary text-primary-foreground rounded-br-none" : "bg-muted rounded-bl-none"
                                                 )}>
-                                                     <p className="whitespace-pre-wrap">{msg.content}{msg.streaming ? <span className="inline-block w-1 h-4 bg-foreground ml-1 animate-pulse"></span> : ''}</p>
+                                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
                                                 </div>
                                             </div>
                                         ))}
-                                         {isLoading && (
-                                            <div className="flex items-end gap-2">
-                                                <Avatar className="h-10 w-10">
-                                                     <AIBuddy
-                                                        className="w-full h-full"
-                                                        color={customizations.color}
-                                                        hat={customizations.hat}
-                                                        shirt={customizations.shirt}
-                                                        shoes={customizations.shoes}
-                                                    />
-                                                </Avatar>
-                                                <div className="p-3 rounded-2xl max-w-[80%] text-sm bg-muted rounded-bl-none">
-                                                    <p className="text-muted-foreground animate-pulse">Tutorin's thinking...</p>
-                                                </div>
-                                            </div>
-                                        )}
                                     </div>
                                 </ScrollArea>
                                 <footer className="p-4 border-t">
@@ -1152,7 +1128,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                                                 <Mic className="h-4 w-4"/>
                                             </Button>
                                             <Button size="icon" className="h-8 w-8 rounded-full" onClick={() => handleSendMessage()} disabled={isLoading}>
-                                                <Send className="h-4 w-4"/>
+                                                {isLoading ? <Loader2 className="h-4 w-4 animate-spin"/> : <Send className="h-4 w-4" />}
                                             </Button>
                                         </div>
                                     </div>
