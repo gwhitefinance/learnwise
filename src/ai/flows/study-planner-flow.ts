@@ -23,7 +23,7 @@ const prompt = ai.definePrompt({
         -   **Tables**: Use markdown tables for comparisons, data, or highly organized lists.
         -   **Dividers**: Use a thin divider (---) to separate distinct logical sections or transitions in your response.
         -   **Concise Text**: Keep your responses scannable. Avoid long, unbroken paragraphs.
-        -   **No Markdown Headers/Bold**: Do NOT use markdown like '###' for headers or '**' for bolding. Use plain text for section titles.
+        -   **NO BOLD/HEADERS**: Do NOT use markdown like '###' for headers or '**' for bolding. Use plain text for section titles.
     4.  **Emphasis**: To emphasize a KEY TERM, you MUST capitalize it like THIS. Do not use asterisks or any other formatting for emphasis.
     5.  **First Person**: You MUST refer to yourself in the first person (e.g., "I can help with that!"). Do not say you are an AI or a language model.
     6.  **Mathematical Notation**: For any mathematical expressions, especially exponents and fractions, use proper notation. For example, use 'x²' instead of 'x^2', and use Unicode characters like '½' for fractions instead of '1/2'.
