@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useRef, createContext, useContext } from 'react';
@@ -587,10 +588,10 @@ const InteractiveCanvas = () => {
     const isCorrect = selectedAnswer === currentQuestion.correctAnswer;
 
     const handleNext = () => {
-        if (!isAnswered) {
+        if (!isAnswered && selectedAnswer) {
              if (isCorrect) {
                 setCorrectCount(prev => prev + 1);
-            } else if (selectedAnswer !== null) {
+            } else {
                 setIncorrectCount(prev => prev + 1);
             }
         }
@@ -603,31 +604,44 @@ const InteractiveCanvas = () => {
             // End of quiz logic could go here
         }
     }
+    
+    const handleSubmit = () => {
+        if (!selectedAnswer) return;
+        setIsAnswered(true);
+    };
 
     return (
-        <div className="bg-background text-foreground h-full flex flex-col p-6">
+        <div className="bg-muted/30 h-full flex flex-col p-6 rounded-2xl">
             <header className="flex justify-between items-center mb-6">
-                <div className="flex-1">
-                     <div className="flex gap-1 h-1.5">
-                        {mathQuizData.map((_, index) => (
-                             <div key={index} className={cn("w-full rounded-full", index <= currentQuestionIndex ? 'bg-primary' : 'bg-muted')} />
-                        ))}
-                    </div>
-                </div>
-                <div className="flex items-center gap-4 ml-6 text-sm font-medium">
-                    <span>{currentQuestionIndex + 1}/{mathQuizData.length}</span>
-                    <div className="flex items-center gap-1.5 p-1 rounded-md bg-destructive/10 text-destructive">
-                        <XCircle size={16}/>
-                        <span>{incorrectCount}</span>
-                    </div>
-                     <div className="flex items-center gap-1.5 p-1 rounded-md bg-green-500/10 text-green-600">
-                        <CheckCircle size={16}/>
-                        <span>{correctCount}</span>
-                    </div>
-                </div>
+                <h3 className="font-semibold flex items-center gap-2"><HelpCircle size={18}/> 10th Grade Math Practice Test</h3>
+                 <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="icon" className="h-8 w-8"><Share2 size={16}/></Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8"><X size={16}/></Button>
+                 </div>
             </header>
             <div className="flex-1 flex flex-col justify-center">
-                 <div className="max-w-xl w-full mx-auto">
+                <div className="max-w-xl w-full mx-auto">
+                    <div className="flex justify-between items-center mb-8">
+                        <div className="flex-1 space-y-1">
+                             <div className="flex gap-1 h-1.5">
+                                {mathQuizData.map((_, index) => (
+                                     <div key={index} className={cn("w-full rounded-full", index <= currentQuestionIndex ? 'bg-primary' : 'bg-border')} />
+                                ))}
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-4 ml-6 text-sm font-medium">
+                            <span>{currentQuestionIndex + 1}/{mathQuizData.length}</span>
+                            <div className="flex items-center gap-1.5 p-1 rounded-md bg-destructive/10 text-destructive">
+                                <XCircle size={16}/>
+                                <span>{incorrectCount}</span>
+                            </div>
+                             <div className="flex items-center gap-1.5 p-1 rounded-md bg-green-500/10 text-green-600">
+                                <CheckCircle size={16}/>
+                                <span>{correctCount}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <p className="text-xl mb-8">
                         {currentQuestionIndex + 1}. {currentQuestion.question}
                     </p>
@@ -642,7 +656,7 @@ const InteractiveCanvas = () => {
                                     isAnswered && option === currentQuestion.correctAnswer && "bg-green-500/10 border-green-500",
                                     isAnswered && selectedAnswer === option && !isCorrect && "bg-destructive/10 border-destructive",
                                     !isAnswered && selectedAnswer === option && "bg-primary/10 border-primary",
-                                    !isAnswered && "bg-muted/50 border-border hover:bg-muted"
+                                    !isAnswered && "bg-card border-border hover:bg-muted"
                                 )}
                             >
                                 <span className="mr-4 font-semibold">{String.fromCharCode(65 + index)}.</span>
@@ -650,18 +664,18 @@ const InteractiveCanvas = () => {
                             </button>
                         ))}
                     </div>
-                    <div className="mt-8">
+                    <div className="mt-8 text-left">
                         <button className="text-sm text-muted-foreground hover:text-foreground">Show hint</button>
                     </div>
                  </div>
             </div>
              <footer className="flex justify-end">
                 <Button 
-                    onClick={handleNext} 
-                    className="rounded-full px-8 py-3 text-base"
-                    disabled={!selectedAnswer && !isAnswered}
+                    onClick={isAnswered ? handleNext : handleSubmit} 
+                    className="rounded-full px-8 py-3 text-base h-12"
+                    disabled={!selectedAnswer}
                 >
-                    Next
+                    {isAnswered ? 'Next' : 'Submit'}
                 </Button>
             </footer>
         </div>
@@ -1141,8 +1155,8 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                 )}
             >
                 {isFullscreen ? (
-                    <div className="flex-1 grid grid-cols-2 h-full overflow-hidden">
-                        <div className="flex flex-col h-full overflow-hidden">
+                    <div className="flex-1 grid grid-cols-5 h-full overflow-hidden">
+                        <div className="col-span-2 flex flex-col h-full overflow-hidden">
                            {activeTab === 'conversation' ? (
                                 <div className="flex-1 flex flex-col h-full overflow-hidden">
                                     <header className="p-2 border-b flex items-center justify-between gap-2">
@@ -1178,7 +1192,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                                 </div>
                             ) : <div></div>}
                         </div>
-                        <div className="border-l bg-background">
+                        <div className="col-span-3 border-l bg-background">
                             <InteractiveCanvas />
                         </div>
                     </div>
