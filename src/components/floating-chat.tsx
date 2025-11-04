@@ -547,54 +547,15 @@ interface FloatingChatProps {
     isEmbedded?: boolean;
 }
 
-const mathQuizData = [
-  {
-    question: "What are the solutions to the quadratic equation x² - 4x + 3 = 0?",
-    options: ["x = -3 and x = 1", "x = 3 and x = 1", "x = 3 and x = -1", "x = -3 and x = -1"],
-    correctAnswer: "x = 3 and x = 1",
-    explanation: "Factoring the equation as (x - 3)(x - 1) = 0 yields the solutions x = 3 and x = 1.",
-    incorrectExplanation: "This option is incorrect because substituting x = -3 into the original equation does not result in 0."
-  },
-  {
-    question: "If a rectangle has a perimeter of 24 units and a length of 8 units, what is its width?",
-    options: ["4 units", "6 units", "16 units", "2 units"],
-    correctAnswer: "4 units",
-    explanation: "The formula for the perimeter is P = 2l + 2w. Plugging in the values, we get 24 = 2(8) + 2w, which simplifies to 24 = 16 + 2w. Solving for w gives w = 4.",
-    incorrectExplanation: "This answer would result in a perimeter of 2(8) + 2(other) != 24."
-  },
-  {
-    question: "Simplify the expression: 3(x + 2) - 2(x - 1)",
-    options: ["x + 8", "x + 4", "5x + 4", "x + 5"],
-    correctAnswer: "x + 8",
-    explanation: "Distribute the numbers: (3x + 6) - (2x - 2). Then, combine like terms: 3x - 2x + 6 + 2, which simplifies to x + 8.",
-    incorrectExplanation: "This option is incorrect due to a sign error when distributing the -2."
-  },
-  {
-    question: "What is 15% of 200?",
-    options: ["15", "20", "30", "40"],
-    correctAnswer: "30",
-    explanation: "To find the percentage, multiply 200 by 0.15. 200 * 0.15 = 30.",
-    incorrectExplanation: "This option miscalculates the percentage."
-  },
-  {
-    question: "If two angles in a triangle are 45° and 75°, what is the third angle?",
-    options: ["45°", "50°", "60°", "65°"],
-    correctAnswer: "60°",
-    explanation: "The sum of angles in a triangle is 180°. So, the third angle is 180° - 45° - 75° = 60°.",
-    incorrectExplanation: "This answer does not make the sum of the angles equal to 180°."
-  }
-];
-
-
-const InteractiveCanvas = () => {
+const InteractiveCanvas = ({ quiz, onAnswer, onSubmit }: { quiz: GenerateQuizOutput, onAnswer: (answer: string) => void, onSubmit: () => void }) => {
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
     const [correctCount, setCorrectCount] = useState(0);
     const [incorrectCount, setIncorrectCount] = useState(0);
     const [isAnswered, setIsAnswered] = useState(false);
 
-    const currentQuestion = mathQuizData[currentQuestionIndex];
-    const isCorrect = selectedAnswer === currentQuestion.correctAnswer;
+    const currentQuestion = quiz.questions[currentQuestionIndex];
+    const isCorrect = selectedAnswer === currentQuestion.answer;
 
     const handleNext = () => {
         if (!isAnswered && selectedAnswer) {
@@ -607,14 +568,14 @@ const InteractiveCanvas = () => {
         
         setIsAnswered(false);
         setSelectedAnswer(null);
-        if (currentQuestionIndex < mathQuizData.length - 1) {
+        if (currentQuestionIndex < quiz.questions.length - 1) {
             setCurrentQuestionIndex(prev => prev + 1);
         } else {
             // End of quiz logic could go here
         }
     }
     
-    const handleSubmit = () => {
+    const handleSubmitAnswer = () => {
         if (!selectedAnswer) return;
         setIsAnswered(true);
     };
@@ -622,7 +583,7 @@ const InteractiveCanvas = () => {
     return (
         <div className="bg-muted/30 h-full flex flex-col p-6 rounded-2xl">
             <header className="flex justify-between items-center mb-6">
-                <h3 className="font-semibold flex items-center gap-2"><HelpCircle size={18}/> 10th Grade Math Practice Test</h3>
+                <h3 className="font-semibold flex items-center gap-2"><HelpCircle size={18}/> Practice Quiz</h3>
                  <div className="flex items-center gap-2">
                     <Button variant="ghost" size="icon" className="h-8 w-8"><Share2 size={16}/></Button>
                     <Button variant="ghost" size="icon" className="h-8 w-8"><X size={16}/></Button>
@@ -633,13 +594,13 @@ const InteractiveCanvas = () => {
                     <div className="flex justify-between items-center mb-8">
                         <div className="flex-1 space-y-1">
                              <div className="flex gap-1 h-1.5">
-                                {mathQuizData.map((_, index) => (
+                                {quiz.questions.map((_, index) => (
                                      <div key={index} className={cn("w-full rounded-full", index <= currentQuestionIndex ? 'bg-primary' : 'bg-border')} />
                                 ))}
                             </div>
                         </div>
                         <div className="flex items-center gap-4 ml-6 text-sm font-medium">
-                            <span>{currentQuestionIndex + 1}/{mathQuizData.length}</span>
+                            <span>{currentQuestionIndex + 1}/{quiz.questions.length}</span>
                             <div className="flex items-center gap-1.5 p-1 rounded-md bg-destructive/10 text-destructive">
                                 <XCircle size={16}/>
                                 <span>{incorrectCount}</span>
@@ -655,9 +616,9 @@ const InteractiveCanvas = () => {
                         {currentQuestionIndex + 1}. {currentQuestion.question}
                     </p>
                     <div className="space-y-3">
-                        {currentQuestion.options.map((option, index) => {
+                        {currentQuestion.options?.map((option, index) => {
                             const isSelected = selectedAnswer === option;
-                            const isCorrectOption = option === currentQuestion.correctAnswer;
+                            const isCorrectOption = option === currentQuestion.answer;
                             
                             return (
                                 <button
@@ -676,13 +637,13 @@ const InteractiveCanvas = () => {
                                     {isAnswered && isCorrectOption && (
                                         <div className="text-sm mt-2 pl-6">
                                             <p className="font-bold text-green-600 flex items-center gap-1"><CheckCircle size={14}/> Right answer</p>
-                                            <p className="text-muted-foreground">{currentQuestion.explanation}</p>
+                                            {/* <p className="text-muted-foreground">{currentQuestion.explanation}</p> */}
                                         </div>
                                     )}
                                     {isAnswered && isSelected && !isCorrectOption && (
                                          <div className="text-sm mt-2 pl-6">
                                             <p className="font-bold text-destructive flex items-center gap-1"><XCircle size={14}/> Not quite</p>
-                                            <p className="text-muted-foreground">{currentQuestion.incorrectExplanation}</p>
+                                            {/* <p className="text-muted-foreground">{currentQuestion.incorrectExplanation}</p> */}
                                         </div>
                                     )}
                                 </button>
@@ -693,7 +654,7 @@ const InteractiveCanvas = () => {
             </div>
              <footer className="flex justify-end">
                 <Button 
-                    onClick={isAnswered ? handleNext : handleSubmit} 
+                    onClick={isAnswered ? handleNext : handleSubmitAnswer} 
                     className="rounded-full px-8 py-3 text-base h-12"
                     disabled={!selectedAnswer}
                 >
@@ -1231,7 +1192,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                             ) : <div></div>}
                         </div>
                         <div className="col-span-3 border-l">
-                            <InteractiveCanvas quiz={interactiveQuiz} />
+                            <InteractiveCanvas quiz={interactiveQuiz} onAnswer={() => {}} onSubmit={() => {}} />
                         </div>
                     </div>
                 ) : (
@@ -1407,140 +1368,4 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
       }
     </FloatingChatContext.Provider>
   );
-}
-
-// @ts-ignore
-const InteractiveCanvas = ({ quiz }) => {
-    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-    const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
-    const [correctCount, setCorrectCount] = useState(0);
-    const [incorrectCount, setIncorrectCount] = useState(0);
-    const [isAnswered, setIsAnswered] = useState(false);
-
-    useEffect(() => {
-        // Reset state when quiz changes
-        setCurrentQuestionIndex(0);
-        setSelectedAnswer(null);
-        setCorrectCount(0);
-        setIncorrectCount(0);
-        setIsAnswered(false);
-    }, [quiz]);
-
-    if (!quiz) {
-        return (
-            <div className="bg-muted/30 h-full flex flex-col p-6 rounded-2xl items-center justify-center text-center">
-                <HelpCircle className="w-16 h-16 text-muted-foreground mb-4" />
-                <h3 className="font-semibold text-lg">Interactive Canvas</h3>
-                <p className="text-sm text-muted-foreground">Ask for a quiz, and it will appear here!</p>
-            </div>
-        );
-    }
-    
-    const currentQuestion = quiz.questions[currentQuestionIndex];
-    const isCorrect = selectedAnswer === currentQuestion.answer;
-
-    const handleNext = () => {
-        if (!isAnswered && selectedAnswer) {
-             if (isCorrect) {
-                setCorrectCount(prev => prev + 1);
-            } else {
-                setIncorrectCount(prev => prev + 1);
-            }
-        }
-        
-        setIsAnswered(false);
-        setSelectedAnswer(null);
-        if (currentQuestionIndex < quiz.questions.length - 1) {
-            setCurrentQuestionIndex(prev => prev + 1);
-        } else {
-            // End of quiz logic could go here
-        }
-    }
-    
-    const handleSubmit = () => {
-        if (!selectedAnswer) return;
-        setIsAnswered(true);
-    };
-
-    return (
-        <div className="bg-muted/30 h-full flex flex-col p-6 rounded-2xl">
-            <header className="flex justify-between items-center mb-6">
-                <h3 className="font-semibold flex items-center gap-2"><HelpCircle size={18}/> Practice Quiz</h3>
-                 <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" className="h-8 w-8"><Share2 size={16}/></Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8"><X size={16}/></Button>
-                 </div>
-            </header>
-            <div className="flex-1 flex flex-col justify-center">
-                <div className="max-w-xl w-full mx-auto">
-                    <div className="flex justify-between items-center mb-8">
-                        <div className="flex-1 space-y-1">
-                             <div className="flex gap-1 h-1.5">
-                                {quiz.questions.map((_, index) => (
-                                     <div key={index} className={cn("w-full rounded-full", index <= currentQuestionIndex ? 'bg-primary' : 'bg-border')} />
-                                ))}
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-4 ml-6 text-sm font-medium">
-                            <span>{currentQuestionIndex + 1}/{quiz.questions.length}</span>
-                            <div className="flex items-center gap-1.5 p-1 rounded-md bg-destructive/10 text-destructive">
-                                <XCircle size={16}/>
-                                <span>{incorrectCount}</span>
-                            </div>
-                             <div className="flex items-center gap-1.5 p-1 rounded-md bg-green-500/10 text-green-600">
-                                <CheckCircle size={16}/>
-                                <span>{correctCount}</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <p className="text-xl mb-8">
-                        {currentQuestionIndex + 1}. {currentQuestion.question}
-                    </p>
-                    <div className="space-y-3">
-                        {currentQuestion.options?.map((option: string, index: number) => {
-                            const isSelected = selectedAnswer === option;
-                            const isCorrectOption = option === currentQuestion.answer;
-                            
-                            return (
-                                <button
-                                    key={index}
-                                    onClick={() => setSelectedAnswer(option)}
-                                    disabled={isAnswered}
-                                    className={cn(
-                                        "w-full text-left p-4 rounded-lg transition-all border-2",
-                                        !isAnswered && (isSelected ? "bg-primary/10 border-primary" : "bg-card border-border hover:bg-muted"),
-                                        isAnswered && isCorrectOption && "bg-green-500/10 border-green-500",
-                                        isAnswered && isSelected && !isCorrectOption && "bg-red-500/10 border-red-500",
-                                        isAnswered && !isSelected && !isCorrectOption && "bg-card border-border opacity-60"
-                                    )}
-                                >
-                                    <p className="font-semibold">{String.fromCharCode(65 + index)}. {option}</p>
-                                    {isAnswered && isCorrectOption && (
-                                        <div className="text-sm mt-2 pl-6">
-                                            <p className="font-bold text-green-600 flex items-center gap-1"><CheckCircle size={14}/> Right answer</p>
-                                        </div>
-                                    )}
-                                    {isAnswered && isSelected && !isCorrectOption && (
-                                         <div className="text-sm mt-2 pl-6">
-                                            <p className="font-bold text-destructive flex items-center gap-1"><XCircle size={14}/> Not quite</p>
-                                        </div>
-                                    )}
-                                </button>
-                            );
-                        })}
-                    </div>
-                 </div>
-            </div>
-             <footer className="flex justify-end">
-                <Button 
-                    onClick={isAnswered ? handleNext : handleSubmit} 
-                    className="rounded-full px-8 py-3 text-base h-12"
-                    disabled={!selectedAnswer}
-                >
-                    {isAnswered ? 'Next' : 'Submit'}
-                </Button>
-            </footer>
-        </div>
-    )
 }
