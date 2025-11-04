@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview AI study planner flow that streams responses chunk by chunk.
@@ -5,7 +6,7 @@
 import { ai, googleAI } from '@/ai/genkit';
 import { z } from 'zod';
 import { StudyPlannerInputSchema } from '@/ai/schemas/study-planner-schema';
-import { streamFlow } from 'genkit/next/server';
+import { streamFlow } from '@genkit-ai/next';
 
 // This is the main AI prompt configuration
 const studyPlannerPrompt = ai.definePrompt(
@@ -80,7 +81,7 @@ export const studyPlannerAction = streamFlow(
     inputSchema: StudyPlannerInputSchema,
     outputSchema: z.string(),
   },
-  async (input) => {
+  async function* (input) {
     // 1. Prepare the context strings for the prompt
     const aiBuddyName = input.aiBuddyName || 'Tutorin';
     let historyWithIntro: { role: 'user' | 'ai'; content: string }[] = input.history;
