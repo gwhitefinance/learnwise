@@ -555,7 +555,7 @@ const InteractiveCanvas = ({ quiz, onAnswer, onSubmit }: { quiz: GenerateQuizOut
     
     if (!quiz) {
         return (
-            <div className="bg-muted h-full flex flex-col p-6 rounded-2xl items-center justify-center">
+            <div className="bg-muted h-full flex flex-col p-6 rounded-l-2xl items-center justify-center">
                 <Skeleton className="h-6 w-3/4 mb-4" />
                 <div className="space-y-4 w-full max-w-md">
                     <Skeleton className="h-12 w-full" />
