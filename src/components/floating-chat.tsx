@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect, useRef, createContext, useContext } from 'react';
@@ -676,9 +675,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
         const newId = await createNewSession(messageContent);
         if (!newId) return; // Stop if session creation failed
         currentSessionId = newId;
-        // The messages array will be the default one from createNewSession
-        const newSession = sessions.find(s => s.id === newId);
-        currentMessages = newSession ? newSession.messages : [{ role: 'ai', content: `Hey ${user.displayName?.split(' ')[0] || 'there'}! How can I help?` }];
+        currentMessages = [{ role: 'ai', content: `Hey ${user.displayName?.split(' ')[0] || 'there'}! How can I help?` }];
     } else {
         currentMessages = activeSession.messages;
     }
@@ -688,7 +685,10 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
     const userMessage: Message = { role: 'user', content: messageContent };
     const updatedMessages = [...currentMessages, userMessage];
     
-    setSessions(sessions.map(s => s.id === currentSessionId ? { ...s, messages: updatedMessages } : s));
+    // Add user message and a placeholder for AI response
+    const aiPlaceholderMessage: Message = { role: 'ai', content: '' };
+    setSessions(sessions.map(s => s.id === currentSessionId ? { ...s, messages: [...updatedMessages, aiPlaceholderMessage] } : s));
+
     setInput('');
     setIsLoading(true);
 
@@ -702,7 +702,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
       const learnerType = localStorage.getItem('learnerType');
       const aiBuddyName = localStorage.getItem('aiBuddyName') || 'Tutorin';
 
-      const response = await studyPlannerAction({
+      const stream = await studyPlannerAction({
         userName: user?.displayName?.split(' ')[0],
         aiBuddyName: aiBuddyName,
         history: updatedMessages,
@@ -719,22 +719,41 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
         })),
       });
 
-      const aiMessage: Message = { role: 'ai', content: response };
-      const finalMessages = [...updatedMessages, aiMessage];
+      let responseText = '';
+      const reader = stream.pipeThrough(new TextDecoderStream()).getReader();
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        responseText += value;
+        setSessions(prevSessions =>
+          prevSessions.map(s =>
+            s.id === currentSessionId
+              ? {
+                  ...s,
+                  messages: [
+                    ...updatedMessages,
+                    { role: 'ai', content: responseText },
+                  ],
+                }
+              : s
+          )
+        );
+      }
+      
+      setIsLoading(false);
       
       const sessionRef = doc(db, "chatSessions", currentSessionId);
-      await updateDoc(sessionRef, { messages: finalMessages, timestamp: Timestamp.now() });
+      await updateDoc(sessionRef, { messages: [...updatedMessages, { role: 'ai', content: responseText }], timestamp: Timestamp.now() });
 
        if (!activeSession?.titleGenerated && updatedMessages.length <= 2) {
-          const { title } = await generateChatTitle({ messages: finalMessages });
+          const { title } = await generateChatTitle({ messages: [...updatedMessages, { role: 'ai', content: responseText }] });
           await updateDoc(sessionRef, { title, titleGenerated: true });
       }
 
     } catch (error) {
       console.error(error);
        setSessions(sessions.map(s => s.id === currentSessionId ? activeSession! : s));
-    } finally {
-      setIsLoading(false);
+       setIsLoading(false);
     }
   };
 
@@ -743,7 +762,6 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
     setActiveTab('conversation');
     const newSessionId = await createNewSession(prompt);
     if (newSessionId) {
-        // Use a short delay to ensure state updates before sending message
         setTimeout(() => handleSendMessage(prompt), 100);
     }
   };
@@ -1074,7 +1092,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                                                 </div>
                                             </div>
                                         ))}
-                                        {isLoading && (
+                                        {isLoading && activeSession?.messages[activeSession.messages.length - 1]?.role !== 'ai' && (
                                             <div className="flex items-end gap-2">
                                                 <Avatar className="h-10 w-10">
                                                     <AIBuddy
@@ -1086,7 +1104,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                                                     />
                                                 </Avatar>
                                                 <div className="p-3 rounded-2xl max-w-[80%] text-sm bg-muted rounded-bl-none animate-pulse">
-                                                    Thinking...
+                                                    <Loader2 className="w-4 h-4 animate-spin"/>
                                                 </div>
                                             </div>
                                         )}
