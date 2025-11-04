@@ -23,7 +23,7 @@ import { Textarea } from './ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Progress } from './ui/progress';
 import Link from 'next/link';
-import type { GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
+import type { GenerateQuizOutput, GenerateQuizInput } from '@/ai/schemas/quiz-schema';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuPortal } from './ui/dropdown-menu';
 import ReactMarkdown from 'react-markdown';
@@ -36,7 +36,7 @@ interface Message {
   role: 'user' | 'ai';
   content: string;
   streaming?: boolean;
-  quiz?: GenerateQuizOutput;
+  quizParams?: Omit<GenerateQuizInput, 'questionType'>;
   quizTitle?: string;
   timestamp?: number;
 }
@@ -551,136 +551,22 @@ interface FloatingChatProps {
     isEmbedded?: boolean;
 }
 
-const InteractiveCanvas = ({ quiz, onAnswer, onSubmit }: { quiz: GenerateQuizOutput | null, onAnswer: (answer: string) => void, onSubmit: () => void }) => {
-    
-    if (!quiz) {
+const InteractiveCanvas = ({ quizParams, onOpen }: { quizParams: Omit<GenerateQuizInput, 'questionType'> | null, onOpen: () => void }) => {
+    if (!quizParams) {
         return (
             <div className="bg-muted h-full flex flex-col p-6 rounded-l-2xl items-center justify-center">
-                <Skeleton className="h-6 w-3/4 mb-4" />
-                <div className="space-y-4 w-full max-w-md">
-                    <Skeleton className="h-12 w-full" />
-                    <Skeleton className="h-12 w-full" />
-                    <Skeleton className="h-12 w-full" />
-                    <Skeleton className="h-12 w-full" />
-                </div>
+                <p>No quiz selected.</p>
             </div>
         );
     }
-    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-    const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
-    const [correctCount, setCorrectCount] = useState(0);
-    const [incorrectCount, setIncorrectCount] = useState(0);
-    const [isAnswered, setIsAnswered] = useState(false);
-
-    
-    const currentQuestion = quiz.questions[currentQuestionIndex];
-    const isCorrect = selectedAnswer === currentQuestion.answer;
-
-    const handleNext = () => {
-        if (!isAnswered && selectedAnswer) {
-             if (isCorrect) {
-                setCorrectCount(prev => prev + 1);
-            } else {
-                setIncorrectCount(prev => prev + 1);
-            }
-        }
-        
-        setIsAnswered(false);
-        setSelectedAnswer(null);
-        if (currentQuestionIndex < quiz.questions.length - 1) {
-            setCurrentQuestionIndex(prev => prev + 1);
-        } else {
-            onSubmit();
-        }
-    }
-    
-    const handleSubmitAnswer = () => {
-        if (!selectedAnswer) return;
-        onAnswer(selectedAnswer);
-        setIsAnswered(true);
-    };
-
     return (
-        <div className="bg-muted/30 h-full flex flex-col p-6 rounded-l-2xl">
-            <header className="flex justify-between items-center mb-6">
-                <h3 className="font-semibold flex items-center gap-2"><HelpCircle size={18}/> Practice Quiz</h3>
-                 <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" className="h-8 w-8"><Share2 size={16}/></Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onSubmit}><X size={16}/></Button>
-                 </div>
-            </header>
-            <div className="flex-1 flex flex-col justify-center">
-                <div className="max-w-xl w-full mx-auto">
-                    <div className="flex justify-between items-center mb-8">
-                        <div className="flex-1 space-y-1">
-                             <div className="flex gap-1 h-1.5">
-                                {quiz.questions.map((_, index) => (
-                                     <div key={index} className={cn("w-full rounded-full", index <= currentQuestionIndex ? 'bg-primary' : 'bg-border')} />
-                                ))}
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-4 ml-6 text-sm font-medium">
-                            <span>{currentQuestionIndex + 1}/{quiz.questions.length}</span>
-                            <div className="flex items-center gap-1.5 p-1 rounded-md bg-destructive/10 text-destructive">
-                                <XCircle size={16}/>
-                                <span>{incorrectCount}</span>
-                            </div>
-                             <div className="flex items-center gap-1.5 p-1 rounded-md bg-green-500/10 text-green-600">
-                                <CheckCircle size={16}/>
-                                <span>{correctCount}</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <p className="text-xl mb-8">
-                        {currentQuestionIndex + 1}. {currentQuestion.question}
-                    </p>
-                    <div className="space-y-3">
-                        {currentQuestion.options?.map((option, index) => {
-                            const isSelected = selectedAnswer === option;
-                            const isCorrectOption = option === currentQuestion.answer;
-                            
-                            return (
-                                <button
-                                    key={index}
-                                    onClick={() => setSelectedAnswer(option)}
-                                    disabled={isAnswered}
-                                    className={cn(
-                                        "w-full text-left p-4 rounded-lg transition-all border-2",
-                                        !isAnswered && (isSelected ? "bg-primary/10 border-primary" : "bg-card border-border hover:bg-muted"),
-                                        isAnswered && isCorrectOption && "bg-green-500/10 border-green-500",
-                                        isAnswered && isSelected && !isCorrectOption && "bg-red-500/10 border-red-500",
-                                        isAnswered && !isSelected && !isCorrectOption && "bg-card border-border opacity-60"
-                                    )}
-                                >
-                                    <p className="font-semibold">{String.fromCharCode(65 + index)}. {option}</p>
-                                    {isAnswered && isCorrectOption && (
-                                        <div className="text-sm mt-2 pl-6">
-                                            <p className="font-bold text-green-600 flex items-center gap-1"><CheckCircle size={14}/> Right answer</p>
-                                        </div>
-                                    )}
-                                    {isAnswered && isSelected && !isCorrectOption && (
-                                         <div className="text-sm mt-2 pl-6">
-                                            <p className="font-bold text-destructive flex items-center gap-1"><XCircle size={14}/> Not quite</p>
-                                        </div>
-                                    )}
-                                </button>
-                            );
-                        })}
-                    </div>
-                 </div>
-            </div>
-             <footer className="flex justify-end">
-                <Button 
-                    onClick={isAnswered ? handleNext : handleSubmitAnswer} 
-                    className="rounded-full px-8 py-3 text-base h-12"
-                    disabled={!selectedAnswer}
-                >
-                    {isAnswered ? 'Next' : 'Submit'}
-                </Button>
-            </footer>
+        <div className="bg-muted h-full flex flex-col p-6 rounded-l-2xl items-center justify-center text-center">
+            <HelpCircle className="w-16 h-16 text-primary mb-4" />
+            <h3 className="text-xl font-bold">Practice Quiz</h3>
+            <p className="text-muted-foreground mt-2">Ready to start a {quizParams.numQuestions}-question quiz on "{quizParams.topics}"?</p>
+            <Button className="mt-6" onClick={onOpen}>Let's Go!</Button>
         </div>
-    )
+    );
 }
 
 const QuizCard = ({ title, timestamp, onOpen }: { title: string, timestamp: number, onOpen: () => void }) => {
@@ -735,6 +621,9 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
 
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [interactiveQuiz, setInteractiveQuiz] = useState<GenerateQuizOutput | null>(null);
+  const [isGeneratingInteractiveQuiz, setIsGeneratingInteractiveQuiz] = useState(false);
+  const [interactiveQuizParams, setInteractiveQuizParams] = useState<Omit<GenerateQuizInput, 'questionType'> | null>(null);
+
   
   const activeSession = sessions.find(s => s.id === activeSessionId);
 
@@ -911,20 +800,29 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
 
         const quizToolRequest = response.tool_requests?.find((tr: any) => tr.name === 'generateQuizTool');
         
+        let aiTextResponse = response.text || '';
+
+        // Add the AI text response first
+        if (aiTextResponse) {
+            await streamResponse(aiTextResponse, currentSessionId, botMessageId);
+        }
+        
+        // Then, if there's a quiz, add the quiz card
         if (quizToolRequest && quizToolRequest.output) {
-            const quizTitle = `Practice Quiz: ${quizToolRequest.input.topic}`;
-            const quizMessage: Message = {
-                id: botMessageId,
+            const quizTitle = `Practice Quiz: ${quizToolRequest.output.topic}`;
+            const quizCardMessage: Message = {
+                id: crypto.randomUUID(),
                 role: 'ai',
-                content: `Sure, here's your quiz on ${quizToolRequest.input.topic}.`,
-                quiz: quizToolRequest.output,
+                content: '',
+                quizParams: quizToolRequest.output,
                 quizTitle: quizTitle,
                 timestamp: Date.now(),
             };
-
-            setSessions(prev => prev.map(s => 
+            
+            // Add the new quiz card message
+             setSessions(prev => prev.map(s => 
                 s.id === currentSessionId 
-                ? { ...s, messages: s.messages.map(msg => msg.id === botMessageId ? quizMessage : msg)}
+                ? { ...s, messages: [...s.messages, quizCardMessage] }
                 : s
             ));
             
@@ -933,26 +831,24 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
             const currentMessages = sessionDoc.data()?.messages || [];
             
             await updateDoc(sessionRef, {
-                messages: [...currentMessages, userMessage, {role: 'ai', content: quizMessage.content, quiz: quizMessage.quiz, quizTitle: quizMessage.quizTitle, timestamp: quizMessage.timestamp}],
+                messages: [...currentMessages, userMessage, {role: 'ai', content: aiTextResponse}, {role: 'ai', content: '', quizParams: quizToolRequest.output, quizTitle: quizTitle, timestamp: Date.now()}],
                 timestamp: Timestamp.now(),
             });
 
-        } else if (response.text) {
-            streamResponse(response.text, currentSessionId, botMessageId);
-
-            const sessionRef = doc(db, "chatSessions", currentSessionId);
+        } else if (aiTextResponse) { // Only text response
+             const sessionRef = doc(db, "chatSessions", currentSessionId);
             const sessionDoc = await getDoc(sessionRef);
             const currentMessages = sessionDoc.data()?.messages || [];
             
             await updateDoc(sessionRef, {
-                messages: [...currentMessages, userMessage, {role: 'ai', content: response.text}],
+                messages: [...currentMessages, userMessage, {role: 'ai', content: aiTextResponse}],
                 timestamp: Timestamp.now(),
             });
         }
         
         const updatedSession = sessions.find(s => s.id === currentSessionId);
         if (updatedSession && !updatedSession.titleGenerated && updatedSession.messages.length <= 3) {
-            generateChatTitle({ messages: [...updatedSession.messages, {role: 'ai', content: response.text || '', id: 'temp'}] }).then(({title}) => {
+            generateChatTitle({ messages: [...updatedSession.messages, {role: 'ai', content: aiTextResponse || '', id: 'temp'}] }).then(({title}) => {
                 updateDoc(doc(db, "chatSessions", currentSessionId!), { title, titleGenerated: true });
             });
         }
@@ -1176,6 +1072,26 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
     }
   };
   
+  const handleOpenInteractiveQuiz = async (params: Omit<GenerateQuizInput, 'questionType'>) => {
+    setInteractiveQuiz(null);
+    setInteractiveQuizParams(params);
+    setIsFullscreen(true);
+    setIsGeneratingInteractiveQuiz(true);
+
+    try {
+      const quiz = await generateQuizAction({
+        ...params,
+        questionType: 'Multiple Choice',
+      });
+      setInteractiveQuiz(quiz);
+    } catch (e) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Could not generate quiz.' });
+      setIsFullscreen(false);
+    } finally {
+      setIsGeneratingInteractiveQuiz(false);
+    }
+  };
+  
   const TabButton = ({ name, icon, currentTab, setTab }: {name: string, icon: React.ReactNode, currentTab: string, setTab: (tab:string) => void}) => (
     <button onClick={() => setTab(name.toLowerCase())} className={cn(
         "flex flex-col items-center gap-1 p-2 flex-1 rounded-lg transition-colors",
@@ -1239,7 +1155,16 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                             ) : <div></div>}
                         </div>
                         <div className="col-span-3 border-l">
-                            <InteractiveCanvas quiz={interactiveQuiz} onAnswer={() => {}} onSubmit={() => setIsFullscreen(false)} />
+                            <InteractiveCanvas 
+                                quiz={interactiveQuiz}
+                                isLoading={isGeneratingInteractiveQuiz}
+                                onAnswer={() => {}} 
+                                onSubmit={() => {
+                                    setIsFullscreen(false);
+                                    setInteractiveQuiz(null);
+                                    setInteractiveQuizParams(null);
+                                }} 
+                            />
                         </div>
                     </div>
                 ) : (
@@ -1275,17 +1200,14 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                                     <ScrollArea className="flex-1" viewportRef={scrollAreaRef}>
                                         <div className="p-4 space-y-4">
                                             {activeSession?.messages.map((msg, index) => {
-                                                if (msg.quiz) {
-                                                    return <QuizCard key={msg.id} title={msg.quizTitle || 'Practice Quiz'} timestamp={msg.timestamp || Date.now()} onOpen={() => {
-                                                        setInteractiveQuiz(msg.quiz);
-                                                        setIsFullscreen(true);
-                                                    }} />;
+                                                if (msg.quizParams) {
+                                                    return <QuizCard key={msg.id} title={msg.quizTitle || 'Practice Quiz'} timestamp={msg.timestamp || Date.now()} onOpen={() => handleOpenInteractiveQuiz(msg.quizParams!)} />;
                                                 }
                                                 return (
                                                     <div key={msg.id || index} className={cn("flex items-end gap-2", msg.role === 'user' ? 'justify-end' : '')}>
                                                         {msg.role === 'ai' && <Avatar className="h-10 w-10"><AIBuddy className="w-full h-full" {...customizations} /></Avatar>}
                                                         <div className={cn( "p-3 rounded-2xl max-w-[80%] text-sm prose dark:prose-invert prose-p:my-0 prose-headings:my-0 prose-table:my-0", msg.role === 'user' ? "bg-primary text-primary-foreground rounded-br-none" : "bg-muted rounded-bl-none" )}>
-                                                            {msg.streaming && msg.content === '' ? '...' : <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>}
+                                                             {msg.streaming && msg.content === '' ? '...' : <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>}
                                                         </div>
                                                     </div>
                                                 );

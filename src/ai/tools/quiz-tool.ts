@@ -3,9 +3,6 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import { generateQuiz } from '../flows/quiz-flow';
-import { GenerateQuizOutputSchema } from '../schemas/quiz-schema';
-
 
 const GenerateQuizToolInputSchema = z.object({
   topic: z.string().describe('The topic for the quiz.'),
@@ -13,19 +10,24 @@ const GenerateQuizToolInputSchema = z.object({
   difficulty: z.enum(['Easy', 'Medium', 'Hard']).optional().describe('The difficulty level of the quiz.'),
 });
 
+// The tool now returns the parameters, not the full quiz.
+const GenerateQuizToolOutputSchema = GenerateQuizToolInputSchema;
+
+
 export const generateQuizTool = ai.defineTool(
   {
     name: 'generateQuizTool',
     description: 'Generates a practice quiz on a given topic.',
     inputSchema: GenerateQuizToolInputSchema,
-    outputSchema: GenerateQuizOutputSchema,
+    outputSchema: GenerateQuizToolOutputSchema,
   },
   async (input) => {
-    return generateQuiz({
-      topics: input.topic,
+    // The tool's job is just to confirm the parameters.
+    // The actual quiz generation will happen on the client when the user clicks "Open".
+    return {
+      topic: input.topic,
       numQuestions: input.numQuestions,
       difficulty: input.difficulty || 'Medium',
-      questionType: 'Multiple Choice',
-    });
+    };
   }
 );
