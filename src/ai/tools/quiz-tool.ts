@@ -10,7 +10,7 @@ import { GenerateQuizOutputSchema } from '../schemas/quiz-schema';
 const GenerateQuizToolInputSchema = z.object({
   topic: z.string().describe('The topic for the quiz.'),
   numQuestions: z.number().optional().default(5).describe('The number of questions to generate.'),
-  difficulty: z.enum(['Easy', 'Medium', 'Hard']).optional().default('Medium').describe('The difficulty level of the quiz.'),
+  difficulty: z.enum(['Easy', 'Medium', 'Hard']).optional().describe('The difficulty level of the quiz.'),
 });
 
 export const generateQuizTool = ai.defineTool(
@@ -24,7 +24,7 @@ export const generateQuizTool = ai.defineTool(
     return generateQuiz({
       topics: input.topic,
       numQuestions: input.numQuestions,
-      difficulty: input.difficulty,
+      difficulty: input.difficulty || 'Medium',
       questionType: 'Multiple Choice',
     });
   }
