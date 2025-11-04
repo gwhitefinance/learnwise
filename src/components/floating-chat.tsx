@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect, useRef, createContext, useContext } from 'react';
@@ -665,6 +664,43 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
         setIsSessionCreating(false);
     }
   }
+
+  const streamResponse = async (fullText: string, sessionId: string) => {
+    const botMessageId = crypto.randomUUID();
+    
+    setSessions(prev => prev.map(s => 
+      s.id === sessionId 
+        ? { ...s, messages: [...s.messages, { id: botMessageId, role: 'ai', text: '', streaming: true } as any] }
+        : s
+    ));
+
+    for (let i = 0; i < fullText.length; i++) {
+      await new Promise(resolve => setTimeout(resolve, 35));
+      
+      setSessions(prev => prev.map(s => {
+        if (s.id === sessionId) {
+          const lastMsgIndex = s.messages.length - 1;
+          const updatedMsgs = [...s.messages];
+          if(updatedMsgs[lastMsgIndex]?.id === botMessageId) {
+            updatedMsgs[lastMsgIndex] = {...updatedMsgs[lastMsgIndex], content: fullText.slice(0, i + 1)};
+          }
+          return { ...s, messages: updatedMsgs };
+        }
+        return s;
+      }));
+    }
+
+    const finalMessages = [...(sessions.find(s => s.id === sessionId)?.messages || [])];
+    const finalMessageIndex = finalMessages.findIndex(m => m.id === botMessageId);
+    if(finalMessageIndex !== -1) {
+        finalMessages[finalMessageIndex].streaming = false;
+        finalMessages[finalMessageIndex].content = fullText;
+        await updateDoc(doc(db, "chatSessions", sessionId), {
+            messages: finalMessages.map(({ id, ...rest }) => rest),
+            timestamp: Timestamp.now()
+        });
+    }
+  };
   
   const handleSendMessage = async (prompt?: string) => {
     const messageContent = prompt || input;
@@ -720,36 +756,12 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
             description: e.description,
         })),
       });
-  
+
       setIsLoading(false);
-  
-      const botMessageId = crypto.randomUUID();
-      setSessions(prev => prev.map(s => 
-          s.id === currentSessionId 
-          ? { ...s, messages: [...updatedMessages, { role: 'ai', content: '', streaming: true, id: botMessageId }] }
-          : s
-      ));
-  
-      for (let i = 0; i < responseText.length; i++) {
-        await new Promise(resolve => setTimeout(resolve, 10));
-        setSessions(prev => prev.map(s => {
-          if (s.id === currentSessionId) {
-            const lastMsgIndex = s.messages.length - 1;
-            const updatedMsgs = [...s.messages];
-            if (updatedMsgs[lastMsgIndex]?.id === botMessageId) {
-              updatedMsgs[lastMsgIndex] = { ...updatedMsgs[lastMsgIndex], content: responseText.slice(0, i + 1) };
-            }
-            return { ...s, messages: updatedMsgs };
-          }
-          return s;
-        }));
-      }
       
-      const finalMessages = [...updatedMessages, { role: 'ai', content: responseText, id: botMessageId, streaming: false }];
-      await updateDoc(doc(db, "chatSessions", currentSessionId), {
-        messages: finalMessages.map(({ id, ...rest }) => rest), // Remove client-side id before saving
-        timestamp: Timestamp.now()
-      });
+      await streamResponse(responseText, currentSessionId);
+      
+      const finalMessages = [...updatedMessages, { role: 'ai', content: responseText, id: crypto.randomUUID() }];
 
       if (!sessions.find(s => s.id === currentSessionId)?.titleGenerated && finalMessages.length <= 4) {
         const { title } = await generateChatTitle({ messages: finalMessages });
@@ -759,10 +771,8 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
     } catch (error) {
       console.error(error);
       setIsLoading(false);
-      const errorMessage: Message = { role: 'ai', content: "Sorry, I had trouble generating a response. Please try again.", id: crypto.randomUUID() };
-      setSessions(prev => prev.map(s =>
-          s.id === currentSessionId ? { ...s, messages: [...updatedMessages, errorMessage] } : s
-      ));
+      const errorMessage = "Sorry, I had trouble generating a response. Please try again.";
+      await streamResponse(errorMessage, currentSessionId);
     }
   };
 
@@ -1098,12 +1108,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                                                     "p-3 rounded-2xl max-w-[80%] text-sm",
                                                     msg.role === 'user' ? "bg-primary text-primary-foreground rounded-br-none" : "bg-muted rounded-bl-none"
                                                 )}>
-                                                     <p className="whitespace-pre-wrap">
-                                                        {msg.content}
-                                                        {msg.streaming && (
-                                                            <span className="inline-block w-1 h-4 bg-foreground ml-1 animate-pulse"></span>
-                                                        )}
-                                                    </p>
+                                                     <p className="whitespace-pre-wrap">{msg.content}</p>
                                                 </div>
                                             </div>
                                         ))}
@@ -1267,3 +1272,4 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
     </FloatingChatContext.Provider>
   );
 }
+
