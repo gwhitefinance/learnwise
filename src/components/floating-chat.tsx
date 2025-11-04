@@ -605,22 +605,22 @@ const InteractiveCanvas = () => {
     }
 
     return (
-        <div className="bg-[#1e1f20] text-white h-full flex flex-col p-6">
+        <div className="bg-background text-foreground h-full flex flex-col p-6">
             <header className="flex justify-between items-center mb-6">
                 <div className="flex-1">
                      <div className="flex gap-1 h-1.5">
                         {mathQuizData.map((_, index) => (
-                             <div key={index} className={cn("w-full rounded-full", index <= currentQuestionIndex ? 'bg-blue-500' : 'bg-gray-700')} />
+                             <div key={index} className={cn("w-full rounded-full", index <= currentQuestionIndex ? 'bg-primary' : 'bg-muted')} />
                         ))}
                     </div>
                 </div>
                 <div className="flex items-center gap-4 ml-6 text-sm font-medium">
                     <span>{currentQuestionIndex + 1}/{mathQuizData.length}</span>
-                    <div className="flex items-center gap-1.5 p-1 rounded-md bg-red-500/20 text-red-400">
+                    <div className="flex items-center gap-1.5 p-1 rounded-md bg-destructive/10 text-destructive">
                         <XCircle size={16}/>
                         <span>{incorrectCount}</span>
                     </div>
-                     <div className="flex items-center gap-1.5 p-1 rounded-md bg-green-500/20 text-green-400">
+                     <div className="flex items-center gap-1.5 p-1 rounded-md bg-green-500/10 text-green-600">
                         <CheckCircle size={16}/>
                         <span>{correctCount}</span>
                     </div>
@@ -639,10 +639,10 @@ const InteractiveCanvas = () => {
                                 disabled={isAnswered}
                                 className={cn(
                                     "w-full text-left p-4 rounded-lg transition-all border-2",
-                                    isAnswered && option === currentQuestion.correctAnswer && "bg-green-500/20 border-green-500",
-                                    isAnswered && selectedAnswer === option && !isCorrect && "bg-red-500/20 border-red-500",
-                                    !isAnswered && selectedAnswer === option && "bg-blue-500/20 border-blue-500",
-                                    !isAnswered && "bg-neutral-700/50 border-neutral-700 hover:bg-neutral-700"
+                                    isAnswered && option === currentQuestion.correctAnswer && "bg-green-500/10 border-green-500",
+                                    isAnswered && selectedAnswer === option && !isCorrect && "bg-destructive/10 border-destructive",
+                                    !isAnswered && selectedAnswer === option && "bg-primary/10 border-primary",
+                                    !isAnswered && "bg-muted/50 border-border hover:bg-muted"
                                 )}
                             >
                                 <span className="mr-4 font-semibold">{String.fromCharCode(65 + index)}.</span>
@@ -651,14 +651,14 @@ const InteractiveCanvas = () => {
                         ))}
                     </div>
                     <div className="mt-8">
-                        <button className="text-sm text-neutral-400 hover:text-white">Show hint</button>
+                        <button className="text-sm text-muted-foreground hover:text-foreground">Show hint</button>
                     </div>
                  </div>
             </div>
              <footer className="flex justify-end">
                 <Button 
                     onClick={handleNext} 
-                    className="bg-blue-500 hover:bg-blue-600 text-white rounded-full px-8 py-3 text-base"
+                    className="rounded-full px-8 py-3 text-base"
                     disabled={!selectedAnswer && !isAnswered}
                 >
                     Next
@@ -860,7 +860,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
         const learnerType = localStorage.getItem('learnerType');
         const aiBuddyName = localStorage.getItem('aiBuddyName') || 'Tutorin';
     
-        const responseText = await studyPlannerAction({
+        const response = await studyPlannerAction({
             userName: user?.displayName?.split(' ')[0],
             aiBuddyName: aiBuddyName,
             history: [...existingMessages, userMessage],
@@ -877,20 +877,20 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
             })),
         });
 
-        await streamResponse(responseText, currentSessionId, botMessageId);
+        await streamResponse(response, currentSessionId, botMessageId);
 
         const sessionRef = doc(db, "chatSessions", currentSessionId);
         const sessionDoc = await getDoc(sessionRef);
         const currentMessages = sessionDoc.data()?.messages || [];
         
         await updateDoc(sessionRef, {
-            messages: [...currentMessages, {role: 'user', content: messageContent}, {role: 'ai', content: responseText}],
+            messages: [...currentMessages, {role: 'user', content: messageContent}, {role: 'ai', content: response}],
             timestamp: Timestamp.now(),
         });
         
         const updatedSession = sessions.find(s => s.id === currentSessionId);
         if (updatedSession && !updatedSession.titleGenerated && updatedSession.messages.length <= 3) {
-            generateChatTitle({ messages: [...updatedSession.messages, {role: 'ai', content: responseText, id: 'temp'}] }).then(({title}) => {
+            generateChatTitle({ messages: [...updatedSession.messages, {role: 'ai', content: response, id: 'temp'}] }).then(({title}) => {
                 updateDoc(doc(db, "chatSessions", currentSessionId!), { title, titleGenerated: true });
             });
         }
@@ -1178,7 +1178,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                                 </div>
                             ) : <div></div>}
                         </div>
-                        <div className="border-l bg-[#171717]">
+                        <div className="border-l bg-background">
                             <InteractiveCanvas />
                         </div>
                     </div>
@@ -1216,7 +1216,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                                         <div className="p-4 space-y-4">
                                             {activeSession?.messages.map((msg, index) => (
                                                 <div key={msg.id || index} className={cn("flex items-end gap-2", msg.role === 'user' ? 'justify-end' : '')}>
-                                                    {msg.role === 'ai' && (<Avatar className="h-10 w-10"><AIBuddy className="w-full h-full" {...customizations} /></Avatar>)}
+                                                     {msg.role === 'ai' && (<Avatar className="h-10 w-10"><AIBuddy className="w-full h-full" {...customizations} /></Avatar>)}
                                                     <div className={cn( "p-3 rounded-2xl max-w-[80%] text-sm prose dark:prose-invert prose-p:my-0 prose-headings:my-0 prose-table:my-0", msg.role === 'user' ? "bg-primary text-primary-foreground rounded-br-none" : "bg-muted rounded-bl-none" )}>
                                                          {msg.streaming && msg.content === '' ? '...' : <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>}
                                                     </div>
