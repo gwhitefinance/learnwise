@@ -664,36 +664,37 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
     }
   }
 
- const handleSendMessage = async (prompt?: string) => {
+  const handleSendMessage = async (prompt?: string) => {
     const messageContent = prompt || input;
     if (!messageContent.trim() || !user || isLoading) return;
-
+  
     let currentSessionId = activeSessionId;
     let currentMessages: Message[] = [];
-
+  
+    // Ensure a session exists before sending a message
     if (!activeSession) {
-        const newId = await createNewSession(messageContent);
-        if (!newId) return;
-        currentSessionId = newId;
-        currentMessages = [{ role: 'ai', content: `Hey ${user.displayName?.split(' ')[0] || 'there'}! How can I help?` }];
+      const newId = await createNewSession(messageContent);
+      if (!newId) return;
+      currentSessionId = newId;
+      currentMessages = [{ role: 'ai', content: `Hey ${user.displayName?.split(' ')[0] || 'there'}! How can I help?` }];
     } else {
-        currentMessages = activeSession.messages;
+      currentMessages = activeSession.messages;
     }
-
+  
     if (!currentSessionId) return;
-
+  
     const userMessage: Message = { role: 'user', content: messageContent };
     const updatedMessages = [...currentMessages, userMessage];
     
+    // Immediately update the local state to show the user's message
     setSessions(prevSessions =>
       prevSessions.map(s => s.id === currentSessionId ? { ...s, messages: updatedMessages } : s)
     );
     
     setInput('');
     setIsLoading(true);
-
-    // AI message placeholder
-    const aiMessageId = Date.now();
+  
+    // Add a placeholder for the AI's streaming response
     setSessions(prevSessions =>
       prevSessions.map(s =>
         s.id === currentSessionId
@@ -701,7 +702,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
           : s
       )
     );
-
+  
     try {
         const q = query(collection(db, "calendarEvents"), where("userId", "==", user.uid));
         const querySnapshot = await getDocs(q);
@@ -712,7 +713,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
         const learnerType = localStorage.getItem('learnerType');
         const aiBuddyName = localStorage.getItem('aiBuddyName') || 'Tutorin';
 
-        const responseText = await studyPlannerAction({
+        const response = await studyPlannerAction({
             userName: user?.displayName?.split(' ')[0],
             aiBuddyName: aiBuddyName,
             history: updatedMessages,
@@ -729,51 +730,57 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
             })),
         });
 
-        // Client-side streaming animation
-        for (let i = 0; i < responseText.length; i++) {
-            await new Promise(resolve => setTimeout(resolve, 10)); // Adjust delay for typing speed
+        if (!response.body) {
+            throw new Error("The response body is null.");
+        }
+
+        const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
+        let accumulatedResponse = '';
+
+        while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            
+            accumulatedResponse += value;
+            
             setSessions(prev => prev.map(s => {
                 if (s.id === currentSessionId) {
                     const lastMsgIndex = s.messages.length - 1;
                     const updatedMsgs = [...s.messages];
-                    updatedMsgs[lastMsgIndex] = { ...updatedMsgs[lastMsgIndex], content: responseText.slice(0, i + 1) };
+                    updatedMsgs[lastMsgIndex] = { ...updatedMsgs[lastMsgIndex], content: accumulatedResponse, streaming: true };
                     return { ...s, messages: updatedMsgs };
                 }
                 return s;
             }));
         }
-        
+      
         // Finalize message
-        setSessions(prev => prev.map(s => {
-            if (s.id === currentSessionId) {
-                const lastMsgIndex = s.messages.length - 1;
-                const updatedMsgs = [...s.messages];
-                updatedMsgs[lastMsgIndex] = { ...updatedMsgs[lastMsgIndex], streaming: false };
-                return { ...s, messages: updatedMsgs };
-            }
-            return s;
-        }));
-
+        const finalMessages = [...updatedMessages, { role: 'ai', content: accumulatedResponse, streaming: false }];
+        setSessions(prev => prev.map(s =>
+            s.id === currentSessionId ? { ...s, messages: finalMessages } : s
+        ));
+      
         const sessionRef = doc(db, "chatSessions", currentSessionId);
-        await updateDoc(sessionRef, { messages: [...updatedMessages, { role: 'ai', content: responseText }], timestamp: Timestamp.now() });
+        await updateDoc(sessionRef, { messages: finalMessages, timestamp: Timestamp.now() });
 
-        if (!activeSession?.titleGenerated && updatedMessages.length <= 2) {
-            const { title } = await generateChatTitle({ messages: [...updatedMessages, { role: 'ai', content: responseText }] });
+        // Generate title if needed
+        if (!activeSession?.titleGenerated && finalMessages.length <= 3) {
+            const { title } = await generateChatTitle({ messages: finalMessages });
             await updateDoc(sessionRef, { title, titleGenerated: true });
         }
 
     } catch (error) {
-        console.error(error);
-        const errorMessage: Message = { role: 'ai', content: "Sorry, I ran into an error. Please try again." };
-        setSessions(prev => prev.map(s =>
-            s.id === currentSessionId
-            ? { ...s, messages: [...updatedMessages, errorMessage] }
-            : s
-        ));
+      console.error(error);
+      const errorMessage: Message = { role: 'ai', content: "Sorry, I had trouble generating a response. Please try again." };
+      setSessions(prev => prev.map(s =>
+        s.id === currentSessionId
+          ? { ...s, messages: [...updatedMessages, errorMessage] }
+          : s
+      ));
     } finally {
-        setIsLoading(false);
+      setIsLoading(false);
     }
-};
+  };
 
 
 
