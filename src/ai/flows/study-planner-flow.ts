@@ -72,7 +72,7 @@ Based on all of the above, give an **incredibly encouraging, best-friend style r
 /**
  * Main flow to handle study planner interactions.
  */
-async function studyPlannerFlow(input: z.infer<typeof StudyPlannerInputSchema>): Promise<ReadableStream<string>> {
+async function studyPlannerFlow(input: z.infer<typeof StudyPlannerInputSchema>): Promise<string> {
     let historyWithIntro: { role: 'user' | 'ai'; content: string }[] = input.history;
 
     // Insert introductory AI message if this is the start of the conversation
@@ -83,31 +83,14 @@ async function studyPlannerFlow(input: z.infer<typeof StudyPlannerInputSchema>):
         ];
     }
     
-    const { stream } = await prompt.stream({
-        ...input,
-        history: historyWithIntro
-    });
-    
-    // Convert the Genkit stream to a standard ReadableStream
-    const readableStream = new ReadableStream({
-        async start(controller) {
-            const encoder = new TextEncoder();
-            for await (const chunk of stream) {
-                const text = chunk.text;
-                if (text) {
-                    controller.enqueue(encoder.encode(text));
-                }
-            }
-            controller.close();
-        }
-    });
+    const { output } = await prompt(input);
 
-    return readableStream;
+    return output || 'Sorry, I had trouble generating a response. Could you try again?';
 }
 
 /**
  * Exposed action for calling the study planner flow.
  */
-export async function studyPlannerAction(input: z.infer<typeof StudyPlannerInputSchema>): Promise<ReadableStream<string>> {
+export async function studyPlannerAction(input: z.infer<typeof StudyPlannerInputSchema>): Promise<string> {
     return studyPlannerFlow(input);
 }

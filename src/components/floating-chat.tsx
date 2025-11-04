@@ -31,6 +31,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 interface Message {
   role: 'user' | 'ai';
   content: string;
+  streaming?: boolean;
 }
 
 interface ChatSession {
@@ -663,9 +664,9 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
     }
   }
 
-  const handleSendMessage = async (prompt?: string) => {
+ const handleSendMessage = async (prompt?: string) => {
     const messageContent = prompt || input;
-    if (!messageContent.trim() || !user) return;
+    if (!messageContent.trim() || !user || isLoading) return;
 
     let currentSessionId = activeSessionId;
     let currentMessages: Message[] = [];
@@ -683,12 +684,23 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
 
     const userMessage: Message = { role: 'user', content: messageContent };
     const updatedMessages = [...currentMessages, userMessage];
-
-    const aiPlaceholderMessage: Message = { role: 'ai', content: '' };
-    setSessions(sessions.map(s => s.id === currentSessionId ? { ...s, messages: [...updatedMessages, aiPlaceholderMessage] } : s));
-
+    
+    setSessions(prevSessions =>
+      prevSessions.map(s => s.id === currentSessionId ? { ...s, messages: updatedMessages } : s)
+    );
+    
     setInput('');
     setIsLoading(true);
+
+    // AI message placeholder
+    const aiMessageId = Date.now();
+    setSessions(prevSessions =>
+      prevSessions.map(s =>
+        s.id === currentSessionId
+          ? { ...s, messages: [...updatedMessages, { role: 'ai', content: '', streaming: true }] }
+          : s
+      )
+    );
 
     try {
         const q = query(collection(db, "calendarEvents"), where("userId", "==", user.uid));
@@ -700,7 +712,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
         const learnerType = localStorage.getItem('learnerType');
         const aiBuddyName = localStorage.getItem('aiBuddyName') || 'Tutorin';
 
-        const stream = await studyPlannerAction({
+        const responseText = await studyPlannerAction({
             userName: user?.displayName?.split(' ')[0],
             aiBuddyName: aiBuddyName,
             history: updatedMessages,
@@ -717,32 +729,30 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
             })),
         });
 
-        let responseText = '';
-        const reader = stream.getReader();
-        const decoder = new TextDecoder();
-
-        while (true) {
-            const { value, done } = await reader.read();
-            if (done) break;
-
-            responseText += decoder.decode(value, { stream: true });
-            
-            setSessions(prevSessions =>
-                prevSessions.map(s =>
-                    s.id === currentSessionId
-                    ? {
-                        ...s,
-                        messages: [
-                            ...updatedMessages,
-                            { role: 'ai', content: responseText },
-                        ],
-                        }
-                    : s
-                )
-            );
+        // Client-side streaming animation
+        for (let i = 0; i < responseText.length; i++) {
+            await new Promise(resolve => setTimeout(resolve, 10)); // Adjust delay for typing speed
+            setSessions(prev => prev.map(s => {
+                if (s.id === currentSessionId) {
+                    const lastMsgIndex = s.messages.length - 1;
+                    const updatedMsgs = [...s.messages];
+                    updatedMsgs[lastMsgIndex] = { ...updatedMsgs[lastMsgIndex], content: responseText.slice(0, i + 1) };
+                    return { ...s, messages: updatedMsgs };
+                }
+                return s;
+            }));
         }
-
-        setIsLoading(false);
+        
+        // Finalize message
+        setSessions(prev => prev.map(s => {
+            if (s.id === currentSessionId) {
+                const lastMsgIndex = s.messages.length - 1;
+                const updatedMsgs = [...s.messages];
+                updatedMsgs[lastMsgIndex] = { ...updatedMsgs[lastMsgIndex], streaming: false };
+                return { ...s, messages: updatedMsgs };
+            }
+            return s;
+        }));
 
         const sessionRef = doc(db, "chatSessions", currentSessionId);
         await updateDoc(sessionRef, { messages: [...updatedMessages, { role: 'ai', content: responseText }], timestamp: Timestamp.now() });
@@ -751,12 +761,20 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
             const { title } = await generateChatTitle({ messages: [...updatedMessages, { role: 'ai', content: responseText }] });
             await updateDoc(sessionRef, { title, titleGenerated: true });
         }
+
     } catch (error) {
         console.error(error);
-        setSessions(sessions.map(s => s.id === currentSessionId ? activeSession! : s));
+        const errorMessage: Message = { role: 'ai', content: "Sorry, I ran into an error. Please try again." };
+        setSessions(prev => prev.map(s =>
+            s.id === currentSessionId
+            ? { ...s, messages: [...updatedMessages, errorMessage] }
+            : s
+        ));
+    } finally {
         setIsLoading(false);
     }
 };
+
 
 
   const handleStartChatWithPrompt = async (prompt: string) => {
@@ -825,8 +843,8 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
   }
 
   const handleSaveNote = async () => {
-    if (!user) return;
-    try {
+      if (!user) return;
+      try {
         await addDoc(collection(db, "notes"), {
             title: generatedNoteTitle,
             content: generatedNoteContent,
@@ -838,14 +856,14 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
             courseId: selectedNoteCourseId || null,
         });
         toast({ title: "Note Saved!", description: "Find it on your Notes page." });
-    } catch (e) {
-        toast({ variant: 'destructive', title: 'Error saving note.' });
-    } finally {
+      } catch (e) {
+          toast({ variant: 'destructive', title: 'Error saving note.' });
+      } finally {
         setNoteDialogOpen(false);
         setGeneratedNoteTitle('');
         setGeneratedNoteContent('');
         setSelectedNoteCourseId(undefined);
-    }
+      }
   }
 
   const handleSetCourseFocus = async (course: Course | null) => {
@@ -1090,26 +1108,15 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                                                     "p-3 rounded-2xl max-w-[80%] text-sm",
                                                     msg.role === 'user' ? "bg-primary text-primary-foreground rounded-br-none" : "bg-muted rounded-bl-none"
                                                 )}>
-                                                    <p className="whitespace-pre-wrap">{msg.content}</p>
+                                                     <p className="whitespace-pre-wrap">
+                                                        {msg.content}
+                                                        {msg.streaming && (
+                                                            <span className="inline-block w-1 h-4 bg-foreground ml-1 animate-pulse"></span>
+                                                        )}
+                                                    </p>
                                                 </div>
                                             </div>
                                         ))}
-                                        {isLoading && activeSession?.messages[activeSession.messages.length - 1]?.role !== 'ai' && (
-                                            <div className="flex items-end gap-2">
-                                                <Avatar className="h-10 w-10">
-                                                    <AIBuddy
-                                                        className="w-full h-full"
-                                                        color={customizations.color}
-                                                        hat={customizations.hat}
-                                                        shirt={customizations.shirt}
-                                                        shoes={customizations.shoes}
-                                                    />
-                                                </Avatar>
-                                                <div className="p-3 rounded-2xl max-w-[80%] text-sm bg-muted rounded-bl-none animate-pulse">
-                                                    <Loader2 className="w-4 h-4 animate-spin"/>
-                                                </div>
-                                            </div>
-                                        )}
                                     </div>
                                 </ScrollArea>
                                 <footer className="p-4 border-t">
