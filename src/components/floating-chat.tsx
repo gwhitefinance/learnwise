@@ -668,38 +668,46 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
   const streamResponse = async (fullText: string, sessionId: string) => {
     const botMessageId = crypto.randomUUID();
     
+    // Add a placeholder for the streaming message
     setSessions(prev => prev.map(s => 
       s.id === sessionId 
-        ? { ...s, messages: [...s.messages, { id: botMessageId, role: 'ai', text: '', streaming: true } as any] }
+        ? { ...s, messages: [...s.messages, { id: botMessageId, role: 'ai', content: '', streaming: true }] }
         : s
     ));
-
+  
+    // Animate typing character by character
     for (let i = 0; i < fullText.length; i++) {
-      await new Promise(resolve => setTimeout(resolve, 35));
-      
+      await new Promise(resolve => setTimeout(resolve, 20)); // Adjust typing speed here
       setSessions(prev => prev.map(s => {
         if (s.id === sessionId) {
-          const lastMsgIndex = s.messages.length - 1;
-          const updatedMsgs = [...s.messages];
-          if(updatedMsgs[lastMsgIndex]?.id === botMessageId) {
-            updatedMsgs[lastMsgIndex] = {...updatedMsgs[lastMsgIndex], content: fullText.slice(0, i + 1)};
-          }
-          return { ...s, messages: updatedMsgs };
+          const updatedMessages = s.messages.map(msg => 
+            msg.id === botMessageId 
+              ? { ...msg, content: fullText.slice(0, i + 1) }
+              : msg
+          );
+          return { ...s, messages: updatedMessages };
         }
         return s;
       }));
     }
-
-    const finalMessages = [...(sessions.find(s => s.id === sessionId)?.messages || [])];
-    const finalMessageIndex = finalMessages.findIndex(m => m.id === botMessageId);
-    if(finalMessageIndex !== -1) {
-        finalMessages[finalMessageIndex].streaming = false;
-        finalMessages[finalMessageIndex].content = fullText;
-        await updateDoc(doc(db, "chatSessions", sessionId), {
-            messages: finalMessages.map(({ id, ...rest }) => rest),
+  
+    // Finalize the message and save to Firestore
+    setSessions(prev => prev.map(s => {
+      if (s.id === sessionId) {
+        const finalMessages = s.messages.map(msg => 
+          msg.id === botMessageId 
+            ? { ...msg, streaming: false }
+            : msg
+        );
+        // Firestore update
+        updateDoc(doc(db, "chatSessions", sessionId), {
+            messages: finalMessages.map(({ id, ...rest }) => rest), // Remove temp ID
             timestamp: Timestamp.now()
         });
-    }
+        return { ...s, messages: finalMessages };
+      }
+      return s;
+    }));
   };
   
   const handleSendMessage = async (prompt?: string) => {
@@ -758,7 +766,6 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
       });
 
       setIsLoading(false);
-      
       await streamResponse(responseText, currentSessionId);
       
       const finalMessages = [...updatedMessages, { role: 'ai', content: responseText, id: crypto.randomUUID() }];
@@ -1108,7 +1115,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                                                     "p-3 rounded-2xl max-w-[80%] text-sm",
                                                     msg.role === 'user' ? "bg-primary text-primary-foreground rounded-br-none" : "bg-muted rounded-bl-none"
                                                 )}>
-                                                     <p className="whitespace-pre-wrap">{msg.content}</p>
+                                                     <p className="whitespace-pre-wrap">{msg.content}{msg.streaming ? <span className="inline-block w-1 h-4 bg-foreground ml-1 animate-pulse"></span> : ''}</p>
                                                 </div>
                                             </div>
                                         ))}
@@ -1272,4 +1279,3 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
     </FloatingChatContext.Provider>
   );
 }
-
