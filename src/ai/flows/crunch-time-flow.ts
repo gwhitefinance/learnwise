@@ -44,7 +44,7 @@ const prompt = ai.definePrompt({
     `,
 });
 
-const crunchTimeFlow = ai.defineFlow(
+export const crunchTimeFlow = ai.defineFlow(
   {
     name: 'crunchTimeFlow',
     inputSchema: CrunchTimeInputSchema,
