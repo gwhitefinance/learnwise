@@ -21,6 +21,7 @@ export const CrunchTimeInputSchema = z.object({
   inputType: z.enum(['text', 'url', 'image']).describe('The type of input provided.'),
   content: z.string().describe("The text content, URL, or image data URI."),
   learnerType: z.enum(['Visual', 'Auditory', 'Kinesthetic', 'Reading/Writing', 'Unknown']),
+  imageDataUri: z.string().optional().describe("The image data URI, if applicable. Added by the flow."),
 });
 export type CrunchTimeInput = z.infer<typeof CrunchTimeInputSchema>;
 

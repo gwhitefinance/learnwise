@@ -22,8 +22,8 @@ const prompt = ai.definePrompt({
     **CRITICAL**: For any mathematical expressions, especially exponents and fractions, use proper notation. For example, use 'x²' instead of 'x^2', and use Unicode characters like '½' for fractions instead of '1/2'.
 
     Study Material ({{inputType}}):
-    {{#if (eq inputType "image")}}
-    {{media url=content}}
+    {{#if imageDataUri}}
+    {{media url=imageDataUri}}
     {{else}}
     "{{content}}"
     {{/if}}
@@ -52,6 +52,7 @@ const crunchTimeFlow = ai.defineFlow(
   },
   async (input) => {
     let processedContent = input.content;
+    let imageDataUri: string | undefined = undefined;
 
     if (input.inputType === 'url') {
       try {
@@ -67,11 +68,15 @@ const crunchTimeFlow = ai.defineFlow(
         console.error("Failed to process URL:", error);
         throw new Error("Could not retrieve content from the provided URL. Please check the link and try again.");
       }
+    } else if (input.inputType === 'image') {
+        imageDataUri = input.content;
+        processedContent = ''; // Content is in the image
     }
 
     const { output } = await prompt({
         ...input,
-        content: processedContent, // Use the processed content
+        content: processedContent,
+        imageDataUri: imageDataUri,
     });
 
     if (!output) {
