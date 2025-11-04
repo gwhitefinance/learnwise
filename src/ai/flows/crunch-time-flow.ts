@@ -3,7 +3,7 @@
 /**
  * @fileOverview An AI flow for creating a comprehensive study guide from various sources.
  */
-import { ai } from '@/ai/genkit';
+import { ai, googleAI } from '@/ai/genkit';
 import { z } from 'zod';
 import { scrapeWebpageTool } from '@/ai/tools/web-scraper-tool';
 import { getYouTubeTranscript } from '@/ai/tools/youtube-transcript-tool';
@@ -12,7 +12,7 @@ import { CrunchTimeInputSchema, CrunchTimeOutputSchema, CrunchTimeInput, CrunchT
 
 const prompt = ai.definePrompt({
     name: 'crunchTimePrompt',
-    model: ai.model('gemini-2.5-flash'),
+    model: googleAI.model('gemini-2.5-flash'),
     input: { schema: CrunchTimeInputSchema },
     output: { schema: CrunchTimeOutputSchema },
     prompt: `You are an expert AI tutor named Tutorin. Your task is to take provided study material and generate a complete, high-impact study guide for a student in "crunch time".
