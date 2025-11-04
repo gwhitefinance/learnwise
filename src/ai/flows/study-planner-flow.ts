@@ -69,5 +69,9 @@ export async function studyPlannerAction(input: z.infer<typeof StudyPlannerInput
         tools: [generateQuizTool],
     });
 
-    return response;
+    // Return only the serializable data needed by the client.
+    return {
+        text: response.text,
+        tool_requests: response.toolRequests,
+    };
 }
