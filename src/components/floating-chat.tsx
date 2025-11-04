@@ -547,6 +547,127 @@ interface FloatingChatProps {
     isEmbedded?: boolean;
 }
 
+const mathQuizData = [
+  {
+    question: "What are the solutions to the quadratic equation x² - 4x + 3 = 0?",
+    options: ["x = -3 and x = 1", "x = 3 and x = 1", "x = 3 and x = -1", "x = -3 and x = -1"],
+    correctAnswer: "x = 3 and x = 1"
+  },
+  {
+    question: "If a rectangle has a perimeter of 24 units and a length of 8 units, what is its width?",
+    options: ["4 units", "6 units", "16 units", "2 units"],
+    correctAnswer: "4 units"
+  },
+  {
+    question: "Simplify the expression: 3(x + 2) - 2(x - 1)",
+    options: ["x + 8", "x + 4", "5x + 4", "x + 5"],
+    correctAnswer: "x + 8"
+  },
+  {
+    question: "What is 15% of 200?",
+    options: ["15", "20", "30", "40"],
+    correctAnswer: "30"
+  },
+  {
+    question: "If two angles in a triangle are 45° and 75°, what is the third angle?",
+    options: ["45°", "50°", "60°", "65°"],
+    correctAnswer: "60°"
+  }
+];
+
+
+const InteractiveCanvas = () => {
+    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+    const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+    const [correctCount, setCorrectCount] = useState(0);
+    const [incorrectCount, setIncorrectCount] = useState(0);
+    const [isAnswered, setIsAnswered] = useState(false);
+
+    const currentQuestion = mathQuizData[currentQuestionIndex];
+    const isCorrect = selectedAnswer === currentQuestion.correctAnswer;
+
+    const handleNext = () => {
+        if (!isAnswered) {
+             if (isCorrect) {
+                setCorrectCount(prev => prev + 1);
+            } else if (selectedAnswer !== null) {
+                setIncorrectCount(prev => prev + 1);
+            }
+        }
+        
+        setIsAnswered(false);
+        setSelectedAnswer(null);
+        if (currentQuestionIndex < mathQuizData.length - 1) {
+            setCurrentQuestionIndex(prev => prev + 1);
+        } else {
+            // End of quiz logic could go here
+        }
+    }
+
+    return (
+        <div className="bg-[#1e1f20] text-white h-full flex flex-col p-6">
+            <header className="flex justify-between items-center mb-6">
+                <div className="flex-1">
+                     <div className="flex gap-1 h-1.5">
+                        {mathQuizData.map((_, index) => (
+                             <div key={index} className={cn("w-full rounded-full", index <= currentQuestionIndex ? 'bg-blue-500' : 'bg-gray-700')} />
+                        ))}
+                    </div>
+                </div>
+                <div className="flex items-center gap-4 ml-6 text-sm font-medium">
+                    <span>{currentQuestionIndex + 1}/{mathQuizData.length}</span>
+                    <div className="flex items-center gap-1.5 p-1 rounded-md bg-red-500/20 text-red-400">
+                        <XCircle size={16}/>
+                        <span>{incorrectCount}</span>
+                    </div>
+                     <div className="flex items-center gap-1.5 p-1 rounded-md bg-green-500/20 text-green-400">
+                        <CheckCircle size={16}/>
+                        <span>{correctCount}</span>
+                    </div>
+                </div>
+            </header>
+            <div className="flex-1 flex flex-col justify-center">
+                 <div className="max-w-xl w-full mx-auto">
+                    <p className="text-xl mb-8">
+                        {currentQuestionIndex + 1}. {currentQuestion.question}
+                    </p>
+                    <div className="space-y-3">
+                        {currentQuestion.options.map((option, index) => (
+                            <button
+                                key={index}
+                                onClick={() => setSelectedAnswer(option)}
+                                disabled={isAnswered}
+                                className={cn(
+                                    "w-full text-left p-4 rounded-lg transition-all border-2",
+                                    isAnswered && option === currentQuestion.correctAnswer && "bg-green-500/20 border-green-500",
+                                    isAnswered && selectedAnswer === option && !isCorrect && "bg-red-500/20 border-red-500",
+                                    !isAnswered && selectedAnswer === option && "bg-blue-500/20 border-blue-500",
+                                    !isAnswered && "bg-neutral-700/50 border-neutral-700 hover:bg-neutral-700"
+                                )}
+                            >
+                                <span className="mr-4 font-semibold">{String.fromCharCode(65 + index)}.</span>
+                                <span>{option}</span>
+                            </button>
+                        ))}
+                    </div>
+                    <div className="mt-8">
+                        <button className="text-sm text-neutral-400 hover:text-white">Show hint</button>
+                    </div>
+                 </div>
+            </div>
+             <footer className="flex justify-end">
+                <Button 
+                    onClick={handleNext} 
+                    className="bg-blue-500 hover:bg-blue-600 text-white rounded-full px-8 py-3 text-base"
+                    disabled={!selectedAnswer && !isAnswered}
+                >
+                    Next
+                </Button>
+            </footer>
+        </div>
+    )
+}
+
 export default function FloatingChat({ children, isHidden, isEmbedded }: FloatingChatProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
@@ -1057,11 +1178,8 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                                 </div>
                             ) : <div></div>}
                         </div>
-                        <div className="border-l bg-muted/30">
-                            {/* Interactive Canvas Placeholder */}
-                           <div className="flex items-center justify-center h-full">
-                                <p className="text-muted-foreground">Interactive Canvas</p>
-                            </div>
+                        <div className="border-l bg-[#171717]">
+                            <InteractiveCanvas />
                         </div>
                     </div>
                 ) : (
