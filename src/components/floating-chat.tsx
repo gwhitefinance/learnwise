@@ -668,24 +668,25 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
   }
 
   const streamResponse = async (fullText: string, sessionId: string, botMessageId: string) => {
-    for (let i = 0; i < fullText.length; i++) {
-        await new Promise(resolve => setTimeout(resolve, 20)); // Slower typing speed
+    for (let i = 0; i <= fullText.length; i++) {
+        await new Promise(resolve => setTimeout(resolve, 20));
         setSessions(prev => prev.map(s => 
             s.id === sessionId 
             ? { ...s, messages: s.messages.map(msg => 
                     msg.id === botMessageId 
-                    ? { ...msg, content: fullText.slice(0, i + 1) } 
+                    ? { ...msg, content: fullText.slice(0, i) } 
                     : msg
                 )}
             : s
         ));
     }
-
+    
+    // Final update to ensure the full message is set and streaming is turned off
     setSessions(prev => prev.map(s => 
         s.id === sessionId 
         ? { ...s, messages: s.messages.map(msg => 
                 msg.id === botMessageId 
-                ? { ...msg, streaming: false } 
+                ? { ...msg, content: fullText, streaming: false } 
                 : msg
             )}
         : s
@@ -1111,8 +1112,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                                                 )}>
                                                     {msg.streaming && msg.content === '' ? (
                                                         <div className="flex items-center gap-2 text-muted-foreground">
-                                                            <Loader2 className="h-4 w-4 animate-spin" />
-                                                            <span>Tutorin's Thinking...</span>
+                                                            <span className="animate-pulse">Tutorin's Thinking...</span>
                                                         </div>
                                                     ) : (
                                                         <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
