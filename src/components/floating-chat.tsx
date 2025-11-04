@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef, createContext, useContext } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, X, MessageSquare, Loader2, Plus, Edit, Trash2, FileText, Home, Phone, ChevronRight, HelpCircle, Search, Calendar, Lightbulb, Sparkles, Upload, User, Award, Gem, Copy, RefreshCw, ChevronLeft, CheckCircle, XCircle, ArrowRight, BrainCircuit, Bot, MoreVertical, Link as LinkIcon, Share2, Maximize, Minimize, NotebookText, Download, Eraser, Mic, Hand } from 'lucide-react';
+import { Send, X, MessageSquare, Plus, Edit, Trash2, FileText, Home, Phone, ChevronRight, HelpCircle, Search, Calendar, Lightbulb, Sparkles, Upload, User, Award, Gem, Copy, RefreshCw, ChevronLeft, CheckCircle, XCircle, ArrowRight, BrainCircuit, Bot, MoreVertical, Link as LinkIcon, Share2, Maximize, Minimize, NotebookText, Download, Eraser, Mic, Hand } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -668,20 +668,24 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
   }
 
   const streamResponse = async (fullText: string, sessionId: string, botMessageId: string) => {
-    for (let i = 0; i <= fullText.length; i++) {
-        await new Promise(resolve => setTimeout(resolve, 20));
+    setIsLoading(false);
+    const sentences = fullText.match(/[^.!?]+[.!?]+|\S+/g) || [fullText];
+    let currentText = '';
+
+    for (const sentence of sentences) {
+        currentText += sentence;
         setSessions(prev => prev.map(s => 
             s.id === sessionId 
             ? { ...s, messages: s.messages.map(msg => 
                     msg.id === botMessageId 
-                    ? { ...msg, content: fullText.slice(0, i) } 
+                    ? { ...msg, content: currentText } 
                     : msg
                 )}
             : s
         ));
+        await new Promise(resolve => setTimeout(resolve, 150));
     }
-    
-    // Final update to ensure the full message is set and streaming is turned off
+
     setSessions(prev => prev.map(s => 
         s.id === sessionId 
         ? { ...s, messages: s.messages.map(msg => 
@@ -706,77 +710,92 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
     }
   
     const userMessage: Message = { role: 'user', content: messageContent, id: crypto.randomUUID() };
-    const botMessageId = crypto.randomUUID();
     
-    setInput('');
-    setIsLoading(true);
+    // Add user message to the UI immediately
     setSessions(prev =>
       prev.map(s =>
         s.id === currentSessionId
-          ? { ...s, messages: [...s.messages, userMessage, { id: botMessageId, role: 'ai', content: '', streaming: true }] }
+          ? { ...s, messages: [...s.messages, userMessage] }
           : s
       )
     );
+    
+    setInput('');
+    setIsLoading(true);
   
     try {
-      const q = query(collection(db, "calendarEvents"), where("userId", "==", user.uid));
-      const querySnapshot = await getDocs(q);
-      const calendarEventsData = querySnapshot.docs.map(doc => {
-          const data = doc.data() as CalendarEvent;
-          return { ...data, id: doc.id };
-      });
-      const learnerType = localStorage.getItem('learnerType');
-      const aiBuddyName = localStorage.getItem('aiBuddyName') || 'Tutorin';
-  
-      const responseText = await studyPlannerAction({
-        userName: user?.displayName?.split(' ')[0],
-        aiBuddyName: aiBuddyName,
-        history: [...sessions.find(s => s.id === currentSessionId)?.messages || [], userMessage],
-        learnerType: learnerType || undefined,
-        allCourses: courses.map(c => ({ id: c.id, name: c.name, description: c.description })),
-        courseContext: activeSession?.courseContext || undefined,
-        calendarEvents: calendarEventsData.map(e => ({
-            id: e.id,
-            date: e.date,
-            title: e.title,
-            time: e.startTime,
-            type: e.type,
-            description: e.description,
-        })),
-      });
-
-      setIsLoading(false);
-
-      await streamResponse(responseText, currentSessionId, botMessageId);
-
-      const finalMessages = sessions.find(s => s.id === currentSessionId)?.messages || [];
-      const updatedMessagesForDB = finalMessages.map(msg => msg.id === botMessageId ? {...msg, content: responseText, streaming: false} : msg);
-
-      updateDoc(doc(db, "chatSessions", currentSessionId!), {
-        messages: updatedMessagesForDB.map(({ id, ...rest }) => rest),
-        timestamp: Timestamp.now(),
-      });
-
-      const currentSession = sessions.find(s => s.id === currentSessionId);
-      if (currentSession && !currentSession.titleGenerated && updatedMessagesForDB.length <= 4) {
-        generateChatTitle({ messages: updatedMessagesForDB }).then(({title}) => {
-            updateDoc(doc(db, "chatSessions", currentSessionId!), { title, titleGenerated: true });
+        const q = query(collection(db, "calendarEvents"), where("userId", "==", user.uid));
+        const querySnapshot = await getDocs(q);
+        const calendarEventsData = querySnapshot.docs.map(doc => {
+            const data = doc.data() as CalendarEvent;
+            return { ...data, id: doc.id };
         });
-      }
+        const learnerType = localStorage.getItem('learnerType');
+        const aiBuddyName = localStorage.getItem('aiBuddyName') || 'Tutorin';
+    
+        const botMessageId = crypto.randomUUID();
+        // Add a temporary AI message for the loading indicator
+        setSessions(prev =>
+            prev.map(s =>
+            s.id === currentSessionId
+                ? { ...s, messages: [...s.messages, { id: botMessageId, role: 'ai', content: '', streaming: true }] }
+                : s
+            )
+        );
 
-    } catch (error) {
-      console.error(error);
-      const errorMessage = "Sorry, I had trouble generating a response. Please try again.";
-       setSessions(prev => prev.map(s => {
-        if(s.id === currentSessionId) {
-          const finalMessages = s.messages.map(msg => msg.id === botMessageId ? {...msg, streaming: false, content: errorMessage} : msg);
-          return { ...s, messages: finalMessages };
+        const responseText = await studyPlannerAction({
+            userName: user?.displayName?.split(' ')[0],
+            aiBuddyName: aiBuddyName,
+            history: [...sessions.find(s => s.id === currentSessionId)?.messages || [], userMessage],
+            learnerType: learnerType || undefined,
+            allCourses: courses.map(c => ({ id: c.id, name: c.name, description: c.description })),
+            courseContext: activeSession?.courseContext || undefined,
+            calendarEvents: calendarEventsData.map(e => ({
+                id: e.id,
+                date: e.date,
+                title: e.title,
+                time: e.startTime,
+                type: e.type,
+                description: e.description,
+            })),
+        });
+
+        await streamResponse(responseText, currentSessionId, botMessageId);
+
+        const sessionRef = doc(db, "chatSessions", currentSessionId);
+        const sessionDoc = await getDoc(sessionRef);
+        const currentMessages = sessionDoc.data()?.messages || [];
+        
+        await updateDoc(sessionRef, {
+            messages: [...currentMessages, {role: 'user', content: messageContent}, {role: 'ai', content: responseText}],
+            timestamp: Timestamp.now(),
+        });
+        
+        const currentSession = sessions.find(s => s.id === currentSessionId);
+        if (currentSession && !currentSession.titleGenerated && currentSession.messages.length <= 3) {
+            generateChatTitle({ messages: [...currentSession.messages, {role: 'ai', content: responseText, id: 'temp'}] }).then(({title}) => {
+                updateDoc(doc(db, "chatSessions", currentSessionId!), { title, titleGenerated: true });
+            });
         }
-        return s;
-      }));
-      setIsLoading(false);
+    } catch (error) {
+        console.error(error);
+        const errorMessage = "Sorry, I had trouble generating a response. Please try again.";
+        setSessions(prev => {
+            const newSessions = [...prev];
+            const sessionIndex = newSessions.findIndex(s => s.id === currentSessionId);
+            if (sessionIndex !== -1) {
+                // Remove the user message and replace the loading AI message with an error
+                const lastMessage = newSessions[sessionIndex].messages.slice(-1)[0];
+                if (lastMessage.streaming) {
+                     newSessions[sessionIndex].messages.pop();
+                }
+                newSessions[sessionIndex].messages.push({ role: 'ai', content: errorMessage, id: crypto.randomUUID() });
+            }
+            return newSessions;
+        });
+        setIsLoading(false);
     }
-  };
+};
 
 
   const handleStartChatWithPrompt = async (prompt: string) => {
@@ -1110,9 +1129,9 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                                                     "p-3 rounded-2xl max-w-[80%] text-sm prose dark:prose-invert prose-p:my-0 prose-headings:my-0 prose-table:my-0",
                                                     msg.role === 'user' ? "bg-primary text-primary-foreground rounded-br-none" : "bg-muted rounded-bl-none"
                                                 )}>
-                                                    {msg.streaming && msg.content === '' ? (
+                                                     {msg.streaming && msg.content === '' ? (
                                                         <div className="flex items-center gap-2 text-muted-foreground">
-                                                            <span className="animate-pulse">Tutorin's Thinking...</span>
+                                                            <p className="animate-pulse">Tutorin's Thinking...</p>
                                                         </div>
                                                     ) : (
                                                         <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
@@ -1264,3 +1283,5 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
     </FloatingChatContext.Provider>
   );
 }
+
+    
