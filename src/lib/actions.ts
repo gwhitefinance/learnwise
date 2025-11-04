@@ -2,7 +2,7 @@
 'use server';
 
 // All AI flow imports are centralized here
-import { generateQuiz } from '@/ai/flows/quiz-flow';
+import { generateQuizAction } from '@/ai/flows/quiz-flow';
 import { generateExplanation } from '@/ai/flows/quiz-explanation-flow';
 import { generateCourseFromUrl } from '@/ai/flows/course-from-url-flow';
 import { generateFlashcardsFromNote } from '@/ai/flows/note-to-flashcard-flow';
@@ -19,6 +19,7 @@ import { generateOnboardingCourse } from '@/ai/flows/onboarding-course-flow';
 import { generateChapterContent } from '@/ai/flows/chapter-content-flow';
 import { analyzeImage } from '@/ai/flows/image-analysis-flow';
 import { generateNoteFromChat } from '@/ai/flows/chat-to-note-flow';
+import { generateSummary } from '@/ai/flows/summary-flow';
 import { generateMidtermExam } from '@/ai/flows/midterm-exam-flow';
 import { generateModuleContent } from '@/ai/flows/module-content-flow';
 import { generatePodcastEpisode } from '@/ai/flows/podcast-flow';
@@ -37,14 +38,13 @@ import { generateEssayFeedback } from '@/ai/flows/essay-coach-flow';
 import { generateDailyFocus } from '@/ai/flows/daily-focus-flow';
 import { generateTextTutoringSession } from '@/ai/flows/text-tutoring-flow';
 import { enhanceDrawing } from '@/ai/flows/enhance-drawing-flow';
-import { generateSummary } from '@/ai/flows/summary-flow';
 import { generateSpeechFlow } from '@/ai/flows/text-to-speech-flow';
 import { generateProblemSolvingSession } from '@/ai/flows/problem-solving-flow';
 import { generateCrunchTimeStudyGuide } from '@/ai/flows/crunch-time-flow';
 
 // Re-exporting all AI functions as Server Actions
 export { 
-    generateQuiz as generateQuizAction,
+    generateQuizAction,
     generateExplanation,
     generateCourseFromUrl,
     generateFlashcardsFromNote,

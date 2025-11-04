@@ -4,48 +4,15 @@
  * @fileOverview An AI flow for creating a comprehensive study guide from various sources.
  */
 import { ai } from '@/ai/genkit';
-import { googleAI } from '@genkit-ai/google-genai';
 import { z } from 'zod';
 import { scrapeWebpageTool } from '@/ai/tools/web-scraper-tool';
 import { getYouTubeTranscript } from '@/ai/tools/youtube-transcript-tool';
-
-const KeyConceptSchema = z.object({
-  term: z.string().describe('The key term or concept.'),
-  definition: z.string().describe('A concise definition of the term.'),
-});
-
-const PracticeQuestionSchema = z.object({
-  question: z.string().describe('A multiple-choice question testing a core concept.'),
-  options: z.array(z.string()).length(4).describe('An array of 4 possible answers.'),
-  answer: z.string().describe('The correct answer from the options array.'),
-});
-
-const StudyStepSchema = z.object({
-  step: z.string().describe('A single, actionable step in the study plan.'),
-  description: z.string().describe('A brief explanation of what to do in this step.')
-});
-
-export const CrunchTimeInputSchema = z.object({
-  inputType: z.enum(['text', 'url', 'image']).describe('The type of input provided.'),
-  content: z.string().describe("The text content, URL, or image data URI."),
-  learnerType: z.enum(['Visual', 'Auditory', 'Kinesthetic', 'Reading/Writing', 'Unknown']),
-});
-export type CrunchTimeInput = z.infer<typeof CrunchTimeInputSchema>;
-
-
-export const CrunchTimeOutputSchema = z.object({
-  title: z.string().describe('A concise title for the study session, derived from the content.'),
-  keyConcepts: z.array(KeyConceptSchema).describe('A list of 3-5 most important terms and their definitions from the material.'),
-  summary: z.string().describe('A 2-4 sentence summary of the core information.'),
-  practiceQuiz: z.array(PracticeQuestionSchema).describe('A small quiz of 3 multiple-choice questions to test understanding.'),
-  studyPlan: z.array(StudyStepSchema).describe("A 3-step actionable study plan tailored to the user's learning style.")
-});
-export type CrunchTimeOutput = z.infer<typeof CrunchTimeOutputSchema>;
+import { CrunchTimeInputSchema, CrunchTimeOutputSchema, CrunchTimeInput, CrunchTimeOutput } from '@/ai/schemas/crunch-time-schema';
 
 
 const prompt = ai.definePrompt({
     name: 'crunchTimePrompt',
-    model: googleAI.model('gemini-2.5-flash'),
+    model: ai.model('gemini-2.5-flash'),
     input: { schema: CrunchTimeInputSchema },
     output: { schema: CrunchTimeOutputSchema },
     prompt: `You are an expert AI tutor named Tutorin. Your task is to take provided study material and generate a complete, high-impact study guide for a student in "crunch time".
