@@ -54,12 +54,12 @@ Plants convert sunlight into chemical energy.
 export async function studyPlannerAction(input: z.infer<typeof StudyPlannerInputSchema>): Promise<any> {
     const aiBuddyName = input.aiBuddyName || 'Tutorin';
     
-    // Determine the prompt based on history
-    const prompt = input.history.length === 0 
-        ? `Hey! I'm ${aiBuddyName}, your personal AI study buddy! 🌟 Let's tackle your studies together step by step. What should we start with today?`
-        : input.history[input.history.length - 1]?.content;
+    // Use the last message as the primary prompt, unless the history is empty
+    const prompt = input.history.length > 0 
+        ? input.history[input.history.length - 1].content
+        : `Hey! I'm ${aiBuddyName}, your personal AI study buddy! 🌟 Let's tackle your studies together step by step. What should we start with today?`;
 
-    // Use all but the last message as history
+    // Use all but the last message as history for context
     const history = input.history.length > 1 ? input.history.slice(0, -1) : [];
 
     const response = await ai.generate({

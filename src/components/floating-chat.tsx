@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { collection, query, where, getDocs, onSnapshot, addDoc, doc, updateDoc, Timestamp, deleteDoc, orderBy, getDoc } from 'firebase/firestore';
-import { studyPlannerAction, generateChatTitle, generateNoteFromChat, analyzeImage, generateQuizAction, generateFlashcardsFromNote, generateExplanation } from '@/lib/actions';
+import { studyPlannerAction, generateChatTitle, generateNoteFromChat, analyzeImage } from '@/lib/actions';
 import { cn } from '@/lib/utils';
 import AIBuddy from './ai-buddy';
 import { useToast } from '@/hooks/use-toast';
@@ -29,7 +29,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Skeleton } from './ui/skeleton';
-
+import { generateQuizAction, generateFlashcardsFromNote, generateExplanation } from '@/lib/actions';
 
 interface Message {
   id: string;
@@ -108,7 +108,7 @@ const ChatHomeScreen = ({ sessions, onNavigate, onStartNewChat, onSelectSession,
                 <h2 className="text-lg font-bold">Home</h2>
                 <Button size="sm" onClick={onStartNewChat}><Plus className="w-4 h-4 mr-2" /> New Chat</Button>
             </div>
-            <ScrollArea className="flex-1">
+            <ScrollArea className="flex-1 min-h-0">
                 <div className="p-4 space-y-8">
                      <div className="flex flex-col items-center text-center p-6 bg-card rounded-xl border">
                         <AIBuddy {...customizations} className="w-24 h-24 mb-2" />
@@ -548,10 +548,10 @@ interface FloatingChatProps {
     isEmbedded?: boolean;
 }
 
-const InteractiveCanvas = ({ quiz, onAnswer, onSubmit }: { quiz: GenerateQuizOutput, onAnswer: (answer: string) => void, onSubmit: () => void }) => {
+const InteractiveCanvas = ({ quiz, onAnswer, onSubmit }: { quiz: GenerateQuizOutput | null, onAnswer: (answer: string) => void, onSubmit: () => void }) => {
     if (!quiz) {
         return (
-            <div className="bg-muted/30 h-full flex flex-col p-6 rounded-2xl items-center justify-center">
+            <div className="bg-muted h-full flex flex-col p-6 rounded-2xl items-center justify-center">
                 <Skeleton className="h-6 w-3/4 mb-4" />
                 <div className="space-y-4 w-full max-w-md">
                     <Skeleton className="h-12 w-full" />
@@ -597,12 +597,12 @@ const InteractiveCanvas = ({ quiz, onAnswer, onSubmit }: { quiz: GenerateQuizOut
     };
 
     return (
-        <div className="bg-muted/30 h-full flex flex-col p-6 rounded-2xl">
+        <div className="bg-muted h-full flex flex-col p-6 rounded-2xl">
             <header className="flex justify-between items-center mb-6">
                 <h3 className="font-semibold flex items-center gap-2"><HelpCircle size={18}/> Practice Quiz</h3>
                  <div className="flex items-center gap-2">
                     <Button variant="ghost" size="icon" className="h-8 w-8"><Share2 size={16}/></Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8"><X size={16}/></Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onSubmit}><X size={16}/></Button>
                  </div>
             </header>
             <div className="flex-1 flex flex-col justify-center">
@@ -887,16 +887,18 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
         });
 
         const quizTool = response.tool_requests?.find((tr: any) => tr.tool.name === 'generateQuizTool');
-        if (quizTool) {
+        
+        if (quizTool && quizTool.output) {
             setInteractiveQuiz(quizTool.output);
             setIsFullscreen(true);
             setIsLoading(false);
-            setSessions(prev =>
-              prev.map(s =>
-                s.id === currentSessionId
-                  ? { ...s, messages: [...existingMessages, userMessage] } // Remove the loading message
-                  : s
-              )
+            // Remove the placeholder message
+             setSessions(prev =>
+                prev.map(s =>
+                    s.id === currentSessionId
+                    ? { ...s, messages: s.messages.filter(m => m.id !== botMessageId)}
+                    : s
+                )
             );
             return;
         }
@@ -1201,7 +1203,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                             ) : <div></div>}
                         </div>
                         <div className="col-span-3 border-l">
-                            <InteractiveCanvas quiz={interactiveQuiz} onAnswer={() => {}} onSubmit={() => {}} />
+                            <InteractiveCanvas quiz={interactiveQuiz} onAnswer={() => {}} onSubmit={() => setIsFullscreen(false)} />
                         </div>
                     </div>
                 ) : (
