@@ -69,15 +69,12 @@ EXAMPLE 2
 *   Upcoming events: {{#each calendarEvents}}- {{this.title}} on {{this.date}} at {{this.time}} ({{this.type}}){{/each}}
 
 📝 CONVERSATION HISTORY (Most recent messages are most important):
-{{#each history}}
-{{role}}: {{content}}
-{{/each}}
+{{{historyText}}}
 
 Based on all of the above, give an **incredibly encouraging, best-friend style response**, strictly following all formatting rules.
 `,
   }
 );
-
 
 async function studyPlannerFlow(input: z.infer<typeof StudyPlannerInputSchema>): Promise<string> {
     const aiBuddyName = input.aiBuddyName || 'Tutorin';
@@ -90,9 +87,12 @@ async function studyPlannerFlow(input: z.infer<typeof StudyPlannerInputSchema>):
         ];
     }
     
+    // Manually format the history into a string.
+    const historyText = historyWithIntro.map(m => `${m.role}: ${m.content}`).join('\n');
+
     const { text } = await ai.generate({
         model: googleAI.model('gemini-2.5-flash'),
-        prompt: await prompt.render({ ...input, aiBuddyName, history: historyWithIntro }),
+        prompt: await prompt.render({ ...input, aiBuddyName, historyText }),
     });
 
     return text;
