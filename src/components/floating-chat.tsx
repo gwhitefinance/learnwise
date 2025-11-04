@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useRef, createContext, useContext } from 'react';
@@ -666,26 +667,24 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
   const handleSendMessage = async (prompt?: string) => {
     const messageContent = prompt || input;
     if (!messageContent.trim() || !user) return;
-    
+
     let currentSessionId = activeSessionId;
     let currentMessages: Message[] = [];
 
-    // If there is no active session, create one first.
     if (!activeSession) {
         const newId = await createNewSession(messageContent);
-        if (!newId) return; // Stop if session creation failed
+        if (!newId) return;
         currentSessionId = newId;
         currentMessages = [{ role: 'ai', content: `Hey ${user.displayName?.split(' ')[0] || 'there'}! How can I help?` }];
     } else {
         currentMessages = activeSession.messages;
     }
-    
+
     if (!currentSessionId) return;
 
     const userMessage: Message = { role: 'user', content: messageContent };
     const updatedMessages = [...currentMessages, userMessage];
-    
-    // Add user message and a placeholder for AI response
+
     const aiPlaceholderMessage: Message = { role: 'ai', content: '' };
     setSessions(sessions.map(s => s.id === currentSessionId ? { ...s, messages: [...updatedMessages, aiPlaceholderMessage] } : s));
 
@@ -693,69 +692,74 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
     setIsLoading(true);
 
     try {
-      const q = query(collection(db, "calendarEvents"), where("userId", "==", user.uid));
-      const querySnapshot = await getDocs(q);
-      const calendarEvents = querySnapshot.docs.map(doc => {
-          const data = doc.data() as CalendarEvent;
-          return { ...data, id: doc.id };
-      });
-      const learnerType = localStorage.getItem('learnerType');
-      const aiBuddyName = localStorage.getItem('aiBuddyName') || 'Tutorin';
+        const q = query(collection(db, "calendarEvents"), where("userId", "==", user.uid));
+        const querySnapshot = await getDocs(q);
+        const calendarEvents = querySnapshot.docs.map(doc => {
+            const data = doc.data() as CalendarEvent;
+            return { ...data, id: doc.id };
+        });
+        const learnerType = localStorage.getItem('learnerType');
+        const aiBuddyName = localStorage.getItem('aiBuddyName') || 'Tutorin';
 
-      const stream = await studyPlannerAction({
-        userName: user?.displayName?.split(' ')[0],
-        aiBuddyName: aiBuddyName,
-        history: updatedMessages,
-        learnerType: learnerType || undefined,
-        allCourses: courses.map(c => ({ id: c.id, name: c.name, description: c.description })),
-        courseContext: activeSession?.courseContext || undefined,
-        calendarEvents: calendarEvents.map(e => ({
-            id: e.id,
-            date: e.date,
-            title: e.title,
-            time: e.startTime,
-            type: e.type,
-            description: e.description,
-        })),
-      });
+        const stream = await studyPlannerAction({
+            userName: user?.displayName?.split(' ')[0],
+            aiBuddyName: aiBuddyName,
+            history: updatedMessages,
+            learnerType: learnerType || undefined,
+            allCourses: courses.map(c => ({ id: c.id, name: c.name, description: c.description })),
+            courseContext: activeSession?.courseContext || undefined,
+            calendarEvents: calendarEvents.map(e => ({
+                id: e.id,
+                date: e.date,
+                title: e.title,
+                time: e.startTime,
+                type: e.type,
+                description: e.description,
+            })),
+        });
 
-      let responseText = '';
-      const reader = stream.getReader();
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        responseText += value;
-        setSessions(prevSessions =>
-          prevSessions.map(s =>
-            s.id === currentSessionId
-              ? {
-                  ...s,
-                  messages: [
-                    ...updatedMessages,
-                    { role: 'ai', content: responseText },
-                  ],
-                }
-              : s
-          )
-        );
-      }
-      
-      setIsLoading(false);
-      
-      const sessionRef = doc(db, "chatSessions", currentSessionId);
-      await updateDoc(sessionRef, { messages: [...updatedMessages, { role: 'ai', content: responseText }], timestamp: Timestamp.now() });
+        let responseText = '';
+        const reader = stream.getReader();
+        const decoder = new TextDecoder();
+        
+        while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            
+            // value is a string, not a Uint8Array. No decoding needed.
+            responseText += value;
+            
+            setSessions(prevSessions =>
+                prevSessions.map(s =>
+                    s.id === currentSessionId
+                    ? {
+                        ...s,
+                        messages: [
+                            ...updatedMessages,
+                            { role: 'ai', content: responseText },
+                        ],
+                        }
+                    : s
+                )
+            );
+        }
 
-       if (!activeSession?.titleGenerated && updatedMessages.length <= 2) {
-          const { title } = await generateChatTitle({ messages: [...updatedMessages, { role: 'ai', content: responseText }] });
-          await updateDoc(sessionRef, { title, titleGenerated: true });
-      }
+        setIsLoading(false);
 
+        const sessionRef = doc(db, "chatSessions", currentSessionId);
+        await updateDoc(sessionRef, { messages: [...updatedMessages, { role: 'ai', content: responseText }], timestamp: Timestamp.now() });
+
+        if (!activeSession?.titleGenerated && updatedMessages.length <= 2) {
+            const { title } = await generateChatTitle({ messages: [...updatedMessages, { role: 'ai', content: responseText }] });
+            await updateDoc(sessionRef, { title, titleGenerated: true });
+        }
     } catch (error) {
-      console.error(error);
-       setSessions(sessions.map(s => s.id === currentSessionId ? activeSession! : s));
-       setIsLoading(false);
+        console.error(error);
+        setSessions(sessions.map(s => s.id === currentSessionId ? activeSession! : s));
+        setIsLoading(false);
     }
-  };
+};
+
 
   const handleStartChatWithPrompt = async (prompt: string) => {
     setIsOpen(true);
