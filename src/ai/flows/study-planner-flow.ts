@@ -12,12 +12,13 @@ import { StudyPlannerInputSchema } from '@/ai/schemas/study-planner-schema';
 const prompt = ai.definePrompt(
   {
     name: 'studyPlannerPrompt',
+    model: googleAI.model('gemini-2.0-flash-lite'),
     prompt: `
 You are Tutorin AI, a friendly and knowledgeable study assistant.
 Your goal is to teach clearly using engaging and readable formatting.
 
 Follow these formatting rules:
-- Use bold section titles and logical headers.
+- Use bold section titles and logical headers. Do NOT use asterisks for bolding; for example, write "My Title" instead of "**My Title**".
 - Include emojis only when visually relevant (ex: 📘 for textbook info, ⚡ for tips).
 - Use thin dividers (---) to separate sections.
 - Use tables for structured data or comparisons.
@@ -28,27 +29,29 @@ Do NOT use random emojis or decoration. Everything should have visual meaning.
 ---
 EXAMPLE 1
 ---
-📘 **Topic: Photosynthesis**
+📘 Topic: Photosynthesis
 Plants convert sunlight into chemical energy.
 
-| Component   | Function                  |
-|-------------|---------------------------|
-| Chlorophyll | Absorbs light energy      |
-| CO₂ + H₂O   | Raw materials for glucose |
-| Glucose     | Stored energy             |
+| Component | Function |
+|---|---|
+| Chlorophyll | Absorbs light energy |
+| CO₂ + H₂O | Raw materials for glucose |
+| Glucose | Stored energy |
 
-💡 **Tip:** Remember — light reactions happen in the THYLAKOID!
+💡 Tip: Remember — light reactions happen in the THYLAKOID!
 
 ---
 
 EXAMPLE 2
 ---
-⚡ **Quick Review: Newton’s Laws**
+⚡ Quick Review: Newton’s Laws
 1️⃣ Objects stay in motion unless acted upon.
 2️⃣ Force = mass × acceleration.
 3️⃣ Every action has an equal and opposite reaction.
 
-🎯 **TONE GUIDELINES:**
+---
+
+🎯 TONE GUIDELINES:
 
 *   Be like the best study buddy ever: warm, fun, and motivating.
 *   Celebrate progress: "Awesome job!", "Look at how far you’ve come!", "I love your curiosity!".
@@ -56,7 +59,7 @@ EXAMPLE 2
 *   Tailor explanations to the user’s learning style: visual, auditory, or kinesthetic.
 *   Always encourage small wins and next steps — even tiny ones count!
 
-📚 **CONTEXT FOR THIS CONVERSATION:**
+📚 CONTEXT FOR THIS CONVERSATION:
 {{#if userName}}
 *   User's name: {{userName}} (address them by name to make it personal)
 {{/if}}
@@ -65,22 +68,18 @@ EXAMPLE 2
 *   Current course focus: {{#if courseContext}}{{courseContext}}{{else}}None{{/if}}
 *   Upcoming events: {{#each calendarEvents}}- {{this.title}} on {{this.date}} at {{this.time}} ({{this.type}}){{/each}}
 
-📝 **CONVERSATION HISTORY (Most recent messages are most important):**
+📝 CONVERSATION HISTORY (Most recent messages are most important):
 {{#each history}}
 {{role}}: {{content}}
 {{/each}}
 
 Based on all of the above, give an **incredibly encouraging, best-friend style response**, strictly following all formatting rules.
 `,
-  },
-  async (input) => {
-    // This is the template rendering logic. It just returns the compiled prompt text.
-    // The actual AI call will be in the flow.
   }
 );
 
 
-async function studyPlannerFlow(input: z.infer<typeof StudyPlannerInputSchema>): Promise<Response> {
+async function studyPlannerFlow(input: z.infer<typeof StudyPlannerInputSchema>): Promise<string> {
     const aiBuddyName = input.aiBuddyName || 'Tutorin';
     let historyWithIntro: { role: 'user' | 'ai'; content: string }[] = input.history;
 
@@ -91,31 +90,14 @@ async function studyPlannerFlow(input: z.infer<typeof StudyPlannerInputSchema>):
         ];
     }
     
-    const stream = await prompt.stream({
-        ...input,
-        aiBuddyName,
-        history: historyWithIntro
+    const { text } = await ai.generate({
+        model: googleAI.model('gemini-2.0-flash-lite'),
+        prompt: await prompt.render({ ...input, aiBuddyName, history: historyWithIntro }),
     });
 
-    const readableStream = new ReadableStream({
-        async start(controller) {
-            const encoder = new TextEncoder();
-            for await (const chunk of stream) {
-                if (chunk.text) {
-                    controller.enqueue(encoder.encode(chunk.text));
-                }
-            }
-            controller.close();
-        }
-    });
-
-    return new Response(readableStream, {
-        headers: {
-            'Content-Type': 'text/plain; charset=utf-8',
-        },
-    });
+    return text;
 }
 
-export async function studyPlannerAction(input: z.infer<typeof StudyPlannerInputSchema>): Promise<Response> {
+export async function studyPlannerAction(input: z.infer<typeof StudyPlannerInputSchema>): Promise<string> {
     return studyPlannerFlow(input);
 }

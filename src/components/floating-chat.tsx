@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useRef, createContext, useContext } from 'react';
@@ -666,12 +667,11 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
 
   const handleSendMessage = async (prompt?: string) => {
     const messageContent = prompt || input;
-    if (!messageContent.trim() || !user || isLoading) return;
+    if (!messageContent.trim() || !user) return;
   
     let currentSessionId = activeSessionId;
     let currentMessages: Message[] = [];
   
-    // Ensure a session exists before sending a message
     if (!activeSession) {
       const newId = await createNewSession(messageContent);
       if (!newId) return;
@@ -686,22 +686,19 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
     const userMessage: Message = { role: 'user', content: messageContent };
     const updatedMessages = [...currentMessages, userMessage];
     
-    // Immediately update the local state to show the user's message
     setSessions(prevSessions =>
       prevSessions.map(s => s.id === currentSessionId ? { ...s, messages: updatedMessages } : s)
     );
     
     setInput('');
     setIsLoading(true);
-  
-    // Add a placeholder for the AI's streaming response
-    setSessions(prevSessions =>
-      prevSessions.map(s =>
-        s.id === currentSessionId
-          ? { ...s, messages: [...updatedMessages, { role: 'ai', content: '', streaming: true }] }
-          : s
-      )
-    );
+    
+    const aiMessageId = Date.now();
+    setSessions(prev => prev.map(s => 
+      s.id === currentSessionId 
+        ? { ...s, messages: [...updatedMessages, { role: 'ai', content: '', streaming: true, id: aiMessageId } as any] }
+        : s
+    ));
   
     try {
         const q = query(collection(db, "calendarEvents"), where("userId", "==", user.uid));
@@ -713,7 +710,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
         const learnerType = localStorage.getItem('learnerType');
         const aiBuddyName = localStorage.getItem('aiBuddyName') || 'Tutorin';
 
-        const response = await studyPlannerAction({
+        const responseText = await studyPlannerAction({
             userName: user?.displayName?.split(' ')[0],
             aiBuddyName: aiBuddyName,
             history: updatedMessages,
@@ -730,32 +727,24 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
             })),
         });
 
-        if (!response.body) {
-            throw new Error("The response body is null.");
+        setIsLoading(false);
+        const fullResponse = responseText;
+
+        for (let i = 0; i < fullResponse.length; i++) {
+          await new Promise(resolve => setTimeout(resolve, 10)); // Adjust speed here
+          
+          setSessions(prev => prev.map(s => {
+            if (s.id === currentSessionId) {
+                const lastMsgIndex = s.messages.length - 1;
+                const updatedMsgs = [...s.messages];
+                updatedMsgs[lastMsgIndex] = { ...updatedMsgs[lastMsgIndex], content: fullResponse.slice(0, i + 1), streaming: true };
+                return { ...s, messages: updatedMsgs };
+            }
+            return s;
+          }));
         }
 
-        const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
-        let accumulatedResponse = '';
-
-        while (true) {
-            const { value, done } = await reader.read();
-            if (done) break;
-            
-            accumulatedResponse += value;
-            
-            setSessions(prev => prev.map(s => {
-                if (s.id === currentSessionId) {
-                    const lastMsgIndex = s.messages.length - 1;
-                    const updatedMsgs = [...s.messages];
-                    updatedMsgs[lastMsgIndex] = { ...updatedMsgs[lastMsgIndex], content: accumulatedResponse, streaming: true };
-                    return { ...s, messages: updatedMsgs };
-                }
-                return s;
-            }));
-        }
-      
-        // Finalize message
-        const finalMessages = [...updatedMessages, { role: 'ai', content: accumulatedResponse, streaming: false }];
+        const finalMessages = [...updatedMessages, { role: 'ai', content: fullResponse, streaming: false }];
         setSessions(prev => prev.map(s =>
             s.id === currentSessionId ? { ...s, messages: finalMessages } : s
         ));
@@ -777,7 +766,6 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
           ? { ...s, messages: [...updatedMessages, errorMessage] }
           : s
       ));
-    } finally {
       setIsLoading(false);
     }
   };
