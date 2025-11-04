@@ -601,7 +601,7 @@ const InteractiveCanvas = ({ quiz, onAnswer, onSubmit }: { quiz: GenerateQuizOut
     };
 
     return (
-        <div className="bg-muted h-full flex flex-col p-6 rounded-2xl">
+        <div className="bg-muted/30 h-full flex flex-col p-6 rounded-l-2xl">
             <header className="flex justify-between items-center mb-6">
                 <h3 className="font-semibold flex items-center gap-2"><HelpCircle size={18}/> Practice Quiz</h3>
                  <div className="flex items-center gap-2">
@@ -685,17 +685,17 @@ const InteractiveCanvas = ({ quiz, onAnswer, onSubmit }: { quiz: GenerateQuizOut
 
 const QuizCard = ({ title, timestamp, onOpen }: { title: string, timestamp: number, onOpen: () => void }) => {
     return (
-        <div className="bg-gray-800 text-white p-4 rounded-lg flex justify-between items-center">
+        <div className="bg-muted p-4 rounded-lg flex justify-between items-center border">
             <div className="flex items-center gap-3">
-                <div className="bg-gray-700 p-2 rounded-lg">
-                    <HelpCircle className="w-5 h-5 text-gray-300" />
+                <div className="bg-background p-2 rounded-lg border">
+                    <HelpCircle className="w-5 h-5 text-muted-foreground" />
                 </div>
                 <div>
                     <p className="font-semibold">{title}</p>
-                    <p className="text-xs text-gray-400">{format(new Date(timestamp), "MMM d, h:mm a")}</p>
+                    <p className="text-xs text-muted-foreground">{format(new Date(timestamp), "MMM d, h:mm a")}</p>
                 </div>
             </div>
-            <Button size="sm" className="bg-blue-500 hover:bg-blue-600 text-white rounded-full" onClick={onOpen}>
+            <Button size="sm" className="bg-primary hover:bg-primary/90 text-white rounded-full" onClick={onOpen}>
                 Open
             </Button>
         </div>
