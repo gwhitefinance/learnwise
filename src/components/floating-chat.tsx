@@ -1014,160 +1014,123 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                 transition={{ duration: 0.2 }}
                 className={cn(
                     "bg-card rounded-2xl shadow-2xl border flex flex-col origin-bottom-right",
-                    isFullscreen ? "w-full h-full" : "w-96 h-[600px]"
+                    isFullscreen 
+                        ? "fixed inset-0 z-50" 
+                        : "w-96 h-[700px]"
                 )}
             >
-                <div className="flex-1 overflow-hidden flex flex-col">
-                    {activeTab === 'home' && <ChatHomeScreen sessions={sessions} onNavigate={setActiveTab} onStartNewChat={createNewSession} onSelectSession={(id) => { setActiveSessionId(id); setActiveTab('conversation'); }} onStartChatWithPrompt={handleStartChatWithPrompt} customizations={customizations} />}
-                    {activeTab === 'ai tools' && <AIToolsTab onStartChatWithPrompt={handleStartChatWithPrompt} />}
-                    {activeTab === 'my stats' && <MyStatsTab />}
-                    {activeTab === 'conversation' && (
-                        <div className="flex-1 flex flex-row h-full overflow-hidden">
-                            <div className="flex-1 flex flex-col min-w-0">
-                                <header className="p-2 border-b flex items-center justify-between gap-2">
-                                    <div className="flex-1 flex items-center gap-2 overflow-hidden">
-                                        <div className="flex-1 truncate">
-                                            <h3 className="font-semibold text-sm truncate">{activeSession?.title || 'AI Buddy'}</h3>
-                                            {activeSession?.courseContext && <p className="text-xs text-muted-foreground truncate">Focus: {courses.find(c => c.id === activeSession.courseId)?.name}</p>}
-                                        </div>
-                                    </div>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsFullscreen(!isFullscreen)}>
-                                        {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
-                                    </Button>
-                                     <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
-                                                <MoreVertical className="h-4 w-4" />
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end">
-                                             <DropdownMenuSub>
-                                                <DropdownMenuSubTrigger>
-                                                    <BrainCircuit className="mr-2 h-4 w-4" />
-                                                    <span>Focus on Course</span>
-                                                </DropdownMenuSubTrigger>
-                                                <DropdownMenuPortal>
-                                                    <DropdownMenuSubContent>
-                                                        <DropdownMenuItem onSelect={() => handleSetCourseFocus(null)}>
-                                                            { !activeSession?.courseId && <CheckCircle className="mr-2 h-4 w-4" />}
-                                                            <span>None</span>
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuSeparator />
-                                                        {courses.map(course => (
-                                                            <DropdownMenuItem key={course.id} onSelect={() => handleSetCourseFocus(course)}>
-                                                                { activeSession?.courseId === course.id && <CheckCircle className="mr-2 h-4 w-4" />}
-                                                                {course.name}
-                                                            </DropdownMenuItem>
-                                                        ))}
-                                                    </DropdownMenuSubContent>
-                                                </DropdownMenuPortal>
-                                            </DropdownMenuSub>
-                                             <DropdownMenuItem onSelect={handleExportConversation}>
-                                                <Download className="mr-2 h-4 w-4" />
-                                                <span>Export Conversation</span>
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem onSelect={handleOpenNoteDialog}>
-                                                <NotebookText className="mr-2 h-4 w-4" />
-                                                <span>Save as Note</span>
-                                            </DropdownMenuItem>
-                                            <DropdownMenuSeparator />
-                                            <AlertDialog>
-                                                <AlertDialogTrigger asChild>
-                                                     <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                                        <Eraser className="mr-2 h-4 w-4"/> Clear Conversation
-                                                    </DropdownMenuItem>
-                                                </AlertDialogTrigger>
-                                                <AlertDialogContent>
-                                                    <AlertDialogHeader><AlertDialogTitle>Clear Conversation?</AlertDialogTitle><AlertDialogDescription>This will remove all messages from this chat session.</AlertDialogDescription></AlertDialogHeader>
-                                                    <AlertDialogFooter>
-                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                        <AlertDialogAction onClick={handleClearConversation}>Clear</AlertDialogAction>
-                                                    </AlertDialogFooter>
-                                                </AlertDialogContent>
-                                            </AlertDialog>
-                                            <AlertDialog>
-                                                <AlertDialogTrigger asChild>
-                                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
-                                                        <Trash2 className="mr-2 h-4 w-4"/> Delete Chat
-                                                    </DropdownMenuItem>
-                                                </AlertDialogTrigger>
-                                                <AlertDialogContent>
-                                                    <AlertDialogHeader>
-                                                        <AlertDialogTitle>Are you absolutely sure you want to delete this chat?</AlertDialogTitle>
-                                                        <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
-                                                    </AlertDialogHeader>
-                                                    <AlertDialogFooter>
-                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                        <AlertDialogAction onClick={() => activeSessionId && handleDeleteSession(activeSessionId)}>Delete</AlertDialogAction>
-                                                    </AlertDialogFooter>
-                                                </AlertDialogContent>
-                                            </AlertDialog>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                </header>
-                                <ScrollArea className="flex-1" viewportRef={scrollAreaRef}>
-                                    <div className="p-4 space-y-4">
-                                        {activeSession?.messages.map((msg, index) => (
-                                            <div key={msg.id || index} className={cn("flex items-end gap-2", msg.role === 'user' ? 'justify-end' : '')}>
-                                                {msg.role === 'ai' && (
-                                                     <Avatar className="h-10 w-10">
-                                                        <AIBuddy
-                                                            className="w-full h-full"
-                                                            color={customizations.color}
-                                                            hat={customizations.hat}
-                                                            shirt={customizations.shirt}
-                                                            shoes={customizations.shoes}
-                                                        />
-                                                    </Avatar>
-                                                )}
-                                                <div className={cn(
-                                                    "p-3 rounded-2xl max-w-[80%] text-sm prose dark:prose-invert prose-p:my-0 prose-headings:my-0 prose-table:my-0",
-                                                    msg.role === 'user' ? "bg-primary text-primary-foreground rounded-br-none" : "bg-muted rounded-bl-none"
-                                                )}>
-                                                     {msg.streaming && msg.content === '' ? (
-                                                        <div className="flex items-center gap-2 text-muted-foreground">
-                                                            <p>Tutorin's Thinking...</p>
-                                                        </div>
-                                                    ) : (
-                                                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
-                                                    )}
-                                                </div>
+                {isFullscreen ? (
+                    <div className="flex-1 grid grid-cols-2 h-full overflow-hidden">
+                        <div className="flex flex-col h-full overflow-hidden">
+                           {activeTab === 'conversation' ? (
+                                <div className="flex-1 flex flex-col h-full overflow-hidden">
+                                    <header className="p-2 border-b flex items-center justify-between gap-2">
+                                        <div className="flex-1 flex items-center gap-2 overflow-hidden">
+                                            <div className="flex-1 truncate">
+                                                <h3 className="font-semibold text-sm truncate">{activeSession?.title || 'AI Buddy'}</h3>
+                                                {activeSession?.courseContext && <p className="text-xs text-muted-foreground truncate">Focus: {courses.find(c => c.id === activeSession.courseId)?.name}</p>}
                                             </div>
-                                        ))}
-                                    </div>
-                                </ScrollArea>
-                                <footer className="p-4 border-t">
-                                    <div className="relative">
-                                        <Input 
-                                            placeholder="Ask anything..."
-                                            className="pr-20 rounded-full"
-                                            value={input}
-                                            onChange={e => setInput(e.target.value)}
-                                            onKeyDown={e => e.key === 'Enter' && handleSendMessage()}
-                                            disabled={isLoading}
-                                        />
-                                        <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={openChatWithVoice}>
-                                                <Mic className="h-4 w-4"/>
-                                            </Button>
-                                            <Button size="icon" className="h-8 w-8 rounded-full" onClick={() => handleSendMessage()} disabled={isLoading}>
-                                                {isLoading ? <Loader2 className="h-4 w-4 animate-spin"/> : <Send className="h-4 w-4" />}
-                                            </Button>
                                         </div>
-                                    </div>
-                                </footer>
+                                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsFullscreen(false)}>
+                                            <Minimize className="h-4 w-4" />
+                                        </Button>
+                                    </header>
+                                    <ScrollArea className="flex-1" viewportRef={scrollAreaRef}>
+                                        <div className="p-4 space-y-4">
+                                            {/* Chat messages */}
+                                            {activeSession?.messages.map((msg, index) => (
+                                                <div key={msg.id || index} className={cn("flex items-end gap-2", msg.role === 'user' ? 'justify-end' : '')}>
+                                                     {msg.role === 'ai' && <Avatar className="h-10 w-10"><AIBuddy className="w-full h-full" {...customizations} /></Avatar>}
+                                                    <div className={cn( "p-3 rounded-2xl max-w-[80%] text-sm prose dark:prose-invert prose-p:my-0 prose-headings:my-0 prose-table:my-0", msg.role === 'user' ? "bg-primary text-primary-foreground rounded-br-none" : "bg-muted rounded-bl-none" )}>
+                                                        {msg.streaming && msg.content === '' ? '...' : <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </ScrollArea>
+                                    <footer className="p-4 border-t">
+                                        <div className="relative">
+                                            <Input placeholder="Ask anything..." className="pr-12 rounded-full" value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSendMessage()} disabled={isLoading} />
+                                            <Button size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full" onClick={() => handleSendMessage()} disabled={isLoading}><Send className="h-4 w-4" /></Button>
+                                        </div>
+                                    </footer>
+                                </div>
+                            ) : <div></div>}
+                        </div>
+                        <div className="border-l bg-muted/30">
+                            {/* Interactive Canvas Placeholder */}
+                           <div className="flex items-center justify-center h-full">
+                                <p className="text-muted-foreground">Interactive Canvas</p>
                             </div>
                         </div>
-                    )}
-                </div>
+                    </div>
+                ) : (
+                    <>
+                        <div className="flex-1 overflow-hidden flex flex-col">
+                            {activeTab === 'home' && <ChatHomeScreen sessions={sessions} onNavigate={setActiveTab} onStartNewChat={createNewSession} onSelectSession={(id) => { setActiveSessionId(id); setActiveTab('conversation'); }} onStartChatWithPrompt={handleStartChatWithPrompt} customizations={customizations} />}
+                            {activeTab === 'ai tools' && <AIToolsTab onStartChatWithPrompt={handleStartChatWithPrompt} />}
+                            {activeTab === 'my stats' && <MyStatsTab />}
+                            {activeTab === 'conversation' && (
+                                <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+                                     <header className="p-2 border-b flex items-center justify-between gap-2">
+                                        <div className="flex-1 flex items-center gap-2 overflow-hidden">
+                                            <div className="flex-1 truncate">
+                                                <h3 className="font-semibold text-sm truncate">{activeSession?.title || 'AI Buddy'}</h3>
+                                                {activeSession?.courseContext && <p className="text-xs text-muted-foreground truncate">Focus: {courses.find(c => c.id === activeSession.courseId)?.name}</p>}
+                                            </div>
+                                        </div>
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0"><MoreVertical className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                                <DropdownMenuSub>
+                                                    <DropdownMenuSubTrigger><BrainCircuit className="mr-2 h-4 w-4" /><span>Focus on Course</span></DropdownMenuSubTrigger>
+                                                    <DropdownMenuPortal><DropdownMenuSubContent><DropdownMenuItem onSelect={() => handleSetCourseFocus(null)}>{ !activeSession?.courseId && <CheckCircle className="mr-2 h-4 w-4" />}<span>None</span></DropdownMenuItem><DropdownMenuSeparator />{courses.map(course => (<DropdownMenuItem key={course.id} onSelect={() => handleSetCourseFocus(course)}>{ activeSession?.courseId === course.id && <CheckCircle className="mr-2 h-4 w-4" />}{course.name}</DropdownMenuItem>))}</DropdownMenuSubContent></DropdownMenuPortal>
+                                                </DropdownMenuSub>
+                                                <DropdownMenuItem onSelect={handleExportConversation}><Download className="mr-2 h-4 w-4" /><span>Export Conversation</span></DropdownMenuItem>
+                                                <DropdownMenuItem onSelect={handleOpenNoteDialog}><NotebookText className="mr-2 h-4 w-4" /><span>Save as Note</span></DropdownMenuItem>
+                                                <DropdownMenuSeparator />
+                                                <AlertDialog><AlertDialogTrigger asChild><DropdownMenuItem onSelect={(e) => e.preventDefault()}><Eraser className="mr-2 h-4 w-4"/> Clear Conversation</DropdownMenuItem></AlertDialogTrigger><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Clear Conversation?</AlertDialogTitle><AlertDialogDescription>This will remove all messages from this chat session.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={handleClearConversation}>Clear</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
+                                                <AlertDialog><AlertDialogTrigger asChild><DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive"><Trash2 className="mr-2 h-4 w-4"/> Delete Chat</DropdownMenuItem></AlertDialogTrigger><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Are you absolutely sure you want to delete this chat?</AlertDialogTitle><AlertDialogDescription>This action cannot be undone.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => activeSessionId && handleDeleteSession(activeSessionId)}>Delete</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </header>
+                                    <ScrollArea className="flex-1" viewportRef={scrollAreaRef}>
+                                        <div className="p-4 space-y-4">
+                                            {activeSession?.messages.map((msg, index) => (
+                                                <div key={msg.id || index} className={cn("flex items-end gap-2", msg.role === 'user' ? 'justify-end' : '')}>
+                                                    {msg.role === 'ai' && (<Avatar className="h-10 w-10"><AIBuddy className="w-full h-full" {...customizations} /></Avatar>)}
+                                                    <div className={cn( "p-3 rounded-2xl max-w-[80%] text-sm prose dark:prose-invert prose-p:my-0 prose-headings:my-0 prose-table:my-0", msg.role === 'user' ? "bg-primary text-primary-foreground rounded-br-none" : "bg-muted rounded-bl-none" )}>
+                                                         {msg.streaming && msg.content === '' ? '...' : <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </ScrollArea>
+                                    <footer className="p-4 border-t space-y-2">
+                                        <Button variant="outline" size="sm" className="w-full" onClick={() => setIsFullscreen(true)}>
+                                            <Sparkles className="h-4 w-4 mr-2"/>
+                                            Interactive Mode
+                                        </Button>
+                                        <div className="relative">
+                                            <Input placeholder="Ask anything..." className="pr-12 rounded-full" value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSendMessage()} disabled={isLoading} />
+                                            <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                                                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={openChatWithVoice}><Mic className="h-4 w-4"/></Button>
+                                                <Button size="icon" className="h-8 w-8 rounded-full" onClick={() => handleSendMessage()} disabled={isLoading}><Send className="h-4 w-4" /></Button>
+                                            </div>
+                                        </div>
+                                    </footer>
+                                </div>
+                            )}
+                        </div>
 
-                <div className="border-t p-2 flex justify-around bg-card rounded-b-2xl">
-                   <TabButton name="Home" icon={<Home />} currentTab={activeTab} setTab={setActiveTab} />
-                   <TabButton name="Conversation" icon={<MessageSquare />} currentTab={activeTab} setTab={setActiveTab} />
-                   <TabButton name="AI Tools" icon={<Sparkles />} currentTab={activeTab} setTab={setActiveTab} />
-                   <TabButton name="My Stats" icon={<Award />} currentTab={activeTab} setTab={setActiveTab} />
-                </div>
-
+                        <div className="border-t p-2 flex justify-around bg-card rounded-b-2xl">
+                           <TabButton name="Home" icon={<Home />} currentTab={activeTab} setTab={setActiveTab} />
+                           <TabButton name="Conversation" icon={<MessageSquare />} currentTab={activeTab} setTab={setActiveTab} />
+                           <TabButton name="AI Tools" icon={<Sparkles />} currentTab={activeTab} setTab={setActiveTab} />
+                           <TabButton name="My Stats" icon={<Award />} currentTab={activeTab} setTab={setActiveTab} />
+                        </div>
+                    </>
+                )}
             </motion.div>
         )}
     </AnimatePresence>
@@ -1178,10 +1141,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
       {children}
       {!isHidden && (
         isEmbedded ? ChatComponent : (
-            <div className={cn(
-                "fixed bottom-6 right-6 z-50",
-                isFullscreen && "inset-0 bottom-0 right-0 w-full h-full"
-            )}>
+            <div className="fixed bottom-6 right-6 z-50">
                 {ChatComponent}
                 <div className="relative mt-4 flex items-end justify-end">
                     <AnimatePresence>
