@@ -12,7 +12,7 @@ import { StudyPlannerInputSchema } from '@/ai/schemas/study-planner-schema';
 const prompt = ai.definePrompt(
   {
     name: 'studyPlannerPrompt',
-    model: googleAI.model('gemini-2.0-flash-lite'),
+    model: googleAI.model('gemini-2.5-flash'),
     prompt: `
 You are Tutorin AI, a friendly and knowledgeable study assistant.
 Your goal is to teach clearly using engaging and readable formatting.
@@ -91,7 +91,7 @@ async function studyPlannerFlow(input: z.infer<typeof StudyPlannerInputSchema>):
     }
     
     const { text } = await ai.generate({
-        model: googleAI.model('gemini-2.0-flash-lite'),
+        model: googleAI.model('gemini-2.5-flash'),
         prompt: await prompt.render({ ...input, aiBuddyName, history: historyWithIntro }),
     });
 
