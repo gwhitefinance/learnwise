@@ -17,7 +17,7 @@ const prompt = ai.definePrompt({
     },
     prompt: `You are an expert instructional designer who creates engaging, comprehensive, and in-depth educational content.
 
-    Your task is to generate the content for a single chapter, including both text paragraphs and small "Check Your Understanding" questions, and devise a relevant interactive activity.
+    Your task is to generate the content for a single chapter, including text paragraphs, "Check Your Understanding" questions, a relevant interactive activity, and a visually representative image.
 
     Course Context:
     - Course Name: {{courseName}}
@@ -32,6 +32,8 @@ const prompt = ai.definePrompt({
     5.  **Mathematical Notation**: For ALL mathematical expressions, especially exponents and fractions, use proper notation. For example, use 'x²' instead of 'x^2', and use Unicode characters like '½' for fractions instead of '1/2'.
     6.  **Overall Length**: The entire chapter, combining all text and question blocks, should feel comprehensive and educational.
 
+    **Image Instruction**: Find a single, high-quality, and relevant image URL from a royalty-free source like Unsplash or Pexels that visually summarizes the chapter's main topic. For example, for a chapter on "The Solar System", a good URL would be 'https://images.unsplash.com/photo-1614726353225-7d75225c8686'. The 'imageUrl' field should be this direct URL.
+
     The user is a {{learnerType}} learner. Tailor the content and the interactive activity accordingly.
     
     **Activity Instruction**: The 'activity' you generate MUST be short, fun, and simple (1-2 sentences). It should be a small, engaging task that helps reinforce the chapter's main point.
@@ -42,6 +44,7 @@ const prompt = ai.definePrompt({
 
     First, generate the array of 'content' blocks following the critical instructions.
     Second, devise the short and fun 'activity'.
+    Third, find and provide the 'imageUrl'.
     `,
 });
 

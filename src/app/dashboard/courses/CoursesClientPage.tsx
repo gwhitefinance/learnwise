@@ -24,7 +24,7 @@ import AudioPlayer from '@/components/audio-player';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { generateInitialCourseAndRoadmap, generateQuizFromModule, generateTutorResponse, generateChapterContent, generateMidtermExam, generateRoadmap, generateCourseFromUrl, generateSummary, startVideoGenerationFlow } from '@/lib/actions';
+import { generateInitialCourseAndRoadmap, generateQuizFromModule, generateTutorResponse, generateChapterContent, generateMidtermExam, generateRoadmap, generateCourseFromUrl, generateSummary, generateVideo } from '@/lib/actions';
 import { RewardContext } from '@/context/RewardContext';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import Loading from './loading';
@@ -72,6 +72,7 @@ type Chapter = {
     title: string;
     content?: ContentBlock[] | string;
     activity?: string;
+    imageUrl?: string;
 };
 
 interface ChatMessage {
@@ -1018,7 +1019,7 @@ function CoursesComponent() {
       setGeneratedVideoUrl(null);
       
       try {
-        const result = await startVideoGenerationFlow({
+        const result = await generateVideo({
             episodeContent: content,
         });
         
@@ -1614,72 +1615,79 @@ function CoursesComponent() {
                             <Skeleton className="h-4 w-5/6" />
                         </div>
                       ) : currentChapter.content ? (
-                         <div 
-                            ref={contentRef}
-                            onMouseUp={handleMouseUp}
-                            className="text-muted-foreground text-lg whitespace-pre-wrap leading-relaxed space-y-6"
-                         >
-                            {Array.isArray(currentChapter.content) ? (
-                                currentChapter.content.map((block, index) => {
-                                    if (block.type === 'text') {
-                                        return <p key={index}>{block.content}</p>;
-                                    }
-                                    if (block.type === 'question' && block.question && block.options) {
-                                        const key = `${currentChapter.id}-${index}`;
-                                        const state = inlineQuizStates[key] || {};
-                                        return (
-                                            <Card key={key} className="bg-muted/50 my-8">
-                                                <CardHeader>
-                                                    <CardTitle className="text-lg flex items-center gap-2"><Lightbulb size={18}/> Check Your Understanding</CardTitle>
-                                                </CardHeader>
-                                                <CardContent>
-                                                    <p className="font-semibold mb-4">{block.question}</p>
-                                                     <RadioGroup 
-                                                        value={state.selectedAnswer} 
-                                                        onValueChange={(val) => handleInlineAnswerChange(index, val)}
-                                                        disabled={!!state.feedback}
-                                                    >
-                                                        <div className="space-y-2">
-                                                            {block.options.map((opt, i) => {
-                                                                const isCorrect = opt === block.correctAnswer;
-                                                                const isSelected = opt === state.selectedAnswer;
-                                                                return (
-                                                                     <Label key={i} htmlFor={`check-${index}-${i}`} className={cn(
-                                                                        "flex items-center gap-4 p-3 rounded-lg border transition-all",
-                                                                        state.feedback === null && (isSelected ? "border-primary bg-primary/10" : "border-border hover:bg-muted cursor-pointer"),
-                                                                        state.feedback && isCorrect && "border-green-500 bg-green-500/10",
-                                                                        state.feedback && isSelected && !isCorrect && "border-red-500 bg-red-500/10",
-                                                                    )}>
-                                                                        <RadioGroupItem value={opt} id={`check-${index}-${i}`} />
-                                                                        <span>{opt}</span>
-                                                                        {state.feedback && isCorrect && <CheckCircle className="h-5 w-5 text-green-500 ml-auto"/>}
-                                                                        {state.feedback && isSelected && !isCorrect && <XCircle className="h-5 w-5 text-red-500 ml-auto"/>}
-                                                                    </Label>
-                                                                )
-                                                            })}
-                                                        </div>
-                                                    </RadioGroup>
-                                                    <div className="mt-4 flex justify-end">
-                                                        {state.feedback ? (
-                                                            <p className={cn("text-sm font-semibold", state.feedback === 'correct' ? 'text-green-600' : 'text-red-600')}>
-                                                                {state.feedback === 'correct' ? 'Correct!' : `Not quite. The correct answer is: ${block.correctAnswer}`}
-                                                            </p>
-                                                        ) : (
-                                                            <Button size="sm" onClick={() => handleCheckInlineAnswer(index, block)} disabled={!state.selectedAnswer}>
-                                                                Check Answer
-                                                            </Button>
-                                                        )}
-                                                    </div>
-                                                </CardContent>
-                                            </Card>
-                                        );
-                                    }
-                                    return null;
-                                })
-                            ) : (
-                                <p>{currentChapter.content}</p>
+                         <>
+                            {currentChapter.imageUrl && (
+                                <div className="aspect-video w-full relative overflow-hidden rounded-lg">
+                                    <Image src={currentChapter.imageUrl} alt={currentChapter.title} layout="fill" objectFit="cover" />
+                                </div>
                             )}
-                        </div>
+                             <div 
+                                ref={contentRef}
+                                onMouseUp={handleMouseUp}
+                                className="text-muted-foreground text-lg whitespace-pre-wrap leading-relaxed space-y-6"
+                             >
+                                {Array.isArray(currentChapter.content) ? (
+                                    currentChapter.content.map((block, index) => {
+                                        if (block.type === 'text') {
+                                            return <p key={index}>{block.content}</p>;
+                                        }
+                                        if (block.type === 'question' && block.question && block.options) {
+                                            const key = `${currentChapter.id}-${index}`;
+                                            const state = inlineQuizStates[key] || {};
+                                            return (
+                                                <Card key={key} className="bg-muted/50 my-8">
+                                                    <CardHeader>
+                                                        <CardTitle className="text-lg flex items-center gap-2"><Lightbulb size={18}/> Check Your Understanding</CardTitle>
+                                                    </CardHeader>
+                                                    <CardContent>
+                                                        <p className="font-semibold mb-4">{block.question}</p>
+                                                        <RadioGroup 
+                                                            value={state.selectedAnswer} 
+                                                            onValueChange={(val) => handleInlineAnswerChange(index, val)}
+                                                            disabled={!!state.feedback}
+                                                        >
+                                                            <div className="space-y-2">
+                                                                {block.options.map((opt, i) => {
+                                                                    const isCorrect = opt === block.correctAnswer;
+                                                                    const isSelected = opt === state.selectedAnswer;
+                                                                    return (
+                                                                        <Label key={i} htmlFor={`check-${index}-${i}`} className={cn(
+                                                                            "flex items-center gap-4 p-3 rounded-lg border transition-all",
+                                                                            state.feedback === null && (isSelected ? "border-primary bg-primary/10" : "border-border hover:bg-muted cursor-pointer"),
+                                                                            state.feedback && isCorrect && "border-green-500 bg-green-500/10",
+                                                                            state.feedback && isSelected && !isCorrect && "border-red-500 bg-red-500/10",
+                                                                        )}>
+                                                                            <RadioGroupItem value={opt} id={`check-${index}-${i}`} />
+                                                                            <span>{opt}</span>
+                                                                            {state.feedback && isCorrect && <CheckCircle className="h-5 w-5 text-green-500 ml-auto"/>}
+                                                                            {state.feedback && isSelected && !isCorrect && <XCircle className="h-5 w-5 text-red-500 ml-auto"/>}
+                                                                        </Label>
+                                                                    )
+                                                                })}
+                                                            </div>
+                                                        </RadioGroup>
+                                                        <div className="mt-4 flex justify-end">
+                                                            {state.feedback ? (
+                                                                <p className={cn("text-sm font-semibold", state.feedback === 'correct' ? 'text-green-600' : 'text-red-600')}>
+                                                                    {state.feedback === 'correct' ? 'Correct!' : `Not quite. The correct answer is: ${block.correctAnswer}`}
+                                                                </p>
+                                                            ) : (
+                                                                <Button size="sm" onClick={() => handleCheckInlineAnswer(index, block)} disabled={!state.selectedAnswer}>
+                                                                    Check Answer
+                                                                </Button>
+                                                            )}
+                                                        </div>
+                                                    </CardContent>
+                                                </Card>
+                                            );
+                                        }
+                                        return null;
+                                    })
+                                ) : (
+                                    <p>{currentChapter.content}</p>
+                                )}
+                            </div>
+                        </>
                        ) : (
                          <div className="text-center p-8 border-2 border-dashed rounded-lg">
                              <h3 className="text-lg font-semibold">This chapter's content hasn't been generated yet.</h3>
