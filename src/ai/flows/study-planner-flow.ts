@@ -7,6 +7,8 @@ import { ai } from '@/ai/genkit';
 import { googleAI } from '@genkit-ai/google-genai';
 import { z } from 'zod';
 import { StudyPlannerInputSchema } from '@/ai/schemas/study-planner-schema';
+import { Readable } from 'stream';
+
 
 /**
  * Define the Tutorin AI prompt with a best-friend, motivational tone.
@@ -37,7 +39,7 @@ Hey there! 🌞 Let's dive into how plants turn sunlight into energy — it’s 
 | Component   | Function                  |
 | ----------- | ------------------------- |
 | Chlorophyll | Absorbs sunlight energy   |
-| CO₂ + H₂O   | Raw materials for glucose |
+| CO₂ + H₂O     | Raw materials for glucose |
 | Glucose     | Stored energy             |
 
 💡 Tip: You’ve got this! Remember — light reactions happen in the THYLAKOID. Keep imagining it step by step and it’ll all click. 🚀
@@ -73,14 +75,12 @@ Based on all of the above, give an **incredibly encouraging, best-friend style r
  * Main flow to handle study planner interactions.
  */
 async function studyPlannerFlow(input: z.infer<typeof StudyPlannerInputSchema>): Promise<ReadableStream<string>> {
-    const aiBuddyName = input.aiBuddyName || 'Tutorin';
-
     let historyWithIntro: { role: 'user' | 'ai'; content: string }[] = input.history;
 
     // Insert introductory AI message if this is the start of the conversation
     if (input.history.length <= 1) {
         historyWithIntro = [
-            { role: 'ai', content: `Hey! I'm ${aiBuddyName}, your personal AI study buddy! 🌟 Let's crush this together. What should we tackle first?` },
+            { role: 'ai', content: `Hey! I'm ${input.aiBuddyName || 'Tutorin'}, your personal AI study buddy! 🌟 Let's crush this together. What should we tackle first?` },
             ...input.history.filter(m => m.role === 'user')
         ];
     }
@@ -89,8 +89,9 @@ async function studyPlannerFlow(input: z.infer<typeof StudyPlannerInputSchema>):
         ...input,
         history: historyWithIntro
     });
-
-    const textStream = new ReadableStream({
+    
+    // Convert the Genkit stream to a standard ReadableStream
+    const readableStream = new ReadableStream({
         async start(controller) {
             for await (const chunk of stream) {
                 const text = chunk.text;
@@ -102,7 +103,7 @@ async function studyPlannerFlow(input: z.infer<typeof StudyPlannerInputSchema>):
         }
     });
 
-    return textStream;
+    return readableStream;
 }
 
 /**
