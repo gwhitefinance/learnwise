@@ -52,30 +52,22 @@ Plants convert sunlight into chemical energy.
 
 export async function studyPlannerAction(input: z.infer<typeof StudyPlannerInputSchema>): Promise<any> {
     const aiBuddyName = input.aiBuddyName || 'Tutorin';
-    let historyWithIntro: { role: 'user' | 'ai'; content: string }[] = input.history;
+    
+    // Determine the prompt based on history
+    const prompt = input.history.length === 0 
+        ? `Hey! I'm ${aiBuddyName}, your personal AI study buddy! 🌟 Let's tackle your studies together step by step. What should we start with today?`
+        : input.history[input.history.length - 1]?.content;
 
-    if (input.history.length === 0) {
-      historyWithIntro = [
-        { role: 'ai', content: `Hey! I'm ${aiBuddyName}, your personal AI study buddy! 🌟 Let's tackle your studies together step by step. What should we start with today?` },
-        ...input.history.filter(m => m.role === 'user')
-      ];
-    }
-    
-    const userNameContext = input.userName ? `- User's name: ${input.userName} (address them personally)` : '';
-    const learnerTypeContext = `- Learning style: ${input.learnerType || 'Unknown'} (tailor explanations to this style)`;
-    const coursesContext = `- Courses:\n${input.allCourses?.map(c => `  - ${c.name}: ${c.description}`).join('\n') || '  None'}`;
-    const courseFocusContext = `- Current focus: ${input.courseContext || 'None'}`;
-    const eventsContext = `- Upcoming events:\n${input.calendarEvents?.map(e => `  - ${e.title} on ${e.date} at ${e.startTime} (${e.type})`).join('\n') || '  None'}`;
-    
-    const latestUserMessage = input.history[input.history.length - 1]?.content || '';
+    // Use all but the last message as history
+    const history = input.history.length > 1 ? input.history.slice(0, -1) : [];
 
     const response = await ai.generate({
         model: googleAI.model('gemini-2.5-flash'),
         system: systemPrompt,
-        prompt: latestUserMessage,
-        history: historyWithIntro.map(m => ({ role: m.role, content: m.content })),
+        prompt: prompt,
+        history: history.map(m => ({ role: m.role, content: m.content })),
         tools: [generateQuizTool],
     });
 
-    return response.output;
+    return response;
 }
