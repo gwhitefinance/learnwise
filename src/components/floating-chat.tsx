@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useRef, createContext, useContext } from 'react';
@@ -720,11 +721,12 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
       });
 
       let responseText = '';
-      const reader = stream.pipeThrough(new TextDecoderStream()).getReader();
+      const reader = stream.getReader();
+      const decoder = new TextDecoder();
       while (true) {
         const { value, done } = await reader.read();
         if (done) break;
-        responseText += value;
+        responseText += decoder.decode(value, { stream: true });
         setSessions(prevSessions =>
           prevSessions.map(s =>
             s.id === currentSessionId
