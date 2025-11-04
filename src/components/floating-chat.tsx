@@ -791,32 +791,24 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
 
         const sessionRef = doc(db, "chatSessions", currentSessionId);
 
-        // 1. Add the text response first
         const aiTextResponse = response.text || '';
-        if (aiTextResponse) {
-            const botTextMessage: Message = { id: crypto.randomUUID(), role: 'ai', content: aiTextResponse };
-            setSessions(prev => prev.map(s => s.id === currentSessionId ? { ...s, messages: [...s.messages, botTextMessage] } : s));
-            await updateDoc(sessionRef, { messages: arrayUnion(userMessage, botTextMessage), timestamp: Timestamp.now() });
-        } else {
-             // If no text, still save the user message
-            await updateDoc(sessionRef, { messages: arrayUnion(userMessage), timestamp: Timestamp.now() });
-        }
-        
-        // 2. Then, if there's a quiz tool request, add the quiz card
         const quizToolRequest = response.tool_requests?.find((tr: any) => tr.name === 'generateQuizTool');
-        if (quizToolRequest && quizToolRequest.output) {
-            const quizTitle = `Practice Quiz: ${quizToolRequest.output.topic}`;
+
+        if (quizToolRequest) {
             const quizCardMessage: Message = {
                 id: crypto.randomUUID(),
                 role: 'ai',
-                content: '', // No text content for this message
+                content: aiTextResponse,
                 quizParams: quizToolRequest.output,
-                quizTitle: quizTitle,
+                quizTitle: `Practice Quiz: ${quizToolRequest.output.topic}`,
                 timestamp: Date.now(),
             };
-            
-            setSessions(prev => prev.map(s => s.id === currentSessionId ? { ...s, messages: [...s.messages, quizCardMessage] } : s));
-            await updateDoc(sessionRef, { messages: arrayUnion(quizCardMessage) });
+            await updateDoc(sessionRef, { messages: arrayUnion(userMessage, quizCardMessage), timestamp: Timestamp.now() });
+        } else if (aiTextResponse) { // Only text response
+             await updateDoc(sessionRef, {
+                messages: arrayUnion(userMessage, {role: 'ai', content: aiTextResponse, id: crypto.randomUUID()}),
+                timestamp: Timestamp.now(),
+            });
         }
         
         const finalSessionState = sessions.find(s => s.id === currentSessionId);
@@ -1108,6 +1100,14 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                                                     </div>
                                                 </div>
                                             ))}
+                                            {isLoading && (
+                                                <div className="flex items-end gap-2">
+                                                    <Avatar className="h-10 w-10"><AIBuddy className="w-full h-full" {...customizations} /></Avatar>
+                                                    <div className="p-3 rounded-2xl max-w-[80%] text-sm bg-muted rounded-bl-none animate-pulse">
+                                                        Tutorin Thinking...
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     </ScrollArea>
                                     <footer className="p-4 border-t">
@@ -1177,6 +1177,14 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                                                     </div>
                                                 );
                                             })}
+                                             {isLoading && (
+                                                <div className="flex items-end gap-2">
+                                                    <Avatar className="h-10 w-10"><AIBuddy className="w-full h-full" {...customizations} /></Avatar>
+                                                    <div className="p-3 rounded-2xl max-w-[80%] text-sm bg-muted rounded-bl-none animate-pulse">
+                                                        Tutorin Thinking...
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     </ScrollArea>
                                     <footer className="p-4 border-t space-y-2">
