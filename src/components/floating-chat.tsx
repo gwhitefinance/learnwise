@@ -548,13 +548,7 @@ interface FloatingChatProps {
     isEmbedded?: boolean;
 }
 
-const InteractiveCanvas = ({ quiz, onAnswer, onSubmit }: { quiz: GenerateQuizOutput | null, onAnswer: (answer: string) => void, onSubmit: () => void }) => {
-    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-    const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
-    const [correctCount, setCorrectCount] = useState(0);
-    const [incorrectCount, setIncorrectCount] = useState(0);
-    const [isAnswered, setIsAnswered] = useState(false);
-
+const InteractiveCanvas = ({ quiz, onAnswer, onSubmit }: { quiz: GenerateQuizOutput, onAnswer: (answer: string) => void, onSubmit: () => void }) => {
     if (!quiz) {
         return (
             <div className="bg-muted/30 h-full flex flex-col p-6 rounded-2xl items-center justify-center">
@@ -568,6 +562,12 @@ const InteractiveCanvas = ({ quiz, onAnswer, onSubmit }: { quiz: GenerateQuizOut
             </div>
         );
     }
+    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+    const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+    const [correctCount, setCorrectCount] = useState(0);
+    const [incorrectCount, setIncorrectCount] = useState(0);
+    const [isAnswered, setIsAnswered] = useState(false);
+
     
     const currentQuestion = quiz.questions[currentQuestionIndex];
     const isCorrect = selectedAnswer === currentQuestion.answer;
@@ -802,7 +802,6 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
 
   const streamResponse = async (fullText: string, sessionId: string, botMessageId: string) => {
     setIsLoading(false);
-    // Split by sentences. This is a simple regex and might not cover all edge cases.
     const sentences = fullText.match(/[^.!?]+[.!?]+|\S+/g) || [fullText];
     let currentText = '';
 
@@ -817,7 +816,6 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                 )}
             : s
         ));
-        // Adjust delay based on sentence length for a more natural feel
         await new Promise(resolve => setTimeout(resolve, Math.min(sentence.length * 15, 300)));
     }
 
@@ -850,7 +848,6 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
     const currentSession = sessions.find(s => s.id === currentSessionId);
     const existingMessages = currentSession?.messages || [{ role: 'ai', content: `Hey ${user.displayName?.split(' ')[0] || 'there'}! How can I help?`, id: crypto.randomUUID() }];
     
-    // Add user message and temporary AI loading message to the UI immediately
     setSessions(prev =>
       prev.map(s =>
         s.id === currentSessionId
@@ -928,7 +925,6 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
             const newSessions = [...prev];
             const sessionIndex = newSessions.findIndex(s => s.id === currentSessionId);
             if (sessionIndex !== -1) {
-                // Find and replace the loading message with an error
                  newSessions[sessionIndex].messages = newSessions[sessionIndex].messages.map(msg => 
                     msg.id === botMessageId ? { ...msg, content: errorMessage, streaming: false } : msg
                 );
@@ -1185,7 +1181,6 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                                     </header>
                                     <ScrollArea className="flex-1" viewportRef={scrollAreaRef}>
                                         <div className="p-4 space-y-4">
-                                            {/* Chat messages */}
                                             {activeSession?.messages.map((msg, index) => (
                                                 <div key={msg.id || index} className={cn("flex items-end gap-2", msg.role === 'user' ? 'justify-end' : '')}>
                                                      {msg.role === 'ai' && <Avatar className="h-10 w-10"><AIBuddy className="w-full h-full" {...customizations} /></Avatar>}
