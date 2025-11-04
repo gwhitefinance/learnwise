@@ -3,14 +3,14 @@
 
 import { useState, useEffect, useRef, createContext, useContext } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, X, MessageSquare, Plus, Edit, Trash2, FileText, Home, Phone, ChevronRight, HelpCircle, Search, Calendar, Lightbulb, Sparkles, Upload, User, Award, Gem, Copy, RefreshCw, ChevronLeft, CheckCircle, XCircle, ArrowRight, BrainCircuit, Bot, MoreVertical, Link as LinkIcon, Share2, Maximize, Minimize, NotebookText, Download, Eraser, Mic, Hand } from 'lucide-react';
+import { Send, X, MessageSquare, Plus, Edit, Trash2, FileText, Home, Phone, ChevronRight, HelpCircle, Search, Calendar, Lightbulb, Sparkles, Upload, User, Award, Gem, Copy, RefreshCw, ChevronLeft, CheckCircle, XCircle, ArrowRight, BrainCircuit, Bot, MoreVertical, Link as LinkIcon, Share2, Maximize, Minimize, NotebookText, Download, Eraser, Mic, Hand, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
-import { collection, query, where, getDocs, onSnapshot, addDoc, doc, updateDoc, Timestamp, deleteDoc, orderBy } from 'firebase/firestore';
+import { collection, query, where, getDocs, onSnapshot, addDoc, doc, updateDoc, Timestamp, deleteDoc, orderBy, getDoc } from 'firebase/firestore';
 import { studyPlannerAction, generateChatTitle, generateNoteFromChat, analyzeImage, generateQuizAction, generateFlashcardsFromNote, generateExplanation } from '@/lib/actions';
 import { cn } from '@/lib/utils';
 import AIBuddy from './ai-buddy';
@@ -669,6 +669,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
 
   const streamResponse = async (fullText: string, sessionId: string, botMessageId: string) => {
     setIsLoading(false);
+    // Split by sentences. This is a simple regex and might not cover all edge cases.
     const sentences = fullText.match(/[^.!?]+[.!?]+|\S+/g) || [fullText];
     let currentText = '';
 
@@ -678,12 +679,13 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
             s.id === sessionId 
             ? { ...s, messages: s.messages.map(msg => 
                     msg.id === botMessageId 
-                    ? { ...msg, content: currentText } 
+                    ? { ...msg, content: currentText, streaming: true } 
                     : msg
                 )}
             : s
         ));
-        await new Promise(resolve => setTimeout(resolve, 150));
+        // Adjust delay based on sentence length for a more natural feel
+        await new Promise(resolve => setTimeout(resolve, Math.min(sentence.length * 15, 300)));
     }
 
     setSessions(prev => prev.map(s => 
@@ -710,12 +712,16 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
     }
   
     const userMessage: Message = { role: 'user', content: messageContent, id: crypto.randomUUID() };
+    const botMessageId = crypto.randomUUID();
+
+    const currentSession = sessions.find(s => s.id === currentSessionId);
+    const existingMessages = currentSession?.messages || [{ role: 'ai', content: `Hey ${user.displayName?.split(' ')[0] || 'there'}! How can I help?`, id: crypto.randomUUID() }];
     
-    // Add user message to the UI immediately
+    // Add user message and temporary AI loading message to the UI immediately
     setSessions(prev =>
       prev.map(s =>
         s.id === currentSessionId
-          ? { ...s, messages: [...s.messages, userMessage] }
+          ? { ...s, messages: [...existingMessages, userMessage, { id: botMessageId, role: 'ai', content: '', streaming: true }] }
           : s
       )
     );
@@ -733,20 +739,10 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
         const learnerType = localStorage.getItem('learnerType');
         const aiBuddyName = localStorage.getItem('aiBuddyName') || 'Tutorin';
     
-        const botMessageId = crypto.randomUUID();
-        // Add a temporary AI message for the loading indicator
-        setSessions(prev =>
-            prev.map(s =>
-            s.id === currentSessionId
-                ? { ...s, messages: [...s.messages, { id: botMessageId, role: 'ai', content: '', streaming: true }] }
-                : s
-            )
-        );
-
         const responseText = await studyPlannerAction({
             userName: user?.displayName?.split(' ')[0],
             aiBuddyName: aiBuddyName,
-            history: [...sessions.find(s => s.id === currentSessionId)?.messages || [], userMessage],
+            history: [...existingMessages, userMessage],
             learnerType: learnerType || undefined,
             allCourses: courses.map(c => ({ id: c.id, name: c.name, description: c.description })),
             courseContext: activeSession?.courseContext || undefined,
@@ -771,9 +767,9 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
             timestamp: Timestamp.now(),
         });
         
-        const currentSession = sessions.find(s => s.id === currentSessionId);
-        if (currentSession && !currentSession.titleGenerated && currentSession.messages.length <= 3) {
-            generateChatTitle({ messages: [...currentSession.messages, {role: 'ai', content: responseText, id: 'temp'}] }).then(({title}) => {
+        const updatedSession = sessions.find(s => s.id === currentSessionId);
+        if (updatedSession && !updatedSession.titleGenerated && updatedSession.messages.length <= 3) {
+            generateChatTitle({ messages: [...updatedSession.messages, {role: 'ai', content: responseText, id: 'temp'}] }).then(({title}) => {
                 updateDoc(doc(db, "chatSessions", currentSessionId!), { title, titleGenerated: true });
             });
         }
@@ -784,15 +780,14 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
             const newSessions = [...prev];
             const sessionIndex = newSessions.findIndex(s => s.id === currentSessionId);
             if (sessionIndex !== -1) {
-                // Remove the user message and replace the loading AI message with an error
-                const lastMessage = newSessions[sessionIndex].messages.slice(-1)[0];
-                if (lastMessage.streaming) {
-                     newSessions[sessionIndex].messages.pop();
-                }
-                newSessions[sessionIndex].messages.push({ role: 'ai', content: errorMessage, id: crypto.randomUUID() });
+                // Find and replace the loading message with an error
+                 newSessions[sessionIndex].messages = newSessions[sessionIndex].messages.map(msg => 
+                    msg.id === botMessageId ? { ...msg, content: errorMessage, streaming: false } : msg
+                );
             }
             return newSessions;
         });
+    } finally {
         setIsLoading(false);
     }
 };
@@ -1131,7 +1126,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                                                 )}>
                                                      {msg.streaming && msg.content === '' ? (
                                                         <div className="flex items-center gap-2 text-muted-foreground">
-                                                            <p className="animate-pulse">Tutorin's Thinking...</p>
+                                                            <p>Tutorin's Thinking...</p>
                                                         </div>
                                                     ) : (
                                                         <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
@@ -1283,5 +1278,3 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
     </FloatingChatContext.Provider>
   );
 }
-
-    
