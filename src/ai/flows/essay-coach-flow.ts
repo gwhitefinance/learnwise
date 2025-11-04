@@ -6,21 +6,8 @@
 import { ai } from '@/ai/genkit';
 import { googleAI } from '@genkit-ai/google-genai';
 import { z } from 'zod';
+import { EssayCoachInputSchema, EssayCoachOutputSchema } from '@/ai/schemas/essay-coach-schema';
 
-const MessageSchema = z.object({
-  role: z.enum(['user', 'ai']),
-  content: z.string(),
-});
-
-const EssayCoachInputSchema = z.object({
-  essay: z.string().describe("The current draft of the user's college essay."),
-  prompt: z.string().describe("The user's specific question or request for feedback."),
-  history: z.array(MessageSchema).optional().describe('The conversation history so far.'),
-});
-
-const EssayCoachOutputSchema = z.object({
-  feedback: z.string().describe("Constructive, encouraging, and actionable feedback on the user's essay based on their prompt."),
-});
 
 const prompt = ai.definePrompt({
     name: 'essayCoachPrompt',

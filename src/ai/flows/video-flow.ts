@@ -8,14 +8,7 @@ import * as z from 'zod';
 import * as fs from 'fs';
 import { Readable } from 'stream';
 import { MediaPart } from 'genkit';
-
-const generateVideoInputSchema = z.object({
-  episodeContent: z.string().describe('The text content for this episode to be converted into a short video.'),
-});
-
-const generateVideoOutputSchema = z.object({
-  videoUrl: z.string().url().describe('The data URI of the generated video.'),
-});
+import { generateVideoInputSchema, generateVideoOutputSchema } from '@/ai/schemas/video-schema';
 
 async function downloadVideo(video: MediaPart, path: string) {
   const fetch = (await import('node-fetch')).default;

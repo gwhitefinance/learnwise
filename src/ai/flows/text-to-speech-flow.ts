@@ -5,6 +5,7 @@ import { ai } from '@/ai/genkit';
 import { GenerateSpeechInputSchema, GenerateSpeechOutputSchema } from '@/ai/schemas/text-to-speech-schema';
 import { googleAI } from '@genkit-ai/google-genai';
 import wav from 'wav';
+import { z } from 'zod';
 
 async function toWav(
   pcmData: Buffer,
