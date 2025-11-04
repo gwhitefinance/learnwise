@@ -10,7 +10,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
-import { collection, query, where, getDocs, onSnapshot, addDoc, doc, updateDoc, Timestamp, deleteDoc, orderBy, getDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, onSnapshot, addDoc, doc, updateDoc, Timestamp, deleteDoc, orderBy, getDoc, arrayUnion } from 'firebase/firestore';
 import { studyPlannerAction, generateChatTitle, generateNoteFromChat, analyzeImage } from '@/lib/actions';
 import { cn } from '@/lib/utils';
 import AIBuddy from './ai-buddy';
@@ -552,6 +552,9 @@ interface FloatingChatProps {
 }
 
 const InteractiveCanvas = ({ quiz, isLoading, onAnswer, onSubmit }: { quiz: GenerateQuizOutput | null, isLoading: boolean, onAnswer: (answer: string) => void, onSubmit: () => void }) => {
+    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+    const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+
     if (isLoading) {
         return (
              <div className="bg-muted h-full flex flex-col p-6 rounded-l-2xl items-center justify-center">
@@ -560,16 +563,15 @@ const InteractiveCanvas = ({ quiz, isLoading, onAnswer, onSubmit }: { quiz: Gene
             </div>
         );
     }
-    if (!quiz || !quiz.questions) {
+    if (!quiz || !quiz.questions || quiz.questions.length === 0) {
         return (
             <div className="bg-muted h-full flex flex-col p-6 rounded-l-2xl items-center justify-center">
-                <p>No quiz selected.</p>
+                <p>No quiz generated or quiz has no questions.</p>
             </div>
         );
     }
 
-    // This is a minimal implementation, you'd add state for current question, answers etc.
-    const currentQuestion = quiz.questions[0];
+    const currentQuestion = quiz.questions[currentQuestionIndex];
 
     return (
         <div className="bg-muted h-full flex flex-col p-6 rounded-l-2xl">
@@ -732,36 +734,6 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
     }
   }
 
-  const streamResponse = async (fullText: string, sessionId: string, botMessageId: string) => {
-    setIsLoading(false);
-    const sentences = fullText.match(/[^.!?]+[.!?]+|\S+/g) || [fullText];
-    let currentText = '';
-
-    for (const sentence of sentences) {
-        currentText += sentence;
-        setSessions(prev => prev.map(s => 
-            s.id === sessionId 
-            ? { ...s, messages: s.messages.map(msg => 
-                    msg.id === botMessageId 
-                    ? { ...msg, content: currentText, streaming: true } 
-                    : msg
-                )}
-            : s
-        ));
-        await new Promise(resolve => setTimeout(resolve, Math.min(sentence.length * 15, 300)));
-    }
-
-    setSessions(prev => prev.map(s => 
-        s.id === sessionId 
-        ? { ...s, messages: s.messages.map(msg => 
-                msg.id === botMessageId 
-                ? { ...msg, content: fullText, streaming: false } 
-                : msg
-            )}
-        : s
-    ));
-};
-
   const handleSendMessage = async (prompt?: string) => {
     const messageContent = prompt || input;
     if (!messageContent.trim() || !user) return;
@@ -775,15 +747,11 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
     }
   
     const userMessage: Message = { role: 'user', content: messageContent, id: crypto.randomUUID() };
-    const botMessageId = crypto.randomUUID();
-
-    const currentSession = sessions.find(s => s.id === currentSessionId);
-    const existingMessages = currentSession?.messages || [{ role: 'ai', content: `Hey ${user.displayName?.split(' ')[0] || 'there'}! How can I help?`, id: crypto.randomUUID() }];
     
     setSessions(prev =>
       prev.map(s =>
         s.id === currentSessionId
-          ? { ...s, messages: [...existingMessages, userMessage, { id: botMessageId, role: 'ai', content: '', streaming: true }] }
+          ? { ...s, messages: [...(s.messages || []), userMessage] }
           : s
       )
     );
@@ -792,6 +760,9 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
     setIsLoading(true);
   
     try {
+        const currentSession = sessions.find(s => s.id === currentSessionId);
+        const historyForAI = currentSession?.messages ? [...currentSession.messages, userMessage] : [userMessage];
+        
         const q = query(collection(db, "calendarEvents"), where("userId", "==", user.uid));
         const querySnapshot = await getDocs(q);
         const calendarEventsData = querySnapshot.docs.map(doc => {
@@ -804,7 +775,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
         const response = await studyPlannerAction({
             userName: user?.displayName?.split(' ')[0],
             aiBuddyName: aiBuddyName,
-            history: [...existingMessages, userMessage],
+            history: historyForAI,
             learnerType: learnerType || undefined,
             allCourses: courses.map(c => ({ id: c.id, name: c.name, description: c.description })),
             courseContext: activeSession?.courseContext || undefined,
@@ -818,71 +789,47 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
             })),
         });
 
-        const quizToolRequest = response.tool_requests?.find((tr: any) => tr.name === 'generateQuizTool');
-        
-        let aiTextResponse = response.text || '';
+        const sessionRef = doc(db, "chatSessions", currentSessionId);
 
-        // Add the AI text response first
+        // 1. Add the text response first
+        const aiTextResponse = response.text || '';
         if (aiTextResponse) {
-            await streamResponse(aiTextResponse, currentSessionId, botMessageId);
+            const botTextMessage: Message = { id: crypto.randomUUID(), role: 'ai', content: aiTextResponse };
+            setSessions(prev => prev.map(s => s.id === currentSessionId ? { ...s, messages: [...s.messages, botTextMessage] } : s));
+            await updateDoc(sessionRef, { messages: arrayUnion(userMessage, botTextMessage), timestamp: Timestamp.now() });
         } else {
-             // If there's no text, remove the placeholder streaming message
-            setSessions(prev => prev.map(s => s.id === currentSessionId ? { ...s, messages: s.messages.filter(m => m.id !== botMessageId) } : s));
+             // If no text, still save the user message
+            await updateDoc(sessionRef, { messages: arrayUnion(userMessage), timestamp: Timestamp.now() });
         }
         
-        const sessionRef = doc(db, "chatSessions", currentSessionId);
-        
-        // Then, if there's a quiz, add the quiz card
+        // 2. Then, if there's a quiz tool request, add the quiz card
+        const quizToolRequest = response.tool_requests?.find((tr: any) => tr.name === 'generateQuizTool');
         if (quizToolRequest && quizToolRequest.output) {
             const quizTitle = `Practice Quiz: ${quizToolRequest.output.topic}`;
             const quizCardMessage: Message = {
                 id: crypto.randomUUID(),
                 role: 'ai',
-                content: '',
+                content: '', // No text content for this message
                 quizParams: quizToolRequest.output,
                 quizTitle: quizTitle,
                 timestamp: Date.now(),
             };
             
-            // Add the new quiz card message
-             setSessions(prev => prev.map(s => 
-                s.id === currentSessionId 
-                ? { ...s, messages: [...s.messages, quizCardMessage] }
-                : s
-            ));
-            
-            // Update Firestore with all messages including the quiz card
-            await updateDoc(sessionRef, {
-                messages: arrayUnion(userMessage, {role: 'ai', content: aiTextResponse}, quizCardMessage),
-                timestamp: Timestamp.now(),
-            });
-
-        } else if (aiTextResponse) { // Only text response
-             await updateDoc(sessionRef, {
-                messages: arrayUnion(userMessage, {role: 'ai', content: aiTextResponse}),
-                timestamp: Timestamp.now(),
-            });
+            setSessions(prev => prev.map(s => s.id === currentSessionId ? { ...s, messages: [...s.messages, quizCardMessage] } : s));
+            await updateDoc(sessionRef, { messages: arrayUnion(quizCardMessage) });
         }
         
-        const updatedSession = sessions.find(s => s.id === currentSessionId);
-        if (updatedSession && !updatedSession.titleGenerated && updatedSession.messages.length <= 3) {
-            generateChatTitle({ messages: [...updatedSession.messages, {role: 'ai', content: aiTextResponse || '', id: 'temp'}] }).then(({title}) => {
+        const finalSessionState = sessions.find(s => s.id === currentSessionId);
+        if (finalSessionState && !finalSessionState.titleGenerated && finalSessionState.messages.length <= 4) {
+            generateChatTitle({ messages: finalSessionState.messages }).then(({title}) => {
                 updateDoc(doc(db, "chatSessions", currentSessionId!), { title, titleGenerated: true });
             });
         }
     } catch (error) {
         console.error(error);
         const errorMessage = "Sorry, I had trouble generating a response. Please try again.";
-        setSessions(prev => {
-            const newSessions = [...prev];
-            const sessionIndex = newSessions.findIndex(s => s.id === currentSessionId);
-            if (sessionIndex !== -1) {
-                 newSessions[sessionIndex].messages = newSessions[sessionIndex].messages.map(msg => 
-                    msg.id === botMessageId ? { ...msg, content: errorMessage, streaming: false } : msg
-                );
-            }
-            return newSessions;
-        });
+        const botErrorMsg: Message = { id: crypto.randomUUID(), role: 'ai', content: errorMessage };
+        setSessions(prev => prev.map(s => s.id === currentSessionId ? { ...s, messages: [...s.messages, botErrorMsg] } : s));
     } finally {
         setIsLoading(false);
     }
