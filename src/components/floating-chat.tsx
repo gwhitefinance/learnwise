@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect, useRef, createContext, useContext } from 'react';
@@ -722,11 +721,10 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
 
       let responseText = '';
       const reader = stream.getReader();
-      const decoder = new TextDecoder();
       while (true) {
         const { value, done } = await reader.read();
         if (done) break;
-        responseText += decoder.decode(value, { stream: true });
+        responseText += value;
         setSessions(prevSessions =>
           prevSessions.map(s =>
             s.id === currentSessionId
@@ -1059,7 +1057,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                                                 </AlertDialogTrigger>
                                                 <AlertDialogContent>
                                                     <AlertDialogHeader>
-                                                        <AlertDialogTitle>Are you sure you want to delete this chat?</AlertDialogTitle>
+                                                        <AlertDialogTitle>Are you absolutely sure you want to delete this chat?</AlertDialogTitle>
                                                         <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
                                                     </AlertDialogHeader>
                                                     <AlertDialogFooter>
