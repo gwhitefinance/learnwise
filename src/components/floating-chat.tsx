@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect, useRef, createContext, useContext } from 'react';
@@ -670,7 +669,7 @@ const InteractiveCanvas = () => {
                                         !isAnswered && (isSelected ? "bg-primary/10 border-primary" : "bg-card border-border hover:bg-muted"),
                                         isAnswered && isCorrectOption && "bg-green-500/10 border-green-500",
                                         isAnswered && isSelected && !isCorrectOption && "bg-red-500/10 border-red-500",
-                                        isAnswered && !isSelected && "bg-card border-border opacity-60"
+                                        isAnswered && !isSelected && !isCorrectOption && "bg-card border-border opacity-60"
                                     )}
                                 >
                                     <p className="font-semibold">{String.fromCharCode(65 + index)}. {option}</p>
@@ -737,6 +736,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
   const [selectedNoteCourseId, setSelectedNoteCourseId] = useState<string | undefined>(undefined);
 
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [interactiveQuiz, setInteractiveQuiz] = useState<GenerateQuizOutput | null>(null);
   
   const activeSession = sessions.find(s => s.id === activeSessionId);
 
@@ -914,20 +914,35 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
             })),
         });
 
-        await streamResponse(response, currentSessionId, botMessageId);
+        const quizTool = response.tool_requests?.find((tr: any) => tr.tool.name === 'generateQuizTool');
+        if (quizTool) {
+            setInteractiveQuiz(quizTool.output);
+            setIsFullscreen(true);
+            setIsLoading(false);
+            setSessions(prev =>
+              prev.map(s =>
+                s.id === currentSessionId
+                  ? { ...s, messages: [...existingMessages, userMessage] } // Remove the loading message
+                  : s
+              )
+            );
+            return;
+        }
+
+        await streamResponse(response.text, currentSessionId, botMessageId);
 
         const sessionRef = doc(db, "chatSessions", currentSessionId);
         const sessionDoc = await getDoc(sessionRef);
         const currentMessages = sessionDoc.data()?.messages || [];
         
         await updateDoc(sessionRef, {
-            messages: [...currentMessages, {role: 'user', content: messageContent}, {role: 'ai', content: response}],
+            messages: [...currentMessages, {role: 'user', content: messageContent}, {role: 'ai', content: response.text}],
             timestamp: Timestamp.now(),
         });
         
         const updatedSession = sessions.find(s => s.id === currentSessionId);
         if (updatedSession && !updatedSession.titleGenerated && updatedSession.messages.length <= 3) {
-            generateChatTitle({ messages: [...updatedSession.messages, {role: 'ai', content: response, id: 'temp'}] }).then(({title}) => {
+            generateChatTitle({ messages: [...updatedSession.messages, {role: 'ai', content: response.text, id: 'temp'}] }).then(({title}) => {
                 updateDoc(doc(db, "chatSessions", currentSessionId!), { title, titleGenerated: true });
             });
         }
@@ -1216,7 +1231,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                             ) : <div></div>}
                         </div>
                         <div className="col-span-3 border-l">
-                            <InteractiveCanvas />
+                            <InteractiveCanvas quiz={interactiveQuiz} />
                         </div>
                     </div>
                 ) : (
@@ -1392,4 +1407,140 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
       }
     </FloatingChatContext.Provider>
   );
+}
+
+// @ts-ignore
+const InteractiveCanvas = ({ quiz }) => {
+    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+    const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+    const [correctCount, setCorrectCount] = useState(0);
+    const [incorrectCount, setIncorrectCount] = useState(0);
+    const [isAnswered, setIsAnswered] = useState(false);
+
+    useEffect(() => {
+        // Reset state when quiz changes
+        setCurrentQuestionIndex(0);
+        setSelectedAnswer(null);
+        setCorrectCount(0);
+        setIncorrectCount(0);
+        setIsAnswered(false);
+    }, [quiz]);
+
+    if (!quiz) {
+        return (
+            <div className="bg-muted/30 h-full flex flex-col p-6 rounded-2xl items-center justify-center text-center">
+                <HelpCircle className="w-16 h-16 text-muted-foreground mb-4" />
+                <h3 className="font-semibold text-lg">Interactive Canvas</h3>
+                <p className="text-sm text-muted-foreground">Ask for a quiz, and it will appear here!</p>
+            </div>
+        );
+    }
+    
+    const currentQuestion = quiz.questions[currentQuestionIndex];
+    const isCorrect = selectedAnswer === currentQuestion.answer;
+
+    const handleNext = () => {
+        if (!isAnswered && selectedAnswer) {
+             if (isCorrect) {
+                setCorrectCount(prev => prev + 1);
+            } else {
+                setIncorrectCount(prev => prev + 1);
+            }
+        }
+        
+        setIsAnswered(false);
+        setSelectedAnswer(null);
+        if (currentQuestionIndex < quiz.questions.length - 1) {
+            setCurrentQuestionIndex(prev => prev + 1);
+        } else {
+            // End of quiz logic could go here
+        }
+    }
+    
+    const handleSubmit = () => {
+        if (!selectedAnswer) return;
+        setIsAnswered(true);
+    };
+
+    return (
+        <div className="bg-muted/30 h-full flex flex-col p-6 rounded-2xl">
+            <header className="flex justify-between items-center mb-6">
+                <h3 className="font-semibold flex items-center gap-2"><HelpCircle size={18}/> Practice Quiz</h3>
+                 <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="icon" className="h-8 w-8"><Share2 size={16}/></Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8"><X size={16}/></Button>
+                 </div>
+            </header>
+            <div className="flex-1 flex flex-col justify-center">
+                <div className="max-w-xl w-full mx-auto">
+                    <div className="flex justify-between items-center mb-8">
+                        <div className="flex-1 space-y-1">
+                             <div className="flex gap-1 h-1.5">
+                                {quiz.questions.map((_, index) => (
+                                     <div key={index} className={cn("w-full rounded-full", index <= currentQuestionIndex ? 'bg-primary' : 'bg-border')} />
+                                ))}
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-4 ml-6 text-sm font-medium">
+                            <span>{currentQuestionIndex + 1}/{quiz.questions.length}</span>
+                            <div className="flex items-center gap-1.5 p-1 rounded-md bg-destructive/10 text-destructive">
+                                <XCircle size={16}/>
+                                <span>{incorrectCount}</span>
+                            </div>
+                             <div className="flex items-center gap-1.5 p-1 rounded-md bg-green-500/10 text-green-600">
+                                <CheckCircle size={16}/>
+                                <span>{correctCount}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <p className="text-xl mb-8">
+                        {currentQuestionIndex + 1}. {currentQuestion.question}
+                    </p>
+                    <div className="space-y-3">
+                        {currentQuestion.options?.map((option: string, index: number) => {
+                            const isSelected = selectedAnswer === option;
+                            const isCorrectOption = option === currentQuestion.answer;
+                            
+                            return (
+                                <button
+                                    key={index}
+                                    onClick={() => setSelectedAnswer(option)}
+                                    disabled={isAnswered}
+                                    className={cn(
+                                        "w-full text-left p-4 rounded-lg transition-all border-2",
+                                        !isAnswered && (isSelected ? "bg-primary/10 border-primary" : "bg-card border-border hover:bg-muted"),
+                                        isAnswered && isCorrectOption && "bg-green-500/10 border-green-500",
+                                        isAnswered && isSelected && !isCorrectOption && "bg-red-500/10 border-red-500",
+                                        isAnswered && !isSelected && !isCorrectOption && "bg-card border-border opacity-60"
+                                    )}
+                                >
+                                    <p className="font-semibold">{String.fromCharCode(65 + index)}. {option}</p>
+                                    {isAnswered && isCorrectOption && (
+                                        <div className="text-sm mt-2 pl-6">
+                                            <p className="font-bold text-green-600 flex items-center gap-1"><CheckCircle size={14}/> Right answer</p>
+                                        </div>
+                                    )}
+                                    {isAnswered && isSelected && !isCorrectOption && (
+                                         <div className="text-sm mt-2 pl-6">
+                                            <p className="font-bold text-destructive flex items-center gap-1"><XCircle size={14}/> Not quite</p>
+                                        </div>
+                                    )}
+                                </button>
+                            );
+                        })}
+                    </div>
+                 </div>
+            </div>
+             <footer className="flex justify-end">
+                <Button 
+                    onClick={isAnswered ? handleNext : handleSubmit} 
+                    className="rounded-full px-8 py-3 text-base h-12"
+                    disabled={!selectedAnswer}
+                >
+                    {isAnswered ? 'Next' : 'Submit'}
+                </Button>
+            </footer>
+        </div>
+    )
 }

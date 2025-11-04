@@ -6,10 +6,14 @@
 import { ai, googleAI } from '@/ai/genkit';
 import { z } from 'zod';
 import { StudyPlannerInputSchema } from '@/ai/schemas/study-planner-schema';
+import { generateQuizTool } from '../tools/quiz-tool';
 
 // This is the main AI prompt configuration
 const systemPrompt = `You are Tutorin AI, a friendly and knowledgeable study assistant.
 Your goal is to teach clearly using engaging and readable formatting.
+
+When the user asks for a quiz, you MUST use the 'generateQuizTool' to create it.
+Then, respond with a confirmation message like "Here is a quiz on..." and present the quiz data.
 
 Follow these formatting rules:
 - Use bold section titles and logical headers. For example, write "📘 Photosynthesis" instead of "📘 Topic: Photosynthesis".
@@ -46,11 +50,11 @@ Plants convert sunlight into chemical energy.
 `;
 
 
-export async function studyPlannerAction(input: z.infer<typeof StudyPlannerInputSchema>): Promise<string> {
+export async function studyPlannerAction(input: z.infer<typeof StudyPlannerInputSchema>): Promise<any> {
     const aiBuddyName = input.aiBuddyName || 'Tutorin';
     let historyWithIntro: { role: 'user' | 'ai'; content: string }[] = input.history;
 
-    if (input.history.length <= 1) {
+    if (input.history.length === 0) {
       historyWithIntro = [
         { role: 'ai', content: `Hey! I'm ${aiBuddyName}, your personal AI study buddy! 🌟 Let's tackle your studies together step by step. What should we start with today?` },
         ...input.history.filter(m => m.role === 'user')
@@ -62,25 +66,16 @@ export async function studyPlannerAction(input: z.infer<typeof StudyPlannerInput
     const coursesContext = `- Courses:\n${input.allCourses?.map(c => `  - ${c.name}: ${c.description}`).join('\n') || '  None'}`;
     const courseFocusContext = `- Current focus: ${input.courseContext || 'None'}`;
     const eventsContext = `- Upcoming events:\n${input.calendarEvents?.map(e => `  - ${e.title} on ${e.date} at ${e.startTime} (${e.type})`).join('\n') || '  None'}`;
-    const historyText = historyWithIntro.map(m => `${m.role}: ${m.content}`).join('\n');
     
-    const userPrompt = `${userNameContext}
-${learnerTypeContext}
-${coursesContext}
-${courseFocusContext}
-${eventsContext}
+    const latestUserMessage = input.history[input.history.length - 1]?.content || '';
 
-📝 **Conversation History (Most recent messages are most important):**
-${historyText}
-
-Based on all of the above, give an **incredibly encouraging, best-friend style response**, strictly following all formatting rules.
-`;
-
-    const { text } = await ai.generate({
+    const response = await ai.generate({
         model: googleAI.model('gemini-2.5-flash'),
         system: systemPrompt,
-        prompt: userPrompt,
+        prompt: latestUserMessage,
+        history: historyWithIntro.map(m => ({ role: m.role, content: m.content })),
+        tools: [generateQuizTool],
     });
 
-    return text || "Sorry, I had trouble generating a response. Please try again.";
+    return response.output;
 }
