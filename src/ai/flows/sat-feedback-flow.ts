@@ -32,7 +32,7 @@ const prompt = ai.definePrompt({
     `,
 });
 
-export const generateFeedbackFlow = ai.defineFlow(
+const generateFeedbackFlow = ai.defineFlow(
   {
     name: 'generateFeedbackFlow',
     inputSchema: FeedbackInputSchema,
@@ -46,3 +46,7 @@ export const generateFeedbackFlow = ai.defineFlow(
     return output;
   }
 );
+
+export async function generateFeedbackAction(input: FeedbackInput): Promise<FeedbackOutput> {
+    return generateFeedbackFlow(input);
+}

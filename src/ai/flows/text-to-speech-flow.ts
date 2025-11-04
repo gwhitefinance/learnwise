@@ -33,7 +33,7 @@ async function toWav(
   });
 }
 
-export const generateSpeechFlow = ai.defineFlow(
+const generateSpeechFlow = ai.defineFlow(
   {
     name: 'generateSpeechFlow',
     inputSchema: GenerateSpeechInputSchema,
@@ -68,3 +68,7 @@ export const generateSpeechFlow = ai.defineFlow(
     return { audioUrl: `data:audio/wav;base64,${wavData}` };
   }
 );
+
+export async function generateSpeech(input: z.infer<typeof GenerateSpeechInputSchema>): Promise<z.infer<typeof GenerateSpeechOutputSchema>> {
+  return generateSpeechFlow(input);
+}

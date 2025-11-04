@@ -48,7 +48,7 @@ const prompt = ai.definePrompt({
 });
 
 
-export const generateSatStudySessionFlow = ai.defineFlow(
+const generateSatStudySessionFlow = ai.defineFlow(
   {
     name: 'generateSatStudySessionFlow',
     inputSchema: SatStudySessionInputSchema,

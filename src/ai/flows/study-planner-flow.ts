@@ -100,7 +100,7 @@ const prompt = ai.definePrompt({
     `,
 });
 
-export const studyPlannerFlow = ai.defineFlow(
+const studyPlannerFlow = ai.defineFlow(
   {
     name: 'studyPlannerFlow',
     inputSchema: StudyPlannerInputSchema,
@@ -114,3 +114,7 @@ export const studyPlannerFlow = ai.defineFlow(
     return response.text ?? "I'm sorry, I am unable to answer that question. Please try rephrasing it.";
   }
 );
+
+export async function studyPlannerAction(input: z.infer<typeof StudyPlannerInputSchema>): Promise<string> {
+  return studyPlannerFlow(input);
+}

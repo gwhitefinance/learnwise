@@ -34,7 +34,7 @@ async function downloadVideo(video: MediaPart, path: string) {
   return `data:video/mp4;base64,${buffer.toString('base64')}`;
 }
 
-export const startVideoGenerationFlow = ai.defineFlow(
+const startVideoGenerationFlow = ai.defineFlow(
     {
         name: 'startVideoGenerationFlow',
         inputSchema: generateVideoInputSchema,
@@ -74,7 +74,7 @@ export const startVideoGenerationFlow = ai.defineFlow(
     }
 );
 
-export const checkVideoOperation = ai.defineFlow(
+const checkVideoOperation = ai.defineFlow(
   {
     name: 'checkVideoOperation',
     inputSchema: z.any(),
@@ -85,3 +85,12 @@ export const checkVideoOperation = ai.defineFlow(
     return result;
   }
 );
+
+
+export async function generateVideo(input: z.infer<typeof generateVideoInputSchema>): Promise<z.infer<typeof generateVideoOutputSchema>> {
+    return startVideoGenerationFlow(input);
+}
+
+export async function checkVideo(operation: any): Promise<any> {
+    return checkVideoOperation(operation);
+}

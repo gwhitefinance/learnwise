@@ -27,7 +27,7 @@ const problemSolvingPrompt = ai.definePrompt({
     `,
 });
 
-export const generateProblemSolvingSessionFlow = ai.defineFlow(
+const generateProblemSolvingSessionFlow = ai.defineFlow(
     {
         name: 'generateProblemSolvingSessionFlow',
         inputSchema: ProblemSolvingInputSchema,

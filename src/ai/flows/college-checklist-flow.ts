@@ -31,7 +31,8 @@ const prompt = ai.definePrompt({
 
     University Name: "{{collegeName}}"
     Acceptance Rate: {{#if acceptanceRate}}{{acceptanceRate}}{{else}}N/A{{/if}}
-    Average SAT: {{#if satScore}}{{satScore}}{{else}}N/A{{/if}}
+    Average SAT: {{#if satScore}}{{satScore}}{{else}}N
+A{{/if}}
 
     **Instructions**:
     1.  **Analyze Selectivity**: Use the acceptance rate and SAT score to gauge the selectivity of the school (e.g., highly selective, selective, less selective).
@@ -59,7 +60,7 @@ const prompt = ai.definePrompt({
     `,
 });
 
-export const generateCollegeChecklistFlow = ai.defineFlow(
+const generateCollegeChecklistFlow = ai.defineFlow(
   {
     name: 'generateCollegeChecklistFlow',
     inputSchema: CollegeChecklistInputSchema,

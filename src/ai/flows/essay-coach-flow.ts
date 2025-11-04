@@ -57,7 +57,7 @@ const prompt = ai.definePrompt({
     `,
 });
 
-export const generateEssayFeedbackFlow = ai.defineFlow(
+const generateEssayFeedbackFlow = ai.defineFlow(
   {
     name: 'generateEssayFeedbackFlow',
     inputSchema: EssayCoachInputSchema,
