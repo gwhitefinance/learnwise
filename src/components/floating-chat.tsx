@@ -666,106 +666,122 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
     }
   }
 
-    const handleSendMessage = async (prompt?: string) => {
-        const messageContent = prompt || input;
-        if (!messageContent.trim() || !user || isLoading) return;
+  const streamResponse = async (text: string, sessionId: string) => {
+    const botMessageId = crypto.randomUUID();
     
-        let currentSessionId = activeSessionId;
-        let currentMessages: Message[] = [];
-    
-        if (!activeSession) {
-            const newId = await createNewSession(messageContent);
-            if (!newId) return;
-            currentSessionId = newId;
-            currentMessages = [{ role: 'ai', content: `Hey ${user.displayName?.split(' ')[0] || 'there'}! How can I help?`, id: crypto.randomUUID() }];
-        } else {
-            currentMessages = activeSession.messages;
-        }
-    
-        if (!currentSessionId) return;
-    
-        const userMessage: Message = { role: 'user', content: messageContent, id: crypto.randomUUID() };
-        const updatedMessages = [...currentMessages, userMessage];
-        
-        setSessions(prevSessions =>
-          prevSessions.map(s => s.id === currentSessionId ? { ...s, messages: updatedMessages } : s)
-        );
-        
-        setInput('');
-        setIsLoading(true);
-    
-        try {
-            const q = query(collection(db, "calendarEvents"), where("userId", "==", user.uid));
-            const querySnapshot = await getDocs(q);
-            const calendarEvents = querySnapshot.docs.map(doc => {
-                const data = doc.data() as CalendarEvent;
-                return { ...data, id: doc.id };
-            });
-            const learnerType = localStorage.getItem('learnerType');
-            const aiBuddyName = localStorage.getItem('aiBuddyName') || 'Tutorin';
+    setSessions(prev => prev.map(s => 
+        s.id === sessionId 
+        ? { ...s, messages: [...s.messages, { role: 'ai', content: '', streaming: true, id: botMessageId }] }
+        : s
+    ));
 
-            const responseText = await studyPlannerAction({
-                userName: user?.displayName?.split(' ')[0],
-                aiBuddyName: aiBuddyName,
-                history: updatedMessages,
-                learnerType: learnerType || undefined,
-                allCourses: courses.map(c => ({ id: c.id, name: c.name, description: c.description })),
-                courseContext: activeSession?.courseContext || undefined,
-                calendarEvents: calendarEvents.map(e => ({
-                    id: e.id,
-                    date: e.date,
-                    title: e.title,
-                    time: e.startTime,
-                    type: e.type,
-                    description: e.description,
-                })),
-            });
-            
-            const botMessageId = crypto.randomUUID();
-            setSessions(prev => prev.map(s => 
-                s.id === currentSessionId 
-                ? { ...s, messages: [...updatedMessages, { role: 'ai', content: '', streaming: true, id: botMessageId }] }
-                : s
-            ));
-            
-            for (let i = 0; i < responseText.length; i++) {
-              await new Promise(resolve => setTimeout(resolve, 10)); // Adjust speed
-              setSessions(prev => prev.map(s => {
-                if (s.id === currentSessionId) {
-                    const lastMsgIndex = s.messages.length - 1;
-                    const updatedMsgs = [...s.messages];
-                    if (updatedMsgs[lastMsgIndex].id === botMessageId) {
-                         updatedMsgs[lastMsgIndex] = { ...updatedMsgs[lastMsgIndex], content: responseText.slice(0, i + 1), streaming: true };
-                    }
-                    return { ...s, messages: updatedMsgs };
+    for (let i = 0; i < text.length; i++) {
+        await new Promise(resolve => setTimeout(resolve, 10)); // Adjust speed
+        
+        setSessions(prev => prev.map(s => {
+            if (s.id === sessionId) {
+                const lastMsgIndex = s.messages.length - 1;
+                const updatedMsgs = [...s.messages];
+                if (updatedMsgs[lastMsgIndex]?.id === botMessageId) {
+                    updatedMsgs[lastMsgIndex] = { ...updatedMsgs[lastMsgIndex], content: text.slice(0, i + 1), streaming: true };
                 }
-                return s;
-              }));
+                return { ...s, messages: updatedMsgs };
             }
+            return s;
+        }));
+    }
+
+    const finalMessages = sessions.find(s => s.id === sessionId)!.messages.map(msg => 
+        msg.id === botMessageId ? { ...msg, content: text, streaming: false } : msg
+    );
     
-            const finalMessages = [...updatedMessages, { role: 'ai', content: responseText, streaming: false, id: botMessageId }];
-            setSessions(prev => prev.map(s =>
-                s.id === currentSessionId ? { ...s, messages: finalMessages } : s
-            ));
-          
-            const sessionRef = doc(db, "chatSessions", currentSessionId);
-            await updateDoc(sessionRef, { messages: finalMessages, timestamp: Timestamp.now() });
-    
-            if (!activeSession?.titleGenerated && finalMessages.length <= 3) {
-                const { title } = await generateChatTitle({ messages: finalMessages });
-                await updateDoc(sessionRef, { title, titleGenerated: true });
-            }
-    
-        } catch (error) {
-            console.error(error);
-            const errorMessage: Message = { role: 'ai', content: "Sorry, I had trouble generating a response. Please try again.", id: crypto.randomUUID() };
-            setSessions(prev => prev.map(s =>
-                s.id === currentSessionId ? { ...s, messages: [...updatedMessages, errorMessage] } : s
-            ));
-        } finally {
-            setIsLoading(false);
+    setSessions(prev => prev.map(s => 
+        s.id === sessionId ? { ...s, messages: finalMessages } : s
+    ));
+
+    const sessionRef = doc(db, "chatSessions", sessionId);
+    await updateDoc(sessionRef, { messages: finalMessages });
+  };
+
+
+  const handleSendMessage = async (prompt?: string) => {
+    const messageContent = prompt || input;
+    if (!messageContent.trim() || !user || isLoading) return;
+
+    let currentSessionId = activeSessionId;
+    let currentMessages: Message[] = [];
+
+    if (!activeSession) {
+      const newId = await createNewSession(messageContent);
+      if (!newId) return;
+      currentSessionId = newId;
+      currentMessages = [{ role: 'ai', content: `Hey ${user.displayName?.split(' ')[0] || 'there'}! How can I help?`, id: crypto.randomUUID() }];
+    } else {
+      currentMessages = activeSession.messages;
+    }
+
+    if (!currentSessionId) return;
+
+    const userMessage: Message = { role: 'user', content: messageContent, id: crypto.randomUUID() };
+    const updatedMessages = [...currentMessages, userMessage];
+
+    setSessions(prevSessions =>
+      prevSessions.map(s => s.id === currentSessionId ? { ...s, messages: updatedMessages } : s)
+    );
+
+    setInput('');
+    setIsLoading(true);
+
+    try {
+        const q = query(collection(db, "calendarEvents"), where("userId", "==", user.uid));
+        const querySnapshot = await getDocs(q);
+        const calendarEvents = querySnapshot.docs.map(doc => {
+            const data = doc.data() as CalendarEvent;
+            return { ...data, id: doc.id };
+        });
+        const learnerType = localStorage.getItem('learnerType');
+        const aiBuddyName = localStorage.getItem('aiBuddyName') || 'Tutorin';
+
+        const responseText = await studyPlannerAction({
+            userName: user?.displayName?.split(' ')[0],
+            aiBuddyName: aiBuddyName,
+            history: updatedMessages,
+            learnerType: learnerType || undefined,
+            allCourses: courses.map(c => ({ id: c.id, name: c.name, description: c.description })),
+            courseContext: activeSession?.courseContext || undefined,
+            calendarEvents: calendarEvents.map(e => ({
+                id: e.id,
+                date: e.date,
+                title: e.title,
+                time: e.startTime,
+                type: e.type,
+                description: e.description,
+            })),
+        });
+
+        const finalMessages = [...updatedMessages, { role: 'ai', content: responseText, id: crypto.randomUUID() }];
+
+        await updateDoc(doc(db, "chatSessions", currentSessionId), {
+            messages: finalMessages,
+            timestamp: Timestamp.now()
+        });
+
+        setIsLoading(false);
+        await streamResponse(responseText, currentSessionId);
+        
+        if (!sessions.find(s => s.id === currentSessionId)?.titleGenerated && finalMessages.length <= 4) {
+            const { title } = await generateChatTitle({ messages: finalMessages });
+            await updateDoc(doc(db, "chatSessions", currentSessionId), { title, titleGenerated: true });
         }
-    };
+    } catch (error) {
+        console.error(error);
+        const errorMessage: Message = { role: 'ai', content: "Sorry, I had trouble generating a response. Please try again.", id: crypto.randomUUID() };
+        setSessions(prev => prev.map(s =>
+            s.id === currentSessionId ? { ...s, messages: [...updatedMessages, errorMessage] } : s
+        ));
+        setIsLoading(false);
+    }
+  };
 
 
   const handleStartChatWithPrompt = async (prompt: string) => {
@@ -1108,6 +1124,22 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                                                 </div>
                                             </div>
                                         ))}
+                                         {isLoading && (
+                                            <div className="flex items-end gap-2">
+                                                <Avatar className="h-10 w-10">
+                                                     <AIBuddy
+                                                        className="w-full h-full"
+                                                        color={customizations.color}
+                                                        hat={customizations.hat}
+                                                        shirt={customizations.shirt}
+                                                        shoes={customizations.shoes}
+                                                    />
+                                                </Avatar>
+                                                <div className="p-3 rounded-2xl max-w-[80%] text-sm bg-muted rounded-bl-none">
+                                                    <p className="text-muted-foreground animate-pulse">Tutorin's thinking...</p>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 </ScrollArea>
                                 <footer className="p-4 border-t">
