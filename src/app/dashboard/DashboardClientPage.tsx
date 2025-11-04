@@ -54,6 +54,7 @@ import {
   Edit,
   Trash2,
   Check,
+  Zap,
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -1006,6 +1007,12 @@ function DashboardClientPage() {
                 <TabsTrigger value="integrations" className="rounded-xl data-[state=active]:rounded-xl"><LinkIcon className="w-4 h-4 mr-2"/>Integrations</TabsTrigger>
               </TabsList>
               <div className="hidden md:flex gap-2">
+                <Button variant="outline" className="rounded-2xl" asChild>
+                  <Link href="/dashboard/crunch-time">
+                    <Zap className="mr-2 h-4 w-4" />
+                    Crunch Time
+                  </Link>
+                </Button>
                 <Dialog open={isUploadOpen} onOpenChange={setUploadOpen}>
                     <DialogTrigger asChild>
                         <Button variant="outline" className="rounded-2xl" id="upload-materials-button">
@@ -1196,31 +1203,31 @@ function DashboardClientPage() {
                 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
                     <div className="lg:col-span-2 space-y-8">
-                        <Card id="streak-card" className="bg-orange-500/5 border-orange-500/20 text-orange-900 dark:text-orange-200">
+                        <Card id="streak-card" className="bg-orange-50/50 dark:bg-orange-500/5 border border-orange-500/10">
                            <CardContent className="p-6">
-                               <div className="flex flex-col items-center justify-center gap-4 text-center">
-                                   <div className="p-4 bg-white dark:bg-orange-900/20 rounded-full shadow-inner">
+                               <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 text-center sm:text-left">
+                                   <div className="p-4 bg-white dark:bg-card rounded-full shadow-lg">
                                        <Flame className="w-8 h-8 text-orange-500" />
                                    </div>
                                    <div className="flex-1">
-                                       <h3 className="text-3xl font-bold">{streak} Day Streak!</h3>
-                                       <p className="text-sm opacity-80 mt-1 max-w-xs mx-auto">
+                                       <h3 className="text-2xl font-bold text-orange-900 dark:text-orange-200">{streak} Day Streak!</h3>
+                                       <p className="text-sm text-orange-800/80 dark:text-orange-200/80 mt-1 max-w-xs mx-auto sm:mx-0">
                                            {streak > 1 ? "Keep the fire going! You're building a great habit." : "Every journey starts with a single step. Keep it up!"}
                                        </p>
                                    </div>
                                    <Dialog onOpenChange={(open) => !open && setRewardState('idle')}>
                                        <DialogTrigger asChild>
                                            <Button variant="outline" className="rounded-full border-orange-500/50 bg-white/50 hover:bg-white/80 dark:bg-transparent dark:hover:bg-orange-900/10 dark:text-orange-300">
-                                               View Streak Rewards
+                                               View Rewards
                                            </Button>
                                        </DialogTrigger>
                                        <DialogContent>
-                                           <DialogHeader>
-                                               <DialogTitle className="flex items-center gap-2"><Trophy className="text-yellow-500" /> Your Reward Chests</DialogTitle>
-                                               <DialogDescription>
-                                                   Claim chests by maintaining your study streak.
-                                               </DialogDescription>
-                                           </DialogHeader>
+                                            <DialogHeader>
+                                                <DialogTitle className="flex items-center gap-2"><Trophy className="text-yellow-500" /> Your Reward Chests</DialogTitle>
+                                                <DialogDescription>
+                                                    Claim chests by maintaining your study streak.
+                                                </DialogDescription>
+                                            </DialogHeader>
                                            <div className="py-4 space-y-4">
                                                {rewardState === 'idle' && chests.map(chest => {
                                                    const hasClaimedStreak = chest.unlocksAt && localStorage.getItem(`streakChestClaimed_${chest.id}_${user?.uid}`);
@@ -1800,13 +1807,13 @@ function DashboardClientPage() {
 
         </Tabs>
         <Dialog open={isConceptsOpen} onOpenChange={setIsConceptsOpen}>
+             <DialogHeader>
+                <DialogTitle>Key Concepts Hub</DialogTitle>
+                <DialogDescription>
+                    Select a course to generate interactive flashcards for its key terms.
+                </DialogDescription>
+            </DialogHeader>
             <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                    <DialogTitle>Key Concepts Hub</DialogTitle>
-                    <DialogDescription>
-                        Select a course to generate interactive flashcards for its key terms.
-                    </DialogDescription>
-                </DialogHeader>
                 <div className="py-4 space-y-4">
                     <div className="space-y-2">
                         <Label htmlFor="concept-course">Course</Label>
@@ -1918,6 +1925,7 @@ function DashboardClientPage() {
 }
 
 export default DashboardClientPage;
+
 
 
 
