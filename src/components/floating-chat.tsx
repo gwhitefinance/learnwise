@@ -551,20 +551,40 @@ interface FloatingChatProps {
     isEmbedded?: boolean;
 }
 
-const InteractiveCanvas = ({ quizParams, onOpen }: { quizParams: Omit<GenerateQuizInput, 'questionType'> | null, onOpen: () => void }) => {
-    if (!quizParams) {
+const InteractiveCanvas = ({ quiz, isLoading, onAnswer, onSubmit }: { quiz: GenerateQuizOutput | null, isLoading: boolean, onAnswer: (answer: string) => void, onSubmit: () => void }) => {
+    if (isLoading) {
+        return (
+             <div className="bg-muted h-full flex flex-col p-6 rounded-l-2xl items-center justify-center">
+                <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
+                <p className="text-lg font-semibold">Generating Quiz...</p>
+            </div>
+        );
+    }
+    if (!quiz || !quiz.questions) {
         return (
             <div className="bg-muted h-full flex flex-col p-6 rounded-l-2xl items-center justify-center">
                 <p>No quiz selected.</p>
             </div>
         );
     }
+
+    // This is a minimal implementation, you'd add state for current question, answers etc.
+    const currentQuestion = quiz.questions[0];
+
     return (
-        <div className="bg-muted h-full flex flex-col p-6 rounded-l-2xl items-center justify-center text-center">
-            <HelpCircle className="w-16 h-16 text-primary mb-4" />
-            <h3 className="text-xl font-bold">Practice Quiz</h3>
-            <p className="text-muted-foreground mt-2">Ready to start a {quizParams.numQuestions}-question quiz on "{quizParams.topics}"?</p>
-            <Button className="mt-6" onClick={onOpen}>Let's Go!</Button>
+        <div className="bg-muted h-full flex flex-col p-6 rounded-l-2xl">
+            <h3 className="text-xl font-bold mb-2">Practice Quiz</h3>
+            <p className="text-muted-foreground mb-6">{currentQuestion.question}</p>
+             <div className="space-y-3">
+                {currentQuestion.options?.map((option) => (
+                    <Button key={option} variant="outline" className="w-full justify-start h-auto py-3" onClick={() => onAnswer(option)}>
+                        {option}
+                    </Button>
+                ))}
+            </div>
+            <div className="mt-auto pt-6 flex justify-end">
+                <Button onClick={onSubmit}>Submit Quiz</Button>
+            </div>
         </div>
     );
 }
@@ -805,7 +825,12 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
         // Add the AI text response first
         if (aiTextResponse) {
             await streamResponse(aiTextResponse, currentSessionId, botMessageId);
+        } else {
+             // If there's no text, remove the placeholder streaming message
+            setSessions(prev => prev.map(s => s.id === currentSessionId ? { ...s, messages: s.messages.filter(m => m.id !== botMessageId) } : s));
         }
+        
+        const sessionRef = doc(db, "chatSessions", currentSessionId);
         
         // Then, if there's a quiz, add the quiz card
         if (quizToolRequest && quizToolRequest.output) {
@@ -826,22 +851,15 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                 : s
             ));
             
-            const sessionRef = doc(db, "chatSessions", currentSessionId);
-            const sessionDoc = await getDoc(sessionRef);
-            const currentMessages = sessionDoc.data()?.messages || [];
-            
+            // Update Firestore with all messages including the quiz card
             await updateDoc(sessionRef, {
-                messages: [...currentMessages, userMessage, {role: 'ai', content: aiTextResponse}, {role: 'ai', content: '', quizParams: quizToolRequest.output, quizTitle: quizTitle, timestamp: Date.now()}],
+                messages: arrayUnion(userMessage, {role: 'ai', content: aiTextResponse}, quizCardMessage),
                 timestamp: Timestamp.now(),
             });
 
         } else if (aiTextResponse) { // Only text response
-             const sessionRef = doc(db, "chatSessions", currentSessionId);
-            const sessionDoc = await getDoc(sessionRef);
-            const currentMessages = sessionDoc.data()?.messages || [];
-            
-            await updateDoc(sessionRef, {
-                messages: [...currentMessages, userMessage, {role: 'ai', content: aiTextResponse}],
+             await updateDoc(sessionRef, {
+                messages: arrayUnion(userMessage, {role: 'ai', content: aiTextResponse}),
                 timestamp: Timestamp.now(),
             });
         }
