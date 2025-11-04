@@ -36,6 +36,9 @@ interface Message {
   role: 'user' | 'ai';
   content: string;
   streaming?: boolean;
+  quiz?: GenerateQuizOutput;
+  quizTitle?: string;
+  timestamp?: number;
 }
 
 interface ChatSession {
@@ -549,6 +552,7 @@ interface FloatingChatProps {
 }
 
 const InteractiveCanvas = ({ quiz, onAnswer, onSubmit }: { quiz: GenerateQuizOutput | null, onAnswer: (answer: string) => void, onSubmit: () => void }) => {
+    
     if (!quiz) {
         return (
             <div className="bg-muted h-full flex flex-col p-6 rounded-2xl items-center justify-center">
@@ -678,6 +682,25 @@ const InteractiveCanvas = ({ quiz, onAnswer, onSubmit }: { quiz: GenerateQuizOut
         </div>
     )
 }
+
+const QuizCard = ({ title, timestamp, onOpen }: { title: string, timestamp: number, onOpen: () => void }) => {
+    return (
+        <div className="bg-gray-800 text-white p-4 rounded-lg flex justify-between items-center">
+            <div className="flex items-center gap-3">
+                <div className="bg-gray-700 p-2 rounded-lg">
+                    <HelpCircle className="w-5 h-5 text-gray-300" />
+                </div>
+                <div>
+                    <p className="font-semibold">{title}</p>
+                    <p className="text-xs text-gray-400">{format(new Date(timestamp), "MMM d, h:mm a")}</p>
+                </div>
+            </div>
+            <Button size="sm" className="bg-blue-500 hover:bg-blue-600 text-white rounded-full" onClick={onOpen}>
+                Open
+            </Button>
+        </div>
+    );
+};
 
 export default function FloatingChat({ children, isHidden, isEmbedded }: FloatingChatProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -886,37 +909,50 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
             })),
         });
 
-        const quizTool = response.tool_requests?.find((tr: any) => tr.tool.name === 'generateQuizTool');
+        const quizToolRequest = response.tool_requests?.find((tr: any) => tr.name === 'generateQuizTool');
         
-        if (quizTool && quizTool.output) {
-            setInteractiveQuiz(quizTool.output);
-            setIsFullscreen(true);
-            setIsLoading(false);
-            // Remove the placeholder message
-             setSessions(prev =>
-                prev.map(s =>
-                    s.id === currentSessionId
-                    ? { ...s, messages: s.messages.filter(m => m.id !== botMessageId)}
-                    : s
-                )
-            );
-            return;
+        if (quizToolRequest && quizToolRequest.output) {
+            const quizTitle = `Practice Quiz: ${quizToolRequest.input.topic}`;
+            const quizMessage: Message = {
+                id: botMessageId,
+                role: 'ai',
+                content: `Sure, here's your quiz on ${quizToolRequest.input.topic}.`,
+                quiz: quizToolRequest.output,
+                quizTitle: quizTitle,
+                timestamp: Date.now(),
+            };
+
+            setSessions(prev => prev.map(s => 
+                s.id === currentSessionId 
+                ? { ...s, messages: s.messages.map(msg => msg.id === botMessageId ? quizMessage : msg)}
+                : s
+            ));
+            
+            const sessionRef = doc(db, "chatSessions", currentSessionId);
+            const sessionDoc = await getDoc(sessionRef);
+            const currentMessages = sessionDoc.data()?.messages || [];
+            
+            await updateDoc(sessionRef, {
+                messages: [...currentMessages, userMessage, {role: 'ai', content: quizMessage.content, quiz: quizMessage.quiz, quizTitle: quizMessage.quizTitle, timestamp: quizMessage.timestamp}],
+                timestamp: Timestamp.now(),
+            });
+
+        } else if (response.text) {
+            streamResponse(response.text, currentSessionId, botMessageId);
+
+            const sessionRef = doc(db, "chatSessions", currentSessionId);
+            const sessionDoc = await getDoc(sessionRef);
+            const currentMessages = sessionDoc.data()?.messages || [];
+            
+            await updateDoc(sessionRef, {
+                messages: [...currentMessages, userMessage, {role: 'ai', content: response.text}],
+                timestamp: Timestamp.now(),
+            });
         }
-
-        streamResponse(response.text, currentSessionId, botMessageId);
-
-        const sessionRef = doc(db, "chatSessions", currentSessionId);
-        const sessionDoc = await getDoc(sessionRef);
-        const currentMessages = sessionDoc.data()?.messages || [];
-        
-        await updateDoc(sessionRef, {
-            messages: [...currentMessages, {role: 'user', content: messageContent}, {role: 'ai', content: response.text}],
-            timestamp: Timestamp.now(),
-        });
         
         const updatedSession = sessions.find(s => s.id === currentSessionId);
         if (updatedSession && !updatedSession.titleGenerated && updatedSession.messages.length <= 3) {
-            generateChatTitle({ messages: [...updatedSession.messages, {role: 'ai', content: response.text, id: 'temp'}] }).then(({title}) => {
+            generateChatTitle({ messages: [...updatedSession.messages, {role: 'ai', content: response.text || '', id: 'temp'}] }).then(({title}) => {
                 updateDoc(doc(db, "chatSessions", currentSessionId!), { title, titleGenerated: true });
             });
         }
@@ -1187,7 +1223,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                                                 <div key={msg.id || index} className={cn("flex items-end gap-2", msg.role === 'user' ? 'justify-end' : '')}>
                                                      {msg.role === 'ai' && <Avatar className="h-10 w-10"><AIBuddy className="w-full h-full" {...customizations} /></Avatar>}
                                                     <div className={cn( "p-3 rounded-2xl max-w-[80%] text-sm prose dark:prose-invert prose-p:my-0 prose-headings:my-0 prose-table:my-0", msg.role === 'user' ? "bg-primary text-primary-foreground rounded-br-none" : "bg-muted rounded-bl-none" )}>
-                                                        {msg.streaming && msg.content === '' ? '...' : <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>}
+                                                         {msg.streaming && msg.content === '' ? '...' : <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>}
                                                     </div>
                                                 </div>
                                             ))}
@@ -1238,14 +1274,22 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                                     </header>
                                     <ScrollArea className="flex-1" viewportRef={scrollAreaRef}>
                                         <div className="p-4 space-y-4">
-                                            {activeSession?.messages.map((msg, index) => (
-                                                <div key={msg.id || index} className={cn("flex items-end gap-2", msg.role === 'user' ? 'justify-end' : '')}>
-                                                     {msg.role === 'ai' && (<Avatar className="h-10 w-10"><AIBuddy className="w-full h-full" {...customizations} /></Avatar>)}
-                                                    <div className={cn( "p-3 rounded-2xl max-w-[80%] text-sm prose dark:prose-invert prose-p:my-0 prose-headings:my-0 prose-table:my-0", msg.role === 'user' ? "bg-primary text-primary-foreground rounded-br-none" : "bg-muted rounded-bl-none" )}>
-                                                         {msg.streaming && msg.content === '' ? '...' : <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>}
+                                            {activeSession?.messages.map((msg, index) => {
+                                                if (msg.quiz) {
+                                                    return <QuizCard key={msg.id} title={msg.quizTitle || 'Practice Quiz'} timestamp={msg.timestamp || Date.now()} onOpen={() => {
+                                                        setInteractiveQuiz(msg.quiz);
+                                                        setIsFullscreen(true);
+                                                    }} />;
+                                                }
+                                                return (
+                                                    <div key={msg.id || index} className={cn("flex items-end gap-2", msg.role === 'user' ? 'justify-end' : '')}>
+                                                        {msg.role === 'ai' && <Avatar className="h-10 w-10"><AIBuddy className="w-full h-full" {...customizations} /></Avatar>}
+                                                        <div className={cn( "p-3 rounded-2xl max-w-[80%] text-sm prose dark:prose-invert prose-p:my-0 prose-headings:my-0 prose-table:my-0", msg.role === 'user' ? "bg-primary text-primary-foreground rounded-br-none" : "bg-muted rounded-bl-none" )}>
+                                                            {msg.streaming && msg.content === '' ? '...' : <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>}
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            ))}
+                                                );
+                                            })}
                                         </div>
                                     </ScrollArea>
                                     <footer className="p-4 border-t space-y-2">
