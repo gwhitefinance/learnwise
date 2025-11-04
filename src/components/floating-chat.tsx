@@ -719,12 +719,13 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
 
         let responseText = '';
         const reader = stream.getReader();
+        const decoder = new TextDecoder();
 
         while (true) {
             const { value, done } = await reader.read();
             if (done) break;
 
-            responseText += value;
+            responseText += decoder.decode(value, { stream: true });
             
             setSessions(prevSessions =>
                 prevSessions.map(s =>

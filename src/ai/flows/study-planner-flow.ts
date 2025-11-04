@@ -7,8 +7,6 @@ import { ai } from '@/ai/genkit';
 import { googleAI } from '@genkit-ai/google-genai';
 import { z } from 'zod';
 import { StudyPlannerInputSchema } from '@/ai/schemas/study-planner-schema';
-import { Readable } from 'stream';
-
 
 /**
  * Define the Tutorin AI prompt with a best-friend, motivational tone.
@@ -93,10 +91,11 @@ async function studyPlannerFlow(input: z.infer<typeof StudyPlannerInputSchema>):
     // Convert the Genkit stream to a standard ReadableStream
     const readableStream = new ReadableStream({
         async start(controller) {
+            const encoder = new TextEncoder();
             for await (const chunk of stream) {
                 const text = chunk.text;
                 if (text) {
-                    controller.enqueue(text);
+                    controller.enqueue(encoder.encode(text));
                 }
             }
             controller.close();
