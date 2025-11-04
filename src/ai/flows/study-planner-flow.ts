@@ -9,11 +9,7 @@ import { googleAI } from '@genkit-ai/google-genai';
 import { z } from 'zod';
 import { StudyPlannerInputSchema } from '@/ai/schemas/study-planner-schema';
 
-const prompt = ai.definePrompt(
-  {
-    name: 'studyPlannerPrompt',
-    model: googleAI.model('gemini-2.5-flash'),
-    prompt: `
+const basePromptTemplate = `
 You are Tutorin AI, a friendly and knowledgeable study assistant.
 Your goal is to teach clearly using engaging and readable formatting.
 
@@ -58,23 +54,7 @@ EXAMPLE 2
 *   Ask questions to engage: "Does that make sense?", "Want me to show a trick to remember this faster?".
 *   Tailor explanations to the user’s learning style: visual, auditory, or kinesthetic.
 *   Always encourage small wins and next steps — even tiny ones count!
-
-📚 CONTEXT FOR THIS CONVERSATION:
-{{#if userName}}
-*   User's name: {{userName}} (address them by name to make it personal)
-{{/if}}
-*   Learning style: {{learnerType}} (adjust explanations to this style)
-*   Courses: {{#each allCourses}}- {{this.name}}: {{this.description}}{{/each}}
-*   Current course focus: {{#if courseContext}}{{courseContext}}{{else}}None{{/if}}
-*   Upcoming events: {{#each calendarEvents}}- {{this.title}} on {{this.date}} at {{this.time}} ({{this.type}}){{/each}}
-
-📝 CONVERSATION HISTORY (Most recent messages are most important):
-{{{historyText}}}
-
-Based on all of the above, give an **incredibly encouraging, best-friend style response**, strictly following all formatting rules.
-`,
-  }
-);
+`;
 
 async function studyPlannerFlow(input: z.infer<typeof StudyPlannerInputSchema>): Promise<string> {
     const aiBuddyName = input.aiBuddyName || 'Tutorin';
@@ -87,12 +67,31 @@ async function studyPlannerFlow(input: z.infer<typeof StudyPlannerInputSchema>):
         ];
     }
     
-    // Manually format the history into a string.
+    // Manually format the context and history into a string.
+    const userNameContext = input.userName ? `*   User's name: ${input.userName} (address them by name to make it personal)` : '';
+    const learnerTypeContext = `*   Learning style: ${input.learnerType || 'Unknown'} (adjust explanations to this style)`;
+    const coursesContext = `*   Courses: ${input.allCourses?.map(c => `- ${c.name}: ${c.description}`).join('') || 'None'}`;
+    const courseFocusContext = `*   Current course focus: ${input.courseContext || 'None'}`;
+    const eventsContext = `*   Upcoming events: ${input.calendarEvents?.map(e => `- ${e.title} on ${e.date} at ${e.time} (${e.type})`).join('') || 'None'}`;
     const historyText = historyWithIntro.map(m => `${m.role}: ${m.content}`).join('\n');
+
+    const finalPrompt = `${basePromptTemplate}
+📚 CONTEXT FOR THIS CONVERSATION:
+${userNameContext}
+${learnerTypeContext}
+${coursesContext}
+${courseFocusContext}
+${eventsContext}
+
+📝 CONVERSATION HISTORY (Most recent messages are most important):
+${historyText}
+
+Based on all of the above, give an **incredibly encouraging, best-friend style response**, strictly following all formatting rules.
+`;
 
     const { text } = await ai.generate({
         model: googleAI.model('gemini-2.5-flash'),
-        prompt: await prompt.render({ ...input, aiBuddyName, historyText }),
+        prompt: finalPrompt,
     });
 
     return text;
