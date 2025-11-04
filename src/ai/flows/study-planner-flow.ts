@@ -12,7 +12,6 @@ import { StudyPlannerInputSchema } from '@/ai/schemas/study-planner-schema';
 const prompt = ai.definePrompt(
   {
     name: 'studyPlannerPrompt',
-    model: googleAI.model('gemini-2.5-flash'),
     prompt: `
 You are Tutorin AI, a friendly and knowledgeable study assistant.
 Your goal is to teach clearly using engaging and readable formatting.
@@ -81,7 +80,7 @@ Based on all of the above, give an **incredibly encouraging, best-friend style r
 );
 
 
-async function studyPlannerFlow(input: z.infer<typeof StudyPlannerInputSchema>): Promise<ReadableStream<string>> {
+async function studyPlannerFlow(input: z.infer<typeof StudyPlannerInputSchema>): Promise<Response> {
     const aiBuddyName = input.aiBuddyName || 'Tutorin';
     let historyWithIntro: { role: 'user' | 'ai'; content: string }[] = input.history;
 
@@ -103,16 +102,20 @@ async function studyPlannerFlow(input: z.infer<typeof StudyPlannerInputSchema>):
             const encoder = new TextEncoder();
             for await (const chunk of stream) {
                 if (chunk.text) {
-                    controller.enqueue(chunk.text);
+                    controller.enqueue(encoder.encode(chunk.text));
                 }
             }
             controller.close();
         }
     });
 
-    return readableStream;
+    return new Response(readableStream, {
+        headers: {
+            'Content-Type': 'text/plain; charset=utf-8',
+        },
+    });
 }
 
-export async function studyPlannerAction(input: z.infer<typeof StudyPlannerInputSchema>): Promise<ReadableStream<string>> {
+export async function studyPlannerAction(input: z.infer<typeof StudyPlannerInputSchema>): Promise<Response> {
     return studyPlannerFlow(input);
 }
