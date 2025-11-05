@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import React, { useEffect, useState, useRef, createContext, useContext, Suspense, useCallback } from 'react';
@@ -339,6 +338,7 @@ function DashboardLayoutContent({
   const [gradeLevel, setGradeLevel] = useState<string | null>(null);
   
   const isFocusLayout = pathname.startsWith('/dashboard/sat-prep/study-session');
+  const isNewNotePage = pathname === '/dashboard/notes/new';
 
   useEffect(() => {
     setIsMounted(true);
@@ -640,7 +640,7 @@ function DashboardLayoutContent({
             sidebarOpen && !isFocusLayout ? "md:pl-64" : "md:pl-0",
             isFocusLayout && 'md:pl-0 w-full'
         )}>
-            {!isFocusLayout && (
+            {!isFocusLayout && !isNewNotePage && (
                 <header className="sticky top-0 z-10 flex h-16 items-center gap-3 border-b bg-background/95 px-4 backdrop-blur">
                     <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileMenuOpen(true)}>
                         <Menu className="h-5 w-5" />
@@ -721,8 +721,11 @@ function DashboardLayoutContent({
                 </header>
             )}
 
-            <main className="flex-1 flex flex-col relative p-4 md:p-6">
-              <FloatingChat isHidden={isFocusLayout} isEmbedded={isFocusLayout}>
+            <main className={cn(
+                "flex-1 flex flex-col relative",
+                !isNewNotePage && "p-4 md:p-6"
+            )}>
+              <FloatingChat isHidden={isFocusLayout || isNewNotePage} isEmbedded={isNewNotePage}>
                 {React.cloneElement(children as React.ReactElement)}
               </FloatingChat>
             </main>

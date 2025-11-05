@@ -140,13 +140,13 @@ export default function NewNotePage() {
     <div className="h-full flex flex-col md:flex-row gap-4">
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
-         <header className="flex justify-between items-center mb-4 flex-wrap bg-card border rounded-2xl p-2 px-4">
+         <header className="flex justify-between items-center mb-4 flex-wrap bg-card p-2 px-4">
             <div className="flex items-center gap-2">
                 <h1 className="text-xl font-bold">Untitled Lecture</h1>
                 <ChevronDown className="h-5 w-5 text-muted-foreground" />
             </div>
             <div className="flex items-center gap-1">
-                <Button variant="ghost" size="icon" className="h-8 w-8 bg-blue-500 text-white hover:bg-blue-600 rounded-full">
+                <Button variant="ghost" size="icon" className="h-9 w-9 bg-blue-500 text-white hover:bg-blue-600 rounded-full">
                     <Mic className="h-4 w-4" />
                 </Button>
                 <Button variant="ghost" className="h-9 text-muted-foreground"><Share2 className="h-4 w-4 mr-2" /> Share</Button>
@@ -156,14 +156,13 @@ export default function NewNotePage() {
             </div>
         </header>
         
-        <div className="bg-card border rounded-lg p-2 space-y-2">
+        <div className="bg-card p-2 space-y-2">
             <div className="flex gap-1 flex-wrap">
                 <TabButton id="self-written" name="Self Written Notes" icon={<FileText className="h-4 w-4 mr-2" />} />
                 <TabButton id="enhanced" name="Enhanced Notes" icon={<Sparkles className="h-4 w-4 mr-2" />} />
                 <TabButton id="transcript" name="Lecture Transcript" icon={<Clock className="h-4 w-4 mr-2" />} />
                 <TabButton id="audio" name="Audio Files" icon={<Mic className="h-4 w-4 mr-2" />} />
             </div>
-            <Separator />
             <div className="flex items-center gap-1 flex-nowrap overflow-x-auto px-2">
                 <Select defaultValue="Arial" onValueChange={(value) => applyStyle('fontName', value)}>
                     <SelectTrigger className="w-[120px] h-8 text-xs shrink-0"><SelectValue /></SelectTrigger>
