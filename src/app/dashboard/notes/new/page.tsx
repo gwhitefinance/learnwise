@@ -43,6 +43,7 @@ import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import Draggable from 'react-draggable';
 
 
 export default function NewNotePage() {
@@ -218,7 +219,7 @@ export default function NewNotePage() {
             </div>
         </div>
 
-        <div className="flex-1 mt-4">
+        <div className="flex-1 mt-4 relative">
             {activeTab === 'self-written' && (
                 <Card className="h-full">
                     <CardContent className="p-0 h-full">
@@ -233,11 +234,13 @@ export default function NewNotePage() {
                 </Card>
             )}
              {activeTab === 'transcript' && (
-                <Card className="h-full flex items-center justify-center">
-                    <CardContent className="p-4 text-center">
-                        <ListenToNote onNoteGenerated={handleNoteGenerated} />
-                    </CardContent>
-                </Card>
+                <div className="h-full w-full flex items-center justify-center">
+                    <Draggable>
+                        <div className="cursor-move">
+                            <ListenToNote onNoteGenerated={handleNoteGenerated} />
+                        </div>
+                    </Draggable>
+                </div>
             )}
             {(activeTab === 'enhanced' || activeTab === 'audio') && (
                 <Card className="h-full flex items-center justify-center">
