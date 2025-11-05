@@ -1617,9 +1617,7 @@ function CoursesComponent() {
                       ) : currentChapter.content ? (
                          <>
                             {currentChapter.imageUrl && (
-                                <div className="aspect-video w-full relative overflow-hidden rounded-lg">
-                                    <Image src={currentChapter.imageUrl} alt={currentChapter.title} fill className="object-cover" />
-                                </div>
+                                <Image src={currentChapter.imageUrl} alt={currentChapter.title || 'Chapter image'} width={600} height={400} className="rounded-lg object-cover w-full aspect-video mb-6" />
                             )}
                              <div 
                                 ref={contentRef}
