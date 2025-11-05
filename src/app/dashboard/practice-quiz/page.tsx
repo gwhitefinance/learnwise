@@ -29,6 +29,7 @@ import Loading from './loading';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
 
 export const dynamic = "force-dynamic";
 
@@ -55,12 +56,7 @@ const examSpecificTypes = {
 };
 
 type QuestionCounts = {
-    'Multiple Choice': number;
-    'Short Answer': number;
-    'Free Response (FRQ)': number;
-    'True or False': number;
-    'Fill in the Blank': number;
-    [examName: string]: number;
+    [key: string]: number;
 };
 
 function PracticeQuizComponent() {
@@ -198,7 +194,7 @@ function PracticeQuizComponent() {
 
     const handleGenerateQuiz = async () => {
         let finalTopics = topics;
-        if ((creationSource === 'course' || quizMode === 'practice') && selectedCourseId) {
+        if (creationSource === 'course' && selectedCourseId) {
             const course = courses.find(c => c.id === selectedCourseId);
             finalTopics = course?.name || topics;
         }
@@ -621,7 +617,7 @@ function PracticeQuizComponent() {
                  <Card className="w-full max-w-2xl">
                     <CardContent className="p-6 space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-                            {Object.entries(questionCounts).filter(([type]) => ['Multiple Choice', 'Short Answer', 'Free Response (FRQ)', 'True or False', 'Fill in the Blank'].includes(type)).map(([type, count]) => (
+                            {Object.entries(questionCounts).filter(([type]) => ['Multiple Choice', 'Short Answer', 'True or False', 'Fill in the Blank', 'Free Response (FRQ)'].includes(type)).map(([type, count]) => (
                                 <div key={type} className="flex items-center justify-between">
                                     <Label htmlFor={type} className="text-base">{type}</Label>
                                     <Input 
@@ -640,7 +636,7 @@ function PracticeQuizComponent() {
                             <h3 className="font-semibold text-lg">Exam-Specific Question Types</h3>
                             <p className="text-sm text-muted-foreground">Choose specialized question formats for various standardized exams</p>
                              <Accordion type="multiple" className="w-full space-y-2">
-                                 {Object.entries(examSpecificTypes).map(([category, exams]) => (
+                                {Object.entries(examSpecificTypes).map(([category, exams]) => (
                                     <AccordionItem key={category} value={category} className="border rounded-lg bg-muted/30 px-4">
                                         <AccordionTrigger className="hover:no-underline">{category}</AccordionTrigger>
                                         <AccordionContent className="p-2 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
@@ -717,21 +713,31 @@ function PracticeQuizComponent() {
 
                 <Card className="w-full max-w-3xl">
                     <CardContent className="p-8">
-                         <RadioGroup value={selectedAnswer ?? ''} onValueChange={setSelectedAnswer} disabled={answerState === 'answered'}>
-                            <div className="space-y-4">
-                            {currentQuestion.options?.map((option, index) => (
-                                <Label key={index} htmlFor={`option-${index}`} className={cn(
-                                    "flex items-center gap-4 p-4 rounded-lg border transition-all cursor-pointer",
-                                    answerState === 'unanswered' && (selectedAnswer === option ? "border-primary bg-primary/10" : "border-border hover:bg-muted"),
-                                    answerState === 'answered' && option === currentQuestion.answer && "border-green-500 bg-green-500/10",
-                                    answerState === 'answered' && selectedAnswer === option && option !== currentQuestion.answer && "border-red-500 bg-red-500/10",
-                                )}>
-                                    <RadioGroupItem value={option} id={`option-${index}`} />
-                                    <span>{option}</span>
-                                </Label>
-                            ))}
-                            </div>
-                        </RadioGroup>
+                         {currentQuestion.options && currentQuestion.options.length > 0 ? (
+                            <RadioGroup value={selectedAnswer ?? ''} onValueChange={setSelectedAnswer} disabled={answerState === 'answered'}>
+                                <div className="space-y-4">
+                                {currentQuestion.options?.map((option, index) => (
+                                    <Label key={index} htmlFor={`option-${index}`} className={cn(
+                                        "flex items-center gap-4 p-4 rounded-lg border transition-all cursor-pointer",
+                                        answerState === 'unanswered' && (selectedAnswer === option ? "border-primary bg-primary/10" : "border-border hover:bg-muted"),
+                                        answerState === 'answered' && option === currentQuestion.answer && "border-green-500 bg-green-500/10",
+                                        answerState === 'answered' && selectedAnswer === option && option !== currentQuestion.answer && "border-red-500 bg-red-500/10",
+                                    )}>
+                                        <RadioGroupItem value={option} id={`option-${index}`} />
+                                        <span>{option}</span>
+                                    </Label>
+                                ))}
+                                </div>
+                            </RadioGroup>
+                        ) : (
+                            <Textarea 
+                                placeholder="Type your answer here..."
+                                value={selectedAnswer || ''}
+                                onChange={(e) => setSelectedAnswer(e.target.value)}
+                                disabled={answerState === 'answered'}
+                                className="min-h-[150px] text-base"
+                            />
+                        )}
                          <div className="mt-8 flex justify-between items-center">
                             <div className="flex gap-2">
                                 <Button variant="outline" onClick={() => onWhiteboardOpenChange(!isWhiteboardOpen)}><PenSquare className="mr-2 h-4 w-4"/> Whiteboard</Button>
@@ -895,5 +901,7 @@ export default function PracticeQuizPage() {
         </Suspense>
     )
 }
+
+    
 
     
