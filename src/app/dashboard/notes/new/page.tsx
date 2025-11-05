@@ -43,6 +43,7 @@ import {
   Info,
   Users,
   ArrowRight,
+  X,
 } from 'lucide-react';
 import Image from 'next/image';
 import Logo from '@/components/Logo';
@@ -257,3 +258,4 @@ export default function NewNotePage() {
         </div>
     );
 }
+
