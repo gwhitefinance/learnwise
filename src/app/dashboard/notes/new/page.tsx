@@ -4,10 +4,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import {
-  FileText,
-  Sparkles,
-  Clock,
-  Mic,
   Bold,
   Italic,
   Underline,
@@ -18,75 +14,86 @@ import {
   AlignRight,
   List,
   ListOrdered,
-  Search,
-  Home,
-  BookCopy,
-  Calendar,
-  MessageSquare,
-  FlaskConical,
-  Edit,
-  GraduationCap,
-  Gamepad2,
-  FileSignature,
-  Clapperboard,
-  Music,
-  Plus,
-  FolderPlus,
-  Flame,
-  ChevronDown,
-  Upload,
-  Link as LinkIcon,
-  Bell,
-  Info,
-  Users,
   ArrowRight,
-  MicOff,
   ImageIcon,
+  Globe,
+  GraduationCap,
+  FileText,
+  MicOff,
   Undo,
   Redo,
-  Printer,
-  Expand,
-  Type,
-  ArrowLeft,
   X,
-  Globe
+  ChevronDown,
+  Mic,
+  Sparkles,
+  Clock,
+  Music,
+  UserPlus,
+  Upload,
+  Info,
+  GitMerge,
+  Link,
+  Plus,
+  History,
+  Printer,
+  Expand
 } from 'lucide-react';
 import Image from 'next/image';
 import { Input } from '@/components/ui/input';
 
 const EditorToolbar = ({ onCommand }: { onCommand: (command: string, value?: string) => void }) => (
-    <div className="bg-gray-100 dark:bg-gray-800 rounded-t-lg p-2 border-b border-gray-200 dark:border-gray-700">
-        <div className="p-4 border-b border-gray-200 dark:border-gray-800">
-          <div className="flex items-center space-x-2 text-gray-500 dark:text-gray-400">
-                <select onChange={(e) => onCommand('fontName', e.target.value)} className="flex items-center gap-1 px-2 py-1 rounded bg-gray-100 dark:bg-gray-800 text-sm">
+    <div className="bg-gray-100 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="px-4 border-b border-gray-200 dark:border-gray-800">
+            <nav className="flex items-center -mb-px">
+                <a className="flex items-center gap-2 px-3 py-3 border-b-2 border-primary text-primary font-semibold text-sm" href="#">
+                    <FileText size={16} /> Self Written Notes
+                </a>
+                <a className="flex items-center gap-2 px-3 py-3 border-b-2 border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 font-medium text-sm" href="#">
+                    <Sparkles size={16} /> Enhanced Notes
+                </a>
+                <a className="flex items-center gap-2 px-3 py-3 border-b-2 border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 font-medium text-sm" href="#">
+                    <Clock size={16} /> Lecture Transcript
+                </a>
+                <a className="flex items-center gap-2 px-3 py-3 border-b-2 border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 font-medium text-sm" href="#">
+                    <Music size={16} /> Audio Files
+                </a>
+            </nav>
+        </div>
+        <div className="p-4">
+            <div className="flex items-center space-x-2 text-gray-500 dark:text-gray-400">
+                <select onChange={(e) => onCommand('fontName', e.target.value)} className="flex items-center gap-1 px-2 py-1 rounded bg-gray-100 dark:bg-gray-800 text-sm border-none focus:ring-0">
                     <option value="Arial">Arial</option>
                     <option value="Georgia">Georgia</option>
                     <option value="Times New Roman">Times New Roman</option>
                     <option value="Verdana">Verdana</option>
                 </select>
-                 <select onChange={(e) => onCommand('fontSize', e.target.value)} className="flex items-center gap-1 px-2 py-1 rounded bg-gray-100 dark:bg-gray-800 text-sm">
-                    <option value="3">Normal</option>
-                    <option value="4">Subtitle</option>
-                    <option value="5">Heading</option>
-                    <option value="6">Title</option>
+                <select onChange={(e) => onCommand('fontSize', e.target.value)} className="flex items-center gap-1 px-2 py-1 rounded bg-gray-100 dark:bg-gray-800 text-sm border-none focus:ring-0">
+                    <option value="3">11</option>
+                    <option value="4">14</option>
+                    <option value="5">18</option>
+                    <option value="6">24</option>
                 </select>
                 <div className="h-6 w-px bg-gray-200 dark:bg-gray-700"></div>
-                <button onClick={() => onCommand('bold')} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"><Bold size={18} /></button>
-                <button onClick={() => onCommand('italic')} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"><Italic size={18} /></button>
-                <button onClick={() => onCommand('underline')} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"><Underline size={18} /></button>
-                <button onClick={() => onCommand('strikeThrough')} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"><Strikethrough size={18} /></button>
+                <button onClick={() => onCommand('bold')} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"><Bold size={18} /></button>
+                <button onClick={() => onCommand('italic')} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"><Italic size={18} /></button>
+                <button onClick={() => onCommand('underline')} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"><Underline size={18} /></button>
+                <button onClick={() => onCommand('strikeThrough')} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"><Strikethrough size={18} /></button>
                 <div className="h-6 w-px bg-gray-200 dark:bg-gray-700"></div>
-                <input type="color" onChange={(e) => onCommand('foreColor', e.target.value)} className="p-0 border-none bg-transparent w-6 h-6 cursor-pointer" />
+                <button className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"><Palette size={18} /></button>
                 <div className="h-6 w-px bg-gray-200 dark:bg-gray-700"></div>
-                <button onClick={() => onCommand('justifyLeft')} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"><AlignLeft size={18} /></button>
-                <button onClick={() => onCommand('justifyCenter')} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"><AlignCenter size={18} /></button>
-                <button onClick={() => onCommand('justifyRight')} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"><AlignRight size={18} /></button>
+                <button onClick={() => onCommand('justifyLeft')} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"><AlignLeft size={18} /></button>
+                <button onClick={() => onCommand('justifyCenter')} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"><AlignCenter size={18} /></button>
+                <button onClick={() => onCommand('justifyRight')} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"><AlignRight size={18} /></button>
                 <div className="h-6 w-px bg-gray-200 dark:bg-gray-700"></div>
-                <button onClick={() => onCommand('insertUnorderedList')} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"><List size={18} /></button>
-                <button onClick={() => onCommand('insertOrderedList')} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"><ListOrdered size={18} /></button>
+                <button onClick={() => onCommand('insertUnorderedList')} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"><List size={18} /></button>
+                <button onClick={() => onCommand('insertOrderedList')} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"><ListOrdered size={18} /></button>
                 <div className="h-6 w-px bg-gray-200 dark:bg-gray-700"></div>
-                <button onClick={() => onCommand('undo')} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"><Undo size={18} /></button>
-                <button onClick={() => onCommand('redo')} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"><Redo size={18} /></button>
+                <button onClick={() => onCommand('undo')} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"><Undo size={18} /></button>
+                <button onClick={() => onCommand('redo')} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"><Redo size={18} /></button>
+                <button className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"><Plus size={18} /></button>
+                <button className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"><History size={18} /></button>
+                <button className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"><Printer size={18} /></button>
+                <button className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"><Expand size={18} /></button>
             </div>
         </div>
     </div>
@@ -162,11 +169,47 @@ export default function NewNotePage() {
     };
     
     return (
-        <div className="flex-1 flex overflow-hidden">
+        <div className="flex h-screen overflow-hidden">
              <main className="flex-1 flex flex-col bg-background-light dark:bg-gray-900/50">
+                <header className="flex-shrink-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-6 py-3">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Untitled Lecture</h1>
+                            <button className="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 p-1 rounded">
+                                <ChevronDown size={16} />
+                            </button>
+                            <button className="p-1.5 rounded-full bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400 ml-2">
+                                <Mic size={16}/>
+                            </button>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Button variant="outline" className="text-sm">
+                                <UserPlus className="mr-2 h-4 w-4"/> Share
+                            </Button>
+                            <Button className="text-sm bg-green-500 hover:bg-green-600">
+                                <Upload className="mr-2 h-4 w-4"/> Upgrade
+                            </Button>
+                            <Button variant="outline" className="text-sm">
+                                <Info className="mr-2 h-4 w-4"/> Feedback
+                            </Button>
+                            <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                                <button className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800">
+                                    <GitMerge size={16} />
+                                </button>
+                                <button className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800">
+                                    <FileText size={16} />
+                                </button>
+                            </div>
+                            <div className="relative">
+                                <Image alt="User avatar" className="w-8 h-8 rounded-full" src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=2080&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" width={32} height={32} />
+                                <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center border-2 border-white dark:border-gray-900">G</span>
+                            </div>
+                        </div>
+                    </div>
+                </header>
                 <div className="flex-1 flex flex-col p-6 overflow-y-auto">
                     <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm flex-1 flex flex-col">
-                         <EditorToolbar onCommand={handleCommand} />
+                        <EditorToolbar onCommand={handleCommand} />
                         <div 
                          ref={editorRef}
                          contentEditable="true" 
@@ -178,7 +221,7 @@ export default function NewNotePage() {
                     </div>
                 </div>
             </main>
-             <aside className="w-80 flex-shrink-0 bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 flex flex-col">
+            <aside className="w-80 flex-shrink-0 bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 flex flex-col">
                  <header className="flex-shrink-0 flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
                     <Button variant="ghost" size="icon" className="text-gray-500 dark:text-gray-400">
                         <X size={20} />
