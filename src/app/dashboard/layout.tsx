@@ -582,7 +582,7 @@ function DashboardLayoutContent({
         )}
 
         {/* Sidebar - Desktop */}
-        {!isFocusLayout && !isNewNotePage && (
+        {!isFocusLayout && (
             <div
                 className={cn(
                 "fixed inset-y-0 left-0 z-30 hidden w-64 transform border-r bg-background transition-transform duration-300 ease-in-out md:block",
@@ -637,10 +637,10 @@ function DashboardLayoutContent({
         {/* Main Content */}
         <div className={cn(
             "flex flex-col min-h-screen transition-all duration-300 ease-in-out", 
-            sidebarOpen && !isFocusLayout && !isNewNotePage ? "md:pl-64" : "md:pl-0",
+            sidebarOpen && !isFocusLayout ? "md:pl-64" : "md:pl-0",
             isFocusLayout && 'md:pl-0 w-full'
         )}>
-            {!isFocusLayout && !isNewNotePage && (
+            {!isFocusLayout && (
                 <header className="sticky top-0 z-10 flex h-16 items-center gap-3 border-b bg-background/95 px-4 backdrop-blur">
                     <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileMenuOpen(true)}>
                         <Menu className="h-5 w-5" />
@@ -725,7 +725,7 @@ function DashboardLayoutContent({
                 "flex-1 flex flex-col relative",
                 !isNewNotePage && "p-4 md:p-6"
             )}>
-              <FloatingChat isHidden={isFocusLayout} isEmbedded={isNewNotePage}>
+              <FloatingChat isHidden={isFocusLayout || isNewNotePage}>
                 {React.cloneElement(children as React.ReactElement)}
               </FloatingChat>
             </main>
