@@ -140,7 +140,7 @@ export default function NewNotePage() {
     <div className="h-full flex flex-col md:flex-row gap-4">
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
-         <header className="flex justify-between items-center mb-4 flex-wrap bg-card p-2 px-4">
+        <header className="flex justify-between items-center mb-4 flex-wrap p-2 px-4">
             <div className="flex items-center gap-2">
                 <h1 className="text-xl font-bold">Untitled Lecture</h1>
                 <ChevronDown className="h-5 w-5 text-muted-foreground" />
@@ -156,7 +156,7 @@ export default function NewNotePage() {
             </div>
         </header>
         
-        <div className="bg-card p-2 space-y-2">
+        <div className="bg-card p-2 space-y-2 rounded-t-lg">
             <div className="flex gap-1 flex-wrap">
                 <TabButton id="self-written" name="Self Written Notes" icon={<FileText className="h-4 w-4 mr-2" />} />
                 <TabButton id="enhanced" name="Enhanced Notes" icon={<Sparkles className="h-4 w-4 mr-2" />} />
@@ -218,9 +218,9 @@ export default function NewNotePage() {
             </div>
         </div>
 
-        <div className="flex-1 mt-4 relative">
+        <div className="flex-1 mt-0 relative">
             {activeTab === 'self-written' && (
-                <Card className="h-full">
+                <Card className="h-full rounded-t-none">
                     <CardContent className="p-0 h-full">
                         <div
                             ref={editorRef}
@@ -242,7 +242,7 @@ export default function NewNotePage() {
                 </div>
             )}
             {(activeTab === 'enhanced' || activeTab === 'audio') && (
-                <Card className="h-full flex items-center justify-center">
+                <Card className="h-full rounded-t-none flex items-center justify-center">
                     <p className="text-muted-foreground">Content for {activeTab.replace('-', ' ')} goes here.</p>
                 </Card>
             )}
