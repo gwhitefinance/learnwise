@@ -15,7 +15,7 @@ import { z } from 'zod';
 
 export const GenerateQuizInputSchema = z.object({
   topics: z.string().describe('The topics or keywords for the quiz.'),
-  questionType: z.enum(['Multiple Choice', 'True/False', 'Short Answer']),
+  questionType: z.enum(['Multiple Choice', 'True/False', 'Short Answer', 'Free Response (FRQ)', 'Fill in the Blank']),
   difficulty: z.enum(['Easy', 'Medium', 'Hard']),
   numQuestions: z.number().min(1).max(20),
 });
