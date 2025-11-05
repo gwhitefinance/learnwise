@@ -276,7 +276,7 @@ const LiveLecturePanel = ({ show, setShow, onNoteGenerated, onTranscriptUpdate, 
     );
 };
 
-const ChatHomeScreen = ({ onStartChatWithPrompt, customizations }: { onStartChatWithPrompt: (prompt: string) => void, customizations: Record<string, string> }) => {
+const ChatHomeScreen = ({ onStartChatWithPrompt }: { onStartChatWithPrompt: (prompt: string) => void}) => {
     const [user] = useAuthState(auth);
 
     const conversationStarters = [
@@ -287,7 +287,7 @@ const ChatHomeScreen = ({ onStartChatWithPrompt, customizations }: { onStartChat
 
     return (
         <div className="p-6 text-center h-full flex flex-col justify-center">
-            <AIBuddy className="w-24 h-24 mx-auto mb-4" {...customizations} />
+            <AIBuddy className="w-10 h-10 mx-auto mb-4" />
             <h3 className="font-semibold text-lg">Hello, {user?.displayName?.split(' ')[0] || 'there'}!</h3>
             <div className="mt-6 space-y-3">
                 {conversationStarters.map(starter => (
@@ -544,5 +544,6 @@ export default function NewNotePage() {
         </div>
     );
 }
+
 
 
