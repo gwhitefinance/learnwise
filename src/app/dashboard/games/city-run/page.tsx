@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useCallback, Suspense } from 'react';
+import React, { useState, useEffect, useCallback, Suspense, useContext } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -124,7 +124,7 @@ const CityRunGame = ({ topic }: { topic: string }) => {
         if (gameState !== 'playing') return;
 
         setItems(prevItems => {
-            const newItems = prevItems.map(item => ({...item, y: item.y + 1})).filter(item => item.y < 600);
+            const newItems = prevItems.map(item => ({...item, y: item.y + 2})).filter(item => item.y < 600);
             
             newItems.forEach(item => {
                 // Collision detection
@@ -144,8 +144,6 @@ const CityRunGame = ({ topic }: { topic: string }) => {
 
             return newItems;
         });
-
-        requestAnimationFrame(gameLoop);
     }, [gameState, playerLane, questions.length]);
 
     useEffect(() => {
@@ -164,10 +162,15 @@ const CityRunGame = ({ topic }: { topic: string }) => {
     }, [score, lives, prevScore, prevLives, toast]);
 
     useEffect(() => {
+        let animationFrameId: number;
         if (gameState === 'playing' && questions.length > 0) {
-            const animationFrameId = requestAnimationFrame(gameLoop);
-            return () => cancelAnimationFrame(animationFrameId);
+            const loop = () => {
+                gameLoop();
+                animationFrameId = requestAnimationFrame(loop);
+            }
+            animationFrameId = requestAnimationFrame(loop);
         }
+        return () => cancelAnimationFrame(animationFrameId);
     }, [gameState, gameLoop, questions]);
     
     // Keyboard controls
