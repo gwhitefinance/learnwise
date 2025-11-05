@@ -44,25 +44,35 @@ type AnswerFeedback = { question: string; answer: string; correctAnswer: string;
 const examSpecificTypes = [
     {
         category: 'Med School',
-        exams: ['NCLEX Preparation', 'USMLE Step 1', 'USMLE Step 2'],
-        more: 8,
+        exams: ['NCLEX', 'USMLE Step 1', 'USMLE Step 2', 'MCAT Biology', 'MCAT Chemistry', 'MCAT Physics', 'MCAT Psychology', 'PANCE', 'PANRE'],
     },
     {
         category: 'Finance',
-        exams: ['Series 7', 'Series 63', 'Series 65'],
-        more: 1,
+        exams: ['Series 7', 'Series 63', 'Series 65', 'Series 66', 'CFA Level I', 'CFA Level II', 'CFA Level III', 'CFP'],
     },
     {
         category: 'AP Exams',
-        exams: ['AP Biology', 'AP Calculus AB', 'AP Calculus BC'],
-        more: 35,
+        exams: [
+            'AP Art History', 'AP Biology', 'AP Calculus AB', 'AP Calculus BC', 'AP Chemistry', 'AP Chinese Language', 'AP Comparative Government', 'AP Computer Science A', 'AP Computer Science Principles',
+            'AP English Language', 'AP English Literature', 'AP Environmental Science', 'AP European History', 'AP French Language', 'AP German Language', 'AP Human Geography',
+            'AP Italian Language', 'AP Japanese Language', 'AP Latin', 'AP Macroeconomics', 'AP Microeconomics', 'AP Music Theory', 'AP Physics 1', 'AP Physics 2', 'AP Physics C: E&M',
+            'AP Physics C: Mechanics', 'AP Psychology', 'AP Spanish Language', 'AP Spanish Literature', 'AP Statistics', 'AP US Government', 'AP US History', 'AP World History'
+        ],
     },
     {
         category: 'Law School',
         exams: ['LSAT', 'Bar Exam (MBE)', 'MPRE'],
-        more: 2,
     },
 ];
+
+type QuestionCounts = {
+    'Multiple Choice': number;
+    'Short Answer': number;
+    'Free Response (FRQ)': number;
+    'True or False': number;
+    'Fill in the Blank': number;
+    [examName: string]: number; // For dynamic exam types
+};
 
 function PracticeQuizComponent() {
     const searchParams = useSearchParams();
@@ -74,8 +84,7 @@ function PracticeQuizComponent() {
     const [difficulty, setDifficulty] = useState<'Easy' | 'Medium' | 'Hard'>('Medium');
     const [language, setLanguage] = useState('English');
     
-    // New state for multiple question types
-    const [questionCounts, setQuestionCounts] = useState({
+    const [questionCounts, setQuestionCounts] = useState<QuestionCounts>({
         'Multiple Choice': 10,
         'Short Answer': 0,
         'Free Response (FRQ)': 0,
@@ -121,7 +130,7 @@ function PracticeQuizComponent() {
         if (urlTopic) {
             setTopics(urlTopic);
             setQuizMode('quizfetch');
-            setQuizState('configuring');
+            setQuizState('topic-selection');
         }
     }, [searchParams]);
 
@@ -174,7 +183,7 @@ function PracticeQuizComponent() {
             setIsFocusMode(true);
             setQuizState('in-progress');
         }).catch(err => {
-            console.error(`Error attempting to enable full-screen mode: \${err.message} (\${err.name})`);
+            console.error(`Error attempting to enable full-screen mode: ${'${err.message}'} (${'${err.name}'})`);
             setIsFocusMode(false);
             setQuizState('in-progress');
         });
@@ -188,7 +197,7 @@ function PracticeQuizComponent() {
         setIsFocusMode(false);
     };
     
-    const handleQuestionCountChange = (type: keyof typeof questionCounts, value: string) => {
+    const handleQuestionCountChange = (type: string, value: string) => {
         const count = parseInt(value, 10);
         if (!isNaN(count) && count >= 0) {
             setQuestionCounts(prev => ({...prev, [type]: count}));
@@ -224,11 +233,14 @@ function PracticeQuizComponent() {
         try {
             const generatedQuiz: GenerateQuizOutput = { questions: [] };
 
+            const standardQuestionTypes = ['Multiple Choice', 'Short Answer', 'True or False', 'Fill in the Blank', 'Free Response (FRQ)'];
+
             for (const [type, count] of Object.entries(questionCounts)) {
                 if (count > 0) {
+                    const isStandard = standardQuestionTypes.includes(type);
                      const input: GenerateQuizInput = {
-                        topics: finalTopics,
-                        questionType: type as 'Multiple Choice' | 'True/False' | 'Short Answer',
+                        topics: isStandard ? finalTopics : `${finalTopics} - ${type}`,
+                        questionType: isStandard ? type as any : 'Multiple Choice',
                         difficulty: difficulty, 
                         numQuestions: count,
                     };
@@ -337,7 +349,7 @@ function PracticeQuizComponent() {
                         coins: increment(coinsEarned)
                     });
                     showReward({ type: 'coins', amount: coinsEarned });
-                    toast({ title: "Quiz Complete!", description: `You earned \${coinsEarned} coins!`});
+                    toast({ title: "Quiz Complete!", description: `You earned ${'${coinsEarned}'} coins!`});
 
                 } catch(e) {
                     console.error("Error awarding coins:", e);
@@ -590,12 +602,75 @@ function PracticeQuizComponent() {
                         </div>
                     </CardContent>
                     <CardFooter className="flex justify-between p-6 bg-muted/50 border-t">
-                        <Button variant="ghost" onClick={() => setQuizState('source-selection')}>Back</Button>
+                        <Button variant="ghost" onClick={() => setQuizState(quizMode === 'practice' ? 'source-selection' : 'start')}>Back</Button>
                         <Button onClick={() => setQuizState('configuring')} disabled={!selectedCourseId}>Next</Button>
                     </CardFooter>
                 </Card>
             </div>
         );
+    }
+    
+    if (quizState === 'configuring') {
+        return (
+            <div className="flex flex-col items-center">
+                 <div className="text-center mb-10 w-full max-w-2xl">
+                    <h1 className="text-4xl font-bold">Select Question Types</h1>
+                    <p className="text-muted-foreground mt-2">Choose the types and number of questions for your test</p>
+                </div>
+                 <Card className="w-full max-w-2xl">
+                    <CardContent className="p-6 space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                            {Object.entries(questionCounts).filter(([type]) => ['Multiple Choice', 'Short Answer', 'Free Response (FRQ)', 'True or False', 'Fill in the Blank'].includes(type)).map(([type, count]) => (
+                                <div key={type} className="flex items-center justify-between">
+                                    <Label htmlFor={type} className="text-base">{type}</Label>
+                                    <Input 
+                                        id={type} 
+                                        type="number" 
+                                        className="w-20 h-10 text-center" 
+                                        value={count} 
+                                        onChange={(e) => handleQuestionCountChange(type, e.target.value)}
+                                        min={0}
+                                    />
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="space-y-4">
+                            <h3 className="font-semibold text-lg">Exam-Specific Question Types</h3>
+                            <p className="text-sm text-muted-foreground">Choose specialized question formats for various standardized exams</p>
+                             <Accordion type="multiple" className="w-full space-y-2">
+                                 {examSpecificTypes.map(section => (
+                                    <AccordionItem key={section.category} value={section.category} className="border rounded-lg bg-muted/30 px-4">
+                                        <AccordionTrigger className="hover:no-underline">{section.category}</AccordionTrigger>
+                                        <AccordionContent className="p-2 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
+                                            {section.exams.map(exam => (
+                                                <div key={exam} className="flex items-center justify-between">
+                                                    <Label htmlFor={exam} className="text-sm">{exam}</Label>
+                                                    <Input 
+                                                        id={exam} 
+                                                        type="number" 
+                                                        className="w-16 h-8 text-center" 
+                                                        value={questionCounts[exam] || 0} 
+                                                        onChange={(e) => handleQuestionCountChange(exam, e.target.value)}
+                                                        min={0}
+                                                    />
+                                                </div>
+                                            ))}
+                                        </AccordionContent>
+                                    </AccordionItem>
+                                ))}
+                            </Accordion>
+                        </div>
+                     </CardContent>
+                     <CardFooter className="flex justify-between p-6 bg-muted/50 border-t">
+                         <Button variant="ghost" onClick={() => setQuizState('topic-selection')}>Back</Button>
+                         <Button onClick={handleGenerateQuiz} disabled={isLoading}>
+                            {isLoading ? 'Creating...' : 'Create'}
+                        </Button>
+                     </CardFooter>
+                </Card>
+            </div>
+        )
     }
 
     if (quizState === 'pre-quiz') {
@@ -644,13 +719,13 @@ function PracticeQuizComponent() {
                          <RadioGroup value={selectedAnswer ?? ''} onValueChange={setSelectedAnswer} disabled={answerState === 'answered'}>
                             <div className="space-y-4">
                             {currentQuestion.options?.map((option, index) => (
-                                <Label key={index} htmlFor={`option-\${index}`} className={cn(
+                                <Label key={index} htmlFor={`option-${index}`} className={cn(
                                     "flex items-center gap-4 p-4 rounded-lg border transition-all cursor-pointer",
                                     answerState === 'unanswered' && (selectedAnswer === option ? "border-primary bg-primary/10" : "border-border hover:bg-muted"),
                                     answerState === 'answered' && option === currentQuestion.answer && "border-green-500 bg-green-500/10",
                                     answerState === 'answered' && selectedAnswer === option && option !== currentQuestion.answer && "border-red-500 bg-red-500/10",
                                 )}>
-                                    <RadioGroupItem value={option} id={`option-\${index}`} />
+                                    <RadioGroupItem value={option} id={`option-${index}`} />
                                     <span>{option}</span>
                                 </Label>
                             ))}
@@ -689,7 +764,7 @@ function PracticeQuizComponent() {
                                                 <button 
                                                     key={c}
                                                     onClick={() => setColor(c)}
-                                                    className={`w-8 h-8 rounded-full border-2 \${color === c ? 'border-primary' : 'border-transparent'}`}
+                                                    className={`w-8 h-8 rounded-full border-2 ${color === c ? 'border-primary' : 'border-transparent'}`}
                                                     style={{ backgroundColor: c }}
                                                 />
                                                 ))}
@@ -808,73 +883,8 @@ function PracticeQuizComponent() {
             </div>
         )
     }
-    
-    return (
-        <div className="flex flex-col items-center">
-            <Dialog open={showFocusModeDialog} onOpenChange={setShowFocusModeDialog}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Enter Focus Mode?</DialogTitle>
-                        <DialogDescription>
-                            Focus Mode provides a distraction-free, fullscreen environment for your quiz. You can exit anytime by pressing 'Esc' or clicking the exit button.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter>
-                        <Button variant="ghost" onClick={startQuiz}>No, thanks</Button>
-                        <Button onClick={enterFocusMode}><Maximize className="mr-2 h-4 w-4"/> Enter Focus Mode</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
 
-             <div className="text-center mb-10 w-full max-w-2xl">
-                <h1 className="text-4xl font-bold">Select Question Types</h1>
-                <p className="text-muted-foreground mt-2">Choose the types and number of questions for your test</p>
-            </div>
-             <Card className="w-full max-w-2xl">
-                <CardContent className="p-6 space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-                        {Object.entries(questionCounts).map(([type, count]) => (
-                            <div key={type} className="flex items-center justify-between">
-                                <Label htmlFor={type} className="text-base">{type}</Label>
-                                <Input 
-                                    id={type} 
-                                    type="number" 
-                                    className="w-20 h-10 text-center" 
-                                    value={count} 
-                                    onChange={(e) => handleQuestionCountChange(type as keyof typeof questionCounts, e.target.value)}
-                                    min={0}
-                                />
-                            </div>
-                        ))}
-                    </div>
-
-                    <div className="space-y-4">
-                        <h3 className="font-semibold text-lg">Exam-Specific Question Types</h3>
-                        <p className="text-sm text-muted-foreground">Choose specialized question formats for various standardized exams</p>
-                         <Accordion type="multiple" className="w-full space-y-2">
-                             {examSpecificTypes.map(section => (
-                                <AccordionItem key={section.category} value={section.category} className="border rounded-lg bg-muted/30 px-4">
-                                    <AccordionTrigger className="hover:no-underline">{section.category}</AccordionTrigger>
-                                    <AccordionContent className="p-2 flex flex-wrap gap-2">
-                                        {section.exams.map(exam => (
-                                            <Button key={exam} variant="outline" disabled>{exam}</Button>
-                                        ))}
-                                        {section.more > 0 && <Badge variant="secondary">+{section.more} more</Badge>}
-                                    </AccordionContent>
-                                </AccordionItem>
-                            ))}
-                        </Accordion>
-                    </div>
-                 </CardContent>
-                 <CardFooter className="flex justify-between p-6 bg-muted/50 border-t">
-                     <Button variant="ghost" onClick={() => setQuizState('topic-selection')}>Back</Button>
-                     <Button onClick={handleGenerateQuiz} disabled={isLoading}>
-                        {isLoading ? 'Creating...' : 'Create'}
-                    </Button>
-                 </CardFooter>
-            </Card>
-        </div>
-    )
+    return <div>Something went wrong. Please start a new quiz.</div>
 }
 
 export default function PracticeQuizPage() {
@@ -884,4 +894,3 @@ export default function PracticeQuizPage() {
         </Suspense>
     )
 }
-
