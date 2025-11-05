@@ -5,7 +5,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import {
-  Bold, Italic, Underline, Strikethrough, Palette, AlignLeft, AlignCenter, AlignRight, List, ListOrdered, Undo, Redo, X, ChevronDown, Mic, Sparkles, Clock, Music, UserPlus, Upload, Info, GitMerge, Link as LinkIcon, Plus, History, Printer, Expand, Search, FileText, ArrowRight, Type, GripVertical, Maximize, Square, Globe, GraduationCap, FileSignature, Loader2, ImageIcon, MessageSquare, BrainCircuit, Lightbulb, Copy
+  Bold, Italic, Underline, Strikethrough, Palette, AlignLeft, AlignCenter, AlignRight, List, ListOrdered, Undo, Redo, X, ChevronDown, Mic, Sparkles, Clock, Music, UserPlus, Upload, Info, GitMerge, Link as LinkIcon, Plus, History, Printer, Expand, Search, FileText, ArrowRight, Type, GripVertical, Maximize, Square, Globe, GraduationCap, FileSignature, Loader2, MessageSquare, BrainCircuit, Lightbulb, Copy
 } from 'lucide-react';
 import Image from 'next/image';
 import { Input } from '@/components/ui/input';
@@ -483,7 +483,7 @@ export default function NewNotePage() {
                          <div className="p-4 space-y-4">
                             {chatHistory.map((msg, index) => (
                                 <div key={index} className={cn("flex items-end gap-2", msg.role === 'user' ? 'justify-end' : '')}>
-                                    {msg.role === 'ai' && <AIBuddy className="w-8 h-8 flex-shrink-0" />}
+                                     {msg.role === 'ai' && <AIBuddy className="w-4 h-4 flex-shrink-0" />}
                                     <div className={cn("p-3 rounded-2xl max-w-[85%] text-sm prose dark:prose-invert prose-p:my-0 prose-headings:my-0 prose-table:my-0", msg.role === 'user' ? "bg-primary text-primary-foreground rounded-br-none" : "bg-muted rounded-bl-none")}>
                                         <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
                                     </div>
@@ -491,7 +491,7 @@ export default function NewNotePage() {
                             ))}
                             {isChatLoading && (
                                 <div className="flex items-end gap-2">
-                                    <AIBuddy className="w-8 h-8 flex-shrink-0" />
+                                    <AIBuddy className="w-4 h-4 flex-shrink-0" />
                                     <div className="p-3 rounded-2xl max-w-[85%] text-sm bg-muted rounded-bl-none animate-pulse">
                                         ...
                                     </div>
@@ -533,4 +533,3 @@ export default function NewNotePage() {
         </div>
     );
 }
-
