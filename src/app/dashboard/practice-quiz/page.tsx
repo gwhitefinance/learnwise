@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useState, useEffect, useRef, useContext, Suspense } from 'react';
@@ -8,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowRight, RotateCcw, Lightbulb, CheckCircle, XCircle, PenSquare, Palette, Brush, Eraser, Minimize, Maximize, Gem, Loader2, BookCopy, CheckSquare, ListChecks, FileText, Copy as CopyIcon, ChevronRight, BookOpen, Calculator, Send, Bot, MoreVertical, Link as LinkIcon, Share2, NotebookText, Download } from 'lucide-react';
+import { ArrowRight, RotateCcw, Lightbulb, CheckCircle, XCircle, PenSquare, Palette, Brush, Eraser, Minimize, Maximize, Gem, Loader2, BookCopy, CheckSquare, ListChecks, FileText, Copy as CopyIcon, ChevronRight, BookOpen, Calculator, Send, Bot, MoreVertical, Link as LinkIcon, Share2, NotebookText, Download, FolderPlus, Eye, Edit, Trash2, Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { GenerateQuizInput, GenerateQuizOutput, QuizQuestion } from '@/ai/schemas/quiz-schema';
 import { Progress } from '@/components/ui/progress';
@@ -123,7 +124,12 @@ function PracticeQuizComponent() {
     useEffect(() => {
         const savedQuizzes = localStorage.getItem('pastQuizzes');
         if (savedQuizzes) {
-            setPastQuizzes(JSON.parse(savedQuizzes));
+            try {
+                setPastQuizzes(JSON.parse(savedQuizzes));
+            } catch(e) {
+                console.error("Failed to parse past quizzes:", e);
+                localStorage.removeItem('pastQuizzes');
+            }
         }
     }, []);
 
@@ -583,55 +589,58 @@ function PracticeQuizComponent() {
                         </button>
                     </div>
                  </div>
-                 {pastQuizzes.length > 0 && (
-                     <div className="w-full max-w-4xl mt-12">
-                        <h2 className="text-2xl font-bold mb-4">Past Quizzes</h2>
-                        <Tabs defaultValue="practice-tests">
-                            <TabsList>
-                                <TabsTrigger value="practice-tests">Practice Tests</TabsTrigger>
+                 {pastQuizzes.length > 0 ? (
+                    <div className="w-full max-w-4xl mt-12">
+                        <Tabs defaultValue="tests" className="w-full">
+                            <TabsList className="grid w-full grid-cols-2">
+                                <TabsTrigger value="tests">Tests</TabsTrigger>
                                 <TabsTrigger value="quizfetch">QuizFetch</TabsTrigger>
                             </TabsList>
-                            <TabsContent value="practice-tests" className="mt-4">
-                                <div className="space-y-3">
-                                {pastQuizzes.filter(q => q.mode === 'practice').map(q => (
-                                    <Card key={q.id}>
-                                        <CardContent className="p-4 flex justify-between items-center">
-                                            <div>
-                                                <p className="font-semibold">{q.topic}</p>
-                                                <p className="text-xs text-muted-foreground">{new Date(q.timestamp).toLocaleString()}</p>
+                            <TabsContent value="tests" className="mt-4">
+                                <div className="space-y-2">
+                                    {pastQuizzes.filter(q => q.mode === 'practice').map(q => (
+                                        <div key={q.id} className="flex items-center justify-between p-3 border rounded-lg bg-card">
+                                            <div className="flex flex-col">
+                                                <span className="font-semibold">{q.topic}</span>
+                                                <span className="text-xs text-muted-foreground">{new Date(q.timestamp).toLocaleDateString()}</span>
                                             </div>
                                             <div className="flex items-center gap-4">
-                                                <p className="font-bold text-lg">{q.score.toFixed(0)}%</p>
-                                                <Button variant="outline" size="sm">Review</Button>
+                                                <Badge variant={q.score > 70 ? 'default' : 'secondary'}>{q.score.toFixed(0)}%</Badge>
+                                                <Button variant="ghost" size="sm">Review</Button>
                                             </div>
-                                        </CardContent>
-                                    </Card>
-                                ))}
-                                {pastQuizzes.filter(q => q.mode === 'practice').length === 0 && <p className="text-muted-foreground text-center py-8">No practice tests taken yet.</p>}
+                                        </div>
+                                    ))}
+                                    {pastQuizzes.filter(q => q.mode === 'practice').length === 0 && (
+                                        <p className="text-center py-8 text-muted-foreground">You haven't taken any practice tests yet.</p>
+                                    )}
                                 </div>
                             </TabsContent>
-                             <TabsContent value="quizfetch" className="mt-4">
-                                <div className="space-y-3">
-                                {pastQuizzes.filter(q => q.mode === 'quizfetch').map(q => (
-                                    <Card key={q.id}>
-                                        <CardContent className="p-4 flex justify-between items-center">
-                                            <div>
-                                                <p className="font-semibold">{q.topic}</p>
-                                                <p className="text-xs text-muted-foreground">{new Date(q.timestamp).toLocaleString()}</p>
+                            <TabsContent value="quizfetch" className="mt-4">
+                                <div className="space-y-2">
+                                     {pastQuizzes.filter(q => q.mode === 'quizfetch').map(q => (
+                                        <div key={q.id} className="flex items-center justify-between p-3 border rounded-lg bg-card">
+                                            <div className="flex flex-col">
+                                                <span className="font-semibold">{q.topic}</span>
+                                                <span className="text-xs text-muted-foreground">{new Date(q.timestamp).toLocaleDateString()}</span>
                                             </div>
                                             <div className="flex items-center gap-4">
-                                                <p className="font-bold text-lg">{q.score.toFixed(0)}%</p>
-                                                <Button variant="outline" size="sm">Review</Button>
+                                                <Badge variant={q.score > 70 ? 'default' : 'secondary'}>{q.score.toFixed(0)}%</Badge>
+                                                <Button variant="ghost" size="sm">Review</Button>
                                             </div>
-                                        </CardContent>
-                                    </Card>
-                                ))}
-                                {pastQuizzes.filter(q => q.mode === 'quizfetch').length === 0 && <p className="text-muted-foreground text-center py-8">No QuizFetch sessions yet.</p>}
+                                        </div>
+                                    ))}
+                                    {pastQuizzes.filter(q => q.mode === 'quizfetch').length === 0 && (
+                                        <p className="text-center py-8 text-muted-foreground">You haven't used QuizFetch yet.</p>
+                                    )}
                                 </div>
                             </TabsContent>
                         </Tabs>
                     </div>
-                 )}
+                ) : (
+                    <div className="w-full max-w-4xl mt-12 text-center text-muted-foreground">
+                        <p>You haven't started a test yet.</p>
+                    </div>
+                )}
              </div>
         )
     }
@@ -1027,5 +1036,3 @@ export default function PracticeQuizPage() {
         </Suspense>
     )
 }
-
-    
