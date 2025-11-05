@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -14,8 +15,8 @@ import { generateNoteFromChat } from '@/lib/actions';
 
 
 const EditorToolbar = ({ onCommand }: { onCommand: (command: string, value?: string) => void }) => (
-    <div className="bg-gray-100 dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-        <div className="px-4 border-b border-gray-200 dark:border-gray-800">
+    <div className="bg-gray-100 dark:bg-gray-800 rounded-t-lg shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="px-4 border-b border-gray-200 dark:border-gray-700">
             <nav className="flex items-center -mb-px">
                 <a className="flex items-center gap-2 px-3 py-3 border-b-2 border-primary text-primary font-semibold text-sm" href="#">
                     <FileText size={16} /> Self Written Notes
@@ -33,7 +34,7 @@ const EditorToolbar = ({ onCommand }: { onCommand: (command: string, value?: str
         </div>
         <div className="p-4">
             <div className="flex items-center space-x-2 text-gray-500 dark:text-gray-400">
-                <select onChange={(e) => onCommand('fontName', e.target.value)} className="flex items-center gap-1 px-2 py-1 rounded bg-gray-100 dark:bg-gray-800 text-sm border-none focus:ring-0">
+                 <select onChange={(e) => onCommand('fontName', e.target.value)} className="flex items-center gap-1 px-2 py-1 rounded bg-gray-100 dark:bg-gray-800 text-sm border-none focus:ring-0">
                     <option value="Arial">Arial</option>
                     <option value="Georgia">Georgia</option>
                     <option value="Times New Roman">Times New Roman</option>
@@ -101,7 +102,6 @@ const LiveLecturePanel = ({ show, setShow, onNoteGenerated }: { show: boolean, s
             };
 
             recognitionRef.current.onerror = (event: any) => {
-                console.error('Speech recognition error', event.error);
                 if (event.error !== 'no-speech' && event.error !== 'aborted') {
                     toast({ variant: 'destructive', title: 'Voice recognition error.' });
                 }
