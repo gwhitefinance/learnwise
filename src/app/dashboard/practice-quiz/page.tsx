@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import React, { useState, useEffect, useRef, useContext, Suspense } from 'react';
@@ -38,7 +37,7 @@ type Course = {
     description: string;
 };
 
-type QuizState = 'start' | 'source-selection' | 'configuring' | 'pre-quiz' | 'in-progress' | 'results';
+type QuizState = 'start' | 'source-selection' | 'topic-selection' | 'configuring' | 'pre-quiz' | 'in-progress' | 'results';
 type AnswerState = 'unanswered' | 'answered';
 type AnswerFeedback = { question: string; answer: string; correctAnswer: string; isCorrect: boolean; explanation?: string; };
 
@@ -49,6 +48,8 @@ function PracticeQuizComponent() {
     const [courses, setCourses] = useState<Course[]>([]);
     const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
     const [topics, setTopics] = useState(initialTopic || '');
+    const [difficulty, setDifficulty] = useState<'Easy' | 'Medium' | 'Hard'>('Medium');
+    const [language, setLanguage] = useState('English');
     
     // New state for multiple question types
     const [questionCounts, setQuestionCounts] = useState({
@@ -150,7 +151,7 @@ function PracticeQuizComponent() {
             setIsFocusMode(true);
             setQuizState('in-progress');
         }).catch(err => {
-            console.error(`Error attempting to enable full-screen mode: ${'${err.message}'} (${'${err.name}'})`);
+            console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
             setIsFocusMode(false);
             setQuizState('in-progress');
         });
@@ -205,7 +206,7 @@ function PracticeQuizComponent() {
                      const input: GenerateQuizInput = {
                         topics: finalTopics,
                         questionType: type as 'Multiple Choice' | 'True/False' | 'Short Answer',
-                        difficulty: 'Medium', // Use a single difficulty for now
+                        difficulty: difficulty, 
                         numQuestions: count,
                     };
                     const result = await generateQuizAction(input);
@@ -352,15 +353,6 @@ function PracticeQuizComponent() {
         });
     }
 
-    const handleCourseSelection = (courseId: string) => {
-        setSelectedCourseId(courseId);
-        const selected = courses.find(c => c.id === courseId);
-        if (selected) {
-            setTopics(selected.name);
-            setQuizState('configuring');
-        }
-    }
-
     const handleGetHint = async () => {
         if (!quiz || !user) return;
         if (userCoins < 10) {
@@ -491,10 +483,10 @@ function PracticeQuizComponent() {
                             <h3 className="text-xl font-bold">Take a Practice Test</h3>
                             <p className="text-sm text-muted-foreground">Generate a practice test from your course content and get ready for your test.</p>
                         </button>
-                        <button onClick={() => { setQuizMode('quizfetch'); setQuizState('configuring');}} className="p-6 rounded-lg text-left transition-all bg-blue-500/10 border-2 border-blue-500/30 hover:bg-blue-500/20 hover:border-blue-500/50">
+                        <button onClick={() => { setQuizMode('quizfetch'); setQuizState('topic-selection');}} className="p-6 rounded-lg text-left transition-all bg-blue-500/10 border-2 border-blue-500/30 hover:bg-blue-500/20 hover:border-blue-500/50">
                             <ListChecks className="h-8 w-8 text-blue-500 mb-2"/>
                             <h3 className="text-xl font-bold">QuizFetch</h3>
-                            <p className="text-sm text-muted-foreground">Generate quizzes from your materials and learn as you answer questions.</p>
+                            <p className="text-sm text-muted-foreground">Generate quizzes from any topic and learn as you answer questions.</p>
                         </button>
                     </div>
                  </div>
@@ -512,12 +504,12 @@ function PracticeQuizComponent() {
                  <div className="w-full space-y-6">
                     <h2 className="text-xl font-semibold text-left">How would you like to create your test?</h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <button onClick={() => {setCreationSource('materials'); setQuizState('configuring');}} className={cn("p-6 rounded-lg text-left transition-all border-2", creationSource === 'materials' ? 'border-primary bg-primary/10' : 'bg-muted/50 border-transparent hover:border-primary/50')}>
+                        <button onClick={() => {setCreationSource('materials'); setQuizState('topic-selection');}} className={cn("p-6 rounded-lg text-left transition-all border-2", creationSource === 'materials' ? 'border-primary bg-primary/10' : 'bg-muted/50 border-transparent hover:border-primary/50')}>
                             <div className="mb-4 bg-background p-2 rounded-md inline-block border"><FileText className="h-6 w-6 text-primary"/></div>
                             <h3 className="font-semibold">From Materials</h3>
                             <p className="text-sm text-muted-foreground">Create a test from your Study Set materials.</p>
                         </button>
-                        <button onClick={() => {setCreationSource('flashcards'); setQuizState('configuring');}} className={cn("p-6 rounded-lg text-left transition-all border-2", creationSource === 'flashcards' ? 'border-primary bg-primary/10' : 'bg-muted/50 border-transparent hover:border-primary/50')}>
+                        <button onClick={() => {setCreationSource('flashcards'); setQuizState('topic-selection');}} className={cn("p-6 rounded-lg text-left transition-all border-2", creationSource === 'flashcards' ? 'border-primary bg-primary/10' : 'bg-muted/50 border-transparent hover:border-primary/50')}>
                              <div className="mb-4 bg-background p-2 rounded-md inline-block border"><CopyIcon className="h-6 w-6 text-primary"/></div>
                             <h3 className="font-semibold">From Flashcards</h3>
                             <p className="text-sm text-muted-foreground">Create a test from your Study Set flashcards.</p>
@@ -531,6 +523,58 @@ function PracticeQuizComponent() {
         )
     }
 
+    if (quizState === 'topic-selection') {
+        return (
+            <div className="flex flex-col items-center">
+                <div className="text-center mb-10 w-full max-w-2xl">
+                    <h1 className="text-4xl font-bold">Test Details</h1>
+                    <p className="text-muted-foreground mt-2">Select a course and specify the details for your test.</p>
+                </div>
+                <Card className="w-full max-w-2xl">
+                    <CardContent className="p-6 space-y-6">
+                        <div className="space-y-2">
+                             <Label htmlFor="course">Course</Label>
+                             <Select onValueChange={setSelectedCourseId} value={selectedCourseId ?? ''} disabled={courses.length === 0}>
+                                <SelectTrigger id="course">
+                                    <SelectValue placeholder={courses.length > 0 ? "Select a course..." : "No courses found"} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {courses.map(course => (
+                                        <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="language">Language</Label>
+                            <Select value={language} onValueChange={setLanguage}>
+                                <SelectTrigger id="language"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="English">English</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-2">
+                             <Label htmlFor="difficulty">Difficulty Level</Label>
+                             <Select value={difficulty} onValueChange={(v) => setDifficulty(v as any)}>
+                                <SelectTrigger id="difficulty"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="Easy">Easy</SelectItem>
+                                    <SelectItem value="Medium">Medium</SelectItem>
+                                    <SelectItem value="Hard">Hard</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </CardContent>
+                    <CardFooter className="flex justify-between p-6 bg-muted/50 border-t">
+                        <Button variant="ghost" onClick={() => setQuizState('source-selection')}>Back</Button>
+                        <Button onClick={() => setQuizState('configuring')} disabled={!selectedCourseId}>Next</Button>
+                    </CardFooter>
+                </Card>
+            </div>
+        );
+    }
+
     if (quizState === 'pre-quiz') {
         return (
              <div className="flex flex-col items-center justify-center min-h-[60vh]">
@@ -541,7 +585,7 @@ function PracticeQuizComponent() {
                     <CardContent className="space-y-4">
                         <div className="p-4 bg-muted rounded-lg grid grid-cols-3 divide-x">
                             <div className="px-2"><p className="text-sm text-muted-foreground">Questions</p><p className="font-bold text-lg">{quiz?.questions.length}</p></div>
-                            <div className="px-2"><p className="text-sm text-muted-foreground">Difficulty</p><p className="font-bold text-lg">Medium</p></div>
+                            <div className="px-2"><p className="text-sm text-muted-foreground">Difficulty</p><p className="font-bold text-lg">{difficulty}</p></div>
                             <div className="px-2"><p className="text-sm text-muted-foreground">Topic</p><p className="font-bold text-lg truncate">{topics}</p></div>
                         </div>
                         <p className="text-muted-foreground">Would you like to enter Focus Mode for a distraction-free experience?</p>
@@ -822,7 +866,7 @@ function PracticeQuizComponent() {
                     </div>
                  </CardContent>
                  <CardFooter className="flex justify-between p-6 bg-muted/50 border-t">
-                     <Button variant="ghost" onClick={() => setQuizState('source-selection')}>Back</Button>
+                     <Button variant="ghost" onClick={() => setQuizState('topic-selection')}>Back</Button>
                      <Button onClick={handleGenerateQuiz} disabled={isLoading}>
                         {isLoading ? 'Creating...' : 'Create'}
                     </Button>
