@@ -42,6 +42,10 @@ import {
   Users,
   ArrowRight,
   X,
+  Globe,
+  ArrowUp,
+  MicOff,
+  Image as ImageIcon
 } from 'lucide-react';
 import Image from 'next/image';
 import Logo from '@/components/Logo';
@@ -99,10 +103,8 @@ const EditorToolbar = () => (
 
 
 export default function NewNotePage() {
-    // This is a static representation of your HTML structure.
-    // To make it interactive, we would need to add state and event handlers.
     return (
-        <div className="flex h-screen overflow-hidden bg-background-light dark:bg-gray-900/50 text-gray-800 dark:text-gray-200">
+        <div className="flex-1 flex overflow-hidden">
             <main className="flex-1 flex flex-col bg-background-light dark:bg-gray-900/50">
                 <header className="flex-shrink-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-6 py-3">
                     <div className="flex items-center justify-between">
@@ -121,7 +123,7 @@ export default function NewNotePage() {
                                 <Button variant="ghost" size="icon"><Upload size={16}/></Button>
                             </div>
                              <div className="relative">
-                                <img alt="User avatar" className="w-8 h-8 rounded-full" src="https://lh3.googleusercontent.com/a/ACg8ocK1Or_s9UKOF6_LUS-Uz5m4nlB4RqSHSc7boFluG5jdVHIXW9HfPGqkyHrcD33sPB0zGSlfG7ov9jz9AfHzm_WpU_AgKC0wAWNfUjsKkHaa--gWuzMcn__AF4VDk-csCtGG_UG2yrzsKIfWGHZd_daSMwV-ipBz4M-pPQ_U4qrHXMqDAeUaKUxGlJm5TUa4lsLX6TWgkpfEATti1OpT3mjBF6DcJaF2sesr5emRVV0wLxLldnb8xiPmdFmwL476G8_9LuqF1hL5ULnl"/>
+                                <Image alt="User avatar" className="w-8 h-8 rounded-full" src="https://lh3.googleusercontent.com/a/ACg8ocK1Or_s9UKOF6_LUS-Uz5m4nlB4RqSHSc7boFluG5jdVHIXW9HfPGqkyHrcD33sPB0zGSlfG7ov9jz9AfHzm_WpU_AgKC0wAWNfUjsKkHaa--gWuzMcn__AF4VDk-csCtGG_UG2yrzsKIfWGHZd_daSMwV-ipBz4M-pPQ_U4qrHXMqDAeUaKUxGlJm5TUa4lsLX6TWgkpfEATti1OpT3mjBF6DcJaF2sesr5emRVV0wLxLldnb8xiPmdFmwL476G8_9LuqF1hL5ULnl" width={32} height={32}/>
                                 <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center border-2 border-white dark:border-gray-900">G</span>
                                 <span className="absolute bottom-0 right-0 bg-gray-500 text-white text-[10px] px-1 rounded-full">2</span>
                             </div>
@@ -153,7 +155,7 @@ export default function NewNotePage() {
                         <EditorToolbar/>
                         <div className="flex-1 p-6 flex items-center justify-center">
                             <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 flex items-center gap-6">
-                                <span className="material-symbols-outlined text-gray-400">drag_indicator</span>
+                                <Mic size={24} className="text-gray-400"/>
                                 <span className="text-gray-500 dark:text-gray-400">Start Recording</span>
                                 <button className="bg-primary text-white p-3 rounded-full">
                                     <Mic />
@@ -184,23 +186,25 @@ export default function NewNotePage() {
                         </div>
                         <div className="flex justify-start">
                             <div className="p-3">
-                                <span className="animate-pulse text-gray-400">...</span>
+                                <span className="text-gray-400">...</span>
                             </div>
                         </div>
                     </div>
                     <div className="mt-4">
                         <div className="relative">
                             <Input className="w-full bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-lg py-3 pl-4 pr-12 focus:ring-primary focus:border-primary" placeholder="Ask your AI tutor anything..."/>
-                            <Button size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg"><ArrowRight size={16}/></Button>
+                            <Button size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full">
+                                <ArrowUp size={16}/>
+                            </Button>
                         </div>
                         <div className="flex items-center justify-between mt-2 px-2">
-                             <div className="flex items-center gap-2">
-                                <Button variant="ghost" size="icon" className="h-8 w-8"><Upload size={16}/></Button>
-                                <Button size="icon" className="h-8 w-8 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300"><Users size={16}/></Button>
-                                <Button size="icon" className="h-8 w-8 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300"><GraduationCap size={16}/></Button>
+                            <div className="flex items-center gap-2">
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500 dark:text-gray-400"><ImageIcon size={16}/></Button>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300"><Globe size={16}/></Button>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300"><GraduationCap size={16}/></Button>
                                 <Button variant="secondary" size="sm" className="h-8 gap-1.5"><FileText size={16}/>Using 1 material(s)</Button>
                             </div>
-                             <Button variant="ghost" size="icon" className="h-8 w-8"><Mic size={16}/></Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500 dark:text-gray-400"><MicOff size={16}/></Button>
                         </div>
                     </div>
                 </div>
