@@ -17,9 +17,17 @@ const GenerateImageOutputSchema = z.object({
 
 export async function generateImage(input: z.infer<typeof GenerateImageInputSchema>): Promise<z.infer<typeof GenerateImageOutputSchema>> {
   
-  const generationPrompt = `Generate a clear, simple, and professional-looking diagram, infographic, or 3D render that visually explains the following concept. The image should be clean, modern, and suitable for educational material.
+  const generationPrompt = `You are an AI assistant that creates educational diagrams. Your task is to generate a clear, simple, and professional-looking diagram, infographic, or 3D render that visually explains the following academic concept.
 
-Concept: "${input.prompt}"`;
+The concept could be from Math, Science, History, Literature, or another subject.
+
+**CRITICAL INSTRUCTIONS**:
+1.  **Relevance is Key**: The image MUST directly illustrate the concept provided.
+2.  **Educational Focus**: Prioritize clarity and educational value over artistic flair.
+3.  **NO CODE**: Do NOT generate images of computer code unless the concept is specifically about programming.
+4.  **NO ABSTRACT ART**: Avoid abstract or purely decorative images that do not explain the concept.
+
+Concept to visualize: "${input.prompt}"`;
   
   const { media } = await ai.generate({
     model: googleAI.model('imagen-4.0-fast-generate-001'),
