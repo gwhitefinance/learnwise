@@ -36,7 +36,8 @@ import {
   Plus,
   History,
   Printer,
-  Expand
+  Expand,
+  Search
 } from 'lucide-react';
 import Image from 'next/image';
 import { Input } from '@/components/ui/input';
@@ -186,7 +187,7 @@ export default function NewNotePage() {
                             <Button variant="outline" className="text-sm">
                                 <UserPlus className="mr-2 h-4 w-4"/> Share
                             </Button>
-                            <Button className="text-sm bg-green-500 hover:bg-green-600">
+                            <Button className="text-sm">
                                 <Upload className="mr-2 h-4 w-4"/> Upgrade
                             </Button>
                             <Button variant="outline" className="text-sm">
@@ -199,10 +200,6 @@ export default function NewNotePage() {
                                 <button className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800">
                                     <FileText size={16} />
                                 </button>
-                            </div>
-                            <div className="relative">
-                                <Image alt="User avatar" className="w-8 h-8 rounded-full" src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=2080&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" width={32} height={32} />
-                                <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center border-2 border-white dark:border-gray-900">G</span>
                             </div>
                         </div>
                     </div>
