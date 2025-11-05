@@ -1,8 +1,9 @@
 
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   FileText,
   Sparkles,
@@ -41,17 +42,10 @@ import {
   Bell,
   Info,
   Users,
+  ArrowRight,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import Logo from '@/components/Logo';
-
-// Mock data, in a real app this would come from state or props
-const user = {
-    avatar: "https://lh3.googleusercontent.com/aida-public/AB6AXuC1Or_s9UKOF6_LUS-Uz5m4nlB4RqSHSc7boFluG5jdVHIXW9HfPGqkyHrcD33sPB0zGSlfG7ov9jz9AfHzm_WpU_AgKC0wAWNfUjsKkHaa--gWuzMcn__AF4VDk-csCtGG_UG2yrzsKIfWGHZd_daSMwV-ipBz4M-pPQ_U4qrHXMqDAeUaKUxGlJm5TUa4lsLX6TWgkpfEATti1OpT3mjBF6DcJaF2sesr5emRVV0wLxLldnb8xiPmdFmwL476G8_9LuqF1hL5ULnl",
-    notifications: 2,
-    plan: "G"
-};
 
 const navItems = [
     { icon: <Home size={20} />, label: 'Home', href: '#' },
@@ -103,13 +97,16 @@ const EditorToolbar = () => (
     </div>
 );
 
+
 export default function NewNotePage() {
+    // This is a static representation of your HTML structure.
+    // To make it interactive, we would need to add state and event handlers.
     return (
         <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-900/50 text-gray-800 dark:text-gray-200">
             {/* Left Sidebar */}
             <aside className="w-64 flex-shrink-0 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col p-4">
                 <div className="flex items-center gap-2 mb-6">
-                    <Logo className="w-8 h-8"/>
+                    <Logo className="w-8 h-8" />
                     <span className="text-xl font-bold text-gray-900 dark:text-white">STUDY FETCH</span>
                 </div>
                 <div className="flex items-center justify-between mb-6">
@@ -161,7 +158,9 @@ export default function NewNotePage() {
                         </div>
                     </div>
                     <div className="mt-4 p-3 bg-primary rounded-lg text-white relative">
-                        <button className="absolute top-1 right-1 bg-white/20 rounded-full w-4 h-4 flex items-center justify-center text-xs">×</button>
+                        <Button variant="ghost" size="icon" className="absolute top-1 right-1 h-4 w-4 bg-white/20 rounded-full flex items-center justify-center text-xs">
+                            &times;
+                        </Button>
                         <div className="flex items-center gap-3">
                             <Sparkles size={16}/>
                             <span className="font-semibold">Tutorials</span>
@@ -169,14 +168,14 @@ export default function NewNotePage() {
                     </div>
                 </div>
             </aside>
-
-            {/* Main Content */}
-            <main className="flex-1 flex flex-col bg-gray-50 dark:bg-gray-900/50">
+            <main className="flex-1 flex flex-col bg-background-light dark:bg-gray-900/50">
                 <header className="flex-shrink-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-6 py-3">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Untitled Lecture</h1>
-                            <Button variant="ghost" size="icon" className="h-6 w-6 text-gray-500 dark:text-gray-400"><ChevronDown/></Button>
+                            <Button variant="ghost" size="icon" className="h-6 w-6 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800">
+                                <ChevronDown size={16} />
+                            </Button>
                         </div>
                         <div className="flex items-center gap-2">
                             <Button className="gap-2 text-sm font-semibold"><Users size={16}/>Share</Button>
@@ -187,9 +186,9 @@ export default function NewNotePage() {
                                 <Button variant="ghost" size="icon"><Upload size={16}/></Button>
                             </div>
                              <div className="relative">
-                                <Image alt="User avatar" className="w-8 h-8 rounded-full" src={user.avatar} width={32} height={32}/>
-                                <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center border-2 border-white dark:border-gray-900">{user.plan}</span>
-                                <span className="absolute bottom-0 right-0 bg-gray-500 text-white text-[10px] px-1 rounded-full">{user.notifications}</span>
+                                <img alt="User avatar" className="w-8 h-8 rounded-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC1Or_s9UKOF6_LUS-Uz5m4nlB4RqSHSc7boFluG5jdVHIXW9HfPGqkyHrcD33sPB0zGSlfG7ov9jz9AfHzm_WpU_AgKC0wAWNfUjsKkHaa--gWuzMcn__AF4VDk-csCtGG_UG2yrzsKIfWGHZd_daSMwV-ipBz4M-pPQ_U4qrHXMqDAeUaKUxGlJm5TUa4lsLX6TWgkpfEATti1OpT3mjBF6DcJaF2sesr5emRVV0wLxLldnb8xiPmdFmwL476G8_9LuqF1hL5ULnl"/>
+                                <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center border-2 border-white dark:border-gray-900">G</span>
+                                <span className="absolute bottom-0 right-0 bg-gray-500 text-white text-[10px] px-1 rounded-full">2</span>
                             </div>
                         </div>
                     </div>
@@ -207,7 +206,7 @@ export default function NewNotePage() {
                         <EditorToolbar/>
                         <div className="flex-1 p-6 flex items-center justify-center">
                             <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 flex items-center gap-6">
-                                <Button variant="ghost" size="icon" className="text-gray-400">⋮</Button>
+                                <span className="material-symbols-outlined text-gray-400">drag_indicator</span>
                                 <span className="text-gray-500 dark:text-gray-400">Start Recording</span>
                                 <Button className="p-3 rounded-full"><Mic/></Button>
                                 <Button variant="ghost" size="icon" className="text-gray-400"><Sparkles/></Button>
@@ -216,12 +215,14 @@ export default function NewNotePage() {
                     </div>
                 </div>
             </main>
-
-            {/* Right Sidebar */}
             <aside className="w-80 flex-shrink-0 bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 flex flex-col">
                 <header className="flex-shrink-0 flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
-                     <Button variant="ghost" size="icon" className="text-gray-500"><Flame/></Button>
-                    <Button variant="secondary" size="sm" className="rounded-full font-semibold">Chat History</Button>
+                    <Button variant="ghost" size="icon" className="text-gray-500 dark:text-gray-400">
+                        <X size={20} />
+                    </Button>
+                    <Button variant="secondary" size="sm" className="rounded-full font-semibold">
+                        Chat History
+                    </Button>
                 </header>
                 <div className="flex-1 p-4 flex flex-col justify-between">
                     <div className="space-y-4">
@@ -243,7 +244,7 @@ export default function NewNotePage() {
                         </div>
                         <div className="flex items-center justify-between mt-2 px-2">
                              <div className="flex items-center gap-2">
-                                <Button variant="ghost" size="icon" className="h-8 w-8"><ImageIcon size={16}/></Button>
+                                <Button variant="ghost" size="icon" className="h-8 w-8"><Upload size={16}/></Button>
                                 <Button size="icon" className="h-8 w-8 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300"><Users size={16}/></Button>
                                 <Button size="icon" className="h-8 w-8 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300"><GraduationCap size={16}/></Button>
                                 <Button variant="secondary" size="sm" className="h-8 gap-1.5"><FileText size={16}/>Using 1 material(s)</Button>
@@ -256,4 +257,3 @@ export default function NewNotePage() {
         </div>
     );
 }
-
