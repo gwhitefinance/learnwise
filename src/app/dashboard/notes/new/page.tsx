@@ -1,19 +1,29 @@
 
-
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import {
-  Bold, Italic, Underline, Strikethrough, Palette, AlignLeft, AlignCenter, AlignRight, List, ListOrdered, Undo, Redo, X, ChevronDown, Mic, Sparkles, Clock, Music, UserPlus, Upload, Info, GitMerge, Link, Plus, History, Printer, Expand, Search, FileText, ArrowRight, Type, GripVertical, Maximize, Square, Globe, GraduationCap, FileSignature, Loader2, ImageIcon
+  Bold, Italic, Underline, Strikethrough, Palette, AlignLeft, AlignCenter, AlignRight, List, ListOrdered, Undo, Redo, X, ChevronDown, Mic, Sparkles, Clock, Music, UserPlus, Upload, Info, GitMerge, Link as LinkIcon, Plus, History, Printer, Expand, Search, FileText, ArrowRight, Type, GripVertical, Maximize, Square, Globe, GraduationCap, FileSignature, Loader2, ImageIcon, MessageSquare, BrainCircuit, Lightbulb, Copy
 } from 'lucide-react';
 import Image from 'next/image';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import Draggable from 'react-draggable';
-import { generateNoteFromChat } from '@/lib/actions';
+import { generateNoteFromChat, studyPlannerAction } from '@/lib/actions';
 import { Textarea } from '@/components/ui/textarea';
+import AIBuddy from '@/components/ai-buddy';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { auth } from '@/lib/firebase';
+import { cn } from '@/lib/utils';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
+interface Message {
+  role: 'user' | 'ai';
+  content: string;
+}
 
 const EditorToolbar = ({ onCommand, activeTab, setActiveTab }: { onCommand: (command: string, value?: string) => void, activeTab: string, setActiveTab: (tab: string) => void }) => {
     
@@ -44,47 +54,45 @@ const EditorToolbar = ({ onCommand, activeTab, setActiveTab }: { onCommand: (com
                 ))}
             </nav>
         </div>
-        <div className="p-4">
-            <div className="flex items-center space-x-2 text-gray-500 dark:text-gray-400">
-                 <select onChange={(e) => onCommand('fontName', e.target.value)} className="flex items-center gap-1 px-2 py-1 rounded bg-gray-100 dark:bg-gray-800 text-sm border-none focus:ring-0">
-                    <option value="Arial">Arial</option>
-                    <option value="Georgia">Georgia</option>
-                    <option value="Times New Roman">Times New Roman</option>
-                    <option value="Verdana">Verdana</option>
+        <div className="p-2 flex items-center space-x-1 text-gray-500 dark:text-gray-400 overflow-x-auto">
+                <select onChange={(e) => onCommand('fontName', e.target.value)} className="flex items-center gap-1 px-2 py-1.5 rounded bg-transparent text-sm border-none focus:ring-0 appearance-none">
+                    <option>Arial</option>
+                    <option>Georgia</option>
+                    <option>Times New Roman</option>
+                    <option>Verdana</option>
                 </select>
-                <select onChange={(e) => onCommand('fontSize', e.target.value)} className="flex items-center gap-1 px-2 py-1 rounded bg-gray-100 dark:bg-gray-800 text-sm border-none focus:ring-0">
-                    <option value="3">11</option>
+                <select onChange={(e) => onCommand('fontSize', e.target.value)} className="flex items-center gap-1 px-2 py-1.5 rounded bg-transparent text-sm border-none focus:ring-0 appearance-none">
+                    <option value="3">12</option>
                     <option value="4">14</option>
                     <option value="5">18</option>
                     <option value="6">24</option>
                 </select>
                 <div className="h-6 w-px bg-gray-200 dark:bg-gray-700"></div>
-                <button onClick={() => onCommand('bold')} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"><Bold size={18} /></button>
-                <button onClick={() => onCommand('italic')} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"><Italic size={18} /></button>
-                <button onClick={() => onCommand('underline')} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"><Underline size={18} /></button>
-                <button onClick={() => onCommand('strikeThrough')} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"><Strikethrough size={18} /></button>
+                <Button variant="ghost" size="icon" onClick={() => onCommand('bold')} className="w-8 h-8"><Bold size={16} /></Button>
+                <Button variant="ghost" size="icon" onClick={() => onCommand('italic')} className="w-8 h-8"><Italic size={16} /></Button>
+                <Button variant="ghost" size="icon" onClick={() => onCommand('underline')} className="w-8 h-8"><Underline size={16} /></Button>
+                <Button variant="ghost" size="icon" onClick={() => onCommand('strikeThrough')} className="w-8 h-8"><Strikethrough size={16} /></Button>
                 <div className="h-6 w-px bg-gray-200 dark:bg-gray-700"></div>
-                <button className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"><Palette size={18} /></button>
+                 <input type="color" onChange={(e) => onCommand('foreColor', e.target.value)} className="w-8 h-8 p-0 border-none bg-transparent" />
                 <div className="h-6 w-px bg-gray-200 dark:bg-gray-700"></div>
-                <button onClick={() => onCommand('justifyLeft')} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"><AlignLeft size={18} /></button>
-                <button onClick={() => onCommand('justifyCenter')} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"><AlignCenter size={18} /></button>
-                <button onClick={() => onCommand('justifyRight')} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"><AlignRight size={18} /></button>
+                <Button variant="ghost" size="icon" onClick={() => onCommand('justifyLeft')} className="w-8 h-8"><AlignLeft size={16} /></Button>
+                <Button variant="ghost" size="icon" onClick={() => onCommand('justifyCenter')} className="w-8 h-8"><AlignCenter size={16} /></Button>
+                <Button variant="ghost" size="icon" onClick={() => onCommand('justifyRight')} className="w-8 h-8"><AlignRight size={16} /></Button>
                 <div className="h-6 w-px bg-gray-200 dark:bg-gray-700"></div>
-                <button onClick={() => onCommand('insertUnorderedList')} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"><List size={18} /></button>
-                <button onClick={() => onCommand('insertOrderedList')} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"><ListOrdered size={18} /></button>
+                <Button variant="ghost" size="icon" onClick={() => onCommand('insertUnorderedList')} className="w-8 h-8"><List size={16} /></Button>
+                <Button variant="ghost" size="icon" onClick={() => onCommand('insertOrderedList')} className="w-8 h-8"><ListOrdered size={16} /></Button>
                 <div className="h-6 w-px bg-gray-200 dark:bg-gray-700"></div>
-                <button onClick={() => onCommand('undo')} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"><Undo size={18} /></button>
-                <button onClick={() => onCommand('redo')} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"><Redo size={18} /></button>
-                <button className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"><Plus size={18} /></button>
-                <button className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"><History size={18} /></button>
-                <button className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"><Printer size={18} /></button>
-                <button className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"><Expand size={18} /></button>
-            </div>
+                <Button variant="ghost" size="icon" onClick={() => onCommand('undo')} className="w-8 h-8"><Undo size={16} /></Button>
+                <Button variant="ghost" size="icon" onClick={() => onCommand('redo')} className="w-8 h-8"><Redo size={16} /></Button>
+                <Button variant="ghost" size="icon" className="w-8 h-8"><Plus size={16} /></Button>
+                <Button variant="ghost" size="icon" className="w-8 h-8"><History size={16} /></Button>
+                <Button variant="ghost" size="icon" className="w-8 h-8"><Printer size={16} /></Button>
+                <Button variant="ghost" size="icon" className="w-8 h-8"><Expand size={16} /></Button>
         </div>
     </div>
 )};
 
-const LiveLecturePanel = ({ show, setShow, onNoteGenerated, setTranscript, setAudioUrl }: { show: boolean, setShow: (show: boolean) => void, onNoteGenerated: (content: string) => void, setTranscript: (text: string) => void, setAudioUrl: (url: string | null) => void }) => {
+const LiveLecturePanel = ({ show, setShow, onNoteGenerated, onTranscriptUpdate, onAudioUpdate }: { show: boolean, setShow: (show: boolean) => void, onNoteGenerated: (content: string) => void, onTranscriptUpdate: (text: string) => void, onAudioUpdate: (url: string | null) => void }) => {
     const [isListening, setIsListening] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
     const [currentTranscript, setCurrentTranscript] = useState('');
@@ -155,11 +163,11 @@ const LiveLecturePanel = ({ show, setShow, onNoteGenerated, setTranscript, setAu
                     const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
                     const url = URL.createObjectURL(audioBlob);
                     setCurrentAudioUrl(url);
-                    setAudioUrl(url);
+                    onAudioUpdate(url); // Pass URL to parent
                     stream.getTracks().forEach(track => track.stop());
                 };
                 
-                recognitionRef.current.mediaRecorder = mediaRecorder;
+                (recognitionRef.current as any).mediaRecorder = mediaRecorder;
                 mediaRecorder.start();
 
             } catch (err) {
@@ -175,11 +183,11 @@ const LiveLecturePanel = ({ show, setShow, onNoteGenerated, setTranscript, setAu
     const handleStopRecording = () => {
         if (recognitionRef.current) {
             recognitionRef.current.stop();
-            if(recognitionRef.current.mediaRecorder) {
-                recognitionRef.current.mediaRecorder.stop();
+            if((recognitionRef.current as any).mediaRecorder) {
+                (recognitionRef.current as any).mediaRecorder.stop();
             }
         }
-        setTranscript(finalTranscriptRef.current);
+        onTranscriptUpdate(finalTranscriptRef.current);
         setIsListening(false);
     }
     
@@ -194,7 +202,6 @@ const LiveLecturePanel = ({ show, setShow, onNoteGenerated, setTranscript, setAu
                 messages: [{ role: 'user', content: currentTranscript }]
             });
             onNoteGenerated(`<h2>${result.title}</h2><p>${result.note.replace(/\\n/g, '<br/>')}</p>`);
-            // Don't clear the transcript/audio here, so it can be viewed in tabs
             setShow(false);
         } catch (e) {
             console.error(e);
@@ -283,32 +290,25 @@ export default function NewNotePage() {
     const [lectureTranscript, setLectureTranscript] = useState('');
     const [lectureAudioUrl, setLectureAudioUrl] = useState<string | null>(null);
 
+    const [chatHistory, setChatHistory] = useState<Message[]>([]);
+    const [chatInput, setChatInput] = useState('');
+    const [isChatLoading, setIsChatLoading] = useState(false);
+    const [user] = useAuthState(auth);
+    const { toast } = useToast();
 
-    const executeCommand = (command: string, value?: string) => {
+    const handleCommand = (command: string, value?: string) => {
         document.execCommand(command, false, value);
         if (editorRef.current) {
             setEditorContent(editorRef.current.innerHTML);
-        }
-        editorRef.current?.focus();
-    };
-    
-    const handleCommand = (command: string, value?: string) => {
-        if (command === 'undo') {
-            handleUndo();
-        } else if (command === 'redo') {
-            handleRedo();
-        } else {
-            executeCommand(command, value);
-            if (editorRef.current) {
-                const newContent = editorRef.current.innerHTML;
-                if (history.current[historyIndex.current]?.content !== newContent) {
-                    const newHistory = history.current.slice(0, historyIndex.current + 1);
-                    newHistory.push({ content: newContent });
-                    history.current = newHistory;
-                    historyIndex.current++;
-                }
+            const newContent = editorRef.current.innerHTML;
+            if (history.current[historyIndex.current]?.content !== newContent) {
+                const newHistory = history.current.slice(0, historyIndex.current + 1);
+                newHistory.push({ content: newContent });
+                history.current = newHistory;
+                historyIndex.current++;
             }
         }
+        editorRef.current?.focus();
     };
 
     const handleInput = () => {
@@ -351,9 +351,42 @@ export default function NewNotePage() {
             const currentContent = editorRef.current.innerHTML;
             const newContent = currentContent + '<br>' + noteHtml;
             editorRef.current.innerHTML = newContent;
-            setEditorContent(newContent); // Update state to reflect changes
+            setEditorContent(newContent); 
         }
     };
+
+    const handleSendMessage = async () => {
+        const messageContent = chatInput.trim();
+        if (!messageContent || !user) return;
+    
+        const userMessage: Message = { role: 'user', content: messageContent };
+        const newHistory = [...chatHistory, userMessage];
+        setChatHistory(newHistory);
+        setChatInput('');
+        setIsChatLoading(true);
+    
+        try {
+          const response = await studyPlannerAction({
+            history: newHistory,
+            courseContext: editorContent,
+          });
+          const aiMessage: Message = { role: 'ai', content: response.text };
+          setChatHistory(prev => [...prev, aiMessage]);
+    
+        } catch (error) {
+          console.error(error);
+          setChatHistory(chatHistory); // Revert on error
+          toast({ variant: 'destructive', title: 'Error', description: 'Could not get a response from the AI.'})
+        } finally {
+          setIsChatLoading(false);
+        }
+    };
+    
+    const handleQuickAction = (prompt: string) => {
+        const fullPrompt = `${prompt}: "${editorContent.replace(/<[^>]*>?/gm, '')}"`;
+        setChatInput(fullPrompt);
+        handleSendMessage();
+    }
     
     return (
         <div className="flex h-screen overflow-hidden">
@@ -391,7 +424,7 @@ export default function NewNotePage() {
                     </div>
                 </header>
                 <div className="flex-1 flex flex-col p-6 overflow-y-auto relative">
-                     <LiveLecturePanel show={showLiveLecture} setShow={setShowLiveLecture} onNoteGenerated={handleNoteGenerated} setTranscript={setLectureTranscript} setAudioUrl={setLectureAudioUrl} />
+                     <LiveLecturePanel show={showLiveLecture} setShow={setShowLiveLecture} onNoteGenerated={handleNoteGenerated} onTranscriptUpdate={setLectureTranscript} onAudioUpdate={setLectureAudioUrl} />
                     <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm flex-1 flex flex-col">
                         <EditorToolbar onCommand={handleCommand} activeTab={activeToolbarTab} setActiveTab={setActiveToolbarTab} />
                          {activeToolbarTab === 'self-written' && (
@@ -422,7 +455,7 @@ export default function NewNotePage() {
                     </div>
                 </div>
             </main>
-            <aside className="w-80 flex-shrink-0 bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 flex flex-col">
+            <aside className="w-96 flex-shrink-0 bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 flex flex-col">
                  <header className="flex-shrink-0 flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
                     <Button variant="ghost" size="icon" className="text-gray-500 dark:text-gray-400">
                         <X size={20} />
@@ -431,42 +464,72 @@ export default function NewNotePage() {
                         Chat History
                     </Button>
                 </header>
-                <div className="flex-1 p-4 flex flex-col justify-between">
-                    <div className="space-y-4">
-                        <div className="flex justify-end">
-                            <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg max-w-xs">
-                                <p className="text-sm">write me some notes for photosynthesis</p>
+                <ScrollArea className="flex-1">
+                    {chatHistory.length === 0 ? (
+                        <div className="p-6 text-center">
+                            <AIBuddy className="w-24 h-24 mx-auto mb-4" />
+                            <h3 className="font-semibold text-lg">Hello, I'm {user?.displayName || 'Tutorin'}!</h3>
+                             <div className="mt-6 space-y-3">
+                                <Button variant="outline" className="w-full justify-between h-auto py-3" onClick={() => handleQuickAction('Generate summary about this material')}>Generate summary <FileText size={16}/></Button>
+                                <Button variant="outline" className="w-full justify-between h-auto py-3" onClick={() => handleQuickAction('Explain the difficult parts of this')}>Explain the difficult parts <BrainCircuit size={16}/></Button>
+                                <Button variant="outline" className="w-full justify-between h-auto py-3" onClick={() => handleQuickAction('Generate study questions for this')}>Generate study questions <Lightbulb size={16}/></Button>
+                            </div>
+                             <button className="text-sm text-muted-foreground mt-4 hover:underline">View More</button>
+                             <div className="mt-6">
+                                <Button variant="secondary" className="rounded-full"><Sparkles className="h-4 w-4 mr-2"/> Personalities & Skillsets</Button>
                             </div>
                         </div>
-                        <div className="flex justify-start">
-                            <div className="p-3">
-                                <span className="animate-pulse text-gray-400">...</span>
-                            </div>
+                    ) : (
+                         <div className="p-4 space-y-4">
+                            {chatHistory.map((msg, index) => (
+                                <div key={index} className={cn("flex items-end gap-2", msg.role === 'user' ? 'justify-end' : '')}>
+                                    {msg.role === 'ai' && <AIBuddy className="w-8 h-8 flex-shrink-0" />}
+                                    <div className={cn("p-3 rounded-2xl max-w-[85%] text-sm prose dark:prose-invert prose-p:my-0", msg.role === 'user' ? "bg-primary text-primary-foreground rounded-br-none" : "bg-muted rounded-bl-none")}>
+                                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
+                                    </div>
+                                </div>
+                            ))}
+                            {isChatLoading && (
+                                <div className="flex items-end gap-2">
+                                    <AIBuddy className="w-8 h-8 flex-shrink-0" />
+                                    <div className="p-3 rounded-2xl max-w-[85%] text-sm bg-muted rounded-bl-none animate-pulse">
+                                        ...
+                                    </div>
+                                </div>
+                            )}
                         </div>
+                    )}
+                </ScrollArea>
+                <footer className="p-4 border-t border-gray-200 dark:border-gray-800 space-y-3">
+                    <div className="relative">
+                        <Textarea 
+                            placeholder="Ask your AI tutor anything..." 
+                            className="bg-gray-100 dark:bg-gray-800 border-none rounded-lg p-4 pr-12 text-base resize-none"
+                            rows={1}
+                            value={chatInput}
+                            onChange={(e) => setChatInput(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' && !e.shiftKey) {
+                                    e.preventDefault();
+                                    handleSendMessage();
+                                }
+                            }}
+                        />
+                         <Button size="icon" className="absolute right-3 bottom-3 w-8 h-8 rounded-full bg-blue-600 hover:bg-blue-700" onClick={handleSendMessage} disabled={isChatLoading}>
+                            <ArrowRight size={16}/>
+                        </Button>
                     </div>
-                    <div className="mt-4">
-                        <div className="relative">
-                            <Input className="w-full bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-lg py-3 pl-4 pr-12 focus:ring-primary focus:border-primary" placeholder="Ask your AI tutor anything..."/>
-                            <Button size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-blue-600 hover:bg-blue-700"><ArrowRight size={16}/></Button>
+                     <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground"><ImageIcon size={16}/></Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground"><Globe size={16}/></Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground"><GraduationCap size={16}/></Button>
+                            <Button variant="secondary" size="sm" className="h-8 gap-1.5"><FileText size={14}/>Using 1 material(s)</Button>
                         </div>
-                        <div className="flex items-center justify-between mt-2 px-2">
-                            <div className="flex items-center gap-2">
-                                <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500 dark:text-gray-400"><ImageIcon size={16}/></Button>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300"><Globe size={16}/></Button>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300"><GraduationCap size={16}/></Button>
-                                <Button variant="secondary" size="sm" className="h-8 gap-1.5"><FileText size={16}/>Using 1 material(s)</Button>
-                            </div>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500 dark:text-gray-400"><Mic size={16}/></Button>
-                        </div>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground"><Mic className="h-4 w-4"/></Button>
                     </div>
-                </div>
+                </footer>
             </aside>
         </div>
     );
 }
-
-    
-
-    
-
-
