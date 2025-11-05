@@ -118,7 +118,7 @@ export default function NewNotePage() {
                         </a>
                     ))}
                     <a className="flex items-center gap-3 px-3 py-2 rounded-md bg-blue-100 dark:bg-blue-900/40 text-primary font-semibold" href="#">
-                        <Image alt="Sat Math icon" className="w-6 h-6 rounded-full" src="https://lh3.googleusercontent.com/a/ACg8ocK_x-s2f1qY2Lg8A8G8s8Yg8g8Y8g8g8Y8g8Y8g8Y8g=s96-c" width={24} height={24}/>
+                        <Image alt="Sat Math icon" className="w-6 h-6 rounded-full" src="https://lh3.googleusercontent.com/a/ACg8ocK_x-s2f1qY2Lg8A8G8s8Yg8g8Y8g8g8Y8g8Y8g=s96-c" width={24} height={24}/>
                         <span>Sat MAth</span>
                     </a>
                     <div className="pt-4">
@@ -130,37 +130,6 @@ export default function NewNotePage() {
                         ))}
                     </div>
                 </nav>
-                <div className="mt-auto">
-                    <Button className="w-full gap-2 font-semibold bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700">
-                        <Plus size={16} /> Upload
-                    </Button>
-                    <div className="mt-4">
-                        <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm font-semibold text-gray-500 dark:text-gray-400">Your Notes</span>
-                            <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
-                                <Button variant="ghost" size="icon" className="h-6 w-6"><Plus size={16}/></Button>
-                                <Button variant="ghost" size="icon" className="h-6 w-6"><FolderPlus size={16}/></Button>
-                            </div>
-                        </div>
-                        <div className="space-y-1">
-                            {notes.map(note => (
-                                <a key={note.title} className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800" href="#">
-                                    <FileText className="text-yellow-500" size={16}/>
-                                    <span className="truncate">{note.title}</span>
-                                </a>
-                            ))}
-                        </div>
-                    </div>
-                    <div className="mt-4 p-3 bg-primary rounded-lg text-white relative">
-                        <Button variant="ghost" size="icon" className="absolute top-1 right-1 h-4 w-4 bg-white/20 rounded-full flex items-center justify-center text-xs">
-                            &times;
-                        </Button>
-                        <div className="flex items-center gap-3">
-                            <Sparkles size={16}/>
-                            <span className="font-semibold">Tutorials</span>
-                        </div>
-                    </div>
-                </div>
             </aside>
             <main className="flex-1 flex flex-col bg-background-light dark:bg-gray-900/50">
                 <header className="flex-shrink-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-6 py-3">
@@ -180,7 +149,7 @@ export default function NewNotePage() {
                                 <Button variant="ghost" size="icon"><Upload size={16}/></Button>
                             </div>
                              <div className="relative">
-                                <img alt="User avatar" className="w-8 h-8 rounded-full" src="https://lh3.googleusercontent.com/a/ACg8ocK_x-s2f1qY2Lg8A8G8s8Yg8g8Y8g8g8Y8g8Y8g=s96-c"/>
+                                <img alt="User avatar" className="w-8 h-8 rounded-full" src="https://lh3.googleusercontent.com/a/ACg8ocK1Or_s9UKOF6_LUS-Uz5m4nlB4RqSHSc7boFluG5jdVHIXW9HfPGqkyHrcD33sPB0zGSlfG7ov9jz9AfHzm_WpU_AgKC0wAWNfUjsKkHaa--gWuzMcn__AF4VDk-csCtGG_UG2yrzsKIfWGHZd_daSMwV-ipBz4M-pPQ_U4qrHXMqDAeUaKUxGlJm5TUa4lsLX6TWgkpfEATti1OpT3mjBF6DcJaF2sesr5emRVV0wLxLldnb8xiPmdFmwL476G8_9LuqF1hL5ULnl"/>
                                 <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center border-2 border-white dark:border-gray-900">G</span>
                                 <span className="absolute bottom-0 right-0 bg-gray-500 text-white text-[10px] px-1 rounded-full">2</span>
                             </div>
