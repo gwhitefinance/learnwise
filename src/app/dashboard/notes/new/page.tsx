@@ -5,25 +5,29 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  File,
+  FileText,
+  Sparkles,
+  Clock,
+  Mic,
   Bold,
   Italic,
   Underline,
+  Strikethrough,
+  Highlighter,
+  Palette,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
   List,
   ListOrdered,
-  Share2,
-  Paperclip,
-  Clock,
-  Mic,
-  BrainCircuit,
-  Lightbulb,
-  FileQuestion,
-  Sparkles,
-  Loader2,
-  Square,
-  FileSignature
+  Undo,
+  Redo,
+  Plus,
+  History,
+  Printer,
+  Maximize,
+  Share2
 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
@@ -35,11 +39,13 @@ import { db } from '@/lib/firebase';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
+import { cn } from '@/lib/utils';
 
 export default function NewNotePage() {
   const [user] = useAuthState(auth);
   const { toast } = useToast();
   const router = useRouter();
+  const [activeTab, setActiveTab] = useState('self-written');
 
   const handleNoteGenerated = async (title: string, content: string) => {
     if (!user) {
@@ -64,13 +70,24 @@ export default function NewNotePage() {
     }
   }
 
+  const TabButton = ({ name, id, icon }: { name: string, id: string, icon: React.ReactNode }) => (
+    <Button
+      variant={activeTab === id ? 'secondary' : 'ghost'}
+      onClick={() => setActiveTab(id)}
+      className={cn("justify-start", activeTab === id && 'bg-primary/10 text-primary')}
+    >
+      {icon}
+      {name}
+    </Button>
+  );
+
   return (
     <div className="h-full flex flex-col md:flex-row gap-4">
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         <header className="flex justify-between items-center mb-4">
           <div className="flex items-center gap-2">
-            <File className="h-6 w-6" />
+            <FileText className="h-6 w-6" />
             <h1 className="text-2xl font-bold">Notes AI</h1>
           </div>
           <div className="flex items-center gap-2">
@@ -79,31 +96,84 @@ export default function NewNotePage() {
             <Button variant="ghost">Feedback</Button>
           </div>
         </header>
+        
+        <div className="bg-card border rounded-lg p-2 space-y-2">
+            <div className="flex gap-1">
+                <TabButton id="self-written" name="Self Written Notes" icon={<FileText className="h-4 w-4 mr-2" />} />
+                <TabButton id="enhanced" name="Enhanced Notes" icon={<Sparkles className="h-4 w-4 mr-2" />} />
+                <TabButton id="transcript" name="Lecture Transcript" icon={<Clock className="h-4 w-4 mr-2" />} />
+                <TabButton id="audio" name="Audio Files" icon={<Mic className="h-4 w-4 mr-2" />} />
+            </div>
+            <Separator />
+            <div className="flex items-center gap-2 flex-wrap px-2">
+                <Select defaultValue="arial">
+                    <SelectTrigger className="w-[120px] h-8">
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="arial">Arial</SelectItem>
+                        <SelectItem value="helvetica">Helvetica</SelectItem>
+                        <SelectItem value="times">Times New Roman</SelectItem>
+                    </SelectContent>
+                </Select>
+                 <Select defaultValue="11">
+                    <SelectTrigger className="w-[70px] h-8">
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="10">10</SelectItem>
+                        <SelectItem value="11">11</SelectItem>
+                        <SelectItem value="12">12</SelectItem>
+                        <SelectItem value="14">14</SelectItem>
+                    </SelectContent>
+                </Select>
+                <Separator orientation="vertical" className="h-6" />
+                <Button variant="ghost" size="icon" className="h-8 w-8"><Bold className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8"><Italic className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8"><Underline className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8"><Strikethrough className="h-4 w-4" /></Button>
+                <Separator orientation="vertical" className="h-6" />
+                <Button variant="ghost" size="icon" className="h-8 w-8"><Highlighter className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8"><Palette className="h-4 w-4" /></Button>
+                <Separator orientation="vertical" className="h-6" />
+                <Button variant="ghost" size="icon" className="h-8 w-8"><AlignLeft className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8"><AlignCenter className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8"><AlignRight className="h-4 w-4" /></Button>
+                <Separator orientation="vertical" className="h-6" />
+                <Button variant="ghost" size="icon" className="h-8 w-8"><ListOrdered className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8"><List className="h-4 w-4" /></Button>
+                <Separator orientation="vertical" className="h-6" />
+                <Button variant="ghost" size="icon" className="h-8 w-8"><Undo className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8"><Redo className="h-4 w-4" /></Button>
+                <Separator orientation="vertical" className="h-6" />
+                 <Button variant="ghost" size="icon" className="h-8 w-8"><Plus className="h-4 w-4" /></Button>
+                 <Button variant="ghost" size="icon" className="h-8 w-8"><History className="h-4 w-4" /></Button>
+                 <Button variant="ghost" size="icon" className="h-8 w-8"><Printer className="h-4 w-4" /></Button>
+                 <Button variant="ghost" size="icon" className="h-8 w-8"><Maximize className="h-4 w-4" /></Button>
+            </div>
+        </div>
 
-        <Tabs defaultValue="transcript" className="flex-1 flex flex-col">
-          <TabsList className="grid grid-cols-4">
-            <TabsTrigger value="self-written">Self Written Notes</TabsTrigger>
-            <TabsTrigger value="enhanced">Enhanced Notes</TabsTrigger>
-            <TabsTrigger value="transcript">Lecture Transcript</TabsTrigger>
-            <TabsTrigger value="audio">Audio Files</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="self-written" className="flex-1 mt-4">
-             <Card className="h-full">
-                <CardContent className="p-4 h-full">
-                    <Textarea className="h-full w-full border-0 focus-visible:ring-0 resize-none" placeholder="Start writing your notes here..."/>
-                </CardContent>
-             </Card>
-          </TabsContent>
-          <TabsContent value="transcript" className="flex-1 mt-4">
-             <Card className="h-full flex items-center justify-center">
-                <CardContent className="p-4 text-center">
-                    <ListenToNote onNoteGenerated={handleNoteGenerated} />
-                </CardContent>
-             </Card>
-          </TabsContent>
-          {/* Other tab contents can be added here */}
-        </Tabs>
+        <div className="flex-1 mt-4">
+            {activeTab === 'self-written' && (
+                <Card className="h-full">
+                    <CardContent className="p-0 h-full">
+                        <Textarea className="h-full w-full border-0 focus-visible:ring-0 resize-none text-base p-6" placeholder="Start writing your notes here..."/>
+                    </CardContent>
+                </Card>
+            )}
+             {activeTab === 'transcript' && (
+                <Card className="h-full flex items-center justify-center">
+                    <CardContent className="p-4 text-center">
+                        <ListenToNote onNoteGenerated={handleNoteGenerated} />
+                    </CardContent>
+                </Card>
+            )}
+            {(activeTab === 'enhanced' || activeTab === 'audio') && (
+                <Card className="h-full flex items-center justify-center">
+                    <p className="text-muted-foreground">Content for {activeTab.replace('-', ' ')} goes here.</p>
+                </Card>
+            )}
+        </div>
       </div>
 
       {/* Right Sidebar - AI Chat */}
