@@ -114,7 +114,7 @@ const CityRunGame = ({ topic }: { topic: string }) => {
         let newLives = lives;
 
         setItems(prevItems => {
-            const newItems = prevItems.map(item => ({...item, y: item.y + 5})).filter(item => item.y < 600);
+            const newItems = prevItems.map(item => ({...item, y: item.y + 2})).filter(item => item.y < 600);
             
             newItems.forEach(item => {
                 // Collision detection
@@ -146,7 +146,7 @@ const CityRunGame = ({ topic }: { topic: string }) => {
         });
 
         requestAnimationFrame(gameLoop);
-    }, [gameState, playerLane, lives, questions.length]);
+    }, [gameState, playerLane, lives, questions.length, toast]);
 
     useEffect(() => {
         if (gameState === 'playing' && questions.length > 0) {
@@ -171,11 +171,11 @@ const CityRunGame = ({ topic }: { topic: string }) => {
     const shuffle = (array: any[]) => array.sort(() => Math.random() - 0.5);
     
     if (questions.length === 0) {
-        return <div className="flex items-center justify-center h-[80vh] bg-gray-800 rounded-lg"><p className="text-white">Generating questions...</p></div>
+        return <div className="flex items-center justify-center h-full bg-gray-800 rounded-lg"><p className="text-white">Generating questions...</p></div>
     }
 
     return (
-        <div className="w-full h-[80vh] bg-gray-800 relative rounded-lg overflow-hidden flex justify-center items-center">
+        <div className="w-full h-full bg-gray-800 relative rounded-lg overflow-hidden flex justify-center items-center">
             {/* Game Background */}
             <div className="absolute inset-0 bg-gray-700">
                 <div className="absolute h-full w-[360px] left-1/2 -translate-x-1/2 bg-gray-600">
@@ -263,8 +263,8 @@ function CityRunPageWrapper() {
     }
     
     return (
-        <div className="p-4">
-             <Button variant="ghost" onClick={() => router.push('/dashboard/games')} className="mb-4">
+        <div className="h-full flex flex-col">
+             <Button variant="ghost" onClick={() => router.push('/dashboard/games')} className="absolute top-4 left-4 z-20 bg-black/20 hover:bg-black/40 text-white hover:text-white">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to Arcade
             </Button>
@@ -275,7 +275,7 @@ function CityRunPageWrapper() {
 
 export default function CityRunPage() {
     return (
-        <Suspense fallback={<Skeleton className="w-full h-[80vh] bg-gray-800 rounded-lg"/>}>
+        <Suspense fallback={<Skeleton className="w-full h-full bg-gray-800 rounded-lg"/>}>
             <CityRunPageWrapper />
         </Suspense>
     )
