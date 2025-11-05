@@ -157,7 +157,7 @@ export default function MemoryMatchClientPage() {
                 }, 1000);
             }
         }
-    }, [flippedCards, cards]);
+    }, [flippedCards, cards, moves, toast]);
 
     const restartGame = () => {
         setGameStarted(false);
@@ -168,9 +168,9 @@ export default function MemoryMatchClientPage() {
         <div className="flex flex-col items-center p-4 relative">
             <Button variant="ghost" onClick={() => router.push('/dashboard/games')} className="absolute top-4 left-4">
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Games
+                Back to Arcade
             </Button>
-            <h1 className="text-4xl font-bold mb-4">Memory Match</h1>
+            <h1 className="text-4xl font-bold mb-4">Match Game</h1>
 
             {!gameStarted ? (
                 <Card className="w-full max-w-md p-8 text-center">

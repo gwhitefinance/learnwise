@@ -8,6 +8,6 @@ const MemoryMatchClientPage = dynamic(() => import('./MemoryMatchClientPage'), {
   loading: () => <Loading />,
 });
 
-export default function MemoryMatchPage() {
+export default function MatchGamePage() {
   return <MemoryMatchClientPage />;
 }
