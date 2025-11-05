@@ -41,6 +41,29 @@ type QuizState = 'start' | 'source-selection' | 'topic-selection' | 'configuring
 type AnswerState = 'unanswered' | 'answered';
 type AnswerFeedback = { question: string; answer: string; correctAnswer: string; isCorrect: boolean; explanation?: string; };
 
+const examSpecificTypes = [
+    {
+        category: 'Med School',
+        exams: ['NCLEX Preparation', 'USMLE Step 1', 'USMLE Step 2'],
+        more: 8,
+    },
+    {
+        category: 'Finance',
+        exams: ['Series 7', 'Series 63', 'Series 65'],
+        more: 1,
+    },
+    {
+        category: 'AP Exams',
+        exams: ['AP Biology', 'AP Calculus AB', 'AP Calculus BC'],
+        more: 35,
+    },
+    {
+        category: 'Law School',
+        exams: ['LSAT', 'Bar Exam (MBE)', 'MPRE'],
+        more: 2,
+    },
+];
+
 function PracticeQuizComponent() {
     const searchParams = useSearchParams();
     const initialTopic = searchParams.get('topic');
@@ -151,7 +174,7 @@ function PracticeQuizComponent() {
             setIsFocusMode(true);
             setQuizState('in-progress');
         }).catch(err => {
-            console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+            console.error(`Error attempting to enable full-screen mode: \${err.message} (\${err.name})`);
             setIsFocusMode(false);
             setQuizState('in-progress');
         });
@@ -314,7 +337,7 @@ function PracticeQuizComponent() {
                         coins: increment(coinsEarned)
                     });
                     showReward({ type: 'coins', amount: coinsEarned });
-                    toast({ title: "Quiz Complete!", description: `You earned ${coinsEarned} coins!`});
+                    toast({ title: "Quiz Complete!", description: `You earned \${coinsEarned} coins!`});
 
                 } catch(e) {
                     console.error("Error awarding coins:", e);
@@ -621,13 +644,13 @@ function PracticeQuizComponent() {
                          <RadioGroup value={selectedAnswer ?? ''} onValueChange={setSelectedAnswer} disabled={answerState === 'answered'}>
                             <div className="space-y-4">
                             {currentQuestion.options?.map((option, index) => (
-                                <Label key={index} htmlFor={`option-${index}`} className={cn(
+                                <Label key={index} htmlFor={`option-\${index}`} className={cn(
                                     "flex items-center gap-4 p-4 rounded-lg border transition-all cursor-pointer",
                                     answerState === 'unanswered' && (selectedAnswer === option ? "border-primary bg-primary/10" : "border-border hover:bg-muted"),
                                     answerState === 'answered' && option === currentQuestion.answer && "border-green-500 bg-green-500/10",
                                     answerState === 'answered' && selectedAnswer === option && option !== currentQuestion.answer && "border-red-500 bg-red-500/10",
                                 )}>
-                                    <RadioGroupItem value={option} id={`option-${index}`} />
+                                    <RadioGroupItem value={option} id={`option-\${index}`} />
                                     <span>{option}</span>
                                 </Label>
                             ))}
@@ -666,7 +689,7 @@ function PracticeQuizComponent() {
                                                 <button 
                                                     key={c}
                                                     onClick={() => setColor(c)}
-                                                    className={`w-8 h-8 rounded-full border-2 ${color === c ? 'border-primary' : 'border-transparent'}`}
+                                                    className={`w-8 h-8 rounded-full border-2 \${color === c ? 'border-primary' : 'border-transparent'}`}
                                                     style={{ backgroundColor: c }}
                                                 />
                                                 ))}
@@ -827,41 +850,19 @@ function PracticeQuizComponent() {
 
                     <div className="space-y-4">
                         <h3 className="font-semibold text-lg">Exam-Specific Question Types</h3>
+                        <p className="text-sm text-muted-foreground">Choose specialized question formats for various standardized exams</p>
                          <Accordion type="multiple" className="w-full space-y-2">
-                            <AccordionItem value="med" className="border rounded-lg bg-muted/30 px-4">
-                                <AccordionTrigger>Med School</AccordionTrigger>
-                                <AccordionContent className="p-2 flex flex-wrap gap-2">
-                                     <Button variant="outline" disabled>NCLEX Preparation</Button>
-                                     <Button variant="outline" disabled>USMLE Step 1</Button>
-                                     <Button variant="outline" disabled>USMLE Step 2</Button>
-                                     <Badge variant="secondary">+8 more</Badge>
-                                </AccordionContent>
-                            </AccordionItem>
-                             <AccordionItem value="finance" className="border rounded-lg bg-muted/30 px-4">
-                                <AccordionTrigger>Finance</AccordionTrigger>
-                                <AccordionContent className="p-2 flex flex-wrap gap-2">
-                                    <Button variant="outline" disabled>Series 7</Button>
-                                    <Button variant="outline" disabled>Series 63</Button>
-                                    <Badge variant="secondary">+1 more</Badge>
-                                </AccordionContent>
-                            </AccordionItem>
-                            <AccordionItem value="ap" className="border rounded-lg bg-muted/30 px-4">
-                                <AccordionTrigger>AP Exams</AccordionTrigger>
-                                <AccordionContent className="p-2 flex flex-wrap gap-2">
-                                    <Button variant="outline" disabled>AP Biology</Button>
-                                    <Button variant="outline" disabled>AP Calculus AB</Button>
-                                    <Button variant="outline" disabled>AP Calculus BC</Button>
-                                     <Badge variant="secondary">+35 more</Badge>
-                                </AccordionContent>
-                            </AccordionItem>
-                            <AccordionItem value="law" className="border rounded-lg bg-muted/30 px-4">
-                                <AccordionTrigger>Law School</AccordionTrigger>
-                                <AccordionContent className="p-2 flex flex-wrap gap-2">
-                                    <Button variant="outline" disabled>LSAT</Button>
-                                    <Button variant="outline" disabled>Bar Exam (MBE)</Button>
-                                    <Badge variant="secondary">+2 more</Badge>
-                                </AccordionContent>
-                            </AccordionItem>
+                             {examSpecificTypes.map(section => (
+                                <AccordionItem key={section.category} value={section.category} className="border rounded-lg bg-muted/30 px-4">
+                                    <AccordionTrigger className="hover:no-underline">{section.category}</AccordionTrigger>
+                                    <AccordionContent className="p-2 flex flex-wrap gap-2">
+                                        {section.exams.map(exam => (
+                                            <Button key={exam} variant="outline" disabled>{exam}</Button>
+                                        ))}
+                                        {section.more > 0 && <Badge variant="secondary">+{section.more} more</Badge>}
+                                    </AccordionContent>
+                                </AccordionItem>
+                            ))}
                         </Accordion>
                     </div>
                  </CardContent>
@@ -883,3 +884,4 @@ export default function PracticeQuizPage() {
         </Suspense>
     )
 }
+
