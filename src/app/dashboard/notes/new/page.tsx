@@ -20,6 +20,7 @@ import { auth } from '@/lib/firebase';
 import { cn } from '@/lib/utils';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import Logo from '@/components/Logo';
 
 interface Message {
   role: 'user' | 'ai';
@@ -84,10 +85,6 @@ const EditorToolbar = ({ onCommand, activeTab, setActiveTab }: { onCommand: (com
                 <div className="h-6 w-px bg-gray-200 dark:bg-gray-700"></div>
                 <Button variant="ghost" size="icon" onClick={() => onCommand('undo')} className="w-8 h-8"><Undo size={16} /></Button>
                 <Button variant="ghost" size="icon" onClick={() => onCommand('redo')} className="w-8 h-8"><Redo size={16} /></Button>
-                <Button variant="ghost" size="icon" className="w-8 h-8"><Plus size={16} /></Button>
-                <Button variant="ghost" size="icon" className="w-8 h-8"><History size={16} /></Button>
-                <Button variant="ghost" size="icon" className="w-8 h-8"><Printer size={16} /></Button>
-                <Button variant="ghost" size="icon" className="w-8 h-8"><Expand size={16} /></Button>
         </div>
     </div>
 )};
@@ -390,9 +387,14 @@ export default function NewNotePage() {
     return (
         <div className="flex h-screen overflow-hidden">
              <main className="flex-1 flex flex-col bg-background-light dark:bg-gray-900/50">
-                <header className="flex-shrink-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-6 py-3">
+                 <header className="flex-shrink-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-6 py-3">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
+                             <Link href="/dashboard/notes">
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500 dark:text-gray-400">
+                                    <X size={20} />
+                                </Button>
+                            </Link>
                             <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Untitled Lecture</h1>
                             <button className="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 p-1 rounded">
                                 <ChevronDown size={16} />
@@ -408,17 +410,6 @@ export default function NewNotePage() {
                             <Button className="text-sm bg-blue-600 hover:bg-blue-700">
                                 <Upload className="mr-2 h-4 w-4"/> Upgrade
                             </Button>
-                            <Button variant="outline" className="text-sm">
-                                <Info className="mr-2 h-4 w-4"/> Feedback
-                            </Button>
-                            <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
-                                <button className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800">
-                                    <GitMerge size={16} />
-                                </button>
-                                <button className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800">
-                                    <FileText size={16} />
-                                </button>
-                            </div>
                         </div>
                     </div>
                 </header>
@@ -482,7 +473,7 @@ export default function NewNotePage() {
                          <div className="p-4 space-y-4">
                             {chatHistory.map((msg, index) => (
                                 <div key={index} className={cn("flex items-end gap-2", msg.role === 'user' ? 'justify-end' : '')}>
-                                     {msg.role === 'ai' && <AIBuddy className="w-4 h-4 flex-shrink-0" />}
+                                     {msg.role === 'ai' && <AIBuddy className="w-10 h-10 flex-shrink-0" />}
                                     <div className={cn("p-3 rounded-2xl max-w-[85%] text-sm prose dark:prose-invert prose-p:my-0 prose-headings:my-0 prose-table:my-0", msg.role === 'user' ? "bg-primary text-primary-foreground rounded-br-none" : "bg-muted rounded-bl-none")}>
                                         <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
                                     </div>
@@ -490,7 +481,7 @@ export default function NewNotePage() {
                             ))}
                             {isChatLoading && (
                                 <div className="flex items-end gap-2">
-                                    <AIBuddy className="w-4 h-4 flex-shrink-0" />
+                                    <AIBuddy className="w-10 h-10 flex-shrink-0" />
                                     <div className="p-3 rounded-2xl max-w-[85%] text-sm bg-muted rounded-bl-none animate-pulse">
                                         ...
                                     </div>
@@ -518,7 +509,7 @@ export default function NewNotePage() {
                             <ArrowRight size={16}/>
                         </Button>
                     </div>
-                     <div className="flex items-center justify-between">
+                     <div className="flex items-center justify-between mt-2 px-2">
                         <div className="flex items-center gap-1">
                             <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500 dark:text-gray-400"><ImageIcon size={16}/></Button>
                             <Button variant="ghost" size="icon" className="h-8 w-8 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300"><Globe size={16}/></Button>
