@@ -28,6 +28,7 @@ import { RewardContext } from '@/context/RewardContext';
 import Loading from './loading';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Badge } from '@/components/ui/badge';
 
 export const dynamic = "force-dynamic";
 
