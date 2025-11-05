@@ -23,7 +23,7 @@ const games = [
         title: "Match Game",
         description: "Test your memory by matching terms and definitions.",
         thumbnail: "https://picsum.photos/seed/match/400/300",
-        href: "/dashboard/games/match-game"
+        href: "/dashboard/games/memory-match"
     },
     {
         title: "City Run",
@@ -112,8 +112,7 @@ export default function GamesPage() {
                 return;
             }
             
-            // For now, we'll just navigate. Later this can pass the topic.
-            router.push(game.href);
+            router.push(`${game.href}?topic=${encodeURIComponent(gameTopic)}`);
         }
     }
 
