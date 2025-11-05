@@ -38,7 +38,7 @@ const prompt = ai.definePrompt({
         - For abstract or technical topics (e.g., Math, Science, Programming), prioritize finding a clear, simple **diagram, chart, or infographic** that visually explains the core concept.
         - For other topics (e.g., History, Literature), a high-quality photo is acceptable.
     3.  **Dimensions**: The image MUST be exactly 600px wide and 400px high.
-    4.  **Fallback**: If you absolutely cannot find a relevant image, use 'https://picsum.photos/seed/{{chapterTitle}}/600/400' as a last resort. The 'imageUrl' field should be this direct URL.
+    4.  **Fallback**: If you absolutely cannot find a relevant image, use 'https://picsum.photos/seed/{{#url-encode}}{{chapterTitle}}{{/url-encode}}/600/400' as a last resort. To do this, you MUST take the '{{chapterTitle}}' and replace all spaces with hyphens (-) to create a valid URL seed. The 'imageUrl' field should be this direct URL.
 
     The user is a {{learnerType}} learner. Tailor the content and the interactive activity accordingly.
     
@@ -52,6 +52,9 @@ const prompt = ai.definePrompt({
     Second, devise the short and fun 'activity'.
     Third, find and provide the 'imageUrl'.
     `,
+    helpers: {
+        'url-encode': (str: string) => str.replace(/ /g, '-'),
+    }
 });
 
 
