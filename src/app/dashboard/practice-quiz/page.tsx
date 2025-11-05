@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useState, useEffect, useRef, useContext, Suspense } from 'react';
@@ -8,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowRight, RotateCcw, Lightbulb, CheckCircle, XCircle, PenSquare, Palette, Brush, Eraser, Minimize, Maximize, Gem, Loader2, BookCopy, CheckSquare, ListChecks, FileText, Copy as CopyIcon, ChevronRight } from 'lucide-react';
+import { ArrowRight, RotateCcw, Lightbulb, CheckCircle, XCircle, PenSquare, Palette, Brush, Eraser, Minimize, Maximize, Gem, Loader2, BookCopy, CheckSquare, ListChecks, FileText, Copy as CopyIcon, ChevronRight, BookOpen, Calculator, Send, Bot, MoreVertical, Link as LinkIcon, Share2, NotebookText, Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { GenerateQuizInput, GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
 import { Progress } from '@/components/ui/progress';
@@ -26,6 +27,7 @@ import { generateQuizAction } from '@/lib/actions';
 import { RewardContext } from '@/context/RewardContext';
 import Loading from './loading';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 export const dynamic = "force-dynamic";
 
@@ -46,9 +48,15 @@ function PracticeQuizComponent() {
     const [courses, setCourses] = useState<Course[]>([]);
     const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
     const [topics, setTopics] = useState(initialTopic || '');
-    const [questionType, setQuestionType] = useState('Multiple Choice');
-    const [difficulty, setDifficulty] = useState('Medium');
-    const [numQuestions, setNumQuestions] = useState('5');
+    
+    // New state for multiple question types
+    const [questionCounts, setQuestionCounts] = useState({
+        'Multiple Choice': 10,
+        'Short Answer': 0,
+        'Free Response (FRQ)': 0,
+        'True or False': 0,
+        'Fill in the Blank': 0,
+    });
     
     const [isLoading, setIsLoading] = useState(false);
     const [isExplanationLoading, setIsExplanationLoading] = useState(false);
@@ -71,7 +79,6 @@ function PracticeQuizComponent() {
     const [isFocusMode, setIsFocusMode] = useState(false);
     const [showFocusModeDialog, setShowFocusModeDialog] = useState(false);
     
-    // Whiteboard state
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [isDrawing, setIsDrawing] = useState(false);
     const [color, setColor] = useState('#000000');
@@ -99,7 +106,6 @@ function PracticeQuizComponent() {
             const unsubscribeCourses = onSnapshot(q, (querySnapshot) => {
                 const userCourses = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
                 setCourses(userCourses);
-                // Pre-select course if topic matches
                 const matchingCourse = userCourses.find(c => c.name.toLowerCase() === (initialTopic || '').toLowerCase());
                 if (matchingCourse) {
                     setSelectedCourseId(matchingCourse.id);
@@ -156,6 +162,16 @@ function PracticeQuizComponent() {
         }
         setIsFocusMode(false);
     };
+    
+    const handleQuestionCountChange = (type: keyof typeof questionCounts, value: string) => {
+        const count = parseInt(value, 10);
+        if (!isNaN(count) && count >= 0) {
+            setQuestionCounts(prev => ({...prev, [type]: count}));
+        } else if (value === '') {
+             setQuestionCounts(prev => ({...prev, [type]: 0}));
+        }
+    };
+
 
     const handleGenerateQuiz = async () => {
         let finalTopics = topics;
@@ -172,16 +188,30 @@ function PracticeQuizComponent() {
             });
             return;
         }
+        
+        const totalQuestions = Object.values(questionCounts).reduce((sum, count) => sum + count, 0);
+        if (totalQuestions === 0) {
+            toast({ variant: 'destructive', title: 'No questions selected.'});
+            return;
+        }
 
         setIsLoading(true);
         try {
-            const input: GenerateQuizInput = {
-                topics: finalTopics,
-                questionType: questionType as 'Multiple Choice' | 'True/False' | 'Short Answer',
-                difficulty: difficulty as 'Easy' | 'Medium' | 'Hard',
-                numQuestions: parseInt(numQuestions),
-            };
-            const generatedQuiz = await generateQuizAction(input);
+            const generatedQuiz: GenerateQuizOutput = { questions: [] };
+
+            for (const [type, count] of Object.entries(questionCounts)) {
+                if (count > 0) {
+                     const input: GenerateQuizInput = {
+                        topics: finalTopics,
+                        questionType: type as 'Multiple Choice' | 'True/False' | 'Short Answer',
+                        difficulty: 'Medium', // Use a single difficulty for now
+                        numQuestions: count,
+                    };
+                    const result = await generateQuizAction(input);
+                    generatedQuiz.questions.push(...result.questions);
+                }
+            }
+
             setQuiz(generatedQuiz);
             setTopics(finalTopics);
             setQuizState('pre-quiz');
@@ -233,7 +263,7 @@ function PracticeQuizComponent() {
                     userAnswer: selectedAnswer,
                     correctAnswer: currentQuestion.answer,
                     topic: topics,
-                    courseId: selectedCourseId, // Save courseId with the attempt
+                    courseId: selectedCourseId,
                     timestamp: serverTimestamp()
                 });
             } catch (error) {
@@ -275,12 +305,6 @@ function PracticeQuizComponent() {
             const correctAnswers = answers.filter(a => a.isCorrect).length;
             if (correctAnswers > 0) {
                 let coinsEarned = correctAnswers * 5;
-                
-                if (difficulty === 'Medium') {
-                    coinsEarned += 10;
-                } else if (difficulty === 'Hard') {
-                    coinsEarned += 25;
-                }
 
                 try {
                     const userRef = doc(db, 'users', user.uid);
@@ -318,6 +342,13 @@ function PracticeQuizComponent() {
         setIsWhiteboardOpen(false);
         setHint(null);
         setCreationSource(null);
+        setQuestionCounts({
+            'Multiple Choice': 10,
+            'Short Answer': 0,
+            'Free Response (FRQ)': 0,
+            'True or False': 0,
+            'Fill in the Blank': 0,
+        });
     }
 
     const handleCourseSelection = (courseId: string) => {
@@ -325,6 +356,7 @@ function PracticeQuizComponent() {
         const selected = courses.find(c => c.id === courseId);
         if (selected) {
             setTopics(selected.name);
+            setQuizState('configuring');
         }
     }
 
@@ -352,8 +384,7 @@ function PracticeQuizComponent() {
         } catch (error) {
             console.error("Failed to get hint:", error);
             toast({ variant: 'destructive', title: 'Could not get a hint.' });
-             // Refund coins on failure
-            const userRef = doc(db, 'users', user.uid);
+             const userRef = doc(db, 'users', user.uid);
             await updateDoc(userRef, { coins: increment(10) });
 
         } finally {
@@ -362,7 +393,6 @@ function PracticeQuizComponent() {
     };
 
 
-    // Whiteboard functions
     const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
         const canvas = canvasRef.current;
         if (!canvas) return;
@@ -424,7 +454,7 @@ function PracticeQuizComponent() {
                     const parent = canvas.parentElement;
                     if (parent) {
                         canvas.width = parent.clientWidth;
-                        canvas.height = 300; // Fixed height for consistency
+                        canvas.height = 300;
                         
                         const context = canvas.getContext('2d');
                         if (context && whiteboardData[currentQuestionIndex]) {
@@ -471,42 +501,30 @@ function PracticeQuizComponent() {
         )
     }
 
-    if (quizState === 'source-selection') {
+     if (quizState === 'source-selection') {
         return (
             <div className="flex flex-col items-center max-w-2xl mx-auto">
                 <div className="w-full text-left mb-10">
                     <h1 className="text-4xl font-bold">Create a Test</h1>
                     <p className="text-muted-foreground mt-2">Generate a practice test from your study set, and get ready for your test.</p>
                 </div>
-                <div className="w-full space-y-6">
+                 <div className="w-full space-y-6">
                     <h2 className="text-xl font-semibold text-left">How would you like to create your test?</h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <button onClick={() => setCreationSource('materials')} className={cn("p-6 rounded-lg text-left transition-all border-2", creationSource === 'materials' ? 'border-primary bg-primary/10' : 'bg-muted/50 border-transparent hover:border-primary/50')}>
+                        <button onClick={() => {setCreationSource('materials'); setQuizState('configuring');}} className={cn("p-6 rounded-lg text-left transition-all border-2", creationSource === 'materials' ? 'border-primary bg-primary/10' : 'bg-muted/50 border-transparent hover:border-primary/50')}>
                             <div className="mb-4 bg-background p-2 rounded-md inline-block border"><FileText className="h-6 w-6 text-primary"/></div>
                             <h3 className="font-semibold">From Materials</h3>
                             <p className="text-sm text-muted-foreground">Create a test from your Study Set materials.</p>
                         </button>
-                        <button onClick={() => setCreationSource('flashcards')} className={cn("p-6 rounded-lg text-left transition-all border-2", creationSource === 'flashcards' ? 'border-primary bg-primary/10' : 'bg-muted/50 border-transparent hover:border-primary/50')}>
+                        <button onClick={() => {setCreationSource('flashcards'); setQuizState('configuring');}} className={cn("p-6 rounded-lg text-left transition-all border-2", creationSource === 'flashcards' ? 'border-primary bg-primary/10' : 'bg-muted/50 border-transparent hover:border-primary/50')}>
                              <div className="mb-4 bg-background p-2 rounded-md inline-block border"><CopyIcon className="h-6 w-6 text-primary"/></div>
                             <h3 className="font-semibold">From Flashcards</h3>
                             <p className="text-sm text-muted-foreground">Create a test from your Study Set flashcards.</p>
                         </button>
                     </div>
-                     <Collapsible>
-                        <CollapsibleTrigger asChild>
-                            <Button variant="ghost" className="text-muted-foreground">
-                                <ChevronRight className="h-4 w-4 mr-2"/>
-                                Advanced
-                            </Button>
-                        </CollapsibleTrigger>
-                        <CollapsibleContent>
-                            <p className="text-sm text-muted-foreground p-4">Advanced options will be available here.</p>
-                        </CollapsibleContent>
-                    </Collapsible>
                 </div>
-                <div className="w-full flex justify-end gap-2 mt-8">
-                    <Button variant="ghost" onClick={() => setQuizState('start')}>Cancel</Button>
-                    <Button onClick={() => setQuizState('configuring')} disabled={!creationSource}>Continue</Button>
+                <div className="w-full flex justify-between items-center mt-8">
+                    <Button variant="ghost" onClick={() => setQuizState('start')}>Back</Button>
                 </div>
             </div>
         )
@@ -522,7 +540,7 @@ function PracticeQuizComponent() {
                     <CardContent className="space-y-4">
                         <div className="p-4 bg-muted rounded-lg grid grid-cols-3 divide-x">
                             <div className="px-2"><p className="text-sm text-muted-foreground">Questions</p><p className="font-bold text-lg">{quiz?.questions.length}</p></div>
-                            <div className="px-2"><p className="text-sm text-muted-foreground">Difficulty</p><p className="font-bold text-lg">{difficulty}</p></div>
+                            <div className="px-2"><p className="text-sm text-muted-foreground">Difficulty</p><p className="font-bold text-lg">Medium</p></div>
                             <div className="px-2"><p className="text-sm text-muted-foreground">Topic</p><p className="font-bold text-lg truncate">{topics}</p></div>
                         </div>
                         <p className="text-muted-foreground">Would you like to enter Focus Mode for a distraction-free experience?</p>
@@ -725,7 +743,7 @@ function PracticeQuizComponent() {
     
     return (
         <div className="flex flex-col items-center">
-             <Dialog open={showFocusModeDialog} onOpenChange={setShowFocusModeDialog}>
+            <Dialog open={showFocusModeDialog} onOpenChange={setShowFocusModeDialog}>
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Enter Focus Mode?</DialogTitle>
@@ -740,93 +758,74 @@ function PracticeQuizComponent() {
                 </DialogContent>
             </Dialog>
 
-             <div className="text-center mb-10">
-                <h1 className="text-4xl font-bold">Practice Quiz</h1>
-                <p className="text-muted-foreground mt-2">Generate a customized quiz to test your knowledge.</p>
+             <div className="text-center mb-10 w-full max-w-2xl">
+                <h1 className="text-4xl font-bold">Select Question Types</h1>
+                <p className="text-muted-foreground mt-2">Choose the types and number of questions for your test</p>
             </div>
-             <Card className="w-full max-w-3xl">
-                <CardContent className="p-8">
-                    {quizMode === 'practice' ? (
-                        <div className="space-y-2 mb-8">
-                             <Label htmlFor="course">Select a Course</Label>
-                            <Select value={selectedCourseId ?? ''} onValueChange={handleCourseSelection}>
-                                <SelectTrigger id="course" className="mt-2">
-                                    <SelectValue placeholder="Select one of your courses..." />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {courses.map(course => (
-                                        <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    ) : (
-                         <div className="space-y-2 mb-8">
-                             <Label htmlFor="topics">What do you want to be quizzed on?</Label>
-                            <Input 
-                                id="topics" 
-                                placeholder="e.g., Photosynthesis, World War II" 
-                                className="mt-2"
-                                value={topics}
-                                onChange={(e) => {
-                                    setTopics(e.target.value);
-                                    if (selectedCourseId) setSelectedCourseId(null);
-                                }}
-                            />
-                        </div>
-                    )}
-                     <div>
-                        <h3 className="text-lg font-semibold mb-4">Quiz Parameters</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div>
-                                <Label htmlFor="question-type">Question Type</Label>
-                                <Select value={questionType} onValueChange={setQuestionType}>
-                                    <SelectTrigger id="question-type" className="mt-2">
-                                        <SelectValue placeholder="Select type" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="Multiple Choice">Multiple Choice</SelectItem>
-                                        <SelectItem value="True/False">True/False</SelectItem>
-                                        <SelectItem value="Short Answer">Short Answer</SelectItem>
-                                    </SelectContent>
-                                </Select>
+             <Card className="w-full max-w-2xl">
+                <CardContent className="p-6 space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                        {Object.entries(questionCounts).map(([type, count]) => (
+                            <div key={type} className="flex items-center justify-between">
+                                <Label htmlFor={type} className="text-base">{type}</Label>
+                                <Input 
+                                    id={type} 
+                                    type="number" 
+                                    className="w-20 h-10 text-center" 
+                                    value={count} 
+                                    onChange={(e) => handleQuestionCountChange(type as keyof typeof questionCounts, e.target.value)}
+                                    min={0}
+                                />
                             </div>
-                             <div>
-                                <Label htmlFor="difficulty">Difficulty Level</Label>
-                                <Select value={difficulty} onValueChange={setDifficulty}>
-                                    <SelectTrigger id="difficulty" className="mt-2">
-                                        <SelectValue placeholder="Select difficulty" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="Easy">Easy</SelectItem>
-                                        <SelectItem value="Medium">Medium</SelectItem>
-                                        <SelectItem value="Hard">Hard</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                             <div>
-                                <Label htmlFor="num-questions">Number of Questions</Label>
-                                <Select value={numQuestions} onValueChange={setNumQuestions}>
-                                    <SelectTrigger id="num-questions" className="mt-2">
-                                        <SelectValue placeholder="Select number" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="5">5</SelectItem>
-                                        <SelectItem value="10">10</SelectItem>
-                                        <SelectItem value="15">15</SelectItem>
-                                        <SelectItem value="20">20</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        </div>
+                        ))}
                     </div>
-                     <div className="mt-8 flex justify-end">
-                        <Button onClick={handleGenerateQuiz} disabled={isLoading}>
-                            {isLoading ? 'Generating...' : 'Generate Quiz'}
-                            {!isLoading && <ArrowRight className="ml-2 h-4 w-4" />}
-                        </Button>
+
+                    <div className="space-y-4">
+                        <h3 className="font-semibold text-lg">Exam-Specific Question Types</h3>
+                         <Accordion type="multiple" className="w-full space-y-2">
+                            <AccordionItem value="med" className="border rounded-lg bg-muted/30 px-4">
+                                <AccordionTrigger>Med School</AccordionTrigger>
+                                <AccordionContent className="p-2 flex flex-wrap gap-2">
+                                     <Button variant="outline" disabled>NCLEX Preparation</Button>
+                                     <Button variant="outline" disabled>USMLE Step 1</Button>
+                                     <Button variant="outline" disabled>USMLE Step 2</Button>
+                                     <Badge variant="secondary">+8 more</Badge>
+                                </AccordionContent>
+                            </AccordionItem>
+                             <AccordionItem value="finance" className="border rounded-lg bg-muted/30 px-4">
+                                <AccordionTrigger>Finance</AccordionTrigger>
+                                <AccordionContent className="p-2 flex flex-wrap gap-2">
+                                    <Button variant="outline" disabled>Series 7</Button>
+                                    <Button variant="outline" disabled>Series 63</Button>
+                                    <Badge variant="secondary">+1 more</Badge>
+                                </AccordionContent>
+                            </AccordionItem>
+                            <AccordionItem value="ap" className="border rounded-lg bg-muted/30 px-4">
+                                <AccordionTrigger>AP Exams</AccordionTrigger>
+                                <AccordionContent className="p-2 flex flex-wrap gap-2">
+                                    <Button variant="outline" disabled>AP Biology</Button>
+                                    <Button variant="outline" disabled>AP Calculus AB</Button>
+                                    <Button variant="outline" disabled>AP Calculus BC</Button>
+                                     <Badge variant="secondary">+35 more</Badge>
+                                </AccordionContent>
+                            </AccordionItem>
+                            <AccordionItem value="law" className="border rounded-lg bg-muted/30 px-4">
+                                <AccordionTrigger>Law School</AccordionTrigger>
+                                <AccordionContent className="p-2 flex flex-wrap gap-2">
+                                    <Button variant="outline" disabled>LSAT</Button>
+                                    <Button variant="outline" disabled>Bar Exam (MBE)</Button>
+                                    <Badge variant="secondary">+2 more</Badge>
+                                </AccordionContent>
+                            </AccordionItem>
+                        </Accordion>
                     </div>
                  </CardContent>
+                 <CardFooter className="flex justify-between p-6 bg-muted/50 border-t">
+                     <Button variant="ghost" onClick={() => setQuizState('source-selection')}>Back</Button>
+                     <Button onClick={handleGenerateQuiz} disabled={isLoading}>
+                        {isLoading ? 'Creating...' : 'Create'}
+                    </Button>
+                 </CardFooter>
             </Card>
         </div>
     )
@@ -839,5 +838,3 @@ export default function PracticeQuizPage() {
         </Suspense>
     )
 }
-
-    
