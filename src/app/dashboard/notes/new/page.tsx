@@ -5,7 +5,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import {
-  Bold, Italic, Underline, Strikethrough, Palette, AlignLeft, AlignCenter, AlignRight, List, ListOrdered, Undo, Redo, X, ChevronDown, Mic, Sparkles, Clock, Music, UserPlus, Upload, Info, GitMerge, Link as LinkIcon, Plus, History, Printer, Expand, Search, FileText, ArrowRight, Type, GripVertical, Maximize, Square, Globe, GraduationCap, FileSignature, Loader2, MessageSquare, BrainCircuit, Lightbulb, Copy
+  Bold, Italic, Underline, Strikethrough, Palette, AlignLeft, AlignCenter, AlignRight, List, ListOrdered, Undo, Redo, X, ChevronDown, Mic, Sparkles, Clock, Music, UserPlus, Upload, Info, GitMerge, Link as LinkIcon, Plus, History, Printer, Expand, Search, FileText, ArrowRight, Type, GripVertical, Maximize, Square, Globe, GraduationCap, FileSignature, Loader2, MessageSquare, BrainCircuit, Lightbulb, Copy, ImageIcon
 } from 'lucide-react';
 import Image from 'next/image';
 import { Input } from '@/components/ui/input';
@@ -30,7 +30,6 @@ const EditorToolbar = ({ onCommand, activeTab, setActiveTab }: { onCommand: (com
     
     const tabs = [
         { id: 'self-written', label: 'Self Written Notes', icon: <FileText size={16} /> },
-        { id: 'enhanced-notes', label: 'Enhanced Notes', icon: <Sparkles size={16} /> },
         { id: 'lecture-transcript', label: 'Lecture Transcript', icon: <Clock size={16} /> },
         { id: 'audio-files', label: 'Audio Files', icon: <Music size={16} /> },
     ];
@@ -468,7 +467,7 @@ export default function NewNotePage() {
                     {chatHistory.length === 0 ? (
                         <div className="p-6 text-center">
                             <AIBuddy className="w-24 h-24 mx-auto mb-4" />
-                            <h3 className="font-semibold text-lg">Hello, I'm {user?.displayName || 'Tutorin'}!</h3>
+                            <h3 className="font-semibold text-lg">Hello, I'm {user?.displayName?.split(' ')[0] || 'Tutorin'}!</h3>
                              <div className="mt-6 space-y-3">
                                 <Button variant="outline" className="w-full justify-between h-auto py-3" onClick={() => handleQuickAction('Generate summary about this material')}>Generate summary <FileText size={16}/></Button>
                                 <Button variant="outline" className="w-full justify-between h-auto py-3" onClick={() => handleQuickAction('Explain the difficult parts of this')}>Explain the difficult parts <BrainCircuit size={16}/></Button>
