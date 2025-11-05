@@ -140,7 +140,7 @@ export default function NewNotePage() {
     <div className="h-full flex flex-col md:flex-row gap-4">
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
-         <header className="flex justify-between items-center mb-4 flex-wrap">
+         <header className="flex justify-between items-center mb-4 flex-wrap bg-card border rounded-2xl p-2 px-4">
             <div className="flex items-center gap-2">
                 <h1 className="text-xl font-bold">Untitled Lecture</h1>
                 <ChevronDown className="h-5 w-5 text-muted-foreground" />
@@ -156,7 +156,7 @@ export default function NewNotePage() {
             </div>
         </header>
         
-        <div className="bg-muted/30 border rounded-lg p-2 space-y-2">
+        <div className="bg-card border rounded-lg p-2 space-y-2">
             <div className="flex gap-1 flex-wrap">
                 <TabButton id="self-written" name="Self Written Notes" icon={<FileText className="h-4 w-4 mr-2" />} />
                 <TabButton id="enhanced" name="Enhanced Notes" icon={<Sparkles className="h-4 w-4 mr-2" />} />
