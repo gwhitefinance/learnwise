@@ -7,7 +7,7 @@ import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Play, Pause, ChevronLeft, ChevronRight, Wand2, FlaskConical, Lightbulb, Copy, RefreshCw, Check, Star, CheckCircle, Send, Bot, User, GitMerge, PanelLeft, Minimize, Maximize, Loader2, Plus, Trash2, MoreVertical, XCircle, ArrowRight, RotateCcw, Video, Image as ImageIcon, BookCopy, Link as LinkIcon, Headphones, Underline, Highlighter, Rabbit, Snail, Turtle, Book, Mic, Bookmark, Brain, KeySquare, ArrowLeft, Phone } from 'lucide-react';
+import { Play, Pause, ChevronLeft, ChevronRight, Wand2, FlaskConical, Lightbulb, Copy, RefreshCw, Check, Star, CheckCircle, Send, Bot, User, GitMerge, PanelLeft, Minimize, Maximize, Loader2, Plus, Trash2, MoreVertical, XCircle, ArrowRight, RotateCcw, Video, Image as ImageIcon, BookCopy, Link as LinkIcon, Headphones, Underline, Highlighter, Rabbit, Snail, Turtle, Book, Mic, Bookmark, Brain, KeySquare, ArrowLeft, Phone, Presentation } from 'lucide-react';
 import Link from 'next/link';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
@@ -108,7 +108,7 @@ const ChapterImage = ({ title }: { title: string }) => {
 
     useEffect(() => {
         setIsLoading(true);
-        generateImage({ prompt: title })
+        generateImage({ prompt: `Create a simple, professional-looking diagram, infographic, or 3D render that visually explains the following academic concept. For abstract subjects like Math, Science, or Programming, you MUST prioritize finding a clear, simple diagram, chart, or infographic. For other subjects, you can find a high-quality photo. The image MUST be directly relevant to the concept. Do NOT generate images of computer code, abstract art, or people unless they are directly relevant to illustrating the concept. Concept: "${title}"` })
             .then(result => {
                 setImageUrl(result.imageUrl);
             })
@@ -218,6 +218,9 @@ function CoursesComponent() {
   const [generatedVideoUrl, setGeneratedVideoUrl] = useState<string | null>(null);
   const [videoForChapter, setVideoForChapter] = useState<string | null>(null);
   const [chapterVideos, setChapterVideos] = useState<Record<string, string>>({});
+  
+  const [isSlideshowMode, setIsSlideshowMode] = useState(false);
+  const [slideshowChapterIndex, setSlideshowChapterIndex] = useState(0);
 
 
   const currentModule = activeCourse?.units?.[currentModuleIndex];
@@ -1084,6 +1087,11 @@ function CoursesComponent() {
     };
     startCall([aiParticipant]);
   };
+  
+  const handleOpenSlideshow = () => {
+    setSlideshowChapterIndex(currentChapterIndex);
+    setIsSlideshowMode(true);
+  };
 
   const chapterCount = activeCourse?.units?.reduce((acc, unit) => acc + (unit.chapters?.length ?? 0), 0) ?? 0;
   const completedChaptersCount = activeCourse?.completedChapters?.length ?? 0;
@@ -1443,6 +1451,49 @@ function CoursesComponent() {
 
   return (
     <>
+      <AnimatePresence>
+        {isSlideshowMode && activeCourse && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-background z-50 flex flex-col p-8"
+          >
+            <div className="flex-1 grid grid-cols-2 gap-8 items-center">
+              <div className="h-full bg-muted rounded-lg flex items-center justify-center p-8">
+                <ChapterImage title={activeCourse.units?.[currentModuleIndex]?.chapters[slideshowChapterIndex]?.title || ''} />
+              </div>
+              <div className="h-full overflow-y-auto">
+                <h2 className="text-3xl font-bold mb-4">{activeCourse.units?.[currentModuleIndex]?.chapters[slideshowChapterIndex]?.title}</h2>
+                <div className="text-muted-foreground leading-relaxed space-y-4 whitespace-pre-wrap">
+                    {(() => {
+                        const chapterContent = activeCourse.units?.[currentModuleIndex]?.chapters[slideshowChapterIndex]?.content;
+                        if (Array.isArray(chapterContent)) {
+                            return chapterContent.map((block, index) => {
+                                if (block.type === 'text') return <p key={index}>{block.content}</p>;
+                                return null;
+                            });
+                        }
+                        return <p>{chapterContent}</p>;
+                    })()}
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-center items-center gap-4 mt-8">
+              <Button variant="outline" size="icon" onClick={() => setSlideshowChapterIndex(p => Math.max(0, p - 1))} disabled={slideshowChapterIndex === 0}>
+                <ChevronLeft />
+              </Button>
+              <p className="text-sm text-muted-foreground">{slideshowChapterIndex + 1} / {currentModule?.chapters.length || 0}</p>
+              <Button variant="outline" size="icon" onClick={() => setSlideshowChapterIndex(p => Math.min((currentModule?.chapters.length || 1) - 1, p + 1))} disabled={!currentModule || slideshowChapterIndex >= currentModule.chapters.length - 1}>
+                <ChevronRight />
+              </Button>
+              <Button variant="ghost" onClick={() => setIsSlideshowMode(false)} className="absolute top-8 right-8">
+                Exit Slideshow
+              </Button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <Dialog open={isSummaryDialogOpen} onOpenChange={setIsSummaryDialogOpen}>
           <DialogContent onInteractOutside={(e) => e.preventDefault()} className="sm:max-w-md">
               <DialogHeader>
@@ -1624,6 +1675,9 @@ function CoursesComponent() {
                     <PanelLeft className="h-5 w-5" />
                 </Button>
                 <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" onClick={handleOpenSlideshow}>
+                        <Presentation className="mr-2 h-4 w-4"/> Slideshow Mode
+                    </Button>
                     <Button variant="outline" size="sm" onClick={handleStartTutorCall}>
                         <Phone className="mr-2 h-4 w-4"/> Start Tutorin Session
                     </Button>
