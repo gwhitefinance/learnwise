@@ -1618,7 +1618,7 @@ function CoursesComponent() {
                          <>
                             {currentChapter.imageUrl && (
                                 <div className="aspect-video w-full relative overflow-hidden rounded-lg">
-                                    <Image src={currentChapter.imageUrl} alt={currentChapter.title} layout="fill" objectFit="cover" />
+                                    <Image src={currentChapter.imageUrl} alt={currentChapter.title} fill className="object-cover" />
                                 </div>
                             )}
                              <div 
