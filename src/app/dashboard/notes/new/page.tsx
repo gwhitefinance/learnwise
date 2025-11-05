@@ -76,6 +76,7 @@ const LiveLecturePanel = ({ show, setShow, onNoteGenerated }: { show: boolean, s
     const [isListening, setIsListening] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
     const [transcript, setTranscript] = useState('');
+    const [audioUrl, setAudioUrl] = useState<string | null>(null);
     const finalTranscriptRef = useRef('');
     const recognitionRef = useRef<any>(null);
     const nodeRef = useRef(null);
@@ -114,7 +115,7 @@ const LiveLecturePanel = ({ show, setShow, onNoteGenerated }: { show: boolean, s
         }
     }, [toast]);
 
-    const toggleListening = () => {
+    const toggleListening = async () => {
         if (!recognitionRef.current) {
             toast({ variant: 'destructive', title: 'Voice input not supported in this browser.' });
             return;
@@ -124,10 +125,47 @@ const LiveLecturePanel = ({ show, setShow, onNoteGenerated }: { show: boolean, s
         } else {
             finalTranscriptRef.current = '';
             setTranscript('');
+            setAudioUrl(null);
+            
+            // For audio recording
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                const mediaRecorder = new MediaRecorder(stream);
+                const audioChunks: Blob[] = [];
+
+                mediaRecorder.ondataavailable = (event) => {
+                    audioChunks.push(event.data);
+                };
+
+                mediaRecorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                    const url = URL.createObjectURL(audioBlob);
+                    setAudioUrl(url);
+                    stream.getTracks().forEach(track => track.stop());
+                };
+                
+                recognitionRef.current.mediaRecorder = mediaRecorder;
+                mediaRecorder.start();
+
+            } catch (err) {
+                 toast({ variant: 'destructive', title: 'Microphone access denied.' });
+                 return;
+            }
+
             recognitionRef.current.start();
             setIsListening(true);
         }
     };
+    
+    const handleStopRecording = () => {
+        if (recognitionRef.current) {
+            recognitionRef.current.stop();
+            if(recognitionRef.current.mediaRecorder) {
+                recognitionRef.current.mediaRecorder.stop();
+            }
+        }
+        setIsListening(false);
+    }
     
     const handleGenerateNote = async () => {
         if (!transcript.trim()) {
@@ -142,6 +180,7 @@ const LiveLecturePanel = ({ show, setShow, onNoteGenerated }: { show: boolean, s
             onNoteGenerated(`<h2>${result.title}</h2><p>${result.note.replace(/\\n/g, '<br/>')}</p>`);
             setTranscript('');
             finalTranscriptRef.current = '';
+            setAudioUrl(null);
             setShow(false);
         } catch (e) {
             console.error(e);
@@ -156,7 +195,7 @@ const LiveLecturePanel = ({ show, setShow, onNoteGenerated }: { show: boolean, s
 
     return (
         <Draggable nodeRef={nodeRef} handle=".drag-handle" bounds="parent">
-            <div ref={nodeRef} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800 flex flex-col">
+            <div ref={nodeRef} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-auto max-h-[500px] bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800 flex flex-col">
                  <header className="drag-handle cursor-move flex-shrink-0 flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
                     <div className="flex items-center gap-2">
                         <GripVertical className="h-5 w-5 text-gray-400" />
@@ -176,26 +215,8 @@ const LiveLecturePanel = ({ show, setShow, onNoteGenerated }: { show: boolean, s
                          </Button>
                     </div>
                 </header>
-                <div className="flex-1 p-6 flex flex-col items-center justify-center text-center relative">
-                    {isListening || transcript ? (
-                        <>
-                            <div className="absolute top-4 left-4 right-4 bottom-24 overflow-y-auto p-2">
-                                <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{transcript || 'Listening...'}</p>
-                            </div>
-                            <div className="absolute bottom-6 flex flex-col items-center gap-4">
-                                {isListening ? (
-                                    <Button onClick={toggleListening} size="lg" className="rounded-full bg-red-500 hover:bg-red-600">
-                                        <Square className="mr-2" /> Stop Recording
-                                    </Button>
-                                ) : (
-                                    <Button onClick={handleGenerateNote} size="lg" disabled={isProcessing}>
-                                        {isProcessing ? <Loader2 className="mr-2 animate-spin" /> : <FileSignature className="mr-2" />}
-                                        Generate Note
-                                    </Button>
-                                )}
-                            </div>
-                        </>
-                    ) : (
+                <div className="flex-1 p-6 flex flex-col items-center justify-center text-center relative overflow-hidden">
+                    {!isListening && !transcript ? (
                         <>
                             <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
                                 <Mic size={32} className="text-gray-500" />
@@ -206,6 +227,29 @@ const LiveLecturePanel = ({ show, setShow, onNoteGenerated }: { show: boolean, s
                                 Start Recording
                             </Button>
                         </>
+                    ) : (
+                        <div className="w-full h-full flex flex-col">
+                             <div className="flex-1 overflow-y-auto p-2 border-b mb-4">
+                                <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap text-left">{transcript || 'Listening...'}</p>
+                            </div>
+                            {audioUrl && (
+                                <div className="mb-4">
+                                    <audio controls src={audioUrl} className="w-full" />
+                                </div>
+                            )}
+                            <div className="flex items-center justify-center gap-4">
+                                {isListening ? (
+                                    <Button onClick={handleStopRecording} size="lg" className="rounded-full bg-red-500 hover:bg-red-600">
+                                        <Square className="mr-2" /> Stop Recording
+                                    </Button>
+                                ) : (
+                                    <Button onClick={handleGenerateNote} size="lg" disabled={isProcessing}>
+                                        {isProcessing ? <Loader2 className="mr-2 animate-spin" /> : <FileSignature className="mr-2" />}
+                                        Generate Note
+                                    </Button>
+                                )}
+                            </div>
+                        </div>
                     )}
                 </div>
             </div>
@@ -389,3 +433,4 @@ export default function NewNotePage() {
     
 
     
+
