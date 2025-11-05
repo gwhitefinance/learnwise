@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowRight, RotateCcw, Lightbulb, CheckCircle, XCircle, PenSquare, Palette, Brush, Eraser, Minimize, Maximize, Gem, Loader2, BookCopy, CheckSquare, ListChecks } from 'lucide-react';
+import { ArrowRight, RotateCcw, Lightbulb, CheckCircle, XCircle, PenSquare, Palette, Brush, Eraser, Minimize, Maximize, Gem, Loader2, BookCopy, CheckSquare, ListChecks, FileText, Copy as CopyIcon, ChevronRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { GenerateQuizInput, GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
 import { Progress } from '@/components/ui/progress';
@@ -35,7 +35,7 @@ type Course = {
     description: string;
 };
 
-type QuizState = 'start' | 'configuring' | 'pre-quiz' | 'in-progress' | 'results';
+type QuizState = 'start' | 'source-selection' | 'configuring' | 'pre-quiz' | 'in-progress' | 'results';
 type AnswerState = 'unanswered' | 'answered';
 type AnswerFeedback = { question: string; answer: string; correctAnswer: string; isCorrect: boolean; explanation?: string; };
 
@@ -62,6 +62,7 @@ function PracticeQuizComponent() {
     const [answers, setAnswers] = useState<AnswerFeedback[]>([]);
     const [learnerType, setLearnerType] = useState<string | null>(null);
     const [quizMode, setQuizMode] = useState<'practice' | 'quizfetch' | null>(null);
+    const [creationSource, setCreationSource] = useState<'materials' | 'flashcards' | null>(null);
     
     const { toast } = useToast();
     const [user, authLoading] = useAuthState(auth);
@@ -316,6 +317,7 @@ function PracticeQuizComponent() {
         setWhiteboardData({});
         setIsWhiteboardOpen(false);
         setHint(null);
+        setCreationSource(null);
     }
 
     const handleCourseSelection = (courseId: string) => {
@@ -453,7 +455,7 @@ function PracticeQuizComponent() {
                  <div className="w-full max-w-4xl space-y-6">
                     <h2 className="text-2xl font-bold">Choose an Option to Start Studying</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <button onClick={() => { setQuizMode('practice'); setQuizState('configuring');}} className="p-6 rounded-lg text-left transition-all bg-green-500/10 border-2 border-green-500/30 hover:bg-green-500/20 hover:border-green-500/50">
+                        <button onClick={() => { setQuizMode('practice'); setQuizState('source-selection');}} className="p-6 rounded-lg text-left transition-all bg-green-500/10 border-2 border-green-500/30 hover:bg-green-500/20 hover:border-green-500/50">
                             <CheckSquare className="h-8 w-8 text-green-500 mb-2"/>
                             <h3 className="text-xl font-bold">Take a Practice Test</h3>
                             <p className="text-sm text-muted-foreground">Generate a practice test from your course content and get ready for your test.</p>
@@ -466,6 +468,47 @@ function PracticeQuizComponent() {
                     </div>
                  </div>
              </div>
+        )
+    }
+
+    if (quizState === 'source-selection') {
+        return (
+            <div className="flex flex-col items-center max-w-2xl mx-auto">
+                <div className="w-full text-left mb-10">
+                    <h1 className="text-4xl font-bold">Create a Test</h1>
+                    <p className="text-muted-foreground mt-2">Generate a practice test from your study set, and get ready for your test.</p>
+                </div>
+                <div className="w-full space-y-6">
+                    <h2 className="text-xl font-semibold text-left">How would you like to create your test?</h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <button onClick={() => setCreationSource('materials')} className={cn("p-6 rounded-lg text-left transition-all border-2", creationSource === 'materials' ? 'border-primary bg-primary/10' : 'bg-muted/50 border-transparent hover:border-primary/50')}>
+                            <div className="mb-4 bg-background p-2 rounded-md inline-block border"><FileText className="h-6 w-6 text-primary"/></div>
+                            <h3 className="font-semibold">From Materials</h3>
+                            <p className="text-sm text-muted-foreground">Create a test from your Study Set materials.</p>
+                        </button>
+                        <button onClick={() => setCreationSource('flashcards')} className={cn("p-6 rounded-lg text-left transition-all border-2", creationSource === 'flashcards' ? 'border-primary bg-primary/10' : 'bg-muted/50 border-transparent hover:border-primary/50')}>
+                             <div className="mb-4 bg-background p-2 rounded-md inline-block border"><CopyIcon className="h-6 w-6 text-primary"/></div>
+                            <h3 className="font-semibold">From Flashcards</h3>
+                            <p className="text-sm text-muted-foreground">Create a test from your Study Set flashcards.</p>
+                        </button>
+                    </div>
+                     <Collapsible>
+                        <CollapsibleTrigger asChild>
+                            <Button variant="ghost" className="text-muted-foreground">
+                                <ChevronRight className="h-4 w-4 mr-2"/>
+                                Advanced
+                            </Button>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                            <p className="text-sm text-muted-foreground p-4">Advanced options will be available here.</p>
+                        </CollapsibleContent>
+                    </Collapsible>
+                </div>
+                <div className="w-full flex justify-end gap-2 mt-8">
+                    <Button variant="ghost" onClick={() => setQuizState('start')}>Cancel</Button>
+                    <Button onClick={() => setQuizState('configuring')} disabled={!creationSource}>Continue</Button>
+                </div>
+            </div>
         )
     }
 
