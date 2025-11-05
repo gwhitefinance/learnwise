@@ -77,6 +77,7 @@ const LiveLecturePanel = ({ show, setShow, onNoteGenerated }: { show: boolean, s
     const [transcript, setTranscript] = useState('');
     const finalTranscriptRef = useRef('');
     const recognitionRef = useRef<any>(null);
+    const nodeRef = useRef(null);
     const { toast } = useToast();
 
     useEffect(() => {
@@ -154,8 +155,8 @@ const LiveLecturePanel = ({ show, setShow, onNoteGenerated }: { show: boolean, s
     if (!show) return null;
 
     return (
-        <Draggable handle=".drag-handle" bounds="parent">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800 flex flex-col">
+        <Draggable nodeRef={nodeRef} handle=".drag-handle" bounds="parent">
+            <div ref={nodeRef} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800 flex flex-col">
                  <header className="drag-handle cursor-move flex-shrink-0 flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
                     <div className="flex items-center gap-2">
                         <GripVertical className="h-5 w-5 text-gray-400" />
@@ -384,5 +385,7 @@ export default function NewNotePage() {
         </div>
     );
 }
+
+    
 
     
