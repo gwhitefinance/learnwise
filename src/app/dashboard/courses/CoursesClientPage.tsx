@@ -108,7 +108,7 @@ const ChapterImage = ({ title }: { title: string }) => {
 
     useEffect(() => {
         setIsLoading(true);
-        generateImage({ prompt: `Create a simple, professional-looking diagram, infographic, or 3D render that visually explains the following academic concept. For abstract subjects like Math, Science, or Programming, you MUST prioritize finding a clear, simple diagram, chart, or infographic. For other subjects, you can find a high-quality photo. The image MUST be directly relevant to the concept. Do NOT generate images of computer code, abstract art, or people unless they are directly relevant to illustrating the concept. Concept: "${title}"` })
+        generateImage({ prompt: `Create a simple, professional-looking diagram, infographic, or 3D render that visually explains the following academic concept. The image MUST directly illustrate the concept provided. For abstract subjects like Math, Science, or Programming, you MUST prioritize finding a clear, simple diagram, chart, or infographic. For other subjects, you can find a high-quality photo. Do NOT generate images of computer code, abstract art, or people unless they are directly relevant to illustrating the concept. Concept: "${title}"` })
             .then(result => {
                 setImageUrl(result.imageUrl);
             })
@@ -121,7 +121,7 @@ const ChapterImage = ({ title }: { title: string }) => {
     }, [title]);
 
     if (isLoading) {
-        return <Skeleton className="h-48 w-full rounded-lg bg-muted" />;
+        return <Skeleton className="h-full w-full bg-muted" />;
     }
 
     if (!imageUrl) {
@@ -129,7 +129,7 @@ const ChapterImage = ({ title }: { title: string }) => {
     }
 
     return (
-        <div className="relative w-full aspect-video mb-6">
+        <div className="relative w-full h-full">
             <Image 
                 src={imageUrl} 
                 alt={title || 'Chapter image'} 
@@ -1089,6 +1089,7 @@ function CoursesComponent() {
   };
   
   const handleOpenSlideshow = () => {
+    if (!currentChapter) return;
     setSlideshowChapterIndex(currentChapterIndex);
     setIsSlideshowMode(true);
   };
@@ -1376,16 +1377,14 @@ function CoursesComponent() {
                         <CardContent className="p-8">
                              <RadioGroup value={selectedQuizAnswer ?? ''} onValueChange={setSelectedQuizAnswer}>
                                 <div className="space-y-4">
-                                {currentQuizQuestion.options?.map((option, index) => (
-                                    <Label key={index} htmlFor={`option-${index}`} className={cn(
-                                        "flex items-center gap-4 p-4 rounded-lg border transition-all cursor-pointer",
-                                        "border-border hover:bg-muted",
-                                        selectedQuizAnswer === option && "border-primary bg-primary/10"
-                                    )}>
-                                        <RadioGroupItem value={option} id={`option-${index}`} />
-                                        <span>{option}</span>
-                                    </Label>
-                                ))}
+                                {currentQuizQuestion.options?.map((option, index) => {
+                                    return(
+                                         <Label key={`${currentQuizQuestion.question}-${index}`} htmlFor={`pq-${currentQuizQuestion.question}-${index}`} className="flex items-center gap-4 p-3 rounded-lg border transition-all cursor-pointer text-sm">
+                                            <RadioGroupItem value={option} id={`pq-${currentQuizQuestion.question}-${index}`} />
+                                            <span>{option}</span>
+                                        </Label>
+                                    )
+                                })}
                                 </div>
                             </RadioGroup>
                              <div className="mt-8 flex justify-end">
@@ -1457,29 +1456,31 @@ function CoursesComponent() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-background z-50 flex flex-col p-8"
+            className="fixed inset-0 bg-background z-50 flex flex-col p-4"
           >
-            <div className="flex-1 grid grid-cols-2 gap-8 items-center">
-              <div className="h-full bg-muted rounded-lg flex items-center justify-center p-8">
+            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 overflow-hidden">
+              <div className="relative h-full bg-muted rounded-lg flex items-center justify-center p-4">
                 <ChapterImage title={activeCourse.units?.[currentModuleIndex]?.chapters[slideshowChapterIndex]?.title || ''} />
               </div>
-              <div className="h-full overflow-y-auto">
-                <h2 className="text-3xl font-bold mb-4">{activeCourse.units?.[currentModuleIndex]?.chapters[slideshowChapterIndex]?.title}</h2>
-                <div className="text-muted-foreground leading-relaxed space-y-4 whitespace-pre-wrap">
-                    {(() => {
-                        const chapterContent = activeCourse.units?.[currentModuleIndex]?.chapters[slideshowChapterIndex]?.content;
-                        if (Array.isArray(chapterContent)) {
-                            return chapterContent.map((block, index) => {
-                                if (block.type === 'text') return <p key={index}>{block.content}</p>;
-                                return null;
-                            });
-                        }
-                        return <p>{chapterContent}</p>;
-                    })()}
-                </div>
+              <div className="h-full flex flex-col">
+                 <h2 className="text-3xl font-bold mb-4 flex-shrink-0">{activeCourse.units?.[currentModuleIndex]?.chapters[slideshowChapterIndex]?.title}</h2>
+                 <ScrollArea className="flex-1">
+                    <div className="text-muted-foreground leading-relaxed space-y-4 whitespace-pre-wrap pr-4">
+                        {(() => {
+                            const chapterContent = activeCourse.units?.[currentModuleIndex]?.chapters[slideshowChapterIndex]?.content;
+                            if (Array.isArray(chapterContent)) {
+                                return chapterContent.map((block, index) => {
+                                    if (block.type === 'text') return <p key={index}>{block.content}</p>;
+                                    return null;
+                                });
+                            }
+                            return <p>{chapterContent}</p>;
+                        })()}
+                    </div>
+                </ScrollArea>
               </div>
             </div>
-            <div className="flex justify-center items-center gap-4 mt-8">
+            <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 flex justify-center items-center gap-4">
               <Button variant="outline" size="icon" onClick={() => setSlideshowChapterIndex(p => Math.max(0, p - 1))} disabled={slideshowChapterIndex === 0}>
                 <ChevronLeft />
               </Button>
@@ -1487,10 +1488,10 @@ function CoursesComponent() {
               <Button variant="outline" size="icon" onClick={() => setSlideshowChapterIndex(p => Math.min((currentModule?.chapters.length || 1) - 1, p + 1))} disabled={!currentModule || slideshowChapterIndex >= currentModule.chapters.length - 1}>
                 <ChevronRight />
               </Button>
-              <Button variant="ghost" onClick={() => setIsSlideshowMode(false)} className="absolute top-8 right-8">
+            </div>
+             <Button variant="ghost" onClick={() => setIsSlideshowMode(false)} className="absolute top-4 right-4">
                 Exit Slideshow
               </Button>
-            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -1708,7 +1709,9 @@ function CoursesComponent() {
                         </div>
                       ) : currentChapter.content ? (
                          <>
-                            <ChapterImage title={currentChapter.title} />
+                             <div className="relative w-full aspect-video mb-6">
+                                <ChapterImage title={currentChapter.title} />
+                            </div>
                              <div 
                                 ref={contentRef}
                                 onMouseUp={handleMouseUp}
