@@ -276,6 +276,35 @@ const LiveLecturePanel = ({ show, setShow, onNoteGenerated, onTranscriptUpdate, 
     );
 };
 
+const ChatHomeScreen = ({ onStartChatWithPrompt }: { onStartChatWithPrompt: (prompt: string) => void }) => {
+    const [user] = useAuthState(auth);
+
+    const conversationStarters = [
+        { icon: <FileText className="h-5 w-5" />, text: "Generate summary about this material" },
+        { icon: <BrainCircuit className="h-5 w-5" />, text: "Explain the difficult parts of this" },
+        { icon: <Lightbulb className="h-5 w-5" />, text: "Generate study questions for this" },
+    ];
+
+    return (
+        <div className="p-6 text-center h-full flex flex-col justify-center">
+            <AIBuddy className="w-12 h-12 mx-auto mb-4" />
+            <h3 className="font-semibold text-lg">Hello, {user?.displayName?.split(' ')[0] || 'Tutorin'}!</h3>
+            <div className="mt-6 space-y-3">
+                {conversationStarters.map(starter => (
+                    <Button key={starter.text} variant="outline" className="w-full justify-between h-auto py-3" onClick={() => onStartChatWithPrompt(starter.text)}>
+                        {starter.text}
+                        {starter.icon}
+                    </Button>
+                ))}
+            </div>
+            <button className="text-sm text-muted-foreground mt-4 hover:underline">View More</button>
+            <div className="mt-6">
+                <Button variant="secondary" className="rounded-full"><Sparkles className="h-4 w-4 mr-2"/> Personalities & Skillsets</Button>
+            </div>
+        </div>
+    );
+};
+
 
 export default function NewNotePage() {
     const editorRef = useRef<HTMLDivElement>(null);
@@ -295,7 +324,13 @@ export default function NewNotePage() {
     const { toast } = useToast();
 
     const handleCommand = (command: string, value?: string) => {
-        document.execCommand(command, false, value);
+        if (command === 'fontName' || command === 'fontSize') {
+            document.execCommand(command, false, value);
+        } else if (command === 'insertUnorderedList' || command === 'insertOrderedList') {
+            document.execCommand(command, false);
+        } else {
+             document.execCommand(command, false, value);
+        }
         if (editorRef.current) {
             const newContent = editorRef.current.innerHTML;
             if (history.current[historyIndex.current]?.content !== newContent) {
@@ -379,16 +414,15 @@ export default function NewNotePage() {
         }
     };
     
-    const handleQuickAction = (prompt: string) => {
-        const fullPrompt = `${prompt}: "${editorContent.replace(/<[^>]*>?/gm, '')}"`;
-        setChatInput(fullPrompt);
-        handleSendMessage();
+    const handleStartChatWithPrompt = (prompt: string) => {
+        setChatHistory([]); // Start a new chat
+        handleSendMessage(prompt);
     }
     
     return (
         <div className="flex h-screen overflow-hidden">
              <main className="flex-1 flex flex-col bg-background-light dark:bg-gray-900/50">
-                 <header className="flex-shrink-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-6 py-3">
+                <header className="flex-shrink-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-6 py-3">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                              <Link href="/dashboard/notes">
@@ -397,7 +431,7 @@ export default function NewNotePage() {
                                 </Button>
                             </Link>
                             <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Untitled Lecture</h1>
-                            <button className="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 p-1 rounded">
+                            <button className="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 p-1 rounded-full">
                                 <ChevronDown size={16} />
                             </button>
                              <button onClick={() => setShowLiveLecture(true)} className="p-1.5 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 ml-2">
@@ -448,28 +482,14 @@ export default function NewNotePage() {
             </main>
             <aside className="w-96 flex-shrink-0 bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 flex flex-col">
                  <header className="flex-shrink-0 flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
-                    <Button variant="ghost" size="icon" className="text-gray-500 dark:text-gray-400">
-                        <X size={20} />
-                    </Button>
+                    <div />
                     <Button variant="secondary" size="sm" className="rounded-full font-semibold">
                         Chat History
                     </Button>
                 </header>
                 <ScrollArea className="flex-1">
                     {chatHistory.length === 0 ? (
-                        <div className="p-6 text-center">
-                            <AIBuddy className="w-24 h-24 mx-auto mb-4" />
-                            <h3 className="font-semibold text-lg">Hello, I'm {user?.displayName?.split(' ')[0] || 'Tutorin'}!</h3>
-                             <div className="mt-6 space-y-3">
-                                <Button variant="outline" className="w-full justify-between h-auto py-3" onClick={() => handleQuickAction('Generate summary about this material')}>Generate summary <FileText size={16}/></Button>
-                                <Button variant="outline" className="w-full justify-between h-auto py-3" onClick={() => handleQuickAction('Explain the difficult parts of this')}>Explain the difficult parts <BrainCircuit size={16}/></Button>
-                                <Button variant="outline" className="w-full justify-between h-auto py-3" onClick={() => handleQuickAction('Generate study questions for this')}>Generate study questions <Lightbulb size={16}/></Button>
-                            </div>
-                             <button className="text-sm text-muted-foreground mt-4 hover:underline">View More</button>
-                             <div className="mt-6">
-                                <Button variant="secondary" className="rounded-full"><Sparkles className="h-4 w-4 mr-2"/> Personalities & Skillsets</Button>
-                            </div>
-                        </div>
+                        <ChatHomeScreen onStartChatWithPrompt={handleStartChatWithPrompt} />
                     ) : (
                          <div className="p-4 space-y-4">
                             {chatHistory.map((msg, index) => (
@@ -506,7 +526,7 @@ export default function NewNotePage() {
                                 }
                             }}
                         />
-                         <Button size="icon" className="absolute right-3 bottom-3 w-8 h-8 rounded-full bg-blue-600 hover:bg-blue-700" onClick={handleSendMessage} disabled={isChatLoading}>
+                         <Button size="icon" className="absolute right-3 bottom-3 w-8 h-8 rounded-full bg-blue-600 hover:bg-blue-700" onClick={() => handleSendMessage()} disabled={isChatLoading}>
                             <ArrowRight size={16}/>
                         </Button>
                     </div>
