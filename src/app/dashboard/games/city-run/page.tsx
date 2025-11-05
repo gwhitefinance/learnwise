@@ -53,7 +53,19 @@ const CityRunGame = ({ topic }: { topic: string }) => {
 
     const [playerLane, setPlayerLane] = useState(0);
     const [items, setItems] = useState<any[]>([]);
+
+    const prevScore = usePrevious(score);
+    const prevLives = usePrevious(lives);
     
+    // Custom hook to get the previous value of a prop or state
+    function usePrevious<T>(value: T) {
+      const ref = React.useRef<T>();
+      useEffect(() => {
+        ref.current = value;
+      });
+      return ref.current;
+    }
+
     // Fetch questions
     useEffect(() => {
         const fetchQuestions = async () => {
@@ -111,42 +123,45 @@ const CityRunGame = ({ topic }: { topic: string }) => {
     const gameLoop = useCallback(() => {
         if (gameState !== 'playing') return;
 
-        let newLives = lives;
-
         setItems(prevItems => {
-            const newItems = prevItems.map(item => ({...item, y: item.y + 2})).filter(item => item.y < 600);
+            const newItems = prevItems.map(item => ({...item, y: item.y + 1})).filter(item => item.y < 600);
             
             newItems.forEach(item => {
                 // Collision detection
                 if (item.y > 450 && item.y < 550 && item.lane === playerLane) {
                     if (item.type === 'correct') {
                         setScore(s => s + 100);
-                        toast({ title: "Correct!" });
                         setCurrentQuestionIndex(i => (i + 1) % questions.length);
                     } else if (item.type === 'incorrect') {
-                        newLives -= 1;
-                        toast({ variant: 'destructive', title: "Wrong Answer!" });
+                        setLives(l => l > 0 ? l - 1 : 0);
                     } else if (item.type === 'obstacle') {
-                        newLives -= 1;
-                        toast({ variant: 'destructive', title: "Ouch!" });
+                       setLives(l => l > 0 ? l - 1 : 0);
                     }
                      // Mark item for removal
                     item.y = 1000;
                 }
             });
-            
-            if (newLives < lives) {
-                setLives(newLives);
-                if (newLives <= 0) {
-                    setGameState('gameOver');
-                }
-            }
 
             return newItems;
         });
 
         requestAnimationFrame(gameLoop);
-    }, [gameState, playerLane, lives, questions.length, toast]);
+    }, [gameState, playerLane, questions.length]);
+
+    useEffect(() => {
+        if (lives === 0) {
+            setGameState('gameOver');
+        }
+    }, [lives]);
+
+     useEffect(() => {
+        if (prevScore !== undefined && score > prevScore) {
+            toast({ title: "Correct!" });
+        }
+        if (prevLives !== undefined && lives < prevLives) {
+            toast({ variant: 'destructive', title: "Ouch!" });
+        }
+    }, [score, lives, prevScore, prevLives, toast]);
 
     useEffect(() => {
         if (gameState === 'playing' && questions.length > 0) {
