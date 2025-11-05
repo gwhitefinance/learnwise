@@ -12,24 +12,36 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import Draggable from 'react-draggable';
 import { generateNoteFromChat } from '@/lib/actions';
+import { Textarea } from '@/components/ui/textarea';
 
 
-const EditorToolbar = ({ onCommand }: { onCommand: (command: string, value?: string) => void }) => (
+const EditorToolbar = ({ onCommand, activeTab, setActiveTab }: { onCommand: (command: string, value?: string) => void, activeTab: string, setActiveTab: (tab: string) => void }) => {
+    
+    const tabs = [
+        { id: 'self-written', label: 'Self Written Notes', icon: <FileText size={16} /> },
+        { id: 'enhanced-notes', label: 'Enhanced Notes', icon: <Sparkles size={16} /> },
+        { id: 'lecture-transcript', label: 'Lecture Transcript', icon: <Clock size={16} /> },
+        { id: 'audio-files', label: 'Audio Files', icon: <Music size={16} /> },
+    ];
+    
+    return (
     <div className="bg-gray-100 dark:bg-gray-800 rounded-t-lg shadow-sm border border-gray-200 dark:border-gray-700">
         <div className="px-4 border-b border-gray-200 dark:border-gray-700">
             <nav className="flex items-center -mb-px">
-                <a className="flex items-center gap-2 px-3 py-3 border-b-2 border-primary text-primary font-semibold text-sm" href="#">
-                    <FileText size={16} /> Self Written Notes
-                </a>
-                <a className="flex items-center gap-2 px-3 py-3 border-b-2 border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 font-medium text-sm" href="#">
-                    <Sparkles size={16} /> Enhanced Notes
-                </a>
-                <a className="flex items-center gap-2 px-3 py-3 border-b-2 border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 font-medium text-sm" href="#">
-                    <Clock size={16} /> Lecture Transcript
-                </a>
-                <a className="flex items-center gap-2 px-3 py-3 border-b-2 border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 font-medium text-sm" href="#">
-                    <Music size={16} /> Audio Files
-                </a>
+                 {tabs.map(tab => (
+                    <button 
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`flex items-center gap-2 px-3 py-3 border-b-2 font-semibold text-sm transition-colors ${
+                            activeTab === tab.id
+                                ? 'border-primary text-primary'
+                                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                        }`}
+                    >
+                        {tab.icon}
+                        {tab.label}
+                    </button>
+                ))}
             </nav>
         </div>
         <div className="p-4">
@@ -70,13 +82,14 @@ const EditorToolbar = ({ onCommand }: { onCommand: (command: string, value?: str
             </div>
         </div>
     </div>
-);
+)};
 
-const LiveLecturePanel = ({ show, setShow, onNoteGenerated }: { show: boolean, setShow: (show: boolean) => void, onNoteGenerated: (content: string) => void }) => {
+const LiveLecturePanel = ({ show, setShow, onNoteGenerated, setTranscript, setAudioUrl }: { show: boolean, setShow: (show: boolean) => void, onNoteGenerated: (content: string) => void, setTranscript: (text: string) => void, setAudioUrl: (url: string | null) => void }) => {
     const [isListening, setIsListening] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
-    const [transcript, setTranscript] = useState('');
-    const [audioUrl, setAudioUrl] = useState<string | null>(null);
+    const [currentTranscript, setCurrentTranscript] = useState('');
+    const [currentAudioUrl, setCurrentAudioUrl] = useState<string | null>(null);
+
     const finalTranscriptRef = useRef('');
     const recognitionRef = useRef<any>(null);
     const nodeRef = useRef(null);
@@ -92,14 +105,16 @@ const LiveLecturePanel = ({ show, setShow, onNoteGenerated }: { show: boolean, s
 
             recognitionRef.current.onresult = (event: any) => {
                 let interimTranscript = '';
+                let currentFinalTranscript = '';
                 for (let i = event.resultIndex; i < event.results.length; ++i) {
                     if (event.results[i].isFinal) {
-                        finalTranscriptRef.current += event.results[i][0].transcript + ' ';
+                        currentFinalTranscript += event.results[i][0].transcript + ' ';
                     } else {
                         interimTranscript += event.results[i][0].transcript;
                     }
                 }
-                setTranscript(finalTranscriptRef.current + interimTranscript);
+                finalTranscriptRef.current += currentFinalTranscript;
+                setCurrentTranscript(finalTranscriptRef.current + interimTranscript);
             };
 
             recognitionRef.current.onerror = (event: any) => {
@@ -123,11 +138,10 @@ const LiveLecturePanel = ({ show, setShow, onNoteGenerated }: { show: boolean, s
         if (isListening) {
             recognitionRef.current.stop();
         } else {
+            setCurrentTranscript('');
             finalTranscriptRef.current = '';
-            setTranscript('');
-            setAudioUrl(null);
+            setCurrentAudioUrl(null);
             
-            // For audio recording
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 const mediaRecorder = new MediaRecorder(stream);
@@ -140,6 +154,7 @@ const LiveLecturePanel = ({ show, setShow, onNoteGenerated }: { show: boolean, s
                 mediaRecorder.onstop = () => {
                     const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
                     const url = URL.createObjectURL(audioBlob);
+                    setCurrentAudioUrl(url);
                     setAudioUrl(url);
                     stream.getTracks().forEach(track => track.stop());
                 };
@@ -164,23 +179,22 @@ const LiveLecturePanel = ({ show, setShow, onNoteGenerated }: { show: boolean, s
                 recognitionRef.current.mediaRecorder.stop();
             }
         }
+        setTranscript(finalTranscriptRef.current);
         setIsListening(false);
     }
     
     const handleGenerateNote = async () => {
-        if (!transcript.trim()) {
+        if (!currentTranscript.trim()) {
             toast({ variant: 'destructive', title: 'No text to summarize.' });
             return;
         }
         setIsProcessing(true);
         try {
             const result = await generateNoteFromChat({
-                messages: [{ role: 'user', content: transcript }]
+                messages: [{ role: 'user', content: currentTranscript }]
             });
             onNoteGenerated(`<h2>${result.title}</h2><p>${result.note.replace(/\\n/g, '<br/>')}</p>`);
-            setTranscript('');
-            finalTranscriptRef.current = '';
-            setAudioUrl(null);
+            // Don't clear the transcript/audio here, so it can be viewed in tabs
             setShow(false);
         } catch (e) {
             console.error(e);
@@ -216,7 +230,7 @@ const LiveLecturePanel = ({ show, setShow, onNoteGenerated }: { show: boolean, s
                     </div>
                 </header>
                 <div className="flex-1 p-6 flex flex-col items-center justify-center text-center relative overflow-hidden">
-                    {!isListening && !transcript ? (
+                    {!isListening && !currentTranscript && !currentAudioUrl ? (
                         <>
                             <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
                                 <Mic size={32} className="text-gray-500" />
@@ -230,11 +244,11 @@ const LiveLecturePanel = ({ show, setShow, onNoteGenerated }: { show: boolean, s
                     ) : (
                         <div className="w-full h-full flex flex-col">
                              <div className="flex-1 overflow-y-auto p-2 border-b mb-4">
-                                <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap text-left">{transcript || 'Listening...'}</p>
+                                <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap text-left">{currentTranscript || 'Listening...'}</p>
                             </div>
-                            {audioUrl && (
+                            {currentAudioUrl && (
                                 <div className="mb-4">
-                                    <audio controls src={audioUrl} className="w-full" />
+                                    <audio controls src={currentAudioUrl} className="w-full" />
                                 </div>
                             )}
                             <div className="flex items-center justify-center gap-4">
@@ -264,6 +278,11 @@ export default function NewNotePage() {
     const history = useRef<{ content: string }[]>([]);
     const historyIndex = useRef(-1);
     const [showLiveLecture, setShowLiveLecture] = useState(false);
+    
+    const [activeToolbarTab, setActiveToolbarTab] = useState('self-written');
+    const [lectureTranscript, setLectureTranscript] = useState('');
+    const [lectureAudioUrl, setLectureAudioUrl] = useState<string | null>(null);
+
 
     const executeCommand = (command: string, value?: string) => {
         document.execCommand(command, false, value);
@@ -372,18 +391,34 @@ export default function NewNotePage() {
                     </div>
                 </header>
                 <div className="flex-1 flex flex-col p-6 overflow-y-auto relative">
-                     <LiveLecturePanel show={showLiveLecture} setShow={setShowLiveLecture} onNoteGenerated={handleNoteGenerated} />
+                     <LiveLecturePanel show={showLiveLecture} setShow={setShowLiveLecture} onNoteGenerated={handleNoteGenerated} setTranscript={setLectureTranscript} setAudioUrl={setLectureAudioUrl} />
                     <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm flex-1 flex flex-col">
-                        <EditorToolbar onCommand={handleCommand} />
-                        <div 
-                         ref={editorRef}
-                         contentEditable="true" 
-                         className="flex-1 p-8 prose prose-lg max-w-none dark:prose-invert outline-none" 
-                         suppressContentEditableWarning={true}
-                         onInput={handleInput}
-                         dangerouslySetInnerHTML={{ __html: editorContent }}
-                        >
-                        </div>
+                        <EditorToolbar onCommand={handleCommand} activeTab={activeToolbarTab} setActiveTab={setActiveToolbarTab} />
+                         {activeToolbarTab === 'self-written' && (
+                             <div 
+                                 ref={editorRef}
+                                 contentEditable="true" 
+                                 className="flex-1 p-8 prose prose-lg max-w-none dark:prose-invert outline-none" 
+                                 suppressContentEditableWarning={true}
+                                 onInput={handleInput}
+                                 dangerouslySetInnerHTML={{ __html: editorContent }}
+                             >
+                             </div>
+                         )}
+                         {activeToolbarTab === 'lecture-transcript' && (
+                            <div className="flex-1 p-8 text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                                {lectureTranscript || "No transcript recorded yet."}
+                            </div>
+                        )}
+                        {activeToolbarTab === 'audio-files' && (
+                             <div className="flex-1 p-8">
+                                {lectureAudioUrl ? (
+                                    <audio controls src={lectureAudioUrl} className="w-full" />
+                                ) : (
+                                    <p className="text-gray-500">No audio recorded yet.</p>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
             </main>
@@ -412,7 +447,7 @@ export default function NewNotePage() {
                     <div className="mt-4">
                         <div className="relative">
                             <Input className="w-full bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-lg py-3 pl-4 pr-12 focus:ring-primary focus:border-primary" placeholder="Ask your AI tutor anything..."/>
-                            <Button size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg"><ArrowRight size={16}/></Button>
+                            <Button size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-blue-600 hover:bg-blue-700"><ArrowRight size={16}/></Button>
                         </div>
                         <div className="flex items-center justify-between mt-2 px-2">
                             <div className="flex items-center gap-2">
@@ -433,4 +468,5 @@ export default function NewNotePage() {
     
 
     
+
 
