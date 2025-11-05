@@ -21,11 +21,13 @@ export const GenerateQuizInputSchema = z.object({
 });
 export type GenerateQuizInput = z.infer<typeof GenerateQuizInputSchema>;
 
-const QuizQuestionSchema = z.object({
+export const QuizQuestionSchema = z.object({
     question: z.string(),
     options: z.array(z.string()).optional(),
     answer: z.string(),
+    type: z.string().optional().describe("The type of question, added programmatically."),
 });
+export type QuizQuestion = z.infer<typeof QuizQuestionSchema>;
 
 export const GenerateQuizOutputSchema = z.object({
   questions: z.array(QuizQuestionSchema),

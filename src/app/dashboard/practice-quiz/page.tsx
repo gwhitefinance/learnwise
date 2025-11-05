@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowRight, RotateCcw, Lightbulb, CheckCircle, XCircle, PenSquare, Palette, Brush, Eraser, Minimize, Maximize, Gem, Loader2, BookCopy, CheckSquare, ListChecks, FileText, Copy as CopyIcon, ChevronRight, BookOpen, Calculator, Send, Bot, MoreVertical, Link as LinkIcon, Share2, NotebookText, Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import type { GenerateQuizInput, GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
+import type { GenerateQuizInput, GenerateQuizOutput, QuizQuestion } from '@/ai/schemas/quiz-schema';
 import { Progress } from '@/components/ui/progress';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { cn } from '@/lib/utils';
@@ -115,6 +115,7 @@ function PracticeQuizComponent() {
         if (urlTopic) {
             setTopics(urlTopic);
             setQuizMode('quizfetch');
+            setCreationSource('prompt');
             setQuizState('topic-selection');
         }
     }, [searchParams]);
@@ -230,7 +231,9 @@ function PracticeQuizComponent() {
                         numQuestions: count,
                     };
                     const result = await generateQuizAction(input);
-                    generatedQuiz.questions.push(...result.questions);
+                    // Manually add the type to each question object
+                    const questionsWithType = result.questions.map(q => ({...q, type }));
+                    generatedQuiz.questions.push(...questionsWithType);
                 }
             }
 
@@ -263,8 +266,45 @@ function PracticeQuizComponent() {
     const handleSubmitAnswer = async () => {
         if (!quiz || selectedAnswer === null || !user) return;
         
-        const currentQuestion = quiz.questions[currentQuestionIndex];
-        const isCorrect = selectedAnswer.toLowerCase() === currentQuestion.answer.toLowerCase();
+        const currentQuestion = quiz.questions[currentQuestionIndex] as QuizQuestion & { type?: string };
+        let isCorrect = false;
+
+        const cleanAndSplit = (text: string) => text.toLowerCase().replace(/[^\w\s]/g, '').split(/\s+/).filter(Boolean);
+
+        if (currentQuestion.type === 'Free Response (FRQ)') {
+            const answerKeywords = cleanAndSplit(currentQuestion.answer);
+            const userKeywords = cleanAndSplit(selectedAnswer);
+            const matchingKeywords = userKeywords.filter(uk => answerKeywords.some(ak => uk.includes(ak) || ak.includes(uk))).length;
+            isCorrect = matchingKeywords >= 3;
+        } else if (currentQuestion.type === 'Fill in the Blank') {
+            const similarity = (s1: string, s2: string) => {
+                let longer = s1.toLowerCase();
+                let shorter = s2.toLowerCase();
+                if (s1.length < s2.length) { longer = s2; shorter = s1; }
+                const longerLength = longer.length;
+                if (longerLength === 0) return 1.0;
+                const editDistance = (s1: string, s2: string) => {
+                    const costs: number[] = [];
+                    for (let i = 0; i <= s1.length; i++) {
+                        let lastValue = i;
+                        for (let j = 0; j <= s2.length; j++) {
+                            if (i === 0) costs[j] = j;
+                            else if (j > 0) {
+                                let newValue = costs[j - 1];
+                                if (s1.charAt(i - 1) !== s2.charAt(j - 1)) newValue = Math.min(Math.min(newValue, lastValue), costs[j] ?? Infinity) + 1;
+                                costs[j - 1] = lastValue; lastValue = newValue;
+                            }
+                        }
+                        if (i > 0) costs[s2.length] = lastValue;
+                    }
+                    return costs[s2.length];
+                };
+                return (longerLength - editDistance(longer, shorter)) / parseFloat(longerLength.toString());
+            };
+            isCorrect = similarity(selectedAnswer, currentQuestion.answer) >= 0.8;
+        } else {
+            isCorrect = selectedAnswer.toLowerCase() === currentQuestion.answer.toLowerCase();
+        }
 
         const answerFeedback: AnswerFeedback = {
             question: currentQuestion.question,
@@ -310,7 +350,7 @@ function PracticeQuizComponent() {
                 setIsExplanationLoading(false);
             }
         }
-    }
+    };
 
     const handleNextQuestion = async () => {
         if (!quiz || !user) return;
@@ -503,7 +543,7 @@ function PracticeQuizComponent() {
                             <h3 className="text-xl font-bold">Take a Practice Test</h3>
                             <p className="text-sm text-muted-foreground">Generate a practice test from your course content and get ready for your test.</p>
                         </button>
-                        <button onClick={() => { setQuizMode('quizfetch'); setQuizState('topic-selection');}} className="p-6 rounded-lg text-left transition-all bg-blue-500/10 border-2 border-blue-500/30 hover:bg-blue-500/20 hover:border-blue-500/50">
+                        <button onClick={() => { setQuizMode('quizfetch'); setCreationSource('prompt'); setQuizState('topic-selection');}} className="p-6 rounded-lg text-left transition-all bg-blue-500/10 border-2 border-blue-500/30 hover:bg-blue-500/20 hover:border-blue-500/50">
                             <ListChecks className="h-8 w-8 text-blue-500 mb-2"/>
                             <h3 className="text-xl font-bold">QuizFetch</h3>
                             <p className="text-sm text-muted-foreground">Generate quizzes from any topic and learn as you answer questions.</p>
@@ -695,7 +735,7 @@ function PracticeQuizComponent() {
     }
 
     if (quizState === 'in-progress' && quiz) {
-        const currentQuestion = quiz.questions[currentQuestionIndex];
+        const currentQuestion = quiz.questions[currentQuestionIndex] as QuizQuestion & { type?: string };
         const progress = ((currentQuestionIndex + 1) / quiz.questions.length) * 100;
 
         return (
@@ -735,7 +775,11 @@ function PracticeQuizComponent() {
                                 value={selectedAnswer || ''}
                                 onChange={(e) => setSelectedAnswer(e.target.value)}
                                 disabled={answerState === 'answered'}
-                                className="min-h-[150px] text-base"
+                                className={cn(
+                                    "min-h-[150px] text-base",
+                                    answerState === 'answered' && feedback?.isCorrect && "bg-green-500/10 border-green-500",
+                                    answerState === 'answered' && !feedback?.isCorrect && "bg-red-500/10 border-red-500"
+                                )}
                             />
                         )}
                          <div className="mt-8 flex justify-between items-center">
