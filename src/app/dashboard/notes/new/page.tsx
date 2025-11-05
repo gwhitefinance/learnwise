@@ -3,7 +3,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import {
   FileText,
   Sparkles,
@@ -20,227 +19,241 @@ import {
   AlignRight,
   List,
   ListOrdered,
-  Undo,
-  Redo,
+  Search,
+  Home,
+  BookCopy,
+  Calendar,
+  MessageSquare,
+  FlaskConical,
+  Edit,
+  TestTube,
+  GraduationCap,
+  Gamepad2,
+  FileSignature,
+  Clapperboard,
+  Music,
   Plus,
-  History,
-  Printer,
-  Maximize,
-  Share2,
+  FolderPlus,
+  Flame,
   ChevronDown,
   Upload,
-  Link as LinkIcon
+  Link as LinkIcon,
+  Bell,
+  Info,
+  Users,
 } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
-import FloatingChat from '@/components/floating-chat';
-import ListenToNote from '@/components/ListenToNote';
-import { useToast } from '@/hooks/use-toast';
-import { addDoc, collection } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { useAuthState } from 'react-firebase-hooks/auth';
-import { auth } from '@/lib/firebase';
-import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import Draggable from 'react-draggable';
+import Image from 'next/image';
+import Logo from '@/components/Logo';
 
+// Mock data, in a real app this would come from state or props
+const user = {
+    avatar: "https://lh3.googleusercontent.com/aida-public/AB6AXuC1Or_s9UKOF6_LUS-Uz5m4nlB4RqSHSc7boFluG5jdVHIXW9HfPGqkyHrcD33sPB0zGSlfG7ov9jz9AfHzm_WpU_AgKC0wAWNfUjsKkHaa--gWuzMcn__AF4VDk-csCtGG_UG2yrzsKIfWGHZd_daSMwV-ipBz4M-pPQ_U4qrHXMqDAeUaKUxGlJm5TUa4lsLX6TWgkpfEATti1OpT3mjBF6DcJaF2sesr5emRVV0wLxLldnb8xiPmdFmwL476G8_9LuqF1hL5ULnl",
+    notifications: 2,
+    plan: "G"
+};
+
+const navItems = [
+    { icon: <Home size={20} />, label: 'Home', href: '#' },
+    { icon: <BookCopy size={20} />, label: 'My Sets', href: '#' },
+    { icon: <Calendar size={20} />, label: 'Calendar', href: '#' },
+];
+
+const activeNavItem = "Sat MAth";
+
+const toolItems = [
+    { icon: <MessageSquare size={20}/>, label: "Chat" },
+    { icon: <Mic size={20}/>, label: "Live Lecture" },
+    { icon: <FlaskConical size={20}/>, label: "Flashcards" },
+    { icon: <Edit size={20}/>, label: "Tests & QuizFetch" },
+    { icon: <GraduationCap size={20}/>, label: "Tutor Me" },
+    { icon: <Gamepad2 size={20}/>, label: "Arcade" },
+    { icon: <FileSignature size={20}/>, label: "Essay Grading" },
+    { icon: <Clapperboard size={20}/>, label: "Explainers" },
+    { icon: <Music size={20}/>, label: "Audio Recap" },
+    { icon: <BookCopy size={20}/>, label: "Notes & Materials" },
+];
+
+const notes = [
+    { title: "Technical Analysis Tools" },
+    { title: "Risk Management Strate..." },
+];
+
+const EditorToolbar = () => (
+    <div className="p-4 border-b border-gray-200 dark:border-gray-800">
+        <div className="flex items-center space-x-2 text-gray-500 dark:text-gray-400">
+            <button className="flex items-center gap-1 px-2 py-1 rounded bg-gray-100 dark:bg-gray-800 text-sm">Arial <ChevronDown className="h-4 w-4" /></button>
+            <button className="flex items-center gap-1 px-2 py-1 rounded bg-gray-100 dark:bg-gray-800 text-sm">11 <ChevronDown className="h-4 w-4" /></button>
+            <div className="h-6 w-px bg-gray-200 dark:bg-gray-700"></div>
+            <button className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"><Bold size={16} /></button>
+            <button className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"><Italic size={16} /></button>
+            <button className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"><Underline size={16} /></button>
+            <button className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"><Strikethrough size={16} /></button>
+            <div className="h-6 w-px bg-gray-200 dark:bg-gray-700"></div>
+            <button className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"><Highlighter size={16} /></button>
+            <button className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"><Palette size={16} /></button>
+            <div className="h-6 w-px bg-gray-200 dark:bg-gray-700"></div>
+            <button className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"><AlignLeft size={16} /></button>
+            <button className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"><AlignCenter size={16} /></button>
+            <button className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"><AlignRight size={16} /></button>
+            <div className="h-6 w-px bg-gray-200 dark:bg-gray-700"></div>
+            <button className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"><List size={16} /></button>
+            <button className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"><ListOrdered size={16} /></button>
+        </div>
+    </div>
+);
 
 export default function NewNotePage() {
-  const [user] = useAuthState(auth);
-  const { toast } = useToast();
-  const router = useRouter();
-  const [activeTab, setActiveTab] = useState('self-written');
-  const editorRef = useRef<HTMLDivElement>(null);
-
-  const [historyStack, setHistoryStack] = useState<string[]>(['']);
-  const [historyIndex, setHistoryIndex] = useState(0);
-
-  useEffect(() => {
-    document.execCommand("styleWithCSS", false);
-  }, []);
-
-  const applyStyle = (command: string, value: string | null = null) => {
-    document.execCommand(command, false, value);
-    editorRef.current?.focus();
-    updateHistory();
-  };
-
-  const updateHistory = () => {
-    const currentContent = editorRef.current?.innerHTML || '';
-    if (currentContent !== historyStack[historyIndex]) {
-        const newHistory = historyStack.slice(0, historyIndex + 1);
-        newHistory.push(currentContent);
-        setHistoryStack(newHistory);
-        setHistoryIndex(newHistory.length - 1);
-    }
-  };
-
-  const undo = () => {
-    if (historyIndex > 0) {
-        const newIndex = historyIndex - 1;
-        setHistoryIndex(newIndex);
-        if(editorRef.current) {
-            editorRef.current.innerHTML = historyStack[newIndex];
-        }
-    }
-  };
-
-  const redo = () => {
-    if (historyIndex < historyStack.length - 1) {
-        const newIndex = historyIndex + 1;
-        setHistoryIndex(newIndex);
-        if(editorRef.current) {
-            editorRef.current.innerHTML = historyStack[newIndex];
-        }
-    }
-  };
-
-  const handleNoteGenerated = async (title: string, content: string) => {
-    if (!user) {
-      toast({ variant: 'destructive', title: 'You must be logged in to save notes.'});
-      return;
-    }
-    
-    try {
-        await addDoc(collection(db, "notes"), {
-            title: title,
-            content: content,
-            date: new Date(),
-            color: 'bg-indigo-100 dark:bg-indigo-900/20',
-            isImportant: false,
-            isCompleted: false,
-            userId: user.uid,
-        });
-        toast({ title: 'Note Saved!', description: 'Your transcribed note has been saved.'});
-        router.push('/dashboard/notes');
-    } catch(e) {
-         toast({ variant: 'destructive', title: 'Error', description: 'Could not save note.'});
-    }
-  }
-
-  const TabButton = ({ name, id, icon }: { name: string, id: string, icon: React.ReactNode }) => (
-    <Button
-      variant={activeTab === id ? 'secondary' : 'ghost'}
-      onClick={() => setActiveTab(id)}
-      className={cn(
-        "h-9 px-3 py-2 text-sm",
-        activeTab === id && 'bg-primary/10 text-primary hover:bg-primary/15'
-      )}
-    >
-      {icon}
-      {name}
-    </Button>
-  );
-
-  const colors = ['#000000', '#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#ffffff'];
-
-
-  return (
-    <div className="h-full flex flex-col">
-       <div className="grid grid-cols-12 gap-0 h-full">
-         {/* Main Content */}
-         <div className="col-span-8 flex flex-col h-full">
-            <div className="bg-card p-2 space-y-2 rounded-t-lg border-b">
-                <div className="flex gap-1 flex-wrap">
-                    <TabButton id="self-written" name="Self Written Notes" icon={<FileText className="h-4 w-4 mr-2" />} />
-                    <TabButton id="enhanced" name="Enhanced Notes" icon={<Sparkles className="h-4 w-4 mr-2" />} />
-                    <TabButton id="transcript" name="Lecture Transcript" icon={<Clock className="h-4 w-4 mr-2" />} />
-                    <TabButton id="audio" name="Audio Files" icon={<Mic className="h-4 w-4 mr-2" />} />
+    return (
+        <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-900/50 text-gray-800 dark:text-gray-200">
+            {/* Left Sidebar */}
+            <aside className="w-64 flex-shrink-0 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col p-4">
+                <div className="flex items-center gap-2 mb-6">
+                    <Logo className="w-8 h-8"/>
+                    <span className="text-xl font-bold text-gray-900 dark:text-white">STUDY FETCH</span>
                 </div>
-                <div className="flex items-center gap-1 flex-nowrap overflow-x-auto px-2">
-                    <Select defaultValue="Arial" onValueChange={(value) => applyStyle('fontName', value)}>
-                        <SelectTrigger className="w-[120px] h-8 text-xs shrink-0"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="Arial">Arial</SelectItem>
-                            <SelectItem value="Helvetica">Helvetica</SelectItem>
-                            <SelectItem value="Times New Roman">Times New Roman</SelectItem>
-                            <SelectItem value="Courier New">Courier New</SelectItem>
-                            <SelectItem value="Verdana">Verdana</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <Select defaultValue="3" onValueChange={(value) => applyStyle('fontSize', value)}>
-                        <SelectTrigger className="w-[70px] h-8 text-xs shrink-0"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="1">1 (8pt)</SelectItem>
-                            <SelectItem value="2">2 (10pt)</SelectItem>
-                            <SelectItem value="3">3 (12pt)</SelectItem>
-                            <SelectItem value="4">4 (14pt)</SelectItem>
-                            <SelectItem value="5">5 (18pt)</SelectItem>
-                            <SelectItem value="6">6 (24pt)</SelectItem>
-                            <SelectItem value="7">7 (36pt)</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <Separator orientation="vertical" className="h-5 mx-1" />
-                    <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => applyStyle('bold')}><Bold className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => applyStyle('italic')}><Italic className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => applyStyle('underline')}><Underline className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => applyStyle('strikeThrough')}><Strikethrough className="h-4 w-4" /></Button>
-                    <Separator orientation="vertical" className="h-5 mx-1" />
-                    <Popover>
-                        <PopoverTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><Highlighter className="h-4 w-4" /></Button></PopoverTrigger>
-                        <PopoverContent side="bottom" className="w-auto p-2"><div className="flex gap-1">{colors.map(c => (<button key={c} onClick={() => applyStyle('hiliteColor', c)} className={`w-6 h-6 rounded-full border-2 ${c === '#ffffff' ? 'border-gray-400' : 'border-transparent'}`} style={{ backgroundColor: c }} />))}</div></PopoverContent>
-                    </Popover>
-                    <Popover>
-                        <PopoverTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><Palette className="h-4 w-4" /></Button></PopoverTrigger>
-                        <PopoverContent side="bottom" className="w-auto p-2"><div className="flex gap-1">{colors.map(c => (<button key={c} onClick={() => applyStyle('foreColor', c)} className={`w-6 h-6 rounded-full border-2 ${c === '#ffffff' ? 'border-gray-400' : 'border-transparent'}`} style={{ backgroundColor: c }} />))}</div></PopoverContent>
-                    </Popover>
-                    <Separator orientation="vertical" className="h-5 mx-1" />
-                    <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => applyStyle('justifyLeft')}><AlignLeft className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => applyStyle('justifyCenter')}><AlignCenter className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => applyStyle('justifyRight')}><AlignRight className="h-4 w-4" /></Button>
-                    <Separator orientation="vertical" className="h-5 mx-1" />
-                    <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => applyStyle('insertOrderedList')}><ListOrdered className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => applyStyle('insertUnorderedList')}><List className="h-4 w-4" /></Button>
-                    <Separator orientation="vertical" className="h-5 mx-1" />
-                    <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={undo}><Undo className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={redo}><Redo className="h-4 w-4" /></Button>
-                    <Separator orientation="vertical" className="h-5 mx-1" />
-                    <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><Plus className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><History className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => window.print()}><Printer className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><Maximize className="h-4 w-4" /></Button>
-                </div>
-            </div>
-
-            <div className="flex-1 mt-0 relative">
-                {activeTab === 'self-written' && (
-                    <Card className="h-full rounded-t-none border-t-0">
-                        <CardContent className="p-0 h-full">
-                            <div
-                                ref={editorRef}
-                                contentEditable
-                                onInput={updateHistory}
-                                className="h-full w-full border-0 focus-visible:ring-0 focus-visible:outline-none resize-none text-base p-6"
-                                placeholder="Start writing your notes here..."
-                            />
-                        </CardContent>
-                    </Card>
-                )}
-                {activeTab === 'transcript' && (
-                    <div className="h-full w-full flex items-center justify-center">
-                        <Draggable>
-                            <div className="cursor-move">
-                                <ListenToNote onNoteGenerated={handleNoteGenerated} />
-                            </div>
-                        </Draggable>
+                <div className="flex items-center justify-between mb-6">
+                    <Button variant="ghost" size="icon" className="text-gray-500 dark:text-gray-400"><Search /></Button>
+                    <div className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
+                        <Flame className="text-orange-500"/>
+                        <span className="font-semibold">1</span>
                     </div>
-                )}
-                {(activeTab === 'enhanced' || activeTab === 'audio') && (
-                    <Card className="h-full rounded-t-none border-t-0 flex items-center justify-center">
-                        <p className="text-muted-foreground">Content for {activeTab.replace('-', ' ')} goes here.</p>
-                    </Card>
-                )}
-            </div>
-        </div>
+                </div>
+                <nav className="flex-grow space-y-1">
+                    {navItems.map(item => (
+                         <a key={item.label} className="flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800" href={item.href}>
+                            {item.icon}
+                            <span>{item.label}</span>
+                        </a>
+                    ))}
+                    <a className="flex items-center gap-3 px-3 py-2 rounded-md bg-blue-100 dark:bg-blue-900/40 text-primary font-semibold" href="#">
+                        <Image alt="Sat Math icon" className="w-6 h-6 rounded-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBhzbfVat1Uf5ZLJI-7sXFQ44BhHt5cWrcZ1CWggAlawStOOR9RQnYWSI6WW8_wULFxCxOfPbPJVuiLzpcRvJjNHTZkQwQZT0_v589Zh51ma52ae8CQTZt4Q-I5VyaJEA0yFVdYy9jK2umqCkeqzRsPIRVrvZnu3lqANufcW33MpzGOvNxvNVUafQwIVpPJLoElC2Bk9rBPLZashHv8ntakvHtoCt4ZzEXzW02jXvVIQdjTrme6Kdj126K92tdHOqSlAdzxqhOYdoPo" width={24} height={24}/>
+                        <span>Sat MAth</span>
+                    </a>
+                    <div className="pt-4">
+                        {toolItems.map(item => (
+                            <a key={item.label} className="flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800" href="#">
+                                {item.icon}
+                                <span>{item.label}</span>
+                            </a>
+                        ))}
+                    </div>
+                </nav>
+                <div className="mt-auto">
+                    <Button className="w-full gap-2 font-semibold bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700">
+                        <Plus size={16} /> Upload
+                    </Button>
+                    <div className="mt-4">
+                        <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-semibold text-gray-500 dark:text-gray-400">Your Notes</span>
+                            <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                                <Button variant="ghost" size="icon" className="h-6 w-6"><Plus size={16}/></Button>
+                                <Button variant="ghost" size="icon" className="h-6 w-6"><FolderPlus size={16}/></Button>
+                            </div>
+                        </div>
+                        <div className="space-y-1">
+                            {notes.map(note => (
+                                <a key={note.title} className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800" href="#">
+                                    <FileText className="text-yellow-500" size={16}/>
+                                    <span className="truncate">{note.title}</span>
+                                </a>
+                            ))}
+                        </div>
+                    </div>
+                    <div className="mt-4 p-3 bg-primary rounded-lg text-white relative">
+                        <button className="absolute top-1 right-1 bg-white/20 rounded-full w-4 h-4 flex items-center justify-center text-xs">×</button>
+                        <div className="flex items-center gap-3">
+                            <Sparkles size={16}/>
+                            <span className="font-semibold">Tutorials</span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
 
-        {/* Right Sidebar - AI Chat */}
-        <div className="col-span-4 h-full">
-            <FloatingChat isEmbedded={true}>
-                <div></div>
-            </FloatingChat>
+            {/* Main Content */}
+            <main className="flex-1 flex flex-col bg-gray-50 dark:bg-gray-900/50">
+                <header className="flex-shrink-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-6 py-3">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Untitled Lecture</h1>
+                            <Button variant="ghost" size="icon" className="h-6 w-6 text-gray-500 dark:text-gray-400"><ChevronDown/></Button>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Button className="gap-2 text-sm font-semibold"><Users size={16}/>Share</Button>
+                            <Button className="gap-2 text-sm font-semibold"><Sparkles size={16}/>Upgrade</Button>
+                            <Button variant="outline" className="gap-2 text-sm font-semibold"><Info size={16}/>Feedback</Button>
+                             <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                                <Button variant="ghost" size="icon"><LinkIcon size={16}/></Button>
+                                <Button variant="ghost" size="icon"><Upload size={16}/></Button>
+                            </div>
+                             <div className="relative">
+                                <Image alt="User avatar" className="w-8 h-8 rounded-full" src={user.avatar} width={32} height={32}/>
+                                <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center border-2 border-white dark:border-gray-900">{user.plan}</span>
+                                <span className="absolute bottom-0 right-0 bg-gray-500 text-white text-[10px] px-1 rounded-full">{user.notifications}</span>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+                <div className="flex-1 flex flex-col p-6 overflow-y-auto">
+                    <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm flex-1 flex flex-col">
+                        <div className="border-b border-gray-200 dark:border-gray-800 px-4">
+                            <nav className="flex items-center -mb-px">
+                                <a className="flex items-center gap-2 px-3 py-3 border-b-2 border-primary text-primary font-semibold text-sm" href="#"><FileText size={16}/>Self Written Notes</a>
+                                <a className="flex items-center gap-2 px-3 py-3 border-b-2 border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 font-medium text-sm" href="#"><Sparkles size={16}/>Enhanced Notes</a>
+                                <a className="flex items-center gap-2 px-3 py-3 border-b-2 border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 font-medium text-sm" href="#"><Clock size={16}/>Lecture Transcript</a>
+                                <a className="flex items-center gap-2 px-3 py-3 border-b-2 border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 font-medium text-sm" href="#"><Mic size={16}/>Audio Files</a>
+                            </nav>
+                        </div>
+                        <EditorToolbar/>
+                        <div className="flex-1 p-6 flex items-center justify-center">
+                            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 flex items-center gap-6">
+                                <Button variant="ghost" size="icon" className="text-gray-400">⋮</Button>
+                                <span className="text-gray-500 dark:text-gray-400">Start Recording</span>
+                                <Button className="p-3 rounded-full"><Mic/></Button>
+                                <Button variant="ghost" size="icon" className="text-gray-400"><Sparkles/></Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            {/* Right Sidebar */}
+            <aside className="w-80 flex-shrink-0 bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 flex flex-col">
+                <header className="flex-shrink-0 flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
+                     <Button variant="ghost" size="icon" className="text-gray-500"><Flame/></Button>
+                    <Button variant="secondary" size="sm" className="rounded-full font-semibold">Chat History</Button>
+                </header>
+                <div className="flex-1 p-4 flex flex-col justify-between">
+                    <div className="space-y-4">
+                        <div className="flex justify-end">
+                            <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg max-w-xs">
+                                <p className="text-sm">write me some notes for photosynthesis</p>
+                            </div>
+                        </div>
+                        <div className="flex justify-start">
+                            <div className="p-3">
+                                <span className="animate-pulse text-gray-400">...</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="mt-4">
+                        <div className="relative">
+                            <Input className="w-full bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-lg py-3 pl-4 pr-12 focus:ring-primary focus:border-primary" placeholder="Ask your AI tutor anything..."/>
+                            <Button size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg"><ArrowRight size={16}/></Button>
+                        </div>
+                        <div className="flex items-center justify-between mt-2 px-2">
+                             <div className="flex items-center gap-2">
+                                <Button variant="ghost" size="icon" className="h-8 w-8"><ImageIcon size={16}/></Button>
+                                <Button size="icon" className="h-8 w-8 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300"><Users size={16}/></Button>
+                                <Button size="icon" className="h-8 w-8 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300"><GraduationCap size={16}/></Button>
+                                <Button variant="secondary" size="sm" className="h-8 gap-1.5"><FileText size={16}/>Using 1 material(s)</Button>
+                            </div>
+                             <Button variant="ghost" size="icon" className="h-8 w-8"><Mic size={16}/></Button>
+                        </div>
+                    </div>
+                </div>
+            </aside>
         </div>
-      </div>
-    </div>
-  );
+    );
 }
+
