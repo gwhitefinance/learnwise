@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
@@ -12,11 +13,8 @@ import type { GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
 import { motion, AnimatePresence } from 'framer-motion';
 import AIBuddy from '@/components/ai-buddy';
 
-// Using a dynamic import for Spline to avoid SSR issues
 import dynamic from 'next/dynamic';
-const Spline = dynamic(() => import('@splinetool/react-spline'), {
-  ssr: false,
-});
+const Spline = dynamic(() => import('@splinetool/react-spline').then((mod) => mod.default), { ssr: false });
 
 
 type Question = GenerateQuizOutput['questions'][0];
