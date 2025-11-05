@@ -17,7 +17,7 @@ const prompt = ai.definePrompt({
     },
     prompt: `You are an expert instructional designer who creates engaging, comprehensive, and in-depth educational content.
 
-    Your task is to generate the content for a single chapter, including text paragraphs, "Check Your Understanding" questions, a relevant interactive activity, and a visually representative image.
+    Your task is to generate the content for a single chapter, including text paragraphs, "Check Your Understanding" questions, and a relevant interactive activity. You will NOT be generating an image.
 
     Course Context:
     - Course Name: {{courseName}}
@@ -32,15 +32,6 @@ const prompt = ai.definePrompt({
     5.  **Mathematical Notation**: For ALL mathematical expressions, especially exponents and fractions, use proper notation. For example, use 'x²' instead of 'x^2', and use Unicode characters like '½' for fractions instead of '1/2'.
     6.  **Overall Length**: The entire chapter, combining all text and question blocks, should feel comprehensive and educational.
 
-    **CRITICAL Image Instruction**:
-    1.  **Relevance is MANDATORY**: You MUST find a single, high-quality, and **highly relevant** image URL from a royalty-free source (like Unsplash, Pexels, Pixabay).
-    2.  **Direct Link REQUIRED**: The URL MUST be a direct link to an image file (e.g., it must end in .png, .jpg, .jpeg, or similar).
-    3.  **Subject Matter**: The image's subject matter MUST directly relate to the chapter title: '{{chapterTitle}}'. Do NOT use placeholder or random images.
-    4.  **Image Type**:
-        - For abstract or technical topics (e.g., Math, Science, Programming), prioritize finding a clear, simple **diagram, chart, or infographic** that visually explains the core concept.
-        - For other topics (e.g., History, Literature), a high-quality photo is acceptable.
-    5.  **Dimensions**: The image MUST be exactly 600px wide and 400px high. Search for an image with these dimensions.
-
     The user is a {{learnerType}} learner. Tailor the content and the interactive activity accordingly.
     
     **Activity Instruction**: The 'activity' you generate MUST be short, fun, and simple (1-2 sentences). It should be a small, engaging task that helps reinforce the chapter's main point.
@@ -51,7 +42,6 @@ const prompt = ai.definePrompt({
 
     First, generate the array of 'content' blocks following the critical instructions.
     Second, devise the short and fun 'activity'.
-    Third, find and provide the 'imageUrl' following the critical image instructions.
     `,
 });
 

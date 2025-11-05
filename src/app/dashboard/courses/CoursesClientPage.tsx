@@ -24,7 +24,7 @@ import AudioPlayer from '@/components/audio-player';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { generateInitialCourseAndRoadmap, generateQuizFromModule, generateTutorResponse, generateChapterContent, generateMidtermExam, generateRoadmap, generateCourseFromUrl, generateSummary, generateVideo } from '@/lib/actions';
+import { generateInitialCourseAndRoadmap, generateQuizFromModule, generateTutorResponse, generateChapterContent, generateMidtermExam, generateRoadmap, generateCourseFromUrl, generateSummary, generateVideo, generateImage } from '@/lib/actions';
 import { RewardContext } from '@/context/RewardContext';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import Loading from './loading';
@@ -100,6 +100,44 @@ type QuizResult = {
 type InlineQuizState = {
     selectedAnswer?: string;
     feedback?: 'correct' | 'incorrect' | null;
+};
+
+const ChapterImage = ({ title }: { title: string }) => {
+    const [imageUrl, setImageUrl] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        setIsLoading(true);
+        generateImage({ prompt: title })
+            .then(result => {
+                setImageUrl(result.imageUrl);
+            })
+            .catch(error => {
+                console.error("Failed to generate image for chapter:", error);
+            })
+            .finally(() => {
+                setIsLoading(false);
+            });
+    }, [title]);
+
+    if (isLoading) {
+        return <Skeleton className="h-48 w-full rounded-lg bg-muted" />;
+    }
+
+    if (!imageUrl) {
+        return null;
+    }
+
+    return (
+        <div className="relative w-full aspect-video mb-6">
+            <Image 
+                src={imageUrl} 
+                alt={title || 'Chapter image'} 
+                fill
+                className="rounded-lg object-cover" 
+            />
+        </div>
+    );
 };
 
 
@@ -1608,7 +1646,7 @@ function CoursesComponent() {
                      
                       {isChapterContentLoading[currentChapter.id] ? (
                         <div className="space-y-4">
-                            <Skeleton className="h-40 w-full" />
+                            <Skeleton className="h-48 w-full" />
                             <Skeleton className="h-6 w-3/4" />
                             <Skeleton className="h-4 w-full" />
                             <Skeleton className="h-4 w-full" />
@@ -1616,9 +1654,7 @@ function CoursesComponent() {
                         </div>
                       ) : currentChapter.content ? (
                          <>
-                            {currentChapter.imageUrl && (
-                                <Image src={currentChapter.imageUrl} alt={currentChapter.title || 'Chapter image'} width={600} height={400} className="rounded-lg object-cover w-full aspect-video mb-6" />
-                            )}
+                            <ChapterImage title={currentChapter.title} />
                              <div 
                                 ref={contentRef}
                                 onMouseUp={handleMouseUp}

@@ -1,3 +1,4 @@
+
 /**
  * @fileOverview A flow for generating detailed content for a single course chapter.
  */
@@ -25,7 +26,6 @@ const QuestionBlockSchema = z.object({
 export const GenerateChapterContentOutputSchema = z.object({
   content: z.array(z.union([TextBlockSchema, QuestionBlockSchema])).describe('An array of content blocks, mixing detailed text paragraphs and "Check Your Understanding" questions.'),
   activity: z.string().describe('A suggested, interactive activity based on the chapter content, tailored to the learner\'s style.'),
-  imageUrl: z.string().url().describe('A URL for a relevant, royalty-free image from a source like Unsplash or Pexels that visually represents the chapter\'s topic.'),
 });
 
 export type GenerateChapterContentInput = z.infer<typeof GenerateChapterContentInputSchema>;
