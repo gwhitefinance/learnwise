@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -11,7 +12,6 @@ import {
   Italic,
   Underline,
   Strikethrough,
-  Highlighter,
   Palette,
   AlignLeft,
   AlignCenter,
@@ -40,9 +40,6 @@ import {
   Info,
   Users,
   ArrowRight,
-  X,
-  Globe,
-  ArrowUp,
   MicOff,
   ImageIcon,
   Undo,
@@ -50,36 +47,24 @@ import {
   Printer,
   Expand,
   Type,
-  ArrowLeft
+  ArrowLeft,
+  X,
+  Globe
 } from 'lucide-react';
 import Image from 'next/image';
 import { Input } from '@/components/ui/input';
 
 const EditorToolbar = ({ onCommand }: { onCommand: (command: string, value?: string) => void }) => (
-    <div className="bg-gray-100 dark:bg-gray-800 rounded-lg">
-        <div className="px-4 pt-2">
-            <nav className="flex items-center">
-                <a className="flex items-center gap-2 px-3 py-2 rounded-t-md bg-white dark:bg-gray-900 text-primary font-semibold text-sm" href="#">
-                    <FileText size={16}/>
-                    Self Written Notes
-                </a>
-                <a className="flex items-center gap-2 px-3 py-3 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 font-medium text-sm" href="#">
-                    <Sparkles size={16}/>
-                    Enhanced Notes
-                </a>
-                <a className="flex items-center gap-2 px-3 py-3 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 font-medium text-sm" href="#">
-                    <Clock size={16}/>
-                    Lecture Transcript
-                </a>
-                <a className="flex items-center gap-2 px-3 py-3 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 font-medium text-sm" href="#">
-                    <Music size={16}/>
-                    Audio Files
-                </a>
-            </nav>
-        </div>
-        <div className="p-2 border-t border-gray-200 dark:border-gray-700">
-            <div className="flex items-center space-x-2 text-gray-500 dark:text-gray-400">
-                <select onChange={(e) => onCommand('fontSize', e.target.value)} className="flex items-center gap-1 px-2 py-1 rounded bg-gray-100 dark:bg-gray-800 text-sm">
+    <div className="bg-gray-100 dark:bg-gray-800 rounded-t-lg p-2 border-b border-gray-200 dark:border-gray-700">
+        <div className="p-4 border-b border-gray-200 dark:border-gray-800">
+          <div className="flex items-center space-x-2 text-gray-500 dark:text-gray-400">
+                <select onChange={(e) => onCommand('fontName', e.target.value)} className="flex items-center gap-1 px-2 py-1 rounded bg-gray-100 dark:bg-gray-800 text-sm">
+                    <option value="Arial">Arial</option>
+                    <option value="Georgia">Georgia</option>
+                    <option value="Times New Roman">Times New Roman</option>
+                    <option value="Verdana">Verdana</option>
+                </select>
+                 <select onChange={(e) => onCommand('fontSize', e.target.value)} className="flex items-center gap-1 px-2 py-1 rounded bg-gray-100 dark:bg-gray-800 text-sm">
                     <option value="3">Normal</option>
                     <option value="4">Subtitle</option>
                     <option value="5">Heading</option>
@@ -91,8 +76,7 @@ const EditorToolbar = ({ onCommand }: { onCommand: (command: string, value?: str
                 <button onClick={() => onCommand('underline')} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"><Underline size={18} /></button>
                 <button onClick={() => onCommand('strikeThrough')} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"><Strikethrough size={18} /></button>
                 <div className="h-6 w-px bg-gray-200 dark:bg-gray-700"></div>
-                <input type="color" onChange={(e) => onCommand('hiliteColor', e.target.value)} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 h-8 w-8" />
-                <input type="color" onChange={(e) => onCommand('foreColor', e.target.value)} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 h-8 w-8" />
+                <input type="color" onChange={(e) => onCommand('foreColor', e.target.value)} className="p-0 border-none bg-transparent w-6 h-6 cursor-pointer" />
                 <div className="h-6 w-px bg-gray-200 dark:bg-gray-700"></div>
                 <button onClick={() => onCommand('justifyLeft')} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"><AlignLeft size={18} /></button>
                 <button onClick={() => onCommand('justifyCenter')} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"><AlignCenter size={18} /></button>
@@ -100,14 +84,9 @@ const EditorToolbar = ({ onCommand }: { onCommand: (command: string, value?: str
                 <div className="h-6 w-px bg-gray-200 dark:bg-gray-700"></div>
                 <button onClick={() => onCommand('insertUnorderedList')} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"><List size={18} /></button>
                 <button onClick={() => onCommand('insertOrderedList')} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"><ListOrdered size={18} /></button>
-                 <div className="h-6 w-px bg-gray-200 dark:bg-gray-700"></div>
+                <div className="h-6 w-px bg-gray-200 dark:bg-gray-700"></div>
                 <button onClick={() => onCommand('undo')} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"><Undo size={18} /></button>
                 <button onClick={() => onCommand('redo')} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"><Redo size={18} /></button>
-                 <div className="h-6 w-px bg-gray-200 dark:bg-gray-700"></div>
-                <button className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"><Plus size={18} /></button>
-                <button className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"><Clock size={18} /></button>
-                <button onClick={() => window.print()} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"><Printer size={18} /></button>
-                <button className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"><Expand size={18} /></button>
             </div>
         </div>
     </div>
@@ -116,46 +95,85 @@ const EditorToolbar = ({ onCommand }: { onCommand: (command: string, value?: str
 
 export default function NewNotePage() {
     const editorRef = useRef<HTMLDivElement>(null);
+    const [editorContent, setEditorContent] = useState('');
+    const history = useRef<{ content: string }[]>([]);
+    const historyIndex = useRef(-1);
+
+    const executeCommand = (command: string, value?: string) => {
+        document.execCommand(command, false, value);
+        if (editorRef.current) {
+            setEditorContent(editorRef.current.innerHTML);
+        }
+        editorRef.current?.focus();
+    };
     
     const handleCommand = (command: string, value?: string) => {
-        document.execCommand(command, false, value);
-        editorRef.current?.focus();
+        if (command === 'undo') {
+            handleUndo();
+        } else if (command === 'redo') {
+            handleRedo();
+        } else {
+            executeCommand(command, value);
+            if (editorRef.current) {
+                const newContent = editorRef.current.innerHTML;
+                if (newContent !== history.current[historyIndex.current]?.content) {
+                    const newHistory = history.current.slice(0, historyIndex.current + 1);
+                    newHistory.push({ content: newContent });
+                    history.current = newHistory;
+                    historyIndex.current++;
+                }
+            }
+        }
+    };
+
+    const handleInput = () => {
+        if (editorRef.current) {
+            const newContent = editorRef.current.innerHTML;
+            if (newContent !== history.current[historyIndex.current]?.content) {
+                const newHistory = history.current.slice(0, historyIndex.current + 1);
+                newHistory.push({ content: newContent });
+                history.current = newHistory;
+                historyIndex.current++;
+            }
+            setEditorContent(newContent);
+        }
+    };
+    
+    const handleUndo = () => {
+        if (historyIndex.current > 0) {
+            historyIndex.current--;
+            const newContent = history.current[historyIndex.current].content;
+            setEditorContent(newContent);
+            if (editorRef.current) {
+                editorRef.current.innerHTML = newContent;
+            }
+        }
+    };
+
+    const handleRedo = () => {
+        if (historyIndex.current < history.current.length - 1) {
+            historyIndex.current++;
+            const newContent = history.current[historyIndex.current].content;
+            setEditorContent(newContent);
+            if (editorRef.current) {
+                editorRef.current.innerHTML = newContent;
+            }
+        }
     };
     
     return (
         <div className="flex-1 flex overflow-hidden">
-            <main className="flex-1 flex flex-col bg-background-light dark:bg-gray-900/50">
-                <header className="flex-shrink-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-6 py-3">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Untitled Lecture</h1>
-                        </div>
-                        <div className="flex items-center gap-2">
-                             <Button className="gap-2 text-sm font-semibold"><Users size={16}/>Share</Button>
-                            <Button className="gap-2 text-sm font-semibold"><Sparkles size={16}/>Upgrade</Button>
-                            <Button variant="outline" className="gap-2 text-sm font-semibold"><Info size={16}/>Feedback</Button>
-                             <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
-                                <Button variant="ghost" size="icon"><LinkIcon size={16}/></Button>
-                                <Button variant="ghost" size="icon"><Upload size={16}/></Button>
-                            </div>
-                            <div className="relative">
-                                <Image alt="User avatar" className="w-8 h-8 rounded-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC1Or_s9UKOF6_LUS-Uz5m4nlB4RqSHSc7boFluG5jdVHIXW9HfPGqkyHrcD33sPB0zGSlfG7ov9jz9AfHzm_WpU_AgKC0wAWNfUjsKkHaa--gWuzMcn__AF4VDk-csCtGG_UG2yrzsKIfWGHZd_daSMwV-ipBz4M-pPQ_U4qrHXMqDAeUaKUxGlJm5TUa4lsLX6TWgkpfEATti1OpT3mjBF6DcJaF2sesr5emRVV0wLxLldnb8xiPmdFmwL476G8_9LuqF1hL5ULnl" width={32} height={32}/>
-                                <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center border-2 border-white dark:border-gray-900">G</span>
-                            </div>
-                        </div>
-                    </div>
-                </header>
+             <main className="flex-1 flex flex-col bg-background-light dark:bg-gray-900/50">
                 <div className="flex-1 flex flex-col p-6 overflow-y-auto">
                     <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm flex-1 flex flex-col">
                          <EditorToolbar onCommand={handleCommand} />
-                        <div className="flex-1 p-8 prose prose-lg max-w-none dark:prose-invert">
-                           <div 
-                             ref={editorRef}
-                             contentEditable="true" 
-                             className="w-full h-full outline-none" 
-                             suppressContentEditableWarning={true}
-                           >
-                           </div>
+                        <div 
+                         ref={editorRef}
+                         contentEditable="true" 
+                         className="flex-1 p-8 prose prose-lg max-w-none dark:prose-invert outline-none" 
+                         suppressContentEditableWarning={true}
+                         onInput={handleInput}
+                        >
                         </div>
                     </div>
                 </div>
@@ -185,7 +203,7 @@ export default function NewNotePage() {
                     <div className="mt-4">
                         <div className="relative">
                             <Input className="w-full bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-lg py-3 pl-4 pr-12 focus:ring-primary focus:border-primary" placeholder="Ask your AI tutor anything..."/>
-                            <Button size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg"><ArrowUp size={16}/></Button>
+                            <Button size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg"><ArrowRight size={16}/></Button>
                         </div>
                         <div className="flex items-center justify-between mt-2 px-2">
                             <div className="flex items-center gap-2">
