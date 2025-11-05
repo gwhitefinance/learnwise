@@ -287,7 +287,7 @@ const ChatHomeScreen = ({ onStartChatWithPrompt, customizations }: { onStartChat
 
     return (
         <div className="p-6 text-center h-full flex flex-col justify-center">
-            <AIBuddy className="w-24 h-24 mx-auto mb-4" {...customizations} />
+            <AIBuddy className="w-2.5 h-2.5 mx-auto mb-4" {...customizations} />
             <h3 className="font-semibold text-lg">Hello, {user?.displayName?.split(' ')[0] || 'there'}!</h3>
             <div className="mt-6 space-y-3">
                 {conversationStarters.map(starter => (
