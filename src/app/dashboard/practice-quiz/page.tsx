@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import React, { useState, useEffect, useRef, useContext, Suspense } from 'react';
@@ -30,6 +29,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export const dynamic = "force-dynamic";
 
@@ -42,6 +42,15 @@ type Course = {
 type QuizState = 'start' | 'source-selection' | 'topic-selection' | 'configuring' | 'pre-quiz' | 'in-progress' | 'results';
 type AnswerState = 'unanswered' | 'answered';
 type AnswerFeedback = { question: string; answer: string; correctAnswer: string; isCorrect: boolean; explanation?: string; };
+type QuizResult = {
+    id: string;
+    mode: 'practice' | 'quizfetch';
+    topic: string;
+    score: number;
+    totalQuestions: number;
+    timestamp: number;
+};
+
 
 const examSpecificTypes = {
     'Med School': ['NCLEX', 'USMLE Step 1', 'USMLE Step 2', 'MCAT Biology', 'MCAT Chemistry', 'MCAT Physics', 'MCAT Psychology', 'PANCE', 'PANRE'],
@@ -73,7 +82,7 @@ function PracticeQuizComponent() {
         'Multiple Choice': 10,
         'Short Answer': 0,
         'Free Response (FRQ)': 0,
-        'True or False': 0,
+        'True/False': 0,
         'Fill in the Blank': 0,
     });
     
@@ -105,10 +114,33 @@ function PracticeQuizComponent() {
     const [isWhiteboardOpen, setIsWhiteboardOpen] = useState(false);
     const [whiteboardData, setWhiteboardData] = useState<Record<number, string>>({});
 
-
     const [userCoins, setUserCoins] = useState(0);
     const [isHintLoading, setIsHintLoading] = useState(false);
     const [hint, setHint] = useState<string | null>(null);
+
+    const [pastQuizzes, setPastQuizzes] = useState<QuizResult[]>([]);
+
+    useEffect(() => {
+        const savedQuizzes = localStorage.getItem('pastQuizzes');
+        if (savedQuizzes) {
+            setPastQuizzes(JSON.parse(savedQuizzes));
+        }
+    }, []);
+
+    const saveQuizResult = (score: number, totalQuestions: number) => {
+        const newResult: QuizResult = {
+            id: crypto.randomUUID(),
+            mode: quizMode!,
+            topic: topics,
+            score: (score / totalQuestions) * 100,
+            totalQuestions,
+            timestamp: Date.now(),
+        };
+        const updatedQuizzes = [newResult, ...pastQuizzes];
+        setPastQuizzes(updatedQuizzes);
+        localStorage.setItem('pastQuizzes', JSON.stringify(updatedQuizzes));
+    }
+
 
      useEffect(() => {
         const urlTopic = searchParams.get('topic');
@@ -219,7 +251,7 @@ function PracticeQuizComponent() {
         try {
             const generatedQuiz: GenerateQuizOutput = { questions: [] };
 
-            const standardQuestionTypes = ['Multiple Choice', 'Short Answer', 'True or False', 'Fill in the Blank', 'Free Response (FRQ)'];
+            const standardQuestionTypes = ['Multiple Choice', 'Short Answer', 'True/False', 'Fill in the Blank', 'Free Response (FRQ)'];
 
             for (const [type, count] of Object.entries(questionCounts)) {
                 if (count > 0) {
@@ -365,6 +397,9 @@ function PracticeQuizComponent() {
             setCurrentQuestionIndex(prev => prev + 1);
         } else {
             const correctAnswers = answers.filter(a => a.isCorrect).length;
+            
+            saveQuizResult(correctAnswers, quiz.questions.length);
+
             if (correctAnswers > 0) {
                 let coinsEarned = correctAnswers * 5;
 
@@ -408,7 +443,7 @@ function PracticeQuizComponent() {
             'Multiple Choice': 10,
             'Short Answer': 0,
             'Free Response (FRQ)': 0,
-            'True or False': 0,
+            'True/False': 0,
             'Fill in the Blank': 0,
         });
     }
@@ -532,24 +567,71 @@ function PracticeQuizComponent() {
         return (
              <div className="flex flex-col items-center">
                  <div className="text-center mb-10">
-                    <h1 className="text-4xl font-bold">Practice</h1>
-                    <p className="text-muted-foreground mt-2">Get ready for your test, it's time to practice!</p>
+                    <h1 className="text-4xl font-bold">Choose an Option to Start Studying</h1>
                 </div>
                  <div className="w-full max-w-4xl space-y-6">
-                    <h2 className="text-2xl font-bold">Choose an Option to Start Studying</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <button onClick={() => { setQuizMode('practice'); setQuizState('source-selection');}} className="p-6 rounded-lg text-left transition-all bg-green-500/10 border-2 border-green-500/30 hover:bg-green-500/20 hover:border-green-500/50">
+                        <button onClick={() => { setQuizMode('practice'); setQuizState('source-selection');}} className="p-8 rounded-lg text-left transition-all bg-green-500/10 border-2 border-green-500/30 hover:bg-green-500/20 hover:border-green-500/50">
                             <CheckSquare className="h-8 w-8 text-green-500 mb-2"/>
                             <h3 className="text-xl font-bold">Take a Practice Test</h3>
                             <p className="text-sm text-muted-foreground">Generate a practice test from your course content and get ready for your test.</p>
                         </button>
-                        <button onClick={() => { setQuizMode('quizfetch'); setCreationSource('prompt'); setQuizState('topic-selection');}} className="p-6 rounded-lg text-left transition-all bg-blue-500/10 border-2 border-blue-500/30 hover:bg-blue-500/20 hover:border-blue-500/50">
+                        <button onClick={() => { setQuizMode('quizfetch'); setCreationSource('prompt'); setQuizState('topic-selection');}} className="p-8 rounded-lg text-left transition-all bg-blue-500/10 border-2 border-blue-500/30 hover:bg-blue-500/20 hover:border-blue-500/50">
                             <ListChecks className="h-8 w-8 text-blue-500 mb-2"/>
                             <h3 className="text-xl font-bold">QuizFetch</h3>
                             <p className="text-sm text-muted-foreground">Generate quizzes from any topic and learn as you answer questions.</p>
                         </button>
                     </div>
                  </div>
+                 {pastQuizzes.length > 0 && (
+                     <div className="w-full max-w-4xl mt-12">
+                        <h2 className="text-2xl font-bold mb-4">Past Quizzes</h2>
+                        <Tabs defaultValue="practice-tests">
+                            <TabsList>
+                                <TabsTrigger value="practice-tests">Practice Tests</TabsTrigger>
+                                <TabsTrigger value="quizfetch">QuizFetch</TabsTrigger>
+                            </TabsList>
+                            <TabsContent value="practice-tests" className="mt-4">
+                                <div className="space-y-3">
+                                {pastQuizzes.filter(q => q.mode === 'practice').map(q => (
+                                    <Card key={q.id}>
+                                        <CardContent className="p-4 flex justify-between items-center">
+                                            <div>
+                                                <p className="font-semibold">{q.topic}</p>
+                                                <p className="text-xs text-muted-foreground">{new Date(q.timestamp).toLocaleString()}</p>
+                                            </div>
+                                            <div className="flex items-center gap-4">
+                                                <p className="font-bold text-lg">{q.score.toFixed(0)}%</p>
+                                                <Button variant="outline" size="sm">Review</Button>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                                {pastQuizzes.filter(q => q.mode === 'practice').length === 0 && <p className="text-muted-foreground text-center py-8">No practice tests taken yet.</p>}
+                                </div>
+                            </TabsContent>
+                             <TabsContent value="quizfetch" className="mt-4">
+                                <div className="space-y-3">
+                                {pastQuizzes.filter(q => q.mode === 'quizfetch').map(q => (
+                                    <Card key={q.id}>
+                                        <CardContent className="p-4 flex justify-between items-center">
+                                            <div>
+                                                <p className="font-semibold">{q.topic}</p>
+                                                <p className="text-xs text-muted-foreground">{new Date(q.timestamp).toLocaleString()}</p>
+                                            </div>
+                                            <div className="flex items-center gap-4">
+                                                <p className="font-bold text-lg">{q.score.toFixed(0)}%</p>
+                                                <Button variant="outline" size="sm">Review</Button>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                                {pastQuizzes.filter(q => q.mode === 'quizfetch').length === 0 && <p className="text-muted-foreground text-center py-8">No QuizFetch sessions yet.</p>}
+                                </div>
+                            </TabsContent>
+                        </Tabs>
+                    </div>
+                 )}
              </div>
         )
     }
@@ -657,7 +739,7 @@ function PracticeQuizComponent() {
                  <Card className="w-full max-w-2xl">
                     <CardContent className="p-6 space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-                            {Object.entries(questionCounts).filter(([type]) => ['Multiple Choice', 'Short Answer', 'True or False', 'Fill in the Blank', 'Free Response (FRQ)'].includes(type)).map(([type, count]) => (
+                            {Object.entries(questionCounts).filter(([type]) => ['Multiple Choice', 'Short Answer', 'True/False', 'Fill in the Blank', 'Free Response (FRQ)'].includes(type)).map(([type, count]) => (
                                 <div key={type} className="flex items-center justify-between">
                                     <Label htmlFor={type} className="text-base">{type}</Label>
                                     <Input 
@@ -945,7 +1027,5 @@ export default function PracticeQuizPage() {
         </Suspense>
     )
 }
-
-    
 
     
