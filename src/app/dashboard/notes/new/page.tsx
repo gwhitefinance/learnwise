@@ -102,35 +102,7 @@ export default function NewNotePage() {
     // This is a static representation of your HTML structure.
     // To make it interactive, we would need to add state and event handlers.
     return (
-        <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-900/50 text-gray-800 dark:text-gray-200">
-            {/* Left Sidebar */}
-            <aside className="w-64 flex-shrink-0 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col p-4">
-                <div className="flex items-center gap-2 mb-6">
-                    <Logo className="w-8 h-8" />
-                    <span className="text-xl font-bold text-gray-900 dark:text-white">STUDY FETCH</span>
-                </div>
-                
-                <nav className="flex-grow space-y-1">
-                    {navItems.map(item => (
-                         <a key={item.label} className="flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800" href={item.href}>
-                            {item.icon}
-                            <span>{item.label}</span>
-                        </a>
-                    ))}
-                    <a className="flex items-center gap-3 px-3 py-2 rounded-md bg-blue-100 dark:bg-blue-900/40 text-primary font-semibold" href="#">
-                        <Image alt="Sat Math icon" className="w-6 h-6 rounded-full" src="https://lh3.googleusercontent.com/a/ACg8ocK_x-s2f1qY2Lg8A8G8s8Yg8g8Y8g8g8Y8g8Y8g=s96-c" width={24} height={24}/>
-                        <span>Sat MAth</span>
-                    </a>
-                    <div className="pt-4">
-                        {toolItems.map(item => (
-                            <a key={item.label} className="flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800" href="#">
-                                {item.icon}
-                                <span>{item.label}</span>
-                            </a>
-                        ))}
-                    </div>
-                </nav>
-            </aside>
+        <div className="flex h-screen overflow-hidden bg-background-light dark:bg-gray-900/50 text-gray-800 dark:text-gray-200">
             <main className="flex-1 flex flex-col bg-background-light dark:bg-gray-900/50">
                 <header className="flex-shrink-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-6 py-3">
                     <div className="flex items-center justify-between">
@@ -160,10 +132,22 @@ export default function NewNotePage() {
                     <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm flex-1 flex flex-col">
                         <div className="border-b border-gray-200 dark:border-gray-800 px-4">
                             <nav className="flex items-center -mb-px">
-                                <a className="flex items-center gap-2 px-3 py-3 border-b-2 border-primary text-primary font-semibold text-sm" href="#"><FileText size={16}/>Self Written Notes</a>
-                                <a className="flex items-center gap-2 px-3 py-3 border-b-2 border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 font-medium text-sm" href="#"><Sparkles size={16}/>Enhanced Notes</a>
-                                <a className="flex items-center gap-2 px-3 py-3 border-b-2 border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 font-medium text-sm" href="#"><Clock size={16}/>Lecture Transcript</a>
-                                <a className="flex items-center gap-2 px-3 py-3 border-b-2 border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 font-medium text-sm" href="#"><Mic size={16}/>Audio Files</a>
+                                <a className="flex items-center gap-2 px-3 py-3 border-b-2 border-primary text-primary font-semibold text-sm" href="#">
+                                    <FileText size={16}/>
+                                    Self Written Notes
+                                </a>
+                                <a className="flex items-center gap-2 px-3 py-3 border-b-2 border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 font-medium text-sm" href="#">
+                                    <Sparkles size={16}/>
+                                    Enhanced Notes
+                                </a>
+                                <a className="flex items-center gap-2 px-3 py-3 border-b-2 border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 font-medium text-sm" href="#">
+                                    <Clock size={16}/>
+                                    Lecture Transcript
+                                </a>
+                                <a className="flex items-center gap-2 px-3 py-3 border-b-2 border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 font-medium text-sm" href="#">
+                                    <Mic size={16}/>
+                                    Audio Files
+                                </a>
                             </nav>
                         </div>
                         <EditorToolbar/>
@@ -171,8 +155,12 @@ export default function NewNotePage() {
                             <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 flex items-center gap-6">
                                 <span className="material-symbols-outlined text-gray-400">drag_indicator</span>
                                 <span className="text-gray-500 dark:text-gray-400">Start Recording</span>
-                                <Button className="p-3 rounded-full"><Mic/></Button>
-                                <Button variant="ghost" size="icon" className="text-gray-400"><Sparkles/></Button>
+                                <button className="bg-primary text-white p-3 rounded-full">
+                                    <Mic />
+                                </button>
+                                <button className="text-gray-500 dark:text-gray-400">
+                                    <Sparkles/>
+                                </button>
                             </div>
                         </div>
                     </div>
