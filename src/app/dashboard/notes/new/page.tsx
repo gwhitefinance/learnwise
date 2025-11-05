@@ -3,59 +3,59 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { FileText, Sparkles, Clock, Mic, Bold, Italic, Underline, Strikethrough, Highlighter, Palette, AlignLeft, AlignCenter, AlignRight, List, ListOrdered, Search, Home, BookCopy, Calendar, MessageSquare, FlaskConical, Edit, GraduationCap, Gamepad2, FileSignature, Clapperboard, Music, Plus, FolderPlus, Flame, ChevronDown, Upload, Link as LinkIcon, Bell, Info, Users, ArrowRight, X, Globe, ArrowUp, MicOff, Image as ImageIcon, Undo, Redo, Printer, Expand, Type } from 'lucide-react';
-import Image from 'next/image';
 import { Input } from '@/components/ui/input';
+import { FileText, Sparkles, Clock, Mic, Bold, Italic, Underline, Strikethrough, Highlighter, Palette, AlignLeft, AlignCenter, AlignRight, List, ListOrdered, Search, Home, BookCopy, Calendar, MessageSquare, FlaskConical, Edit, GraduationCap, Gamepad2, FileSignature, Clapperboard, Music, Plus, FolderPlus, Flame, ChevronDown, Upload, Link as LinkIcon, Bell, Info, Users, ArrowRight, X, Globe, ArrowUp, MicOff, ImageIcon, Undo, Redo, Printer, Expand, Type } from 'lucide-react';
+import Image from 'next/image';
 
 const EditorToolbar = () => (
-    <div className="bg-gray-100 dark:bg-gray-900/50 rounded-lg">
+    <div className="bg-gray-100 dark:bg-gray-800 rounded-lg">
         <div className="px-4 pt-2">
             <nav className="flex items-center">
                 <a className="flex items-center gap-2 px-3 py-2 rounded-t-md bg-white dark:bg-gray-900 text-primary font-semibold text-sm" href="#">
                     <FileText size={16}/>
                     Self Written Notes
                 </a>
-                <a className="flex items-center gap-2 px-3 py-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 font-medium text-sm" href="#">
+                <a className="flex items-center gap-2 px-3 py-3 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 font-medium text-sm" href="#">
                     <Sparkles size={16}/>
                     Enhanced Notes
                 </a>
-                <a className="flex items-center gap-2 px-3 py-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 font-medium text-sm" href="#">
+                <a className="flex items-center gap-2 px-3 py-3 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 font-medium text-sm" href="#">
                     <Clock size={16}/>
                     Lecture Transcript
                 </a>
-                <a className="flex items-center gap-2 px-3 py-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 font-medium text-sm" href="#">
+                <a className="flex items-center gap-2 px-3 py-3 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 font-medium text-sm" href="#">
                     <Music size={16}/>
                     Audio Files
                 </a>
             </nav>
         </div>
-        <div className="p-2 border-t border-gray-200 dark:border-gray-800">
+        <div className="p-2 border-t border-gray-200 dark:border-gray-700">
             <div className="flex items-center space-x-2 text-gray-500 dark:text-gray-400">
-                <button className="flex items-center gap-1 px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800 text-sm">Arial <ChevronDown className="h-4 w-4" /></button>
-                <button className="flex items-center gap-1 px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800 text-sm">11 <ChevronDown className="h-4 w-4" /></button>
-                <div className="h-6 w-px bg-gray-300 dark:bg-gray-700"></div>
-                <button className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800"><Bold size={18} /></button>
-                <button className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800"><Italic size={18} /></button>
-                <button className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800"><Underline size={18} /></button>
-                <button className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800"><Strikethrough size={18} /></button>
-                <div className="h-6 w-px bg-gray-300 dark:bg-gray-700"></div>
-                <button className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800"><Highlighter size={18} /></button>
-                <button className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800"><Palette size={18} /></button>
-                <div className="h-6 w-px bg-gray-300 dark:bg-gray-700"></div>
-                <button className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800"><AlignLeft size={18} /></button>
-                <button className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800"><AlignCenter size={18} /></button>
-                <button className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800"><AlignRight size={18} /></button>
-                <div className="h-6 w-px bg-gray-300 dark:bg-gray-700"></div>
-                <button className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800"><List size={18} /></button>
-                <button className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800"><ListOrdered size={18} /></button>
-                 <div className="h-6 w-px bg-gray-300 dark:bg-gray-700"></div>
-                <button className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800"><Undo size={18} /></button>
-                <button className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800"><Redo size={18} /></button>
-                 <div className="h-6 w-px bg-gray-300 dark:bg-gray-700"></div>
-                <button className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800"><Plus size={18} /></button>
-                <button className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800"><Clock size={18} /></button>
-                <button className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800"><Printer size={18} /></button>
-                <button className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800"><Expand size={18} /></button>
+                <button className="flex items-center gap-1 px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-sm">Arial <ChevronDown className="h-4 w-4" /></button>
+                <button className="flex items-center gap-1 px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-sm">11 <ChevronDown className="h-4 w-4" /></button>
+                <div className="h-6 w-px bg-gray-200 dark:bg-gray-700"></div>
+                <button className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"><Bold size={18} /></button>
+                <button className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"><Italic size={18} /></button>
+                <button className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"><Underline size={18} /></button>
+                <button className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"><Strikethrough size={18} /></button>
+                <div className="h-6 w-px bg-gray-200 dark:bg-gray-700"></div>
+                <button className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"><Highlighter size={18} /></button>
+                <button className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"><Palette size={18} /></button>
+                <div className="h-6 w-px bg-gray-200 dark:bg-gray-700"></div>
+                <button className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"><AlignLeft size={18} /></button>
+                <button className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"><AlignCenter size={18} /></button>
+                <button className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"><AlignRight size={18} /></button>
+                <div className="h-6 w-px bg-gray-200 dark:bg-gray-700"></div>
+                <button className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"><List size={18} /></button>
+                <button className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"><ListOrdered size={18} /></button>
+                 <div className="h-6 w-px bg-gray-200 dark:bg-gray-700"></div>
+                <button className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"><Undo size={18} /></button>
+                <button className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"><Redo size={18} /></button>
+                 <div className="h-6 w-px bg-gray-200 dark:bg-gray-700"></div>
+                <button className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"><Plus size={18} /></button>
+                <button className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"><Clock size={18} /></button>
+                <button className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"><Printer size={18} /></button>
+                <button className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"><Expand size={18} /></button>
             </div>
         </div>
     </div>
@@ -93,8 +93,9 @@ export default function NewNotePage() {
                 <div className="flex-1 flex flex-col p-6 overflow-y-auto">
                     <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm flex-1 flex flex-col">
                         <EditorToolbar/>
-                        <div className="flex-1 p-6 flex items-center justify-center">
-                            {/* Editor content goes here */}
+                        <div className="flex-1 p-8 prose prose-lg max-w-none dark:prose-invert">
+                           <div contentEditable="true" className="w-full h-full outline-none" suppressContentEditableWarning={true}>
+                           </div>
                         </div>
                     </div>
                 </div>
@@ -124,7 +125,7 @@ export default function NewNotePage() {
                     <div className="mt-4">
                         <div className="relative">
                             <Input className="w-full bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-lg py-3 pl-4 pr-12 focus:ring-primary focus:border-primary" placeholder="Ask your AI tutor anything..."/>
-                            <Button size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-primary text-white"><ArrowUp size={16}/></Button>
+                            <Button size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-primary text-white"><ArrowUp size={16}/></Button>
                         </div>
                         <div className="flex items-center justify-between mt-2 px-2">
                             <div className="flex items-center gap-2">
