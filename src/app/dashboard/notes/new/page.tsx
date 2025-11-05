@@ -5,7 +5,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import {
-  Bold, Italic, Underline, Strikethrough, Palette, AlignLeft, AlignCenter, AlignRight, List, ListOrdered, Undo, Redo, X, ChevronDown, Mic, Sparkles, Clock, Music, UserPlus, Upload, Info, GitMerge, Link as LinkIcon, Plus, History, Printer, Expand, Search, FileText, ArrowRight, Type, GripVertical, Maximize, Square, Globe, GraduationCap, FileSignature, Loader2, MessageSquare, BrainCircuit, Lightbulb, Copy, ImageIcon
+  Bold, Italic, Underline, Strikethrough, Palette, AlignLeft, AlignCenter, AlignRight, List, ListOrdered, Undo, Redo, X, ChevronDown, Mic, Sparkles, Clock, Music, UserPlus, Upload, Info, GitMerge, FileSignature, Plus, History, Printer, Expand, Search, FileText, ArrowRight, Type, GripVertical, Maximize, Square, Globe, GraduationCap, Loader2, MessageSquare, BrainCircuit, Lightbulb, Copy, ImageIcon
 } from 'lucide-react';
 import Image from 'next/image';
 import { Input } from '@/components/ui/input';
@@ -287,7 +287,7 @@ const ChatHomeScreen = ({ onStartChatWithPrompt, customizations }: { onStartChat
 
     return (
         <div className="p-6 text-center h-full flex flex-col justify-center">
-            <AIBuddy className="w-2 h-2 mx-auto mb-4" {...customizations} />
+            <AIBuddy className="w-24 h-24 mx-auto mb-4" {...customizations} />
             <h3 className="font-semibold text-lg">Hello, {user?.displayName?.split(' ')[0] || 'there'}!</h3>
             <div className="mt-6 space-y-3">
                 {conversationStarters.map(starter => (
@@ -494,7 +494,7 @@ export default function NewNotePage() {
                          <div className="p-4 space-y-4">
                             {chatHistory.map((msg, index) => (
                                 <div key={index} className={cn("flex items-end gap-2", msg.role === 'user' ? 'justify-end' : '')}>
-                                     {msg.role === 'ai' && <div className="w-10 h-10 flex-shrink-0"><AIBuddy className="w-full h-full" /></div>}
+                                     {msg.role === 'ai' && <div className="w-8 h-8 flex-shrink-0"><AIBuddy className="w-full h-full" /></div>}
                                     <div className={cn("p-3 rounded-2xl max-w-[85%] text-sm prose dark:prose-invert prose-p:my-0 prose-headings:my-0 prose-table:my-0", msg.role === 'user' ? "bg-primary text-primary-foreground rounded-br-none" : "bg-muted rounded-bl-none")}>
                                         <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
                                     </div>
@@ -502,7 +502,7 @@ export default function NewNotePage() {
                             ))}
                             {isChatLoading && (
                                 <div className="flex items-end gap-2">
-                                    <div className="w-10 h-10 flex-shrink-0"><AIBuddy className="w-full h-full" /></div>
+                                    <div className="w-8 h-8 flex-shrink-0"><AIBuddy className="w-full h-full" /></div>
                                     <div className="p-3 rounded-2xl max-w-[85%] text-sm bg-muted rounded-bl-none animate-pulse">
                                         ...
                                     </div>
