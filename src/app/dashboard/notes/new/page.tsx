@@ -4,7 +4,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Textarea } from '@/components/ui/textarea';
 import {
   FileText,
   Sparkles,
@@ -43,7 +42,7 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 
 export default function NewNotePage() {
@@ -51,6 +50,50 @@ export default function NewNotePage() {
   const { toast } = useToast();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('self-written');
+  const editorRef = useRef<HTMLDivElement>(null);
+
+  const [historyStack, setHistoryStack] = useState<string[]>(['']);
+  const [historyIndex, setHistoryIndex] = useState(0);
+
+  useEffect(() => {
+    document.execCommand("styleWithCSS", false);
+  }, []);
+
+  const applyStyle = (command: string, value: string | null = null) => {
+    document.execCommand(command, false, value);
+    editorRef.current?.focus();
+    updateHistory();
+  };
+
+  const updateHistory = () => {
+    const currentContent = editorRef.current?.innerHTML || '';
+    if (currentContent !== historyStack[historyIndex]) {
+        const newHistory = historyStack.slice(0, historyIndex + 1);
+        newHistory.push(currentContent);
+        setHistoryStack(newHistory);
+        setHistoryIndex(newHistory.length - 1);
+    }
+  };
+
+  const undo = () => {
+    if (historyIndex > 0) {
+        const newIndex = historyIndex - 1;
+        setHistoryIndex(newIndex);
+        if(editorRef.current) {
+            editorRef.current.innerHTML = historyStack[newIndex];
+        }
+    }
+  };
+
+  const redo = () => {
+    if (historyIndex < historyStack.length - 1) {
+        const newIndex = historyIndex + 1;
+        setHistoryIndex(newIndex);
+        if(editorRef.current) {
+            editorRef.current.innerHTML = historyStack[newIndex];
+        }
+    }
+  };
 
   const handleNoteGenerated = async (title: string, content: string) => {
     if (!user) {
@@ -89,28 +132,31 @@ export default function NewNotePage() {
     </Button>
   );
 
+  const colors = ['#000000', '#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#ffffff'];
+
+
   return (
     <div className="h-full flex flex-col md:flex-row gap-4">
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
-         <header className="flex justify-between items-center mb-4">
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold">Untitled Lecture</h1>
-            <ChevronDown className="h-5 w-5 text-muted-foreground" />
-            <Button variant="ghost" size="icon" className="h-8 w-8 bg-blue-500 text-white hover:bg-blue-600">
-                <Mic className="h-4 w-4" />
-            </Button>
-          </div>
-          <div className="flex items-center gap-1">
-            <Button variant="ghost" className="h-9 text-muted-foreground"><Share2 className="h-4 w-4 mr-2" /> Share</Button>
-            <Button className="h-9 bg-blue-500 hover:bg-blue-600"><Upload className="h-4 w-4 mr-2"/> Upgrade</Button>
-            <Button variant="ghost" className="h-9 text-muted-foreground">Feedback</Button>
-            <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground"><LinkIcon className="h-4 w-4"/></Button>
-          </div>
+         <header className="flex justify-between items-center mb-4 flex-wrap">
+            <div className="flex items-center gap-2">
+                <h1 className="text-xl font-bold">Untitled Lecture</h1>
+                <ChevronDown className="h-5 w-5 text-muted-foreground" />
+            </div>
+            <div className="flex items-center gap-1">
+                <Button variant="ghost" size="icon" className="h-8 w-8 bg-blue-500 text-white hover:bg-blue-600 rounded-full">
+                    <Mic className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" className="h-9 text-muted-foreground"><Share2 className="h-4 w-4 mr-2" /> Share</Button>
+                <Button className="h-9 bg-blue-500 hover:bg-blue-600 rounded-full">Upgrade</Button>
+                <Button variant="ghost" className="h-9 text-muted-foreground">Feedback</Button>
+                <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground"><LinkIcon className="h-4 w-4"/></Button>
+            </div>
         </header>
         
         <div className="bg-muted/30 border rounded-lg p-2 space-y-2">
-            <div className="flex gap-1">
+            <div className="flex gap-1 flex-wrap">
                 <TabButton id="self-written" name="Self Written Notes" icon={<FileText className="h-4 w-4 mr-2" />} />
                 <TabButton id="enhanced" name="Enhanced Notes" icon={<Sparkles className="h-4 w-4 mr-2" />} />
                 <TabButton id="transcript" name="Lecture Transcript" icon={<Clock className="h-4 w-4 mr-2" />} />
@@ -118,49 +164,56 @@ export default function NewNotePage() {
             </div>
             <Separator />
             <div className="flex items-center gap-1 flex-nowrap overflow-x-auto px-2">
-                <Select defaultValue="arial">
-                    <SelectTrigger className="w-[100px] h-8 text-xs shrink-0">
-                        <SelectValue />
-                    </SelectTrigger>
+                <Select defaultValue="Arial" onValueChange={(value) => applyStyle('fontName', value)}>
+                    <SelectTrigger className="w-[120px] h-8 text-xs shrink-0"><SelectValue /></SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="arial">Arial</SelectItem>
-                        <SelectItem value="helvetica">Helvetica</SelectItem>
-                        <SelectItem value="times">Times New Roman</SelectItem>
+                        <SelectItem value="Arial">Arial</SelectItem>
+                        <SelectItem value="Helvetica">Helvetica</SelectItem>
+                        <SelectItem value="Times New Roman">Times New Roman</SelectItem>
+                        <SelectItem value="Courier New">Courier New</SelectItem>
+                        <SelectItem value="Verdana">Verdana</SelectItem>
                     </SelectContent>
                 </Select>
-                 <Select defaultValue="11">
-                    <SelectTrigger className="w-[60px] h-8 text-xs shrink-0">
-                        <SelectValue />
-                    </SelectTrigger>
+                 <Select defaultValue="3" onValueChange={(value) => applyStyle('fontSize', value)}>
+                    <SelectTrigger className="w-[70px] h-8 text-xs shrink-0"><SelectValue /></SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="10">10</SelectItem>
-                        <SelectItem value="11">11</SelectItem>
-                        <SelectItem value="12">12</SelectItem>
-                        <SelectItem value="14">14</SelectItem>
+                        <SelectItem value="1">1 (8pt)</SelectItem>
+                        <SelectItem value="2">2 (10pt)</SelectItem>
+                        <SelectItem value="3">3 (12pt)</SelectItem>
+                        <SelectItem value="4">4 (14pt)</SelectItem>
+                        <SelectItem value="5">5 (18pt)</SelectItem>
+                        <SelectItem value="6">6 (24pt)</SelectItem>
+                        <SelectItem value="7">7 (36pt)</SelectItem>
                     </SelectContent>
                 </Select>
                 <Separator orientation="vertical" className="h-5 mx-1" />
-                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><Bold className="h-4 w-4" /></Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><Italic className="h-4 w-4" /></Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><Underline className="h-4 w-4" /></Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><Strikethrough className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => applyStyle('bold')}><Bold className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => applyStyle('italic')}><Italic className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => applyStyle('underline')}><Underline className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => applyStyle('strikeThrough')}><Strikethrough className="h-4 w-4" /></Button>
                 <Separator orientation="vertical" className="h-5 mx-1" />
-                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><Highlighter className="h-4 w-4" /></Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><Palette className="h-4 w-4" /></Button>
+                 <Popover>
+                    <PopoverTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><Highlighter className="h-4 w-4" /></Button></PopoverTrigger>
+                    <PopoverContent side="bottom" className="w-auto p-2"><div className="flex gap-1">{colors.map(c => (<button key={c} onClick={() => applyStyle('hiliteColor', c)} className={`w-6 h-6 rounded-full border-2 ${c === '#ffffff' ? 'border-gray-400' : 'border-transparent'}`} style={{ backgroundColor: c }} />))}</div></PopoverContent>
+                </Popover>
+                 <Popover>
+                    <PopoverTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><Palette className="h-4 w-4" /></Button></PopoverTrigger>
+                    <PopoverContent side="bottom" className="w-auto p-2"><div className="flex gap-1">{colors.map(c => (<button key={c} onClick={() => applyStyle('foreColor', c)} className={`w-6 h-6 rounded-full border-2 ${c === '#ffffff' ? 'border-gray-400' : 'border-transparent'}`} style={{ backgroundColor: c }} />))}</div></PopoverContent>
+                </Popover>
                 <Separator orientation="vertical" className="h-5 mx-1" />
-                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><AlignLeft className="h-4 w-4" /></Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><AlignCenter className="h-4 w-4" /></Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><AlignRight className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => applyStyle('justifyLeft')}><AlignLeft className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => applyStyle('justifyCenter')}><AlignCenter className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => applyStyle('justifyRight')}><AlignRight className="h-4 w-4" /></Button>
                 <Separator orientation="vertical" className="h-5 mx-1" />
-                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><ListOrdered className="h-4 w-4" /></Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><List className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => applyStyle('insertOrderedList')}><ListOrdered className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => applyStyle('insertUnorderedList')}><List className="h-4 w-4" /></Button>
                 <Separator orientation="vertical" className="h-5 mx-1" />
-                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><Undo className="h-4 w-4" /></Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><Redo className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={undo}><Undo className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={redo}><Redo className="h-4 w-4" /></Button>
                 <Separator orientation="vertical" className="h-5 mx-1" />
                  <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><Plus className="h-4 w-4" /></Button>
                  <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><History className="h-4 w-4" /></Button>
-                 <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><Printer className="h-4 w-4" /></Button>
+                 <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => window.print()}><Printer className="h-4 w-4" /></Button>
                  <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><Maximize className="h-4 w-4" /></Button>
             </div>
         </div>
@@ -169,7 +222,13 @@ export default function NewNotePage() {
             {activeTab === 'self-written' && (
                 <Card className="h-full">
                     <CardContent className="p-0 h-full">
-                        <Textarea className="h-full w-full border-0 focus-visible:ring-0 resize-none text-base p-6" placeholder="Start writing your notes here..."/>
+                        <div
+                            ref={editorRef}
+                            contentEditable
+                            onInput={updateHistory}
+                            className="h-full w-full border-0 focus-visible:ring-0 focus-visible:outline-none resize-none text-base p-6"
+                            placeholder="Start writing your notes here..."
+                        />
                     </CardContent>
                 </Card>
             )}
