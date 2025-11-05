@@ -80,7 +80,7 @@ export default function NewNotePage() {
       variant={activeTab === id ? 'secondary' : 'ghost'}
       onClick={() => setActiveTab(id)}
       className={cn(
-        "h-9 px-4 py-2 text-sm",
+        "h-9 px-3 py-2 text-sm",
         activeTab === id && 'bg-primary/10 text-primary hover:bg-primary/15'
       )}
     >
@@ -97,20 +97,19 @@ export default function NewNotePage() {
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-bold">Untitled Lecture</h1>
             <ChevronDown className="h-5 w-5 text-muted-foreground" />
-            <Button variant="ghost" size="icon" className="h-8 w-8 bg-blue-100 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-500/20">
+            <Button variant="ghost" size="icon" className="h-8 w-8 bg-blue-500 text-white hover:bg-blue-600">
                 <Mic className="h-4 w-4" />
             </Button>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" className="h-9"><Share2 className="h-4 w-4 mr-2" /> Share</Button>
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" className="h-9 text-muted-foreground"><Share2 className="h-4 w-4 mr-2" /> Share</Button>
             <Button className="h-9 bg-blue-500 hover:bg-blue-600"><Upload className="h-4 w-4 mr-2"/> Upgrade</Button>
-            <Button variant="outline" className="h-9 text-muted-foreground">Feedback</Button>
+            <Button variant="ghost" className="h-9 text-muted-foreground">Feedback</Button>
             <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground"><LinkIcon className="h-4 w-4"/></Button>
-            <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground"><Upload className="h-4 w-4"/></Button>
           </div>
         </header>
         
-        <div className="bg-muted/50 border rounded-lg p-2 space-y-2">
+        <div className="bg-muted/30 border rounded-lg p-2 space-y-2">
             <div className="flex gap-1">
                 <TabButton id="self-written" name="Self Written Notes" icon={<FileText className="h-4 w-4 mr-2" />} />
                 <TabButton id="enhanced" name="Enhanced Notes" icon={<Sparkles className="h-4 w-4 mr-2" />} />
@@ -118,9 +117,9 @@ export default function NewNotePage() {
                 <TabButton id="audio" name="Audio Files" icon={<Mic className="h-4 w-4 mr-2" />} />
             </div>
             <Separator />
-            <div className="flex items-center gap-1 flex-wrap px-2">
+            <div className="flex items-center gap-1 flex-nowrap overflow-x-auto px-2">
                 <Select defaultValue="arial">
-                    <SelectTrigger className="w-[100px] h-8 text-xs">
+                    <SelectTrigger className="w-[100px] h-8 text-xs shrink-0">
                         <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -130,7 +129,7 @@ export default function NewNotePage() {
                     </SelectContent>
                 </Select>
                  <Select defaultValue="11">
-                    <SelectTrigger className="w-[60px] h-8 text-xs">
+                    <SelectTrigger className="w-[60px] h-8 text-xs shrink-0">
                         <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -141,28 +140,28 @@ export default function NewNotePage() {
                     </SelectContent>
                 </Select>
                 <Separator orientation="vertical" className="h-5 mx-1" />
-                <Button variant="ghost" size="icon" className="h-8 w-8"><Bold className="h-4 w-4" /></Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8"><Italic className="h-4 w-4" /></Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8"><Underline className="h-4 w-4" /></Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8"><Strikethrough className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><Bold className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><Italic className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><Underline className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><Strikethrough className="h-4 w-4" /></Button>
                 <Separator orientation="vertical" className="h-5 mx-1" />
-                <Button variant="ghost" size="icon" className="h-8 w-8"><Highlighter className="h-4 w-4" /></Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8"><Palette className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><Highlighter className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><Palette className="h-4 w-4" /></Button>
                 <Separator orientation="vertical" className="h-5 mx-1" />
-                <Button variant="ghost" size="icon" className="h-8 w-8"><AlignLeft className="h-4 w-4" /></Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8"><AlignCenter className="h-4 w-4" /></Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8"><AlignRight className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><AlignLeft className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><AlignCenter className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><AlignRight className="h-4 w-4" /></Button>
                 <Separator orientation="vertical" className="h-5 mx-1" />
-                <Button variant="ghost" size="icon" className="h-8 w-8"><ListOrdered className="h-4 w-4" /></Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8"><List className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><ListOrdered className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><List className="h-4 w-4" /></Button>
                 <Separator orientation="vertical" className="h-5 mx-1" />
-                <Button variant="ghost" size="icon" className="h-8 w-8"><Undo className="h-4 w-4" /></Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8"><Redo className="h-4 w-4" /></Button>
-                 <Separator orientation="vertical" className="h-5 mx-1" />
-                 <Button variant="ghost" size="icon" className="h-8 w-8"><Plus className="h-4 w-4" /></Button>
-                 <Button variant="ghost" size="icon" className="h-8 w-8"><History className="h-4 w-4" /></Button>
-                 <Button variant="ghost" size="icon" className="h-8 w-8"><Printer className="h-4 w-4" /></Button>
-                 <Button variant="ghost" size="icon" className="h-8 w-8"><Maximize className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><Undo className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><Redo className="h-4 w-4" /></Button>
+                <Separator orientation="vertical" className="h-5 mx-1" />
+                 <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><Plus className="h-4 w-4" /></Button>
+                 <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><History className="h-4 w-4" /></Button>
+                 <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><Printer className="h-4 w-4" /></Button>
+                 <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><Maximize className="h-4 w-4" /></Button>
             </div>
         </div>
 
