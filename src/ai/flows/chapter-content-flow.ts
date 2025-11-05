@@ -33,7 +33,7 @@ const prompt = ai.definePrompt({
     6.  **Overall Length**: The entire chapter, combining all text and question blocks, should feel comprehensive and educational.
 
     **Image Instruction**:
-    1.  **Relevance is Key**: Find a single, high-quality, and **highly relevant** image URL from a royalty-free source (like Unsplash, Pexels, Pixabay). The image's subject matter MUST directly relate to the chapter title: '{{chapterTitle}}'.
+    1.  **Relevance is Key**: Find a single, high-quality, and **highly relevant** image URL from a royalty-free source (like Unsplash, Pexels, Pixabay) that is a DIRECT LINK to an image file (e.g., ends in .png, .jpg). The image's subject matter MUST directly relate to the chapter title: '{{chapterTitle}}'.
     2.  **Image Type**:
         - For abstract or technical topics (e.g., Math, Science, Programming), prioritize finding a clear, simple **diagram, chart, or infographic** that visually explains the core concept.
         - For other topics (e.g., History, Literature), a high-quality photo is acceptable.
