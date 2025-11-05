@@ -97,26 +97,20 @@ export default function NewNotePage() {
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-bold">Untitled Lecture</h1>
             <ChevronDown className="h-5 w-5 text-muted-foreground" />
-            <Button variant="ghost" size="icon" className="h-8 w-8 bg-green-100 dark:bg-green-500/10 text-green-600 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-500/20">
+            <Button variant="ghost" size="icon" className="h-8 w-8 bg-blue-100 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-500/20">
                 <Mic className="h-4 w-4" />
             </Button>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" className="h-9"><Share2 className="h-4 w-4 mr-2" /> Share</Button>
-            <Button className="h-9 bg-green-500 hover:bg-green-600"><Upload className="h-4 w-4 mr-2"/> Upgrade</Button>
+            <Button className="h-9 bg-blue-500 hover:bg-blue-600"><Upload className="h-4 w-4 mr-2"/> Upgrade</Button>
             <Button variant="outline" className="h-9 text-muted-foreground">Feedback</Button>
             <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground"><LinkIcon className="h-4 w-4"/></Button>
             <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground"><Upload className="h-4 w-4"/></Button>
-            <div className="relative">
-                <Avatar className="h-8 w-8">
-                    <AvatarFallback className="bg-purple-500 text-white">G</AvatarFallback>
-                </Avatar>
-                <div className="absolute -top-1 -right-1 bg-purple-500 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center border-2 border-background">2</div>
-            </div>
           </div>
         </header>
         
-        <div className="bg-card border rounded-lg p-2 space-y-2">
+        <div className="bg-muted/50 border rounded-lg p-2 space-y-2">
             <div className="flex gap-1">
                 <TabButton id="self-written" name="Self Written Notes" icon={<FileText className="h-4 w-4 mr-2" />} />
                 <TabButton id="enhanced" name="Enhanced Notes" icon={<Sparkles className="h-4 w-4 mr-2" />} />
