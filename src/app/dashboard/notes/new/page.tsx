@@ -21,6 +21,7 @@ import { cn } from '@/lib/utils';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import Logo from '@/components/Logo';
+import Link from 'next/link';
 
 interface Message {
   role: 'user' | 'ai';
@@ -473,7 +474,7 @@ export default function NewNotePage() {
                          <div className="p-4 space-y-4">
                             {chatHistory.map((msg, index) => (
                                 <div key={index} className={cn("flex items-end gap-2", msg.role === 'user' ? 'justify-end' : '')}>
-                                     {msg.role === 'ai' && <AIBuddy className="w-10 h-10 flex-shrink-0" />}
+                                     {msg.role === 'ai' && <div className="w-10 h-10 flex-shrink-0"><AIBuddy className="w-full h-full" /></div>}
                                     <div className={cn("p-3 rounded-2xl max-w-[85%] text-sm prose dark:prose-invert prose-p:my-0 prose-headings:my-0 prose-table:my-0", msg.role === 'user' ? "bg-primary text-primary-foreground rounded-br-none" : "bg-muted rounded-bl-none")}>
                                         <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
                                     </div>
@@ -481,7 +482,7 @@ export default function NewNotePage() {
                             ))}
                             {isChatLoading && (
                                 <div className="flex items-end gap-2">
-                                    <AIBuddy className="w-10 h-10 flex-shrink-0" />
+                                    <div className="w-10 h-10 flex-shrink-0"><AIBuddy className="w-full h-full" /></div>
                                     <div className="p-3 rounded-2xl max-w-[85%] text-sm bg-muted rounded-bl-none animate-pulse">
                                         ...
                                     </div>
@@ -509,7 +510,7 @@ export default function NewNotePage() {
                             <ArrowRight size={16}/>
                         </Button>
                     </div>
-                     <div className="flex items-center justify-between mt-2 px-2">
+                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1">
                             <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500 dark:text-gray-400"><ImageIcon size={16}/></Button>
                             <Button variant="ghost" size="icon" className="h-8 w-8 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300"><Globe size={16}/></Button>
@@ -523,3 +524,4 @@ export default function NewNotePage() {
         </div>
     );
 }
+
