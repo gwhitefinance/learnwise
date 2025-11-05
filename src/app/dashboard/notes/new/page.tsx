@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -299,7 +300,6 @@ export default function NewNotePage() {
     const handleCommand = (command: string, value?: string) => {
         document.execCommand(command, false, value);
         if (editorRef.current) {
-            setEditorContent(editorRef.current.innerHTML);
             const newContent = editorRef.current.innerHTML;
             if (history.current[historyIndex.current]?.content !== newContent) {
                 const newHistory = history.current.slice(0, historyIndex.current + 1);
@@ -484,7 +484,7 @@ export default function NewNotePage() {
                             {chatHistory.map((msg, index) => (
                                 <div key={index} className={cn("flex items-end gap-2", msg.role === 'user' ? 'justify-end' : '')}>
                                     {msg.role === 'ai' && <AIBuddy className="w-8 h-8 flex-shrink-0" />}
-                                    <div className={cn("p-3 rounded-2xl max-w-[85%] text-sm prose dark:prose-invert prose-p:my-0", msg.role === 'user' ? "bg-primary text-primary-foreground rounded-br-none" : "bg-muted rounded-bl-none")}>
+                                    <div className={cn("p-3 rounded-2xl max-w-[85%] text-sm prose dark:prose-invert prose-p:my-0 prose-headings:my-0 prose-table:my-0", msg.role === 'user' ? "bg-primary text-primary-foreground rounded-br-none" : "bg-muted rounded-bl-none")}>
                                         <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
                                     </div>
                                 </div>
@@ -521,15 +521,16 @@ export default function NewNotePage() {
                     </div>
                      <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1">
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground"><ImageIcon size={16}/></Button>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground"><Globe size={16}/></Button>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground"><GraduationCap size={16}/></Button>
-                            <Button variant="secondary" size="sm" className="h-8 gap-1.5"><FileText size={14}/>Using 1 material(s)</Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500 dark:text-gray-400"><ImageIcon size={16}/></Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300"><Globe size={16}/></Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300"><GraduationCap size={16}/></Button>
+                            <Button variant="secondary" size="sm" className="h-8 gap-1.5"><FileText size={16}/>Using 1 material(s)</Button>
                         </div>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground"><Mic className="h-4 w-4"/></Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500 dark:text-gray-400"><Mic className="h-4 w-4"/></Button>
                     </div>
                 </footer>
             </aside>
         </div>
     );
 }
+
