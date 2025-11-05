@@ -199,7 +199,7 @@ const LiveLecturePanel = ({ show, setShow, onNoteGenerated, onTranscriptUpdate, 
             const result = await generateNoteFromChat({
                 messages: [{ role: 'user', content: currentTranscript }]
             });
-            onNoteGenerated(`<h2>${result.title}</h2><p>${result.note.replace(/\\n/g, '<br/>')}</p>`);
+            onNoteGenerated(`<h2>${result.title}</h2><p>${result.note.replace(/\n/g, '<br/>')}</p>`);
             setShow(false);
         } catch (e) {
             console.error(e);
@@ -276,7 +276,7 @@ const LiveLecturePanel = ({ show, setShow, onNoteGenerated, onTranscriptUpdate, 
     );
 };
 
-const ChatHomeScreen = ({ onStartChatWithPrompt }: { onStartChatWithPrompt: (prompt: string) => void }) => {
+const ChatHomeScreen = ({ onStartChatWithPrompt, customizations }: { onStartChatWithPrompt: (prompt: string) => void, customizations: Record<string, string> }) => {
     const [user] = useAuthState(auth);
 
     const conversationStarters = [
@@ -287,8 +287,8 @@ const ChatHomeScreen = ({ onStartChatWithPrompt }: { onStartChatWithPrompt: (pro
 
     return (
         <div className="p-6 text-center h-full flex flex-col justify-center">
-            <AIBuddy className="w-8 h-8 mx-auto mb-4" />
-            <h3 className="font-semibold text-lg">Hello, {user?.displayName?.split(' ')[0] || 'Tutorin'}!</h3>
+            <AIBuddy className="w-24 h-24 mx-auto mb-4" {...customizations} />
+            <h3 className="font-semibold text-lg">Hello, {user?.displayName?.split(' ')[0] || 'there'}!</h3>
             <div className="mt-6 space-y-3">
                 {conversationStarters.map(starter => (
                     <Button key={starter.text} variant="outline" className="w-full justify-between h-auto py-3" onClick={() => onStartChatWithPrompt(starter.text)}>
@@ -544,4 +544,5 @@ export default function NewNotePage() {
         </div>
     );
 }
+
 
