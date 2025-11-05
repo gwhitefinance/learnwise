@@ -24,8 +24,8 @@ import { useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { generateSummary, generateFlashcardsFromNote, generateQuizFromNote } from '@/lib/actions';
-import ListenToNote from '@/components/ListenToNote';
 import Image from 'next/image';
+import Link from 'next/link';
 
 type Unit = {
     id: string;
@@ -131,12 +131,6 @@ const TodoListItem = ({ note, onDelete, onToggleComplete }: { note: Note, onDele
 export default function NotesPage() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
-  const [isNoteDialogOpen, setNoteDialogOpen] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [newNoteTitle, setNewNoteTitle] = useState('');
-  const [newNoteContent, setNewNoteContent] = useState('');
-  const [newNoteCourseId, setNewNoteCourseId] = useState<string | undefined>(undefined);
-  const [newNoteUnitId, setNewNoteUnitId] = useState<string | undefined>(undefined);
   const [activeTab, setActiveTab] = useState('all');
 
   const [filterCourseId, setFilterCourseId] = useState<string | null>(null);
@@ -160,8 +154,6 @@ export default function NotesPage() {
   const router = useRouter();
   const { toast } = useToast();
   
-  const colors = ['bg-red-100 dark:bg-red-900/20', 'bg-yellow-100 dark:bg-yellow-900/20', 'bg-green-100 dark:bg-green-900/20', 'bg-blue-100 dark:bg-blue-900/20', 'bg-purple-100 dark:bg-purple-900/20', 'bg-indigo-100 dark:bg-indigo-900/20'];
-
   useEffect(() => {
     const storedLearnerType = localStorage.getItem('learnerType');
     setLearnerType(storedLearnerType ?? 'Unknown');
@@ -202,80 +194,6 @@ export default function NotesPage() {
         unsubscribeCourses();
     }
   }, [user, authLoading, router]);
-  
-  const resetNewNoteForm = () => {
-    setNewNoteTitle('');
-    setNewNoteContent('');
-    setNewNoteCourseId(undefined);
-    setNewNoteUnitId(undefined);
-  };
-
-  const handleAddNote = async () => {
-    if (!newNoteTitle || !user) {
-      toast({
-        variant: 'destructive',
-        title: 'Title is required',
-        description: 'Please enter a title for your note.',
-      });
-      return;
-    }
-    
-    setIsSaving(true);
-    const tempId = crypto.randomUUID();
-    const noteData: Note = {
-      id: tempId,
-      title: newNoteTitle,
-      content: newNoteContent,
-      date: new Date(),
-      color: colors[Math.floor(Math.random() * colors.length)],
-      isImportant: false,
-      isCompleted: false,
-      userId: user.uid,
-      courseId: newNoteCourseId,
-      unitId: newNoteUnitId,
-    };
-
-    setNotes(prev => [noteData, ...prev]);
-    setNoteDialogOpen(false);
-    resetNewNoteForm();
-    setIsSaving(false);
-
-    try {
-        const docData: Omit<Note, 'id' | 'date'> & { date: Timestamp } = {
-            title: newNoteTitle,
-            content: newNoteContent,
-            date: Timestamp.fromDate(new Date()),
-            color: colors[Math.floor(Math.random() * colors.length)],
-            isImportant: false,
-            isCompleted: false,
-            userId: user.uid,
-        };
-
-        if (newNoteCourseId) {
-            docData.courseId = newNoteCourseId;
-        }
-        if (newNoteUnitId) {
-            docData.unitId = newNoteUnitId;
-        }
-
-        const docRef = await addDoc(collection(db, "notes"), docData);
-
-        setNotes(prev => prev.map(n => n.id === tempId ? { ...n, id: docRef.id } : n));
-
-        toast({
-            title: 'Note Created!',
-            description: 'Your new note has been saved.',
-        });
-    } catch(error) {
-        console.error("Error adding note: ", error);
-        setNotes(prev => prev.filter(n => n.id !== tempId));
-        toast({
-            variant: 'destructive',
-            title: 'Error',
-            description: 'Could not save note. Please try again.',
-        });
-    }
-  };
   
   const handleDeleteNote = async (id: string) => {
     try {
@@ -396,78 +314,22 @@ export default function NotesPage() {
     return [];
   };
   
-  const handleGeneratedNote = (title: string, content: string) => {
-      setNewNoteTitle(title);
-      setNewNoteContent(content);
-      setNoteDialogOpen(true);
-  }
-
   const displayedNotes = getFilteredNotes();
   const selectedCourseForFilter = courses.find(c => c.id === filterCourseId);
-
-  const selectedCourseForDialog = courses.find(c => c.id === newNoteCourseId);
 
   return (
     <>
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Notes</h1>
-        <Dialog open={isNoteDialogOpen} onOpenChange={setNoteDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" /> New Note
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create a New Note</DialogTitle>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="note-title">Title</Label>
-                <Input id="note-title" value={newNoteTitle} onChange={(e) => setNewNoteTitle(e.target.value)} placeholder="Note title"/>
-              </div>
-               <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                      <Label htmlFor="note-course">Course (Optional)</Label>
-                      <Select value={newNoteCourseId} onValueChange={setNewNoteCourseId}>
-                          <SelectTrigger id="note-course"><SelectValue placeholder="Select Course" /></SelectTrigger>
-                          <SelectContent>
-                              {courses.map(course => (
-                                  <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>
-                              ))}
-                          </SelectContent>
-                      </Select>
-                  </div>
-                  <div className="grid gap-2">
-                      <Label htmlFor="note-unit">Unit (Optional)</Label>
-                      <Select value={newNoteUnitId} onValueChange={setNewNoteUnitId} disabled={!newNoteCourseId || !selectedCourseForDialog?.units || selectedCourseForDialog.units.length === 0}>
-                          <SelectTrigger id="note-unit"><SelectValue placeholder="Select Unit" /></SelectTrigger>
-                          <SelectContent>
-                              {selectedCourseForDialog?.units?.map(unit => (
-                                  <SelectItem key={unit.id} value={unit.id}>{unit.name}</SelectItem>
-                              ))}
-                          </SelectContent>
-                      </Select>
-                  </div>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="note-content">Content</Label>
-                <Textarea id="note-content" value={newNoteContent} onChange={(e) => setNewNoteContent(e.target.value)} placeholder="Write your note here..."/>
-              </div>
-            </div>
-            <DialogFooter>
-              <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
-              <Button onClick={handleAddNote} disabled={isSaving}>
-                {isSaving ? "Saving..." : "Save Note"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+         <Button asChild>
+            <Link href="/dashboard/notes/new">
+                <Plus className="mr-2 h-4 w-4" /> New Note
+            </Link>
+        </Button>
       </div>
 
        <div className="flex flex-col md:flex-row gap-4">
-          <ListenToNote onNoteGenerated={handleGeneratedNote}/>
           <div className="flex gap-4">
               <Select value={filterCourseId || 'all'} onValueChange={val => { setFilterCourseId(val); setFilterUnitId(null); }}>
                   <SelectTrigger className="w-[220px]"><SelectValue placeholder="Filter by Course" /></SelectTrigger>
