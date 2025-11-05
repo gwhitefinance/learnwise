@@ -32,7 +32,13 @@ const prompt = ai.definePrompt({
     5.  **Mathematical Notation**: For ALL mathematical expressions, especially exponents and fractions, use proper notation. For example, use 'x²' instead of 'x^2', and use Unicode characters like '½' for fractions instead of '1/2'.
     6.  **Overall Length**: The entire chapter, combining all text and question blocks, should feel comprehensive and educational.
 
-    **Image Instruction**: Find a single, high-quality, and relevant image URL from a royalty-free source. The image MUST be exactly 600px wide and 400px high. For example, you can use 'https://picsum.photos/seed/{{chapterTitle}}/600/400' as a reliable source for placeholders, or find a real image from Unsplash or Pexels that fits the 600x400 dimension. The 'imageUrl' field should be this direct URL. If you cannot find a suitable image, use 'https://picsum.photos/seed/default/600/400'.
+    **Image Instruction**:
+    1.  **Relevance is Key**: Find a single, high-quality, and **highly relevant** image URL from a royalty-free source (like Unsplash, Pexels, Pixabay). The image's subject matter MUST directly relate to the chapter title: '{{chapterTitle}}'.
+    2.  **Image Type**:
+        - For abstract or technical topics (e.g., Math, Science, Programming), prioritize finding a clear, simple **diagram, chart, or infographic** that visually explains the core concept.
+        - For other topics (e.g., History, Literature), a high-quality photo is acceptable.
+    3.  **Dimensions**: The image MUST be exactly 600px wide and 400px high.
+    4.  **Fallback**: If you absolutely cannot find a relevant image, use 'https://picsum.photos/seed/{{chapterTitle}}/600/400' as a last resort. The 'imageUrl' field should be this direct URL.
 
     The user is a {{learnerType}} learner. Tailor the content and the interactive activity accordingly.
     
