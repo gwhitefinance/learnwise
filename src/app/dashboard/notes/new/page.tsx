@@ -287,7 +287,7 @@ const ChatHomeScreen = ({ onStartChatWithPrompt }: { onStartChatWithPrompt: (pro
 
     return (
         <div className="p-6 text-center h-full flex flex-col justify-center">
-            <AIBuddy className="w-12 h-12 mx-auto mb-4" />
+            <AIBuddy className="w-8 h-8 mx-auto mb-4" />
             <h3 className="font-semibold text-lg">Hello, {user?.displayName?.split(' ')[0] || 'Tutorin'}!</h3>
             <div className="mt-6 space-y-3">
                 {conversationStarters.map(starter => (
@@ -387,8 +387,8 @@ export default function NewNotePage() {
         }
     };
 
-    const handleSendMessage = async () => {
-        const messageContent = chatInput.trim();
+    const handleSendMessage = async (prompt?: string) => {
+        const messageContent = prompt || chatInput.trim();
         if (!messageContent || !user) return;
     
         const userMessage: Message = { role: 'user', content: messageContent };
