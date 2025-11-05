@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useState, useEffect, useRef, useContext, Suspense } from 'react';
@@ -104,7 +105,7 @@ function PracticeQuizComponent() {
     const [answers, setAnswers] = useState<AnswerFeedback[]>([]);
     const [learnerType, setLearnerType] = useState<string | null>(null);
     const [quizMode, setQuizMode] = useState<'practice' | 'quizfetch' | null>(null);
-    const [creationSource, setCreationSource] = useState<'materials' | 'flashcards' | null>(null);
+    const [creationSource, setCreationSource] = useState<'course' | 'prompt' | null>(null);
     
     const { toast } = useToast();
     const [user, authLoading] = useAuthState(auth);
@@ -349,7 +350,7 @@ function PracticeQuizComponent() {
                         coins: increment(coinsEarned)
                     });
                     showReward({ type: 'coins', amount: coinsEarned });
-                    toast({ title: "Quiz Complete!", description: `You earned ${'${coinsEarned}'} coins!`});
+                    toast({ title: "Quiz Complete!", description: `You earned ${coinsEarned} coins!`});
 
                 } catch(e) {
                     console.error("Error awarding coins:", e);
@@ -539,15 +540,15 @@ function PracticeQuizComponent() {
                  <div className="w-full space-y-6">
                     <h2 className="text-xl font-semibold text-left">How would you like to create your test?</h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <button onClick={() => {setCreationSource('materials'); setQuizState('topic-selection');}} className={cn("p-6 rounded-lg text-left transition-all border-2", creationSource === 'materials' ? 'border-primary bg-primary/10' : 'bg-muted/50 border-transparent hover:border-primary/50')}>
+                        <button onClick={() => {setCreationSource('course'); setQuizState('topic-selection');}} className={cn("p-6 rounded-lg text-left transition-all border-2", creationSource === 'course' ? 'border-primary bg-primary/10' : 'bg-muted/50 border-transparent hover:border-primary/50')}>
                             <div className="mb-4 bg-background p-2 rounded-md inline-block border"><FileText className="h-6 w-6 text-primary"/></div>
-                            <h3 className="font-semibold">From Materials</h3>
-                            <p className="text-sm text-muted-foreground">Create a test from your Study Set materials.</p>
+                            <h3 className="font-semibold">From Course</h3>
+                            <p className="text-sm text-muted-foreground">Create a test from your course materials.</p>
                         </button>
-                        <button onClick={() => {setCreationSource('flashcards'); setQuizState('topic-selection');}} className={cn("p-6 rounded-lg text-left transition-all border-2", creationSource === 'flashcards' ? 'border-primary bg-primary/10' : 'bg-muted/50 border-transparent hover:border-primary/50')}>
+                        <button onClick={() => {setCreationSource('prompt'); setQuizState('topic-selection');}} className={cn("p-6 rounded-lg text-left transition-all border-2", creationSource === 'prompt' ? 'border-primary bg-primary/10' : 'bg-muted/50 border-transparent hover:border-primary/50')}>
                              <div className="mb-4 bg-background p-2 rounded-md inline-block border"><CopyIcon className="h-6 w-6 text-primary"/></div>
-                            <h3 className="font-semibold">From Flashcards</h3>
-                            <p className="text-sm text-muted-foreground">Create a test from your Study Set flashcards.</p>
+                            <h3 className="font-semibold">From Prompt</h3>
+                            <p className="text-sm text-muted-foreground">Create a test from a topic or prompt.</p>
                         </button>
                     </div>
                 </div>
@@ -567,19 +568,31 @@ function PracticeQuizComponent() {
                 </div>
                 <Card className="w-full max-w-2xl">
                     <CardContent className="p-6 space-y-6">
-                        <div className="space-y-2">
-                             <Label htmlFor="course">Course</Label>
-                             <Select onValueChange={setSelectedCourseId} value={selectedCourseId ?? ''} disabled={courses.length === 0}>
-                                <SelectTrigger id="course">
-                                    <SelectValue placeholder={courses.length > 0 ? "Select a course..." : "No courses found"} />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {courses.map(course => (
-                                        <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
+                        {creationSource === 'course' || quizMode === 'practice' ? (
+                            <div className="space-y-2">
+                                <Label htmlFor="course">Course</Label>
+                                <Select onValueChange={setSelectedCourseId} value={selectedCourseId ?? ''} disabled={courses.length === 0}>
+                                    <SelectTrigger id="course">
+                                        <SelectValue placeholder={courses.length > 0 ? "Select a course..." : "No courses found"} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {courses.map(course => (
+                                            <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        ) : (
+                             <div className="space-y-2">
+                                <Label htmlFor="topics">Topic(s)</Label>
+                                <Input
+                                    id="topics"
+                                    placeholder="e.g., The Cell Cycle, American Revolution"
+                                    value={topics}
+                                    onChange={(e) => setTopics(e.target.value)}
+                                />
+                            </div>
+                        )}
                         <div className="space-y-2">
                             <Label htmlFor="language">Language</Label>
                             <Select value={language} onValueChange={setLanguage}>
@@ -603,7 +616,7 @@ function PracticeQuizComponent() {
                     </CardContent>
                     <CardFooter className="flex justify-between p-6 bg-muted/50 border-t">
                         <Button variant="ghost" onClick={() => setQuizState(quizMode === 'practice' ? 'source-selection' : 'start')}>Back</Button>
-                        <Button onClick={() => setQuizState('configuring')} disabled={!selectedCourseId}>Next</Button>
+                        <Button onClick={() => setQuizState('configuring')} disabled={creationSource === 'course' && !selectedCourseId}>Next</Button>
                     </CardFooter>
                 </Card>
             </div>
