@@ -95,7 +95,9 @@
             "isCompleted": { "type": "boolean" },
             "userId": { "type": "string" },
             "courseId": { "type": "string" },
-            "unitId": { "type": "string" }
+            "unitId": { "type": "string" },
+            "isWhiteboardNote": { "type": "boolean"},
+            "imageUrl": { "type": "string", "format": "uri" }
         }
     },
     "chatSession": {

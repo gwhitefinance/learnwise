@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useContext, Suspense, useRef } from 'react';
@@ -101,23 +102,42 @@ type InlineQuizState = {
     feedback?: 'correct' | 'incorrect' | null;
 };
 
-const ChapterImage = ({ title }: { title: string }) => {
-    const [imageUrl, setImageUrl] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+const ChapterImage = ({ course, module, chapter }: { course: Course, module: Module, chapter: Chapter }) => {
+    const [imageUrl, setImageUrl] = useState<string | null>(chapter.imageUrl || null);
+    const [isLoading, setIsLoading] = useState(!chapter.imageUrl);
 
     useEffect(() => {
-        setIsLoading(true);
-        generateImage({ prompt: `Create a clear, simple, and professional-looking diagram, infographic, or 3D render that visually explains the following academic concept. The image MUST directly illustrate the concept provided. For abstract subjects like Math, Science, or Programming, you MUST prioritize finding a clear, simple diagram, chart, or infographic. For other subjects, you can find a high-quality photo. Do NOT generate images of computer code, abstract art, or people unless they are directly relevant to illustrating the concept. Concept: "${title}"` })
-            .then(result => {
-                setImageUrl(result.imageUrl);
-            })
-            .catch(error => {
-                console.error("Failed to generate image for chapter:", error);
-            })
-            .finally(() => {
-                setIsLoading(false);
-            });
-    }, [title]);
+        if (!chapter.imageUrl) {
+            setIsLoading(true);
+            generateImage({ prompt: `Create a clear, simple, and professional-looking diagram, infographic, or 3D render that visually explains the following academic concept. The image MUST directly illustrate the concept provided. For abstract subjects like Math, Science, or Programming, you MUST prioritize finding a clear, simple diagram, chart, or infographic. For other subjects, you can find a high-quality photo. Do NOT generate images of computer code, abstract art, or people unless they are directly relevant to illustrating the concept. Concept: "${chapter.title}"` })
+                .then(async (result) => {
+                    if (result.imageUrl) {
+                        setImageUrl(result.imageUrl);
+
+                        // Save the URL to Firestore
+                        const courseRef = doc(db, 'courses', course.id);
+                        const updatedUnits = course.units!.map(m => {
+                            if (m.id === module.id) {
+                                return {
+                                    ...m,
+                                    chapters: m.chapters.map(c => 
+                                        c.id === chapter.id ? { ...c, imageUrl: result.imageUrl } : c
+                                    )
+                                };
+                            }
+                            return m;
+                        });
+                        await updateDoc(courseRef, { units: updatedUnits });
+                    }
+                })
+                .catch(error => {
+                    console.error("Failed to generate image for chapter:", error);
+                })
+                .finally(() => {
+                    setIsLoading(false);
+                });
+        }
+    }, [chapter.title, chapter.imageUrl, course, module, chapter.id]);
 
     if (isLoading) {
         return <Skeleton className="h-full w-full bg-muted" />;
@@ -131,7 +151,7 @@ const ChapterImage = ({ title }: { title: string }) => {
         <div className="relative w-full h-full">
             <Image 
                 src={imageUrl} 
-                alt={title || 'Chapter image'} 
+                alt={chapter.title || 'Chapter image'} 
                 fill
                 className="rounded-lg object-contain" 
             />
@@ -1457,29 +1477,29 @@ function CoursesComponent() {
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-background z-50 flex flex-col p-4"
           >
-            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 overflow-hidden">
-              <div className="relative h-full bg-muted rounded-lg flex items-center justify-center p-4">
-                <ChapterImage title={activeCourse.units?.[currentModuleIndex]?.chapters[slideshowChapterIndex]?.title || ''} />
-              </div>
-              <div className="h-full flex flex-col">
-                 <h2 className="text-3xl font-bold mb-4 flex-shrink-0">{activeCourse.units?.[currentModuleIndex]?.chapters[slideshowChapterIndex]?.title}</h2>
-                 <ScrollArea className="flex-1">
-                    <div className="text-muted-foreground leading-relaxed space-y-4 whitespace-pre-wrap pr-4">
-                        {(() => {
-                            const chapterContent = activeCourse.units?.[currentModuleIndex]?.chapters[slideshowChapterIndex]?.content;
-                            if (Array.isArray(chapterContent)) {
-                                return chapterContent.map((block, index) => {
-                                    if (block.type === 'text') return <p key={index}>{block.content}</p>;
-                                    return null;
-                                });
-                            }
-                            return <p>{chapterContent}</p>;
-                        })()}
-                    </div>
-                </ScrollArea>
-              </div>
+             <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 overflow-hidden">
+                <div className="relative h-full bg-muted rounded-lg flex items-center justify-center p-4">
+                    {currentModule && <ChapterImage course={activeCourse} module={currentModule} chapter={currentModule.chapters[slideshowChapterIndex]} />}
+                </div>
+                <div className="h-full flex flex-col">
+                    <h2 className="text-3xl font-bold mb-4 flex-shrink-0">{activeCourse.units?.[currentModuleIndex]?.chapters[slideshowChapterIndex]?.title}</h2>
+                    <ScrollArea className="flex-1 pr-4">
+                        <div className="text-muted-foreground leading-relaxed space-y-4 whitespace-pre-wrap">
+                            {(() => {
+                                const chapterContent = activeCourse.units?.[currentModuleIndex]?.chapters[slideshowChapterIndex]?.content;
+                                if (Array.isArray(chapterContent)) {
+                                    return chapterContent.map((block, index) => {
+                                        if (block.type === 'text') return <p key={index}>{block.content}</p>;
+                                        return null;
+                                    });
+                                }
+                                return <p>{chapterContent}</p>;
+                            })()}
+                        </div>
+                    </ScrollArea>
+                </div>
             </div>
-            <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 flex justify-center items-center gap-4">
+             <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 flex justify-center items-center gap-4">
               <Button variant="outline" size="icon" onClick={() => setSlideshowChapterIndex(p => Math.max(0, p - 1))} disabled={slideshowChapterIndex === 0}>
                 <ChevronLeft />
               </Button>
@@ -1699,7 +1719,7 @@ function CoursesComponent() {
                      <h1 className="text-4xl font-bold">{currentChapter.title}</h1>
                      
                       <div className="relative w-full aspect-video mb-6">
-                        <ChapterImage title={currentChapter.title} />
+                        <ChapterImage course={activeCourse} module={currentModule} chapter={currentChapter} />
                     </div>
                      
                       {isChapterContentLoading[currentChapter.id] ? (
