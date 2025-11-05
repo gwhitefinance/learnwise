@@ -42,29 +42,17 @@ type QuizState = 'start' | 'source-selection' | 'topic-selection' | 'configuring
 type AnswerState = 'unanswered' | 'answered';
 type AnswerFeedback = { question: string; answer: string; correctAnswer: string; isCorrect: boolean; explanation?: string; };
 
-const examSpecificTypes = [
-    {
-        category: 'Med School',
-        exams: ['NCLEX', 'USMLE Step 1', 'USMLE Step 2', 'MCAT Biology', 'MCAT Chemistry', 'MCAT Physics', 'MCAT Psychology', 'PANCE', 'PANRE'],
-    },
-    {
-        category: 'Finance',
-        exams: ['Series 7', 'Series 63', 'Series 65', 'Series 66', 'CFA Level I', 'CFA Level II', 'CFA Level III', 'CFP'],
-    },
-    {
-        category: 'AP Exams',
-        exams: [
-            'AP Art History', 'AP Biology', 'AP Calculus AB', 'AP Calculus BC', 'AP Chemistry', 'AP Chinese Language', 'AP Comparative Government', 'AP Computer Science A', 'AP Computer Science Principles',
-            'AP English Language', 'AP English Literature', 'AP Environmental Science', 'AP European History', 'AP French Language', 'AP German Language', 'AP Human Geography',
-            'AP Italian Language', 'AP Japanese Language', 'AP Latin', 'AP Macroeconomics', 'AP Microeconomics', 'AP Music Theory', 'AP Physics 1', 'AP Physics 2', 'AP Physics C: E&M',
-            'AP Physics C: Mechanics', 'AP Psychology', 'AP Spanish Language', 'AP Spanish Literature', 'AP Statistics', 'AP US Government', 'AP US History', 'AP World History'
-        ],
-    },
-    {
-        category: 'Law School',
-        exams: ['LSAT', 'Bar Exam (MBE)', 'MPRE'],
-    },
-];
+const examSpecificTypes = {
+    'Med School': ['NCLEX', 'USMLE Step 1', 'USMLE Step 2', 'MCAT Biology', 'MCAT Chemistry', 'MCAT Physics', 'MCAT Psychology', 'PANCE', 'PANRE'],
+    'Finance': ['Series 7', 'Series 63', 'Series 65', 'Series 66', 'CFA Level I', 'CFA Level II', 'CFA Level III', 'CFP'],
+    'AP Exams': [
+        'AP Art History', 'AP Biology', 'AP Calculus AB', 'AP Calculus BC', 'AP Chemistry', 'AP Chinese Language', 'AP Comparative Government', 'AP Computer Science A', 'AP Computer Science Principles',
+        'AP English Language', 'AP English Literature', 'AP Environmental Science', 'AP European History', 'AP French Language', 'AP German Language', 'AP Human Geography',
+        'AP Italian Language', 'AP Japanese Language', 'AP Latin', 'AP Macroeconomics', 'AP Microeconomics', 'AP Music Theory', 'AP Physics 1', 'AP Physics 2', 'AP Physics C: E&M',
+        'AP Physics C: Mechanics', 'AP Psychology', 'AP Spanish Language', 'AP Spanish Literature', 'AP Statistics', 'AP US Government', 'AP US History', 'AP World History'
+    ],
+    'Law School': ['LSAT', 'Bar Exam (MBE)', 'MPRE'],
+};
 
 type QuestionCounts = {
     'Multiple Choice': number;
@@ -72,7 +60,7 @@ type QuestionCounts = {
     'Free Response (FRQ)': number;
     'True or False': number;
     'Fill in the Blank': number;
-    [examName: string]: number; // For dynamic exam types
+    [examName: string]: number;
 };
 
 function PracticeQuizComponent() {
@@ -210,7 +198,7 @@ function PracticeQuizComponent() {
 
     const handleGenerateQuiz = async () => {
         let finalTopics = topics;
-        if (quizMode === 'practice' && selectedCourseId) {
+        if ((creationSource === 'course' || quizMode === 'practice') && selectedCourseId) {
             const course = courses.find(c => c.id === selectedCourseId);
             finalTopics = course?.name || topics;
         }
@@ -530,23 +518,23 @@ function PracticeQuizComponent() {
         )
     }
 
-     if (quizState === 'source-selection') {
+    if (quizState === 'source-selection') {
         return (
             <div className="flex flex-col items-center max-w-2xl mx-auto">
                 <div className="w-full text-left mb-10">
                     <h1 className="text-4xl font-bold">Create a Test</h1>
                     <p className="text-muted-foreground mt-2">Generate a practice test from your study set, and get ready for your test.</p>
                 </div>
-                 <div className="w-full space-y-6">
+                <div className="w-full space-y-6">
                     <h2 className="text-xl font-semibold text-left">How would you like to create your test?</h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <button onClick={() => {setCreationSource('course'); setQuizState('topic-selection');}} className={cn("p-6 rounded-lg text-left transition-all border-2", creationSource === 'course' ? 'border-primary bg-primary/10' : 'bg-muted/50 border-transparent hover:border-primary/50')}>
-                            <div className="mb-4 bg-background p-2 rounded-md inline-block border"><FileText className="h-6 w-6 text-primary"/></div>
+                            <div className="mb-4 bg-background p-2 rounded-md inline-block border"><BookOpen className="h-6 w-6 text-primary"/></div>
                             <h3 className="font-semibold">From Course</h3>
                             <p className="text-sm text-muted-foreground">Create a test from your course materials.</p>
                         </button>
                         <button onClick={() => {setCreationSource('prompt'); setQuizState('topic-selection');}} className={cn("p-6 rounded-lg text-left transition-all border-2", creationSource === 'prompt' ? 'border-primary bg-primary/10' : 'bg-muted/50 border-transparent hover:border-primary/50')}>
-                             <div className="mb-4 bg-background p-2 rounded-md inline-block border"><CopyIcon className="h-6 w-6 text-primary"/></div>
+                            <div className="mb-4 bg-background p-2 rounded-md inline-block border"><FileText className="h-6 w-6 text-primary"/></div>
                             <h3 className="font-semibold">From Prompt</h3>
                             <p className="text-sm text-muted-foreground">Create a test from a topic or prompt.</p>
                         </button>
@@ -558,17 +546,17 @@ function PracticeQuizComponent() {
             </div>
         )
     }
-
+    
     if (quizState === 'topic-selection') {
         return (
             <div className="flex flex-col items-center">
                 <div className="text-center mb-10 w-full max-w-2xl">
                     <h1 className="text-4xl font-bold">Test Details</h1>
-                    <p className="text-muted-foreground mt-2">Select a course and specify the details for your test.</p>
+                    <p className="text-muted-foreground mt-2">Select a source and specify the details for your test.</p>
                 </div>
                 <Card className="w-full max-w-2xl">
                     <CardContent className="p-6 space-y-6">
-                        {creationSource === 'course' || quizMode === 'practice' ? (
+                        {creationSource === 'course' ? (
                             <div className="space-y-2">
                                 <Label htmlFor="course">Course</Label>
                                 <Select onValueChange={setSelectedCourseId} value={selectedCourseId ?? ''} disabled={courses.length === 0}>
@@ -652,11 +640,11 @@ function PracticeQuizComponent() {
                             <h3 className="font-semibold text-lg">Exam-Specific Question Types</h3>
                             <p className="text-sm text-muted-foreground">Choose specialized question formats for various standardized exams</p>
                              <Accordion type="multiple" className="w-full space-y-2">
-                                 {examSpecificTypes.map(section => (
-                                    <AccordionItem key={section.category} value={section.category} className="border rounded-lg bg-muted/30 px-4">
-                                        <AccordionTrigger className="hover:no-underline">{section.category}</AccordionTrigger>
+                                 {Object.entries(examSpecificTypes).map(([category, exams]) => (
+                                    <AccordionItem key={category} value={category} className="border rounded-lg bg-muted/30 px-4">
+                                        <AccordionTrigger className="hover:no-underline">{category}</AccordionTrigger>
                                         <AccordionContent className="p-2 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
-                                            {section.exams.map(exam => (
+                                            {exams.map(exam => (
                                                 <div key={exam} className="flex items-center justify-between">
                                                     <Label htmlFor={exam} className="text-sm">{exam}</Label>
                                                     <Input 
@@ -907,3 +895,5 @@ export default function PracticeQuizPage() {
         </Suspense>
     )
 }
+
+    
