@@ -3,100 +3,60 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import {
-  FileText,
-  Sparkles,
-  Clock,
-  Mic,
-  Bold,
-  Italic,
-  Underline,
-  Strikethrough,
-  Highlighter,
-  Palette,
-  AlignLeft,
-  AlignCenter,
-  AlignRight,
-  List,
-  ListOrdered,
-  Search,
-  Home,
-  BookCopy,
-  Calendar,
-  MessageSquare,
-  FlaskConical,
-  Edit,
-  GraduationCap,
-  Gamepad2,
-  FileSignature,
-  Clapperboard,
-  Music,
-  Plus,
-  FolderPlus,
-  Flame,
-  ChevronDown,
-  Upload,
-  Link as LinkIcon,
-  Bell,
-  Info,
-  Users,
-  ArrowRight,
-  X,
-  Globe,
-  ArrowUp,
-  MicOff,
-  Image as ImageIcon
-} from 'lucide-react';
+import { FileText, Sparkles, Clock, Mic, Bold, Italic, Underline, Strikethrough, Highlighter, Palette, AlignLeft, AlignCenter, AlignRight, List, ListOrdered, Search, Home, BookCopy, Calendar, MessageSquare, FlaskConical, Edit, GraduationCap, Gamepad2, FileSignature, Clapperboard, Music, Plus, FolderPlus, Flame, ChevronDown, Upload, Link as LinkIcon, Bell, Info, Users, ArrowRight, X, Globe, ArrowUp, MicOff, Image as ImageIcon, Undo, Redo, Printer, Expand, Type } from 'lucide-react';
 import Image from 'next/image';
-import Logo from '@/components/Logo';
 import { Input } from '@/components/ui/input';
 
-const navItems = [
-    { icon: <Home size={20} />, label: 'Home', href: '#' },
-    { icon: <BookCopy size={20} />, label: 'My Sets', href: '#' },
-    { icon: <Calendar size={20} />, label: 'Calendar', href: '#' },
-];
-
-const activeNavItem = "Sat MAth";
-
-const toolItems = [
-    { icon: <MessageSquare size={20}/>, label: "Chat" },
-    { icon: <Mic size={20}/>, label: "Live Lecture" },
-    { icon: <FlaskConical size={20}/>, label: "Flashcards" },
-    { icon: <Edit size={20}/>, label: "Tests & QuizFetch" },
-    { icon: <GraduationCap size={20}/>, label: "Tutor Me" },
-    { icon: <Gamepad2 size={20}/>, label: "Arcade" },
-    { icon: <FileSignature size={20}/>, label: "Essay Grading" },
-    { icon: <Clapperboard size={20}/>, label: "Explainers" },
-    { icon: <Music size={20}/>, label: "Audio Recap" },
-    { icon: <BookCopy size={20}/>, label: "Notes & Materials" },
-];
-
-const notes = [
-    { title: "Technical Analysis Tools" },
-    { title: "Risk Management Strate..." },
-];
-
 const EditorToolbar = () => (
-    <div className="p-4 border-b border-gray-200 dark:border-gray-800">
-        <div className="flex items-center space-x-2 text-gray-500 dark:text-gray-400">
-            <button className="flex items-center gap-1 px-2 py-1 rounded bg-gray-100 dark:bg-gray-800 text-sm">Arial <ChevronDown className="h-4 w-4" /></button>
-            <button className="flex items-center gap-1 px-2 py-1 rounded bg-gray-100 dark:bg-gray-800 text-sm">11 <ChevronDown className="h-4 w-4" /></button>
-            <div className="h-6 w-px bg-gray-200 dark:bg-gray-700"></div>
-            <button className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"><Bold size={16} /></button>
-            <button className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"><Italic size={16} /></button>
-            <button className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"><Underline size={16} /></button>
-            <button className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"><Strikethrough size={16} /></button>
-            <div className="h-6 w-px bg-gray-200 dark:bg-gray-700"></div>
-            <button className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"><Highlighter size={16} /></button>
-            <button className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"><Palette size={16} /></button>
-            <div className="h-6 w-px bg-gray-200 dark:bg-gray-700"></div>
-            <button className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"><AlignLeft size={16} /></button>
-            <button className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"><AlignCenter size={16} /></button>
-            <button className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"><AlignRight size={16} /></button>
-            <div className="h-6 w-px bg-gray-200 dark:bg-gray-700"></div>
-            <button className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"><List size={16} /></button>
-            <button className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"><ListOrdered size={16} /></button>
+    <div className="bg-gray-100 dark:bg-gray-900/50 rounded-lg">
+        <div className="px-4 pt-2">
+            <nav className="flex items-center">
+                <a className="flex items-center gap-2 px-3 py-2 rounded-t-md bg-white dark:bg-gray-900 text-primary font-semibold text-sm" href="#">
+                    <FileText size={16}/>
+                    Self Written Notes
+                </a>
+                <a className="flex items-center gap-2 px-3 py-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 font-medium text-sm" href="#">
+                    <Sparkles size={16}/>
+                    Enhanced Notes
+                </a>
+                <a className="flex items-center gap-2 px-3 py-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 font-medium text-sm" href="#">
+                    <Clock size={16}/>
+                    Lecture Transcript
+                </a>
+                <a className="flex items-center gap-2 px-3 py-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 font-medium text-sm" href="#">
+                    <Music size={16}/>
+                    Audio Files
+                </a>
+            </nav>
+        </div>
+        <div className="p-2 border-t border-gray-200 dark:border-gray-800">
+            <div className="flex items-center space-x-2 text-gray-500 dark:text-gray-400">
+                <button className="flex items-center gap-1 px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800 text-sm">Arial <ChevronDown className="h-4 w-4" /></button>
+                <button className="flex items-center gap-1 px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800 text-sm">11 <ChevronDown className="h-4 w-4" /></button>
+                <div className="h-6 w-px bg-gray-300 dark:bg-gray-700"></div>
+                <button className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800"><Bold size={18} /></button>
+                <button className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800"><Italic size={18} /></button>
+                <button className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800"><Underline size={18} /></button>
+                <button className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800"><Strikethrough size={18} /></button>
+                <div className="h-6 w-px bg-gray-300 dark:bg-gray-700"></div>
+                <button className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800"><Highlighter size={18} /></button>
+                <button className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800"><Palette size={18} /></button>
+                <div className="h-6 w-px bg-gray-300 dark:bg-gray-700"></div>
+                <button className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800"><AlignLeft size={18} /></button>
+                <button className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800"><AlignCenter size={18} /></button>
+                <button className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800"><AlignRight size={18} /></button>
+                <div className="h-6 w-px bg-gray-300 dark:bg-gray-700"></div>
+                <button className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800"><List size={18} /></button>
+                <button className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800"><ListOrdered size={18} /></button>
+                 <div className="h-6 w-px bg-gray-300 dark:bg-gray-700"></div>
+                <button className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800"><Undo size={18} /></button>
+                <button className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800"><Redo size={18} /></button>
+                 <div className="h-6 w-px bg-gray-300 dark:bg-gray-700"></div>
+                <button className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800"><Plus size={18} /></button>
+                <button className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800"><Clock size={18} /></button>
+                <button className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800"><Printer size={18} /></button>
+                <button className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800"><Expand size={18} /></button>
+            </div>
         </div>
     </div>
 );
@@ -115,7 +75,7 @@ export default function NewNotePage() {
                             </Button>
                         </div>
                         <div className="flex items-center gap-2">
-                            <Button className="gap-2 text-sm font-semibold"><Users size={16}/>Share</Button>
+                             <Button className="gap-2 text-sm font-semibold"><Users size={16}/>Share</Button>
                             <Button className="gap-2 text-sm font-semibold"><Sparkles size={16}/>Upgrade</Button>
                             <Button variant="outline" className="gap-2 text-sm font-semibold"><Info size={16}/>Feedback</Button>
                              <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
@@ -132,44 +92,15 @@ export default function NewNotePage() {
                 </header>
                 <div className="flex-1 flex flex-col p-6 overflow-y-auto">
                     <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm flex-1 flex flex-col">
-                        <div className="border-b border-gray-200 dark:border-gray-800 px-4">
-                            <nav className="flex items-center -mb-px">
-                                <a className="flex items-center gap-2 px-3 py-3 border-b-2 border-primary text-primary font-semibold text-sm" href="#">
-                                    <FileText size={16}/>
-                                    Self Written Notes
-                                </a>
-                                <a className="flex items-center gap-2 px-3 py-3 border-b-2 border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 font-medium text-sm" href="#">
-                                    <Sparkles size={16}/>
-                                    Enhanced Notes
-                                </a>
-                                <a className="flex items-center gap-2 px-3 py-3 border-b-2 border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 font-medium text-sm" href="#">
-                                    <Clock size={16}/>
-                                    Lecture Transcript
-                                </a>
-                                <a className="flex items-center gap-2 px-3 py-3 border-b-2 border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 font-medium text-sm" href="#">
-                                    <Mic size={16}/>
-                                    Audio Files
-                                </a>
-                            </nav>
-                        </div>
                         <EditorToolbar/>
                         <div className="flex-1 p-6 flex items-center justify-center">
-                            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 flex items-center gap-6">
-                                <Mic size={24} className="text-gray-400"/>
-                                <span className="text-gray-500 dark:text-gray-400">Start Recording</span>
-                                <button className="bg-primary text-white p-3 rounded-full">
-                                    <Mic />
-                                </button>
-                                <button className="text-gray-500 dark:text-gray-400">
-                                    <Sparkles/>
-                                </button>
-                            </div>
+                            {/* Editor content goes here */}
                         </div>
                     </div>
                 </div>
             </main>
             <aside className="w-80 flex-shrink-0 bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 flex flex-col">
-                <header className="flex-shrink-0 flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
+                 <header className="flex-shrink-0 flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
                     <Button variant="ghost" size="icon" className="text-gray-500 dark:text-gray-400">
                         <X size={20} />
                     </Button>
@@ -186,16 +117,14 @@ export default function NewNotePage() {
                         </div>
                         <div className="flex justify-start">
                             <div className="p-3">
-                                <span className="text-gray-400">...</span>
+                                <span className="animate-pulse text-gray-400">...</span>
                             </div>
                         </div>
                     </div>
                     <div className="mt-4">
                         <div className="relative">
                             <Input className="w-full bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-lg py-3 pl-4 pr-12 focus:ring-primary focus:border-primary" placeholder="Ask your AI tutor anything..."/>
-                            <Button size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full">
-                                <ArrowUp size={16}/>
-                            </Button>
+                            <Button size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-primary text-white"><ArrowUp size={16}/></Button>
                         </div>
                         <div className="flex items-center justify-between mt-2 px-2">
                             <div className="flex items-center gap-2">
