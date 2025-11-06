@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useState, useEffect, useRef, useContext, Suspense } from 'react';
@@ -140,6 +141,7 @@ function PracticeQuizComponent() {
     const [isStudyGuideDialogOpen, setStudyGuideDialogOpen] = useState(false);
     const [isStudyGuideLoading, setStudyGuideLoading] = useState(false);
     const [studyGuide, setStudyGuide] = useState<CrunchTimeOutput | null>(null);
+    const [isSavingGuide, setIsSavingGuide] = useState(false);
 
 
     useEffect(() => {
@@ -551,6 +553,53 @@ function PracticeQuizComponent() {
             setStudyGuideLoading(false);
         }
     }
+    
+    const handleSaveStudyGuide = async () => {
+        if (!studyGuide || !user) return;
+        
+        setIsSavingGuide(true);
+        try {
+            await addDoc(collection(db, 'studyGuides'), {
+                userId: user.uid,
+                courseId: selectedCourseId,
+                title: studyGuide.title,
+                summary: studyGuide.summary,
+                keyConcepts: studyGuide.keyConcepts,
+                studyPlan: studyGuide.studyPlan,
+                createdAt: serverTimestamp(),
+            });
+            toast({ title: "Study Guide Saved!", description: "You can find it in the 'Study Guides' tab on your course page." });
+            setStudyGuideDialogOpen(false);
+        } catch (error) {
+            console.error("Error saving study guide:", error);
+            toast({ variant: 'destructive', title: 'Save Failed' });
+        } finally {
+            setIsSavingGuide(false);
+        }
+    };
+
+    const handleExportStudyGuide = () => {
+        if (!studyGuide) return;
+        
+        let content = `Title: ${studyGuide.title}\n\n`;
+        content += `Summary:\n${studyGuide.summary}\n\n`;
+        content += `Key Concepts:\n`;
+        studyGuide.keyConcepts.forEach(c => {
+            content += `- ${c.term}: ${c.definition}\n`;
+        });
+        content += `\nStudy Plan:\n`;
+        studyGuide.studyPlan.forEach((s, i) => {
+            content += `${i + 1}. ${s.step}: ${s.description}\n`;
+        });
+
+        const blob = new Blob([content], { type: 'text/plain;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.setAttribute('download', `${studyGuide.title.replace(/\s+/g, '_')}_Study_Guide.txt`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
 
 
     const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -1217,7 +1266,14 @@ function PracticeQuizComponent() {
                                         </div>
                                     ) : <p>Could not generate study guide.</p>}
                                 </div>
-                                <DialogFooter><DialogClose asChild><Button>Close</Button></DialogClose></DialogFooter>
+                                <DialogFooter>
+                                    <Button variant="outline" onClick={handleExportStudyGuide}>Export as .txt</Button>
+                                    <Button onClick={handleSaveStudyGuide} disabled={isSavingGuide}>
+                                        {isSavingGuide ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
+                                        Save to Study Guides
+                                    </Button>
+                                    <DialogClose asChild><Button>Close</Button></DialogClose>
+                                </DialogFooter>
                             </DialogContent>
                         </Dialog>
                     </div>
@@ -1245,3 +1301,4 @@ export default function PracticeQuizPage() {
     
 
     
+
