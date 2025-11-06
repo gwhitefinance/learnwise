@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import React, { useState, useEffect, useRef, useContext, Suspense } from 'react';
@@ -16,7 +15,7 @@ import { Progress } from '@/components/ui/progress';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
-import { generateExplanation, generateHint } from '@/lib/actions';
+import { generateExplanation, generateHint, generateFlashcardsFromNote, generateCrunchTimeStudyGuide } from '@/lib/actions';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Slider } from '@/components/ui/slider';
 import AudioPlayer from '@/components/audio-player';
@@ -31,6 +30,8 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { motion, AnimatePresence } from 'framer-motion';
+import type { CrunchTimeOutput } from '@/ai/flows/crunch-time-flow';
 
 export const dynamic = "force-dynamic";
 
@@ -50,6 +51,11 @@ type QuizResult = {
     score: number;
     totalQuestions: number;
     timestamp: number;
+};
+
+type Flashcard = {
+    front: string;
+    back: string;
 };
 
 
@@ -123,6 +129,18 @@ function PracticeQuizComponent() {
     const [hint, setHint] = useState<string | null>(null);
 
     const [pastQuizzes, setPastQuizzes] = useState<QuizResult[]>([]);
+
+    // State for post-quiz tools
+    const [isFlashcardDialogOpen, setFlashcardDialogOpen] = useState(false);
+    const [isFlashcardLoading, setFlashcardLoading] = useState(false);
+    const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
+    const [currentFlashcardIndex, setCurrentFlashcardIndex] = useState(0);
+    const [isFlipped, setIsFlipped] = useState(false);
+
+    const [isStudyGuideDialogOpen, setStudyGuideDialogOpen] = useState(false);
+    const [isStudyGuideLoading, setStudyGuideLoading] = useState(false);
+    const [studyGuide, setStudyGuide] = useState<CrunchTimeOutput | null>(null);
+
 
     useEffect(() => {
         const savedQuizzes = localStorage.getItem('pastQuizzes');
@@ -490,6 +508,54 @@ function PracticeQuizComponent() {
             setIsHintLoading(false);
         }
     };
+
+    const handleGenerateFlashcards = async () => {
+        if (!quiz) return;
+
+        setFlashcardDialogOpen(true);
+        setFlashcardLoading(true);
+        setFlashcards([]);
+
+        const quizContent = quiz.questions.map(q => `Q: ${q.question}\nA: ${q.answer}`).join('\n\n');
+
+        try {
+            const result = await generateFlashcardsFromNote({
+                noteContent: quizContent,
+                learnerType: (learnerType as any) ?? 'Reading/Writing'
+            });
+            setFlashcards(result.flashcards);
+        } catch (error) {
+            console.error("Failed to generate flashcards:", error);
+            toast({ variant: 'destructive', title: 'Flashcard Generation Failed' });
+            setFlashcardDialogOpen(false);
+        } finally {
+            setFlashcardLoading(false);
+        }
+    };
+
+    const handleGenerateStudyGuide = async () => {
+        if (!quiz) return;
+        setStudyGuideDialogOpen(true);
+        setStudyGuideLoading(true);
+        setStudyGuide(null);
+
+        const content = `A quiz on the following topics: ${topics}. The questions covered were: ${quiz.questions.map(q => q.question).join(', ')}`;
+
+        try {
+            const result = await generateCrunchTimeStudyGuide({
+                inputType: 'text',
+                content: content,
+                learnerType: (learnerType as any) ?? 'Reading/Writing'
+            });
+            setStudyGuide(result);
+        } catch (error) {
+            console.error("Failed to generate study guide:", error);
+            toast({ variant: 'destructive', title: 'Study Guide Generation Failed' });
+            setStudyGuideDialogOpen(false);
+        } finally {
+            setStudyGuideLoading(false);
+        }
+    }
 
 
     const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -1078,24 +1144,87 @@ function PracticeQuizComponent() {
                  <div>
                     <h2 className="text-2xl font-bold mb-4">Keep Learning</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <Card>
-                            <CardContent className="p-6 flex items-start gap-4">
-                                <div className="p-3 bg-purple-500/10 rounded-lg text-purple-500"><Star className="h-8 w-8"/></div>
-                                <div>
-                                    <h3 className="font-semibold">Flashcards</h3>
-                                    <p className="text-sm text-muted-foreground">Create a complete set of flashcards from all your quiz material. Good for quick review and mastering key concepts.</p>
+                        <Dialog open={isFlashcardDialogOpen} onOpenChange={setFlashcardDialogOpen}>
+                            <DialogTrigger asChild>
+                                <Card className="cursor-pointer hover:bg-muted transition-colors">
+                                    <CardContent className="p-6 flex items-start gap-4">
+                                        <div className="p-3 bg-purple-500/10 rounded-lg text-purple-500"><Star className="h-8 w-8"/></div>
+                                        <div>
+                                            <h3 className="font-semibold">Flashcards</h3>
+                                            <p className="text-sm text-muted-foreground">Create a complete set of flashcards from all your quiz material. Good for quick review and mastering key concepts.</p>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </DialogTrigger>
+                             <DialogContent className="max-w-xl">
+                                <DialogHeader>
+                                    <DialogTitle className="flex items-center gap-2">Flashcards</DialogTitle>
+                                </DialogHeader>
+                                <div className="py-4">
+                                    {isFlashcardLoading ? (
+                                        <div className="flex items-center justify-center h-52"><Loader2 className="w-8 h-8 animate-spin" /></div>
+                                    ) : flashcards.length > 0 ? (
+                                        <div className="space-y-4">
+                                            <div className="text-center text-sm text-muted-foreground">Card {currentFlashcardIndex + 1} of {flashcards.length}</div>
+                                            <div className="relative w-full h-64 cursor-pointer" onClick={() => setIsFlipped(!isFlipped)}>
+                                                <AnimatePresence>
+                                                    <motion.div key={isFlipped ? 'back' : 'front'} initial={{ rotateY: isFlipped ? 180 : 0 }} animate={{ rotateY: 0 }} exit={{ rotateY: isFlipped ? 0 : -180 }} transition={{ duration: 0.5 }} style={{ backfaceVisibility: 'hidden' }} className="absolute w-full h-full p-6 flex items-center justify-center text-center rounded-lg border bg-card shadow-sm">
+                                                        <p className="text-xl font-semibold">{isFlipped ? flashcards[currentFlashcardIndex].back : flashcards[currentFlashcardIndex].front}</p>
+                                                    </motion.div>
+                                                </AnimatePresence>
+                                            </div>
+                                            <div className="flex justify-center items-center gap-4">
+                                                <Button variant="outline" size="icon" onClick={() => { setIsFlipped(false); setCurrentFlashcardIndex(prev => Math.max(0, prev - 1))}} disabled={currentFlashcardIndex === 0}><ChevronLeft className="h-4 w-4" /></Button>
+                                                <Button onClick={() => setIsFlipped(!isFlipped)}><RefreshCw className="mr-2 h-4 w-4"/> Flip Card</Button>
+                                                <Button variant="outline" size="icon" onClick={() => { setIsFlipped(false); setCurrentFlashcardIndex(prev => Math.min(flashcards.length - 1, prev + 1))}} disabled={currentFlashcardIndex === flashcards.length - 1}><ChevronRight className="h-4 w-4" /></Button>
+                                            </div>
+                                        </div>
+                                    ) : (<div className="flex items-center justify-center h-52"><p>No flashcards were generated.</p></div>)}
                                 </div>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardContent className="p-6 flex items-start gap-4">
-                                <div className="p-3 bg-green-500/10 rounded-lg text-green-500"><BookOpen className="h-8 w-8"/></div>
-                                <div>
-                                    <h3 className="font-semibold">Study guide</h3>
-                                    <p className="text-sm text-muted-foreground">Generate a comprehensive study guide based on the materials you are studying. Good for in-depth review.</p>
+                                <DialogFooter><DialogClose asChild><Button>Close</Button></DialogClose></DialogFooter>
+                            </DialogContent>
+                        </Dialog>
+                        <Dialog open={isStudyGuideDialogOpen} onOpenChange={setStudyGuideDialogOpen}>
+                             <DialogTrigger asChild>
+                                <Card className="cursor-pointer hover:bg-muted transition-colors">
+                                    <CardContent className="p-6 flex items-start gap-4">
+                                        <div className="p-3 bg-green-500/10 rounded-lg text-green-500"><BookOpen className="h-8 w-8"/></div>
+                                        <div>
+                                            <h3 className="font-semibold">Study guide</h3>
+                                            <p className="text-sm text-muted-foreground">Generate a comprehensive study guide based on the materials you are studying. Good for in-depth review.</p>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </DialogTrigger>
+                             <DialogContent className="max-w-2xl">
+                                <DialogHeader><DialogTitle>Your Study Guide for "{topics}"</DialogTitle></DialogHeader>
+                                <div className="py-4 max-h-[70vh] overflow-y-auto">
+                                    {isStudyGuideLoading ? (
+                                        <div className="flex justify-center items-center h-64"><Loader2 className="w-8 h-8 animate-spin"/></div>
+                                    ) : studyGuide ? (
+                                         <div className="space-y-6">
+                                            <div className="p-4 border rounded-lg">
+                                                <h4 className="font-semibold">Summary</h4>
+                                                <p className="text-sm text-muted-foreground">{studyGuide.summary}</p>
+                                            </div>
+                                            <div className="p-4 border rounded-lg">
+                                                <h4 className="font-semibold">Key Concepts</h4>
+                                                <ul className="list-disc list-inside mt-2 space-y-2">
+                                                    {studyGuide.keyConcepts.map(c => <li key={c.term}><span className="font-semibold">{c.term}:</span> {c.definition}</li>)}
+                                                </ul>
+                                            </div>
+                                             <div className="p-4 border rounded-lg">
+                                                <h4 className="font-semibold">Study Plan</h4>
+                                                <ol className="list-decimal list-inside mt-2 space-y-2">
+                                                     {studyGuide.studyPlan.map(s => <li key={s.step}><span className="font-semibold">{s.step}:</span> {s.description}</li>)}
+                                                </ol>
+                                            </div>
+                                        </div>
+                                    ) : <p>Could not generate study guide.</p>}
                                 </div>
-                            </CardContent>
-                        </Card>
+                                <DialogFooter><DialogClose asChild><Button>Close</Button></DialogClose></DialogFooter>
+                            </DialogContent>
+                        </Dialog>
                     </div>
                 </div>
                  <div className="flex justify-end gap-4">
@@ -1116,7 +1245,6 @@ export default function PracticeQuizPage() {
         </Suspense>
     )
 }
-
     
-
+    
     
