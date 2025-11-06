@@ -317,41 +317,84 @@ export default function NewNotePage() {
         }
     }, []);
 
-    const handleCommand = (command: string, value?: string) => {
-        if (command === 'increaseFontSize' || command === 'decreaseFontSize') {
-            const selection = window.getSelection();
-            if (!selection || selection.rangeCount === 0) return;
+    const applyStyle = (style: string, value: string) => {
+        const selection = window.getSelection();
+        if (!selection || selection.rangeCount === 0) return;
+        const range = selection.getRangeAt(0);
 
-            const range = selection.getRangeAt(0);
-            const parentElement = range.commonAncestorContainer.nodeType === Node.TEXT_NODE
-                ? range.commonAncestorContainer.parentElement
-                : range.commonAncestorContainer as HTMLElement;
-            
-            if (parentElement) {
-                const currentSize = parseInt(window.getComputedStyle(parentElement).fontSize, 10);
-                const newSize = command === 'increaseFontSize' ? currentSize + 2 : Math.max(8, currentSize - 2);
-                document.execCommand('fontSize', false, '7'); // Use a placeholder size
-                
-                const fontElements = (editorRef.current as HTMLElement).getElementsByTagName('font');
-                for (let i = 0; i < fontElements.length; i++) {
-                    const element = fontElements[i];
-                    if (element.size === '7') {
-                        element.removeAttribute('size');
-                        element.style.fontSize = `${newSize}px`;
-                    }
-                }
-            }
-        } else if (command === 'fontSize' && value) {
-            const size = parseInt(value, 10);
-            if (!isNaN(size) && size > 0) {
-                 document.execCommand('fontSize', false, '7');
+        if (range.collapsed) {
+            const span = document.createElement('span');
+            span.style.setProperty(style, value);
+            // Add a zero-width space to make the span renderable and to place the cursor
+            span.innerHTML = '&#8203;'; 
+            range.insertNode(span);
+            // Move the cursor inside the new span
+            range.setStart(span.firstChild!, 1);
+            range.collapse(true);
+            selection.removeAllRanges();
+            selection.addRange(range);
+        } else {
+            const span = document.createElement('span');
+            span.style.setProperty(style, value);
+            try {
+                // This can fail if the selection spans across different block elements
+                range.surroundContents(span);
+            } catch (e) {
+                // Fallback for complex selections: execute a command that might wrap it
+                console.error('Surround contents failed, using execCommand as fallback.', e);
+                document.execCommand('fontSize', false, '7'); // A trick to get a stylable element
                  const fontElements = (editorRef.current as HTMLElement).getElementsByTagName('font');
                 for (let i = 0; i < fontElements.length; i++) {
                     const element = fontElements[i];
-                    if (element.size === '7') {
+                    if (element.size === '7' && selection.containsNode(element, true)) {
                         element.removeAttribute('size');
-                        element.style.fontSize = `${size}px`;
+                        element.style.fontSize = value;
                     }
+                }
+            }
+        }
+        editorRef.current?.focus();
+    };
+
+
+    const handleCommand = (command: string, value?: string) => {
+        if (command === 'increaseFontSize' || command === 'decreaseFontSize' || command === 'fontSize') {
+            const selection = window.getSelection();
+            if (!selection || selection.rangeCount === 0) return;
+            
+            const range = selection.getRangeAt(0);
+            let targetElement: HTMLElement | null = null;
+            
+            if (range.startContainer.nodeType === Node.TEXT_NODE) {
+                targetElement = range.startContainer.parentElement;
+            } else {
+                targetElement = range.startContainer as HTMLElement;
+            }
+            
+            if (targetElement && targetElement.nodeName !== 'DIV') { // Check we are not at the root editor
+                const currentSize = parseInt(window.getComputedStyle(targetElement).fontSize, 10);
+                let newSize;
+                if (command === 'fontSize' && value) {
+                    newSize = parseInt(value, 10);
+                } else if (command === 'increaseFontSize') {
+                    newSize = currentSize + 2;
+                } else { // decrease
+                    newSize = Math.max(8, currentSize - 2);
+                }
+
+                if (!isNaN(newSize) && newSize > 0) {
+                   applyStyle('font-size', `${newSize}px`);
+                }
+            } else {
+                 // Default size if no element is found or at root
+                 const defaultSize = 16;
+                 let newSize;
+                 if (command === 'fontSize' && value) newSize = parseInt(value, 10);
+                 else if (command === 'increaseFontSize') newSize = defaultSize + 2;
+                 else newSize = Math.max(8, defaultSize - 2);
+
+                 if (!isNaN(newSize) && newSize > 0) {
+                   applyStyle('font-size', `${newSize}px`);
                 }
             }
         } else {
@@ -448,7 +491,7 @@ export default function NewNotePage() {
                             </button>
                         </div>
                         <div className="flex items-center gap-2">
-                            <Button variant="outline" size="sm" onClick={() => setIsChatVisible(!isChatVisible)}>
+                             <Button variant="outline" size="sm" onClick={() => setIsChatVisible(!isChatVisible)}>
                                 <MessageSquare className="mr-2 h-4 w-4"/>
                                 {isChatVisible ? 'Hide Chat' : 'Show Chat'}
                             </Button>
