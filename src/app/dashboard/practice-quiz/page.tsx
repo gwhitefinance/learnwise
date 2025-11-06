@@ -707,10 +707,9 @@ function PracticeQuizComponent() {
                  {pastQuizzes.length > 0 ? (
                     <div className="w-full max-w-4xl mt-12">
                         <Tabs defaultValue="tests" className="w-full">
-                            <TabsList className="grid w-full grid-cols-3">
+                            <TabsList className="grid w-full grid-cols-2">
                                 <TabsTrigger value="tests">Tests</TabsTrigger>
                                 <TabsTrigger value="ap">AP Hub</TabsTrigger>
-                                <TabsTrigger value="quizfetch">QuizFetch</TabsTrigger>
                             </TabsList>
                             <TabsContent value="tests" className="mt-4">
                                 <div className="space-y-2">
@@ -747,25 +746,6 @@ function PracticeQuizComponent() {
                                     ))}
                                     {pastQuizzes.filter(q => q.mode === 'ap').length === 0 && (
                                         <p className="text-center py-8 text-muted-foreground">You haven't taken any AP tests yet.</p>
-                                    )}
-                                </div>
-                            </TabsContent>
-                            <TabsContent value="quizfetch" className="mt-4">
-                                <div className="space-y-2">
-                                     {pastQuizzes.filter(q => q.mode === 'quizfetch').map(q => (
-                                        <div key={q.id} className="flex items-center justify-between p-3 border rounded-lg bg-card">
-                                            <div className="flex flex-col">
-                                                <span className="font-semibold">{q.topic}</span>
-                                                <span className="text-xs text-muted-foreground">{new Date(q.timestamp).toLocaleDateString()}</span>
-                                            </div>
-                                            <div className="flex items-center gap-4">
-                                                <Badge variant={q.score > 70 ? 'default' : 'secondary'}>{q.score.toFixed(0)}%</Badge>
-                                                <Button variant="ghost" size="sm">Review</Button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                    {pastQuizzes.filter(q => q.mode === 'quizfetch').length === 0 && (
-                                        <p className="text-center py-8 text-muted-foreground">You haven't used QuizFetch yet.</p>
                                     )}
                                 </div>
                             </TabsContent>
@@ -1301,4 +1281,5 @@ export default function PracticeQuizPage() {
     
 
     
+
 
