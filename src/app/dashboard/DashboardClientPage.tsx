@@ -1807,13 +1807,13 @@ function DashboardClientPage() {
 
         </Tabs>
         <Dialog open={isConceptsOpen} onOpenChange={setIsConceptsOpen}>
-             <DialogHeader>
-                <DialogTitle>Key Concepts Hub</DialogTitle>
-                <DialogDescription>
-                    Select a course to generate interactive flashcards for its key terms.
-                </DialogDescription>
-            </DialogHeader>
             <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                    <DialogTitle>Key Concepts Hub</DialogTitle>
+                    <DialogDescription>
+                        Select a course to generate interactive flashcards for its key terms.
+                    </DialogDescription>
+                </DialogHeader>
                 <div className="py-4 space-y-4">
                     <div className="space-y-2">
                         <Label htmlFor="concept-course">Course</Label>
@@ -1925,6 +1925,7 @@ function DashboardClientPage() {
 }
 
 export default DashboardClientPage;
+
 
 
 
