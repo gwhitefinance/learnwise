@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import React, { useState, useEffect, useRef, useContext, Suspense } from 'react';
@@ -9,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowRight, RotateCcw, Lightbulb, CheckCircle, XCircle, PenSquare, Palette, Brush, Eraser, Minimize, Maximize, Gem, Loader2, BookCopy, CheckSquare, ListChecks, FileText, Copy as CopyIcon, ChevronRight, BookOpen, Calculator, Send, Bot, MoreVertical, Link as LinkIcon, Share2, NotebookText, Download, FolderPlus, Eye, Edit, Trash2, Search, GraduationCap, ArrowLeft, BarChart3, Star, Zap } from 'lucide-react';
+import { ArrowRight, RotateCcw, Lightbulb, CheckCircle, XCircle, PenSquare, Palette, Brush, Eraser, Minimize, Maximize, Gem, Loader2, BookCopy, CheckSquare, ListChecks, FileText, Copy as CopyIcon, ChevronRight, BookOpen, Calculator, Send, Bot, MoreVertical, Link as LinkIcon, Share2, NotebookText, Download, FolderPlus, Eye, Edit, Trash2, Search, GraduationCap, ArrowLeft, BarChart3, Star, Zap, RefreshCw, ChevronLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { GenerateQuizInput, GenerateQuizOutput, QuizQuestion } from '@/ai/schemas/quiz-schema';
 import { Progress } from '@/components/ui/progress';
@@ -1141,7 +1140,7 @@ function PracticeQuizComponent() {
                     <h2 className="text-2xl font-bold mb-4">Keep Learning</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <Dialog open={isFlashcardDialogOpen} onOpenChange={setFlashcardDialogOpen}>
-                             <DialogTrigger asChild>
+                            <DialogTrigger asChild>
                                  <Card className="cursor-pointer hover:bg-muted transition-colors" onClick={handleGenerateFlashcards}>
                                     <CardContent className="p-6 flex items-start gap-4">
                                         <div className="p-3 bg-purple-500/10 rounded-lg text-purple-500"><Star className="h-8 w-8"/></div>
