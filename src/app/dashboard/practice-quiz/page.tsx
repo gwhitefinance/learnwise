@@ -1,9 +1,8 @@
 
-
 'use client';
 
 import React, { useState, useEffect, useRef, useContext, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -1037,3 +1036,5 @@ export default function PracticeQuizPage() {
         </Suspense>
     )
 }
+
+    
