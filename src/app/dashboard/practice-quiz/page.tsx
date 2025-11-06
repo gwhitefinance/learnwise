@@ -1,14 +1,15 @@
 
+
 'use client';
 
 import React, { useState, useEffect, useRef, useContext, Suspense } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowRight, RotateCcw, Lightbulb, CheckCircle, XCircle, PenSquare, Palette, Brush, Eraser, Minimize, Maximize, Gem, Loader2, BookCopy, CheckSquare, ListChecks, FileText, Copy as CopyIcon, ChevronRight, BookOpen, Calculator, Send, Bot, MoreVertical, Link as LinkIcon, Share2, NotebookText, Download, FolderPlus, Eye, Edit, Trash2, Search, GraduationCap, ArrowLeft } from 'lucide-react';
+import { ArrowRight, RotateCcw, Lightbulb, CheckCircle, XCircle, PenSquare, Palette, Brush, Eraser, Minimize, Maximize, Gem, Loader2, BookCopy, CheckSquare, ListChecks, FileText, Copy as CopyIcon, ChevronRight, BookOpen, Calculator, Send, Bot, MoreVertical, Link as LinkIcon, Share2, NotebookText, Download, FolderPlus, Eye, Edit, Trash2, Search, GraduationCap, ArrowLeft, BarChart3, Star, Zap } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { GenerateQuizInput, GenerateQuizOutput, QuizQuestion } from '@/ai/schemas/quiz-schema';
 import { Progress } from '@/components/ui/progress';
@@ -1046,25 +1047,61 @@ function PracticeQuizComponent() {
     }
 
     if (quizState === 'results') {
+        const accuracy = totalQuestions > 0 ? (score / totalQuestions) * 100 : 0;
         return (
-            <div className="flex flex-col items-center">
-                <div className="text-center mb-10">
-                    <h1 className="text-4xl font-bold">Quiz Results</h1>
-                    <p className="text-muted-foreground mt-2">Here's how you did!</p>
+            <div className="max-w-4xl mx-auto space-y-6">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight">You did it! Quiz complete.</h1>
                 </div>
-                 <Card className="w-full max-w-3xl">
-                    <CardContent className="p-8 text-center">
-                        <h2 className="text-2xl font-semibold">Your Score</h2>
-                        <p className="text-6xl font-bold text-primary my-4">{score} / {totalQuestions}</p>
-                        <p className="text-muted-foreground">You answered {totalQuestions > 0 ? ((score / totalQuestions) * 100).toFixed(0) : 0}% of the questions correctly.</p>
-
-                        <div className="mt-8">
-                            <Button onClick={handleStartNewQuiz}>
-                                <RotateCcw className="mr-2 h-4 w-4" /> Take a New Quiz
-                            </Button>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <Card><CardHeader><CardTitle>Score</CardTitle></CardHeader><CardContent><p className="text-4xl font-bold">{score}/{totalQuestions}</p></CardContent></Card>
+                    <Card><CardHeader><CardTitle>Accuracy</CardTitle></CardHeader><CardContent><p className="text-4xl font-bold">{accuracy.toFixed(0)}%</p></CardContent></Card>
+                    <Card>
+                        <CardHeader><CardTitle>Breakdown</CardTitle></CardHeader>
+                        <CardContent className="space-y-1 text-sm">
+                            <div className="flex justify-between"><span>Right</span><span>{score}</span></div>
+                            <div className="flex justify-between"><span>Wrong</span><span>{totalQuestions - score}</span></div>
+                            <div className="flex justify-between"><span>Skipped</span><span>0</span></div>
+                        </CardContent>
+                    </Card>
+                </div>
+                 <Card className="bg-muted/50">
+                    <CardContent className="p-6 flex flex-col md:flex-row items-center gap-6">
+                        <div className="p-3 bg-primary/10 rounded-lg text-primary"><Zap className="h-8 w-8" /></div>
+                        <div className="flex-1 text-center md:text-left">
+                            <h3 className="font-semibold text-lg">Strengths and Growth Areas</h3>
+                            <p className="text-muted-foreground text-sm">Get a summary of your key strengths and discover areas where you can focus your studies.</p>
                         </div>
+                        <Button>Analyze my performance</Button>
                     </CardContent>
                 </Card>
+                 <div>
+                    <h2 className="text-2xl font-bold mb-4">Keep Learning</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <Card>
+                            <CardContent className="p-6 flex items-start gap-4">
+                                <div className="p-3 bg-purple-500/10 rounded-lg text-purple-500"><Star className="h-8 w-8"/></div>
+                                <div>
+                                    <h3 className="font-semibold">Flashcards</h3>
+                                    <p className="text-sm text-muted-foreground">Create a complete set of flashcards from all your quiz material. Good for quick review and mastering key concepts.</p>
+                                </div>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardContent className="p-6 flex items-start gap-4">
+                                <div className="p-3 bg-green-500/10 rounded-lg text-green-500"><BookOpen className="h-8 w-8"/></div>
+                                <div>
+                                    <h3 className="font-semibold">Study guide</h3>
+                                    <p className="text-sm text-muted-foreground">Generate a comprehensive study guide based on the materials you are studying. Good for in-depth review.</p>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                </div>
+                 <div className="flex justify-end gap-4">
+                    <Button variant="ghost">Review quiz</Button>
+                    <Button onClick={handleStartNewQuiz}>More questions</Button>
+                </div>
             </div>
         )
     }
@@ -1079,5 +1116,7 @@ export default function PracticeQuizPage() {
         </Suspense>
     )
 }
+
+    
 
     
