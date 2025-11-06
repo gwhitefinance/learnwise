@@ -162,39 +162,41 @@ const Hero = ({ theme }: { theme: string }) => (
           </div>
       </div>
       
-      <div className="flex flex-col sm:flex-row justify-center items-center gap-8 mt-12">
-        <div className="flex flex-col items-center gap-4">
-            <div className={cn("flex items-center gap-2 font-semibold text-lg", theme === 'dark' ? 'text-white' : 'text-black')}>
-                <Rocket className="w-5 h-5" />
-                For Students
+      <div className={cn("max-w-4xl mx-auto p-8 rounded-3xl", theme === 'dark' ? 'bg-black/20 border border-white/10 backdrop-blur-sm' : 'bg-white/50 border border-gray-200 shadow-lg')}>
+        <div className="flex flex-col sm:flex-row justify-center items-center gap-8">
+            <div className="flex flex-col items-center gap-4">
+                <div className={cn("flex items-center gap-2 font-semibold text-lg", theme === 'dark' ? 'text-white' : 'text-black')}>
+                    <Rocket className="w-5 h-5" />
+                    For Students
+                </div>
+                <Link href="/signup">
+                    <Button size="lg" className="bg-blue-500 hover:bg-blue-600 text-white rounded-full px-8 py-6 text-base">
+                        Try for Free
+                    </Button>
+                </Link>
             </div>
-            <Link href="/signup">
-                <Button size="lg" className="bg-blue-500 hover:bg-blue-600 text-white rounded-full px-8 py-6 text-base">
-                    Try for Free
-                </Button>
-            </Link>
-        </div>
-         <div className="flex flex-col items-center gap-4">
-            <div className={cn("flex items-center gap-2 font-semibold text-lg", theme === 'dark' ? 'text-white' : 'text-black')}>
-                <GraduationCap className="w-5 h-5" />
-                For Educators
+            <div className="flex flex-col items-center gap-4">
+                <div className={cn("flex items-center gap-2 font-semibold text-lg", theme === 'dark' ? 'text-white' : 'text-black')}>
+                    <GraduationCap className="w-5 h-5" />
+                    For Educators
+                </div>
+                <Link href="/teacher-dashboard">
+                    <Button size="lg" className="bg-[#4a2e5d] hover:bg-[#5f3a78] text-white rounded-full px-8 py-6 text-base">
+                        Get Started
+                    </Button>
+                </Link>
             </div>
-            <Link href="/teacher-dashboard">
-                <Button size="lg" className="bg-[#4a2e5d] hover:bg-[#5f3a78] text-white rounded-full px-8 py-6 text-base">
-                    Get Started
-                </Button>
-            </Link>
-        </div>
-         <div className="flex flex-col items-center gap-4">
-            <div className={cn("flex items-center gap-2 font-semibold text-lg", theme === 'dark' ? 'text-white' : 'text-black')}>
-                <School className="w-5 h-5" />
-                For Institutions
+            <div className="flex flex-col items-center gap-4">
+                <div className={cn("flex items-center gap-2 font-semibold text-lg", theme === 'dark' ? 'text-white' : 'text-black')}>
+                    <School className="w-5 h-5" />
+                    For Institutions
+                </div>
+                <Link href="#">
+                    <Button size="lg" className="bg-[#1abc9c] hover:bg-[#20d4b1] text-white rounded-full px-8 py-6 text-base">
+                        Learn More
+                    </Button>
+                </Link>
             </div>
-            <Link href="#">
-                <Button size="lg" className="bg-[#1abc9c] hover:bg-[#20d4b1] text-white rounded-full px-8 py-6 text-base">
-                    Learn More
-                </Button>
-            </Link>
         </div>
       </div>
     </div>
