@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowRight, RotateCcw, Lightbulb, CheckCircle, XCircle, PenSquare, Palette, Brush, Eraser, Minimize, Maximize, Gem, Loader2, BookCopy, CheckSquare, ListChecks, FileText, Copy as CopyIcon, ChevronRight, BookOpen, Calculator, Send, Bot, MoreVertical, Link as LinkIcon, Share2, NotebookText, Download, FolderPlus, Eye, Edit, Trash2, Search, GraduationCap, ArrowLeft, BarChart3, Star, Zap, RefreshCw, ChevronLeft } from 'lucide-react';
+import { ArrowRight, RotateCcw, Lightbulb, CheckCircle, XCircle, PenSquare, Palette, Brush, Eraser, Minimize, Maximize, Clock, Lightbulb as HelpCircle, Coins, Award } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { GenerateQuizInput, GenerateQuizOutput, QuizQuestion } from '@/ai/schemas/quiz-schema';
 import { Progress } from '@/components/ui/progress';
@@ -47,7 +47,7 @@ type AnswerState = 'unanswered' | 'answered';
 type AnswerFeedback = { question: string; answer: string; correctAnswer: string; isCorrect: boolean; explanation?: string; };
 type QuizResult = {
     id: string;
-    mode: 'practice' | 'quizfetch' | 'ap';
+    mode: 'practice' | 'ap';
     topic: string;
     score: number;
     totalQuestions: number;
@@ -108,7 +108,7 @@ function PracticeQuizComponent() {
     const [explanation, setExplanation] = useState<string | null>(null);
     const [answers, setAnswers] = useState<AnswerFeedback[]>([]);
     const [learnerType, setLearnerType] = useState<string | null>(null);
-    const [quizMode, setQuizMode] = useState<'practice' | 'quizfetch' | 'ap' | null>(null);
+    const [quizMode, setQuizMode] = useState<'practice' | 'ap' | null>(null);
     const [creationSource, setCreationSource] = useState<'course' | 'prompt' | null>(null);
     
     const { toast } = useToast();
@@ -176,7 +176,7 @@ function PracticeQuizComponent() {
         const urlTopic = searchParams.get('topic');
         if (urlTopic) {
             setTopics(urlTopic);
-            setQuizMode('quizfetch');
+            setQuizMode('practice');
             setCreationSource('prompt');
             setQuizState('topic-selection');
         }
@@ -910,19 +910,28 @@ function PracticeQuizComponent() {
                             ))}
                         </div>
 
-                        {quizMode === 'ap' && (
-                             <div className="space-y-4">
-                                <h3 className="font-semibold text-lg">AP Exam-Specific Questions</h3>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
-                                     {apExams.filter(exam => exam.toLowerCase().includes(topics.toLowerCase())).map(exam => (
-                                        <div key={exam} className="flex items-center justify-between">
-                                            <Label htmlFor={exam} className="text-sm">{exam}</Label>
-                                            <Input id={exam} type="number" className="w-16 h-8 text-center" value={questionCounts[exam] || 0} onChange={(e) => handleQuestionCountChange(exam, e.target.value)} min={0} />
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
+                         {quizMode === 'practice' && (
+                             <Accordion type="single" collapsible>
+                                <AccordionItem value="exam-specific">
+                                    <AccordionTrigger>Exam-Specific Question Types</AccordionTrigger>
+                                    <AccordionContent className="space-y-4 pt-4">
+                                        {Object.entries(examSpecificTypes).map(([category, exams]) => (
+                                            <div key={category}>
+                                                <h4 className="font-semibold text-md mb-2">{category}</h4>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {exams.map(exam => (
+                                                         <div key={exam} className="flex items-center gap-2 p-2 border rounded-md bg-muted/50">
+                                                            <Checkbox id={exam} onCheckedChange={(checked) => handleQuestionCountChange(exam, checked ? '5' : '0')} />
+                                                            <Label htmlFor={exam} className="text-sm font-medium">{exam}</Label>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </AccordionContent>
+                                </AccordionItem>
+                            </Accordion>
+                         )}
                      </CardContent>
                      <CardFooter className="flex justify-between p-6 bg-muted/50 border-t">
                          <Button variant="ghost" onClick={() => setQuizState('topic-selection')}>Back</Button>
@@ -1083,7 +1092,7 @@ function PracticeQuizComponent() {
                     <DialogContent className="sm:max-w-md bg-gradient-to-br from-amber-200 to-yellow-300">
                         <DialogHeader>
                             <DialogTitle className="flex items-center gap-2 text-amber-900">
-                                <Lightbulb /> Here's a Hint!
+                                <HelpCircle /> Here's a Hint!
                             </DialogTitle>
                         </DialogHeader>
                         <div className="py-4 text-amber-800 font-medium">
@@ -1281,5 +1290,6 @@ export default function PracticeQuizPage() {
     
 
     
+
 
 
