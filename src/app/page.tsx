@@ -72,6 +72,12 @@ const TypingBubble = ({ theme }: { theme: string }) => {
 
 const Hero = ({ theme }: { theme: string }) => (
   <section className="relative py-20 lg:py-28 text-center overflow-hidden">
+     {theme === 'light' && (
+      <>
+        <div className="absolute top-0 left-0 -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] bg-green-200/50 rounded-full blur-3xl -z-10" />
+        <div className="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] bg-blue-200/50 rounded-full blur-3xl -z-10" />
+      </>
+    )}
     <div className="container mx-auto px-4 relative z-10">
       {/* Floating Icons */}
       <motion.div
