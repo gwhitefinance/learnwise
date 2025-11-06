@@ -32,22 +32,22 @@ const games = [
         href: "/dashboard/games/city-run"
     },
     {
-        title: "Rocket Defender",
+        title: "Trivia Blaster",
         description: "Defend your base by shooting down asteroids with correct answers.",
         thumbnail: "https://picsum.photos/seed/rocket/400/300",
-        href: "/dashboard/games/rocket-defender"
+        href: "/dashboard/games/trivia-blaster"
     },
     {
-        title: "Platform Jump",
-        description: "Jump from platform to platform by choosing the right path.",
+        title: "Concept Tetris",
+        description: "Clear lines to answer questions in this classic puzzle game.",
         thumbnail: "https://picsum.photos/seed/platform/400/300",
-        href: "/dashboard/games/platform-jump"
+        href: "/dashboard/games/concept-tetris"
     },
      {
-        title: "Track Race",
-        description: "Outpace your opponents by answering questions the fastest.",
+        title: "Study Snake",
+        description: "Grow your snake by eating correct answers in this retro arcade game.",
         thumbnail: "https://picsum.photos/seed/race/400/300",
-        href: "/dashboard/games/track-race"
+        href: "/dashboard/games/snake"
     },
     {
         title: "Jetpack Quiz",

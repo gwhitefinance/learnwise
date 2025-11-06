@@ -1,10 +1,9 @@
 
-'use client';
-
+"use client";
 import dynamic from 'next/dynamic';
-import Loading from '../concept-tetris/loading';
+import Loading from './loading';
 
-const ConceptTetrisClientPage = dynamic(() => import('../concept-tetris/ConceptTetrisClientPage'), {
+const ConceptTetrisClientPage = dynamic(() => import('./ConceptTetrisClientPage'), {
   ssr: false,
   loading: () => <Loading />,
 });

@@ -1,10 +1,9 @@
 
-'use client';
-
+"use client";
 import dynamic from 'next/dynamic';
-import Loading from '../snake/loading';
+import Loading from './loading';
 
-const SnakeClientPage = dynamic(() => import('../snake/SnakeClientPage'), {
+const SnakeClientPage = dynamic(() => import('./SnakeClientPage'), {
   ssr: false,
   loading: () => <Loading />,
 });
