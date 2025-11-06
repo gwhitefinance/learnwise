@@ -7,7 +7,7 @@ import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Play, Pause, ChevronLeft, ChevronRight, Wand2, FlaskConical, Lightbulb, Copy, RefreshCw, Check, Star, CheckCircle, Send, Bot, User, GitMerge, PanelLeft, Minimize, Maximize, Loader2, Plus, Trash2, MoreVertical, XCircle, ArrowRight, RotateCcw, Video, Image as ImageIcon, BookCopy, Link as LinkIcon, Headphones, Underline, Highlighter, Rabbit, Snail, Turtle, Book, Mic, Bookmark, Brain, KeySquare, ArrowLeft, Phone, Presentation, FolderOpen } from 'lucide-react';
+import { Play, Pause, ChevronLeft, ChevronRight, Wand2, FlaskConical, Lightbulb, Copy, RefreshCw, Check, Star, CheckCircle, Send, Bot, User, GitMerge, PanelLeft, Minimize, Maximize, Loader2, Plus, Trash2, MoreVertical, XCircle, ArrowRight, RotateCcw, Video, Image as ImageIcon, BookCopy, Link as LinkIcon, Headphones, Underline, Highlighter, Rabbit, Snail, Turtle, Book, Mic, Bookmark, Brain, KeySquare, ArrowLeft, Phone, Presentation, FolderOpen, BookText } from 'lucide-react';
 import Link from 'next/link';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
@@ -254,6 +254,7 @@ function CoursesComponent() {
   const [slideshowChapterIndex, setSlideshowChapterIndex] = useState(0);
 
   const [studyGuides, setStudyGuides] = useState<StudyGuide[]>([]);
+  const [selectedStudyGuide, setSelectedStudyGuide] = useState<StudyGuide | null>(null);
 
 
   const currentModule = activeCourse?.units?.[currentModuleIndex];
@@ -351,6 +352,8 @@ function CoursesComponent() {
     }
     if (selectedCourseId) {
         loadCourseData();
+    } else {
+        setActiveCourse(null);
     }
   }, [selectedCourseId, user, toast]);
   
@@ -714,6 +717,7 @@ function CoursesComponent() {
     } else {
         setCurrentModuleIndex(nextModuleIndex);
         setCurrentChapterIndex(nextChapterIndex);
+        setSelectedStudyGuide(null); // Deselect study guide when moving to a new chapter
         setQuizState('configuring'); // Reset quiz state for the next module
     }
   };
@@ -812,6 +816,7 @@ function CoursesComponent() {
     setActiveCourse(null);
     setCurrentModuleIndex(0);
     setCurrentChapterIndex(0);
+    setSelectedStudyGuide(null);
     const url = new URL(window.location.href);
     url.searchParams.delete('courseId');
     window.history.pushState({}, '', url.toString());
@@ -1354,6 +1359,7 @@ function CoursesComponent() {
                             <Button key={chapter.id} variant="outline" onClick={() => {
                                 setCurrentModuleIndex(currentModuleIndex);
                                 setCurrentChapterIndex(index);
+                                setSelectedStudyGuide(null);
                             }}>
                                 Review Chapter {index + 1}
                             </Button>
@@ -1672,7 +1678,7 @@ function CoursesComponent() {
                                     <AccordionContent>
                                         <ul className="space-y-1 pl-4">
                                             {unit.chapters.map((chapter, cIndex) => {
-                                                const isCurrent = currentModuleIndex === mIndex && currentChapterIndex === cIndex;
+                                                const isCurrent = currentModuleIndex === mIndex && currentChapterIndex === cIndex && !selectedStudyGuide;
                                                 const isCompleted = activeCourse.completedChapters?.includes(chapter.id) ?? false;
                                                 const chapterIsQuiz = chapter.title.toLowerCase().includes('quiz');
                                                 const quizResultForChapter = chapterIsQuiz ? quizResults[unit.id] : undefined;
@@ -1689,6 +1695,7 @@ function CoursesComponent() {
                                                         onClick={() => {
                                                             setCurrentModuleIndex(mIndex);
                                                             setCurrentChapterIndex(cIndex);
+                                                            setSelectedStudyGuide(null);
                                                         }}
                                                         disabled={isLocked}
                                                         className={cn(
@@ -1722,10 +1729,20 @@ function CoursesComponent() {
                             {studyGuides.length > 0 ? (
                                 <div className="space-y-2 pr-4">
                                 {studyGuides.map(guide => (
-                                    <Card key={guide.id} className="p-3">
-                                        <h4 className="font-semibold text-sm truncate">{guide.title}</h4>
-                                        <p className="text-xs text-muted-foreground">{new Date(guide.createdAt.toDate()).toLocaleDateString()}</p>
-                                    </Card>
+                                    <button 
+                                        key={guide.id} 
+                                        onClick={() => setSelectedStudyGuide(guide)}
+                                        className={cn(
+                                            "w-full text-left p-3 rounded-lg flex items-center gap-3",
+                                            selectedStudyGuide?.id === guide.id ? "bg-primary/10 text-primary font-semibold" : "hover:bg-muted bg-card border"
+                                        )}
+                                    >
+                                        <BookText size={18} className="flex-shrink-0"/>
+                                        <div className="flex-1 overflow-hidden">
+                                            <p className="font-semibold text-sm truncate">{guide.title}</p>
+                                            <p className="text-xs text-muted-foreground">{new Date(guide.createdAt.toDate()).toLocaleDateString()}</p>
+                                        </div>
+                                    </button>
                                 ))}
                                 </div>
                             ) : (
@@ -1759,7 +1776,7 @@ function CoursesComponent() {
                         {isFocusMode ? <Minimize className="mr-2 h-4 w-4"/> : <Maximize className="mr-2 h-4 w-4"/>}
                         {isFocusMode ? "Exit Focus Mode" : "Focus Mode"}
                     </Button>
-                     {activeCourse.isNewTopic && (
+                     {activeCourse.isNewTopic && !selectedStudyGuide && (
                         <Button onClick={handleCompleteAndContinue}>
                             {currentChapter?.title.includes('Quiz') ? 'Continue' : 'Complete & Continue'} <ChevronRight className="ml-2 h-4 w-4"/>
                         </Button>
@@ -1767,7 +1784,40 @@ function CoursesComponent() {
                 </div>
             </div>
 
-            {currentChapter && currentModule ? (
+            {selectedStudyGuide ? (
+                <div className="max-w-4xl mx-auto space-y-8">
+                    <h1 className="text-4xl font-bold">{selectedStudyGuide.title}</h1>
+                    <div className="p-6 bg-amber-500/10 rounded-lg border border-amber-500/20">
+                        <h5 className="font-semibold flex items-center gap-2 text-amber-700"><Lightbulb size={18}/> Summary</h5>
+                        <p className="text-muted-foreground mt-2">{selectedStudyGuide.summary}</p>
+                    </div>
+                     <div className="space-y-4">
+                        <h3 className="text-2xl font-bold">Key Concepts</h3>
+                        <div className="space-y-4">
+                            {selectedStudyGuide.keyConcepts.map(concept => (
+                                <div key={concept.term} className="p-4 rounded-lg border bg-muted/50">
+                                    <h4 className="font-semibold">{concept.term}</h4>
+                                    <p className="text-sm text-muted-foreground mt-1">{concept.definition}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                     <div className="space-y-4">
+                        <h3 className="text-2xl font-bold">Your 3-Step Study Plan</h3>
+                        <div className="space-y-4">
+                            {selectedStudyGuide.studyPlan.map((step, index) => (
+                                <div key={step.step} className="flex gap-4 items-start">
+                                    <div className="flex-shrink-0 flex items-center justify-center h-10 w-10 rounded-full bg-primary text-primary-foreground font-bold text-lg">{index + 1}</div>
+                                    <div>
+                                        <h4 className="font-semibold">{step.step}</h4>
+                                        <p className="text-sm text-muted-foreground">{step.description}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            ) : currentChapter && currentModule ? (
                  <div className="max-w-4xl mx-auto space-y-8 relative">
                      {popoverPosition && <TextSelectionMenu />}
                      <h1 className="text-4xl font-bold">{currentChapter.title}</h1>
