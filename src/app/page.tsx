@@ -164,7 +164,7 @@ const Hero = ({ theme }: { theme: string }) => (
       
       <div className="flex flex-col sm:flex-row justify-center items-center gap-8 mt-12">
         <div className="flex flex-col items-center gap-4">
-            <div className="flex items-center gap-2 font-semibold text-lg text-white">
+            <div className={cn("flex items-center gap-2 font-semibold text-lg", theme === 'dark' ? 'text-white' : 'text-black')}>
                 <Rocket className="w-5 h-5" />
                 For Students
             </div>
@@ -175,7 +175,7 @@ const Hero = ({ theme }: { theme: string }) => (
             </Link>
         </div>
          <div className="flex flex-col items-center gap-4">
-            <div className="flex items-center gap-2 font-semibold text-lg text-white">
+            <div className={cn("flex items-center gap-2 font-semibold text-lg", theme === 'dark' ? 'text-white' : 'text-black')}>
                 <GraduationCap className="w-5 h-5" />
                 For Educators
             </div>
@@ -186,7 +186,7 @@ const Hero = ({ theme }: { theme: string }) => (
             </Link>
         </div>
          <div className="flex flex-col items-center gap-4">
-            <div className="flex items-center gap-2 font-semibold text-lg text-white">
+            <div className={cn("flex items-center gap-2 font-semibold text-lg", theme === 'dark' ? 'text-white' : 'text-black')}>
                 <School className="w-5 h-5" />
                 For Institutions
             </div>
