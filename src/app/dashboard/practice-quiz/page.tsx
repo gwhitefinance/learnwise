@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowRight, RotateCcw, Lightbulb, CheckCircle, XCircle, PenSquare, Palette, Brush, Eraser, Minimize, Maximize, Gem, Loader2, BookCopy, CheckSquare, ListChecks, FileText, Copy as CopyIcon, ChevronRight, BookOpen, Calculator, Send, Bot, MoreVertical, Link as LinkIcon, Share2, NotebookText, Download, FolderPlus, Eye, Edit, Trash2, Search } from 'lucide-react';
+import { ArrowRight, RotateCcw, Lightbulb, CheckCircle, XCircle, PenSquare, Palette, Brush, Eraser, Minimize, Maximize, Gem, Loader2, BookCopy, CheckSquare, ListChecks, FileText, Copy as CopyIcon, ChevronRight, BookOpen, Calculator, Send, Bot, MoreVertical, Link as LinkIcon, Share2, NotebookText, Download, FolderPlus, Eye, Edit, Trash2, Search, GraduationCap } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { GenerateQuizInput, GenerateQuizOutput, QuizQuestion } from '@/ai/schemas/quiz-schema';
 import { Progress } from '@/components/ui/progress';
@@ -72,6 +72,7 @@ type QuestionCounts = {
 function PracticeQuizComponent() {
     const searchParams = useSearchParams();
     const initialTopic = searchParams.get('topic');
+    const router = useRouter();
 
     const [courses, setCourses] = useState<Course[]>([]);
     const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
@@ -582,10 +583,10 @@ function PracticeQuizComponent() {
                             <h3 className="text-xl font-bold">Take a Practice Test</h3>
                             <p className="text-sm text-muted-foreground">Generate a practice test from your course content and get ready for your test.</p>
                         </button>
-                        <button onClick={() => { setQuizMode('quizfetch'); setCreationSource('prompt'); setQuizState('topic-selection');}} className="p-8 rounded-lg text-left transition-all bg-blue-500/10 border-2 border-blue-500/30 hover:bg-blue-500/20 hover:border-blue-500/50">
-                            <ListChecks className="h-8 w-8 text-blue-500 mb-2"/>
-                            <h3 className="text-xl font-bold">QuizFetch</h3>
-                            <p className="text-sm text-muted-foreground">Generate quizzes from any topic and learn as you answer questions.</p>
+                        <button onClick={() => router.push('/dashboard/sat-prep')} className="p-8 rounded-lg text-left transition-all bg-blue-500/10 border-2 border-blue-500/30 hover:bg-blue-500/20 hover:border-blue-500/50">
+                            <GraduationCap className="h-8 w-8 text-blue-500 mb-2"/>
+                            <h3 className="text-xl font-bold">AP Hub</h3>
+                            <p className="text-sm text-muted-foreground">Choose from any of the 35 AP courses and take exam-style tests.</p>
                         </button>
                     </div>
                  </div>
