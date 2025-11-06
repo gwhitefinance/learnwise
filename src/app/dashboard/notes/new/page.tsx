@@ -27,7 +27,7 @@ interface Message {
   content: string;
 }
 
-const EditorToolbar = ({ onCommand }: { onCommand: (command: string, value?: string) => void }) => {
+const EditorToolbar = ({ onCommand, onImageUpload, onLinkCreate, onToggleChat }: { onCommand: (command: string, value?: string) => void; onImageUpload: () => void; onLinkCreate: () => void; onToggleChat: () => void; }) => {
     
     return (
     <div className="bg-gray-100 dark:bg-gray-800 rounded-t-lg shadow-sm border-b border-gray-200 dark:border-gray-700 p-2 flex flex-wrap items-center gap-1 text-gray-600 dark:text-gray-300">
@@ -66,9 +66,9 @@ const EditorToolbar = ({ onCommand }: { onCommand: (command: string, value?: str
              <input type="color" onChange={(e) => onCommand('hiliteColor', e.target.value)} className="w-full h-full opacity-0 cursor-pointer" />
         </div>
         <div className="h-6 w-px bg-gray-300 dark:bg-gray-600 mx-1"></div>
-        <Button variant="ghost" size="icon" className="w-8 h-8"><LinkIcon size={16} /></Button>
-        <Button variant="ghost" size="icon" className="w-8 h-8"><MessageSquarePlus size={16} /></Button>
-        <Button variant="ghost" size="icon" className="w-8 h-8"><ImageIcon size={16} /></Button>
+        <Button variant="ghost" size="icon" onClick={onLinkCreate} className="w-8 h-8"><LinkIcon size={16} /></Button>
+        <Button variant="ghost" size="icon" onClick={onToggleChat} className="w-8 h-8"><MessageSquarePlus size={16} /></Button>
+        <Button variant="ghost" size="icon" onClick={onImageUpload} className="w-8 h-8"><ImageIcon size={16} /></Button>
         <div className="h-6 w-px bg-gray-300 dark:bg-gray-600 mx-1"></div>
         <Button variant="ghost" size="icon" onClick={() => onCommand('justifyLeft')} className="w-8 h-8"><AlignLeft size={16} /></Button>
         <Button variant="ghost" size="icon" onClick={() => onCommand('justifyCenter')} className="w-8 h-8"><AlignCenter size={16} /></Button>
@@ -299,6 +299,7 @@ const ChatHomeScreen = ({ onStartChatWithPrompt, customizations }: { onStartChat
 
 export default function NewNotePage() {
     const editorRef = useRef<HTMLDivElement>(null);
+    const [editorContent, setEditorContent] = useState<string>('');
     const [showLiveLecture, setShowLiveLecture] = useState(false);
     const [lectureTranscript, setLectureTranscript] = useState('');
     const [lectureAudioUrl, setLectureAudioUrl] = useState<string | null>(null);
@@ -307,17 +308,27 @@ export default function NewNotePage() {
     const [isChatLoading, setIsChatLoading] = useState(false);
     const { toast } = useToast();
     const [isChatVisible, setIsChatVisible] = useState(true);
-    
-    // This state will hold the raw HTML content for saving.
     const [noteTitle, setNoteTitle] = useState('Untitled Note');
-    const [editorContent, setEditorContent] = useState('');
-
+    const imageInputRef = useRef<HTMLInputElement>(null);
+    
     useEffect(() => {
-        if(editorRef.current && !editorRef.current.innerHTML) {
-            // This is a bit of a hack to ensure the placeholder is handled correctly by the browser
-            // when contenteditable is dynamically managed.
-        }
-    }, [])
+        const editor = editorRef.current;
+        if (!editor) return;
+
+        const observer = new MutationObserver(() => {
+            if (editor.innerHTML !== editorContent) {
+                setEditorContent(editor.innerHTML);
+            }
+        });
+        observer.observe(editor, {
+            childList: true,
+            subtree: true,
+            characterData: true,
+        });
+
+        return () => observer.disconnect();
+    }, [editorContent]);
+
 
     const handleCommand = (command: string, value?: string) => {
         document.execCommand(command, false, value);
@@ -363,6 +374,29 @@ export default function NewNotePage() {
         handleSendMessage(prompt);
     }
     
+    const handleImageUpload = () => {
+        imageInputRef.current?.click();
+    };
+
+    const handleFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const dataUrl = event.target?.result as string;
+                document.execCommand('insertImage', false, dataUrl);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+    
+    const handleLinkCreate = () => {
+        const url = prompt("Enter the URL:");
+        if (url) {
+            document.execCommand('createLink', false, url);
+        }
+    };
+
     return (
         <div className="flex h-screen overflow-hidden">
              <main className={cn(
@@ -404,16 +438,26 @@ export default function NewNotePage() {
                     </div>
                 </header>
                 <div className="flex-1 flex flex-col p-6 overflow-y-auto relative">
+                    <input type="file" ref={imageInputRef} onChange={handleFileSelected} accept="image/*" className="hidden" />
                      <LiveLecturePanel show={showLiveLecture} setShow={setShowLiveLecture} onNoteGenerated={handleNoteGenerated} onTranscriptUpdate={setLectureTranscript} onAudioUpdate={setLectureAudioUrl} />
                     <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm flex-1 flex flex-col">
-                        <EditorToolbar onCommand={handleCommand} />
+                        <EditorToolbar 
+                            onCommand={handleCommand} 
+                            onImageUpload={handleImageUpload}
+                            onLinkCreate={handleLinkCreate}
+                            onToggleChat={() => setIsChatVisible(!isChatVisible)}
+                        />
                          <div 
                              ref={editorRef}
                              contentEditable="true" 
                              className="relative flex-1 p-8 prose prose-lg max-w-none dark:prose-invert outline-none" 
                              suppressContentEditableWarning={true}
                              data-placeholder="Start writing note here..."
-                             onInput={(e) => setEditorContent(e.currentTarget.innerHTML)}
+                             onInput={(e) => {
+                                 if (editorRef.current && editorRef.current.innerHTML !== editorContent) {
+                                     setEditorContent(e.currentTarget.innerHTML);
+                                 }
+                             }}
                          >
                          </div>
                     </div>
