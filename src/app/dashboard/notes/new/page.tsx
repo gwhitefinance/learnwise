@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -22,13 +21,42 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import Logo from '@/components/Logo';
 import Link from 'next/link';
-import { addDoc, collection, Timestamp } from 'firebase/firestore';
-
+import { addDoc, collection, Timestamp, query, where, onSnapshot } from 'firebase/firestore';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface Message {
   role: 'user' | 'ai';
   content: string;
 }
+
+type Unit = {
+    id: string;
+    title: string;
+};
+
+type Course = {
+    id: string;
+    name: string;
+    units?: Unit[];
+};
+
 
 const EditorToolbar = ({ onCommand, onImageUpload, onLinkCreate, onToggleChat }: { onCommand: (command: string, value?: string) => void; onImageUpload: () => void; onLinkCreate: () => void; onToggleChat: () => void; }) => {
     
@@ -313,99 +341,23 @@ export default function NewNotePage() {
     const [noteTitle, setNoteTitle] = useState('Untitled Note');
     const imageInputRef = useRef<HTMLInputElement>(null);
     const [user] = useAuthState(auth);
+    const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
+    const [courses, setCourses] = useState<Course[]>([]);
+    const [selectedCourseId, setSelectedCourseId] = useState<string | undefined>();
+    const [selectedUnitId, setSelectedUnitId] = useState<string | undefined>();
     
     useEffect(() => {
-        // We only want to set the content if it's empty, to avoid overwriting user input on re-renders
-        if (editorRef.current && !editorRef.current.innerHTML) {
-            editorRef.current.innerHTML = '';
-        }
-    }, []);
-
-    const applyStyle = (style: string, value: string) => {
-        const selection = window.getSelection();
-        if (!selection || selection.rangeCount === 0) return;
-        const range = selection.getRangeAt(0);
-
-        if (range.collapsed) {
-            const span = document.createElement('span');
-            span.style.setProperty(style, value);
-            // Add a zero-width space to make the span renderable and to place the cursor
-            span.innerHTML = '&#8203;'; 
-            range.insertNode(span);
-            // Move the cursor inside the new span
-            range.setStart(span.firstChild!, 1);
-            range.collapse(true);
-            selection.removeAllRanges();
-            selection.addRange(range);
-        } else {
-            const span = document.createElement('span');
-            span.style.setProperty(style, value);
-            try {
-                // This can fail if the selection spans across different block elements
-                range.surroundContents(span);
-            } catch (e) {
-                // Fallback for complex selections: execute a command that might wrap it
-                console.error('Surround contents failed, using execCommand as fallback.', e);
-                document.execCommand('fontSize', false, '7'); // A trick to get a stylable element
-                 const fontElements = (editorRef.current as HTMLElement).getElementsByTagName('font');
-                for (let i = 0; i < fontElements.length; i++) {
-                    const element = fontElements[i];
-                    if (element.size === '7' && selection.containsNode(element, true)) {
-                        element.removeAttribute('size');
-                        element.style.fontSize = value;
-                    }
-                }
-            }
-        }
-        editorRef.current?.focus();
-    };
-
+        if (!user) return;
+        const q = query(collection(db, "courses"), where("userId", "==", user.uid));
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const userCourses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
+            setCourses(userCourses);
+        });
+        return () => unsubscribe();
+    }, [user]);
 
     const handleCommand = (command: string, value?: string) => {
-        if (command === 'increaseFontSize' || command === 'decreaseFontSize' || command === 'fontSize') {
-            const selection = window.getSelection();
-            if (!selection || selection.rangeCount === 0) return;
-            
-            const range = selection.getRangeAt(0);
-            
-            const getParentElement = (node: Node): HTMLElement | null => {
-                if (node.nodeType === Node.TEXT_NODE) {
-                    return node.parentElement;
-                }
-                return node as HTMLElement;
-            }
-
-            const startElement = getParentElement(range.startContainer);
-            
-            if (startElement && startElement.nodeName !== 'DIV') { // Check we are not at the root editor
-                const currentSize = parseInt(window.getComputedStyle(startElement).fontSize, 10);
-                let newSize;
-                if (command === 'fontSize' && value) {
-                    newSize = parseInt(value, 10);
-                } else if (command === 'increaseFontSize') {
-                    newSize = currentSize + 2;
-                } else { // decrease
-                    newSize = Math.max(8, currentSize - 2);
-                }
-
-                if (!isNaN(newSize) && newSize > 0) {
-                   applyStyle('font-size', `${newSize}px`);
-                }
-            } else {
-                 // Default size if no element is found or at root
-                 const defaultSize = 16;
-                 let newSize;
-                 if (command === 'fontSize' && value) newSize = parseInt(value, 10);
-                 else if (command === 'increaseFontSize') newSize = defaultSize + 2;
-                 else newSize = Math.max(8, defaultSize - 2);
-
-                 if (!isNaN(newSize) && newSize > 0) {
-                   applyStyle('font-size', `${newSize}px`);
-                }
-            }
-        } else {
-            document.execCommand(command, false, value);
-        }
+        document.execCommand(command, false, value);
         editorRef.current?.focus();
     };
     
@@ -470,7 +422,7 @@ export default function NewNotePage() {
         }
     };
     
-    const handleSaveNote = async () => {
+    const openSaveDialog = () => {
         if (!user) {
             toast({ variant: 'destructive', title: 'You must be logged in to save.' });
             return;
@@ -479,6 +431,11 @@ export default function NewNotePage() {
             toast({ variant: 'destructive', title: 'Cannot save an empty note.' });
             return;
         }
+        setIsSaveDialogOpen(true);
+    };
+
+    const handleSaveNote = async () => {
+        if (!user || !editorRef.current) return;
     
         try {
             await addDoc(collection(db, "notes"), {
@@ -489,13 +446,21 @@ export default function NewNotePage() {
                 isImportant: false,
                 isCompleted: false,
                 userId: user.uid,
+                courseId: selectedCourseId || null,
+                unitId: selectedUnitId || null,
             });
             toast({ title: "Note Saved!", description: "Your note has been successfully saved." });
         } catch (error) {
             console.error("Error saving note: ", error);
             toast({ variant: "destructive", title: "Error", description: "Could not save the note." });
+        } finally {
+            setIsSaveDialogOpen(false);
+            setSelectedCourseId(undefined);
+            setSelectedUnitId(undefined);
         }
     };
+
+    const selectedCourseForFilter = courses.find(c => c.id === selectedCourseId);
 
     return (
         <div className="flex h-screen overflow-hidden">
@@ -531,7 +496,7 @@ export default function NewNotePage() {
                             <Button variant="outline" className="text-sm">
                                 <UserPlus className="mr-2 h-4 w-4"/> Share
                             </Button>
-                            <Button onClick={handleSaveNote} className="text-sm bg-blue-600 hover:bg-blue-700">
+                            <Button onClick={openSaveDialog} className="text-sm bg-blue-600 hover:bg-blue-700">
                                 <Save className="mr-2 h-4 w-4"/> Save Note
                             </Button>
                         </div>
@@ -614,6 +579,54 @@ export default function NewNotePage() {
                     </footer>
                 </aside>
             )}
+             <Dialog open={isSaveDialogOpen} onOpenChange={setIsSaveDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Save Note</DialogTitle>
+                        <DialogDescription>
+                            Optionally, you can associate this note with a specific course or module for better organization.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4 grid gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="note-course">Course (Optional)</Label>
+                            <Select value={selectedCourseId} onValueChange={setSelectedCourseId}>
+                                <SelectTrigger id="note-course">
+                                    <SelectValue placeholder="Select a course" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="none">No specific course</SelectItem>
+                                    {courses.map(course => (
+                                        <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        {selectedCourseId && selectedCourseId !== 'none' && selectedCourseForFilter?.units && (
+                             <div className="space-y-2">
+                                <Label htmlFor="note-unit">Module (Optional)</Label>
+                                <Select value={selectedUnitId} onValueChange={setSelectedUnitId}>
+                                    <SelectTrigger id="note-unit">
+                                        <SelectValue placeholder="Select a module" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="none">No specific module</SelectItem>
+                                        {selectedCourseForFilter.units.map(unit => (
+                                            <SelectItem key={unit.id} value={unit.id}>{unit.title}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        )}
+                    </div>
+                    <DialogFooter>
+                        <DialogClose asChild>
+                            <Button variant="ghost">Cancel</Button>
+                        </DialogClose>
+                        <Button onClick={handleSaveNote}>Save Note</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
