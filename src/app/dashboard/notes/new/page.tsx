@@ -531,15 +531,6 @@ export default function NewNotePage() {
                             <ArrowRight size={16}/>
                         </Button>
                     </div>
-                     <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1">
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500 dark:text-gray-400"><ImageIcon size={16}/></Button>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300"><Globe size={16}/></Button>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300"><GraduationCap size={16}/></Button>
-                            <Button variant="secondary" size="sm" className="h-8 gap-1.5"><FileText size={16}/>Using 1 material(s)</Button>
-                        </div>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500 dark:text-gray-400"><Mic className="h-4 w-4"/></Button>
-                    </div>
                 </footer>
             </aside>
         </div>
