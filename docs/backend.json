@@ -205,6 +205,20 @@
             "userAnswers": { "type": "object" },
             "timestamp": { "type": "string", "format": "date-time" }
         }
+    },
+    "studyGuide": {
+        "title": "Study Guide",
+        "description": "An AI-generated study guide for a specific topic or course.",
+        "type": "object",
+        "properties": {
+            "userId": { "type": "string" },
+            "courseId": { "type": "string" },
+            "title": { "type": "string" },
+            "summary": { "type": "string" },
+            "keyConcepts": { "type": "array" },
+            "studyPlan": { "type": "array" },
+            "createdAt": { "type": "string", "format": "date-time" }
+        }
     }
   },
   "firestore": {
@@ -259,6 +273,10 @@
     "/satStudySessions/{sessionId}": {
         "schema": { "$ref": "#/entities/satStudySession" },
         "description": "Stores results from focused SAT study sessions."
+    },
+    "/studyGuides/{guideId}": {
+        "schema": { "$ref": "#/entities/studyGuide" },
+        "description": "Stores AI-generated study guides."
     }
   },
   "auth": {

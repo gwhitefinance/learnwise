@@ -7,7 +7,7 @@ import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Play, Pause, ChevronLeft, ChevronRight, Wand2, FlaskConical, Lightbulb, Copy, RefreshCw, Check, Star, CheckCircle, Send, Bot, User, GitMerge, PanelLeft, Minimize, Maximize, Loader2, Plus, Trash2, MoreVertical, XCircle, ArrowRight, RotateCcw, Video, Image as ImageIcon, BookCopy, Link as LinkIcon, Headphones, Underline, Highlighter, Rabbit, Snail, Turtle, Book, Mic, Bookmark, Brain, KeySquare, ArrowLeft, Phone, Presentation } from 'lucide-react';
+import { Play, Pause, ChevronLeft, ChevronRight, Wand2, FlaskConical, Lightbulb, Copy, RefreshCw, Check, Star, CheckCircle, Send, Bot, User, GitMerge, PanelLeft, Minimize, Maximize, Loader2, Plus, Trash2, MoreVertical, XCircle, ArrowRight, RotateCcw, Video, Image as ImageIcon, BookCopy, Link as LinkIcon, Headphones, Underline, Highlighter, Rabbit, Snail, Turtle, Book, Mic, Bookmark, Brain, KeySquare, ArrowLeft, Phone, Presentation, FolderOpen } from 'lucide-react';
 import Link from 'next/link';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
@@ -19,7 +19,7 @@ import type { GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
 import { cn } from '@/lib/utils';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
-import { collection, addDoc, query, where, getDocs, deleteDoc, doc, updateDoc, onSnapshot, serverTimestamp, increment, arrayUnion, arrayRemove, getDoc, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs, deleteDoc, doc, updateDoc, onSnapshot, serverTimestamp, increment, arrayUnion, arrayRemove, getDoc, Timestamp, orderBy } from 'firebase/firestore';
 import AudioPlayer from '@/components/audio-player';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -37,6 +37,7 @@ import GeneratingCourse from './GeneratingCourse';
 import { CallContext } from '@/context/CallContext';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import AIBuddy from '@/components/ai-buddy';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
 
 type ContentBlock = {
@@ -100,6 +101,17 @@ type QuizResult = {
 type InlineQuizState = {
     selectedAnswer?: string;
     feedback?: 'correct' | 'incorrect' | null;
+};
+
+type StudyGuide = {
+    id: string;
+    userId: string;
+    courseId: string;
+    title: string;
+    summary: string;
+    keyConcepts: { term: string, definition: string }[];
+    studyPlan: { step: string, description: string }[];
+    createdAt: Timestamp;
 };
 
 const ChapterImage = ({ course, module, chapter }: { course: Course, module: Module, chapter: Chapter }) => {
@@ -241,6 +253,8 @@ function CoursesComponent() {
   const [isSlideshowMode, setIsSlideshowMode] = useState(false);
   const [slideshowChapterIndex, setSlideshowChapterIndex] = useState(0);
 
+  const [studyGuides, setStudyGuides] = useState<StudyGuide[]>([]);
+
 
   const currentModule = activeCourse?.units?.[currentModuleIndex];
   const currentChapter = currentModule?.chapters[currentChapterIndex];
@@ -288,41 +302,52 @@ function CoursesComponent() {
 
         setIsLoading(true);
         const courseRef = doc(db, 'courses', selectedCourseId);
-        const courseSnap = await getDoc(courseRef);
-        if (courseSnap.exists()) {
-            const courseData = { id: courseSnap.id, ...courseSnap.data() } as Course;
-            setActiveCourse(courseData);
+        const unsubscribeCourse = onSnapshot(courseRef, (courseSnap) => {
+            if (courseSnap.exists()) {
+                const courseData = { id: courseSnap.id, ...courseSnap.data() } as Course;
+                setActiveCourse(courseData);
 
-            if (courseData.units && courseData.units.length > 0) {
-                // Find first uncompleted chapter
-                let found = false;
-                for (let mIdx = 0; mIdx < courseData.units.length; mIdx++) {
-                    const unit = courseData.units[mIdx];
-                    for (let cIdx = 0; cIdx < unit.chapters.length; cIdx++) {
-                        const chapter = unit.chapters[cIdx];
-                        if (!courseData.completedChapters?.includes(chapter.id)) {
-                            setCurrentModuleIndex(mIdx);
-                            setCurrentChapterIndex(cIdx);
-                            found = true;
-                            break;
+                if (courseData.units && courseData.units.length > 0) {
+                    // Find first uncompleted chapter
+                    let found = false;
+                    for (let mIdx = 0; mIdx < courseData.units.length; mIdx++) {
+                        const unit = courseData.units[mIdx];
+                        for (let cIdx = 0; cIdx < unit.chapters.length; cIdx++) {
+                            const chapter = unit.chapters[cIdx];
+                            if (!courseData.completedChapters?.includes(chapter.id)) {
+                                setCurrentModuleIndex(mIdx);
+                                setCurrentChapterIndex(cIdx);
+                                found = true;
+                                break;
+                            }
                         }
+                        if (found) break;
                     }
-                    if (found) break;
+                    if (!found) { // All chapters completed
+                        const lastModuleIndex = courseData.units.length - 1;
+                        const lastChapterIndex = courseData.units[lastModuleIndex].chapters.length - 1;
+                        setCurrentModuleIndex(lastModuleIndex);
+                        setCurrentChapterIndex(lastChapterIndex);
+                    }
                 }
-                if (!found) { // All chapters completed
-                    const lastModuleIndex = courseData.units.length - 1;
-                    const lastChapterIndex = courseData.units[lastModuleIndex].chapters.length - 1;
-                    setCurrentModuleIndex(lastModuleIndex);
-                    setCurrentChapterIndex(lastChapterIndex);
-                }
+            } else {
+                setActiveCourse(null);
+                toast({ variant: 'destructive', title: 'Course not found.' });
             }
+            setIsLoading(false);
+        });
 
-
-        } else {
-             setActiveCourse(null);
-             toast({ variant: 'destructive', title: 'Course not found.' });
-        }
-        setIsLoading(false);
+        // Load study guides for this course
+        const guidesQuery = query(collection(db, 'studyGuides'), where('userId', '==', user.uid), where('courseId', '==', selectedCourseId), orderBy('createdAt', 'desc'));
+        const unsubscribeGuides = onSnapshot(guidesQuery, (snapshot) => {
+            const guides = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}) as StudyGuide);
+            setStudyGuides(guides);
+        });
+        
+        return () => {
+            unsubscribeCourse();
+            unsubscribeGuides();
+        };
     }
     if (selectedCourseId) {
         loadCourseData();
@@ -1628,61 +1653,90 @@ function CoursesComponent() {
                     
                     {chapterCount > 0 && <Progress value={progress} className="mt-2 h-2" />}
                 </div>
-                 <Accordion type="multiple" defaultValue={activeCourse?.units?.map(u => u.id)} className="w-full flex-1 overflow-y-auto">
-                    {activeCourse?.units?.map((unit, mIndex) => {
-                        const arePreviousModulesComplete = activeCourse.units!.slice(0, mIndex).every(prevModule => 
-                            prevModule.chapters.every(chap => activeCourse.completedChapters?.includes(chap.id))
-                        );
+                 <Tabs defaultValue="chapters" className="flex-1 flex flex-col overflow-hidden">
+                    <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="chapters">Chapters</TabsTrigger>
+                        <TabsTrigger value="guides">Study Guides</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="chapters" className="flex-1 overflow-hidden mt-2">
+                        <ScrollArea className="h-full">
+                         <Accordion type="multiple" defaultValue={activeCourse?.units?.map(u => u.id)} className="w-full">
+                            {activeCourse?.units?.map((unit, mIndex) => {
+                                const arePreviousModulesComplete = activeCourse.units!.slice(0, mIndex).every(prevModule => 
+                                    prevModule.chapters.every(chap => activeCourse.completedChapters?.includes(chap.id))
+                                );
 
-                        return (
-                        <AccordionItem key={unit.id} value={unit.id}>
-                            <AccordionTrigger className="text-md font-semibold">{unit.title}</AccordionTrigger>
-                            <AccordionContent>
-                                <ul className="space-y-1 pl-4">
-                                    {unit.chapters.map((chapter, cIndex) => {
-                                        const isCurrent = currentModuleIndex === mIndex && currentChapterIndex === cIndex;
-                                        const isCompleted = activeCourse.completedChapters?.includes(chapter.id) ?? false;
-                                        const chapterIsQuiz = chapter.title.toLowerCase().includes('quiz');
-                                        const quizResultForChapter = chapterIsQuiz ? quizResults[unit.id] : undefined;
-                                        
-                                        const isPreviousChapterCompleted = cIndex === 0
-                                            ? arePreviousModulesComplete
-                                            : unit.chapters.slice(0, cIndex).every(c => activeCourse.completedChapters?.includes(c.id));
-                                        
-                                        const isLocked = activeCourse.isNewTopic && !isCompleted && !isPreviousChapterCompleted && !(mIndex === 0 && cIndex === 0);
+                                return (
+                                <AccordionItem key={unit.id} value={unit.id}>
+                                    <AccordionTrigger className="text-md font-semibold">{unit.title}</AccordionTrigger>
+                                    <AccordionContent>
+                                        <ul className="space-y-1 pl-4">
+                                            {unit.chapters.map((chapter, cIndex) => {
+                                                const isCurrent = currentModuleIndex === mIndex && currentChapterIndex === cIndex;
+                                                const isCompleted = activeCourse.completedChapters?.includes(chapter.id) ?? false;
+                                                const chapterIsQuiz = chapter.title.toLowerCase().includes('quiz');
+                                                const quizResultForChapter = chapterIsQuiz ? quizResults[unit.id] : undefined;
+                                                
+                                                const isPreviousChapterCompleted = cIndex === 0
+                                                    ? arePreviousModulesComplete
+                                                    : unit.chapters.slice(0, cIndex).every(c => activeCourse.completedChapters?.includes(c.id));
+                                                
+                                                const isLocked = activeCourse.isNewTopic && !isCompleted && !isPreviousChapterCompleted && !(mIndex === 0 && cIndex === 0);
 
-                                        return (
-                                        <li key={chapter.id}>
-                                            <button 
-                                                onClick={() => {
-                                                    setCurrentModuleIndex(mIndex);
-                                                    setCurrentChapterIndex(cIndex);
-                                                }}
-                                                disabled={isLocked}
-                                                className={cn(
-                                                    "w-full text-left p-2 rounded-md text-sm flex items-center gap-2",
-                                                    isCurrent ? "bg-primary/10 text-primary font-semibold" : "hover:bg-muted",
-                                                    isLocked ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
-                                                )}
-                                            >
-                                                <CheckCircle size={14} className={cn(isCompleted ? "text-green-500" : "text-muted-foreground/50")} />
-                                                <span className="flex-1">{chapter.title}</span>
-                                                {quizResultForChapter && (
-                                                    <span className={cn(
-                                                        "text-xs font-semibold",
-                                                        (quizResultForChapter.score / quizResultForChapter.totalQuestions) * 100 > 80 ? 'text-green-500' : 'text-yellow-500'
-                                                    )}>
-                                                        {Math.round((quizResultForChapter.score / quizResultForChapter.totalQuestions) * 100)}%
-                                                    </span>
-                                                )}
-                                            </button>
-                                        </li>
-                                    )})}
-                                </ul>
-                            </AccordionContent>
-                        </AccordionItem>
-                    )})}
-                 </Accordion>
+                                                return (
+                                                <li key={chapter.id}>
+                                                    <button 
+                                                        onClick={() => {
+                                                            setCurrentModuleIndex(mIndex);
+                                                            setCurrentChapterIndex(cIndex);
+                                                        }}
+                                                        disabled={isLocked}
+                                                        className={cn(
+                                                            "w-full text-left p-2 rounded-md text-sm flex items-center gap-2",
+                                                            isCurrent ? "bg-primary/10 text-primary font-semibold" : "hover:bg-muted",
+                                                            isLocked ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+                                                        )}
+                                                    >
+                                                        <CheckCircle size={14} className={cn(isCompleted ? "text-green-500" : "text-muted-foreground/50")} />
+                                                        <span className="flex-1">{chapter.title}</span>
+                                                        {quizResultForChapter && (
+                                                            <span className={cn(
+                                                                "text-xs font-semibold",
+                                                                (quizResultForChapter.score / quizResultForChapter.totalQuestions) * 100 > 80 ? 'text-green-500' : 'text-yellow-500'
+                                                            )}>
+                                                                {Math.round((quizResultForChapter.score / quizResultForChapter.totalQuestions) * 100)}%
+                                                            </span>
+                                                        )}
+                                                    </button>
+                                                </li>
+                                            )})}
+                                        </ul>
+                                    </AccordionContent>
+                                </AccordionItem>
+                            )})}
+                         </Accordion>
+                        </ScrollArea>
+                    </TabsContent>
+                    <TabsContent value="guides" className="flex-1 overflow-hidden mt-2">
+                        <ScrollArea className="h-full">
+                            {studyGuides.length > 0 ? (
+                                <div className="space-y-2 pr-4">
+                                {studyGuides.map(guide => (
+                                    <Card key={guide.id} className="p-3">
+                                        <h4 className="font-semibold text-sm truncate">{guide.title}</h4>
+                                        <p className="text-xs text-muted-foreground">{new Date(guide.createdAt.toDate()).toLocaleDateString()}</p>
+                                    </Card>
+                                ))}
+                                </div>
+                            ) : (
+                                <div className="text-center text-sm text-muted-foreground p-8">
+                                    <FolderOpen className="mx-auto h-8 w-8 mb-2" />
+                                    No study guides saved for this course yet.
+                                </div>
+                            )}
+                        </ScrollArea>
+                    </TabsContent>
+                 </Tabs>
                  <div className="mt-4 pt-4 border-t">
                      <Button variant="outline" className="w-full" onClick={startNewCourse}>Back to Courses Overview</Button>
                  </div>
