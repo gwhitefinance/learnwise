@@ -7,7 +7,7 @@ import Faqs from '@/sections/Faqs';
 import Footer from '@/sections/Footer';
 import Navbar from '@/sections/Navbar';
 import HowItWorks from '@/sections/HowItWorks';
-import { ArrowRight, Star, BrainCircuit } from 'lucide-react';
+import { ArrowRight, Star, BrainCircuit, Rocket, GraduationCap, School } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -161,59 +161,41 @@ const Hero = ({ theme }: { theme: string }) => (
               </div>
           </div>
       </div>
-
       
-
-      <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-8">
-        <div className="bg-black/80 rounded-2xl">
+      <div className="flex flex-col sm:flex-row justify-center items-center gap-8 mt-12">
+        <div className="flex flex-col items-center gap-4">
+            <div className="flex items-center gap-2 font-semibold text-lg text-white">
+                <Rocket className="w-5 h-5" />
+                For Students
+            </div>
             <Link href="/signup">
-            <Button
-                size="lg"
-                className="w-full sm:w-auto bg-blue-500 text-white hover:bg-blue-600 rounded-2xl text-lg h-14 border-b-4 border-black/30 transform active:translate-y-px"
-            >
-                Start for Free
-            </Button>
+                <Button size="lg" className="bg-blue-500 hover:bg-blue-600 text-white rounded-full px-8 py-6 text-base">
+                    Try for Free
+                </Button>
             </Link>
         </div>
-        <Dialog>
-          <DialogTrigger asChild>
-            <div className="bg-gray-400 rounded-2xl">
-                <Button
-                    size="lg"
-                    variant="outline"
-                    className="w-full sm:w-auto bg-white border-white/20 text-black hover:text-black hover:bg-gray-100 rounded-2xl text-lg h-14 border-b-4 border-black/20 transform active:translate-y-px"
-                >
-                    For Teachers
+         <div className="flex flex-col items-center gap-4">
+            <div className="flex items-center gap-2 font-semibold text-lg text-white">
+                <GraduationCap className="w-5 h-5" />
+                For Educators
+            </div>
+            <Link href="/teacher-dashboard">
+                <Button size="lg" className="bg-[#4a2e5d] hover:bg-[#5f3a78] text-white rounded-full px-8 py-6 text-base">
+                    Get Started
                 </Button>
+            </Link>
+        </div>
+         <div className="flex flex-col items-center gap-4">
+            <div className="flex items-center gap-2 font-semibold text-lg text-white">
+                <School className="w-5 h-5" />
+                For Institutions
             </div>
-          </DialogTrigger>
-           <DialogContent>
-            <DialogHeader>
-                <DialogTitle>
-                    <div className="flex flex-col items-center text-center">
-                        <Logo className="h-12 w-12 text-blue-500 mb-4" />
-                        <h2 className="text-3xl font-bold mb-4">Empower Your Classroom</h2>
-                    </div>
-                </DialogTitle>
-                <DialogDescription className="sr-only">
-                    Tutorin for Educators provides tools to manage classes, track student progress, and create engaging assignments.
-                </DialogDescription>
-            </DialogHeader>
-            <p className="text-muted-foreground mb-8 text-base text-center">
-                Bring the power of AI to your classroom. With Tutorin for Educators, you can create assignments, monitor student progress, and provide personalized feedback at scale.
-            </p>
-            <div className="flex flex-col items-center">
-                 <Link href="/teacher-dashboard">
-                    <Button
-                        size="lg"
-                        className="w-full bg-blue-500 text-white hover:bg-blue-600 rounded-full text-lg h-14"
-                    >
-                        Explore Teacher Portal
-                    </Button>
-                </Link>
-            </div>
-          </DialogContent>
-        </Dialog>
+            <Link href="#">
+                <Button size="lg" className="bg-[#1abc9c] hover:bg-[#20d4b1] text-white rounded-full px-8 py-6 text-base">
+                    Learn More
+                </Button>
+            </Link>
+        </div>
       </div>
     </div>
   </section>
@@ -249,7 +231,7 @@ const plans = [
             "Unlimited Practice Quizzes",
             "Unlimited Study Roadmaps",
             "Unlimited Learning Labs",
-            "Unlimited Notes & Whiteboards",
+            "Unlimited Notes & Whiteboard",
             "Unlimited Image Analysis",
             "Unlimited Text & URL Summaries",
             "Priority Support",
