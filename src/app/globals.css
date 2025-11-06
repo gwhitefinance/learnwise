@@ -71,6 +71,14 @@
   .highlight-pink {
     background-color: rgba(255, 192, 203, 0.7);
   }
+  
+  [contenteditable="true"]:empty:before {
+    content: attr(data-placeholder);
+    pointer-events: none;
+    display: block; /* For cursor placement */
+    color: hsl(var(--muted-foreground));
+    opacity: 0.6;
+  }
 }
 
 @layer utilities {

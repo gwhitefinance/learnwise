@@ -199,7 +199,7 @@ const LiveLecturePanel = ({ show, setShow, onNoteGenerated, onTranscriptUpdate, 
             const result = await generateNoteFromChat({
                 messages: [{ role: 'user', content: currentTranscript }]
             });
-            onNoteGenerated(`<h2>${result.title}</h2><p>${result.note.replace(/\n/g, '<br/>')}</p>`);
+            onNoteGenerated(`<h2>${result.title}</h2><p>${result.note.replace(/\\n/g, '<br/>')}</p>`);
             setShow(false);
         } catch (e) {
             console.error(e);
@@ -345,13 +345,7 @@ export default function NewNotePage() {
     const handleInput = () => {
         if (editorRef.current) {
             const newContent = editorRef.current.innerHTML;
-            if (history.current[historyIndex.current]?.content !== newContent) {
-                const newHistory = history.current.slice(0, historyIndex.current + 1);
-                newHistory.push({ content: newContent });
-                history.current = newHistory;
-                historyIndex.current++;
-            }
-            setEditorContent(newContent);
+            setEditorContent(newContent); // Update state to track content, e.g., for saving.
         }
     };
     
@@ -455,10 +449,10 @@ export default function NewNotePage() {
                              <div 
                                  ref={editorRef}
                                  contentEditable="true" 
-                                 className="flex-1 p-8 prose prose-lg max-w-none dark:prose-invert outline-none" 
+                                 className="relative flex-1 p-8 prose prose-lg max-w-none dark:prose-invert outline-none" 
                                  suppressContentEditableWarning={true}
                                  onInput={handleInput}
-                                 dangerouslySetInnerHTML={{ __html: editorContent }}
+                                 data-placeholder="Start writing note here..."
                              >
                              </div>
                          )}
@@ -536,3 +530,4 @@ export default function NewNotePage() {
         </div>
     );
 }
+
