@@ -51,7 +51,7 @@ const EditorToolbar = ({ onCommand, onImageUpload, onLinkCreate, onToggleChat }:
         </select>
         <div className="h-6 w-px bg-gray-300 dark:bg-gray-600 mx-1"></div>
         <Button variant="ghost" size="icon" onClick={() => onCommand('decreaseFontSize')} className="w-8 h-8"><Minus size={16} /></Button>
-        <Input type="text" defaultValue="12" className="w-10 h-8 text-center p-0 border-gray-300 dark:border-gray-600 bg-transparent" onBlur={(e) => onCommand('fontSize', e.target.value)}/>
+        <Input type="text" defaultValue="16" className="w-10 h-8 text-center p-0 border-gray-300 dark:border-gray-600 bg-transparent" onBlur={(e) => onCommand('fontSize', e.target.value)}/>
         <Button variant="ghost" size="icon" onClick={() => onCommand('increaseFontSize')} className="w-8 h-8"><Plus size={16} /></Button>
         <div className="h-6 w-px bg-gray-300 dark:bg-gray-600 mx-1"></div>
         <Button variant="ghost" size="icon" onClick={() => onCommand('bold')} className="w-8 h-8"><Bold size={16} /></Button>
@@ -299,7 +299,6 @@ const ChatHomeScreen = ({ onStartChatWithPrompt, customizations }: { onStartChat
 
 export default function NewNotePage() {
     const editorRef = useRef<HTMLDivElement>(null);
-    const [editorContent, setEditorContent] = useState<string>('');
     const [showLiveLecture, setShowLiveLecture] = useState(false);
     const [lectureTranscript, setLectureTranscript] = useState('');
     const [lectureAudioUrl, setLectureAudioUrl] = useState<string | null>(null);
@@ -312,61 +311,50 @@ export default function NewNotePage() {
     const imageInputRef = useRef<HTMLInputElement>(null);
     
     useEffect(() => {
-        const editor = editorRef.current;
-        if (!editor) return;
-
-        const handleInput = () => {
-            if (editorRef.current && editorRef.current.innerHTML !== editorContent) {
-                setEditorContent(editorRef.current.innerHTML);
-            }
-        };
-
-        editor.addEventListener('input', handleInput);
-        return () => editor.removeEventListener('input', handleInput);
+        // We only want to set the content if it's empty, to avoid overwriting user input on re-renders
+        if (editorRef.current && !editorRef.current.innerHTML) {
+            editorRef.current.innerHTML = '';
+        }
     }, []);
 
     const handleCommand = (command: string, value?: string) => {
-        if (command === 'fontSize' && value) {
-            const sizeMap: { [key: string]: string } = {
-              '8': '1', '10': '2', '12': '3', '14': '4',
-              '18': '5', '24': '6', '36': '7',
-            };
-            const mappedValue = Object.keys(sizeMap).reduce((prev, curr) => {
-                return (Math.abs(parseInt(curr) - parseInt(value)) < Math.abs(parseInt(prev) - parseInt(value)) ? curr : prev);
-            });
-            document.execCommand(command, false, sizeMap[mappedValue]);
-        } else if (command === 'increaseFontSize' || command === 'decreaseFontSize') {
+        if (command === 'increaseFontSize' || command === 'decreaseFontSize') {
             const selection = window.getSelection();
             if (!selection || selection.rangeCount === 0) return;
 
             const range = selection.getRangeAt(0);
-            const parentElement = range.commonAncestorContainer.parentElement;
-
+            const parentElement = range.commonAncestorContainer.nodeType === Node.TEXT_NODE
+                ? range.commonAncestorContainer.parentElement
+                : range.commonAncestorContainer as HTMLElement;
+            
             if (parentElement) {
-                const currentSize = parseInt(window.getComputedStyle(parentElement).fontSize);
-                const newSize = command === 'increaseFontSize' ? currentSize + 2 : currentSize - 2;
+                const currentSize = parseInt(window.getComputedStyle(parentElement).fontSize, 10);
+                const newSize = command === 'increaseFontSize' ? currentSize + 2 : Math.max(8, currentSize - 2);
+                document.execCommand('fontSize', false, '7'); // Use a placeholder size
                 
-                const fontElements = parentElement.closest('font');
-                if (fontElements) {
-                     fontElements.removeAttribute('size');
-                }
-                
-                document.execCommand('styleWithCSS', false, 'true');
-                document.execCommand('fontSize', false, '7');
-                const fontTags = editorRef.current?.getElementsByTagName('font');
-                if (fontTags) {
-                    for (let i = 0; i < fontTags.length; i++) {
-                        const tag = fontTags[i];
-                        if (tag.getAttribute('size') === '7') {
-                            tag.style.fontSize = `${newSize}px`;
-                            tag.removeAttribute('size');
-                        }
+                const fontElements = (editorRef.current as HTMLElement).getElementsByTagName('font');
+                for (let i = 0; i < fontElements.length; i++) {
+                    const element = fontElements[i];
+                    if (element.size === '7') {
+                        element.removeAttribute('size');
+                        element.style.fontSize = `${newSize}px`;
                     }
                 }
-                document.execCommand('styleWithCSS', false, 'false');
             }
-        }
-         else {
+        } else if (command === 'fontSize' && value) {
+            const size = parseInt(value, 10);
+            if (!isNaN(size) && size > 0) {
+                 document.execCommand('fontSize', false, '7');
+                 const fontElements = (editorRef.current as HTMLElement).getElementsByTagName('font');
+                for (let i = 0; i < fontElements.length; i++) {
+                    const element = fontElements[i];
+                    if (element.size === '7') {
+                        element.removeAttribute('size');
+                        element.style.fontSize = `${size}px`;
+                    }
+                }
+            }
+        } else {
             document.execCommand(command, false, value);
         }
         editorRef.current?.focus();
@@ -377,7 +365,6 @@ export default function NewNotePage() {
             const currentContent = editorRef.current.innerHTML;
             const newContent = currentContent + '<br>' + noteHtml;
             editorRef.current.innerHTML = newContent;
-            setEditorContent(newContent);
         }
     };
 
