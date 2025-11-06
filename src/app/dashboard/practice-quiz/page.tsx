@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useState, useEffect, useRef, useContext, Suspense } from 'react';
@@ -14,7 +15,7 @@ import type { GenerateQuizInput, GenerateQuizOutput, QuizQuestion } from '@/ai/s
 import { Progress } from '@/components/ui/progress';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { cn } from '@/lib/utils';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose, DialogTrigger } from '@/components/ui/dialog';
 import { generateExplanation, generateHint, generateFlashcardsFromNote, generateCrunchTimeStudyGuide } from '@/lib/actions';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Slider } from '@/components/ui/slider';
@@ -330,7 +331,7 @@ function PracticeQuizComponent() {
         const currentQuestion = quiz.questions[currentQuestionIndex] as QuizQuestion & { type?: string };
         let isCorrect = false;
 
-        const cleanAndSplit = (text: string) => text.toLowerCase().replace(/[^\w\s]/g, '').split(/\s+/).filter(Boolean);
+        const cleanAndSplit = (text: string) => text.toLowerCase().replace(/[^\\w\\s]/g, '').split(/\\s+/).filter(Boolean);
 
         if (currentQuestion.type === 'Free Response (FRQ)') {
             const answerKeywords = cleanAndSplit(currentQuestion.answer);
@@ -516,7 +517,7 @@ function PracticeQuizComponent() {
         setFlashcardLoading(true);
         setFlashcards([]);
 
-        const quizContent = quiz.questions.map(q => `Q: ${q.question}\nA: ${q.answer}`).join('\n\n');
+        const quizContent = quiz.questions.map(q => `Q: ${q.question}\\nA: ${q.answer}`).join('\\n\\n');
 
         try {
             const result = await generateFlashcardsFromNote({
@@ -1247,4 +1248,6 @@ export default function PracticeQuizPage() {
 }
     
     
+    
+
     
