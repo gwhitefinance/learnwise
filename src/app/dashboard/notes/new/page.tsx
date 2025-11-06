@@ -1,10 +1,11 @@
 
+
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import {
-  Bold, Italic, Underline, Strikethrough, Palette, AlignLeft, AlignCenter, AlignRight, List, ListOrdered, Undo, Redo, X, ChevronDown, Mic, Sparkles, Clock, Music, UserPlus, Upload, Info, GitMerge, FileSignature, Plus, History, Printer, Expand, Search, FileText, ArrowRight, Type, GripVertical, Maximize, Square, Globe, GraduationCap, Loader2, MessageSquare, BrainCircuit, Lightbulb, Copy, ImageIcon, Link as LinkIcon, MessageSquarePlus, Paintbrush, Minus, Indent, Outdent, Pilcrow, LineChart, CheckSquare
+  Bold, Italic, Underline, Strikethrough, Palette, AlignLeft, AlignCenter, AlignRight, List, ListOrdered, Undo, Redo, X, ChevronDown, Mic, Sparkles, Clock, Music, UserPlus, Upload, Info, GitMerge, FileSignature, Plus, History, Printer, Expand, Search, FileText, ArrowRight, Type, GripVertical, Maximize, Square, Globe, GraduationCap, Loader2, MessageSquare, BrainCircuit, Lightbulb, Copy, ImageIcon, Link as LinkIcon, MessageSquarePlus, Paintbrush, Minus, Indent, Outdent, Pilcrow, LineChart, CheckSquare, Save
 } from 'lucide-react';
 import Image from 'next/image';
 import { Input } from '@/components/ui/input';
@@ -15,12 +16,14 @@ import { Textarea } from '@/components/ui/textarea';
 import AIBuddy from '@/components/ai-buddy';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { auth } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
 import { cn } from '@/lib/utils';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import Logo from '@/components/Logo';
 import Link from 'next/link';
+import { addDoc, collection, Timestamp } from 'firebase/firestore';
+
 
 interface Message {
   role: 'user' | 'ai';
@@ -309,6 +312,7 @@ export default function NewNotePage() {
     const [isChatVisible, setIsChatVisible] = useState(true);
     const [noteTitle, setNoteTitle] = useState('Untitled Note');
     const imageInputRef = useRef<HTMLInputElement>(null);
+    const [user] = useAuthState(auth);
     
     useEffect(() => {
         // We only want to set the content if it's empty, to avoid overwriting user input on re-renders
@@ -363,16 +367,18 @@ export default function NewNotePage() {
             if (!selection || selection.rangeCount === 0) return;
             
             const range = selection.getRangeAt(0);
-            let targetElement: HTMLElement | null = null;
             
-            if (range.startContainer.nodeType === Node.TEXT_NODE) {
-                targetElement = range.startContainer.parentElement;
-            } else {
-                targetElement = range.startContainer as HTMLElement;
+            const getParentElement = (node: Node): HTMLElement | null => {
+                if (node.nodeType === Node.TEXT_NODE) {
+                    return node.parentElement;
+                }
+                return node as HTMLElement;
             }
+
+            const startElement = getParentElement(range.startContainer);
             
-            if (targetElement && targetElement.nodeName !== 'DIV') { // Check we are not at the root editor
-                const currentSize = parseInt(window.getComputedStyle(targetElement).fontSize, 10);
+            if (startElement && startElement.nodeName !== 'DIV') { // Check we are not at the root editor
+                const currentSize = parseInt(window.getComputedStyle(startElement).fontSize, 10);
                 let newSize;
                 if (command === 'fontSize' && value) {
                     newSize = parseInt(value, 10);
@@ -463,6 +469,33 @@ export default function NewNotePage() {
             document.execCommand('createLink', false, url);
         }
     };
+    
+    const handleSaveNote = async () => {
+        if (!user) {
+            toast({ variant: 'destructive', title: 'You must be logged in to save.' });
+            return;
+        }
+        if (!editorRef.current?.innerHTML.trim()) {
+            toast({ variant: 'destructive', title: 'Cannot save an empty note.' });
+            return;
+        }
+    
+        try {
+            await addDoc(collection(db, "notes"), {
+                title: noteTitle,
+                content: editorRef.current.innerHTML,
+                date: Timestamp.now(),
+                color: 'bg-indigo-100 dark:bg-indigo-900/20', // Default color
+                isImportant: false,
+                isCompleted: false,
+                userId: user.uid,
+            });
+            toast({ title: "Note Saved!", description: "Your note has been successfully saved." });
+        } catch (error) {
+            console.error("Error saving note: ", error);
+            toast({ variant: "destructive", title: "Error", description: "Could not save the note." });
+        }
+    };
 
     return (
         <div className="flex h-screen overflow-hidden">
@@ -498,8 +531,8 @@ export default function NewNotePage() {
                             <Button variant="outline" className="text-sm">
                                 <UserPlus className="mr-2 h-4 w-4"/> Share
                             </Button>
-                            <Button className="text-sm bg-blue-600 hover:bg-blue-700">
-                                <Upload className="mr-2 h-4 w-4"/> Upgrade
+                            <Button onClick={handleSaveNote} className="text-sm bg-blue-600 hover:bg-blue-700">
+                                <Save className="mr-2 h-4 w-4"/> Save Note
                             </Button>
                         </div>
                     </div>
