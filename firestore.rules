@@ -223,8 +223,30 @@ service cloud.firestore {
      */
     match /studyGuides/{guideId} {
         allow get, update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
-        allow list: if request.auth != null && request.query.where.userId == request.auth.uid;
+        allow list: if request.auth != null && request.query.where.size == 1 && request.query.where.userId == request.auth.uid;
         allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+    }
+
+    /**
+     * @description Allows users to manage their own projects.
+     * @path /projects/{projectId}
+     * @principle Enforces document ownership for all operations.
+     */
+    match /projects/{projectId} {
+      allow read, write: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow list: if request.auth != null && request.query.where.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+    }
+
+    /**
+     * @description Allows users to manage their own recent files.
+     * @path /recentFiles/{fileId}
+     * @principle Enforces document ownership for all operations.
+     */
+    match /recentFiles/{fileId} {
+      allow read, write: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow list: if request.auth != null && request.query.where.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
     }
   }
 }
