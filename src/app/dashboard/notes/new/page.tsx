@@ -1,11 +1,9 @@
-
-
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import {
-  Bold, Italic, Underline, Strikethrough, Palette, AlignLeft, AlignCenter, AlignRight, List, ListOrdered, Undo, Redo, X, ChevronDown, Mic, Sparkles, Clock, Music, UserPlus, Upload, Info, GitMerge, FileSignature, Plus, History, Printer, Expand, Search, FileText, ArrowRight, Type, GripVertical, Maximize, Square, Globe, GraduationCap, Loader2, MessageSquare, BrainCircuit, Lightbulb, Copy, ImageIcon
+  Bold, Italic, Underline, Strikethrough, Palette, AlignLeft, AlignCenter, AlignRight, List, ListOrdered, Undo, Redo, X, ChevronDown, Mic, Sparkles, Clock, Music, UserPlus, Upload, Info, GitMerge, FileSignature, Plus, History, Printer, Expand, Search, FileText, ArrowRight, Type, GripVertical, Maximize, Square, Globe, GraduationCap, Loader2, MessageSquare, BrainCircuit, Lightbulb, Copy, ImageIcon, Link as LinkIcon, MessageSquarePlus, Paintbrush, Minus, Indent, Outdent, Pilcrow, LineChart, CheckSquare
 } from 'lucide-react';
 import Image from 'next/image';
 import { Input } from '@/components/ui/input';
@@ -28,65 +26,58 @@ interface Message {
   content: string;
 }
 
-const EditorToolbar = ({ onCommand, activeTab, setActiveTab }: { onCommand: (command: string, value?: string) => void, activeTab: string, setActiveTab: (tab: string) => void }) => {
-    
-    const tabs = [
-        { id: 'self-written', label: 'Self Written Notes', icon: <FileText size={16} /> },
-        { id: 'lecture-transcript', label: 'Lecture Transcript', icon: <Clock size={16} /> },
-        { id: 'audio-files', label: 'Audio Files', icon: <Music size={16} /> },
-    ];
+const EditorToolbar = ({ onCommand, onInput }: { onCommand: (command: string, value?: string) => void, onInput: () => void }) => {
     
     return (
-    <div className="bg-gray-100 dark:bg-gray-800 rounded-t-lg shadow-sm border border-gray-200 dark:border-gray-700">
-        <div className="px-4 border-b border-gray-200 dark:border-gray-700">
-            <nav className="flex items-center -mb-px">
-                 {tabs.map(tab => (
-                    <button 
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
-                        className={`flex items-center gap-2 px-3 py-3 border-b-2 font-semibold text-sm transition-colors ${
-                            activeTab === tab.id
-                                ? 'border-primary text-primary'
-                                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
-                        }`}
-                    >
-                        {tab.icon}
-                        {tab.label}
-                    </button>
-                ))}
-            </nav>
+    <div className="bg-gray-100 dark:bg-gray-800 rounded-t-lg shadow-sm border-b border-gray-200 dark:border-gray-700 p-2 flex flex-wrap items-center gap-1 text-gray-600 dark:text-gray-300">
+        <Button variant="ghost" size="icon" onClick={() => onCommand('undo')} className="w-8 h-8"><Undo size={16} /></Button>
+        <Button variant="ghost" size="icon" onClick={() => onCommand('redo')} className="w-8 h-8"><Redo size={16} /></Button>
+        <Button variant="ghost" size="icon" onClick={() => window.print()} className="w-8 h-8"><Printer size={16} /></Button>
+        <div className="h-6 w-px bg-gray-300 dark:bg-gray-600 mx-1"></div>
+        <select onChange={(e) => onCommand('formatBlock', e.target.value)} className="flex items-center gap-1 px-2 py-1.5 rounded bg-transparent text-sm border-none focus:ring-0 appearance-none hover:bg-gray-200 dark:hover:bg-gray-700">
+            <option value="p">Normal text</option>
+            <option value="h1">Heading 1</option>
+            <option value="h2">Heading 2</option>
+            <option value="h3">Heading 3</option>
+        </select>
+        <div className="h-6 w-px bg-gray-300 dark:bg-gray-600 mx-1"></div>
+        <select onChange={(e) => onCommand('fontName', e.target.value)} className="flex items-center gap-1 px-2 py-1.5 rounded bg-transparent text-sm border-none focus:ring-0 appearance-none hover:bg-gray-200 dark:hover:bg-gray-700 w-24">
+            <option>Arial</option>
+            <option>Georgia</option>
+            <option>Times New Roman</option>
+            <option>Verdana</option>
+            <option>Courier New</option>
+        </select>
+        <div className="h-6 w-px bg-gray-300 dark:bg-gray-600 mx-1"></div>
+        <Button variant="ghost" size="icon" onClick={() => onCommand('decreaseFontSize')} className="w-8 h-8"><Minus size={16} /></Button>
+        <Input type="text" defaultValue="12" className="w-10 h-8 text-center p-0 border-gray-300 dark:border-gray-600 bg-transparent" onBlur={(e) => onCommand('fontSize', (Math.floor(parseInt(e.target.value) / 3) + 1).toString())}/>
+        <Button variant="ghost" size="icon" onClick={() => onCommand('increaseFontSize')} className="w-8 h-8"><Plus size={16} /></Button>
+        <div className="h-6 w-px bg-gray-300 dark:bg-gray-600 mx-1"></div>
+        <Button variant="ghost" size="icon" onClick={() => onCommand('bold')} className="w-8 h-8"><Bold size={16} /></Button>
+        <Button variant="ghost" size="icon" onClick={() => onCommand('italic')} className="w-8 h-8"><Italic size={16} /></Button>
+        <Button variant="ghost" size="icon" onClick={() => onCommand('underline')} className="w-8 h-8"><Underline size={16} /></Button>
+        <div className="relative w-8 h-8 flex items-center justify-center">
+            <Button variant="ghost" size="icon" className="w-full h-full absolute inset-0"><Palette size={16} /></Button>
+            <input type="color" onChange={(e) => onCommand('foreColor', e.target.value)} className="w-full h-full opacity-0 cursor-pointer" />
         </div>
-        <div className="p-2 flex items-center space-x-1 text-gray-500 dark:text-gray-400 overflow-x-auto">
-                <select onChange={(e) => onCommand('fontName', e.target.value)} className="flex items-center gap-1 px-2 py-1.5 rounded bg-transparent text-sm border-none focus:ring-0 appearance-none">
-                    <option>Arial</option>
-                    <option>Georgia</option>
-                    <option>Times New Roman</option>
-                    <option>Verdana</option>
-                </select>
-                <select onChange={(e) => onCommand('fontSize', e.target.value)} className="flex items-center gap-1 px-2 py-1.5 rounded bg-transparent text-sm border-none focus:ring-0 appearance-none">
-                    <option value="3">12</option>
-                    <option value="4">14</option>
-                    <option value="5">18</option>
-                    <option value="6">24</option>
-                </select>
-                <div className="h-6 w-px bg-gray-200 dark:bg-gray-700"></div>
-                <Button variant="ghost" size="icon" onClick={() => onCommand('bold')} className="w-8 h-8"><Bold size={16} /></Button>
-                <Button variant="ghost" size="icon" onClick={() => onCommand('italic')} className="w-8 h-8"><Italic size={16} /></Button>
-                <Button variant="ghost" size="icon" onClick={() => onCommand('underline')} className="w-8 h-8"><Underline size={16} /></Button>
-                <Button variant="ghost" size="icon" onClick={() => onCommand('strikeThrough')} className="w-8 h-8"><Strikethrough size={16} /></Button>
-                <div className="h-6 w-px bg-gray-200 dark:bg-gray-700"></div>
-                 <input type="color" onChange={(e) => onCommand('foreColor', e.target.value)} className="w-8 h-8 p-0 border-none bg-transparent" />
-                <div className="h-6 w-px bg-gray-200 dark:bg-gray-700"></div>
-                <Button variant="ghost" size="icon" onClick={() => onCommand('justifyLeft')} className="w-8 h-8"><AlignLeft size={16} /></Button>
-                <Button variant="ghost" size="icon" onClick={() => onCommand('justifyCenter')} className="w-8 h-8"><AlignCenter size={16} /></Button>
-                <Button variant="ghost" size="icon" onClick={() => onCommand('justifyRight')} className="w-8 h-8"><AlignRight size={16} /></Button>
-                <div className="h-6 w-px bg-gray-200 dark:bg-gray-700"></div>
-                <Button variant="ghost" size="icon" onClick={() => onCommand('insertUnorderedList')} className="w-8 h-8"><List size={16} /></Button>
-                <Button variant="ghost" size="icon" onClick={() => onCommand('insertOrderedList')} className="w-8 h-8"><ListOrdered size={16} /></Button>
-                <div className="h-6 w-px bg-gray-200 dark:bg-gray-700"></div>
-                <Button variant="ghost" size="icon" onClick={() => onCommand('undo')} className="w-8 h-8"><Undo size={16} /></Button>
-                <Button variant="ghost" size="icon" onClick={() => onCommand('redo')} className="w-8 h-8"><Redo size={16} /></Button>
+        <div className="relative w-8 h-8 flex items-center justify-center">
+             <Button variant="ghost" size="icon" className="w-full h-full absolute inset-0"><Paintbrush size={16} /></Button>
+             <input type="color" onChange={(e) => onCommand('hiliteColor', e.target.value)} className="w-full h-full opacity-0 cursor-pointer" />
         </div>
+        <div className="h-6 w-px bg-gray-300 dark:bg-gray-600 mx-1"></div>
+        <Button variant="ghost" size="icon" className="w-8 h-8"><LinkIcon size={16} /></Button>
+        <Button variant="ghost" size="icon" className="w-8 h-8"><MessageSquarePlus size={16} /></Button>
+        <Button variant="ghost" size="icon" className="w-8 h-8"><ImageIcon size={16} /></Button>
+        <div className="h-6 w-px bg-gray-300 dark:bg-gray-600 mx-1"></div>
+        <Button variant="ghost" size="icon" onClick={() => onCommand('justifyLeft')} className="w-8 h-8"><AlignLeft size={16} /></Button>
+        <Button variant="ghost" size="icon" onClick={() => onCommand('justifyCenter')} className="w-8 h-8"><AlignCenter size={16} /></Button>
+        <Button variant="ghost" size="icon" onClick={() => onCommand('justifyRight')} className="w-8 h-8"><AlignRight size={16} /></Button>
+        <div className="h-6 w-px bg-gray-300 dark:bg-gray-600 mx-1"></div>
+        <Button variant="ghost" size="icon" onClick={() => onCommand('insertUnorderedList')} className="w-8 h-8"><List size={16} /></Button>
+        <Button variant="ghost" size="icon" onClick={() => onCommand('insertOrderedList')} className="w-8 h-8"><ListOrdered size={16} /></Button>
+        <Button variant="ghost" size="icon" onClick={() => onCommand('outdent')} className="w-8 h-8"><Outdent size={16} /></Button>
+        <Button variant="ghost" size="icon" onClick={() => onCommand('indent')} className="w-8 h-8"><Indent size={16} /></Button>
+         <Button variant="ghost" size="icon" onClick={() => onCommand('strikeThrough')} className="w-8 h-8"><Strikethrough size={16} /></Button>
     </div>
 )};
 
@@ -307,70 +298,30 @@ const ChatHomeScreen = ({ onStartChatWithPrompt, customizations }: { onStartChat
 
 export default function NewNotePage() {
     const editorRef = useRef<HTMLDivElement>(null);
-    const [editorContent, setEditorContent] = useState('');
-    const history = useRef<{ content: string }[]>([]);
-    const historyIndex = useRef(-1);
     const [showLiveLecture, setShowLiveLecture] = useState(false);
-    
     const [activeToolbarTab, setActiveToolbarTab] = useState('self-written');
     const [lectureTranscript, setLectureTranscript] = useState('');
     const [lectureAudioUrl, setLectureAudioUrl] = useState<string | null>(null);
-
     const [chatHistory, setChatHistory] = useState<Message[]>([]);
     const [chatInput, setChatInput] = useState('');
     const [isChatLoading, setIsChatLoading] = useState(false);
-    const [user] = useAuthState(auth);
     const { toast } = useToast();
+    
+    // This state will hold the raw HTML content for saving.
+    const [editorContent, setEditorContent] = useState('');
 
     const handleCommand = (command: string, value?: string) => {
-        if (command === 'fontName' || command === 'fontSize') {
-            document.execCommand(command, false, value);
-        } else if (command === 'insertUnorderedList' || command === 'insertOrderedList') {
-            document.execCommand(command, false);
-        } else {
-             document.execCommand(command, false, value);
-        }
-        if (editorRef.current) {
-            const newContent = editorRef.current.innerHTML;
-            if (history.current[historyIndex.current]?.content !== newContent) {
-                const newHistory = history.current.slice(0, historyIndex.current + 1);
-                newHistory.push({ content: newContent });
-                history.current = newHistory;
-                historyIndex.current++;
-            }
-        }
+        document.execCommand(command, false, value);
         editorRef.current?.focus();
+        handleInput(); // Manually trigger content update after command
     };
 
     const handleInput = () => {
         if (editorRef.current) {
-            const newContent = editorRef.current.innerHTML;
-            setEditorContent(newContent); // Update state to track content, e.g., for saving.
+            setEditorContent(editorRef.current.innerHTML);
         }
     };
     
-    const handleUndo = () => {
-        if (historyIndex.current > 0) {
-            historyIndex.current--;
-            const newContent = history.current[historyIndex.current].content;
-            setEditorContent(newContent);
-            if (editorRef.current) {
-                editorRef.current.innerHTML = newContent;
-            }
-        }
-    };
-
-    const handleRedo = () => {
-        if (historyIndex.current < history.current.length - 1) {
-            historyIndex.current++;
-            const newContent = history.current[historyIndex.current].content;
-            setEditorContent(newContent);
-            if (editorRef.current) {
-                editorRef.current.innerHTML = newContent;
-            }
-        }
-    };
-
     const handleNoteGenerated = (noteHtml: string) => {
         if (editorRef.current) {
             const currentContent = editorRef.current.innerHTML;
@@ -382,25 +333,23 @@ export default function NewNotePage() {
 
     const handleSendMessage = async (prompt?: string) => {
         const messageContent = prompt || chatInput.trim();
-        if (!messageContent || !user) return;
+        if (!messageContent) return;
     
         const userMessage: Message = { role: 'user', content: messageContent };
-        const newHistory = [...chatHistory, userMessage];
-        setChatHistory(newHistory);
+        setChatHistory(prev => [...prev, userMessage]);
         setChatInput('');
         setIsChatLoading(true);
     
         try {
           const response = await studyPlannerAction({
-            history: newHistory,
-            courseContext: editorContent,
+            history: [...chatHistory, userMessage],
+            courseContext: editorRef.current?.innerText || '', // Use innerText for context
           });
           const aiMessage: Message = { role: 'ai', content: response.text };
           setChatHistory(prev => [...prev, aiMessage]);
     
         } catch (error) {
           console.error(error);
-          setChatHistory(chatHistory); // Revert on error
           toast({ variant: 'destructive', title: 'Error', description: 'Could not get a response from the AI.'})
         } finally {
           setIsChatLoading(false);
@@ -444,32 +393,16 @@ export default function NewNotePage() {
                 <div className="flex-1 flex flex-col p-6 overflow-y-auto relative">
                      <LiveLecturePanel show={showLiveLecture} setShow={setShowLiveLecture} onNoteGenerated={handleNoteGenerated} onTranscriptUpdate={setLectureTranscript} onAudioUpdate={setLectureAudioUrl} />
                     <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm flex-1 flex flex-col">
-                        <EditorToolbar onCommand={handleCommand} activeTab={activeToolbarTab} setActiveTab={setActiveToolbarTab} />
-                         {activeToolbarTab === 'self-written' && (
-                             <div 
-                                 ref={editorRef}
-                                 contentEditable="true" 
-                                 className="relative flex-1 p-8 prose prose-lg max-w-none dark:prose-invert outline-none" 
-                                 suppressContentEditableWarning={true}
-                                 onInput={handleInput}
-                                 data-placeholder="Start writing note here..."
-                             >
-                             </div>
-                         )}
-                         {activeToolbarTab === 'lecture-transcript' && (
-                            <div className="flex-1 p-8 text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-                                {lectureTranscript || "No transcript recorded yet."}
-                            </div>
-                        )}
-                        {activeToolbarTab === 'audio-files' && (
-                             <div className="flex-1 p-8">
-                                {lectureAudioUrl ? (
-                                    <audio controls src={lectureAudioUrl} className="w-full" />
-                                ) : (
-                                    <p className="text-gray-500">No audio recorded yet.</p>
-                                )}
-                            </div>
-                        )}
+                        <EditorToolbar onCommand={handleCommand} onInput={handleInput} />
+                         <div 
+                             ref={editorRef}
+                             contentEditable="true" 
+                             className="relative flex-1 p-8 prose prose-lg max-w-none dark:prose-invert outline-none" 
+                             suppressContentEditableWarning={true}
+                             onInput={handleInput}
+                             data-placeholder="Start writing note here..."
+                         >
+                         </div>
                     </div>
                 </div>
             </main>
