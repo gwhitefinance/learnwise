@@ -309,7 +309,15 @@ export default function NewNotePage() {
     const [isChatVisible, setIsChatVisible] = useState(true);
     
     // This state will hold the raw HTML content for saving.
+    const [noteTitle, setNoteTitle] = useState('Untitled Note');
     const [editorContent, setEditorContent] = useState('');
+
+    useEffect(() => {
+        if(editorRef.current && !editorRef.current.innerHTML) {
+            // This is a bit of a hack to ensure the placeholder is handled correctly by the browser
+            // when contenteditable is dynamically managed.
+        }
+    }, [])
 
     const handleCommand = (command: string, value?: string) => {
         document.execCommand(command, false, value);
@@ -321,6 +329,7 @@ export default function NewNotePage() {
             const currentContent = editorRef.current.innerHTML;
             const newContent = currentContent + '<br>' + noteHtml;
             editorRef.current.innerHTML = newContent;
+            setEditorContent(newContent);
         }
     };
 
@@ -356,7 +365,10 @@ export default function NewNotePage() {
     
     return (
         <div className="flex h-screen overflow-hidden">
-             <main className="flex-1 flex flex-col bg-background-light dark:bg-gray-900/50">
+             <main className={cn(
+                "flex-1 flex flex-col bg-background-light dark:bg-gray-900/50 transition-all duration-300",
+                isChatVisible ? 'md:w-[calc(100%-24rem)]' : 'w-full'
+             )}>
                 <header className="flex-shrink-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-6 py-3">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -365,7 +377,11 @@ export default function NewNotePage() {
                                     <X size={20} />
                                 </Button>
                             </Link>
-                            <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Untitled Lecture</h1>
+                            <Input 
+                                value={noteTitle}
+                                onChange={(e) => setNoteTitle(e.target.value)}
+                                className="text-xl font-semibold text-gray-900 dark:text-white bg-transparent border-none focus-visible:ring-0 shadow-none p-0 h-auto"
+                            />
                             <button className="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 p-1 rounded-full">
                                 <ChevronDown size={16} />
                             </button>
@@ -397,6 +413,7 @@ export default function NewNotePage() {
                              className="relative flex-1 p-8 prose prose-lg max-w-none dark:prose-invert outline-none" 
                              suppressContentEditableWarning={true}
                              data-placeholder="Start writing note here..."
+                             onInput={(e) => setEditorContent(e.currentTarget.innerHTML)}
                          >
                          </div>
                     </div>
