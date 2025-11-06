@@ -512,13 +512,10 @@ function PracticeQuizComponent() {
 
     const handleGenerateFlashcards = async () => {
         if (!quiz) return;
-
         setFlashcardDialogOpen(true);
         setFlashcardLoading(true);
         setFlashcards([]);
-
-        const quizContent = quiz.questions.map(q => `Q: ${q.question}\\nA: ${q.answer}`).join('\\n\\n');
-
+        const quizContent = quiz.questions.map(q => `Q: ${q.question}\nA: ${q.answer}`).join('\n\n');
         try {
             const result = await generateFlashcardsFromNote({
                 noteContent: quizContent,
@@ -539,9 +536,7 @@ function PracticeQuizComponent() {
         setStudyGuideDialogOpen(true);
         setStudyGuideLoading(true);
         setStudyGuide(null);
-
         const content = `A quiz on the following topics: ${topics}. The questions covered were: ${quiz.questions.map(q => q.question).join(', ')}`;
-
         try {
             const result = await generateCrunchTimeStudyGuide({
                 inputType: 'text',
@@ -1146,8 +1141,8 @@ function PracticeQuizComponent() {
                     <h2 className="text-2xl font-bold mb-4">Keep Learning</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <Dialog open={isFlashcardDialogOpen} onOpenChange={setFlashcardDialogOpen}>
-                            <DialogTrigger asChild>
-                                <Card className="cursor-pointer hover:bg-muted transition-colors">
+                             <DialogTrigger asChild>
+                                 <Card className="cursor-pointer hover:bg-muted transition-colors" onClick={handleGenerateFlashcards}>
                                     <CardContent className="p-6 flex items-start gap-4">
                                         <div className="p-3 bg-purple-500/10 rounded-lg text-purple-500"><Star className="h-8 w-8"/></div>
                                         <div>
@@ -1187,7 +1182,7 @@ function PracticeQuizComponent() {
                         </Dialog>
                         <Dialog open={isStudyGuideDialogOpen} onOpenChange={setStudyGuideDialogOpen}>
                              <DialogTrigger asChild>
-                                <Card className="cursor-pointer hover:bg-muted transition-colors">
+                                <Card className="cursor-pointer hover:bg-muted transition-colors" onClick={handleGenerateStudyGuide}>
                                     <CardContent className="p-6 flex items-start gap-4">
                                         <div className="p-3 bg-green-500/10 rounded-lg text-green-500"><BookOpen className="h-8 w-8"/></div>
                                         <div>
