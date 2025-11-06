@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -26,7 +27,7 @@ interface Message {
   content: string;
 }
 
-const EditorToolbar = ({ onCommand, onInput }: { onCommand: (command: string, value?: string) => void, onInput: () => void }) => {
+const EditorToolbar = ({ onCommand }: { onCommand: (command: string, value?: string) => void }) => {
     
     return (
     <div className="bg-gray-100 dark:bg-gray-800 rounded-t-lg shadow-sm border-b border-gray-200 dark:border-gray-700 p-2 flex flex-wrap items-center gap-1 text-gray-600 dark:text-gray-300">
@@ -299,13 +300,13 @@ const ChatHomeScreen = ({ onStartChatWithPrompt, customizations }: { onStartChat
 export default function NewNotePage() {
     const editorRef = useRef<HTMLDivElement>(null);
     const [showLiveLecture, setShowLiveLecture] = useState(false);
-    const [activeToolbarTab, setActiveToolbarTab] = useState('self-written');
     const [lectureTranscript, setLectureTranscript] = useState('');
     const [lectureAudioUrl, setLectureAudioUrl] = useState<string | null>(null);
     const [chatHistory, setChatHistory] = useState<Message[]>([]);
     const [chatInput, setChatInput] = useState('');
     const [isChatLoading, setIsChatLoading] = useState(false);
     const { toast } = useToast();
+    const [isChatVisible, setIsChatVisible] = useState(true);
     
     // This state will hold the raw HTML content for saving.
     const [editorContent, setEditorContent] = useState('');
@@ -313,13 +314,6 @@ export default function NewNotePage() {
     const handleCommand = (command: string, value?: string) => {
         document.execCommand(command, false, value);
         editorRef.current?.focus();
-        handleInput(); // Manually trigger content update after command
-    };
-
-    const handleInput = () => {
-        if (editorRef.current) {
-            setEditorContent(editorRef.current.innerHTML);
-        }
     };
     
     const handleNoteGenerated = (noteHtml: string) => {
@@ -327,7 +321,6 @@ export default function NewNotePage() {
             const currentContent = editorRef.current.innerHTML;
             const newContent = currentContent + '<br>' + noteHtml;
             editorRef.current.innerHTML = newContent;
-            setEditorContent(newContent); 
         }
     };
 
@@ -381,6 +374,10 @@ export default function NewNotePage() {
                             </button>
                         </div>
                         <div className="flex items-center gap-2">
+                            <Button variant="outline" size="sm" onClick={() => setIsChatVisible(!isChatVisible)}>
+                                <MessageSquare className="mr-2 h-4 w-4"/>
+                                {isChatVisible ? 'Hide Chat' : 'Show Chat'}
+                            </Button>
                             <Button variant="outline" className="text-sm">
                                 <UserPlus className="mr-2 h-4 w-4"/> Share
                             </Button>
@@ -393,74 +390,74 @@ export default function NewNotePage() {
                 <div className="flex-1 flex flex-col p-6 overflow-y-auto relative">
                      <LiveLecturePanel show={showLiveLecture} setShow={setShowLiveLecture} onNoteGenerated={handleNoteGenerated} onTranscriptUpdate={setLectureTranscript} onAudioUpdate={setLectureAudioUrl} />
                     <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm flex-1 flex flex-col">
-                        <EditorToolbar onCommand={handleCommand} onInput={handleInput} />
+                        <EditorToolbar onCommand={handleCommand} />
                          <div 
                              ref={editorRef}
                              contentEditable="true" 
                              className="relative flex-1 p-8 prose prose-lg max-w-none dark:prose-invert outline-none" 
                              suppressContentEditableWarning={true}
-                             onInput={handleInput}
                              data-placeholder="Start writing note here..."
                          >
                          </div>
                     </div>
                 </div>
             </main>
-            <aside className="w-96 flex-shrink-0 bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 flex flex-col">
-                 <header className="flex-shrink-0 flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500 dark:text-gray-400">
-                        <X size={20}/>
-                    </Button>
-                    <Button variant="secondary" size="sm" className="rounded-full font-semibold">
-                        Chat History
-                    </Button>
-                </header>
-                <ScrollArea className="flex-1">
-                    {chatHistory.length === 0 ? (
-                        <ChatHomeScreen onStartChatWithPrompt={handleStartChatWithPrompt} customizations={{}} />
-                    ) : (
-                         <div className="p-4 space-y-4">
-                            {chatHistory.map((msg, index) => (
-                                <div key={index} className={cn("flex items-end gap-2", msg.role === 'user' ? 'justify-end' : '')}>
-                                     {msg.role === 'ai' && <div className="w-6 h-6 flex-shrink-0"><AIBuddy className="w-full h-full" /></div>}
-                                    <div className={cn("p-3 rounded-2xl max-w-[85%] text-sm prose dark:prose-invert prose-p:my-0 prose-headings:my-0 prose-table:my-0", msg.role === 'user' ? "bg-primary text-primary-foreground rounded-br-none" : "bg-muted rounded-bl-none")}>
-                                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
-                                    </div>
-                                </div>
-                            ))}
-                            {isChatLoading && (
-                                <div className="flex items-end gap-2">
-                                    <div className="w-6 h-6 flex-shrink-0"><AIBuddy className="w-full h-full" /></div>
-                                    <div className="p-3 rounded-2xl max-w-[85%] text-sm bg-muted rounded-bl-none animate-pulse">
-                                        ...
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    )}
-                </ScrollArea>
-                <footer className="p-4 border-t border-gray-200 dark:border-gray-800 space-y-3">
-                    <div className="relative">
-                        <Textarea 
-                            placeholder="Ask your AI tutor anything..." 
-                            className="bg-gray-100 dark:bg-gray-800 border-none rounded-lg p-4 pr-12 text-base resize-none"
-                            rows={1}
-                            value={chatInput}
-                            onChange={(e) => setChatInput(e.target.value)}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter' && !e.shiftKey) {
-                                    e.preventDefault();
-                                    handleSendMessage();
-                                }
-                            }}
-                        />
-                         <Button size="icon" className="absolute right-3 bottom-3 w-8 h-8 rounded-full bg-blue-600 hover:bg-blue-700" onClick={() => handleSendMessage()} disabled={isChatLoading}>
-                            <ArrowRight size={16}/>
+             {isChatVisible && (
+                <aside className="w-96 flex-shrink-0 bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 flex flex-col">
+                    <header className="flex-shrink-0 flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500 dark:text-gray-400" onClick={() => setIsChatVisible(false)}>
+                            <X size={20}/>
                         </Button>
-                    </div>
-                </footer>
-            </aside>
+                        <Button variant="secondary" size="sm" className="rounded-full font-semibold">
+                            Chat History
+                        </Button>
+                    </header>
+                    <ScrollArea className="flex-1">
+                        {chatHistory.length === 0 ? (
+                            <ChatHomeScreen onStartChatWithPrompt={handleStartChatWithPrompt} customizations={{}} />
+                        ) : (
+                            <div className="p-4 space-y-4">
+                                {chatHistory.map((msg, index) => (
+                                    <div key={index} className={cn("flex items-end gap-2", msg.role === 'user' ? 'justify-end' : '')}>
+                                        {msg.role === 'ai' && <div className="w-6 h-6 flex-shrink-0"><AIBuddy className="w-full h-full" /></div>}
+                                        <div className={cn("p-3 rounded-2xl max-w-[85%] text-sm prose dark:prose-invert prose-p:my-0 prose-headings:my-0 prose-table:my-0", msg.role === 'user' ? "bg-primary text-primary-foreground rounded-br-none" : "bg-muted rounded-bl-none")}>
+                                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
+                                        </div>
+                                    </div>
+                                ))}
+                                {isChatLoading && (
+                                    <div className="flex items-end gap-2">
+                                        <div className="w-6 h-6 flex-shrink-0"><AIBuddy className="w-full h-full" /></div>
+                                        <div className="p-3 rounded-2xl max-w-[85%] text-sm bg-muted rounded-bl-none animate-pulse">
+                                            ...
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </ScrollArea>
+                    <footer className="p-4 border-t border-gray-200 dark:border-gray-800 space-y-3">
+                        <div className="relative">
+                            <Textarea 
+                                placeholder="Ask your AI tutor anything..." 
+                                className="bg-gray-100 dark:bg-gray-800 border-none rounded-lg p-4 pr-12 text-base resize-none"
+                                rows={1}
+                                value={chatInput}
+                                onChange={(e) => setChatInput(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && !e.shiftKey) {
+                                        e.preventDefault();
+                                        handleSendMessage();
+                                    }
+                                }}
+                            />
+                            <Button size="icon" className="absolute right-3 bottom-3 w-8 h-8 rounded-full bg-blue-600 hover:bg-blue-700" onClick={() => handleSendMessage()} disabled={isChatLoading}>
+                                <ArrowRight size={16}/>
+                            </Button>
+                        </div>
+                    </footer>
+                </aside>
+            )}
         </div>
     );
 }
-
