@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowRight, RotateCcw, Lightbulb, CheckCircle, XCircle, PenSquare, Palette, Brush, Eraser, Minimize, Maximize, Clock, Lightbulb as HelpCircle, Coins, Award, CheckSquare } from 'lucide-react';
+import { ArrowRight, RotateCcw, Lightbulb, CheckCircle, XCircle, PenSquare, Palette, Brush, Eraser, Minimize, Maximize, Clock, Lightbulb as HelpCircle, Coins, Award, CheckSquare, GraduationCap } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { GenerateQuizInput, GenerateQuizOutput, QuizQuestion } from '@/ai/schemas/quiz-schema';
 import { Progress } from '@/components/ui/progress';
@@ -231,7 +231,7 @@ function PracticeQuizComponent() {
             setIsFocusMode(true);
             setQuizState('in-progress');
         }).catch(err => {
-            console.error(`Error attempting to enable full-screen mode: ${'${err.message}'} (${'${err.name}'})`);
+            console.error(`Error attempting to enable full-screen mode: \${'${err.message}'} (\${'${err.name}'})`);
             setIsFocusMode(false);
             setQuizState('in-progress');
         });
@@ -281,7 +281,6 @@ function PracticeQuizComponent() {
         try {
             const generatedQuiz: GenerateQuizOutput = { questions: [] };
 
-            const questionTypes = quizMode === 'ap' ? apExams : Object.keys(examSpecificTypes).flatMap(k => examSpecificTypes[k as keyof typeof examSpecificTypes]);
             const standardQuestionTypes = ['Multiple Choice', 'Short Answer', 'True/False', 'Fill in the Blank', 'Free Response (FRQ)'];
 
             for (const [type, count] of Object.entries(questionCounts)) {
@@ -1290,6 +1289,7 @@ export default function PracticeQuizPage() {
     
 
     
+
 
 
 
