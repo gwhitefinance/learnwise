@@ -33,6 +33,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { CrunchTimeOutput } from '@/ai/flows/crunch-time-flow';
+import { Checkbox } from '@/components/ui/checkbox';
 
 export const dynamic = "force-dynamic";
 
@@ -1289,6 +1290,7 @@ export default function PracticeQuizPage() {
     
 
     
+
 
 
 
