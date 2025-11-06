@@ -51,7 +51,7 @@ const EditorToolbar = ({ onCommand, onImageUpload, onLinkCreate, onToggleChat }:
         </select>
         <div className="h-6 w-px bg-gray-300 dark:bg-gray-600 mx-1"></div>
         <Button variant="ghost" size="icon" onClick={() => onCommand('decreaseFontSize')} className="w-8 h-8"><Minus size={16} /></Button>
-        <Input type="text" defaultValue="12" className="w-10 h-8 text-center p-0 border-gray-300 dark:border-gray-600 bg-transparent" onBlur={(e) => onCommand('fontSize', (Math.floor(parseInt(e.target.value) / 3) + 1).toString())}/>
+        <Input type="text" defaultValue="12" className="w-10 h-8 text-center p-0 border-gray-300 dark:border-gray-600 bg-transparent" onBlur={(e) => onCommand('fontSize', e.target.value)}/>
         <Button variant="ghost" size="icon" onClick={() => onCommand('increaseFontSize')} className="w-8 h-8"><Plus size={16} /></Button>
         <div className="h-6 w-px bg-gray-300 dark:bg-gray-600 mx-1"></div>
         <Button variant="ghost" size="icon" onClick={() => onCommand('bold')} className="w-8 h-8"><Bold size={16} /></Button>
@@ -315,23 +315,60 @@ export default function NewNotePage() {
         const editor = editorRef.current;
         if (!editor) return;
 
-        const observer = new MutationObserver(() => {
-            if (editor.innerHTML !== editorContent) {
-                setEditorContent(editor.innerHTML);
+        const handleInput = () => {
+            if (editorRef.current && editorRef.current.innerHTML !== editorContent) {
+                setEditorContent(editorRef.current.innerHTML);
             }
-        });
-        observer.observe(editor, {
-            childList: true,
-            subtree: true,
-            characterData: true,
-        });
+        };
 
-        return () => observer.disconnect();
-    }, [editorContent]);
-
+        editor.addEventListener('input', handleInput);
+        return () => editor.removeEventListener('input', handleInput);
+    }, []);
 
     const handleCommand = (command: string, value?: string) => {
-        document.execCommand(command, false, value);
+        if (command === 'fontSize' && value) {
+            const sizeMap: { [key: string]: string } = {
+              '8': '1', '10': '2', '12': '3', '14': '4',
+              '18': '5', '24': '6', '36': '7',
+            };
+            const mappedValue = Object.keys(sizeMap).reduce((prev, curr) => {
+                return (Math.abs(parseInt(curr) - parseInt(value)) < Math.abs(parseInt(prev) - parseInt(value)) ? curr : prev);
+            });
+            document.execCommand(command, false, sizeMap[mappedValue]);
+        } else if (command === 'increaseFontSize' || command === 'decreaseFontSize') {
+            const selection = window.getSelection();
+            if (!selection || selection.rangeCount === 0) return;
+
+            const range = selection.getRangeAt(0);
+            const parentElement = range.commonAncestorContainer.parentElement;
+
+            if (parentElement) {
+                const currentSize = parseInt(window.getComputedStyle(parentElement).fontSize);
+                const newSize = command === 'increaseFontSize' ? currentSize + 2 : currentSize - 2;
+                
+                const fontElements = parentElement.closest('font');
+                if (fontElements) {
+                     fontElements.removeAttribute('size');
+                }
+                
+                document.execCommand('styleWithCSS', false, 'true');
+                document.execCommand('fontSize', false, '7');
+                const fontTags = editorRef.current?.getElementsByTagName('font');
+                if (fontTags) {
+                    for (let i = 0; i < fontTags.length; i++) {
+                        const tag = fontTags[i];
+                        if (tag.getAttribute('size') === '7') {
+                            tag.style.fontSize = `${newSize}px`;
+                            tag.removeAttribute('size');
+                        }
+                    }
+                }
+                document.execCommand('styleWithCSS', false, 'false');
+            }
+        }
+         else {
+            document.execCommand(command, false, value);
+        }
         editorRef.current?.focus();
     };
     
@@ -453,11 +490,6 @@ export default function NewNotePage() {
                              className="relative flex-1 p-8 prose prose-lg max-w-none dark:prose-invert outline-none" 
                              suppressContentEditableWarning={true}
                              data-placeholder="Start writing note here..."
-                             onInput={(e) => {
-                                 if (editorRef.current && editorRef.current.innerHTML !== editorContent) {
-                                     setEditorContent(e.currentTarget.innerHTML);
-                                 }
-                             }}
                          >
                          </div>
                     </div>
