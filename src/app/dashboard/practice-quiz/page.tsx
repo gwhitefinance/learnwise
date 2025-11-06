@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowRight, RotateCcw, Lightbulb, CheckCircle, XCircle, PenSquare, Palette, Brush, Eraser, Minimize, Maximize, Gem, Loader2, BookCopy, CheckSquare, ListChecks, FileText, Copy as CopyIcon, ChevronRight, BookOpen, Calculator, Send, Bot, MoreVertical, Link as LinkIcon, Share2, NotebookText, Download, FolderPlus, Eye, Edit, Trash2, Search, GraduationCap } from 'lucide-react';
+import { ArrowRight, RotateCcw, Lightbulb, CheckCircle, XCircle, PenSquare, Palette, Brush, Eraser, Minimize, Maximize, Gem, Loader2, BookCopy, CheckSquare, ListChecks, FileText, Copy as CopyIcon, ChevronRight, BookOpen, Calculator, Send, Bot, MoreVertical, Link as LinkIcon, Share2, NotebookText, Download, FolderPlus, Eye, Edit, Trash2, Search, GraduationCap, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { GenerateQuizInput, GenerateQuizOutput, QuizQuestion } from '@/ai/schemas/quiz-schema';
 import { Progress } from '@/components/ui/progress';
@@ -39,12 +39,12 @@ type Course = {
     description: string;
 };
 
-type QuizState = 'start' | 'source-selection' | 'topic-selection' | 'configuring' | 'pre-quiz' | 'in-progress' | 'results';
+type QuizState = 'start' | 'source-selection' | 'topic-selection' | 'configuring' | 'pre-quiz' | 'in-progress' | 'results' | 'ap-hub';
 type AnswerState = 'unanswered' | 'answered';
 type AnswerFeedback = { question: string; answer: string; correctAnswer: string; isCorrect: boolean; explanation?: string; };
 type QuizResult = {
     id: string;
-    mode: 'practice' | 'quizfetch';
+    mode: 'practice' | 'quizfetch' | 'ap';
     topic: string;
     score: number;
     totalQuestions: number;
@@ -55,14 +55,16 @@ type QuizResult = {
 const examSpecificTypes = {
     'Med School': ['NCLEX', 'USMLE Step 1', 'USMLE Step 2', 'MCAT Biology', 'MCAT Chemistry', 'MCAT Physics', 'MCAT Psychology', 'PANCE', 'PANRE'],
     'Finance': ['Series 7', 'Series 63', 'Series 65', 'Series 66', 'CFA Level I', 'CFA Level II', 'CFA Level III', 'CFP'],
-    'AP Exams': [
-        'AP Art History', 'AP Biology', 'AP Calculus AB', 'AP Calculus BC', 'AP Chemistry', 'AP Chinese Language', 'AP Comparative Government', 'AP Computer Science A', 'AP Computer Science Principles',
-        'AP English Language', 'AP English Literature', 'AP Environmental Science', 'AP European History', 'AP French Language', 'AP German Language', 'AP Human Geography',
-        'AP Italian Language', 'AP Japanese Language', 'AP Latin', 'AP Macroeconomics', 'AP Microeconomics', 'AP Music Theory', 'AP Physics 1', 'AP Physics 2', 'AP Physics C: E&M',
-        'AP Physics C: Mechanics', 'AP Psychology', 'AP Spanish Language', 'AP Spanish Literature', 'AP Statistics', 'AP US Government', 'AP US History', 'AP World History'
-    ],
     'Law School': ['LSAT', 'Bar Exam (MBE)', 'MPRE'],
 };
+
+const apExams = [
+    'AP Art History', 'AP Biology', 'AP Calculus AB', 'AP Calculus BC', 'AP Chemistry', 'AP Chinese Language', 'AP Comparative Government', 'AP Computer Science A', 'AP Computer Science Principles',
+    'AP English Language', 'AP English Literature', 'AP Environmental Science', 'AP European History', 'AP French Language', 'AP German Language', 'AP Human Geography',
+    'AP Italian Language', 'AP Japanese Language', 'AP Latin', 'AP Macroeconomics', 'AP Microeconomics', 'AP Music Theory', 'AP Physics 1', 'AP Physics 2', 'AP Physics C: E&M',
+    'AP Physics C: Mechanics', 'AP Psychology', 'AP Spanish Language', 'AP Spanish Literature', 'AP Statistics', 'AP US Government', 'AP US History', 'AP World History'
+];
+
 
 type QuestionCounts = {
     [key: string]: number;
@@ -90,7 +92,7 @@ function PracticeQuizComponent() {
     const [isLoading, setIsLoading] = useState(false);
     const [isExplanationLoading, setIsExplanationLoading] = useState(false);
     const [quizState, setQuizState] = useState<QuizState>('start');
-    const [answerState, setAnswerState] = useState<AnswerState>('unanswered');
+    const [answerState, setAnswerState] = useState<AnswerState>('unanswered' | 'answered');
     const [quiz, setQuiz] = useState<GenerateQuizOutput | null>(null);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
@@ -98,7 +100,7 @@ function PracticeQuizComponent() {
     const [explanation, setExplanation] = useState<string | null>(null);
     const [answers, setAnswers] = useState<AnswerFeedback[]>([]);
     const [learnerType, setLearnerType] = useState<string | null>(null);
-    const [quizMode, setQuizMode] = useState<'practice' | 'quizfetch' | null>(null);
+    const [quizMode, setQuizMode] = useState<'practice' | 'quizfetch' | 'ap' | null>(null);
     const [creationSource, setCreationSource] = useState<'course' | 'prompt' | null>(null);
     
     const { toast } = useToast();
@@ -134,9 +136,10 @@ function PracticeQuizComponent() {
     }, []);
 
     const saveQuizResult = (score: number, totalQuestions: number) => {
+        if (!quizMode) return;
         const newResult: QuizResult = {
             id: crypto.randomUUID(),
-            mode: quizMode!,
+            mode: quizMode,
             topic: topics,
             score: (score / totalQuestions) * 100,
             totalQuestions,
@@ -257,6 +260,7 @@ function PracticeQuizComponent() {
         try {
             const generatedQuiz: GenerateQuizOutput = { questions: [] };
 
+            const questionTypes = quizMode === 'ap' ? apExams : Object.keys(examSpecificTypes).flatMap(k => examSpecificTypes[k as keyof typeof examSpecificTypes]);
             const standardQuestionTypes = ['Multiple Choice', 'Short Answer', 'True/False', 'Fill in the Blank', 'Free Response (FRQ)'];
 
             for (const [type, count] of Object.entries(questionCounts)) {
@@ -582,7 +586,7 @@ function PracticeQuizComponent() {
                             <h3 className="text-xl font-bold">Take a Practice Test</h3>
                             <p className="text-sm text-muted-foreground">Generate a practice test from your course content and get ready for your test.</p>
                         </button>
-                        <button onClick={() => router.push('/dashboard/sat-prep')} className="p-8 rounded-lg text-left transition-all bg-blue-500/10 border-2 border-blue-500/30 hover:bg-blue-500/20 hover:border-blue-500/50">
+                        <button onClick={() => { setQuizMode('ap'); setQuizState('ap-hub'); }} className="p-8 rounded-lg text-left transition-all bg-blue-500/10 border-2 border-blue-500/30 hover:bg-blue-500/20 hover:border-blue-500/50">
                             <GraduationCap className="h-8 w-8 text-blue-500 mb-2"/>
                             <h3 className="text-xl font-bold">AP Hub</h3>
                             <p className="text-sm text-muted-foreground">Choose from any of the 35 AP courses and take exam-style tests.</p>
@@ -592,8 +596,9 @@ function PracticeQuizComponent() {
                  {pastQuizzes.length > 0 ? (
                     <div className="w-full max-w-4xl mt-12">
                         <Tabs defaultValue="tests" className="w-full">
-                            <TabsList className="grid w-full grid-cols-2">
+                            <TabsList className="grid w-full grid-cols-3">
                                 <TabsTrigger value="tests">Tests</TabsTrigger>
+                                <TabsTrigger value="ap">AP Hub</TabsTrigger>
                                 <TabsTrigger value="quizfetch">QuizFetch</TabsTrigger>
                             </TabsList>
                             <TabsContent value="tests" className="mt-4">
@@ -612,6 +617,25 @@ function PracticeQuizComponent() {
                                     ))}
                                     {pastQuizzes.filter(q => q.mode === 'practice').length === 0 && (
                                         <p className="text-center py-8 text-muted-foreground">You haven't taken any practice tests yet.</p>
+                                    )}
+                                </div>
+                            </TabsContent>
+                             <TabsContent value="ap" className="mt-4">
+                                <div className="space-y-2">
+                                    {pastQuizzes.filter(q => q.mode === 'ap').map(q => (
+                                        <div key={q.id} className="flex items-center justify-between p-3 border rounded-lg bg-card">
+                                            <div className="flex flex-col">
+                                                <span className="font-semibold">{q.topic}</span>
+                                                <span className="text-xs text-muted-foreground">{new Date(q.timestamp).toLocaleDateString()}</span>
+                                            </div>
+                                            <div className="flex items-center gap-4">
+                                                <Badge variant={q.score > 70 ? 'default' : 'secondary'}>{q.score.toFixed(0)}%</Badge>
+                                                <Button variant="ghost" size="sm">Review</Button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {pastQuizzes.filter(q => q.mode === 'ap').length === 0 && (
+                                        <p className="text-center py-8 text-muted-foreground">You haven't taken any AP tests yet.</p>
                                     )}
                                 </div>
                             </TabsContent>
@@ -643,6 +667,38 @@ function PracticeQuizComponent() {
                 )}
              </div>
         )
+    }
+
+     if (quizState === 'ap-hub') {
+        return (
+            <div className="flex flex-col items-center">
+                <div className="text-center mb-10 w-full max-w-2xl">
+                    <h1 className="text-4xl font-bold">AP Hub</h1>
+                    <p className="text-muted-foreground mt-2">Select an AP exam to start a practice test.</p>
+                </div>
+                <Card className="w-full max-w-4xl">
+                    <CardContent className="p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                        {apExams.map(exam => (
+                            <Button
+                                key={exam}
+                                variant="outline"
+                                className="justify-start"
+                                onClick={() => {
+                                    setTopics(exam);
+                                    setQuizMode('ap');
+                                    setQuizState('configuring');
+                                }}
+                            >
+                                {exam}
+                            </Button>
+                        ))}
+                    </CardContent>
+                    <CardFooter className="bg-muted/50 border-t p-4">
+                        <Button variant="ghost" onClick={() => setQuizState('start')}>Back</Button>
+                    </CardFooter>
+                </Card>
+            </div>
+        );
     }
 
     if (quizState === 'source-selection') {
@@ -763,32 +819,19 @@ function PracticeQuizComponent() {
                             ))}
                         </div>
 
-                        <div className="space-y-4">
-                            <h3 className="font-semibold text-lg">Exam-Specific Question Types</h3>
-                            <p className="text-sm text-muted-foreground">Choose specialized question formats for various standardized exams</p>
-                             <Accordion type="multiple" className="w-full space-y-2">
-                                {Object.entries(examSpecificTypes).map(([category, exams]) => (
-                                    <AccordionItem key={category} value={category} className="border rounded-lg bg-muted/30 px-4">
-                                        <AccordionTrigger className="hover:no-underline">{category}</AccordionTrigger>
-                                        <AccordionContent className="p-2 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
-                                            {exams.map(exam => (
-                                                <div key={exam} className="flex items-center justify-between">
-                                                    <Label htmlFor={exam} className="text-sm">{exam}</Label>
-                                                    <Input 
-                                                        id={exam} 
-                                                        type="number" 
-                                                        className="w-16 h-8 text-center" 
-                                                        value={questionCounts[exam] || 0} 
-                                                        onChange={(e) => handleQuestionCountChange(exam, e.target.value)}
-                                                        min={0}
-                                                    />
-                                                </div>
-                                            ))}
-                                        </AccordionContent>
-                                    </AccordionItem>
-                                ))}
-                            </Accordion>
-                        </div>
+                        {quizMode === 'ap' && (
+                             <div className="space-y-4">
+                                <h3 className="font-semibold text-lg">AP Exam-Specific Questions</h3>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
+                                     {apExams.filter(exam => exam.toLowerCase().includes(topics.toLowerCase())).map(exam => (
+                                        <div key={exam} className="flex items-center justify-between">
+                                            <Label htmlFor={exam} className="text-sm">{exam}</Label>
+                                            <Input id={exam} type="number" className="w-16 h-8 text-center" value={questionCounts[exam] || 0} onChange={(e) => handleQuestionCountChange(exam, e.target.value)} min={0} />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                      </CardContent>
                      <CardFooter className="flex justify-between p-6 bg-muted/50 border-t">
                          <Button variant="ghost" onClick={() => setQuizState('topic-selection')}>Back</Button>
