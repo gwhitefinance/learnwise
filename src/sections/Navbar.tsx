@@ -21,7 +21,7 @@ const AnimatedNavLink = ({ href, children, theme, isScrolled }: { href: string; 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const { theme, setTheme, resolvedTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -33,8 +33,7 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const currentTheme = resolvedTheme || theme;
-
+  const currentTheme = theme;
 
   const navLinksData = [
     { label: "Features", href: "#features" },
@@ -67,7 +66,7 @@ export default function Navbar() {
             isScrolled ? "bg-black/50 border border-white/10 rounded-2xl px-4 backdrop-blur-md" : "bg-transparent border-transparent px-0"
         )}>
           <Link href="/" className="flex items-center gap-2">
-            <span className={cn("font-bold text-xl", navTextColor)}>Tutorin</span>
+            <span className={cn("font-bold text-xl", navTextColor)}>Tutor Taz</span>
             <Logo className={cn("h-7 w-7", navTextColor)} />
           </Link>
           

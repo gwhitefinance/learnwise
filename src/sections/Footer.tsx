@@ -13,7 +13,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
           <div className="lg:col-span-5 space-y-8">
             <div className="group flex items-center gap-2">
-               <span className="font-bold text-2xl text-white">Tutorin</span>
+               <span className="font-bold text-2xl text-white">Tutor Taz</span>
                <Logo className="h-8 w-8 text-white" />
             </div>
             <p className="text-gray-400 text-lg leading-relaxed max-w-md">
@@ -75,7 +75,7 @@ export default function Footer() {
         </div>
         <div className="border-t border-gray-800 pt-8">
           <p className="text-gray-500 text-sm text-center">
-            © {new Date().getFullYear()} Tutorin. All rights reserved.
+            © {new Date().getFullYear()} Tutor Taz. All rights reserved.
           </p>
         </div>
       </div>

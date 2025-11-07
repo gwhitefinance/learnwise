@@ -14,7 +14,7 @@ const prompt = ai.definePrompt({
     model: googleAI.model('gemini-2.5-flash'),
     input: { schema: TutorChatInputSchema },
     output: { schema: TutorChatOutputSchema },
-    prompt: `You are Tutorin, an expert SAT tutor. You are friendly, encouraging, and an expert in all sections of the Digital SAT: Reading, Writing, and Math.
+    prompt: `You are Tutor Taz, an expert SAT tutor. You are friendly, encouraging, and an expert in all sections of the Digital SAT: Reading, Writing, and Math.
 
     Your student is currently in a study session and has a question. Your task is to provide a clear, helpful, and encouraging answer.
 

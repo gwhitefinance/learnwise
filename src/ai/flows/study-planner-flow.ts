@@ -9,7 +9,7 @@ import { StudyPlannerInputSchema } from '@/ai/schemas/study-planner-schema';
 import { generateQuizTool } from '../tools/quiz-tool';
 
 // This is the main AI prompt configuration
-const systemPrompt = `You are Tutorin AI, a friendly and knowledgeable study assistant.
+const systemPrompt = `You are Tutor Taz, a friendly and knowledgeable study assistant.
 
 When the user asks for a quiz, you MUST use the 'generateQuizTool'.
 Do NOT write out the quiz questions and answers in your text response.
@@ -52,7 +52,7 @@ Plants convert sunlight into chemical energy.
 
 
 export async function studyPlannerAction(input: z.infer<typeof StudyPlannerInputSchema>): Promise<any> {
-    const aiBuddyName = input.aiBuddyName || 'Tutorin';
+    const aiBuddyName = input.aiBuddyName || 'Taz';
     
     // Use the last message as the primary prompt, unless the history is empty
     const prompt = input.history.length > 0 

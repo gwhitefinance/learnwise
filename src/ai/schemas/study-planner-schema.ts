@@ -17,7 +17,7 @@ const EventSchema = z.object({
 
 export const StudyPlannerInputSchema = z.object({
     userName: z.string().optional().describe("The user's first name."),
-    aiBuddyName: z.string().optional().describe("The user's custom name for the AI buddy. Defaults to Tutorin."),
+    aiBuddyName: z.string().optional().describe("The user's custom name for the AI buddy. Defaults to Taz."),
     history: z.array(MessageSchema),
     learnerType: z.string().optional(),
     allCourses: z.array(z.object({ id: z.string(), name: z.string(), description: z.string() })).optional().describe('A list of all courses the user is enrolled in.'),

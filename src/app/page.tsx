@@ -244,7 +244,7 @@ const Hero = () => {
         Reach your learning <br /> <span className="text-blue-400">goals effortlessly</span>
       </h1>
       <p className={cn("max-w-xl mx-auto mt-6 text-lg", theme === 'dark' ? 'text-white/70' : 'text-black/70')}>
-        Tutorin turns your class notes, docs, and study materials into your personal AI tutor. Generate quizzes, flashcards, and get 24/7 help.
+        Tutor Taz turns your class notes, docs, and study materials into your personal AI tutor. Generate quizzes, flashcards, and get 24/7 help.
       </p>
 
       <div className="relative mt-2">

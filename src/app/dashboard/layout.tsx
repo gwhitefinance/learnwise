@@ -537,7 +537,7 @@ function DashboardLayoutContent({
               <div className="flex items-center justify-between p-4">
                   <div className="flex items-center gap-3">
                   <div>
-                      <h2 className="font-semibold">Tutorin</h2>
+                      <h2 className="font-semibold">Tutor Taz</h2>
                       <p className="text-xs text-muted-foreground">Study Suite</p>
                   </div>
                   <div className="flex aspect-square size-10 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-600 to-blue-600 text-white">
@@ -593,7 +593,7 @@ function DashboardLayoutContent({
                 <div className="p-4">
                     <div className="flex items-center gap-3">
                     <div>
-                        <h2 className="font-semibold">Tutorin</h2>
+                        <h2 className="font-semibold">Tutor Taz</h2>
                         <p className="text-xs text-muted-foreground">Study Suite</p>
                     </div>
                     <div className="flex aspect-square size-10 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-600 to-blue-600 text-white">
@@ -649,7 +649,7 @@ function DashboardLayoutContent({
                         <PanelLeft className="h-5 w-5" />
                     </Button>
                     <div className="flex flex-1 items-center justify-between">
-                        <h1 className="text-xl font-semibold">Tutorin</h1>
+                        <h1 className="text-xl font-semibold">Tutor Taz</h1>
                         <div className="flex items-center gap-3">
 
                         <TooltipProvider>

@@ -126,7 +126,7 @@ export default function GeneratingCourse({ courseName }: { courseName: string })
                         </DialogTrigger>
                         <DialogContent className="max-w-2xl">
                             <DialogHeader>
-                                <DialogTitle>AI Buddy Memory Match</DialogTitle>
+                                <DialogTitle>Taz Memory Match</DialogTitle>
                             </DialogHeader>
                             <MemoryMatchGame />
                         </DialogContent>

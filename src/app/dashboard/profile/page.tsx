@@ -1,6 +1,5 @@
 
 
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -57,7 +56,7 @@ export default function ProfilePage() {
     const [customizations, setCustomizations] = useState<Record<string, string>>({});
     const [streak, setStreak] = useState(0);
     const [learnerType, setLearnerType] = useState<string | null>(null);
-    const [aiBuddyName, setAiBuddyName] = useState('Tutorin');
+    const [aiBuddyName, setAiBuddyName] = useState('Taz');
     const [isEditingName, setIsEditingName] = useState(false);
     const router = useRouter();
     const { toast } = useToast();

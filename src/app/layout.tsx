@@ -13,7 +13,7 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: "Tutorin",
+  title: "Tutor Taz",
   description: "Advanced AI-powered study suite for personalized learning.",
 }
 
