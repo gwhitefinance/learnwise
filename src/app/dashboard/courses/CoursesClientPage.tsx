@@ -1,9 +1,8 @@
 
-
 'use client';
 
 import { useState, useEffect, useContext, Suspense, useRef } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -174,6 +173,7 @@ const ChapterImage = ({ course, module, chapter }: { course: Course, module: Mod
 
 function CoursesComponent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [courses, setCourses] = useState<Course[]>([]);
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
   const [learnerType, setLearnerType] = useState<string | null>(null);
@@ -911,10 +911,10 @@ function CoursesComponent() {
 
     const courseData = {
         name: newCourse.name,
+        description: newCourse.description || `An in-depth course on ${newCourse.name}`,
+        url: newCourse.url,
         instructor: newCourse.instructor || 'N/A',
         credits: parseInt(newCourse.credits, 10) || 0,
-        url: newCourse.url,
-        description: newCourse.description || `An in-depth course on ${newCourse.name}`,
         userId: user.uid,
         isNewTopic: false,
         units: [],
@@ -924,10 +924,12 @@ function CoursesComponent() {
     };
 
     try {
-        await addDoc(collection(db, "courses"), courseData);
+        const docRef = await addDoc(collection(db, "courses"), courseData);
         toast({ title: 'Course Added!' });
-        setAddCourseOpen(false);
         resetAddCourseDialog();
+        setAddCourseOpen(false);
+        router.push(`/dashboard/upload?courseId=${docRef.id}`);
+
     } catch(error) {
         console.error("Error adding course: ", error);
         toast({ variant: 'destructive', title: 'Error', description: 'Could not add course.' });
@@ -2027,4 +2029,5 @@ export default function CoursesClientPage() {
     )
 }
 
+    
     
