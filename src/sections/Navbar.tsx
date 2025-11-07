@@ -18,9 +18,9 @@ import {
 
 const features = [
     {
-      title: "Learning Lab",
+      title: "Courses",
       description: "Learn any subject with a personalized, AI-generated course.",
-      icon: <Rocket className="h-5 w-5" />,
+      icon: <GraduationCap className="h-5 w-5" />,
       href: "/dashboard/courses",
     },
     {
@@ -32,7 +32,7 @@ const features = [
     {
       title: "SAT & College Prep",
       description: "Ace the SAT and manage your college applications.",
-      icon: <GraduationCap className="h-5 w-5" />,
+      icon: <Rocket className="h-5 w-5" />,
       href: "/dashboard/sat-prep",
     },
     {
