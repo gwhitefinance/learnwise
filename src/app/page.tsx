@@ -248,53 +248,60 @@ const Hero = () => {
         Tutor Taz turns your class notes, docs, and study materials into your personal AI tutor. Generate quizzes, flashcards, and get 24/7 help.
       </p>
 
-      <div className="relative mt-2">
+      <div className="relative mt-8">
           <StudyGuideGenerator />
-      </div>
-      
-      <div className="h-6" />
-
-      <div className={cn("max-w-4xl mx-auto p-8 rounded-3xl", theme === 'dark' ? 'bg-black/20 border border-white/10 backdrop-blur-sm' : 'bg-white/50 border border-gray-200 shadow-lg')}>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
-            <div className="flex flex-col items-center gap-4">
-                <div className={cn("flex items-center gap-2 font-semibold text-lg", theme === 'dark' ? 'text-white' : 'text-black')}>
-                    <Rocket className="w-5 h-5" />
-                    <span className="relative">For Students</span>
-                </div>
-                <Link href="/signup">
-                    <Button size="lg" className="bg-blue-500 hover:bg-blue-600 text-white rounded-full px-8 py-6 text-base">
-                        Try for Free
-                    </Button>
-                </Link>
-                <p className="text-xs text-muted-foreground mt-1">No credit card required</p>
-            </div>
-            <div className="flex flex-col items-center gap-4">
-                <div className={cn("flex items-center gap-2 font-semibold text-lg", theme === 'dark' ? 'text-white' : 'text-black')}>
-                    <GraduationCap className="w-5 h-5" />
-                    For Educators
-                </div>
-                <Link href="/teacher-dashboard">
-                    <Button size="lg" variant="outline" className="rounded-full px-8 py-6 text-base">
-                        Get Started
-                    </Button>
-                </Link>
-            </div>
-            <div className="flex flex-col items-center gap-4">
-                <div className={cn("flex items-center gap-2 font-semibold text-lg", theme === 'dark' ? 'text-white' : 'text-black')}>
-                    <School className="w-5 h-5" />
-                    For Institutions
-                </div>
-                <Link href="#">
-                    <Button size="lg" variant="outline" className="rounded-full px-8 py-6 text-base">
-                        Learn More
-                    </Button>
-                </Link>
-            </div>
-        </div>
       </div>
     </div>
   </section>
 );
+}
+
+const AudienceCTA = () => {
+    const { theme } = useTheme();
+    return (
+        <section className="pb-24">
+            <div className="container">
+                 <div className={cn("max-w-4xl mx-auto p-8 rounded-3xl", theme === 'dark' ? 'bg-black/20 border border-white/10 backdrop-blur-sm' : 'bg-white/50 border border-gray-200 shadow-lg')}>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
+                        <div className="flex flex-col items-center gap-4">
+                            <div className={cn("flex items-center gap-2 font-semibold text-lg", theme === 'dark' ? 'text-white' : 'text-black')}>
+                                <Rocket className="w-5 h-5" />
+                                <span className="relative">For Students</span>
+                            </div>
+                            <Link href="/signup">
+                                <Button size="lg" className="bg-blue-500 hover:bg-blue-600 text-white rounded-full px-8 py-6 text-base">
+                                    Try for Free
+                                </Button>
+                            </Link>
+                            <p className="text-xs text-muted-foreground mt-1">No credit card required</p>
+                        </div>
+                        <div className="flex flex-col items-center gap-4">
+                            <div className={cn("flex items-center gap-2 font-semibold text-lg", theme === 'dark' ? 'text-white' : 'text-black')}>
+                                <GraduationCap className="w-5 h-5" />
+                                For Educators
+                            </div>
+                            <Link href="/teacher-dashboard">
+                                <Button size="lg" variant="outline" className="rounded-full px-8 py-6 text-base">
+                                    Get Started
+                                </Button>
+                            </Link>
+                        </div>
+                        <div className="flex flex-col items-center gap-4">
+                            <div className={cn("flex items-center gap-2 font-semibold text-lg", theme === 'dark' ? 'text-white' : 'text-black')}>
+                                <School className="w-5 h-5" />
+                                For Institutions
+                            </div>
+                            <Link href="#">
+                                <Button size="lg" variant="outline" className="rounded-full px-8 py-6 text-base">
+                                    Learn More
+                                </Button>
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    )
 }
 
 const plans = [
@@ -372,6 +379,7 @@ export default function Home() {
         <main className={cn("bg-background", theme === 'dark' ? 'dark-grid' : 'bg-white')}>
             <Navbar />
             <Hero />
+            <AudienceCTA />
             <HowItWorks theme={theme || 'light'} />
             <PersonalizedTutor theme={theme || 'light'} />
             <DailyPractice theme={theme || 'light'} />
