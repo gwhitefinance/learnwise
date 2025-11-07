@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import NewReleasePromo from '@/sections/NewReleasePromo';
@@ -247,11 +248,11 @@ const Hero = () => {
         Tutor Taz turns your class notes, docs, and study materials into your personal AI tutor. Generate quizzes, flashcards, and get 24/7 help.
       </p>
 
-      <div className="relative mt-2">
+      <div className="relative mt-8">
           <StudyGuideGenerator />
       </div>
       
-      <div className="mb-8"></div>
+      <div className="mb-12"></div>
 
       <div className={cn("max-w-4xl mx-auto p-8 mt-12 rounded-3xl", theme === 'dark' ? 'bg-black/20 border border-white/10 backdrop-blur-sm' : 'bg-white/50 border border-gray-200 shadow-lg')}>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
