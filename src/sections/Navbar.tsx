@@ -4,11 +4,86 @@
 import type React from "react"
 import { useState, useEffect, useRef } from "react"
 import Link from "next/link";
-import { BrainCircuit, X, Menu, Sun, Moon } from "lucide-react";
+import { BrainCircuit, X, Menu, Sun, Moon, ChevronDown, FileText, Lightbulb, ImageIcon, FileSignature, Phone, Video, Copy, MessageSquare, Mic, Podcast, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import Logo from "@/components/Logo";
 import { useTheme } from 'next-themes'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+
+const features = [
+    {
+      title: "Notes AI",
+      description: "Create notes from your course material in seconds.",
+      icon: <FileText className="h-5 w-5" />,
+      href: "/dashboard/notes/new",
+    },
+    {
+      title: "Quizzes AI",
+      description: "Create and practice with quizzes from your course material.",
+      icon: <Lightbulb className="h-5 w-5" />,
+      href: "/dashboard/practice-quiz",
+    },
+    {
+      title: "Image Analysis",
+      description: "Ask questions about pictures and diagrams from your notes!",
+      icon: <ImageIcon className="h-5 w-5" />,
+      href: "/dashboard/upload",
+    },
+    {
+      title: "Essay Coach",
+      description: "Grade your essays and get personalized feedback and suggestions!",
+      icon: <FileSignature className="h-5 w-5" />,
+      href: "/dashboard/college-prep/essay-coach",
+    },
+    {
+      title: "Call with Taz",
+      description: "Call Taz to discuss your study material.",
+      icon: <Phone className="h-5 w-5" />,
+      href: "/dashboard/courses",
+    },
+    {
+      title: "Explainer Video",
+      description: "Generate an educational video using AI.",
+      icon: <Video className="h-5 w-5" />,
+      href: "/dashboard/courses",
+    },
+    {
+      title: "Flashcards AI",
+      description: "Make flashcards from your course material with a single click.",
+      icon: <Copy className="h-5 w-5" />,
+      href: "/dashboard/key-concepts",
+    },
+    {
+      title: "AI Tutor",
+      description: "Talk to your personal AI tutor and learn in real time!",
+      icon: <MessageSquare className="h-5 w-5" />,
+      href: "/dashboard",
+    },
+    {
+      title: "Record Live Lecture",
+      description: "Take notes and ask questions in real-time, without touching your computer!",
+      icon: <Mic className="h-5 w-5" />,
+      href: "/dashboard/notes/new",
+    },
+     {
+      title: "Audio Recap",
+      description: "Generate a 6-45 minute podcast, lecture, or summary from your study materials",
+      icon: <Podcast className="h-5 w-5" />,
+      href: "/dashboard/podcasts/record",
+    },
+    {
+      title: "Study Calendar",
+      description: "Plan your study sessions using our AI, and achieve your academic goals.",
+      icon: <Calendar className="h-5 w-5" />,
+      href: "/dashboard/calendar",
+    }
+]
 
 const AnimatedNavLink = ({ href, children, theme, isScrolled }: { href: string; children: React.ReactNode; theme: string; isScrolled: boolean }) => {
   return (
@@ -36,7 +111,6 @@ export default function Navbar() {
   const currentTheme = theme;
 
   const navLinksData = [
-    { label: "Features", href: "#features" },
     { label: "How It Works", href: "#how-it-works" },
     { label: "Leaderboard", href: "/leaderboard" },
   ]
@@ -72,6 +146,27 @@ export default function Navbar() {
             </Link>
             <div className="hidden md:flex items-center justify-center">
                 <nav className="flex items-center gap-8">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button className={cn("flex items-center gap-1 text-sm font-medium transition-colors", isScrolled || theme === 'dark' ? 'text-white/70 hover:text-white' : 'text-black/70 hover:text-black')}>
+                          Features <ChevronDown className="h-4 w-4" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-[500px] p-4 grid grid-cols-2 gap-4">
+                        {features.map((feature) => (
+                          <DropdownMenuItem key={feature.title} asChild>
+                            <Link href={feature.href} className="flex items-start gap-3 p-2 rounded-lg">
+                              <div className="text-blue-500 mt-1">{feature.icon}</div>
+                              <div>
+                                <p className="font-semibold">{feature.title}</p>
+                                <p className="text-xs text-muted-foreground">{feature.description}</p>
+                              </div>
+                            </Link>
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+
                   {navLinksData.map((link) => (
                     <AnimatedNavLink key={link.href} href={link.href} theme={currentTheme || 'light'} isScrolled={isScrolled}>
                       {link.label}
