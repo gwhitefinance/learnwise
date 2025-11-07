@@ -4,7 +4,7 @@
 import type React from "react"
 import { useState, useEffect, useRef } from "react"
 import Link from "next/link";
-import { BrainCircuit, X, Menu, Sun, Moon, ChevronDown, FileText, Lightbulb, ImageIcon, FileSignature, Phone, Video, Copy, MessageSquare, Mic, Podcast, Calendar, BookOpen, GraduationCap, Gamepad2, PenSquare, GitMerge, Upload, Rocket } from "lucide-react";
+import { BrainCircuit, X, Menu, Sun, Moon, ChevronDown, FileText, Lightbulb, ImageIcon, FileSignature, Phone, Video, Copy, MessageSquare, Mic, Podcast, Calendar, BookOpen, GraduationCap, Gamepad2, PenSquare, GitMerge, Upload, Rocket, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import Logo from "@/components/Logo";
@@ -40,6 +40,30 @@ const features = [
       description: "Get 24/7 help from your personal AI study partner.",
       icon: <MessageSquare className="h-5 w-5" />,
       href: "/dashboard",
+    },
+    {
+      title: "AI-Powered Calls",
+      description: "Start a live voice call with your AI tutor for interactive help.",
+      icon: <Phone className="h-5 w-5" />,
+      href: "/dashboard/courses",
+    },
+    {
+      title: "Video Explainers",
+      description: "Generate short, animated videos to visualize complex topics.",
+      icon: <Video className="h-5 w-5" />,
+      href: "/dashboard/courses",
+    },
+    {
+      title: "Podcast Studio",
+      description: "Turn your study materials into on-the-go audio lessons.",
+      icon: <Podcast className="h-5 w-5" />,
+      href: "/dashboard/podcasts",
+    },
+    {
+      title: "Learning Squads",
+      description: "Collaborate with friends, share resources, and study together.",
+      icon: <Users className="h-5 w-5" />,
+      href: "/dashboard/learning-squad",
     },
     {
       title: "Games & Gamification",
@@ -126,7 +150,7 @@ export default function Navbar() {
               <span className={cn("font-bold text-xl", navTextColor)}>Tutor Taz</span>
               <Logo className={cn("h-7 w-7", navTextColor)} />
             </Link>
-            <div className="hidden md:flex items-center justify-center">
+             <div className="hidden md:flex items-center justify-center">
                 <nav className="flex items-center gap-8">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
