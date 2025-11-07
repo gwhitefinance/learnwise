@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import type React from "react"
@@ -117,7 +118,6 @@ export default function Navbar() {
   const currentTheme = theme;
 
   const navLinksData = [
-    { label: "How It Works", href: "#how-it-works" },
     { label: "Leaderboard", href: "/leaderboard" },
   ]
 
@@ -190,7 +190,7 @@ export default function Navbar() {
             </Link>
               <Link href="/signup">
                 <Button className={cn(
-                    "transition-all duration-300 transform [animation:pulse-glow_2s_ease-in-out_infinite]",
+                    "transition-all duration-300 transform animate-[pulse-glow_2s_ease-in-out_infinite]",
                     isScrolled || theme === 'dark' ? 'bg-white text-black hover:bg-gray-200' : 'bg-blue-500 text-white hover:bg-blue-600'
                 )}>
                   Sign Up Free

@@ -7,7 +7,7 @@ import Faqs from '@/sections/Faqs';
 import Footer from '@/sections/Footer';
 import Navbar from '@/sections/Navbar';
 import HowItWorks from '@/sections/HowItWorks';
-import { ArrowRight, Star, BrainCircuit, Rocket, GraduationCap, School, RefreshCw, Upload, Search, Wand2, Loader2, BookOpen, List, Lightbulb, Copy, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowRight, Star, BrainCircuit, Rocket, GraduationCap, School, RefreshCw, Upload, Search, Wand2, Loader2, BookOpen, List, Lightbulb, Copy, ChevronLeft, ChevronRight, Play } from 'lucide-react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -351,9 +351,9 @@ const Hero = () => {
 const AudienceCTA = () => {
     const { theme } = useTheme();
     return (
-        <section className="pb-24">
+        <section>
             <div className="container">
-                <div className="h-6"></div>
+                <div className="h-24"></div>
                  <div className={cn("max-w-4xl mx-auto p-8 rounded-3xl", theme === 'dark' ? 'bg-black/20 border border-white/10 backdrop-blur-sm' : 'bg-white/50 border border-gray-200 shadow-lg')}>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
                         <div className="flex flex-col items-center gap-4">
