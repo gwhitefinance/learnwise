@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import NewReleasePromo from '@/sections/NewReleasePromo';
@@ -154,7 +153,7 @@ const Hero = ({ theme }: { theme: string }) => (
       </motion.div>
       
       <div className="flex justify-center mb-8">
-        <div className={cn("inline-flex items-center gap-2 rounded-full px-4 py-2", theme === 'dark' ? "bg-white/10 text-white/90" : "bg-gray-100 text-black")}>
+        <div className={cn("inline-flex items-center gap-2 rounded-full px-4 py-1", theme === 'dark' ? "bg-white/10 text-white/90" : "bg-gray-100 text-black")}>
             <span className="font-medium">Backed by</span>
             <Image src="https://brandeps.com/logo-download/C/College-Board-logo-01.png" alt="College Board Logo" width={110} height={24} className={cn(theme === 'dark' ? 'filter invert' : '')}/>
         </div>
