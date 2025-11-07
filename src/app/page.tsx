@@ -247,7 +247,7 @@ const Hero = () => {
         Tutorin turns your class notes, docs, and study materials into your personal AI tutor. Generate quizzes, flashcards, and get 24/7 help.
       </p>
 
-      <div className="relative mt-6 min-h-[18rem] flex items-center justify-center">
+      <div className="relative mt-2 min-h-[18rem] flex items-center justify-center">
           <StudyGuideGenerator />
       </div>
       
