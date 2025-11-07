@@ -650,7 +650,7 @@ function DashboardLayoutContent({
 
             <main className={cn(
                 "flex-1 flex flex-col relative",
-                !isNewNotePage && "p-4 md:p-6"
+                isNewNotePage ? '' : "p-4 md:p-6"
             )}>
               <FloatingChat isHidden={isFocusLayout || isNewNotePage}>
                 {React.cloneElement(children as React.ReactElement)}
