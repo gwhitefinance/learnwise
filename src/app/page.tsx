@@ -171,7 +171,7 @@ const Hero = ({ theme }: { theme: string }) => (
             <div className="flex flex-col items-center gap-4">
                 <div className={cn("flex items-center gap-2 font-semibold text-lg", theme === 'dark' ? 'text-white' : 'text-black')}>
                     <Rocket className="w-5 h-5" />
-                    <span className="relative highlight-for-students">For Students</span>
+                    <span>For Students</span>
                 </div>
                 <Link href="/signup">
                     <Button size="lg" className="bg-blue-500 hover:bg-blue-600 text-white rounded-full px-8 py-6 text-base">
