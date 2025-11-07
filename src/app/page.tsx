@@ -175,26 +175,21 @@ const StudyGuideGenerator = ({ theme }: { theme: string }) => {
                 className="w-full max-w-2xl mx-auto flex flex-col items-center text-center p-8"
             >
                 <div className="relative mb-4">
-                    <AIBuddy className="w-24 h-24" isStatic={false} />
-                    <div className="absolute top-0 -right-40 w-56">
-                         <div className="speech-bubble-typing" style={{animationDelay: '0s'}}>
-                            <AnimatePresence mode="wait">
-                                <motion.p
-                                    key={loadingStep}
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -10 }}
-                                    transition={{ duration: 0.3 }}
-                                    className="text-sm text-left"
-                                >
-                                    {loadingSteps[loadingStep]}
-                                </motion.p>
-                            </AnimatePresence>
-                         </div>
-                    </div>
+                    <AIBuddy className="w-16 h-16" isStatic={false} />
                 </div>
                 <h3 className="text-xl font-semibold mt-4">Generating your study guide...</h3>
-                <p className="text-muted-foreground">This might take a moment.</p>
+                <AnimatePresence mode="wait">
+                    <motion.p
+                        key={loadingStep}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.3 }}
+                        className="text-muted-foreground mt-2"
+                    >
+                        {loadingSteps[loadingStep]}
+                    </motion.p>
+                </AnimatePresence>
                  <Progress value={(loadingStep + 1) * 20} className="w-64 mt-4 h-2" />
             </motion.div>
         );
@@ -239,7 +234,7 @@ const Hero = ({ theme }: { theme: string }) => (
   <section className="relative py-20 lg:py-28 text-center overflow-hidden">
       <>
         <div className="absolute top-0 left-0 -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] bg-pink-500/20 rounded-full blur-3xl -z-10" />
-        <div className="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] bg-pink-500/20 rounded-full blur-3xl -z-10" />
+        <div className="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 w-[40rem_] h-[40rem] bg-pink-500/20 rounded-full blur-3xl -z-10" />
       </>
     <div className="container mx-auto px-4 relative z-10">
       
@@ -250,7 +245,7 @@ const Hero = ({ theme }: { theme: string }) => (
         Tutorin turns your class notes, docs, and study materials into your personal AI tutor. Generate quizzes, flashcards, and get 24/7 help.
       </p>
 
-      <div className="relative mt-2 mb-8 min-h-[18rem] flex items-center justify-center">
+      <div className="relative mt-8 min-h-[18rem] flex items-center justify-center">
           <StudyGuideGenerator theme={theme} />
       </div>
       
