@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import NewReleasePromo from '@/sections/NewReleasePromo';
@@ -7,9 +6,9 @@ import Faqs from '@/sections/Faqs';
 import Footer from '@/sections/Footer';
 import Navbar from '@/sections/Navbar';
 import HowItWorks from '@/sections/HowItWorks';
-import { ArrowRight, Star, BrainCircuit, Rocket, GraduationCap, School } from 'lucide-react';
+import { ArrowRight, Star, BrainCircuit, Rocket, GraduationCap, School, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -22,148 +21,79 @@ import Logo from '@/components/Logo';
 import { cn } from '@/lib/utils';
 import DailyPractice from '@/sections/DailyPractice';
 
-const TypingBubble = ({ theme }: { theme: string }) => {
-    const [index, setIndex] = useState(0);
-    const [subIndex, setSubIndex] = useState(0);
-    const [isDeleting, setIsDeleting] = useState(false);
-    const [text, setText] = useState('');
-    const words = ["quizzes", "flashcards", "study plans", "tests"];
-    const baseText = "Turn class notes into ";
+const InteractiveDemo = ({ theme }: { theme: string }) => {
+    const [demoState, setDemoState] = useState<'notes' | 'flashcard'>('notes');
 
-    useEffect(() => {
-        if (isDeleting) {
-            if (subIndex === 0) {
-                setIsDeleting(false);
-                setIndex((prev) => (prev + 1) % words.length);
-            } else {
-                const timer = setTimeout(() => {
-                    setText(words[index].substring(0, subIndex - 1));
-                    setSubIndex(subIndex - 1);
-                }, 100);
-                return () => clearTimeout(timer);
-            }
-        } else {
-            if (subIndex === words[index].length) {
-                const holdTimer = setTimeout(() => {
-                    setIsDeleting(true);
-                }, 2000);
-                return () => clearTimeout(holdTimer);
-            } else {
-                const timer = setTimeout(() => {
-                    setText(words[index].substring(0, subIndex + 1));
-                    setSubIndex(subIndex + 1);
-                }, 150);
-                return () => clearTimeout(timer);
-            }
-        }
-    }, [subIndex, isDeleting, index]);
+    const notesContent = `
+**Cellular Respiration: Key Points**
+
+- **Goal:** Convert glucose into ATP (energy).
+- **Stages:**
+  1. Glycolysis (in cytoplasm)
+  2. Krebs Cycle (in mitochondria)
+  3. Electron Transport Chain (in mitochondria)
+- **Equation:** C₆H₁₂O₆ + 6O₂ → 6CO₂ + 6H₂O + ATP
+    `.trim();
 
     return (
-        <div className={cn("speech-bubble-typing", theme === 'light' && "shadow-lg")}>
-            <p>
-                {baseText}
-                <span className="font-semibold text-blue-500">{text}</span>
-                <span className="typing-cursor"></span>
-            </p>
+        <div className={cn("relative w-full max-w-lg h-80 mx-auto rounded-2xl p-4", theme === 'dark' ? 'bg-black/20' : 'bg-white/50')}>
+             <AnimatePresence mode="wait">
+                {demoState === 'notes' ? (
+                    <motion.div
+                        key="notes"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ duration: 0.3 }}
+                        className="w-full h-full bg-card border rounded-lg p-6 flex flex-col items-center justify-center text-center"
+                    >
+                        <h4 className="font-semibold text-lg mb-2">Your Class Notes</h4>
+                        <div className="text-left text-sm bg-muted p-4 rounded-md w-full flex-1">
+                            <pre className="whitespace-pre-wrap font-sans">{notesContent}</pre>
+                        </div>
+                        <Button onClick={() => setDemoState('flashcard')} className="mt-4">
+                            ✨ Generate Study Card
+                        </Button>
+                    </motion.div>
+                ) : (
+                     <motion.div
+                        key="flashcard"
+                        initial={{ opacity: 0, rotateY: -90 }}
+                        animate={{ opacity: 1, rotateY: 0 }}
+                        exit={{ opacity: 0, rotateY: 90 }}
+                        transition={{ duration: 0.4 }}
+                        className="w-full h-full bg-card border rounded-lg p-6 flex flex-col items-center justify-center text-center"
+                    >
+                        <h4 className="font-semibold text-lg mb-4">What is the main goal of cellular respiration?</h4>
+                        <p className="text-3xl font-bold text-primary">To convert glucose into ATP.</p>
+                         <Button variant="ghost" onClick={() => setDemoState('notes')} className="mt-8 text-muted-foreground">
+                           <RefreshCw className="w-4 h-4 mr-2"/> Reset Demo
+                        </Button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
-    );
-};
+    )
+}
 
 
 const Hero = ({ theme }: { theme: string }) => (
   <section className="relative py-20 lg:py-28 text-center overflow-hidden">
       <>
-        <div className="absolute top-0 left-0 -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] bg-pink-200/50 rounded-full blur-3xl -z-10" />
-        <div className="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] bg-pink-200/50 rounded-full blur-3xl -z-10" />
+        <div className="absolute top-0 left-0 -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] bg-pink-500/20 rounded-full blur-3xl -z-10" />
+        <div className="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] bg-pink-500/20 rounded-full blur-3xl -z-10" />
       </>
     <div className="container mx-auto px-4 relative z-10">
-      {/* Floating Icons */}
-      <motion.div
-        className="absolute top-[15%] left-[10%]"
-        animate={{ y: [-10, 10], x: [-5, 5], rotate: [-8, 8] }}
-        transition={{
-          duration: 8,
-          repeat: Infinity,
-          repeatType: 'reverse',
-          ease: 'easeInOut',
-        }}
-      >
-        <Image
-          src="https://png.pngtree.com/png-vector/20240619/ourmid/pngtree-documents-folder-3d-icon-png-image_12797525.png"
-          alt="3D folder icon"
-          width={96}
-          height={96}
-          data-ai-hint="folder documents"
-        />
-      </motion.div>
-      <motion.div
-        className="absolute top-[20%] right-[12%]"
-        animate={{ y: [15, -15], x: [5, -5], rotate: [5, -5] }}
-        transition={{
-          duration: 7,
-          repeat: Infinity,
-          repeatType: 'reverse',
-          ease: 'easeInOut',
-        }}
-      >
-        <Image
-          src="https://cdn3d.iconscout.com/3d/premium/thumb/online-test-time-3d-icon-png-download-3337507.png"
-          alt="Lightbulb idea"
-          width={80}
-          height={80}
-          data-ai-hint="quiz checklist"
-        />
-      </motion.div>
-      <motion.div
-        className="absolute bottom-[20%] left-[15%]"
-        animate={{ y: [-5, 5], x: [-8, 8], rotate: [10, -10] }}
-        transition={{
-          duration: 9,
-          repeat: Infinity,
-          repeatType: 'reverse',
-          ease: 'easeInOut',
-        }}
-      >
-        <Image
-          src="https://cdn3d.iconscout.com/3d/premium/thumb/notes-3d-icon-png-download-5728147.png"
-          alt="3D Notes Icon"
-          width={112}
-          height={112}
-          data-ai-hint="notes organization"
-        />
-      </motion.div>
-      <motion.div
-        className="absolute bottom-[15%] right-[15%]"
-        animate={{ y: [10, -10], x: [8, -8], rotate: [-3, 3] }}
-        transition={{
-          duration: 6,
-          repeat: Infinity,
-          repeatType: 'reverse',
-          ease: 'easeInOut',
-        }}
-      >
-        <Image
-          src="https://png.pngtree.com/png-clipart/20250130/original/pngtree-calendar-3d-icon-isolated-on-a-transparent-background-symbolizing-schedules-and-png-image_20358144.png"
-          alt="Calendar icon"
-          width={96}
-          height={96}
-          data-ai-hint="calendar schedule"
-        />
-      </motion.div>
       
       <h1 className={cn("text-5xl md:text-7xl font-bold tracking-tighter", theme === 'dark' ? 'text-white' : 'text-black')}>
         Reach your learning <br /> <span className="text-blue-400">goals effortlessly</span>
       </h1>
+      <p className={cn("max-w-xl mx-auto mt-6 text-lg", theme === 'dark' ? 'text-white/70' : 'text-black/70')}>
+        Tutorin turns your class notes, docs, and study materials into your personal AI tutor. Generate quizzes, flashcards, and get 24/7 help.
+      </p>
 
-      <div className="relative mt-8 mb-8 h-[250px]">
-          <div className="absolute inset-0 flex justify-center items-center">
-              <div style={{ width: '400px', height: '250px' }} className="relative">
-                  <AIBuddy />
-                  <div className="absolute top-1/2 -translate-y-full left-[calc(100%_-_140px)]">
-                      <TypingBubble theme={theme} />
-                  </div>
-              </div>
-          </div>
+      <div className="relative mt-8 mb-8 h-80">
+          <InteractiveDemo theme={theme} />
       </div>
       
       <div className={cn("max-w-4xl mx-auto p-8 rounded-3xl", theme === 'dark' ? 'bg-black/20 border border-white/10 backdrop-blur-sm' : 'bg-white/50 border border-gray-200 shadow-lg')}>
@@ -171,13 +101,16 @@ const Hero = ({ theme }: { theme: string }) => (
             <div className="flex flex-col items-center gap-4">
                 <div className={cn("flex items-center gap-2 font-semibold text-lg", theme === 'dark' ? 'text-white' : 'text-black')}>
                     <Rocket className="w-5 h-5" />
-                    <span>For Students</span>
+                    <span className="relative">
+                        For Students
+                    </span>
                 </div>
                 <Link href="/signup">
                     <Button size="lg" className="bg-blue-500 hover:bg-blue-600 text-white rounded-full px-8 py-6 text-base">
                         Try for Free
                     </Button>
                 </Link>
+                <p className="text-xs text-muted-foreground mt-1">No credit card required</p>
             </div>
             <div className="flex flex-col items-center gap-4">
                 <div className={cn("flex items-center gap-2 font-semibold text-lg", theme === 'dark' ? 'text-white' : 'text-black')}>
@@ -185,7 +118,7 @@ const Hero = ({ theme }: { theme: string }) => (
                     For Educators
                 </div>
                 <Link href="/teacher-dashboard">
-                    <Button size="lg" className="bg-[#4a2e5d] hover:bg-[#5f3a78] text-white rounded-full px-8 py-6 text-base">
+                    <Button size="lg" variant="outline" className="rounded-full px-8 py-6 text-base">
                         Get Started
                     </Button>
                 </Link>
@@ -196,7 +129,7 @@ const Hero = ({ theme }: { theme: string }) => (
                     For Institutions
                 </div>
                 <Link href="#">
-                    <Button size="lg" className="bg-[#1abc9c] hover:bg-[#20d4b1] text-white rounded-full px-8 py-6 text-base">
+                    <Button size="lg" variant="outline" className="rounded-full px-8 py-6 text-base">
                         Learn More
                     </Button>
                 </Link>
