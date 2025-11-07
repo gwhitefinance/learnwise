@@ -2,7 +2,7 @@
 
 'use client';
 
-import { Plus, Flame, Upload, ChevronDown, ChevronRight, Calendar, FileText, Mic, LayoutGrid } from "lucide-react";
+import { Plus, Flame, Upload, ChevronDown, ChevronRight, Calendar, FileText, Mic, LayoutGrid, Bookmark, Settings, PenTool, BookMarked, GraduationCap, Gamepad2, Headphones, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import AIBuddy from "@/components/ai-buddy";
+import { Progress } from "@/components/ui/progress";
 
 
 const StudyItem = ({ title, progress }: { title: string, progress: number }) => {
@@ -148,7 +149,7 @@ const Index = () => {
                 <Dialog open={addSetOpen} onOpenChange={setAddSetOpen}>
                     <DialogTrigger asChild>
                         <Button variant="ghost" className="text-primary hover:text-primary/90 font-semibold">
-                            <Plus className="h-4 w-4 mr-1" />
+                            <Plus className="h-4 h-4 mr-1" />
                             Add Set
                         </Button>
                     </DialogTrigger>
