@@ -152,13 +152,6 @@ const Hero = ({ theme }: { theme: string }) => (
         />
       </motion.div>
       
-      <div className="flex justify-center mb-8">
-        <div className={cn("inline-flex items-center gap-2 rounded-full px-4 py-1", theme === 'dark' ? "bg-white/10 text-white/90" : "bg-gray-100 text-black")}>
-            <span className="font-medium">Backed by</span>
-            <Image src="https://brandeps.com/logo-download/C/College-Board-logo-01.png" alt="College Board Logo" width={110} height={24} className={cn(theme === 'dark' ? 'filter invert' : '')}/>
-        </div>
-      </div>
-
       <h1 className={cn("text-5xl md:text-7xl font-bold tracking-tighter", theme === 'dark' ? 'text-white' : 'text-black')}>
         Reach your learning <br /> <span className="text-blue-400">goals effortlessly</span>
       </h1>
