@@ -236,10 +236,8 @@ const Hero = () => {
 
   return (
   <section className="relative py-20 lg:py-24 text-center overflow-hidden">
-      <>
-        <div className="absolute top-0 left-0 -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] bg-pink-500/20 rounded-full blur-3xl -z-10" />
-        <div className="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 w-[40rem_] h-[40rem] bg-pink-500/20 rounded-full blur-3xl -z-10" />
-      </>
+        <div className="spotlight spotlight-left"></div>
+        <div className="spotlight spotlight-right"></div>
     <div className="container mx-auto px-4 relative z-10">
       
       <h1 className={cn("text-5xl md:text-7xl font-bold tracking-tighter", theme === 'dark' ? 'text-white' : 'text-black')}>
@@ -357,6 +355,15 @@ const plans = [
 
 export default function Home() {
     const { theme } = useTheme();
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    if (!mounted) {
+        return null; // Or a loading skeleton
+    }
 
     return (
         <main className={cn("bg-background", theme === 'dark' ? 'dark-grid' : 'bg-white')}>
