@@ -184,9 +184,6 @@ const StudyGuideGenerator = ({ theme }: { theme: string }) => {
                     onChange={(e) => setInput(e.target.value)}
                 />
                 <div className="absolute right-6 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                    <Button variant="ghost" size="icon" className={cn("text-muted-foreground", theme === 'dark' ? 'hover:bg-white/10' : 'hover:bg-gray-100')}>
-                        <Upload className="h-5 w-5" />
-                    </Button>
                     <Button type="submit" size="icon" className="h-12 w-12 rounded-full bg-blue-500 hover:bg-blue-600">
                         <ArrowRight className="h-6 w-6" />
                     </Button>
@@ -212,7 +209,7 @@ const Hero = ({ theme }: { theme: string }) => (
         Tutorin turns your class notes, docs, and study materials into your personal AI tutor. Generate quizzes, flashcards, and get 24/7 help.
       </p>
 
-      <div className="relative mt-8 mb-8 min-h-[320px] flex items-center justify-center">
+      <div className="relative mt-12 mb-8 flex items-center justify-center">
           <StudyGuideGenerator theme={theme} />
       </div>
       
