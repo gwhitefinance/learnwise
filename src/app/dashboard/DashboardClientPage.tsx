@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -9,13 +10,22 @@ import {
   LayoutGrid,
   GraduationCap,
   Upload,
+  Bookmark,
+  Settings,
+  FileText,
+  Lightbulb,
+  MessageSquare,
+  Gamepad2,
+  Copy,
+  Headphones,
+  ChevronDown,
+  Play,
 } from 'lucide-react';
 
 import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -26,10 +36,24 @@ import { cn } from '@/lib/utils';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Progress } from '@/components/ui/progress';
+
+type Chapter = {
+  id: string;
+  title: string;
+}
+
+type Unit = {
+  id: string;
+  title: string;
+  chapters: Chapter[];
+}
 
 type Course = {
   id: string;
   name: string;
+  units?: Unit[];
+  completedChapters?: string[];
 };
 
 const Header = () => {
@@ -45,6 +69,83 @@ const Header = () => {
                 {user?.displayName?.charAt(0) || 'G'}
             </div>
         </header>
+    )
+}
+
+const CourseDetailCard = ({ course }: { course: Course }) => {
+    const totalMaterials = course.units?.reduce((acc, unit) => acc + unit.chapters.length, 0) || 0;
+    
+    const quickActions = [
+        { icon: <FileText size={16}/>, label: 'Tests/Quizzes', count: 1, hasDropdown: true },
+        { icon: <Lightbulb size={16}/>, label: 'Explainers', count: 0 },
+        { icon: <MessageSquare size={16}/>, label: 'Tutor Me', count: 0 },
+        { icon: <Gamepad2 size={16}/>, label: 'Arcade', count: 2, hasDropdown: true },
+        { icon: <Copy size={16}/>, label: 'Flashcards', count: 1, hasDropdown: true },
+        { icon: <Headphones size={16}/>, label: 'Audio Recap', count: 0 },
+    ];
+    
+    const getUnitProgress = (unit: Unit) => {
+        if (!unit.chapters || unit.chapters.length === 0 || !course.completedChapters) {
+            return 0;
+        }
+        const completedInUnit = unit.chapters.filter(chap => course.completedChapters?.includes(chap.id)).length;
+        return (completedInUnit / unit.chapters.length) * 100;
+    }
+
+    return (
+        <div className="mt-8">
+            <Card className="bg-blue-500/10 border-blue-500/20">
+                <CardContent className="p-6">
+                    <div className="flex justify-between items-start">
+                        <div className="flex items-center gap-4">
+                            <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center border-2 border-blue-200">
+                                <GraduationCap className="w-8 h-8 text-blue-500" />
+                            </div>
+                            <div>
+                                <h2 className="text-2xl font-bold">{course.name}</h2>
+                                <p className="text-sm text-muted-foreground">{totalMaterials} materials</p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Button variant="ghost" size="icon"><Bookmark/></Button>
+                            <Button variant="ghost" size="icon"><Settings/></Button>
+                        </div>
+                    </div>
+                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6">
+                        {quickActions.map(action => (
+                            <Button key={action.label} variant="outline" className="justify-start h-12 bg-white/50 hover:bg-white/80">
+                                {action.icon}
+                                <span className="font-semibold ml-2">{action.count}</span>
+                                <span className="text-muted-foreground ml-1">{action.label}</span>
+                                {action.hasDropdown && <ChevronDown size={16} className="ml-auto text-muted-foreground"/>}
+                            </Button>
+                        ))}
+                    </div>
+                </CardContent>
+            </Card>
+            <div className="text-center my-6">
+                <Button size="lg" className="rounded-full h-12 px-8 bg-blue-500 hover:bg-blue-600">
+                    <Play className="mr-2 h-5 w-5 fill-white"/>
+                    Continue Learning
+                </Button>
+            </div>
+            <div className="space-y-4">
+                {course.units?.slice(0, 4).map(unit => (
+                    <div key={unit.id} className="flex items-center gap-4 p-3 hover:bg-muted rounded-lg">
+                        <Link href={`/dashboard/courses?courseId=${course.id}`} className="flex-1">
+                            <p className="font-semibold underline-offset-4 hover:underline">{unit.title}</p>
+                        </Link>
+                        <Progress value={getUnitProgress(unit)} className="w-32 h-2"/>
+                        <span className="text-sm font-medium text-muted-foreground w-10 text-right">{getUnitProgress(unit).toFixed(0)}%</span>
+                    </div>
+                ))}
+            </div>
+            {course.units && course.units.length > 4 && (
+                 <div className="text-center mt-6">
+                    <Button variant="ghost">View All</Button>
+                </div>
+            )}
+        </div>
     )
 }
 
@@ -74,10 +175,11 @@ function DashboardClientPage() {
         
         return () => unsubscribe();
     }, [user, authLoading, router, activeSet]);
+    
+    const activeCourse = courses.find(c => c.id === activeSet);
 
   return (
     <div className="p-8">
-        
         <div className="flex justify-between items-center mb-8">
             <div className="flex items-center gap-4">
                 <AIBuddy className="w-16 h-16" />
@@ -137,6 +239,9 @@ function DashboardClientPage() {
                 </DialogContent>
             </Dialog>
         </div>
+
+        {activeCourse && <CourseDetailCard course={activeCourse} />}
+
     </div>
   )
 }
