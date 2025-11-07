@@ -17,11 +17,11 @@ import Logo from '@/components/Logo';
 import { motion } from 'framer-motion';
 
 const testimonials = [
-  { rating: 5, text: "THIS APP IS SO HELPFUL. I'm so glad I've been introduced to this app. I don't like long sessions and Knowt just gets straight to the point! 100% recommend", author: "@hayatreviews" },
-  { rating: 5, text: "This is honestly beating Quizlet. Knowt is an awesome alternative to the money-hungry Quizlet.", author: "@Zachary76841" },
+  { rating: 5, text: "THIS APP IS SO HELPFUL. I'm so glad I've been introduced to this app. I don't like long sessions and Tutor Taz just gets straight to the point! 100% recommend", author: "@hayatreviews" },
+  { rating: 5, text: "This is honestly beating Quizlet. Tutor Taz is an awesome alternative to the money-hungry Quizlet.", author: "@Zachary76841" },
   { rating: 5, text: "Unbelievable. This is hands down the best tool I have ever used in my life!! i just can't believe more people don't know about this (thank you Reddit).", author: "@BMarieMarris" },
-  { rating: 5, text: "Knowt is the best flashcard app. Imagine the functionality of Anki with the ease of use of Quizlet wrapped into a free application. Thats Knowt. 10/10", author: "@dogyogurt12" },
-  { rating: 5, text: "Knowt CHANGED MY LIFE. The most amazing app ever and I owe it all my successes. Not only are quiz and studying features free that aren't on quizlet, but they have amazing resources for AP tests.", author: "@knowt" },
+  { rating: 5, text: "Tutor Taz is the best flashcard app. Imagine the functionality of Anki with the ease of use of Quizlet wrapped into a free application. Thats Tutor Taz. 10/10", author: "@dogyogurt12" },
+  { rating: 5, text: "Tutor Taz CHANGED MY LIFE. The most amazing app ever and I owe it all my successes. Not only are quiz and studying features free that aren't on quizlet, but they have amazing resources for AP tests.", author: "@taz" },
   { rating: 5, text: "i could marry this app. thought I had no hope in passing my ap's, especially ap macro, but after I downloaded this app not even 15 days before the exam i somehow managed to get a 5 on ap macro?? This app does miracles", author: "@user123" },
   { rating: 5, text: "Saved me for my AP exam. This the reason I passed my AP exam. I had no idea what my teacher was teaching fr and this would be my first Ap exam and I swear I would fail if it wasn't for this app...", author: "@gamedestoer" },
   { rating: 5, text: "Quizlet is Doomed! This is one of my favorite apps. I'm memorizing speeches so much faster. It seems Quizlet has a scrappy competitor snapping at its heels...", author: "@BullMoose2020" },
