@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -201,6 +200,11 @@ export default function SignUpPage() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-800 p-4 relative overflow-hidden">
       <TestimonialGrid />
+       <Link href="/" className="absolute top-4 left-4 z-20">
+        <Button variant="ghost" size="icon" className="bg-white/10 hover:bg-white/20 text-white rounded-full h-10 w-10">
+          <X className="h-5 w-5" />
+        </Button>
+      </Link>
       <motion.div 
         className="w-full max-w-sm bg-white rounded-2xl shadow-2xl p-8 z-10"
         initial={{ opacity: 0, scale: 0.9 }}
