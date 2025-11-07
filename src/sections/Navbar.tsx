@@ -18,7 +18,7 @@ const AnimatedNavLink = ({ href, children, theme, isScrolled }: { href: string; 
   )
 }
 
-export default function Navbar({ onThemeToggle, theme = 'dark' }: { onThemeToggle?: () => void; theme?: string }) {
+export default function Navbar({ theme = 'dark' }: { theme?: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -66,12 +66,6 @@ export default function Navbar({ onThemeToggle, theme = 'dark' }: { onThemeToggl
           </div>
 
           <div className="hidden md:flex items-center gap-2">
-             {onThemeToggle && (
-                 <Button variant="ghost" size="icon" onClick={onThemeToggle} className={cn(navTextColor, navIconHover, 'hover:'+navTextColor)}>
-                    {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-                    <span className="sr-only">Toggle theme</span>
-                </Button>
-            )}
             <Link href="/login">
                 <Button variant="ghost" className={cn(navTextColor, navIconHover, 'hover:'+navTextColor)}>Login</Button>
             </Link>
@@ -82,12 +76,6 @@ export default function Navbar({ onThemeToggle, theme = 'dark' }: { onThemeToggl
 
 
           <div className="md:hidden flex items-center gap-2">
-               {onThemeToggle && (
-                 <Button variant="ghost" size="icon" onClick={onThemeToggle} className={cn(navTextColor, navIconHover, 'hover:'+navTextColor)}>
-                    {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-                    <span className="sr-only">Toggle theme</span>
-                </Button>
-            )}
               <Button variant="ghost" size="icon" onClick={() => setIsOpen(!isOpen)} className={cn(navTextColor, navIconHover, 'hover:'+navTextColor)}>
                   {isOpen ? <X /> : <Menu />}
               </Button>

@@ -122,7 +122,6 @@ const StudyGuideGenerator = ({ theme }: { theme: string }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [studyGuide, setStudyGuide] = useState<CrunchTimeOutput | null>(null);
 
-    // New state for animated loading text
     const [loadingStep, setLoadingStep] = useState(0);
     const loadingSteps = [
         "Did you know? You can upload your class notes and get a summarized study guide just like this one.",
@@ -254,11 +253,7 @@ const Hero = ({ theme }: { theme: string }) => (
             <div className="flex flex-col items-center gap-4">
                 <div className={cn("flex items-center gap-2 font-semibold text-lg", theme === 'dark' ? 'text-white' : 'text-black')}>
                     <Rocket className="w-5 h-5" />
-                    <span className="relative">For Students
-                         <span
-                            className="absolute bottom-[-4px] left-0 w-full h-1.5 bg-pink-400/80 rounded-full"
-                         />
-                    </span>
+                    <span className="relative">For Students</span>
                 </div>
                 <Link href="/signup">
                     <Button size="lg" className="bg-blue-500 hover:bg-blue-600 text-white rounded-full px-8 py-6 text-base">
@@ -355,17 +350,14 @@ const plans = [
 
 
 export default function Home() {
-    const [theme, setTheme] = useState('dark');
-    const toggleTheme = () => {
-        setTheme(current => (current === 'dark' ? 'light' : 'dark'));
-    }
+    const [theme, setTheme] = useState('light');
 
   return (
     <main className={cn(
         "bg-background",
         theme === 'dark' ? 'dark-grid dark' : 'bg-white'
     )}>
-      <Navbar onThemeToggle={toggleTheme} theme={theme} />
+      <Navbar theme={theme} />
       <Hero theme={theme} />
       <HowItWorks theme={theme} />
       <PersonalizedTutor theme={theme} />
