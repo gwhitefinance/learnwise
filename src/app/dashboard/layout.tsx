@@ -641,84 +641,14 @@ function DashboardLayoutContent({
             isFocusLayout && 'md:pl-0 w-full'
         )}>
             {!isFocusLayout && !isNewNotePage && (
-                <header className="sticky top-0 z-10 flex h-16 items-center gap-3 border-b bg-background/95 px-4 backdrop-blur">
+                <div className="sticky top-0 z-10 flex h-16 items-center gap-3 border-b bg-background/95 px-4 backdrop-blur">
                     <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileMenuOpen(true)}>
                         <Menu className="h-5 w-5" />
                     </Button>
                     <Button variant="ghost" size="icon" className="hidden md:flex" onClick={() => setSidebarOpen(!sidebarOpen)} aria-label="Toggle Sidebar">
                         <PanelLeft className="h-5 w-5" />
                     </Button>
-                    <div className="flex flex-1 items-center justify-between">
-                        <h1 className="text-xl font-semibold">Tutor Taz</h1>
-                        <div className="flex items-center gap-3">
-
-                        <TooltipProvider>
-                            <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" className="rounded-2xl relative">
-                                <Bell className="h-5 w-5" />
-                                {notifications > 0 && (
-                                    <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
-                                    {notifications}
-                                    </span>
-                                )}
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>Notifications</TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Link href="/dashboard/shop">
-                                        <div className="flex items-center gap-2 rounded-full bg-amber-500/10 px-3 py-1.5 text-amber-600">
-                                            <Gem className="h-4 w-4" />
-                                            <span className="text-sm font-medium">{userCoins}</span>
-                                        </div>
-                                    </Link>
-                                </TooltipTrigger>
-                                <TooltipContent>Your Coins</TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-
-
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                            <button>
-                                <Avatar className="h-9 w-9 border-2 border-primary cursor-pointer">
-                                    {profilePic ? (
-                                        <AvatarImage src={profilePic} alt="User" />
-                                    ): (
-                                        <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
-                                    )}
-                                </Avatar>
-                            </button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent>
-                                <DropdownMenuItem onSelect={() => router.push('/dashboard/profile')}>
-                                    <User className="mr-2 h-4 w-4" />
-                                    <span>Profile</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onSelect={() => router.push('/dashboard/shop')}>
-                                    <ShoppingBag className="mr-2 h-4 w-4" />
-                                    <span>Shop & Rewards</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem onSelect={triggerFileUpload}>
-                                    <User className="mr-2 h-4 w-4" />
-                                    <span>Change Picture</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={handleSignOut}>
-                                    <LogOut className="mr-2 h-4 w-4" />
-                                    <span>Sign Out</span>
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-
-                        </div>
-                    </div>
-                </header>
+                </div>
             )}
 
             <main className={cn(
