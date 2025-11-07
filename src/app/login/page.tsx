@@ -1,172 +1,337 @@
 
 'use client';
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth"
+import { getAuth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth"
 import { app, db } from "@/lib/firebase" 
 import Link from "next/link"
-import { Eye, EyeOff, Loader2 } from 'lucide-react';
-import Logo from '@/components/Logo';
-import { collection, query, where, getDocs, updateDoc, arrayUnion } from 'firebase/firestore';
+import { Eye, EyeOff, Loader2, X, Star } from 'lucide-react';
+import AIBuddy from '@/components/ai-buddy';
+import { cn } from "@/lib/utils"
+import { motion } from 'framer-motion';
+import { collection, query, where, getDocs, updateDoc, arrayUnion, writeBatch, setDoc, serverTimestamp } from 'firebase/firestore';
 
 
 const GoogleIcon = () => <svg height="24" viewBox="0 0 24 24" width="24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"></path><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"></path><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"></path><path d="M1 1h22v22H1z" fill="none"></path></svg>;
-const AppleIcon = () => <svg height="24" viewBox="0 0 24 24" width="24"><path d="M19.393 10.252c-.042-2.391 1.638-3.987 1.702-4.045-.042.018-1.42.864-2.815 2.44-1.332 1.492-2.205 3.73-1.93 5.95-.004.053 1.22 1.613 2.833 1.649 1.63-.031 2.083-1.077 2.1-1.11-.022-.01-1.802-1.002-1.89-3.884zm-5.46-2.298c-.85-.92-1.393-2.22-1.258-3.528-1.11.08-2.31.574-3.153 1.488-.868.916-1.584 2.22-1.474 3.572.98.173 2.132.695 3.03 1.54.787.727 1.28 1.94 1.47 3.23.11.724.238 1.44.43 2.12.062.215.13.43.203.642.067.18.15.34.25.49.12.18.26.31.42.41l.13.07c.045.023.09.04.14.06.23.09.49.15.77.16.05.004.1.004.15.004.05 0 .1 0 .15-.004.28-.01.54-.07.77-.16.05-.02.09-.03.14-.06l.13-.07c.16-.1.3-.23.42-.41.1-.15.18-.31.25-.49.07-.21.14-.42.2-.64.19-.68.32-1.4.43-2.12.16-1.07.57-2.11 1.23-2.92-1.1-.69-2.48-1.03-3.82-.9z"></path></svg>;
-const CleverIcon = () => <svg height="24" viewBox="0 0 24 24" width="24" fill="none"><path d="M22.012 9.421a2.804 2.804 0 0 1 .098 3.513c-.91 1.46-2.522 2.65-4.482 2.65a4.852 4.852 0 0 1-4.707-3.328 4.792 4.792 0 0 1-.77-2.733c0-.98.293-1.894.794-2.65a4.852 4.852 0 0 1 4.683-3.328c1.96 0 3.573 1.19 4.482 2.65l-.098.226Z" fill="#29ADDF"></path><path d="m11.533 21.9-2.85-4.144a2.81 2.81 0 0 1-.955-1.912c0-.957.488-1.78 1.229-2.317.74-.538 1.718-.816 2.827-.816 1.034 0 1.95.235 2.706.726l.122-.098-1.558-2.674c-1.484-.24-3.14-.142-4.771.38-2.02.65-3.618 1.94-4.505 3.56a2.804 2.804 0 0 1 .098 3.513l6.56 10.632a2.81 2.81 0 0 1-1.903-.765Z" fill="#29ADDF"></path></svg>;
-const ClasslinkIcon = () => <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 18 18"><path d="M9,2.8c-3.1,0-5.7,2.6-5.7,5.7s2.6,5.7,5.7,5.7s5.7-2.6,5.7-5.7S12.1,2.8,9,2.8z M9,13.2c-2.6,0-4.7-2.1-4.7-4.7s2.1-4.7,4.7-4.7s4.7,2.1,4.7,4.7S11.6,13.2,9,13.2z" fill="#00adee"></path><path d="M14,14.6c0,1.2-0.9,2.1-2.1,2.1H6.1c-1.2,0-2.1-0.9-2.1-2.1V13h1.1v1.6c0,0.6,0.5,1.1,1.1,1.1h5.7c0.6,0,1.1-0.5,1.1-1.1V13h1.1V14.6z" fill="#00adee"></path><path d="M12.9,3.5c1.2,0,2.1-0.9,2.1-2.1c0-0.6-0.5-1.1-1.1-1.1h-0.2H6.1c-0.6,0-1.1,0.5-1.1,1.1c0,1.2,0.9,2.1,2.1,2.1H12.9z" fill="#00adee"></path><path d="M9.6,9.2c-0.1-0.3-0.4-0.4-0.6-0.4c-0.3,0-0.6,0.2-0.6,0.4C8.3,9.4,8.4,9.6,9,9.6C9.5,9.6,9.7,9.4,9.6,9.2z" fill="#00adee"></path><path d="M10.1,8.1L10.1,8.1C10.1,8.1,10.1,8.1,10.1,8.1C10,7.6,9.5,7.2,9,7.2s-1,0.4-1,0.9c0,0.5,0.4,0.9,0.9,0.9l0,0h0.1l0,0c0,0,0,0,0,0c0.5,0,0.9-0.4,1-0.9L10.1,8.1z M9.1,8.5c-0.2,0-0.4-0.2-0.4-0.4c0-0.2,0.2-0.4,0.4-0.4c0.2,0,0.4,0.2,0.4,0.4C9.5,8.3,9.3,8.5,9.1,8.5z" fill="#00adee"></path><path d="M9.5,10.1c-0.2-0.2-0.5-0.2-0.7,0c0,0,0,0,0,0c-0.2,0.2-0.2,0.5,0,0.7c0,0,0,0,0,0C9,11,9.3,11,9.5,10.8c0,0,0,0,0,0C9.7,10.6,9.7,10.3,9.5,10.1z" fill="#00adee"></path></svg>;
+
+const Leaf = () => {
+    const [style, setStyle] = useState({});
+    const [id, setId] = useState(0);
+
+    useEffect(() => {
+        const x = Math.random() * window.innerWidth;
+        const y = -50;
+        const rotate = Math.random() * 360;
+        const size = Math.random() * 15 + 10;
+        const fallDuration = Math.random() * 5 + 8; // Slower fall
+        const swayDuration = Math.random() * 2 + 3;
+
+        setStyle({
+            left: `${x}px`,
+            top: `${y}px`,
+            transform: `rotate(${rotate}deg)`,
+            width: `${size}px`,
+            height: `${size}px`,
+            animation: `fall ${fallDuration}s linear infinite, sway ${swayDuration}s ease-in-out infinite`,
+        });
+        setId(Math.random());
+    }, []);
+
+    const leafColors = ["#D2691E", "#FF8C00", "#CD853F", "#B8860B"];
+    const leafColor = leafColors[Math.floor(Math.random() * leafColors.length)];
+
+    return (
+        <motion.div
+            className="absolute"
+            initial={{ 
+                x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 0), 
+                y: -50,
+                rotate: Math.random() * 360 
+            }}
+            animate={{ y: typeof window !== 'undefined' ? window.innerHeight + 50 : 0 }}
+            transition={{
+                duration: Math.random() * 5 + 8,
+                repeat: Infinity,
+                repeatDelay: Math.random() * 2,
+                ease: "linear"
+            }}
+        >
+             <motion.svg width="24" height="24" viewBox="0 0 24 24" fill={leafColor}
+                animate={{
+                    x: [0, -20, 20, -20, 0],
+                    rotate: [0, 10, -10, 10, 0],
+                }}
+                transition={{
+                    duration: Math.random() * 4 + 4,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                }}
+             >
+                <path d="M12 2L12 8 M12 2 C16 4 20 8 22 12 C20 16 16 20 12 22 C8 20 4 16 2 12 C4 8 8 4 12 2Z" />
+            </motion.svg>
+        </motion.div>
+    )
+}
+
+const FallingLeaves = () => {
+    const [leaves, setLeaves] = useState<number[]>([]);
+    useEffect(() => {
+        setLeaves(Array.from({ length: 30 }, (_, i) => i));
+    }, []);
+    return <div className="absolute inset-0 pointer-events-none z-0">{leaves.map(i => <Leaf key={i} />)}</div>
+}
+
+const StringLights = () => (
+    <svg className="absolute top-0 left-0 w-full h-auto z-0" viewBox="0 0 800 150">
+        <path d="M 0 80 Q 200 100 400 90 Q 600 80 800 100" stroke="#654321" strokeWidth="3" fill="none"/>
+        {[...Array(9)].map((_, i) => {
+            const cx = 100 + i * 70;
+            const cy = 80 + 15 * Math.sin(i * Math.PI / 4);
+            const delay = (i * 0.2) + 's';
+            return (
+                <g key={i}>
+                    <line x1={cx} y1={cy - 8} x2={cx} y2={cy} stroke="#654321" strokeWidth="2"/>
+                    <circle cx={cx} cy={cy} r="8" fill={i % 2 === 0 ? "#FF6B35" : "#FFA500"}>
+                        <animate attributeName="opacity" values="1;0.5;1" dur="2s" repeatCount="indefinite" begin={delay}/>
+                    </circle>
+                </g>
+            )
+        })}
+    </svg>
+);
+
+const Turkey = () => (
+  <motion.div
+    className="absolute bottom-[-50px] right-[-60px] w-[300px] h-[300px] z-0"
+    animate={{
+        y: [0, -10, 0, 5, 0],
+        rotate: [0, 2, -2, 2, 0],
+    }}
+    transition={{
+        duration: 8,
+        repeat: Infinity,
+        easings: "easeInOut"
+    }}
+  >
+    <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+        <g transform="translate(100, 100) scale(0.8)">
+            <ellipse cx="-50" cy="-20" rx="25" ry="60" fill="#8B4513" transform="rotate(-30 -50 -20)"/>
+            <ellipse cx="-35" cy="-25" rx="25" ry="65" fill="#D2691E" transform="rotate(-15 -35 -25)"/>
+            <ellipse cx="-15" cy="-30" rx="25" ry="70" fill="#CD853F" transform="rotate(0 -15 -30)"/>
+            <ellipse cx="5" cy="-30" rx="25" ry="70" fill="#FF8C00" transform="rotate(0 5 -30)"/>
+            <ellipse cx="25" cy="-25" rx="25" ry="65" fill="#D2691E" transform="rotate(15 25 -25)"/>
+            <ellipse cx="40" cy="-20" rx="25" ry="60" fill="#8B4513" transform="rotate(30 40 -20)"/>
+            <ellipse cx="0" cy="20" rx="55" ry="65" fill="#8B4513"/>
+            <ellipse cx="-20" cy="25" rx="25" ry="35" fill="#654321"/>
+            <circle cx="0" cy="-25" r="28" fill="#A0522D"/>
+            <path d="M 0 -20 L 12 -15 L 0 -10 Z" fill="#FFA500"/>
+            <ellipse cx="5" cy="-5" rx="8" ry="15" fill="#DC143C"/>
+            <path d="M 0 -35 Q 8 -30 6 -20" stroke="#DC143C" strokeWidth="5" fill="none" strokeLinecap="round"/>
+            <circle cx="-5" cy="-28" r="4" fill="white"/>
+            <circle cx="-4" cy="-28" r="2" fill="black"/>
+        </g>
+    </svg>
+  </motion.div>
+);
+
+const Pumpkins = () => (
+    <div className="absolute bottom-0 left-0 right-0 h-48 pointer-events-none z-0">
+        <div className="absolute bottom-5 left-10 w-48 h-48">
+            <svg viewBox="0 0 200 200">
+                <ellipse cx="100" cy="120" rx="60" ry="65" fill="#FF8C00"/>
+                <ellipse cx="100" cy="120" rx="55" ry="65" fill="#FF7F00"/>
+                <line x1="100" y1="55" x2="100" y2="120" stroke="#8B4513" strokeWidth="5"/>
+                <path d="M 100 55 Q 90 50 95 45 Q 100 48 105 45 Q 110 50 100 55" fill="#228B22"/>
+            </svg>
+        </div>
+    </div>
+)
 
 export default function LoginPage() {
   const router = useRouter()
   const { toast } = useToast()
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [emailError, setEmailError] = useState('');
-  const [passwordError, setPasswordError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const handleSuccessfulLogin = async (user: any) => {
+    const userDocRef = doc(db, "users", user.uid);
+    const userDoc = await getDocs(query(collection(db, "users"), where("uid", "==", user.uid)));
+    
+    if (userDoc.empty) {
+        await setDoc(userDocRef, {
+            uid: user.uid,
+            displayName: user.displayName || email.split('@')[0],
+            email: user.email,
+            photoURL: user.photoURL,
+            createdAt: serverTimestamp(),
+            coins: 0,
+        });
+    }
+    
+    const inviteCode = localStorage.getItem('squadInviteCode');
+    if (inviteCode) {
+        const squadsRef = collection(db, 'squads');
+        const q = query(squadsRef, where('inviteCode', '==', inviteCode));
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+            const squadDoc = querySnapshot.docs[0];
+            const squadId = squadDoc.id;
+            
+            const batch = writeBatch(db);
+
+            const squadRef = doc(db, 'squads', squadId);
+            batch.update(squadRef, { members: arrayUnion(user.uid) });
+            
+            const memberDetailRef = doc(db, 'squads', squadId, 'memberDetails', user.uid);
+            batch.set(memberDetailRef, {
+                uid: user.uid,
+                displayName: user.displayName,
+                photoURL: user.photoURL || null
+            });
+
+            await batch.commit();
+
+            toast({ title: "Squad Joined!", description: `You've been added to ${squadDoc.data().name}.`});
+        }
+        localStorage.removeItem('squadInviteCode');
+    }
+    
+    router.push('/dashboard');
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setEmailError('');
-    setPasswordError('');
-
-    if (!email || !password) {
-        if (!email) setEmailError("Please enter your email.");
-        if (!password) setPasswordError("Please enter your password.");
-        return;
-    }
-
     setIsLoading(true);
     try {
         const auth = getAuth(app);
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
+        await signInWithEmailAndPassword(auth, email, password);
         toast({
             title: "Logged In Successfully!",
             description: "Welcome back to your dashboard.",
         });
-
-        // Check for a pending squad invitation
-        const inviteCode = localStorage.getItem('squadInviteCode');
-        if (inviteCode) {
-            const squadsRef = collection(db, 'squads');
-            const q = query(squadsRef, where('inviteCode', '==', inviteCode));
-            const querySnapshot = await getDocs(q);
-
-            if (!querySnapshot.empty) {
-                const squadDoc = querySnapshot.docs[0];
-                await updateDoc(squadDoc.ref, {
-                    members: arrayUnion(user.uid)
-                });
-                toast({ title: "Squad Joined!", description: `You've been added to ${squadDoc.data().name}.`});
-            }
-            localStorage.removeItem('squadInviteCode');
-        }
-
         router.push('/dashboard');
     } catch (error: any) {
-        switch (error.code) {
-            case 'auth/user-not-found':
-            case 'auth/invalid-email':
-                setEmailError("Invalid email. No account found with this email address.");
-                break;
-            case 'auth/wrong-password':
-                setPasswordError("Invalid password. Please check your password and try again.");
-                break;
-            case 'auth/invalid-credential':
-                 setEmailError("Invalid credentials. Please check your email and password.");
-                 setPasswordError("Invalid credentials. Please check your email and password.");
-                 break;
-            default:
-                setEmailError("An unexpected error occurred. Please try again.");
-                console.error("Login error:", error);
+        let description = "An unexpected error occurred. Please try again.";
+        if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-email') {
+            description = "Invalid email. No account found with this email address.";
+        } else if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+             description = "Invalid credentials. Please check your email and password.";
         }
+        toast({ variant: "destructive", title: "Login failed", description });
+    } finally {
+        setIsLoading(false);
+    }
+  }
+
+  const handleGoogleSignIn = async () => {
+    setIsLoading(true);
+    try {
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+        const result = await signInWithPopup(auth, provider);
+        await handleSuccessfulLogin(result.user);
+        toast({
+            title: "Signed In with Google!",
+            description: "Welcome back!",
+        });
+    } catch (error: any) {
+        console.error("Google sign-in error:", error);
+        toast({
+            variant: "destructive",
+            title: "Google Sign-in failed",
+            description: error.message,
+        });
     } finally {
         setIsLoading(false);
     }
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-white">
-      <div className="w-full max-w-sm p-6">
-        <div className="flex items-center gap-2 mb-8">
-            <Logo className="h-8 w-8" />
-            <span className="text-2xl font-bold">Tutorin</span>
-        </div>
-        <h1 className="text-4xl font-bold mb-2">Welcome Back!</h1>
-        <p className="text-gray-500 mb-8">Log in to continue your learning journey.</p>
+    <div className="flex items-center justify-center min-h-screen bg-[#FFF8E7] p-4 relative overflow-hidden">
+        <FallingLeaves />
+        <StringLights />
+        <Pumpkins />
         
-        <div className="space-y-4">
-            <p className="font-semibold text-gray-700">Continue with</p>
-            <div className="flex justify-between gap-2">
-                <Button variant="outline" className="h-14 w-full flex-1 rounded-2xl"><GoogleIcon /></Button>
-                <Button variant="outline" className="h-14 w-full flex-1 rounded-2xl"><AppleIcon /></Button>
-                <Button variant="outline" className="h-14 w-full flex-1 rounded-2xl"><CleverIcon /></Button>
-                <Button variant="outline" className="h-14 w-full flex-1 rounded-2xl"><ClasslinkIcon /></Button>
+       <Link href="/" className="absolute top-4 left-4 z-20">
+            <Button variant="ghost" size="icon" className="bg-black/10 hover:bg-black/20 text-gray-800 rounded-full h-10 w-10">
+              <X className="h-5 w-5" />
+            </Button>
+        </Link>
+
+      <motion.div 
+        className="w-full max-w-sm bg-white/80 backdrop-blur-lg rounded-2xl shadow-2xl p-8 z-10 relative"
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
+      >
+        <Turkey />
+        <div className="text-center">
+            <div className="w-48 h-32 mx-auto -mt-24">
+                <AIBuddy />
             </div>
+            <h1 className="text-3xl font-bold mb-2">Welcome Back!</h1>
         </div>
-
-        <div className="relative my-8 flex items-center">
-            <div className="flex-grow border-t border-gray-200"></div>
-            <span className="flex-shrink mx-4 text-gray-400 text-sm">or</span>
-            <div className="flex-grow border-t border-gray-200"></div>
-        </div>
-
-        <form className="space-y-6" onSubmit={handleLogin}>
-            <div className="space-y-2">
-                <label className="font-semibold text-gray-700">Email</label>
+        
+        <form className="space-y-4 mt-6" onSubmit={handleLogin}>
+            <Button type="button" onClick={handleGoogleSignIn} variant="outline" className="h-12 w-full bg-white border-gray-300 hover:bg-gray-100 rounded-lg text-base font-bold flex items-center justify-center gap-2">
+                <GoogleIcon /> Continue with Google
+            </Button>
+             <div className="relative my-4 flex items-center">
+                <div className="flex-grow border-t border-gray-300"></div>
+                <span className="flex-shrink mx-4 text-gray-500 text-xs">OR</span>
+                <div className="flex-grow border-t border-gray-300"></div>
+            </div>
+            <div className="space-y-1">
                 <Input
-                  className="h-14 bg-gray-100 border-transparent rounded-2xl text-base"
-                  placeholder="example@email.com"
+                  className="h-12 bg-gray-100 border-gray-300 rounded-lg text-base"
+                  placeholder="Email"
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
-                {emailError && <p className="text-sm text-red-500">{emailError}</p>}
             </div>
-
-            <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                    <label className="font-semibold text-gray-700">Password</label>
-                    <Link href="#" className="text-sm font-semibold text-black hover:underline">
-                        Forgot password?
-                    </Link>
-                </div>
+            <div className="space-y-1">
                 <div className="relative">
                     <Input
-                      className="h-14 bg-gray-100 border-transparent rounded-2xl text-base pr-12"
-                      placeholder="YourBestPassword"
+                      className="h-12 bg-gray-100 border-gray-300 rounded-lg text-base pr-10"
+                      placeholder="Password"
                       type={showPassword ? 'text' : 'password'}
                       required
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                     />
-                     <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-500">
-                        {showPassword ? <EyeOff /> : <Eye />}
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500">
+                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                     </button>
                 </div>
-                 {passwordError && <p className="text-sm text-red-500">{passwordError}</p>}
+                 <div className="text-right">
+                    <Link href="#" className="text-xs font-semibold text-blue-500 hover:underline">
+                        Forgot password?
+                    </Link>
+                </div>
             </div>
-            
-            <Button type="submit" className="h-14 w-full bg-[#14E2B5] text-black hover:bg-[#14E2B5]/90 rounded-full text-lg font-bold" disabled={isLoading}>
-                {isLoading ? <Loader2 className="animate-spin" /> : 'Log In'}
+            <Button type="submit" className="h-12 w-full bg-blue-500 text-white hover:bg-blue-600 rounded-lg text-base font-bold" disabled={isLoading}>
+                {isLoading ? <Loader2 className="animate-spin"/> : 'Log In'}
             </Button>
             
-            <div className="text-center">
-                <p className="text-sm text-gray-500">
+            <div className="text-center pt-2">
+                <p className="text-xs text-gray-500">
                     Don't have an account?{' '}
-                    <Link href="/signup" className="font-bold text-black hover:underline">
+                    <Link href="/signup" className="font-semibold text-blue-500 hover:underline">
                         Sign up
                     </Link>
                 </p>
             </div>
         </form>
-      </div>
+      </motion.div>
     </div>
   )
 }
