@@ -189,7 +189,12 @@ export default function Navbar() {
                 <Button variant="ghost" className={cn(navTextColor, navIconHover, 'hover:'+navTextColor)}>Login</Button>
             </Link>
               <Link href="/signup">
-                <Button className="bg-white text-black hover:bg-gray-200">Sign Up Free</Button>
+                <Button className={cn(
+                    "transition-colors",
+                    isScrolled || theme === 'dark' ? 'bg-white text-black hover:bg-gray-200' : 'bg-blue-500 text-white hover:bg-blue-600'
+                )}>
+                  Sign Up Free
+                </Button>
             </Link>
           </div>
 
