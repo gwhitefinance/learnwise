@@ -124,6 +124,12 @@ const nextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'brandeps.com',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
 };
