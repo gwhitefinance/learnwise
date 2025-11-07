@@ -250,7 +250,7 @@ function DashboardClientPage() {
     <div className='space-y-8'>
         <div className="flex justify-between items-center">
             <div className="flex items-center gap-4">
-                <AIBuddy className="w-16 h-16" />
+                <AIBuddy className="w-12 h-12" />
                 <div>
                     <h1 className="text-2xl font-bold">Good afternoon, {user?.displayName?.split(' ')[0] || 'Grady'}!</h1>
                     <p className="text-muted-foreground">Which study set are you working on today?</p>
