@@ -20,6 +20,11 @@ import {
   Headphones,
   ChevronDown,
   Play,
+  Flame,
+  Calendar,
+  FilePenLine,
+  Mic,
+  ChevronRight,
 } from 'lucide-react';
 
 import { Button } from "@/components/ui/button"
@@ -55,22 +60,6 @@ type Course = {
   units?: Unit[];
   completedChapters?: string[];
 };
-
-const Header = () => {
-    const [user] = useAuthState(auth);
-    return (
-        <header className="flex justify-end items-center p-4 gap-2">
-            <Button variant="outline" className="bg-green-500/10 text-green-600 border-green-500/20 hover:bg-green-500/20">
-                <Upload className="h-4 w-4 mr-2"/>
-                Upgrade
-            </Button>
-            <Button variant="outline">Feedback</Button>
-            <div className="w-8 h-8 rounded-full bg-purple-500 text-white flex items-center justify-center font-bold text-sm">
-                {user?.displayName?.charAt(0) || 'G'}
-            </div>
-        </header>
-    )
-}
 
 const CourseDetailCard = ({ course }: { course: Course }) => {
     const totalMaterials = course.units?.reduce((acc, unit) => acc + unit.chapters.length, 0) || 0;
@@ -149,6 +138,84 @@ const CourseDetailCard = ({ course }: { course: Course }) => {
     )
 }
 
+const RightSidebar = () => {
+
+    const materials = [
+        { icon: <FilePenLine className="h-6 w-6 text-blue-500" />, title: 'Risk Management Strategies', date: 'Nov 6, 2025' },
+        { icon: <FilePenLine className="h-6 w-6 text-blue-500" />, title: 'Technical Analysis Tools', date: 'Nov 6, 2025' },
+        { icon: <Mic className="h-6 w-6 text-purple-500" />, title: 'Untitled Lecture', date: 'Nov 5, 2025' }
+    ]
+
+    const upcoming = [
+        { icon: <Gamepad2 className="h-5 w-5" />, title: 'Technical Analysis for Day ...', date: 'Nov 8', color: 'bg-pink-500/20 text-pink-600' },
+        { icon: <FileText className="h-5 w-5" />, title: 'Trend-Following Technical ...', date: 'Nov 8', color: 'bg-yellow-500/20 text-yellow-600' },
+    ]
+
+    return (
+        <div className="space-y-6">
+            <Card>
+                <CardContent className="p-4 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <Flame className="text-orange-500"/>
+                        <span className="font-semibold">3 day streak!</span>
+                    </div>
+                    <Button variant="link" asChild>
+                        <Link href="/leaderboard">View Leaderboard</Link>
+                    </Button>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                    <CardTitle>Materials</CardTitle>
+                    <Button variant="outline" size="sm">
+                        <Upload className="h-4 w-4 mr-2"/>
+                        Upload
+                    </Button>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    {materials.map(item => (
+                        <div key={item.title} className="flex items-center gap-4">
+                            <div className="p-2 bg-muted rounded-lg">
+                                {item.icon}
+                            </div>
+                            <div>
+                                <p className="font-semibold">{item.title}</p>
+                                <p className="text-sm text-muted-foreground">{item.date}</p>
+                            </div>
+                        </div>
+                    ))}
+                    <Button variant="link" className="w-full">View All</Button>
+                </CardContent>
+            </Card>
+             <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                        Upcoming
+                        <Calendar className="h-5 w-5 text-muted-foreground"/>
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                    {upcoming.map(item => (
+                        <div key={item.title} className="flex items-center justify-between hover:bg-muted p-2 rounded-lg">
+                            <div className="flex items-center gap-3">
+                                <div className={`p-2 rounded-full ${item.color}`}>
+                                    {item.icon}
+                                </div>
+                                <div>
+                                    <p className="font-semibold">{item.title}</p>
+                                    <p className="text-sm text-muted-foreground">{item.date}</p>
+                                </div>
+                            </div>
+                            <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                    ))}
+                     <Button variant="link" className="w-full">View All</Button>
+                </CardContent>
+            </Card>
+        </div>
+    )
+}
+
 function DashboardClientPage() {
     const [courses, setCourses] = useState<Course[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -179,8 +246,8 @@ function DashboardClientPage() {
     const activeCourse = courses.find(c => c.id === activeSet);
 
   return (
-    <div className="p-8">
-        <div className="flex justify-between items-center mb-8">
+    <div className='space-y-8'>
+        <div className="flex justify-between items-center">
             <div className="flex items-center gap-4">
                 <AIBuddy className="w-16 h-16" />
                 <div>
@@ -240,8 +307,14 @@ function DashboardClientPage() {
             </Dialog>
         </div>
 
-        {activeCourse && <CourseDetailCard course={activeCourse} />}
-
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+            <div className="lg:col-span-2">
+                {activeCourse && <CourseDetailCard course={activeCourse} />}
+            </div>
+            <div className="lg:col-span-1">
+                <RightSidebar />
+            </div>
+        </div>
     </div>
   )
 }

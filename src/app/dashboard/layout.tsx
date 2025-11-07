@@ -640,13 +640,10 @@ function DashboardLayoutContent({
             sidebarOpen && !isFocusLayout ? "md:pl-64" : "md:pl-0",
             isFocusLayout && 'md:pl-0 w-full'
         )}>
-            {!isFocusLayout && !isNewNotePage && (
-                <div className="sticky top-0 z-10 flex h-16 items-center gap-3 border-b bg-background/95 px-4 backdrop-blur">
+            {pathname.startsWith('/dashboard') && !isFocusLayout && !isNewNotePage && (
+                <div className="sticky top-0 z-10 flex h-16 items-center gap-3 border-b bg-background/95 px-4 backdrop-blur md:hidden">
                     <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileMenuOpen(true)}>
                         <Menu className="h-5 w-5" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="hidden md:flex" onClick={() => setSidebarOpen(!sidebarOpen)} aria-label="Toggle Sidebar">
-                        <PanelLeft className="h-5 w-5" />
                     </Button>
                 </div>
             )}
