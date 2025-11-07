@@ -6,7 +6,7 @@ import Faqs from '@/sections/Faqs';
 import Footer from '@/sections/Footer';
 import Navbar from '@/sections/Navbar';
 import HowItWorks from '@/sections/HowItWorks';
-import { ArrowRight, Star, BrainCircuit, Rocket, GraduationCap, School, RefreshCw } from 'lucide-react';
+import { ArrowRight, Star, BrainCircuit, Rocket, GraduationCap, School, RefreshCw, Upload, Search, Wand2, Loader2, BookOpen, List, Lightbulb } from 'lucide-react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -20,61 +20,181 @@ import { useState, useEffect } from 'react';
 import Logo from '@/components/Logo';
 import { cn } from '@/lib/utils';
 import DailyPractice from '@/sections/DailyPractice';
+import { Input } from '@/components/ui/input';
+import { generateCrunchTimeStudyGuide } from '@/lib/actions';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 
-const InteractiveDemo = ({ theme }: { theme: string }) => {
-    const [demoState, setDemoState] = useState<'notes' | 'flashcard'>('notes');
+type CrunchTimeOutput = {
+  title: string;
+  keyConcepts: { term: string; definition: string; }[];
+  summary: string;
+  practiceQuiz: { question: string; options: string[]; answer: string; }[];
+  studyPlan: { step: string; description: string; }[];
+};
 
-    const notesContent = `
-**Cellular Respiration: Key Points**
-
-- **Goal:** Convert glucose into ATP (energy).
-- **Stages:**
-  1. Glycolysis (in cytoplasm)
-  2. Krebs Cycle (in mitochondria)
-  3. Electron Transport Chain (in mitochondria)
-- **Equation:** C₆H₁₂O₆ + 6O₂ → 6CO₂ + 6H₂O + ATP
-    `.trim();
+const StudyGuideDisplay = ({ guide, onReset }: { guide: CrunchTimeOutput, onReset: () => void }) => {
+    const [quizAnswers, setQuizAnswers] = useState<Record<number, string>>({});
+    const [submitted, setSubmitted] = useState(false);
 
     return (
-        <div className={cn("relative w-full max-w-lg h-80 mx-auto rounded-2xl p-4", theme === 'dark' ? 'bg-black/20' : 'bg-white/50')}>
-             <AnimatePresence mode="wait">
-                {demoState === 'notes' ? (
-                    <motion.div
-                        key="notes"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        transition={{ duration: 0.3 }}
-                        className="w-full h-full bg-card border rounded-lg p-6 flex flex-col items-center justify-center text-center"
-                    >
-                        <h4 className="font-semibold text-lg mb-2">Your Class Notes</h4>
-                        <div className="text-left text-sm bg-muted p-4 rounded-md w-full flex-1">
-                            <pre className="whitespace-pre-wrap font-sans">{notesContent}</pre>
-                        </div>
-                        <Button onClick={() => setDemoState('flashcard')} className="mt-4">
-                            ✨ Generate Study Card
-                        </Button>
-                    </motion.div>
-                ) : (
-                     <motion.div
-                        key="flashcard"
-                        initial={{ opacity: 0, rotateY: -90 }}
-                        animate={{ opacity: 1, rotateY: 0 }}
-                        exit={{ opacity: 0, rotateY: 90 }}
-                        transition={{ duration: 0.4 }}
-                        className="w-full h-full bg-card border rounded-lg p-6 flex flex-col items-center justify-center text-center"
-                    >
-                        <h4 className="font-semibold text-lg mb-4">What is the main goal of cellular respiration?</h4>
-                        <p className="text-3xl font-bold text-primary">To convert glucose into ATP.</p>
-                         <Button variant="ghost" onClick={() => setDemoState('notes')} className="mt-8 text-muted-foreground">
-                           <RefreshCw className="w-4 h-4 mr-2"/> Reset Demo
-                        </Button>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </div>
-    )
-}
+        <motion.div
+            key="study-guide"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.5 }}
+            className="w-full h-auto max-w-2xl mx-auto"
+        >
+            <Card className="w-full">
+                <CardHeader>
+                    <CardTitle className="text-2xl">{guide.title}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <Accordion type="multiple" defaultValue={['summary', 'key-concepts']} className="w-full space-y-4">
+                        <AccordionItem value="summary" className="border rounded-lg bg-muted/20">
+                            <AccordionTrigger className="p-4 font-semibold text-lg flex items-center gap-2">Summary</AccordionTrigger>
+                            <AccordionContent className="px-6 pb-6 text-muted-foreground border-t pt-4">{guide.summary}</AccordionContent>
+                        </AccordionItem>
+                        <AccordionItem value="key-concepts" className="border rounded-lg bg-muted/20">
+                            <AccordionTrigger className="p-4 font-semibold text-lg flex items-center gap-2"><BookOpen className="h-5 w-5 text-primary"/>Key Concepts</AccordionTrigger>
+                            <AccordionContent className="px-6 pb-6 space-y-4 border-t pt-4">
+                                {guide.keyConcepts.map(concept => (
+                                    <div key={concept.term}>
+                                        <p className="font-semibold">{concept.term}</p>
+                                        <p className="text-sm text-muted-foreground">{concept.definition}</p>
+                                    </div>
+                                ))}
+                            </AccordionContent>
+                        </AccordionItem>
+                        <AccordionItem value="study-plan" className="border rounded-lg bg-muted/20">
+                            <AccordionTrigger className="p-4 font-semibold text-lg flex items-center gap-2"><List className="h-5 w-5 text-primary"/>Action Plan</AccordionTrigger>
+                            <AccordionContent className="px-6 pb-6 space-y-4 border-t pt-4">
+                                {guide.studyPlan.map((step, i) => (
+                                    <div key={i} className="flex gap-4">
+                                        <div className="flex-shrink-0 flex items-center justify-center h-8 w-8 rounded-full bg-primary text-primary-foreground font-bold">{i + 1}</div>
+                                        <div>
+                                            <p className="font-semibold">{step.step}</p>
+                                            <p className="text-sm text-muted-foreground">{step.description}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </AccordionContent>
+                        </AccordionItem>
+                        <AccordionItem value="practice-quiz" className="border rounded-lg bg-muted/20">
+                            <AccordionTrigger className="p-4 font-semibold text-lg flex items-center gap-2"><Lightbulb className="h-5 w-5 text-primary"/>Practice Quiz</AccordionTrigger>
+                            <AccordionContent className="px-6 pb-6 space-y-6 border-t pt-4">
+                                {guide.practiceQuiz.map((q, qIndex) => {
+                                    const isCorrect = quizAnswers[qIndex] === q.answer;
+                                    return (
+                                    <div key={qIndex} className="space-y-3">
+                                        <p className="font-semibold">{qIndex + 1}. {q.question}</p>
+                                        <RadioGroup value={quizAnswers[qIndex]} onValueChange={(val) => setQuizAnswers(prev => ({...prev, [qIndex]: val}))} disabled={submitted}>
+                                            {q.options.map((opt, oIndex) => (
+                                                <Label key={oIndex} className={cn("flex items-center gap-3 p-3 border rounded-md cursor-pointer", submitted && (opt === q.answer ? 'border-green-500 bg-green-500/10' : (quizAnswers[qIndex] === opt ? 'border-red-500 bg-red-500/10' : '')) )}>
+                                                    <RadioGroupItem value={opt} />
+                                                    {opt}
+                                                </Label>
+                                            ))}
+                                        </RadioGroup>
+                                        {submitted && !isCorrect && <p className="text-sm text-red-500">Correct answer: {q.answer}</p>}
+                                    </div>
+                                )})}
+                                <Button onClick={() => setSubmitted(true)} disabled={submitted}>Check Answers</Button>
+                            </AccordionContent>
+                        </AccordionItem>
+                    </Accordion>
+                    <Button variant="ghost" onClick={onReset} className="w-full text-muted-foreground">
+                        <RefreshCw className="w-4 h-4 mr-2"/> Start Over
+                    </Button>
+                </CardContent>
+            </Card>
+        </motion.div>
+    );
+};
+
+
+const StudyGuideGenerator = ({ theme }: { theme: string }) => {
+    const [input, setInput] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [studyGuide, setStudyGuide] = useState<CrunchTimeOutput | null>(null);
+
+    const handleGenerate = async (e?: React.FormEvent) => {
+        e?.preventDefault();
+        if (!input.trim()) return;
+
+        setIsLoading(true);
+        setStudyGuide(null);
+
+        try {
+            const result = await generateCrunchTimeStudyGuide({
+                inputType: 'text',
+                content: input,
+                learnerType: 'Reading/Writing', // default for landing page
+            });
+            setStudyGuide(result);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    if (isLoading) {
+        return (
+            <motion.div
+                key="loading"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.5 }}
+                className="w-full max-w-2xl mx-auto flex flex-col items-center text-center p-8"
+            >
+                <AIBuddy className="w-32 h-32 mb-4" isStatic={false}/>
+                <h3 className="text-xl font-semibold">Generating your study guide...</h3>
+                <p className="text-muted-foreground">This might take a moment.</p>
+            </motion.div>
+        );
+    }
+    
+    if (studyGuide) {
+        return <StudyGuideDisplay guide={studyGuide} onReset={() => { setStudyGuide(null); setInput(''); }} />;
+    }
+
+    return (
+        <motion.div 
+            key="search-bar"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.5 }}
+            className="w-full max-w-2xl mx-auto"
+        >
+            <form onSubmit={handleGenerate} className="relative">
+                <Search className="absolute left-6 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                    placeholder="Type any subject to instantly generate a study guide (e.g., 'Cellular Respiration')"
+                    className={cn(
+                        "w-full h-20 pl-16 pr-24 rounded-full text-lg shadow-lg",
+                        theme === 'dark' ? 'bg-black/20 border-white/10 placeholder:text-white/50' : 'bg-white border-gray-200 placeholder:text-black/50'
+                    )}
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                />
+                <div className="absolute right-6 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                    <Button variant="ghost" size="icon" className={cn("text-muted-foreground", theme === 'dark' ? 'hover:bg-white/10' : 'hover:bg-gray-100')}>
+                        <Upload className="h-5 w-5" />
+                    </Button>
+                    <Button type="submit" size="icon" className="h-12 w-12 rounded-full bg-blue-500 hover:bg-blue-600">
+                        <ArrowRight className="h-6 w-6" />
+                    </Button>
+                </div>
+            </form>
+        </motion.div>
+    );
+};
 
 
 const Hero = ({ theme }: { theme: string }) => (
@@ -92,8 +212,8 @@ const Hero = ({ theme }: { theme: string }) => (
         Tutorin turns your class notes, docs, and study materials into your personal AI tutor. Generate quizzes, flashcards, and get 24/7 help.
       </p>
 
-      <div className="relative mt-8 mb-8 h-80">
-          <InteractiveDemo theme={theme} />
+      <div className="relative mt-8 mb-8 min-h-[320px] flex items-center justify-center">
+          <StudyGuideGenerator theme={theme} />
       </div>
       
       <div className={cn("max-w-4xl mx-auto p-8 rounded-3xl", theme === 'dark' ? 'bg-black/20 border border-white/10 backdrop-blur-sm' : 'bg-white/50 border border-gray-200 shadow-lg')}>
