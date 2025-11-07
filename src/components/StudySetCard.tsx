@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Bookmark, Settings, ChevronDown, PenTool, Gamepad2, Headphones } from 'lucide-react';
+import { Bookmark, Settings, ChevronDown, PenTool, Gamepad2, Headphones, BookMarked, GraduationCap, Play } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 
 const StudyItem = ({ title, progress }: { title: string, progress: number }) => {
@@ -26,7 +26,7 @@ const StudySetCard = () => {
                   </div>
                   <div>
                     <h2 className="text-2xl font-bold">Sat MAth</h2>
-                    <p className="text-muted-foreground-dark">9 materials</p>
+                    <p className="text-gray-700">9 materials</p>
                   </div>
                 </div>
                 <div className="flex gap-2">
