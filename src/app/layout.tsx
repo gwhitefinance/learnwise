@@ -2,12 +2,12 @@
 
 import type React from "react"
 import type { Metadata } from "next"
-import { Inter } from "next/font/google"
+import { Manrope } from "next/font/google"
 import "./globals.css"
 import { cn } from "@/lib/utils"
 import { ThemeProvider } from "@/components/theme-provider"
 
-const inter = Inter({ 
+const manrope = Manrope({ 
   subsets: ["latin"],
   variable: "--font-sans",
 })
@@ -24,7 +24,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={cn("font-sans antialiased", inter.variable)}>
+      <body className={cn("font-sans antialiased", manrope.variable)}>
           <ThemeProvider
             attribute="class"
             defaultTheme="system"
