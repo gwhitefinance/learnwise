@@ -7,7 +7,7 @@ import Faqs from '@/sections/Faqs';
 import Footer from '@/sections/Footer';
 import Navbar from '@/sections/Navbar';
 import HowItWorks from '@/sections/HowItWorks';
-import { ArrowRight, Star, BrainCircuit, Rocket, GraduationCap, School, RefreshCw, Upload, Search, Wand2, Loader2, BookOpen, List, Lightbulb } from 'lucide-react';
+import { ArrowRight, Star, BrainCircuit, Rocket, GraduationCap, School, RefreshCw, Upload, Search, Wand2, Loader2, BookOpen, List, Lightbulb, Copy, ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -22,13 +22,15 @@ import Logo from '@/components/Logo';
 import { cn } from '@/lib/utils';
 import DailyPractice from '@/sections/DailyPractice';
 import { Input } from '@/components/ui/input';
-import { generateCrunchTimeStudyGuide } from '@/lib/actions';
+import { generateCrunchTimeStudyGuide, generateFlashcardsFromNote } from '@/lib/actions';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { useTheme } from 'next-themes';
+import { useToast } from '@/hooks/use-toast';
+
 
 type CrunchTimeOutput = {
   title: string;
@@ -38,9 +40,46 @@ type CrunchTimeOutput = {
   studyPlan: { step: string; description: string; }[];
 };
 
+type Flashcard = {
+    front: string;
+    back: string;
+};
+
 const StudyGuideDisplay = ({ guide, onReset }: { guide: CrunchTimeOutput, onReset: () => void }) => {
     const [quizAnswers, setQuizAnswers] = useState<Record<number, string>>({});
     const [submitted, setSubmitted] = useState(false);
+    const { toast } = useToast();
+
+    // Flashcard state
+    const [showFlashcards, setShowFlashcards] = useState(false);
+    const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
+    const [isFlashcardLoading, setIsFlashcardLoading] = useState(false);
+    const [currentFlashcardIndex, setCurrentFlashcardIndex] = useState(0);
+    const [isFlipped, setIsFlipped] = useState(false);
+
+
+    const handleGenerateFlashcards = async () => {
+        setIsFlashcardLoading(true);
+        try {
+            const noteContent = guide.keyConcepts.map(c => `${c.term}: ${c.definition}`).join('\n');
+            const result = await generateFlashcardsFromNote({
+                noteContent: noteContent,
+                learnerType: 'Reading/Writing'
+            });
+            if (result.flashcards.length > 0) {
+                setFlashcards(result.flashcards);
+                setShowFlashcards(true);
+            } else {
+                toast({ variant: 'destructive', title: 'Could not generate flashcards.' });
+            }
+        } catch (error) {
+            console.error("Flashcard generation failed:", error);
+            toast({ variant: 'destructive', title: 'Flashcard Generation Failed' });
+        } finally {
+            setIsFlashcardLoading(false);
+        }
+    };
+
 
     return (
         <motion.div
@@ -64,12 +103,64 @@ const StudyGuideDisplay = ({ guide, onReset }: { guide: CrunchTimeOutput, onRese
                         <AccordionItem value="key-concepts" className="border rounded-lg bg-muted/20">
                             <AccordionTrigger className="p-4 font-semibold text-lg flex items-center gap-2"><BookOpen className="h-5 w-5 text-primary"/>Key Concepts</AccordionTrigger>
                             <AccordionContent className="px-6 pb-6 space-y-4 border-t pt-4">
-                                {guide.keyConcepts.map(concept => (
-                                    <div key={concept.term}>
-                                        <p className="font-semibold">{concept.term}</p>
-                                        <p className="text-sm text-muted-foreground">{concept.definition}</p>
+                                {isFlashcardLoading ? (
+                                     <div className="flex justify-center items-center h-48">
+                                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
                                     </div>
-                                ))}
+                                ) : showFlashcards ? (
+                                    <div className="space-y-4">
+                                        <div className="text-center text-sm text-muted-foreground">
+                                            Card {currentFlashcardIndex + 1} of {flashcards.length}
+                                        </div>
+                                        <div
+                                            className="relative w-full h-48 cursor-pointer"
+                                            onClick={() => setIsFlipped(!isFlipped)}
+                                        >
+                                            <AnimatePresence>
+                                                <motion.div
+                                                    key={isFlipped ? 'back' : 'front'}
+                                                    initial={{ rotateY: isFlipped ? 180 : 0 }}
+                                                    animate={{ rotateY: 0 }}
+                                                    exit={{ rotateY: isFlipped ? 0 : -180 }}
+                                                    transition={{ duration: 0.5 }}
+                                                    className="absolute w-full h-full p-6 flex items-center justify-center text-center rounded-lg border bg-card text-card-foreground shadow-sm"
+                                                    style={{ backfaceVisibility: 'hidden' }}
+                                                >
+                                                    <p className="text-xl font-semibold">
+                                                        {isFlipped ? flashcards[currentFlashcardIndex].back : flashcards[currentFlashcardIndex].front}
+                                                    </p>
+                                                </motion.div>
+                                            </AnimatePresence>
+                                        </div>
+                                        <div className="flex justify-center items-center gap-4">
+                                            <Button variant="outline" size="icon" onClick={() => { setIsFlipped(false); setCurrentFlashcardIndex(prev => Math.max(0, prev - 1))}} disabled={currentFlashcardIndex === 0}>
+                                                <ChevronLeft className="h-4 w-4" />
+                                            </Button>
+                                            <Button onClick={() => setIsFlipped(!isFlipped)}>
+                                                <RefreshCw className="mr-2 h-4 w-4"/> Flip Card
+                                            </Button>
+                                            <Button variant="outline" size="icon" onClick={() => { setIsFlipped(false); setCurrentFlashcardIndex(prev => Math.min(flashcards.length - 1, prev + 1))}} disabled={currentFlashcardIndex === flashcards.length - 1}>
+                                                <ChevronRight className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                        <Button variant="link" size="sm" onClick={() => setShowFlashcards(false)}>Back to list</Button>
+                                    </div>
+                                ) : (
+                                    <>
+                                        {guide.keyConcepts.map(concept => (
+                                            <div key={concept.term}>
+                                                <p className="font-semibold">{concept.term}</p>
+                                                <p className="text-sm text-muted-foreground">{concept.definition}</p>
+                                            </div>
+                                        ))}
+                                        <div className="pt-4 border-t">
+                                            <Button onClick={handleGenerateFlashcards} disabled={isFlashcardLoading}>
+                                                <Copy className="h-4 w-4 mr-2"/>
+                                                {isFlashcardLoading ? 'Generating...' : 'See Flashcards'}
+                                            </Button>
+                                        </div>
+                                    </>
+                                )}
                             </AccordionContent>
                         </AccordionItem>
                         <AccordionItem value="study-plan" className="border rounded-lg bg-muted/20">
@@ -211,7 +302,7 @@ const StudyGuideGenerator = () => {
             transition={{ duration: 0.5 }}
             className="w-full max-w-2xl mx-auto"
         >
-            <form onSubmit={handleGenerate} className="relative">
+            <form onSubmit={handleGenerate} className="relative mt-8">
                 <Search className="absolute left-6 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                     placeholder="Type any subject to instantly generate a study guide (e.g., 'Cellular Respiration')"
@@ -249,9 +340,9 @@ const Hero = () => {
         Tutor Taz turns your class notes, docs, and study materials into your personal AI tutor. Generate quizzes, flashcards, and get 24/7 help.
       </p>
 
-      <div className="mt-6">
-          <StudyGuideGenerator />
-      </div>
+      
+      <StudyGuideGenerator />
+      
     </div>
   </section>
 );
@@ -262,6 +353,7 @@ const AudienceCTA = () => {
     return (
         <section className="pb-24">
             <div className="container">
+                <div className="h-6"></div>
                  <div className={cn("max-w-4xl mx-auto p-8 rounded-3xl", theme === 'dark' ? 'bg-black/20 border border-white/10 backdrop-blur-sm' : 'bg-white/50 border border-gray-200 shadow-lg')}>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
                         <div className="flex flex-col items-center gap-4">
