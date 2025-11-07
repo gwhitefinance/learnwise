@@ -4,7 +4,7 @@
 import type React from "react"
 import { useState, useEffect, useRef } from "react"
 import Link from "next/link";
-import { BrainCircuit, X, Menu, Sun, Moon, ChevronDown, FileText, Lightbulb, ImageIcon, FileSignature, Phone, Video, Copy, MessageSquare, Mic, Podcast, Calendar } from "lucide-react";
+import { BrainCircuit, X, Menu, Sun, Moon, ChevronDown, FileText, Lightbulb, ImageIcon, FileSignature, Phone, Video, Copy, MessageSquare, Mic, Podcast, Calendar, BookOpen, GraduationCap, Gamepad2, PenSquare, GitMerge, Upload, Rocket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import Logo from "@/components/Logo";
@@ -18,70 +18,52 @@ import {
 
 const features = [
     {
-      title: "Notes AI",
-      description: "Create notes from your course material in seconds.",
-      icon: <FileText className="h-5 w-5" />,
-      href: "/dashboard/notes/new",
+      title: "Learning Lab",
+      description: "Learn any subject with a personalized, AI-generated course.",
+      icon: <Rocket className="h-5 w-5" />,
+      href: "/dashboard/courses",
     },
     {
-      title: "Quizzes AI",
-      description: "Create and practice with quizzes from your course material.",
+      title: "Practice Quizzes",
+      description: "Generate quizzes on any topic, from any material.",
       icon: <Lightbulb className="h-5 w-5" />,
       href: "/dashboard/practice-quiz",
     },
     {
-      title: "Image Analysis",
-      description: "Ask questions about pictures and diagrams from your notes!",
-      icon: <ImageIcon className="h-5 w-5" />,
-      href: "/dashboard/upload",
+      title: "SAT & College Prep",
+      description: "Ace the SAT and manage your college applications.",
+      icon: <GraduationCap className="h-5 w-5" />,
+      href: "/dashboard/sat-prep",
     },
     {
-      title: "Essay Coach",
-      description: "Grade your essays and get personalized feedback and suggestions!",
-      icon: <FileSignature className="h-5 w-5" />,
-      href: "/dashboard/college-prep/essay-coach",
-    },
-    {
-      title: "Call with Taz",
-      description: "Call Taz to discuss your study material.",
-      icon: <Phone className="h-5 w-5" />,
-      href: "/dashboard/courses",
-    },
-    {
-      title: "Explainer Video",
-      description: "Generate an educational video using AI.",
-      icon: <Video className="h-5 w-5" />,
-      href: "/dashboard/courses",
-    },
-    {
-      title: "Flashcards AI",
-      description: "Make flashcards from your course material with a single click.",
-      icon: <Copy className="h-5 w-5" />,
-      href: "/dashboard/key-concepts",
-    },
-    {
-      title: "AI Tutor",
-      description: "Talk to your personal AI tutor and learn in real time!",
+      title: "AI Chat & Tutor",
+      description: "Get 24/7 help from your personal AI study partner.",
       icon: <MessageSquare className="h-5 w-5" />,
       href: "/dashboard",
     },
     {
-      title: "Record Live Lecture",
-      description: "Take notes and ask questions in real-time, without touching your computer!",
-      icon: <Mic className="h-5 w-5" />,
-      href: "/dashboard/notes/new",
-    },
-     {
-      title: "Audio Recap",
-      description: "Generate a 6-45 minute podcast, lecture, or summary from your study materials",
-      icon: <Podcast className="h-5 w-5" />,
-      href: "/dashboard/podcasts/record",
+      title: "Games & Gamification",
+      description: "Turn study materials into fun, interactive games.",
+      icon: <Gamepad2 className="h-5 w-5" />,
+      href: "/dashboard/games",
     },
     {
-      title: "Study Calendar",
-      description: "Plan your study sessions using our AI, and achieve your academic goals.",
-      icon: <Calendar className="h-5 w-5" />,
-      href: "/dashboard/calendar",
+      title: "Notes & Whiteboard",
+      description: "Take smart notes, record lectures, and brainstorm visually.",
+      icon: <PenSquare className="h-5 w-5" />,
+      href: "/dashboard/notes/new",
+    },
+    {
+      title: "Roadmaps & Calendar",
+      description: "Let AI build you a personalized study plan and schedule.",
+      icon: <GitMerge className="h-5 w-5" />,
+      href: "/dashboard/roadmaps",
+    },
+    {
+      title: "Upload Anything",
+      description: "Analyze images, docs, or URLs to get instant help.",
+      icon: <Upload className="h-5 w-5" />,
+      href: "/dashboard/upload",
     }
 ]
 
@@ -152,7 +134,7 @@ export default function Navbar() {
                           Features <ChevronDown className="h-4 w-4" />
                         </button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent className="w-[500px] p-4 grid grid-cols-2 gap-4">
+                      <DropdownMenuContent className="w-[550px] p-4 grid grid-cols-2 gap-4">
                         {features.map((feature) => (
                           <DropdownMenuItem key={feature.title} asChild>
                             <Link href={feature.href} className="flex items-start gap-3 p-2 rounded-lg">
