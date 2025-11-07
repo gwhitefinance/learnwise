@@ -65,20 +65,22 @@ export default function Navbar() {
             "flex items-center justify-between h-20 transition-all duration-300",
             isScrolled ? "bg-black/50 border border-white/10 rounded-2xl px-4 backdrop-blur-md" : "bg-transparent border-transparent px-0"
         )}>
-          <Link href="/" className="flex items-center gap-2">
-            <span className={cn("font-bold text-xl", navTextColor)}>Tutor Taz</span>
-            <Logo className={cn("h-7 w-7", navTextColor)} />
-          </Link>
-          
-          <div className="hidden md:flex items-center justify-center flex-1">
-            <nav className="flex items-center gap-8">
-              {navLinksData.map((link) => (
-                <AnimatedNavLink key={link.href} href={link.href} theme={currentTheme || 'light'} isScrolled={isScrolled}>
-                  {link.label}
-                </AnimatedNavLink>
-              ))}
-            </nav>
+          <div className="flex items-center gap-8">
+            <Link href="/" className="flex items-center gap-2">
+              <span className={cn("font-bold text-xl", navTextColor)}>Tutor Taz</span>
+              <Logo className={cn("h-7 w-7", navTextColor)} />
+            </Link>
+            <div className="hidden md:flex items-center justify-center">
+                <nav className="flex items-center gap-8">
+                  {navLinksData.map((link) => (
+                    <AnimatedNavLink key={link.href} href={link.href} theme={currentTheme || 'light'} isScrolled={isScrolled}>
+                      {link.label}
+                    </AnimatedNavLink>
+                  ))}
+                </nav>
+            </div>
           </div>
+          
 
           <div className="hidden md:flex items-center gap-2">
              {renderThemeToggle()}
