@@ -48,7 +48,7 @@ const StudyGuideDisplay = ({ guide, onReset }: { guide: CrunchTimeOutput, onRese
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.5 }}
-            className="w-full h-auto max-w-2xl mx-auto"
+            className="w-full h-auto max-w-2xl mx-auto mt-8"
         >
             <Card className="w-full">
                 <CardHeader>
@@ -138,7 +138,7 @@ const StudyGuideGenerator = () => {
         if (isLoading) {
             interval = setInterval(() => {
                 setLoadingStep(prev => (prev + 1) % loadingSteps.length);
-            }, 2000);
+            }, 2500);
         }
         return () => clearInterval(interval);
     }, [isLoading, loadingSteps.length]);
@@ -186,7 +186,7 @@ const StudyGuideGenerator = () => {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.3 }}
-                        className="text-muted-foreground mt-2"
+                        className="text-muted-foreground mt-2 min-h-[40px]"
                     >
                         {loadingSteps[loadingStep]}
                     </motion.p>
@@ -247,11 +247,11 @@ const Hero = () => {
         Tutorin turns your class notes, docs, and study materials into your personal AI tutor. Generate quizzes, flashcards, and get 24/7 help.
       </p>
 
-      <div className="relative mt-2 min-h-[18rem] flex items-center justify-center">
+      <div className="relative mt-8">
           <StudyGuideGenerator />
       </div>
       
-      <div className={cn("max-w-4xl mx-auto p-8 rounded-3xl", theme === 'dark' ? 'bg-black/20 border border-white/10 backdrop-blur-sm' : 'bg-white/50 border border-gray-200 shadow-lg')}>
+      <div className={cn("max-w-4xl mx-auto p-8 mt-12 rounded-3xl", theme === 'dark' ? 'bg-black/20 border border-white/10 backdrop-blur-sm' : 'bg-white/50 border border-gray-200 shadow-lg')}>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
             <div className="flex flex-col items-center gap-4">
                 <div className={cn("flex items-center gap-2 font-semibold text-lg", theme === 'dark' ? 'text-white' : 'text-black')}>
