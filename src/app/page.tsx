@@ -176,22 +176,23 @@ const StudyGuideGenerator = () => {
                 transition={{ duration: 0.5 }}
                 className="w-full max-w-2xl mx-auto flex flex-col items-center text-center p-8"
             >
-                <div className="relative mb-4">
+                 <div className="relative mb-4">
                     <AIBuddy className="w-16 h-16" isStatic={false} />
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={loadingStep}
+                            initial={{ opacity: 0, y: 10, scale: 0.9 }}
+                            animate={{ opacity: 1, y: 0, scale: 1, transition: { delay: 0.2 } }}
+                            exit={{ opacity: 0, y: 10, scale: 0.9 }}
+                            className="absolute top-[-40px] left-1/2 -translate-x-1/2 w-[280px]"
+                        >
+                            <div className="speech-bubble-typing">
+                                <p className="text-sm">{loadingSteps[loadingStep]}</p>
+                            </div>
+                        </motion.div>
+                    </AnimatePresence>
                 </div>
-                <h3 className="text-xl font-semibold mt-4">Generating your study guide...</h3>
-                <AnimatePresence mode="wait">
-                    <motion.p
-                        key={loadingStep}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.3 }}
-                        className="text-muted-foreground mt-2 min-h-[40px]"
-                    >
-                        {loadingSteps[loadingStep]}
-                    </motion.p>
-                </AnimatePresence>
+                <h3 className="text-xl font-semibold mt-10">Generating your study guide...</h3>
                  <Progress value={(loadingStep + 1) * 20} className="w-64 mt-4 h-2" />
             </motion.div>
         );
@@ -248,7 +249,7 @@ const Hero = () => {
         Tutor Taz turns your class notes, docs, and study materials into your personal AI tutor. Generate quizzes, flashcards, and get 24/7 help.
       </p>
 
-      <div className="relative mt-8">
+      <div className="mt-6">
           <StudyGuideGenerator />
       </div>
     </div>
