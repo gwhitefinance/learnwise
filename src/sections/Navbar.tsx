@@ -190,7 +190,7 @@ export default function Navbar() {
             </Link>
               <Link href="/signup">
                 <Button className={cn(
-                    "transition-all duration-300 transform animate-[pulse-glow_4s_ease-in-out_infinite]",
+                    "pulse-glow-button",
                     isScrolled || theme === 'dark' ? 'bg-white text-black hover:bg-gray-200' : 'bg-blue-500 text-white hover:bg-blue-600'
                 )}>
                   Sign Up Free
