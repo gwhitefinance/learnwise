@@ -190,7 +190,7 @@ export default function Navbar() {
             </Link>
               <Link href="/signup">
                 <Button className={cn(
-                    "transition-colors",
+                    "transition-all duration-300 transform hover:scale-105 hover:[animation:pulse-glow_2s_ease-in-out_infinite]",
                     isScrolled || theme === 'dark' ? 'bg-white text-black hover:bg-gray-200' : 'bg-blue-500 text-white hover:bg-blue-600'
                 )}>
                   Sign Up Free
