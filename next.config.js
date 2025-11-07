@@ -118,6 +118,12 @@ const nextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'www.studyfetch.com',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
 };

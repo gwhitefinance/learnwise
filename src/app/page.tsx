@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import NewReleasePromo from '@/sections/NewReleasePromo';
@@ -156,10 +155,7 @@ const Hero = ({ theme }: { theme: string }) => (
       <div className="flex justify-center mb-8">
         <div className={cn("inline-flex items-center gap-2 rounded-full px-4 py-2", theme === 'dark' ? "bg-white/10 text-white/90" : "bg-gray-100 text-black")}>
             <span className="font-medium">Backed by</span>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="inline-block">
-                <path d="M16.5 6.74C16.5 6.74 16.24 3 12 3C7.76 3 7.5 6.74 7.5 6.74C4.5 7.74 3 10.74 3 13.99C3 18.39 7.4 21.99 12 21.99C16.6 21.99 21 18.39 21 13.99C21 10.74 19.5 7.74 16.5 6.74Z" fill="currentColor"></path>
-                <path d="M12 4C11.5 4 11 4.5 11 5V8C11 8.5 11.5 9 12 9C12.5 9 13 8.5 13 8V5C13 4.5 12.5 4 12 4Z" fill="currentColor"></path>
-            </svg>
+            <Image src="https://www.studyfetch.com/landing/college-board-vector-logo.svg" alt="College Board Logo" width={24} height={24} className={cn(theme === 'dark' ? 'filter invert' : '')}/>
             <span className="font-bold text-lg">CollegeBoard</span>
         </div>
       </div>
