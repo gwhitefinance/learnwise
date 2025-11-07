@@ -126,11 +126,11 @@ const StudyGuideGenerator = ({ theme }: { theme: string }) => {
     // New state for animated loading text
     const [loadingStep, setLoadingStep] = useState(0);
     const loadingSteps = [
-        "Analyzing your topic...",
-        "Drafting key concepts...",
-        "Creating practice questions...",
-        "Building a step-by-step plan...",
-        "Finalizing your guide...",
+        "Did you know? You can upload your class notes and get a summarized study guide just like this one.",
+        "Pro-Tip: Use our AI Chat to ask specific questions about any topic, 24/7.",
+        "Did you know? We can turn your study material into interactive flashcards and practice quizzes.",
+        "Fun Fact: You can even upload a picture of your homework for step-by-step help!",
+        "Coming up: We're building a personalized learning roadmap just for this topic.",
     ];
 
     useEffect(() => {
