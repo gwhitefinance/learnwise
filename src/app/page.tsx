@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import NewReleasePromo from '@/sections/NewReleasePromo';
@@ -26,6 +27,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
+import { Progress } from '@/components/ui/progress';
 
 type CrunchTimeOutput = {
   title: string;
@@ -121,12 +123,33 @@ const StudyGuideGenerator = ({ theme }: { theme: string }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [studyGuide, setStudyGuide] = useState<CrunchTimeOutput | null>(null);
 
+    // New state for animated loading text
+    const [loadingStep, setLoadingStep] = useState(0);
+    const loadingSteps = [
+        "Analyzing your topic...",
+        "Drafting key concepts...",
+        "Creating practice questions...",
+        "Building a step-by-step plan...",
+        "Finalizing your guide...",
+    ];
+
+    useEffect(() => {
+        let interval: NodeJS.Timeout;
+        if (isLoading) {
+            interval = setInterval(() => {
+                setLoadingStep(prev => (prev + 1) % loadingSteps.length);
+            }, 2000);
+        }
+        return () => clearInterval(interval);
+    }, [isLoading, loadingSteps.length]);
+
     const handleGenerate = async (e?: React.FormEvent) => {
         e?.preventDefault();
         if (!input.trim()) return;
 
         setIsLoading(true);
         setStudyGuide(null);
+        setLoadingStep(0);
 
         try {
             const result = await generateCrunchTimeStudyGuide({
@@ -152,9 +175,28 @@ const StudyGuideGenerator = ({ theme }: { theme: string }) => {
                 transition={{ duration: 0.5 }}
                 className="w-full max-w-2xl mx-auto flex flex-col items-center text-center p-8"
             >
-                <AIBuddy className="w-32 h-32 mb-4" isStatic={false}/>
-                <h3 className="text-xl font-semibold">Generating your study guide...</h3>
+                <div className="relative mb-4">
+                    <AIBuddy className="w-24 h-24" isStatic={false} />
+                    <div className="absolute top-0 -right-40 w-56">
+                         <div className="speech-bubble-typing" style={{animationDelay: '0s'}}>
+                            <AnimatePresence mode="wait">
+                                <motion.p
+                                    key={loadingStep}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                    transition={{ duration: 0.3 }}
+                                    className="text-sm text-left"
+                                >
+                                    {loadingSteps[loadingStep]}
+                                </motion.p>
+                            </AnimatePresence>
+                         </div>
+                    </div>
+                </div>
+                <h3 className="text-xl font-semibold mt-4">Generating your study guide...</h3>
                 <p className="text-muted-foreground">This might take a moment.</p>
+                 <Progress value={(loadingStep + 1) * 20} className="w-64 mt-4 h-2" />
             </motion.div>
         );
     }
@@ -177,13 +219,13 @@ const StudyGuideGenerator = ({ theme }: { theme: string }) => {
                 <Input
                     placeholder="Type any subject to instantly generate a study guide (e.g., 'Cellular Respiration')"
                     className={cn(
-                        "w-full h-20 pl-16 pr-24 rounded-full text-lg shadow-lg",
+                        "w-full h-16 pl-16 pr-20 rounded-full text-lg shadow-lg",
                         theme === 'dark' ? 'bg-black/20 border-white/10 placeholder:text-white/50' : 'bg-white border-gray-200 placeholder:text-black/50'
                     )}
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                 />
-                <div className="absolute right-6 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
                     <Button type="submit" size="icon" className="h-12 w-12 rounded-full bg-blue-500 hover:bg-blue-600">
                         <ArrowRight className="h-6 w-6" />
                     </Button>
@@ -209,7 +251,7 @@ const Hero = ({ theme }: { theme: string }) => (
         Tutorin turns your class notes, docs, and study materials into your personal AI tutor. Generate quizzes, flashcards, and get 24/7 help.
       </p>
 
-      <div className="relative mt-12 mb-8 flex items-center justify-center">
+      <div className="relative mt-8 mb-8 min-h-[18rem] flex items-center justify-center">
           <StudyGuideGenerator theme={theme} />
       </div>
       
@@ -218,8 +260,8 @@ const Hero = ({ theme }: { theme: string }) => (
             <div className="flex flex-col items-center gap-4">
                 <div className={cn("flex items-center gap-2 font-semibold text-lg", theme === 'dark' ? 'text-white' : 'text-black')}>
                     <Rocket className="w-5 h-5" />
-                    <span className="relative">
-                        For Students
+                    <span className="relative">For Students
+                        <span className="absolute bottom-[-4px] left-0 w-full h-1 bg-pink-400/80 rounded-full" />
                     </span>
                 </div>
                 <Link href="/signup">
