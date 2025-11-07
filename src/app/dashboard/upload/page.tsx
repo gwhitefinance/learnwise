@@ -3,7 +3,7 @@
 
 import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { UploadCloud, Link as LinkIcon, Youtube, FileText, Mic, Copy, Video, SquarePen } from 'lucide-react';
 
