@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import NewReleasePromo from '@/sections/NewReleasePromo';
@@ -251,7 +250,7 @@ const Hero = ({ theme }: { theme: string }) => (
         Tutorin turns your class notes, docs, and study materials into your personal AI tutor. Generate quizzes, flashcards, and get 24/7 help.
       </p>
 
-      <div className="relative mt-8 mb-8 min-h-[18rem] flex items-center justify-center">
+      <div className="relative mt-2 mb-8 min-h-[18rem] flex items-center justify-center">
           <StudyGuideGenerator theme={theme} />
       </div>
       
@@ -261,7 +260,9 @@ const Hero = ({ theme }: { theme: string }) => (
                 <div className={cn("flex items-center gap-2 font-semibold text-lg", theme === 'dark' ? 'text-white' : 'text-black')}>
                     <Rocket className="w-5 h-5" />
                     <span className="relative">For Students
-                        <span className="absolute bottom-[-4px] left-0 w-full h-1 bg-pink-400/80 rounded-full" />
+                         <span
+                            className="absolute bottom-[-4px] left-0 w-full h-1.5 bg-pink-400/80 rounded-full"
+                         />
                     </span>
                 </div>
                 <Link href="/signup">
