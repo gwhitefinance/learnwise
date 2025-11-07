@@ -27,6 +27,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
+import { useTheme } from 'next-themes';
 
 type CrunchTimeOutput = {
   title: string;
@@ -230,7 +231,7 @@ const StudyGuideGenerator = ({ theme }: { theme: string }) => {
 
 
 const Hero = ({ theme }: { theme: string }) => (
-  <section className="relative py-20 lg:py-28 text-center overflow-hidden">
+  <section className="relative py-20 lg:py-24 text-center overflow-hidden">
       <>
         <div className="absolute top-0 left-0 -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] bg-pink-500/20 rounded-full blur-3xl -z-10" />
         <div className="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 w-[40rem_] h-[40rem] bg-pink-500/20 rounded-full blur-3xl -z-10" />
@@ -350,22 +351,22 @@ const plans = [
 
 
 export default function Home() {
-    const [theme, setTheme] = useState('light');
+    const { theme } = useTheme();
 
   return (
     <main className={cn(
         "bg-background",
-        theme === 'dark' ? 'dark-grid dark' : 'bg-white'
+        theme === 'dark' ? 'dark-grid' : 'bg-white'
     )}>
-      <Navbar theme={theme} />
-      <Hero theme={theme} />
-      <HowItWorks theme={theme} />
-      <PersonalizedTutor theme={theme} />
-      <DailyPractice theme={theme} />
-      <Features theme={theme} />
-      <Pricing plans={plans} theme={theme} />
-      <Faqs theme={theme} />
-      <NewReleasePromo theme={theme}/>
+      <Navbar theme={theme || 'light'} />
+      <Hero theme={theme || 'light'} />
+      <HowItWorks theme={theme || 'light'} />
+      <PersonalizedTutor theme={theme || 'light'} />
+      <DailyPractice theme={theme || 'light'} />
+      <Features theme={theme || 'light'} />
+      <Pricing plans={plans} theme={theme || 'light'} />
+      <Faqs theme={theme || 'light'} />
+      <NewReleasePromo theme={theme || 'light'}/>
       <Footer />
     </main>
   );
