@@ -1,5 +1,4 @@
 
-
 "use client"
 
 import type React from "react"
@@ -19,12 +18,14 @@ const AnimatedNavLink = ({ href, children, theme, isScrolled }: { href: string; 
   )
 }
 
-export default function Navbar({ theme = 'dark' }: { theme?: string }) {
+export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const { setTheme, resolvedTheme } = useTheme();
+  const { theme, setTheme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const handleScroll = () => {
         setIsScrolled(window.scrollY > 10);
     };
@@ -44,6 +45,17 @@ export default function Navbar({ theme = 'dark' }: { theme?: string }) {
   const navTextColor = isScrolled || currentTheme === 'dark' ? 'text-white' : 'text-black';
   const navIconHover = isScrolled || currentTheme === 'dark' ? 'hover:bg-white/10' : 'hover:bg-black/10';
 
+  const renderThemeToggle = () => {
+    if (!mounted) {
+      return <div className="h-9 w-9" />; // Placeholder
+    }
+    return (
+      <Button variant="ghost" size="icon" onClick={() => setTheme(currentTheme === 'dark' ? 'light' : 'dark')} className={cn(navTextColor, navIconHover, 'hover:'+navTextColor)}>
+        {currentTheme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+      </Button>
+    );
+  }
+
   return (
     <header className={cn(
       "fixed top-0 left-0 right-0 z-20 transition-all duration-300",
@@ -62,7 +74,7 @@ export default function Navbar({ theme = 'dark' }: { theme?: string }) {
           <div className="hidden md:flex items-center justify-center flex-1">
             <nav className="flex items-center gap-8">
               {navLinksData.map((link) => (
-                <AnimatedNavLink key={link.href} href={link.href} theme={currentTheme} isScrolled={isScrolled}>
+                <AnimatedNavLink key={link.href} href={link.href} theme={currentTheme || 'light'} isScrolled={isScrolled}>
                   {link.label}
                 </AnimatedNavLink>
               ))}
@@ -70,9 +82,7 @@ export default function Navbar({ theme = 'dark' }: { theme?: string }) {
           </div>
 
           <div className="hidden md:flex items-center gap-2">
-             <Button variant="ghost" size="icon" onClick={() => setTheme(currentTheme === 'dark' ? 'light' : 'dark')} className={cn(navTextColor, navIconHover, 'hover:'+navTextColor)}>
-                {currentTheme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-            </Button>
+             {renderThemeToggle()}
             <Link href="/login">
                 <Button variant="ghost" className={cn(navTextColor, navIconHover, 'hover:'+navTextColor)}>Login</Button>
             </Link>
@@ -83,9 +93,7 @@ export default function Navbar({ theme = 'dark' }: { theme?: string }) {
 
 
           <div className="md:hidden flex items-center gap-2">
-               <Button variant="ghost" size="icon" onClick={() => setTheme(currentTheme === 'dark' ? 'light' : 'dark')} className={cn(navTextColor, navIconHover, 'hover:'+navTextColor)}>
-                {currentTheme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-              </Button>
+               {renderThemeToggle()}
               <Button variant="ghost" size="icon" onClick={() => setIsOpen(!isOpen)} className={cn(navTextColor, navIconHover, 'hover:'+navTextColor)}>
                   {isOpen ? <X /> : <Menu />}
               </Button>
@@ -96,7 +104,7 @@ export default function Navbar({ theme = 'dark' }: { theme?: string }) {
           <div className="md:hidden bg-background/95 border-t border-white/10">
               <div className="container mx-auto px-4 py-4 flex flex-col gap-4">
                   {navLinksData.map((link) => (
-                    <AnimatedNavLink key={link.href} href={link.href} theme={currentTheme} isScrolled={isScrolled}>
+                    <AnimatedNavLink key={link.href} href={link.href} theme={currentTheme || 'light'} isScrolled={isScrolled}>
                       {link.label}
                     </AnimatedNavLink>
                   ))}

@@ -118,7 +118,8 @@ const StudyGuideDisplay = ({ guide, onReset }: { guide: CrunchTimeOutput, onRese
 };
 
 
-const StudyGuideGenerator = ({ theme }: { theme: string }) => {
+const StudyGuideGenerator = () => {
+    const { theme } = useTheme();
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [studyGuide, setStudyGuide] = useState<CrunchTimeOutput | null>(null);
@@ -230,7 +231,10 @@ const StudyGuideGenerator = ({ theme }: { theme: string }) => {
 };
 
 
-const Hero = ({ theme }: { theme: string }) => (
+const Hero = () => {
+  const { theme } = useTheme();
+
+  return (
   <section className="relative py-20 lg:py-24 text-center overflow-hidden">
       <>
         <div className="absolute top-0 left-0 -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] bg-pink-500/20 rounded-full blur-3xl -z-10" />
@@ -246,7 +250,7 @@ const Hero = ({ theme }: { theme: string }) => (
       </p>
 
       <div className="relative mt-8 min-h-[18rem] flex items-center justify-center">
-          <StudyGuideGenerator theme={theme} />
+          <StudyGuideGenerator />
       </div>
       
       <div className={cn("max-w-4xl mx-auto p-8 rounded-3xl", theme === 'dark' ? 'bg-black/20 border border-white/10 backdrop-blur-sm' : 'bg-white/50 border border-gray-200 shadow-lg')}>
@@ -290,6 +294,7 @@ const Hero = ({ theme }: { theme: string }) => (
     </div>
   </section>
 );
+}
 
 const plans = [
     {
@@ -353,21 +358,18 @@ const plans = [
 export default function Home() {
     const { theme } = useTheme();
 
-  return (
-    <main className={cn(
-        "bg-background",
-        theme === 'dark' ? 'dark-grid' : 'bg-white'
-    )}>
-      <Navbar theme={theme || 'light'} />
-      <Hero theme={theme || 'light'} />
-      <HowItWorks theme={theme || 'light'} />
-      <PersonalizedTutor theme={theme || 'light'} />
-      <DailyPractice theme={theme || 'light'} />
-      <Features theme={theme || 'light'} />
-      <Pricing plans={plans} theme={theme || 'light'} />
-      <Faqs theme={theme || 'light'} />
-      <NewReleasePromo theme={theme || 'light'}/>
-      <Footer />
-    </main>
-  );
+    return (
+        <main className={cn("bg-background", theme === 'dark' ? 'dark-grid' : 'bg-white')}>
+            <Navbar />
+            <Hero />
+            <HowItWorks theme={theme || 'light'} />
+            <PersonalizedTutor theme={theme || 'light'} />
+            <DailyPractice theme={theme || 'light'} />
+            <Features theme={theme || 'light'} />
+            <Pricing plans={plans} theme={theme || 'light'} />
+            <Faqs theme={theme || 'light'} />
+            <NewReleasePromo theme={theme || 'light'}/>
+            <Footer />
+        </main>
+    );
 }
