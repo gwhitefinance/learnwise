@@ -23,22 +23,24 @@ const Leaf = () => {
     const [id, setId] = useState(0);
 
     useEffect(() => {
-        const x = Math.random() * window.innerWidth;
-        const y = -50;
-        const rotate = Math.random() * 360;
-        const size = Math.random() * 15 + 10;
-        const fallDuration = Math.random() * 5 + 8; // Slower fall
-        const swayDuration = Math.random() * 2 + 3;
+        if (typeof window !== 'undefined') {
+            const x = Math.random() * window.innerWidth;
+            const y = -50;
+            const rotate = Math.random() * 360;
+            const size = Math.random() * 15 + 10;
+            const fallDuration = Math.random() * 5 + 8; // Slower fall
+            const swayDuration = Math.random() * 2 + 3;
 
-        setStyle({
-            left: `${x}px`,
-            top: `${y}px`,
-            transform: `rotate(${rotate}deg)`,
-            width: `${size}px`,
-            height: `${size}px`,
-            animation: `fall ${fallDuration}s linear infinite, sway ${swayDuration}s ease-in-out infinite`,
-        });
-        setId(Math.random());
+            setStyle({
+                left: `${x}px`,
+                top: `${y}px`,
+                transform: `rotate(${rotate}deg)`,
+                width: `${size}px`,
+                height: `${size}px`,
+                animation: `fall ${fallDuration}s linear infinite, sway ${swayDuration}s ease-in-out infinite`,
+            });
+            setId(Math.random());
+        }
     }, []);
 
     const leafColors = ["#D2691E", "#FF8C00", "#CD853F", "#B8860B"];
@@ -48,7 +50,7 @@ const Leaf = () => {
         <motion.div
             className="absolute"
             initial={{ 
-                x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 0), 
+                x: typeof window !== 'undefined' ? Math.random() * window.innerWidth : 0, 
                 y: -50,
                 rotate: Math.random() * 360 
             }}
@@ -258,6 +260,7 @@ export default function LoginPage() {
         <FallingLeaves />
         <StringLights />
         <Pumpkins />
+        <Turkey />
         
        <Link href="/" className="absolute top-4 left-4 z-20">
             <Button variant="ghost" size="icon" className="bg-black/10 hover:bg-black/20 text-gray-800 rounded-full h-10 w-10">
@@ -271,7 +274,6 @@ export default function LoginPage() {
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5, ease: 'easeOut' }}
       >
-        <Turkey />
         <div className="text-center">
             <div className="w-48 h-32 mx-auto -mt-24">
                 <AIBuddy />
