@@ -2,29 +2,63 @@
 'use client';
 
 import { useState, useEffect, useContext } from 'react';
-import { Plus, Flame, Upload, ChevronDown, Calendar, FileText, Mic, LayoutGrid, Settings, LogOut, BarChart3, Bell, Bolt, CircleDollarSign, School, Play, Users, GitMerge, GraduationCap, ClipboardCheck, BarChart, Award, MessageSquare, Briefcase, Share2, BookOpen, ChevronRight, Store, PenTool, BookMarked, Gamepad2, Headphones } from "lucide-react";
+import { Plus, Flame, Upload, ChevronDown, Calendar, FileText, Mic, LayoutGrid, Settings, LogOut, BarChart3, Bell, Bolt, CircleDollarSign, School, Play, Users, GitMerge, GraduationCap, ClipboardCheck, BarChart, Award, MessageSquare, Briefcase, Share2, BookOpen, ChevronRight, Store, PenTool, BookMarked, Gamepad2, Headphones, Loader2, Wand2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import Link from 'next/link';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
 import StudySetCard from '@/components/StudySetCard';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Snail, Turtle, Rabbit } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import GeneratingCourse from '../courses/GeneratingCourse';
+import { generateInitialCourseAndRoadmap } from '@/lib/actions';
+
 
 type Course = {
   id: string;
   name: string;
 };
 
+const paces = [
+  { value: "6", label: "Casual", description: "A relaxed pace for exploring.", icon: <Snail className="h-6 w-6" /> },
+  { value: "3", label: "Steady", description: "A balanced pace for consistent learning.", icon: <Turtle className="h-6 w-6" /> },
+  { value: "1", label: "Intense", description: "A fast-paced schedule for quick mastery.", icon: <Rabbit className="h-6 w-6" /> },
+];
+
 const Index = () => {
   const [user, loading] = useAuthState(auth);
   const [courses, setCourses] = useState<Course[]>([]);
   const [activeCourse, setActiveCourse] = useState<Course | null>(null);
   const [dataLoading, setDataLoading] = useState(true);
-  
+  const [addCourseOpen, setAddCourseOpen] = useState(false);
+  const [newCourse, setNewCourse] = useState({ name: '', instructor: '', credits: '', url: '', description: '' });
+  const [isSaving, setIsSaving] = useState(false);
+  const [addCourseStep, setAddCourseStep] = useState(1);
+  const [isNewTopic, setIsNewTopic] = useState<boolean | null>(null);
+  const [learningPace, setLearningPace] = useState<string>("3");
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatingCourseName, setGeneratingCourseName] = useState('');
+  const [learnerType, setLearnerType] = useState<string | null>(null);
+  const { toast } = useToast();
+  const router = useRouter();
+
+
   useEffect(() => {
     if (!user) return;
+    
+    const storedLearnerType = localStorage.getItem('learnerType');
+    setLearnerType(storedLearnerType ?? 'Unknown');
 
     const q = query(collection(db, "courses"), where("userId", "==", user.uid));
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -38,6 +72,115 @@ const Index = () => {
 
     return () => unsubscribe();
   }, [user, activeCourse]);
+  
+  const resetAddCourseDialog = () => {
+    setAddCourseStep(1);
+    setIsNewTopic(null);
+    setNewCourse({ name: '', instructor: '', credits: '', url: '', description: '' });
+    setLearningPace("3");
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setNewCourse(prev => ({ ...prev, [name]: value }));
+  };
+  
+   const handleGenerateCourse = async () => {
+    if (!user || !newCourse.name || isNewTopic === null || !learnerType) return;
+    
+    setAddCourseOpen(false);
+    setIsGenerating(true);
+    setGeneratingCourseName(newCourse.name);
+    
+    try {
+        const result = await generateInitialCourseAndRoadmap({
+            courseName: newCourse.name,
+            courseDescription: newCourse.description || `An in-depth course on ${newCourse.name}`,
+            learnerType: learnerType as any,
+            durationInMonths: parseInt(learningPace, 10),
+        });
+
+        const { courseOutline, firstChapterContent, roadmap } = result;
+
+        const newUnits = courseOutline.modules.map((module, mIdx) => ({
+            id: crypto.randomUUID(),
+            title: module.title,
+            chapters: module.chapters.map((chapter, cIdx) => ({
+                id: crypto.randomUUID(),
+                title: chapter.title,
+                ...(mIdx === 0 && cIdx === 0 ? { ...firstChapterContent, content: firstChapterContent.content as any } : {}),
+            }))
+        }));
+
+        const courseData = {
+            name: newCourse.name,
+            description: newCourse.description || `An in-depth course on ${newCourse.name}`,
+            url: newCourse.url,
+            userId: user.uid,
+            units: newUnits,
+            isNewTopic: true,
+            completedChapters: [],
+            progress: 0,
+        };
+
+        const courseDocRef = await addDoc(collection(db, "courses"), courseData);
+        
+        const newRoadmap = {
+            goals: roadmap.goals.map(g => ({ ...g, id: crypto.randomUUID(), icon: g.icon || 'Flag' })),
+            milestones: roadmap.milestones.map(m => ({ ...m, id: crypto.randomUUID(), icon: m.icon || 'Calendar', completed: false }))
+        };
+        await addDoc(collection(db, 'roadmaps'), { ...newRoadmap, courseId: courseDocRef.id, userId: user.uid });
+        
+        toast({ title: 'Course & Roadmap Generated!', description: 'Your new learning lab is ready.' });
+        setActiveCourseId(courseDocRef.id);
+        
+    } catch (error) {
+        console.error("Failed to generate course and roadmap:", error);
+        toast({ variant: 'destructive', title: 'Generation Failed', description: 'Could not create the full course content.' });
+    } finally {
+        setIsGenerating(false);
+        resetAddCourseDialog();
+    }
+  };
+
+
+  const handleAddExistingCourse = async () => {
+    if (!newCourse.name) {
+        toast({ variant: 'destructive', title: 'Missing Fields', description: 'Please enter a course name.' });
+        return;
+    }
+    if (!user) return;
+
+    setIsSaving(true);
+
+    const courseData = {
+        name: newCourse.name,
+        description: newCourse.description || `An in-depth course on ${newCourse.name}`,
+        url: newCourse.url,
+        instructor: newCourse.instructor || 'N/A',
+        credits: parseInt(newCourse.credits, 10) || 0,
+        userId: user.uid,
+        isNewTopic: false,
+        units: [],
+        completedChapters: [],
+        progress: 0,
+        files: 0,
+    };
+
+    try {
+        const docRef = await addDoc(collection(db, "courses"), courseData);
+        toast({ title: 'Course Added!' });
+        resetAddCourseDialog();
+        setAddCourseOpen(false);
+        router.push(`/dashboard/upload?courseId=${docRef.id}`);
+
+    } catch(error) {
+        console.error("Error adding course: ", error);
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not add course.' });
+    } finally {
+        setIsSaving(false);
+    }
+  };
 
 
   if (loading || dataLoading) {
@@ -99,12 +242,93 @@ const Index = () => {
                     <span className="truncate max-w-[120px]">{course.name}</span>
                 </button>
             ))}
-            <Link href="/dashboard/courses" className="flex items-center gap-2 px-4 py-3 border-b-2 border-transparent text-slate-500 dark:text-slate-400">
-                <Plus className="text-slate-400" />
-                <span className="text-sm">Add Course</span>
-            </Link>
+            <Dialog open={addCourseOpen} onOpenChange={(open) => { if (!open) resetAddCourseDialog(); setAddCourseOpen(open); }}>
+                <DialogTrigger asChild>
+                    <button className="flex items-center gap-2 px-4 py-3 border-b-2 border-transparent text-slate-500 dark:text-slate-400">
+                        <Plus className="text-slate-400" />
+                        <span className="text-sm">Add Course</span>
+                    </button>
+                </DialogTrigger>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Add a New Course</DialogTitle>
+                        <DialogDescription>
+                            {addCourseStep === 1 ? 'First, provide some details about your course.' : 'How quickly do you want to learn?'}
+                        </DialogDescription>
+                    </DialogHeader>
+                    {addCourseStep === 1 ? (
+                        <div className="grid gap-4 py-4">
+                            <div className="grid gap-2">
+                                <Label htmlFor="name">Course Name</Label>
+                                <Input id="name" name="name" value={newCourse.name} onChange={handleInputChange} placeholder="e.g., Introduction to AI"/>
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="description">Description (Optional)</Label>
+                                <Textarea id="description" name="description" value={newCourse.description} onChange={handleInputChange} placeholder="A brief summary of the course"/>
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="url">Course URL (Optional)</Label>
+                                <Input id="url" name="url" value={newCourse.url} onChange={handleInputChange} placeholder="https://example.com/course-link"/>
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="is-new-topic">Are you currently in this course?</Label>
+                                <Select onValueChange={(value) => setIsNewTopic(value === 'true')}>
+                                    <SelectTrigger id="is-new-topic">
+                                        <SelectValue placeholder="Select an option" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="false">Yes, I am</SelectItem>
+                                        <SelectItem value="true">No, I'm learning something new</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="py-4">
+                            <RadioGroup value={learningPace} onValueChange={setLearningPace} className="space-y-4">
+                                {paces.map(pace => (
+                                    <Label key={pace.value} htmlFor={`pace-${pace.value}`} className={cn("flex items-start gap-4 p-4 rounded-lg border transition-all cursor-pointer", learningPace === pace.value && "border-primary bg-primary/10 ring-2 ring-primary")}>
+                                        <RadioGroupItem value={pace.value} id={`pace-${pace.value}`} className="mt-1" />
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2">
+                                                {pace.icon}
+                                                <span className="font-semibold text-lg">{pace.label}</span>
+                                            </div>
+                                            <p className="text-sm text-muted-foreground mt-1">{pace.description}</p>
+                                        </div>
+                                    </Label>
+                                ))}
+                            </RadioGroup>
+                        </div>
+                    )}
+                    <DialogFooter>
+                        {addCourseStep === 1 ? (
+                            <>
+                                <Button variant="ghost" onClick={() => { setAddCourseOpen(false); resetAddCourseDialog();}}>Cancel</Button>
+                                {isNewTopic === true ? (
+                                    <Button onClick={() => setAddCourseStep(2)} disabled={isSaving || isNewTopic === null || !newCourse.name}>
+                                        Next
+                                    </Button>
+                                ) : (
+                                    <Button onClick={handleAddExistingCourse} disabled={isSaving || isNewTopic === null || !newCourse.name}>
+                                        Add Course
+                                    </Button>
+                                )}
+                            </>
+                        ) : (
+                            <>
+                                <Button variant="ghost" onClick={() => setAddCourseStep(1)}>Back</Button>
+                                <Button onClick={handleGenerateCourse} disabled={isSaving || isGenerating}>
+                                    {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                                    {isGenerating ? 'Generating...' : 'Generate Course & Plan'}
+                                </Button>
+                            </>
+                        )}
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
             <Link href="/dashboard/courses" className="ml-auto flex items-center gap-2 text-sm font-semibold text-primary-light">
-              See All
+              See All My Sets
             </Link>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

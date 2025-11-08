@@ -10,5 +10,7 @@ const CoursesClientPage = dynamic(() => import('./CoursesClientPage'), {
 });
 
 export default function CoursesPage() {
+    // This now simply renders the client page, which will redirect to the main dashboard
+    // for adding new courses.
     return <CoursesClientPage />;
 }

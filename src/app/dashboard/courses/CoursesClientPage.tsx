@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useContext, Suspense, useRef } from 'react';
+import { useState, useEffect, useContext, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -213,15 +213,6 @@ function CoursesComponent() {
   
   const [isCourseReadyDialogOpen, setIsCourseReadyDialogOpen] = useState(false);
 
-  const [newCourse, setNewCourse] = useState({ name: '', instructor: '', credits: '', url: '', description: '' });
-  const [isSaving, setIsSaving] = useState(false);
-  const [addCourseOpen, setAddCourseOpen] = useState(false);
-  const [gradeLevel, setGradeLevel] = useState<string | null>(null);
-  const [addCourseStep, setAddCourseStep] = useState(1);
-  const [isNewTopic, setIsNewTopic] = useState<boolean | null>(null);
-  const [learningPace, setLearningPace] = useState<string>("3");
-  const [isRoadmapGenerating, setIsRoadmapGenerating] = useState(false);
-
   // Manual unit creation state
   const [isAddUnitOpen, setIsAddUnitOpen] = useState(false);
   const [newUnitTitle, setNewUnitTitle] = useState('');
@@ -280,8 +271,6 @@ function CoursesComponent() {
 
     const storedLearnerType = localStorage.getItem('learnerType');
     setLearnerType(storedLearnerType ?? 'Unknown');
-    const storedGradeLevel = localStorage.getItem('onboardingGradeLevel');
-    setGradeLevel(storedGradeLevel);
     
     const courseIdFromUrl = searchParams.get('courseId');
 
@@ -395,104 +384,6 @@ function CoursesComponent() {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [popoverPosition]);
-
-
-  const handleGenerateCourse = async () => {
-    if (!user || !newCourse.name || isNewTopic === null || !learnerType) return;
-    
-    setAddCourseOpen(false);
-    setIsGenerating(true);
-    setGeneratingCourseName(newCourse.name);
-    
-    try {
-        const result = await generateInitialCourseAndRoadmap({
-            courseName: newCourse.name,
-            courseDescription: newCourse.description || `An in-depth course on ${newCourse.name}`,
-            learnerType: learnerType as any,
-            durationInMonths: parseInt(learningPace, 10),
-        });
-
-        const { courseOutline, firstChapterContent, roadmap } = result;
-
-        const newUnits = courseOutline.modules.map((module, mIdx) => ({
-            id: crypto.randomUUID(),
-            title: module.title,
-            chapters: module.chapters.map((chapter, cIdx) => ({
-                id: crypto.randomUUID(),
-                title: chapter.title,
-                ...(mIdx === 0 && cIdx === 0 ? { ...firstChapterContent, content: firstChapterContent.content as any } : {}),
-            }))
-        }));
-
-        const courseData = {
-            name: newCourse.name,
-            description: newCourse.description || `An in-depth course on ${newCourse.name}`,
-            url: newCourse.url,
-            userId: user.uid,
-            units: newUnits,
-            isNewTopic: true,
-            completedChapters: [],
-            progress: 0,
-        };
-
-        const courseDocRef = await addDoc(collection(db, "courses"), courseData);
-        
-        const newRoadmap = {
-            goals: roadmap.goals.map(g => ({ ...g, id: crypto.randomUUID(), icon: g.icon || 'Flag' })),
-            milestones: roadmap.milestones.map(m => ({ ...m, id: crypto.randomUUID(), icon: m.icon || 'Calendar', completed: false }))
-        };
-        await addDoc(collection(db, 'roadmaps'), { ...newRoadmap, courseId: courseDocRef.id, userId: user.uid });
-        
-        toast({ title: 'Course & Roadmap Generated!', description: 'Your new learning lab is ready.' });
-        setSelectedCourseId(courseDocRef.id);
-        
-    } catch (error) {
-        console.error("Failed to generate course and roadmap:", error);
-        toast({ variant: 'destructive', title: 'Generation Failed', description: 'Could not create the full course content.' });
-    } finally {
-        setIsGenerating(false);
-        resetAddCourseDialog();
-    }
-  };
-
-
-   const handleGenerateRoadmap = async (durationInMonths: number) => {
-        if (!activeCourse || !user) return;
-        
-        setIsRoadmapGenerating(true);
-        toast({ title: 'Generating Your Roadmap...', description: 'This should be quick!' });
-
-        try {
-            const roadmapResult = await generateRoadmap({
-                courseName: activeCourse.name,
-                durationInMonths: durationInMonths,
-                courseDescription: `A comprehensive course on ${activeCourse.name}`,
-            });
-            
-            const newRoadmap = {
-                goals: roadmapResult.goals.map(g => ({ ...g, id: `id-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, icon: g.icon || 'Flag' })),
-                milestones: roadmapResult.milestones.map(m => ({ ...m, id: `id-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, icon: m.icon || 'Calendar', completed: false }))
-            };
-
-            const roadmapsQuery = query(collection(db, 'roadmaps'), where('courseId', '==', activeCourse.id));
-            const roadmapSnapshot = await getDocs(roadmapsQuery);
-            if (!roadmapSnapshot.empty) {
-                const roadmapDoc = roadmapSnapshot.docs[0];
-                await updateDoc(roadmapDoc.ref, newRoadmap);
-            } else {
-                await addDoc(collection(db, 'roadmaps'), { ...newRoadmap, courseId: activeCourse.id, userId: user.uid });
-            }
-
-            toast({ title: 'Roadmap Updated!', description: 'Your study plan now reflects your chosen pace.'});
-
-        } catch (error) {
-            console.error('Roadmap generation failed:', error);
-            toast({ variant: 'destructive', title: 'Roadmap Generation Failed' });
-        } finally {
-            setIsRoadmapGenerating(false);
-        }
-    };
-
 
   const handleStartModuleQuiz = async (module: Module, autoStart: boolean = false) => {
     if (!autoStart) {
@@ -888,56 +779,6 @@ function CoursesComponent() {
     setIsCourseReadyDialogOpen(false);
   }
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setNewCourse(prev => ({ ...prev, [name]: value }));
-  };
-
-  const resetAddCourseDialog = () => {
-    setAddCourseStep(1);
-    setIsNewTopic(null);
-    setNewCourse({ name: '', instructor: '', credits: '', url: '', description: '' });
-    setLearningPace("3");
-  };
-  
-  const handleAddExistingCourse = async () => {
-    if (!newCourse.name) {
-        toast({ variant: 'destructive', title: 'Missing Fields', description: 'Please enter a course name.' });
-        return;
-    }
-    if (!user) return;
-
-    setIsSaving(true);
-
-    const courseData = {
-        name: newCourse.name,
-        description: newCourse.description || `An in-depth course on ${newCourse.name}`,
-        url: newCourse.url,
-        instructor: newCourse.instructor || 'N/A',
-        credits: parseInt(newCourse.credits, 10) || 0,
-        userId: user.uid,
-        isNewTopic: false,
-        units: [],
-        completedChapters: [],
-        progress: 0,
-        files: 0,
-    };
-
-    try {
-        const docRef = await addDoc(collection(db, "courses"), courseData);
-        toast({ title: 'Course Added!' });
-        resetAddCourseDialog();
-        setAddCourseOpen(false);
-        router.push(`/dashboard/upload?courseId=${docRef.id}`);
-
-    } catch(error) {
-        console.error("Error adding course: ", error);
-        toast({ variant: 'destructive', title: 'Error', description: 'Could not add course.' });
-    } finally {
-        setIsSaving(false);
-    }
-  };
-
   const handleManualAddUnit = async () => {
     if (!newUnitTitle.trim() || !activeCourse) return;
     
@@ -1165,94 +1006,9 @@ function CoursesComponent() {
                     <h1 className="text-3xl font-bold tracking-tight">Courses</h1>
                     <p className="text-muted-foreground">Manage your courses and generate interactive learning labs.</p>
                 </div>
-                <div className="flex gap-2">
-                     <Button variant="outline" asChild>
-                        <Link href="/dashboard/key-concepts"><KeySquare className="mr-2 h-4 w-4"/> Key Concepts</Link>
-                    </Button>
-                    <Dialog open={addCourseOpen} onOpenChange={(open) => { if (!open) resetAddCourseDialog(); setAddCourseOpen(open); }}>
-                        <DialogTrigger asChild>
-                            <Button disabled={isSaving}>
-                                <Plus className="mr-2 h-4 w-4"/> Add Course
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                            <DialogHeader>
-                                <DialogTitle>Add a New Course</DialogTitle>
-                                <DialogDescription>
-                                    {addCourseStep === 1 ? 'First, provide some details about your course.' : 'How quickly do you want to learn?'}
-                                </DialogDescription>
-                            </DialogHeader>
-                            {addCourseStep === 1 ? (
-                                <div className="grid gap-4 py-4">
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="name">Course Name</Label>
-                                        <Input id="name" name="name" value={newCourse.name} onChange={handleInputChange} placeholder="e.g., Introduction to AI"/>
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="description">Description (Optional)</Label>
-                                        <Textarea id="description" name="description" value={newCourse.description} onChange={handleInputChange} placeholder="A brief summary of the course"/>
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="url">Course URL (Optional)</Label>
-                                        <Input id="url" name="url" value={newCourse.url} onChange={handleInputChange} placeholder="https://example.com/course-link"/>
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="is-new-topic">Are you currently in this course?</Label>
-                                        <Select onValueChange={(value) => setIsNewTopic(value === 'true')}>
-                                            <SelectTrigger id="is-new-topic">
-                                                <SelectValue placeholder="Select an option" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="false">Yes, I am</SelectItem>
-                                                <SelectItem value="true">No, I'm learning something new</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="py-4">
-                                    <RadioGroup value={learningPace} onValueChange={setLearningPace} className="space-y-4">
-                                        {paces.map(pace => (
-                                            <Label key={pace.value} htmlFor={`pace-${pace.value}`} className={cn("flex items-start gap-4 p-4 rounded-lg border transition-all cursor-pointer", learningPace === pace.value && "border-primary bg-primary/10 ring-2 ring-primary")}>
-                                                <RadioGroupItem value={pace.value} id={`pace-${pace.value}`} className="mt-1" />
-                                                <div className="flex-1">
-                                                    <div className="flex items-center gap-2">
-                                                        {pace.icon}
-                                                        <span className="font-semibold text-lg">{pace.label}</span>
-                                                    </div>
-                                                    <p className="text-sm text-muted-foreground mt-1">{pace.description}</p>
-                                                </div>
-                                            </Label>
-                                        ))}
-                                    </RadioGroup>
-                                </div>
-                            )}
-                            <DialogFooter>
-                                {addCourseStep === 1 ? (
-                                    <>
-                                        <Button variant="ghost" onClick={() => { setAddCourseOpen(false); resetAddCourseDialog();}}>Cancel</Button>
-                                        {isNewTopic === true ? (
-                                            <Button onClick={() => setAddCourseStep(2)} disabled={isSaving || isNewTopic === null || !newCourse.name}>
-                                                Next
-                                            </Button>
-                                        ) : (
-                                            <Button onClick={handleAddExistingCourse} disabled={isSaving || isNewTopic === null || !newCourse.name}>
-                                                Add Course
-                                            </Button>
-                                        )}
-                                    </>
-                                ) : (
-                                    <>
-                                        <Button variant="ghost" onClick={() => setAddCourseStep(1)}>Back</Button>
-                                        <Button onClick={handleGenerateCourse} disabled={isSaving || isGenerating}>
-                                            {isGenerating ? 'Generating...' : 'Generate Course & Plan'}
-                                        </Button>
-                                    </>
-                                )}
-                            </DialogFooter>
-                        </DialogContent>
-                    </Dialog>
-                </div>
+                <Button onClick={() => router.push('/')}>
+                    <Plus className="mr-2 h-4 w-4"/> Add Course
+                </Button>
             </div>
             {courses.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -1311,19 +1067,7 @@ function CoursesComponent() {
                                         {courseProgress > 0 ? 'Continue Learning' : 'Start Learning!'}
                                     </Button>
                                 ) : (
-                                    <Button className="w-full" onClick={() => {
-                                        setGeneratingCourseName(course.name);
-                                        setNewCourse({
-                                            name: course.name,
-                                            instructor: course.instructor || '',
-                                            credits: String(course.credits || ''),
-                                            url: course.url || '',
-                                            description: course.description || '',
-                                        });
-                                        setIsNewTopic(true);
-                                        setAddCourseStep(2);
-                                        setAddCourseOpen(true);
-                                    }} disabled={isGenerating}>
+                                    <Button className="w-full" onClick={() => router.push('/')} disabled={isGenerating}>
                                         <Wand2 className="mr-2 h-4 w-4" />
                                         {isGenerating ? 'Generating...' : 'Generate Lab'}
                                     </Button>
