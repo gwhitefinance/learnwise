@@ -1,6 +1,7 @@
+
 'use client';
 
-import { Bookmark, Settings, Play } from 'lucide-react';
+import { Bookmark, Settings, Play, ChevronDown, FileText, Mic } from 'lucide-react';
 
 const StudySetCard = () => {
     return (
@@ -21,34 +22,34 @@ const StudySetCard = () => {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
                 <div className="bg-white/20 backdrop-blur-sm p-4 rounded-2xl flex items-center gap-4">
-                    <div className="w-10 h-10 flex items-center justify-center rounded-full bg-white text-blue-600 font-bold">1</div>
+                    <div className="w-10 h-10 flex items-center justify-center rounded-full bg-rose-200 text-rose-600 font-bold">1</div>
                     <div className="flex-1">Tests/Quizzes</div>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                    <ChevronDown className="w-5 h-5" />
                 </div>
                 <div className="bg-white/20 backdrop-blur-sm p-4 rounded-2xl flex items-center gap-4">
-                    <div className="w-10 h-10 flex items-center justify-center rounded-full bg-white text-blue-600 font-bold">0</div>
+                    <div className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-200 text-blue-600 font-bold">0</div>
                     <div className="flex-1">Explainers</div>
                 </div>
                 <div className="bg-white/20 backdrop-blur-sm p-4 rounded-2xl flex items-center gap-4">
-                    <div className="w-10 h-10 flex items-center justify-center rounded-full bg-white text-blue-600 font-bold">2</div>
+                    <div className="w-10 h-10 flex items-center justify-center rounded-full bg-pink-200 text-pink-600 font-bold">2</div>
                     <div className="flex-1">Arcade</div>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                    <ChevronDown className="w-5 h-5" />
                 </div>
                 <div className="bg-white/20 backdrop-blur-sm p-4 rounded-2xl flex items-center gap-4">
-                    <div className="w-10 h-10 flex items-center justify-center rounded-full bg-white text-blue-600 font-bold">1</div>
+                    <div className="w-10 h-10 flex items-center justify-center rounded-full bg-teal-200 text-teal-600 font-bold">1</div>
                     <div className="flex-1">Flashcards</div>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                    <ChevronDown className="w-5 h-5" />
                 </div>
                 <div className="bg-white/20 backdrop-blur-sm p-4 rounded-2xl flex items-center gap-4">
-                    <div className="w-10 h-10 flex items-center justify-center rounded-full bg-white text-blue-600 font-bold">0</div>
+                    <div className="w-10 h-10 flex items-center justify-center rounded-full bg-purple-200 text-purple-600 font-bold">0</div>
                     <div className="flex-1">Tutor Me</div>
                 </div>
                 <div className="bg-white/20 backdrop-blur-sm p-4 rounded-2xl flex items-center gap-4">
-                    <div className="w-10 h-10 flex items-center justify-center rounded-full bg-white text-blue-600 font-bold">0</div>
+                    <div className="w-10 h-10 flex items-center justify-center rounded-full bg-indigo-200 text-indigo-600 font-bold">0</div>
                     <div className="flex-1">Audio Recap</div>
                 </div>
             </div>
-            <button className="w-full bg-white text-primary font-bold py-4 px-6 rounded-2xl text-lg flex items-center justify-center gap-2 hover:bg-blue-50 transition-colors shadow-lg">
+            <button className="w-full bg-white text-primary font-bold py-4 px-6 rounded-2xl text-lg flex items-center justify-center gap-2 hover:bg-indigo-50 transition-colors shadow-lg">
                 <Play className="w-6 h-6" />
                 <span>Continue Learning</span>
             </button>
@@ -57,3 +58,5 @@ const StudySetCard = () => {
 };
 
 export default StudySetCard;
+
+    
