@@ -1,10 +1,10 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
 import { Plus, Flame, Upload, ChevronDown, Calendar, FileText, Mic, LayoutGrid, Settings, LogOut, BarChart3, Bell, Bolt, CircleDollarSign, School, Play, Users, GitMerge, GraduationCap, ClipboardCheck, BarChart, Award, MessageSquare, Briefcase, Share2, BookOpen, ChevronRight, Store, PenTool, BookMarked, Gamepad2, Headphones } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Progress } from "@/components/ui/progress";
 import Link from 'next/link';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
@@ -74,11 +74,11 @@ const Index = () => {
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 bg-white dark:bg-surface-dark p-2 pl-3 pr-4 rounded-full shadow-md shadow-blue-500/10">
-              <Bolt className="text-amber-500 text-2xl" />
+              <Bolt className="text-amber-500" />
               <span className="font-bold text-slate-900 dark:text-white">12,500 XP</span>
             </div>
             <div className="flex items-center gap-2 bg-white dark:bg-surface-dark p-2 pl-3 pr-4 rounded-full shadow-md shadow-blue-500/10">
-              <CircleDollarSign className="text-yellow-400 text-2xl" />
+              <CircleDollarSign className="text-yellow-400" />
               <span className="font-bold text-slate-900 dark:text-white">3,200</span>
             </div>
             <button className="w-12 h-12 flex items-center justify-center rounded-full bg-white dark:bg-surface-dark shadow-md shadow-blue-500/10">
@@ -93,10 +93,10 @@ const Index = () => {
                     onClick={() => setActiveCourse(course)}
                     className={`flex items-center gap-2 px-4 py-3 border-b-2 font-semibold ${activeCourse?.id === course.id ? 'border-primary-light text-primary-dark dark:text-blue-400' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-primary-light'}`}
                   >
-                    <span className="bg-blue-600 text-white text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full">
+                    <span className="bg-blue-600 text-white text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full flex-shrink-0">
                         {course.name.substring(0, 2).toUpperCase()}
                     </span>
-                    <span>{course.name}</span>
+                    <span className="truncate max-w-[120px]">{course.name}</span>
                 </button>
             ))}
             <Link href="/dashboard/courses" className="flex items-center gap-2 px-4 py-3 border-b-2 border-transparent text-slate-500 dark:text-slate-400">
