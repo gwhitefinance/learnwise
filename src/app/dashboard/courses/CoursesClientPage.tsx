@@ -113,63 +113,6 @@ type StudyGuide = {
     createdAt: Timestamp;
 };
 
-const ChapterImage = ({ course, module, chapter }: { course: Course, module: Module, chapter: Chapter }) => {
-    const [imageUrl, setImageUrl] = useState<string | null>(chapter.imageUrl || null);
-    const [isLoading, setIsLoading] = useState(!chapter.imageUrl);
-
-    useEffect(() => {
-        if (!chapter.imageUrl) {
-            setIsLoading(true);
-            generateImage({ prompt: `Create a clear, simple, and professional-looking diagram, infographic, or 3D render that visually explains the following academic concept. The image MUST directly illustrate the concept provided. For abstract subjects like Math, Science, or Programming, you MUST prioritize finding a clear, simple diagram, chart, or infographic. For other subjects, you can find a high-quality photo. Do NOT generate images of computer code, abstract art, or people unless they are directly relevant to illustrating the concept. Concept: "${chapter.title}"` })
-                .then(async (result) => {
-                    if (result.imageUrl) {
-                        setImageUrl(result.imageUrl);
-
-                        // Save the URL to Firestore
-                        const courseRef = doc(db, 'courses', course.id);
-                        const updatedUnits = course.units!.map(m => {
-                            if (m.id === module.id) {
-                                return {
-                                    ...m,
-                                    chapters: m.chapters.map(c => 
-                                        c.id === chapter.id ? { ...c, imageUrl: result.imageUrl } : c
-                                    )
-                                };
-                            }
-                            return m;
-                        });
-                        await updateDoc(courseRef, { units: updatedUnits });
-                    }
-                })
-                .catch(error => {
-                    console.error("Failed to generate image for chapter:", error);
-                })
-                .finally(() => {
-                    setIsLoading(false);
-                });
-        }
-    }, [chapter.title, chapter.imageUrl, course, module, chapter.id]);
-
-    if (isLoading) {
-        return <Skeleton className="h-full w-full bg-muted" />;
-    }
-
-    if (!imageUrl) {
-        return null;
-    }
-
-    return (
-        <div className="relative w-full h-full">
-            <Image 
-                src={imageUrl} 
-                alt={chapter.title || 'Chapter image'} 
-                fill
-                className="rounded-lg object-contain" 
-            />
-        </div>
-    );
-};
-
 
 function CoursesComponent() {
   const searchParams = useSearchParams();
@@ -1256,7 +1199,6 @@ function CoursesComponent() {
           >
              <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 overflow-hidden">
                 <div className="relative h-full bg-muted rounded-lg flex items-center justify-center p-4">
-                    {currentModule && <ChapterImage course={activeCourse} module={currentModule} chapter={currentModule.chapters[slideshowChapterIndex]} />}
                 </div>
                 <div className="h-full flex flex-col">
                     <h2 className="text-3xl font-bold mb-4 flex-shrink-0">{activeCourse.units?.[currentModuleIndex]?.chapters[slideshowChapterIndex]?.title}</h2>
@@ -1567,10 +1509,6 @@ function CoursesComponent() {
                  <div className="max-w-4xl mx-auto space-y-8 relative">
                      {popoverPosition && <TextSelectionMenu />}
                      <h1 className="text-4xl font-bold">{currentChapter.title}</h1>
-                     
-                      <div className="relative w-full aspect-video mb-6">
-                        <ChapterImage course={activeCourse} module={currentModule} chapter={currentChapter} />
-                    </div>
                      
                       {isChapterContentLoading[currentChapter.id] ? (
                         <div className="space-y-4">
