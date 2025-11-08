@@ -2,14 +2,15 @@
 
 import type React from "react"
 import type { Metadata } from "next"
-import { Manrope } from "next/font/google"
+import { Poppins } from "next/font/google"
 import "./globals.css"
 import { cn } from "@/lib/utils"
 import { ThemeProvider } from "@/components/theme-provider"
 
-const manrope = Manrope({ 
+const poppins = Poppins({ 
   subsets: ["latin"],
-  variable: "--font-sans",
+  variable: "--font-display",
+  weight: ['400', '500', '600', '700']
 })
 
 export const metadata: Metadata = {
@@ -24,7 +25,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={cn("font-sans antialiased", manrope.variable)}>
+      <body className={cn("font-display antialiased", poppins.variable)}>
           <ThemeProvider
             attribute="class"
             defaultTheme="system"

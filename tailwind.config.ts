@@ -19,6 +19,9 @@ const config: Config = {
       },
     },
     extend: {
+      fontFamily: {
+        display: ["var(--font-display)"],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -28,6 +31,8 @@ const config: Config = {
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
+          light: "#3B82F6",
+          dark: "#1D4ED8",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
@@ -53,18 +58,19 @@ const config: Config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        'card-blue': {
-            DEFAULT: 'hsl(var(--card-blue))',
-            dark: 'hsl(var(--card-blue-dark))',
-        },
-        'muted-foreground-dark': {
-            DEFAULT: 'hsl(var(--muted-foreground-dark))'
-        }
+        "background-light": "#EFF6FF",
+        "background-dark": "#1E293B",
+        "surface-light": "#DBEAFE",
+        "surface-dark": "#334155",
       },
       borderRadius: {
-        lg: "var(--radius)",
+        lg: "1.25rem",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        xl: "1.5rem",
+        "2xl": "2rem",
+        "3xl": "2.5rem",
+        DEFAULT: "1rem",
       },
       keyframes: {
         "accordion-down": {
