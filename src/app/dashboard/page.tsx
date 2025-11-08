@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, useContext } from 'react';
-import { Plus, Flame, Upload, ChevronDown, Calendar, FileText, Mic, LayoutGrid, Settings, LogOut, BarChart3, Bell, Bolt, CircleDollarSign, School, Play, Users, GitMerge, GraduationCap, ClipboardCheck, BarChart, Award, MessageSquare, Briefcase, Share2, BookOpen, ChevronRight, Store, PenTool, BookMarked, Gamepad2, Headphones, Loader2, Wand2 } from "lucide-react";
+import { Plus, Flame, Upload, ChevronDown, Calendar, FileText, Mic, LayoutGrid, Settings, LogOut, BarChart3, Bell, Bolt, CircleDollarSign, School, Play, Users, GitMerge, GraduationCap, ClipboardCheck, BarChart, Award, MessageSquare, Briefcase, Share2, BookOpen, ChevronRight, Store, PenTool, BookMarked, Gamepad2, Headphones, Loader2, Wand2, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import Link from 'next/link';
@@ -10,7 +10,7 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { collection, query, where, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
 import StudySetCard from '@/components/StudySetCard';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -21,7 +21,7 @@ import { useRouter } from 'next/navigation';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Snail, Turtle, Rabbit } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import GeneratingCourse from '../courses/GeneratingCourse';
+import GeneratingCourse from '../dashboard/courses/GeneratingCourse';
 import { generateInitialCourseAndRoadmap } from '@/lib/actions';
 
 
@@ -42,10 +42,9 @@ const Index = () => {
   const [activeCourse, setActiveCourse] = useState<Course | null>(null);
   const [dataLoading, setDataLoading] = useState(true);
   const [addCourseOpen, setAddCourseOpen] = useState(false);
-  const [newCourse, setNewCourse] = useState({ name: '', instructor: '', credits: '', url: '', description: '' });
+  const [newCourse, setNewCourse] = useState({ name: '', instructor: '', credits: '', url: '', description: '', isNewTopic: null as boolean | null });
   const [isSaving, setIsSaving] = useState(false);
   const [addCourseStep, setAddCourseStep] = useState(1);
-  const [isNewTopic, setIsNewTopic] = useState<boolean | null>(null);
   const [learningPace, setLearningPace] = useState<string>("3");
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatingCourseName, setGeneratingCourseName] = useState('');
@@ -75,8 +74,7 @@ const Index = () => {
   
   const resetAddCourseDialog = () => {
     setAddCourseStep(1);
-    setIsNewTopic(null);
-    setNewCourse({ name: '', instructor: '', credits: '', url: '', description: '' });
+    setNewCourse({ name: '', instructor: '', credits: '', url: '', description: '', isNewTopic: null });
     setLearningPace("3");
   };
 
@@ -86,7 +84,7 @@ const Index = () => {
   };
   
    const handleGenerateCourse = async () => {
-    if (!user || !newCourse.name || isNewTopic === null || !learnerType) return;
+    if (!user || !newCourse.name || newCourse.isNewTopic === null || !learnerType) return;
     
     setAddCourseOpen(false);
     setIsGenerating(true);
@@ -132,7 +130,7 @@ const Index = () => {
         await addDoc(collection(db, 'roadmaps'), { ...newRoadmap, courseId: courseDocRef.id, userId: user.uid });
         
         toast({ title: 'Course & Roadmap Generated!', description: 'Your new learning lab is ready.' });
-        setActiveCourseId(courseDocRef.id);
+        router.push(`/dashboard/courses?courseId=${courseDocRef.id}`);
         
     } catch (error) {
         console.error("Failed to generate course and roadmap:", error);
@@ -182,6 +180,9 @@ const Index = () => {
     }
   };
 
+  if (isGenerating) {
+    return <GeneratingCourse courseName={generatingCourseName} />;
+  }
 
   if (loading || dataLoading) {
     return (
@@ -272,7 +273,7 @@ const Index = () => {
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="is-new-topic">Are you currently in this course?</Label>
-                                <Select onValueChange={(value) => setIsNewTopic(value === 'true')}>
+                                <Select onValueChange={(value) => setNewCourse(prev => ({...prev, isNewTopic: value === 'true' }))}>
                                     <SelectTrigger id="is-new-topic">
                                         <SelectValue placeholder="Select an option" />
                                     </SelectTrigger>
@@ -305,15 +306,10 @@ const Index = () => {
                         {addCourseStep === 1 ? (
                             <>
                                 <Button variant="ghost" onClick={() => { setAddCourseOpen(false); resetAddCourseDialog();}}>Cancel</Button>
-                                {isNewTopic === true ? (
-                                    <Button onClick={() => setAddCourseStep(2)} disabled={isSaving || isNewTopic === null || !newCourse.name}>
-                                        Next
-                                    </Button>
-                                ) : (
-                                    <Button onClick={handleAddExistingCourse} disabled={isSaving || isNewTopic === null || !newCourse.name}>
-                                        Add Course
-                                    </Button>
-                                )}
+                                <Button onClick={() => newCourse.isNewTopic ? setAddCourseStep(2) : handleAddExistingCourse()} disabled={isSaving || newCourse.isNewTopic === null || !newCourse.name}>
+                                    {newCourse.isNewTopic ? 'Next' : 'Add Course'}
+                                    {newCourse.isNewTopic && <ArrowRight className="ml-2 h-4 w-4" />}
+                                </Button>
                             </>
                         ) : (
                             <>
@@ -393,3 +389,5 @@ const Index = () => {
 };
 
 export default Index;
+
+    
