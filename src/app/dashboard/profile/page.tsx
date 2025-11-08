@@ -106,7 +106,11 @@ export default function ProfilePage() {
         // Load customizations and buddy name
         const savedCustomizations = localStorage.getItem(`robotCustomizations_${user.uid}`);
         if(savedCustomizations) {
-            setCustomizations(JSON.parse(savedCustomizations));
+            try {
+                setCustomizations(JSON.parse(savedCustomizations));
+            } catch (e) {
+                console.error("Failed to parse customizations from localStorage", e);
+            }
         }
         const savedBuddyName = localStorage.getItem('aiBuddyName');
         if (savedBuddyName) {
@@ -407,3 +411,4 @@ export default function ProfilePage() {
     
 
     
+
