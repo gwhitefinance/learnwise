@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect, Suspense, useContext } from 'react';
@@ -148,17 +147,18 @@ const EmbeddedChat = ({ topic, currentQuestion }: { topic: string | null, curren
 }
 
 
-function StudySessionPageContent({ topic, savedSession }: { topic: 'Math' | 'Reading & Writing' | null, savedSession: any }) {
+function StudySessionPageContent() {
     const router = useRouter();
-
-    const [questions, setQuestions] = useState<SatQuestion[]>(savedSession?.questions || []);
-    const [isLoading, setIsLoading] = useState(!savedSession);
-    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(savedSession?.currentQuestionIndex || 0);
-    const [userAnswers, setUserAnswers] = useState<Record<number, string>>(savedSession?.userAnswers || {});
-    const [isSubmitted, setIsSubmitted] = useState<Record<number, boolean>>(savedSession?.isSubmitted || {});
+    const searchParams = useSearchParams();
+    
+    const [questions, setQuestions] = useState<SatQuestion[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+    const [userAnswers, setUserAnswers] = useState<Record<number, string>>({});
+    const [isSubmitted, setIsSubmitted] = useState<Record<number, boolean>>({});
     const [isExplanationLoading, setIsExplanationLoading] = useState(false);
     
-    const [questionTimers, setQuestionTimers] = useState<Record<number, number>>(savedSession?.questionTimers || {});
+    const [questionTimers, setQuestionTimers] = useState<Record<number, number>>({});
     const [currentQuestionTime, setCurrentQuestionTime] = useState(0);
 
     const [isSubmittingCourse, setIsSubmittingCourse] = useState(false);
@@ -168,6 +168,8 @@ function StudySessionPageContent({ topic, savedSession }: { topic: 'Math' | 'Rea
     const [feedbackLoading, setFeedbackLoading] = useState(false);
     const [user] = useAuthState(auth);
     const [learnerType, setLearnerType] = useState<string | null>(null);
+
+    const [topic, setTopic] = useState<'Math' | 'Reading & Writing' | null>(null);
 
     const { toast } = useToast();
 
@@ -179,9 +181,49 @@ function StudySessionPageContent({ topic, savedSession }: { topic: 'Math' | 'Rea
     }, []);
 
     useEffect(() => {
+        const urlTopic = searchParams.get('topic') as 'Math' | 'Reading & Writing' | null;
+        const savedSessionData = localStorage.getItem('inProgressSatSession');
+        
+        let sessionTopic: 'Math' | 'Reading & Writing' | null = null;
+        let sessionToLoad = null;
+
+        if (savedSessionData) {
+            try {
+                sessionToLoad = JSON.parse(savedSessionData);
+                sessionTopic = sessionToLoad.topic;
+            } catch (e) {
+                console.error("Could not parse saved session", e);
+                localStorage.removeItem('inProgressSatSession');
+            }
+        }
+        
+        // A new topic from URL always overrides a saved session
+        if (urlTopic) {
+            setTopic(urlTopic);
+            localStorage.removeItem('inProgressSatSession');
+            setQuestions([]);
+            setCurrentQuestionIndex(0);
+            setUserAnswers({});
+            setIsSubmitted({});
+            setQuestionTimers({});
+        } else if (sessionToLoad) {
+            setTopic(sessionTopic);
+            setQuestions(sessionToLoad.questions || []);
+            setCurrentQuestionIndex(sessionToLoad.currentQuestionIndex || 0);
+            setUserAnswers(sessionToLoad.userAnswers || {});
+            setIsSubmitted(sessionToLoad.isSubmitted || {});
+            setQuestionTimers(sessionToLoad.questionTimers || {});
+            setIsLoading(false);
+        } else {
+             router.push('/dashboard/sat-prep');
+        }
+
+    }, [searchParams, router]);
+
+
+    useEffect(() => {
         const fetchQuestions = async () => {
-            if (!topic || !learnerType || savedSession) {
-                if(savedSession) setIsLoading(false);
+            if (!topic || !learnerType || questions.length > 0) {
                 return;
             };
 
@@ -203,12 +245,14 @@ function StudySessionPageContent({ topic, savedSession }: { topic: 'Math' | 'Rea
             }
         };
 
-        fetchQuestions();
-    }, [topic, learnerType, router, toast, savedSession]);
+        if (topic) {
+            fetchQuestions();
+        }
+    }, [topic, learnerType, router, toast, questions.length]);
     
      useEffect(() => {
         const saveSession = () => {
-             if (sessionState === 'studying' && questions.length > 0) {
+             if (sessionState === 'studying' && questions.length > 0 && topic) {
                 const sessionToSave = {
                     topic,
                     questions,
@@ -229,7 +273,6 @@ function StudySessionPageContent({ topic, savedSession }: { topic: 'Math' | 'Rea
 
         window.addEventListener('beforeunload', handleBeforeUnload);
 
-        // Save when component unmounts (e.g., navigating away with back button)
         return () => {
             saveSession();
             window.removeEventListener('beforeunload', handleBeforeUnload);
@@ -238,9 +281,8 @@ function StudySessionPageContent({ topic, savedSession }: { topic: 'Math' | 'Rea
 
     useEffect(() => {
         if (sessionState === 'studying') {
-            setCurrentQuestionTime(0); // Reset timer for new question
+            setCurrentQuestionTime(0);
             const timer = setInterval(() => {
-                // Only count time if an answer has NOT been submitted for the current question
                 if (!isSubmitted[currentQuestionIndex]) {
                     setCurrentQuestionTime(prev => prev + 1);
                 }
@@ -647,38 +689,10 @@ function StudySessionPageContent({ topic, savedSession }: { topic: 'Math' | 'Rea
 
 
 export default function StudySessionPage() {
-    const searchParams = useSearchParams();
-    const [savedSession, setSavedSession] = useState<any>(null);
-    const [loading, setLoading] = useState(true);
-    
-    // Check for a saved session when the component mounts
-    useEffect(() => {
-        const savedData = localStorage.getItem('inProgressSatSession');
-        if (savedData) {
-            try {
-                const parsedData = JSON.parse(savedData);
-                // If there's a topic in the URL, it's a new session, so ignore saved data
-                if (!searchParams.get('topic')) {
-                    setSavedSession(parsedData);
-                }
-            } catch (e) {
-                console.error("Failed to parse saved session", e);
-                localStorage.removeItem('inProgressSatSession');
-            }
-        }
-        setLoading(false);
-    }, [searchParams]);
-
-    if (loading) {
-        return <Skeleton className="h-full w-full" />;
-    }
-
-    const topic = (savedSession?.topic || searchParams.get('topic')) as 'Math' | 'Reading & Writing' | null;
-
     return (
-        <Suspense fallback={<Skeleton className="h-full w-full" />}>
+        <Suspense fallback={<GeneratingSession topic="SAT Session" />}>
              <div className="h-full">
-                <StudySessionPageContent topic={topic} savedSession={savedSession} />
+                <StudySessionPageContent />
             </div>
         </Suspense>
     );
