@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useContext, Suspense } from 'react';
+import { useState, useEffect, useContext, Suspense, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -1774,4 +1774,6 @@ export default function CoursesClientPage() {
 }
 
     
+    
+
     
