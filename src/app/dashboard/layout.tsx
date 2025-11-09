@@ -339,7 +339,15 @@ function DashboardLayoutContent({
   const [gradeLevel, setGradeLevel] = useState<string | null>(null);
   
   const isFocusLayout = pathname.startsWith('/dashboard/sat-prep/study-session');
-  const isNewNotePage = pathname === '/dashboard/notes/new';
+  
+  // This state will determine if the header should be shown
+  const [showTopBar, setShowTopBar] = useState(false);
+
+  useEffect(() => {
+    // Check the pathname and decide whether to show the top bar
+    const shouldShow = pathname !== '/dashboard' && !pathname.startsWith('/dashboard/notes/new') && !pathname.startsWith('/dashboard/sat-prep/practice-test');
+    setShowTopBar(shouldShow);
+  }, [pathname]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -641,7 +649,7 @@ function DashboardLayoutContent({
             sidebarOpen && !isFocusLayout ? "md:pl-64" : "md:pl-0",
             isFocusLayout && 'md:pl-0 w-full'
         )}>
-            {pathname.startsWith('/dashboard') && !pathname.startsWith('/dashboard/notes/new') && !pathname.startsWith('/dashboard/sat-prep/practice-test') && (
+            {showTopBar && (
                 <div className="sticky top-0 z-10 flex h-16 items-center gap-3 border-b bg-background/95 px-4 backdrop-blur">
                     <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileMenuOpen(true)}>
                         <Menu className="h-5 w-5" />
@@ -677,9 +685,9 @@ function DashboardLayoutContent({
 
             <main className={cn(
                 "flex-1 flex flex-col relative",
-                isNewNotePage ? '' : "p-4 md:p-6"
+                showTopBar ? "p-4 md:p-6" : "" // Only add padding if top bar is not shown
             )}>
-              <FloatingChat isHidden={isFocusLayout || isNewNotePage}>
+              <FloatingChat isHidden={isFocusLayout || pathname === '/dashboard/notes/new'}>
                 {React.cloneElement(children as React.ReactElement)}
               </FloatingChat>
             </main>
