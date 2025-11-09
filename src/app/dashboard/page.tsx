@@ -42,6 +42,9 @@ type Course = {
   name: string;
   description: string;
   url?: string;
+  userId?: string;
+  units?: { chapters?: { id: string }[] }[];
+  completedChapters?: string[];
 };
 
 type QuizAttempt = {
@@ -559,7 +562,7 @@ const Index = () => {
                 </Link>
               )}
             </div>
-             <Card>
+            <Card>
                 <CardContent className="p-4 flex flex-col items-center justify-center text-center">
                     <h3 className="font-semibold mb-2">Add Notes from Mobile</h3>
                     <p className="text-xs text-muted-foreground mb-4">Scan this QR code with your phone to quickly upload a picture of your notes for this course.</p>

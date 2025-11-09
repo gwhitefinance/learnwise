@@ -9,10 +9,13 @@ import { format } from 'date-fns';
 import { Button } from './ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { FloatingChatContext } from '@/components/floating-chat';
+import { Progress } from './ui/progress';
 
 type Course = {
   id: string;
   name: string;
+  units?: { chapters?: { id: string }[] }[];
+  completedChapters?: string[];
 };
 
 type QuizResult = {
@@ -36,6 +39,10 @@ const StudySetCard = ({ course, quizResults, notes }: { course: Course, quizResu
         }
     };
     
+    const totalChapters = course.units?.reduce((acc, unit) => acc + (unit.chapters?.length ?? 0), 0) ?? 0;
+    const completedChaptersCount = course.completedChapters?.length ?? 0;
+    const progress = totalChapters > 0 ? (completedChaptersCount / totalChapters) * 100 : 0;
+    
     return (
         <div className="bg-gradient-to-br from-primary to-indigo-700 p-8 rounded-3xl shadow-2xl shadow-blue-500/40 text-white">
             <div className="flex justify-between items-start mb-6">
@@ -43,15 +50,18 @@ const StudySetCard = ({ course, quizResults, notes }: { course: Course, quizResu
                     <h2 className="text-3xl font-bold">{course.name}</h2>
                     <p className="text-indigo-200">{materialCount} materials</p>
                 </div>
-                <div className="flex items-center gap-2">
-                    <button className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20">
-                        <Bookmark className="w-5 h-5" />
-                    </button>
-                    <button className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20">
-                        <Settings className="w-5 h-5" />
-                    </button>
-                </div>
             </div>
+
+            {totalChapters > 0 && (
+                <div className="mb-8">
+                    <div className="flex justify-between items-center text-sm text-indigo-200 mb-1">
+                        <span>Course Progress</span>
+                        <span>{Math.round(progress)}%</span>
+                    </div>
+                    <Progress value={progress} className="h-2 bg-white/20 [&>div]:bg-white" />
+                </div>
+            )}
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
