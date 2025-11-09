@@ -341,11 +341,9 @@ function DashboardLayoutContent({
   
   const isFocusLayout = pathname.startsWith('/dashboard/sat-prep/study-session');
   
-  // This state will determine if the header should be shown
   const [showTopBar, setShowTopBar] = useState(false);
 
   useEffect(() => {
-    // Check the pathname and decide whether to show the top bar
     const shouldShow = pathname !== '/dashboard' && !pathname.startsWith('/dashboard/notes/new') && !pathname.startsWith('/dashboard/sat-prep/practice-test');
     setShowTopBar(shouldShow);
   }, [pathname]);
@@ -364,7 +362,6 @@ function DashboardLayoutContent({
       return;
     }
     if (user) {
-        // Automatically create user profile if it doesn't exist
         const initUserProfile = async () => {
             const userRef = doc(db, "users", user.uid);
             const userSnap = await getDoc(userRef);
@@ -376,7 +373,6 @@ function DashboardLayoutContent({
                         createdAt: serverTimestamp(),
                         coins: 0,
                     });
-                    console.log("Created profile for new user:", user.uid);
                 } catch (error) {
                     console.error("Error creating user profile:", error);
                 }
@@ -397,29 +393,11 @@ function DashboardLayoutContent({
           setProfilePic(savedPic);
         }
         
-        const savedNotifications = localStorage.getItem('notifications');
-        if (savedNotifications) {
-          setNotifications(JSON.parse(savedNotifications).length);
-        }
-        
-        // Request notification permission
         async function requestPermission() {
           const supported = await isSupported();
-          if (!supported) {
-              console.log('Firebase Messaging is not supported in this browser.');
-              return;
-          }
-          
-          console.log('Requesting permission...');
+          if (!supported) return;
           try {
-            const permission = await Notification.requestPermission();
-            if (permission === 'granted') {
-              console.log('Notification permission granted.');
-              
-              const messagingInstance = getMessaging();
-            } else {
-              console.log('Unable to get permission to notify.');
-            }
+            await Notification.requestPermission();
           } catch (error) {
             console.error('An error occurred while requesting permission. ', error);
           }
@@ -460,27 +438,17 @@ function DashboardLayoutContent({
 
 
   const filteredSidebarItems = currentSidebarItems.map(item => {
-    // If the item has children
     if (item.children) {
       const filteredChildren = item.children.filter(child => child.title.toLowerCase().includes(searchQuery.toLowerCase()));
-      
-      // If any children match the search, return the item with only those children
       if (filteredChildren.length > 0) {
         return { ...item, children: filteredChildren };
       }
-      
-      // If no children match, but the parent's title matches, return the parent with no children
       if (item.title.toLowerCase().includes(searchQuery.toLowerCase())) {
           return { ...item, children: [] };
       }
-
-      // If neither the parent nor any children match
       return null;
     }
-
-    // If the item has NO children, just check if its title matches
     return item.title.toLowerCase().includes(searchQuery.toLowerCase()) ? item : null;
-
   }).filter((item): item is SidebarItem => item !== null);
 
   if (loading || !isMounted) {
@@ -530,12 +498,10 @@ function DashboardLayoutContent({
           />
         )}
 
-        {/* Mobile menu overlay */}
         {mobileMenuOpen && !isFocusLayout && (
           <div className="fixed inset-0 z-40 bg-black/50 md:hidden" onClick={() => setMobileMenuOpen(false)} />
         )}
 
-        {/* Sidebar - Mobile */}
         {!isFocusLayout && (
           <div
               className={cn(
@@ -591,7 +557,6 @@ function DashboardLayoutContent({
           </div>
         )}
 
-        {/* Sidebar - Desktop */}
         {!isFocusLayout && (
             <div
                 className={cn(
@@ -644,7 +609,6 @@ function DashboardLayoutContent({
             </div>
         )}
 
-        {/* Main Content */}
         <div className={cn(
             "flex flex-col min-h-screen transition-all duration-300 ease-in-out relative", 
             sidebarOpen && !isFocusLayout ? "md:pl-64" : "md:pl-0",
@@ -686,9 +650,10 @@ function DashboardLayoutContent({
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                                 <DropdownMenuItem asChild><Link href="/dashboard/profile">Profile</Link></DropdownMenuItem>
-                                <DropdownMenuItem asChild><Link href="/dashboard/shop">Shop</Link></DropdownMenuItem>
+                                <DropdownMenuItem asChild><Link href="/dashboard/shop">Shop & Rewards</Link></DropdownMenuItem>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={handleSignOut}>Sign Out</DropdownMenuItem>
+                                <DropdownMenuItem onClick={triggerFileUpload}>Change Picture</DropdownMenuItem>
+                                <DropdownMenuItem onClick={handleSignOut} className="text-destructive">Sign Out</DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </div>
@@ -697,7 +662,7 @@ function DashboardLayoutContent({
 
             <main className={cn(
                 "flex-1 flex flex-col relative",
-                showTopBar ? "p-4 md:p-6" : "" // Only add padding if top bar is not shown
+                showTopBar ? "p-4 md:p-6" : ""
             )}>
               <FloatingChat isHidden={isFocusLayout || pathname === '/dashboard/notes/new'}>
                 {React.cloneElement(children as React.ReactElement)}
