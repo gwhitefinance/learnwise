@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useContext } from 'react';
@@ -11,8 +12,9 @@ import { RewardContext } from '@/context/RewardContext';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Gem, Lock } from 'lucide-react';
+import { Lock } from 'lucide-react';
 import rewardsData from '@/lib/rewards.json';
+import TazCoinIcon from './TazCoinIcon';
 
 const Chest = ({ isOpen, onOpen, rarity }: { isOpen: boolean, onOpen: () => void, rarity: string }) => {
     const rarityClasses = {
@@ -134,7 +136,7 @@ export default function RewardsDialog({ streak }: { streak: number }) {
                                             className="absolute -top-12 left-1/2 -translate-x-1/2 flex items-center gap-2 font-bold text-3xl text-amber-400"
                                             style={{ textShadow: '0 0 10px #f59e0b' }}
                                         >
-                                            <Gem /> +{earnedAmount}
+                                            <TazCoinIcon className="w-8 h-8"/> +{earnedAmount}
                                         </motion.div>
                                     )}
                                 </AnimatePresence>

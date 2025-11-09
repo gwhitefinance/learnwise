@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -9,12 +10,13 @@ import { doc, onSnapshot, updateDoc, arrayUnion, increment } from 'firebase/fire
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Gem, Palette, Shirt, CheckCircle, Footprints, GraduationCap as HatIcon, Sparkles, Clock } from 'lucide-react';
+import { Palette, Shirt, CheckCircle, Footprints, GraduationCap as HatIcon, Sparkles, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import shopItemsData from '@/lib/shop-items.json';
 import { useToast } from '@/hooks/use-toast';
 import AIBuddy from '@/components/ai-buddy';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import TazCoinIcon from '@/components/TazCoinIcon';
 
 type UserProfile = {
     displayName: string;
@@ -85,7 +87,7 @@ const DailyItemCard = ({ category, item, onBuy, onSelect, isEquipped, hasPurchas
                         onClick={(e) => { e.stopPropagation(); onBuy(category, item.name, item.price); }}
                         disabled={userCoins < item.price}
                     >
-                        <Gem className="w-3 h-3 mr-1.5" /> {item.price}
+                        <TazCoinIcon className="w-4 h-4 mr-1.5" /> {item.price}
                     </Button>
                 ) : isEquipped ? (
                     <Button
@@ -269,7 +271,7 @@ export default function ShopClientPage() {
                     </p>
                 </div>
                 <div className="flex items-center gap-2 text-2xl font-bold text-amber-500 bg-amber-500/10 px-4 py-2 rounded-lg">
-                    <Gem className="h-6 w-6"/>
+                    <TazCoinIcon className="h-7 w-7"/>
                     <span>{profile.coins}</span>
                 </div>
             </div>

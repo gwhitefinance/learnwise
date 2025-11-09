@@ -3,7 +3,7 @@
 'use client';
 
 import { useState, useEffect, useContext } from 'react';
-import { Plus, Flame, Upload, ChevronDown, Calendar, FileText, Mic, LayoutGrid, Settings, LogOut, BarChart3, Bell, Bolt, CircleDollarSign, School, Play, Users, GitMerge, GraduationCap, ClipboardCheck, BarChart, Award, MessageSquare, Briefcase, Share2, BookOpen, ChevronRight, Store, PenTool, BookMarked, Gamepad2, Headphones, Loader2, Wand2, ArrowRight } from "lucide-react";
+import { Plus, Flame, Upload, ChevronDown, Calendar, FileText, Mic, LayoutGrid, Settings, LogOut, BarChart3, Bell, Bolt, School, Play, Users, GitMerge, GraduationCap, ClipboardCheck, BarChart, Award, MessageSquare, Briefcase, Share2, BookOpen, ChevronRight, Store, PenTool, BookMarked, Gamepad2, Headphones, Loader2, Wand2, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import Link from 'next/link';
@@ -26,6 +26,7 @@ import GeneratingCourse from '../dashboard/courses/GeneratingCourse';
 import { generateInitialCourseAndRoadmap } from '@/lib/actions';
 import { RewardContext } from '@/context/RewardContext';
 import RewardsDialog from '@/components/RewardsDialog';
+import TazCoinIcon from '@/components/TazCoinIcon';
 
 
 type Course = {
@@ -53,8 +54,10 @@ const Index = () => {
   const [generatingCourseName, setGeneratingCourseName] = useState('');
   const [learnerType, setLearnerType] = useState<string | null>(null);
   const [streak, setStreak] = useState(0);
+  const [canClaimDaily, setCanClaimDaily] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
+  const { showReward } = useContext(RewardContext);
 
 
   useEffect(() => {
@@ -67,6 +70,7 @@ const Index = () => {
     const today = new Date().toDateString();
     const lastVisit = localStorage.getItem('lastVisit');
     let currentStreak = Number(localStorage.getItem('streakCount')) || 0;
+    const lastClaimedDate = localStorage.getItem('dailyRewardClaimed');
     
     if (lastVisit !== today) {
         const yesterday = new Date();
@@ -81,6 +85,10 @@ const Index = () => {
         localStorage.setItem('streakCount', String(currentStreak));
     }
     setStreak(currentStreak);
+    
+    if (lastClaimedDate !== today) {
+        setCanClaimDaily(true);
+    }
 
     const q = query(collection(db, "courses"), where("userId", "==", user.uid));
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -203,6 +211,26 @@ const Index = () => {
     }
   };
 
+  const handleClaimReward = async () => {
+    if (!user || !canClaimDaily) return;
+    
+    const amount = Math.floor(Math.random() * 41) + 10; // 10 to 50 coins
+
+    try {
+        const userRef = doc(db, 'users', user.uid);
+        await updateDoc(userRef, { coins: increment(amount) });
+        
+        localStorage.setItem('dailyRewardClaimed', new Date().toDateString());
+        setCanClaimDaily(false);
+        
+        showReward({ type: 'coins', amount });
+        toast({ title: 'Reward Claimed!', description: `You earned ${amount} coins!` });
+    } catch(e) {
+        console.error("Failed to claim reward:", e);
+        toast({ variant: 'destructive', title: 'Could not claim reward' });
+    }
+  };
+
   if (isGenerating) {
     return <GeneratingCourse courseName={generatingCourseName} />;
   }
@@ -244,10 +272,12 @@ const Index = () => {
               <Bolt className="text-amber-500" />
               <span className="font-bold text-slate-900 dark:text-white">12,500 XP</span>
             </div>
-            <div className="flex items-center gap-2 bg-white dark:bg-surface-dark p-2 pl-3 pr-4 rounded-full shadow-md shadow-blue-500/10">
-              <CircleDollarSign className="text-yellow-400" />
-              <span className="font-bold text-slate-900 dark:text-white">3,200</span>
-            </div>
+            <Dialog>
+                <DialogTrigger asChild>
+                    <Button className="text-sm font-semibold">See Rewards</Button>
+                </DialogTrigger>
+                <RewardsDialog streak={streak} />
+            </Dialog>
             <button className="w-12 h-12 flex items-center justify-center rounded-full bg-white dark:bg-surface-dark shadow-md shadow-blue-500/10">
               <Bell className="text-slate-500 dark:text-slate-400" />
             </button>
@@ -364,12 +394,9 @@ const Index = () => {
                   <p className="text-sm text-slate-500 dark:text-slate-400">Keep up the good work.</p>
                 </div>
               </div>
-              <Dialog>
-                <DialogTrigger asChild>
-                    <Button className="text-sm font-semibold">See Rewards</Button>
-                </DialogTrigger>
-                <RewardsDialog streak={streak} />
-              </Dialog>
+                <Button onClick={handleClaimReward} disabled={!canClaimDaily} className="text-sm font-semibold">
+                    {canClaimDaily ? 'Claim Daily Coins' : 'Claimed'}
+                </Button>
             </div>
             <div className="bg-white dark:bg-surface-dark p-6 rounded-3xl shadow-md shadow-blue-500/10">
               <div className="flex justify-between items-center mb-4">
@@ -418,9 +445,3 @@ const Index = () => {
 };
 
 export default Index;
-
-    
-    
-
-    
-

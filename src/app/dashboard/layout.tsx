@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useEffect, useState, useRef, createContext, useContext, Suspense, useCallback } from 'react';
@@ -61,7 +62,6 @@ import {
   LogOut,
   User,
   Gamepad2,
-  Gem,
   ShoppingBag,
   Shield,
   Podcast,
@@ -104,6 +104,7 @@ import DashboardLoading from './loading';
 import { CallProvider } from '@/context/CallContext';
 import CallView from '@/components/CallView';
 import IncomingCall from '@/components/IncomingCall';
+import TazCoinIcon from '@/components/TazCoinIcon';
 
 type SidebarChild = {
   title: string;
@@ -491,7 +492,7 @@ function DashboardLayoutContent({
                 <p className="font-semibold text-sm truncate">{user?.displayName}</p>
             </div>
              <Badge variant="outline" className="flex items-center gap-1.5 shrink-0">
-                <Gem className="h-3 w-3 text-amber-500" /> {userCoins}
+                <TazCoinIcon className="h-4 w-4" /> {userCoins}
             </Badge>
         </div>
     </div>

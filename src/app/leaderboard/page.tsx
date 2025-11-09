@@ -1,17 +1,19 @@
 
+
 'use client';
 
 import { useEffect, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Trophy, Gem, Shield } from 'lucide-react';
+import { Trophy, Shield } from 'lucide-react';
 import Loading from './loading';
 import { cn } from '@/lib/utils';
 import Navbar from '@/sections/Navbar';
 import Footer from '@/sections/Footer';
 import { getLeaderboard } from './actions';
 import { Progress } from '@/components/ui/progress';
+import TazCoinIcon from '@/components/TazCoinIcon';
 
 export type UserProfile = {
     uid: string;
@@ -100,7 +102,7 @@ export default function LeaderboardPage() {
                                             </TableCell>
                                             <TableCell className="text-right font-bold">
                                                 <div className="flex items-center justify-end gap-2 text-amber-400">
-                                                    <Gem className="h-5 w-5"/>
+                                                    <TazCoinIcon className="h-6 w-6"/>
                                                     <span>{user.coins}</span>
                                                 </div>
                                             </TableCell>

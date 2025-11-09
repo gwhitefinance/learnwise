@@ -10,7 +10,7 @@ import { doc, onSnapshot, query, collection, where, updateDoc, deleteDoc } from 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Gem, Zap, Shield, Star, Award, Flame, Brain, Pen, Trash2, Trophy } from 'lucide-react';
+import { Zap, Shield, Star, Award, Flame, Brain, Pen, Trash2, Trophy } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import AIBuddy from '@/components/ai-buddy';
 import { Progress } from '@/components/ui/progress';
@@ -21,6 +21,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { deleteUser } from 'firebase/auth';
 import Link from 'next/link';
 import { getLeaderboard } from '@/app/leaderboard/actions';
+import TazCoinIcon from '@/components/TazCoinIcon';
 
 type UserProfile = {
     displayName: string;
@@ -223,7 +224,7 @@ export default function ProfilePage() {
                         <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
                             <div className="p-4 bg-muted rounded-lg text-center">
                                 <p className="text-sm text-muted-foreground font-semibold">Coins</p>
-                                <p className="text-2xl font-bold flex items-center justify-center gap-1 text-amber-500"><Gem size={20}/> {profile.coins}</p>
+                                <p className="text-2xl font-bold flex items-center justify-center gap-1 text-amber-500"><TazCoinIcon className="h-6 w-6"/> {profile.coins}</p>
                             </div>
                             <div className="p-4 bg-muted rounded-lg text-center">
                                 <p className="text-sm text-muted-foreground font-semibold">Streak</p>
@@ -357,7 +358,7 @@ export default function ProfilePage() {
                                             <AvatarFallback>{player.displayName?.[0]}</AvatarFallback>
                                         </Avatar>
                                         <span className="font-medium flex-1 truncate">{player.displayName}</span>
-                                        <span className="font-bold flex items-center gap-1 text-amber-500"><Gem size={14}/> {player.coins}</span>
+                                        <span className="font-bold flex items-center gap-1 text-amber-500"><TazCoinIcon className="h-5 w-5"/> {player.coins}</span>
                                     </div>
                                 ))}
                             </div>
@@ -411,4 +412,3 @@ export default function ProfilePage() {
     
 
     
-

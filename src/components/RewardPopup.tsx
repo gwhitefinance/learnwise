@@ -1,13 +1,15 @@
 
+
 'use client';
 
 import { useContext, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Gem } from 'lucide-react';
+import { X } from 'lucide-react';
 import { RewardContext } from '@/context/RewardContext';
 import AIBuddy from '@/components/ai-buddy';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '@/lib/firebase';
+import TazCoinIcon from './TazCoinIcon';
 
 export default function RewardPopup() {
     const { rewardInfo, isRewardVisible, hideReward } = useContext(RewardContext);
@@ -28,7 +30,7 @@ export default function RewardPopup() {
         if (!rewardInfo) return null;
         switch (rewardInfo.type) {
             case 'coins':
-                return <p className="text-sm text-muted-foreground">You earned <span className="font-bold text-amber-500 flex items-center justify-center gap-1"><Gem size={14}/> +{rewardInfo.amount} Coins!</span></p>;
+                return <p className="text-sm text-muted-foreground">You earned <span className="font-bold text-amber-500 flex items-center justify-center gap-1"><TazCoinIcon className="w-4 h-4"/> +{rewardInfo.amount} Coins!</span></p>;
             default:
                 return null;
         }
