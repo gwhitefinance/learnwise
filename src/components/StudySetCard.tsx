@@ -1,12 +1,14 @@
 
 'use client';
 
-import { Bookmark, Settings, Play, ChevronDown, PenTool, BookMarked, GraduationCap, Gamepad2, Headphones, Plus, ArrowRight, FileText, Trophy, Eye, Copy, Zap } from 'lucide-react';
+import { useContext } from 'react';
+import { Bookmark, Settings, Play, ChevronDown, PenTool, BookMarked, GraduationCap, Gamepad2, Headphones, Plus, ArrowRight, FileText, Trophy, Eye, Copy, Zap, BrainCircuit } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { Button } from './ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { FloatingChatContext } from '@/components/floating-chat';
 
 type Course = {
   id: string;
@@ -25,6 +27,14 @@ type Note = {
 };
 
 const StudySetCard = ({ course, quizResults, notes }: { course: Course, quizResults: QuizResult[], notes: Note[] }) => {
+    const { openChatWithPrompt } = useContext(FloatingChatContext) as any;
+
+    const handleDeepDive = () => {
+        if (openChatWithPrompt) {
+            openChatWithPrompt(`Explain the three most difficult concepts in ${course.name} as simply as possible.`);
+        }
+    };
+    
     return (
         <div className="bg-gradient-to-br from-primary to-indigo-700 p-8 rounded-3xl shadow-2xl shadow-blue-500/40 text-white">
             <div className="flex justify-between items-start mb-6">
@@ -125,7 +135,6 @@ const StudySetCard = ({ course, quizResults, notes }: { course: Course, quizResu
                     <DropdownMenuContent className="w-64">
                         <DropdownMenuLabel>Key Concepts</DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        {/* Future: Add recent session info here */}
                         <DropdownMenuItem disabled>No recent sessions</DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <Link href="/dashboard/key-concepts">
@@ -135,6 +144,7 @@ const StudySetCard = ({ course, quizResults, notes }: { course: Course, quizResu
                         </Link>
                     </DropdownMenuContent>
                 </DropdownMenu>
+
                  <TooltipProvider>
                     <Tooltip>
                         <TooltipTrigger asChild>
@@ -146,14 +156,15 @@ const StudySetCard = ({ course, quizResults, notes }: { course: Course, quizResu
                             </Link>
                         </TooltipTrigger>
                         <TooltipContent>
-                            <p>Upload material and get an instant study guide. Perfect for last-minute prep.</p>
+                            <p>Upload study material and get an instant AI-generated study guide, perfect for when you're short on time.</p>
                         </TooltipContent>
                     </Tooltip>
                 </TooltipProvider>
-                <div className="bg-white/20 backdrop-blur-sm p-4 rounded-2xl flex items-center gap-4">
-                  <div className="w-10 h-10 flex items-center justify-center rounded-full bg-indigo-200 text-indigo-600 font-bold"><Headphones className="w-5 h-5" /></div>
-                  <div className="flex-1">Audio Recap</div>
-                </div>
+
+                <button onClick={handleDeepDive} className="bg-white/20 backdrop-blur-sm p-4 rounded-2xl flex items-center gap-4 text-left w-full hover:bg-white/30 transition-colors">
+                  <div className="w-10 h-10 flex items-center justify-center rounded-full bg-indigo-200 text-indigo-600 font-bold"><BrainCircuit className="w-5 h-5" /></div>
+                  <div className="flex-1">AI Deep Dive</div>
+                </button>
             </div>
             <Link href={`/dashboard/courses?courseId=${course.id}`} className="w-full bg-white text-primary font-bold py-4 px-6 rounded-2xl text-lg flex items-center justify-center gap-2 hover:bg-indigo-50 transition-colors shadow-lg">
                 <Play className="w-6 h-6" />
