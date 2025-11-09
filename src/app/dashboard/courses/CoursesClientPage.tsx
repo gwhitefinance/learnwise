@@ -6,7 +6,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Play, Pause, ChevronLeft, ChevronRight, Wand2, FlaskConical, Lightbulb, Copy, RefreshCw, Check, Star, CheckCircle, Send, Bot, User, GitMerge, PanelLeft, Minimize, Maximize, Loader2, Plus, Trash2, MoreVertical, XCircle, ArrowRight, RotateCcw, Video, Image as ImageIcon, BookCopy, Link as LinkIcon, Headphones, Underline, Highlighter, Rabbit, Snail, Turtle, Book, Mic, Bookmark, Brain, KeySquare, ArrowLeft, Phone, Presentation, FolderOpen, BookText } from 'lucide-react';
+import { Play, Pause, ChevronLeft, ChevronRight, Wand2, FlaskConical, Lightbulb, Copy, RefreshCw, Check, Star, CheckCircle, Send, Bot, User, GitMerge, PanelLeft, Minimize, Maximize, Loader2, Plus, Trash2, MoreVertical, XCircle, ArrowRight, RotateCcw, Video, BookCopy, Link as LinkIcon, Headphones, Underline, Highlighter, Rabbit, Snail, Turtle, Book, Mic, Bookmark, Brain, KeySquare, ArrowLeft, Phone, Presentation, FolderOpen, BookText } from 'lucide-react';
 import Link from 'next/link';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
@@ -1307,7 +1307,7 @@ function CoursesComponent() {
       </Dialog>
       <div className={cn("flex h-full", isFocusMode && "bg-background")}>
         <aside className={cn(
-            "h-full bg-card border-r transition-all duration-300",
+            "h-full bg-muted/30 border-r transition-all duration-300",
             isSidebarOpen ? "w-80 p-4" : "w-0 p-0 overflow-hidden"
         )}>
              <div className="flex flex-col h-full">
@@ -1448,7 +1448,7 @@ function CoursesComponent() {
             </div>
         </aside>
         
-        <main className="flex-1 p-6 overflow-y-auto relative">
+        <main className="flex-1 p-6 overflow-y-auto relative bg-background">
              <div className="flex items-center justify-between mb-4">
                 <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
                     <PanelLeft className="h-5 w-5" />
@@ -1715,3 +1715,4 @@ export default function CoursesClientPage() {
     
 
     
+
