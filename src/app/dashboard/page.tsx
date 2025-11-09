@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useContext } from 'react';
@@ -35,6 +36,8 @@ import {
 import { Card, CardContent } from '@/components/ui/card';
 import QRCode from 'qrcode.react';
 import AIBuddy from '@/components/ai-buddy';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 
 type Course = {
@@ -381,6 +384,20 @@ const Index = () => {
             <button className="w-12 h-12 flex items-center justify-center rounded-full bg-white dark:bg-surface-dark shadow-md shadow-blue-500/10">
               <Bell className="text-slate-500 dark:text-slate-400" />
             </button>
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Avatar className="h-12 w-12 cursor-pointer">
+                        <AvatarImage src={user?.photoURL ?? undefined} />
+                        <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    <DropdownMenuItem asChild><Link href="/dashboard/profile">Profile</Link></DropdownMenuItem>
+                    <DropdownMenuItem asChild><Link href="/dashboard/shop">Shop</Link></DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => auth.signOut()}>Sign Out</DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </header>
         <div className="flex items-center gap-2 border-b border-blue-200/80 dark:border-slate-700 mb-8">
@@ -579,3 +596,4 @@ const Index = () => {
 };
 
 export default Index;
+
