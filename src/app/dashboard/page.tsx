@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, useContext } from 'react';
-import { Plus, Flame, Upload, ChevronDown, Calendar, FileText, Mic, LayoutGrid, Settings, LogOut, BarChart3, Bell, Bolt, School, Play, Users, GitMerge, GraduationCap, ClipboardCheck, BarChart, Award, MessageSquare, Briefcase, Share2, BookOpen, ChevronRight, Store, PenTool, BookMarked, Gamepad2, Headphones, Loader2, Wand2, ArrowRight } from "lucide-react";
+import { Plus, Flame, Upload, ChevronDown, Calendar, FileText, Mic, LayoutGrid, Settings, LogOut, BarChart3, Bell, Bolt, School, Play, Users, GitMerge, GraduationCap, ClipboardCheck, BarChart, Award, MessageSquare, Briefcase, Share2, BookOpen, ChevronRight, Store, PenTool, BookMarked, Gamepad2, Headphones, Loader2, Wand2, ArrowRight, QrCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import Link from 'next/link';
@@ -33,6 +33,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Card, CardContent } from '@/components/ui/card';
+import QRCode from 'qrcode.react';
 
 
 type Course = {
@@ -308,6 +309,8 @@ const Index = () => {
     }
   };
 
+  const qrCodeUrl = activeCourse ? `${window.location.origin}/upload-note/${activeCourse.id}` : '';
+
   if (isGenerating) {
     return <GeneratingCourse courseName={generatingCourseName} />;
   }
@@ -506,12 +509,31 @@ const Index = () => {
             <div className="bg-white dark:bg-surface-dark p-6 rounded-3xl shadow-md shadow-blue-500/10">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-xl font-bold text-slate-900 dark:text-white">Materials</h3>
-                 <Link href="/dashboard/upload">
-                    <Button variant="ghost" className="flex items-center gap-2 text-sm font-semibold text-primary-light">
-                        <Upload className="text-base" />
-                        Upload
-                    </Button>
-                 </Link>
+                 <div className="flex items-center gap-2">
+                    <Dialog>
+                        <DialogTrigger asChild>
+                             <Button variant="ghost" className="flex items-center gap-2 text-sm font-semibold text-primary-light">
+                                <QrCode className="text-base" />
+                                Add via QR
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Add Notes from Mobile</DialogTitle>
+                                <DialogDescription>Scan this QR code with your phone to quickly upload a picture of your notes for this course.</DialogDescription>
+                            </DialogHeader>
+                            <div className="p-4 flex items-center justify-center">
+                               {qrCodeUrl ? <QRCode value={qrCodeUrl} size={256} /> : <p>Please select a course first.</p>}
+                            </div>
+                        </DialogContent>
+                    </Dialog>
+                    <Link href="/dashboard/upload">
+                        <Button variant="ghost" className="flex items-center gap-2 text-sm font-semibold text-primary-light">
+                            <Upload className="text-base" />
+                            Upload
+                        </Button>
+                    </Link>
+                </div>
               </div>
               <ul className="space-y-4">
                 {recentNotes.length > 0 ? (
