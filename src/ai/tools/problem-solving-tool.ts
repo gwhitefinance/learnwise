@@ -5,7 +5,7 @@
  */
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import { solveMathProblem } from '@/lib/math-solver';
+import { generateProblemSolvingSession } from '../flows/problem-solving-flow';
 
 const ProblemInputSchema = z.object({
   problem: z.string().describe('A math or science problem to be solved.'),
@@ -26,8 +26,11 @@ export const problemSolvingTool = ai.defineTool(
   },
   async ({ problem, context }) => {
     try {
-      const result = await solveMathProblem({ problem, context });
-      return result;
+      const result = await generateProblemSolvingSession({ topic: problem });
+      return {
+          solution: result.practiceProblem.answer,
+          steps: result.stepByStepSolution
+      };
     } catch (error: any) {
         console.error("Error solving problem:", error);
         return {
