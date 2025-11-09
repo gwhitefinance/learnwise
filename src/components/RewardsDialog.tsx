@@ -132,6 +132,7 @@ export default function RewardsDialog({ streak }: { streak: number }) {
                                             exit={{ opacity: 0 }}
                                             transition={{ duration: 0.8, delay: 1.5, type: 'spring' }}
                                             className="absolute -top-12 left-1/2 -translate-x-1/2 flex items-center gap-2 font-bold text-3xl text-amber-400"
+                                            style={{ textShadow: '0 0 10px #f59e0b' }}
                                         >
                                             <Gem /> +{earnedAmount}
                                         </motion.div>
