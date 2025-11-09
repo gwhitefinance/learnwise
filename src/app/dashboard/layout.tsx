@@ -383,7 +383,7 @@ function DashboardLayoutContent({
             }
         });
         
-        const savedPic = localStorage.getItem('profilePic');
+        const savedPic = user.photoURL || localStorage.getItem('profilePic');
         if (savedPic) {
           setProfilePic(savedPic);
         }
@@ -641,11 +641,37 @@ function DashboardLayoutContent({
             sidebarOpen && !isFocusLayout ? "md:pl-64" : "md:pl-0",
             isFocusLayout && 'md:pl-0 w-full'
         )}>
-            {pathname.startsWith('/dashboard') && !isFocusLayout && !isNewNotePage && (
-                <div className="sticky top-0 z-10 flex h-16 items-center gap-3 border-b bg-background/95 px-4 backdrop-blur md:hidden">
+            {pathname.startsWith('/dashboard') && !pathname.startsWith('/dashboard/notes/new') && !pathname.startsWith('/dashboard/sat-prep/practice-test') && (
+                <div className="sticky top-0 z-10 flex h-16 items-center gap-3 border-b bg-background/95 px-4 backdrop-blur">
                     <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileMenuOpen(true)}>
                         <Menu className="h-5 w-5" />
                     </Button>
+                    <div className="ml-auto flex items-center gap-3">
+                        <Button variant="outline" size="sm" onClick={() => router.push('/dashboard/upload')}>
+                            <UploadCloud className="mr-2 h-4 w-4" /> Quick Upload
+                        </Button>
+                        <div className="flex items-center gap-2 bg-muted p-1 pr-3 rounded-full">
+                            <TazCoinIcon className="h-6 w-6"/>
+                            <span className="font-bold text-sm">{userCoins}</span>
+                        </div>
+                         <Button variant="ghost" size="icon" className="rounded-full">
+                            <Bell className="h-5 w-5"/>
+                        </Button>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                 <Avatar className="h-9 w-9 cursor-pointer">
+                                    <AvatarImage src={profilePic ?? undefined} alt="User" />
+                                    <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem asChild><Link href="/dashboard/profile">Profile</Link></DropdownMenuItem>
+                                <DropdownMenuItem asChild><Link href="/dashboard/shop">Shop</Link></DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={handleSignOut}>Sign Out</DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
                 </div>
             )}
 
