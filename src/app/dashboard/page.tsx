@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Card, CardContent } from '@/components/ui/card';
 import QRCode from 'qrcode.react';
+import AIBuddy from '@/components/ai-buddy';
 
 
 type Course = {
@@ -93,11 +94,17 @@ const Index = () => {
   
   const [recentQuizResults, setRecentQuizResults] = useState<QuizResult[]>([]);
   const [recentNotes, setRecentNotes] = useState<Note[]>([]);
+  const [customizations, setCustomizations] = useState<Record<string, string>>({});
 
 
   useEffect(() => {
     if (!user) return;
     
+    const savedCustomizations = localStorage.getItem(`robotCustomizations_${user.uid}`);
+    if(savedCustomizations) {
+        setCustomizations(JSON.parse(savedCustomizations));
+    }
+
     const storedLearnerType = localStorage.getItem('learnerType');
     setLearnerType(storedLearnerType ?? 'Unknown');
 
@@ -343,9 +350,12 @@ const Index = () => {
     <div className="p-8">
       <div className="max-w-7xl mx-auto">
         <header className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Good afternoon, {user?.displayName?.split(' ')[0] || 'User'}! 👋</h1>
-            <p className="text-slate-500 dark:text-slate-400">Which study set are you working on today?</p>
+          <div className="flex items-center gap-4">
+              <AIBuddy {...customizations} className="w-16 h-16 hidden sm:block" />
+              <div>
+                <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Good afternoon, {user?.displayName?.split(' ')[0] || 'User'}! 👋</h1>
+                <p className="text-slate-500 dark:text-slate-400">Which study set are you working on today?</p>
+              </div>
           </div>
           <div className="flex items-center gap-4">
             <Link href="/dashboard/shop">
@@ -572,5 +582,3 @@ const Index = () => {
 };
 
 export default Index;
-
-    
