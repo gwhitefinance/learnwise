@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useContext } from 'react';
@@ -12,9 +13,9 @@ import { collection, query, where, onSnapshot, addDoc, serverTimestamp } from 'f
 import StudySetCard from '@/components/StudySetCard';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
@@ -49,6 +50,7 @@ const Index = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatingCourseName, setGeneratingCourseName] = useState('');
   const [learnerType, setLearnerType] = useState<string | null>(null);
+  const [streak, setStreak] = useState(0);
   const { toast } = useToast();
   const router = useRouter();
 
@@ -58,6 +60,25 @@ const Index = () => {
     
     const storedLearnerType = localStorage.getItem('learnerType');
     setLearnerType(storedLearnerType ?? 'Unknown');
+
+    // Streak logic
+    const today = new Date().toDateString();
+    const lastVisit = localStorage.getItem('lastVisit');
+    let currentStreak = Number(localStorage.getItem('streakCount')) || 0;
+    
+    if (lastVisit !== today) {
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        
+        if (lastVisit === yesterday.toDateString()) {
+            currentStreak++;
+        } else {
+            currentStreak = 1;
+        }
+        localStorage.setItem('lastVisit', today);
+        localStorage.setItem('streakCount', String(currentStreak));
+    }
+    setStreak(currentStreak);
 
     const q = query(collection(db, "courses"), where("userId", "==", user.uid));
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -307,6 +328,7 @@ const Index = () => {
                             <>
                                 <Button variant="ghost" onClick={() => { setAddCourseOpen(false); resetAddCourseDialog();}}>Cancel</Button>
                                 <Button onClick={() => newCourse.isNewTopic ? setAddCourseStep(2) : handleAddExistingCourse()} disabled={isSaving || newCourse.isNewTopic === null || !newCourse.name}>
+                                    {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                     {newCourse.isNewTopic ? 'Next' : 'Add Course'}
                                     {newCourse.isNewTopic && <ArrowRight className="ml-2 h-4 w-4" />}
                                 </Button>
@@ -336,11 +358,11 @@ const Index = () => {
               <div className="flex items-center gap-4">
                 <Flame className="text-orange-500 text-4xl" />
                 <div>
-                  <p className="text-lg font-bold text-slate-900 dark:text-white">3 day streak!</p>
+                  <p className="text-lg font-bold text-slate-900 dark:text-white">{streak} day streak!</p>
                   <p className="text-sm text-slate-500 dark:text-slate-400">Keep up the good work.</p>
                 </div>
               </div>
-              <Link className="text-sm font-semibold text-primary-light" href="#">View Leaderboard</Link>
+              <Link href="/dashboard/rewards" className="text-sm font-semibold text-primary-light">View Rewards</Link>
             </div>
             <div className="bg-white dark:bg-surface-dark p-6 rounded-3xl shadow-md shadow-blue-500/10">
               <div className="flex justify-between items-center mb-4">
@@ -390,4 +412,5 @@ const Index = () => {
 
 export default Index;
 
+    
     
