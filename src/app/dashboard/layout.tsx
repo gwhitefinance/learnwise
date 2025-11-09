@@ -58,6 +58,7 @@ import {
   BarChart3,
   PenSquare,
   ChevronRight,
+  ChevronLeft,
   FlaskConical,
   LogOut,
   User,
@@ -645,10 +646,20 @@ function DashboardLayoutContent({
 
         {/* Main Content */}
         <div className={cn(
-            "flex flex-col min-h-screen transition-all duration-300 ease-in-out", 
+            "flex flex-col min-h-screen transition-all duration-300 ease-in-out relative", 
             sidebarOpen && !isFocusLayout ? "md:pl-64" : "md:pl-0",
             isFocusLayout && 'md:pl-0 w-full'
         )}>
+             {!isFocusLayout && (
+                <button
+                    onClick={() => setSidebarOpen(!sidebarOpen)}
+                    className="fixed top-1/2 -translate-y-1/2 left-64 z-40 bg-background border-r-0 border h-10 w-10 flex items-center justify-center rounded-r-full transition-all duration-300 ease-in-out hover:bg-muted"
+                    style={{ left: sidebarOpen ? '16rem' : '0' }}
+                >
+                    <ChevronLeft className={cn("h-5 w-5 text-muted-foreground transition-transform", !sidebarOpen && "rotate-180")} />
+                </button>
+            )}
+
             {showTopBar && (
                 <div className="sticky top-0 z-10 flex h-16 items-center gap-3 border-b bg-background/95 px-4 backdrop-blur">
                     <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileMenuOpen(true)}>
