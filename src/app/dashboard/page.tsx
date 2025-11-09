@@ -255,10 +255,21 @@ const Index = () => {
             <p className="text-slate-500 dark:text-slate-400">Which study set are you working on today?</p>
           </div>
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 bg-white dark:bg-surface-dark p-2 pl-3 pr-4 rounded-full shadow-md shadow-blue-500/10">
-                <TazCoinIcon className="h-6 w-6"/>
-                <span className="font-bold text-slate-900 dark:text-white">{userCoins}</span>
-            </div>
+            <Link href="/dashboard/shop">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center gap-2 bg-white dark:bg-surface-dark p-2 pl-3 pr-4 rounded-full shadow-md shadow-blue-500/10 cursor-pointer">
+                          <TazCoinIcon className="h-6 w-6"/>
+                          <span className="font-bold text-slate-900 dark:text-white">{userCoins}</span>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Click to go to shop</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+            </Link>
             <button className="w-12 h-12 flex items-center justify-center rounded-full bg-white dark:bg-surface-dark shadow-md shadow-blue-500/10">
               <Bell className="text-slate-500 dark:text-slate-400" />
             </button>
