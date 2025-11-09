@@ -419,8 +419,6 @@ const Index = () => {
                             </div>
                             <div className="grid gap-2">
                                                                 <Label htmlFor="url">Course URL (Optional)</Label>
-                                
-                                
                                 <Input id="url" name="url" value={newCourse.url} onChange={handleInputChange} placeholder="https://example.com/course-link"/>
                                 </div>
                             <div className="grid gap-2">
@@ -524,23 +522,6 @@ const Index = () => {
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-xl font-bold text-slate-900 dark:text-white">Materials</h3>
                  <div className="flex items-center gap-2">
-                    <Dialog>
-                        <DialogTrigger asChild>
-                             <Button variant="ghost" className="flex items-center gap-2 text-sm font-semibold text-primary-light">
-                                <QrCode className="text-base" />
-                                Add via QR
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                            <DialogHeader>
-                                <DialogTitle>Add Notes from Mobile</DialogTitle>
-                                <DialogDescription>Scan this QR code with your phone to quickly upload a picture of your notes for this course.</DialogDescription>
-                            </DialogHeader>
-                            <div className="p-4 flex items-center justify-center">
-                               {qrCodeUrl ? <QRCode value={qrCodeUrl} size={256} /> : <p>Please select a course first.</p>}
-                            </div>
-                        </DialogContent>
-                    </Dialog>
                     <Link href="/dashboard/upload">
                         <Button variant="ghost" className="flex items-center gap-2 text-sm font-semibold text-primary-light">
                             <Upload className="text-base" />
@@ -578,6 +559,15 @@ const Index = () => {
                 </Link>
               )}
             </div>
+             <Card>
+                <CardContent className="p-4 flex flex-col items-center justify-center text-center">
+                    <h3 className="font-semibold mb-2">Add Notes from Mobile</h3>
+                    <p className="text-xs text-muted-foreground mb-4">Scan this QR code with your phone to quickly upload a picture of your notes for this course.</p>
+                    <div className="bg-white p-2 rounded-lg">
+                        {qrCodeUrl ? <QRCode value={qrCodeUrl} size={128} /> : <div className="h-[128px] w-[128px] flex items-center justify-center text-muted-foreground text-sm">Select a course</div>}
+                    </div>
+                </CardContent>
+            </Card>
           </div>
         </div>
       </div>
@@ -586,6 +576,3 @@ const Index = () => {
 };
 
 export default Index;
-
-    
-    
