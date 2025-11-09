@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowRight, RotateCcw, Lightbulb, CheckCircle, XCircle, PenSquare, Palette, Brush, Eraser, Minimize, Maximize, Clock, HelpCircle, Coins, Award, CheckSquare, GraduationCap, BookOpen, FileText } from 'lucide-react';
+import { ArrowRight, RotateCcw, Lightbulb, CheckCircle, XCircle, PenSquare, Palette, Brush, Eraser, Minimize, Maximize, Clock, HelpCircle, Award, CheckSquare, GraduationCap, BookOpen, FileText, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { GenerateQuizInput, GenerateQuizOutput, QuizQuestion } from '@/ai/schemas/quiz-schema';
 import { Progress } from '@/components/ui/progress';
@@ -34,6 +34,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { CrunchTimeOutput } from '@/ai/flows/crunch-time-flow';
 import { Checkbox } from '@/components/ui/checkbox';
+import TazCoinIcon from '@/components/TazCoinIcon';
 
 export const dynamic = "force-dynamic";
 
@@ -232,7 +233,7 @@ function PracticeQuizComponent() {
             setIsFocusMode(true);
             setQuizState('in-progress');
         }).catch(err => {
-            console.error(`Error attempting to enable full-screen mode: \${'${err.message}'} (\${'${err.name}'})`);
+            console.error(`Error attempting to enable full-screen mode: ${'${err.message}'} (${'${err.name}'})`);
             setIsFocusMode(false);
             setQuizState('in-progress');
         });
@@ -1020,7 +1021,7 @@ function PracticeQuizComponent() {
                             <div className="flex gap-2">
                                 <Button variant="outline" onClick={() => onWhiteboardOpenChange(!isWhiteboardOpen)}><PenSquare className="mr-2 h-4 w-4"/> Whiteboard</Button>
                                 <Button variant="outline" onClick={handleGetHint} disabled={isHintLoading || answerState === 'answered'}>
-                                    {isHintLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Gem className="mr-2 h-4 w-4"/>}
+                                    {isHintLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <TazCoinIcon className="mr-2 h-4 w-4"/>}
                                     Hint (10 Coins)
                                 </Button>
                             </div>
@@ -1290,6 +1291,7 @@ export default function PracticeQuizPage() {
     
 
     
+
 
 
 
