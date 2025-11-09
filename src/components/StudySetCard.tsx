@@ -6,6 +6,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { Button } from './ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 type Course = {
   id: string;
@@ -134,12 +135,21 @@ const StudySetCard = ({ course, quizResults, notes }: { course: Course, quizResu
                         </Link>
                     </DropdownMenuContent>
                 </DropdownMenu>
-                 <Link href="/dashboard/crunch-time" className="w-full">
-                    <div className="bg-white/20 backdrop-blur-sm p-4 rounded-2xl flex items-center gap-4 hover:bg-white/30 transition-colors">
-                      <div className="w-10 h-10 flex items-center justify-center rounded-full bg-orange-200 text-orange-600 font-bold"><Zap className="w-5 h-5" /></div>
-                      <div className="flex-1">Crunch Time</div>
-                    </div>
-                </Link>
+                 <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Link href="/dashboard/crunch-time" className="w-full">
+                                <div className="bg-white/20 backdrop-blur-sm p-4 rounded-2xl flex items-center gap-4 hover:bg-white/30 transition-colors">
+                                <div className="w-10 h-10 flex items-center justify-center rounded-full bg-orange-200 text-orange-600 font-bold"><Zap className="w-5 h-5" /></div>
+                                <div className="flex-1">Crunch Time</div>
+                                </div>
+                            </Link>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>Upload any study material and get a personalized study guide in seconds.</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
                 <div className="bg-white/20 backdrop-blur-sm p-4 rounded-2xl flex items-center gap-4">
                   <div className="w-10 h-10 flex items-center justify-center rounded-full bg-indigo-200 text-indigo-600 font-bold"><Headphones className="w-5 h-5" /></div>
                   <div className="flex-1">Audio Recap</div>
