@@ -3,8 +3,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { History, Crown, Paperclip, Code, Mic, Pen } from "lucide-react";
-import { PiMathOperationsBold } from "react-icons/pi";
+import { History, Crown, Paperclip, Code, Mic, Pen, Calculator } from "lucide-react";
 
 export default function HomeworkSolverPage() {
     return (
@@ -43,7 +42,7 @@ export default function HomeworkSolverPage() {
                                     <Code className="h-5 w-5" />
                                 </Button>
                                 <Button variant="ghost" size="icon" className="rounded-full bg-neutral-700/60 hover:bg-neutral-700 text-neutral-400">
-                                    <PiMathOperationsBold className="h-5 w-5" />
+                                    <Calculator className="h-5 w-5" />
                                 </Button>
                                  <Button variant="ghost" size="icon" className="rounded-full bg-neutral-700/60 hover:bg-neutral-700 text-neutral-400">
                                     <Pen className="h-5 w-5" />
