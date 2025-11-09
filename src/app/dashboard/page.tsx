@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect, useContext } from 'react';
@@ -461,7 +460,7 @@ const Index = () => {
                 </DialogContent>
             </Dialog>
             <Link href="/dashboard/courses" className="ml-auto flex items-center gap-2 text-sm font-semibold text-primary-light">
-              See All My Sets
+              See all of my courses
             </Link>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -553,4 +552,3 @@ const Index = () => {
 export default Index;
 
     
-
