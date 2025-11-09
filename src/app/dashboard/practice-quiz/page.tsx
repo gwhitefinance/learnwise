@@ -102,7 +102,7 @@ function PracticeQuizComponent() {
     const [isLoading, setIsLoading] = useState(false);
     const [isExplanationLoading, setIsExplanationLoading] = useState(false);
     const [quizState, setQuizState] = useState<QuizState>('start');
-    const [answerState, setAnswerState] = useState<AnswerState>('unanswered' | 'answered');
+    const [answerState, setAnswerState] = useState<AnswerState>('unanswered');
     const [quiz, setQuiz] = useState<GenerateQuizOutput | null>(null);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
@@ -233,7 +233,7 @@ function PracticeQuizComponent() {
             setIsFocusMode(true);
             setQuizState('in-progress');
         }).catch(err => {
-            console.error(`Error attempting to enable full-screen mode: \${err.message} (\${err.name})`);
+            console.error(`Error attempting to enable full-screen mode: ${'${err.message}'} (${'${err.name}'})`);
             setIsFocusMode(false);
             setQuizState('in-progress');
         });
@@ -333,7 +333,7 @@ function PracticeQuizComponent() {
         const currentQuestion = quiz.questions[currentQuestionIndex] as QuizQuestion & { type?: string };
         let isCorrect = false;
 
-        const cleanAndSplit = (text: string) => text.toLowerCase().replace(/[^\\w\\s]/g, '').split(/\\s+/).filter(Boolean);
+        const cleanAndSplit = (text: string) => text.toLowerCase().replace(/[^A-Za-z0-9\s]/g, '').split(/\s+/).filter(Boolean);
 
         if (currentQuestion.type === 'Free Response (FRQ)') {
             const answerKeywords = cleanAndSplit(currentQuestion.answer);
@@ -1291,6 +1291,7 @@ export default function PracticeQuizPage() {
     
 
     
+
 
 
 
