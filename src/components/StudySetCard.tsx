@@ -179,7 +179,7 @@ const StudySetCard = ({ course, quizResults, notes }: { course: Course, quizResu
             </div>
             <Link href={`/dashboard/courses?courseId=${course.id}`} className="w-full bg-white text-primary font-bold py-4 px-6 rounded-2xl text-lg flex items-center justify-center gap-2 hover:bg-indigo-50 transition-colors shadow-lg">
                 <Play className="w-6 h-6" />
-                <span>Continue Learning</span>
+                <span>{progress > 0 ? 'Continue Learning' : 'Start Learning'}</span>
             </Link>
         </div>
     );
