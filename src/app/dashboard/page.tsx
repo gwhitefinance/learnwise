@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useContext } from 'react';
@@ -8,7 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import Link from 'next/link';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
-import { collection, query, where, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, increment, getDoc, orderBy, limit } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, increment, getDoc, orderBy, limit, Timestamp } from 'firebase/firestore';
 import StudySetCard from '@/components/StudySetCard';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -58,6 +59,8 @@ type QuizResult = {
 type Note = {
     id: string;
     title: string;
+    date: Timestamp;
+    isWhiteboardNote?: boolean;
 };
 
 
@@ -200,7 +203,7 @@ const Index = () => {
 
   const resetAddCourseDialog = () => {
     setAddCourseStep(1);
-    setNewCourse({ name: '', instructor: '', credits: '', url: '', description: '', isNewTopic: null });
+    setNewCourse({ name: '', instructor: '', credits: '', url: '', description: '', isNewTopic: null as boolean | null });
     setLearningPace("3");
   };
 
@@ -504,41 +507,41 @@ const Index = () => {
             <div className="bg-white dark:bg-surface-dark p-6 rounded-3xl shadow-md shadow-blue-500/10">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-xl font-bold text-slate-900 dark:text-white">Materials</h3>
-                <button className="flex items-center gap-2 text-sm font-semibold text-primary-light bg-blue-500/10 px-3 py-2 rounded-xl hover:bg-blue-500/20">
-                  <Upload className="text-base" />
-                  Upload
-                </button>
+                 <Link href="/dashboard/upload">
+                    <Button variant="ghost" className="flex items-center gap-2 text-sm font-semibold text-primary-light">
+                        <Upload className="text-base" />
+                        Upload
+                    </Button>
+                 </Link>
               </div>
               <ul className="space-y-4">
-                <li className="flex items-center gap-4">
-                  <div className="w-12 h-12 flex items-center justify-center bg-blue-100 dark:bg-slate-800/60 rounded-xl">
-                    <FileText className="text-blue-500 dark:text-blue-400" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-slate-800 dark:text-slate-200">Risk Management</p>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">Nov 6, 2025</p>
-                  </div>
-                </li>
-                <li className="flex items-center gap-4">
-                  <div className="w-12 h-12 flex items-center justify-center bg-blue-100 dark:bg-slate-800/60 rounded-xl">
-                    <FileText className="text-blue-500 dark:text-blue-400" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-slate-800 dark:text-slate-200">Technical Analysis</p>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">Nov 6, 2025</p>
-                  </div>
-                </li>
-                <li className="flex items-center gap-4">
-                  <div className="w-12 h-12 flex items-center justify-center bg-blue-100 dark:bg-slate-800/60 rounded-xl">
-                    <Mic className="text-blue-500 dark:text-blue-400" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-slate-800 dark:text-slate-200">Untitled Lecture</p>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">Nov 5, 2025</p>
-                  </div>
-                </li>
+                {recentNotes.length > 0 ? (
+                  recentNotes.map((note) => (
+                    <li key={note.id} className="flex items-center gap-4">
+                      <div className="w-12 h-12 flex items-center justify-center bg-blue-100 dark:bg-slate-800/60 rounded-xl">
+                        {note.isWhiteboardNote ? (
+                          <PenTool className="text-blue-500 dark:text-blue-400" />
+                        ) : (
+                          <FileText className="text-blue-500 dark:text-blue-400" />
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-slate-800 dark:text-slate-200 truncate max-w-[150px]">{note.title}</p>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">{note.date.toDate().toLocaleDateString()}</p>
+                      </div>
+                    </li>
+                  ))
+                ) : (
+                  <p className="text-sm text-center text-slate-500 dark:text-slate-400 py-8">
+                    No recent materials for this course.
+                  </p>
+                )}
               </ul>
-              <button className="w-full text-center mt-6 text-sm font-semibold text-primary-light">View All</button>
+              {recentNotes.length > 0 && (
+                <Link href="/dashboard/notes">
+                    <button className="w-full text-center mt-6 text-sm font-semibold text-primary-light">View All</button>
+                </Link>
+              )}
             </div>
           </div>
         </div>
@@ -550,3 +553,4 @@ const Index = () => {
 export default Index;
 
     
+
