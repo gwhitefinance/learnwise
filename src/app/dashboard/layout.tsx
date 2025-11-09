@@ -204,10 +204,10 @@ const sidebarItems: SidebarItem[] = [
             id: "analysis-link",
         },
         {
-            title: "Upload",
-            icon: <UploadCloud />,
-            href: "/dashboard/upload",
-            id: "upload-link",
+            title: "Homework Help",
+            icon: <ClipboardPenLine />,
+            href: "/dashboard/homework-help",
+            id: "homework-help-link",
         },
         {
             title: "Mindfulness",
