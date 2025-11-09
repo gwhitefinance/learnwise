@@ -653,10 +653,10 @@ function DashboardLayoutContent({
              {!isFocusLayout && (
                 <button
                     onClick={() => setSidebarOpen(!sidebarOpen)}
-                    className="fixed top-1/2 -translate-y-1/2 left-64 z-40 bg-background border-r-0 border h-10 w-10 flex items-center justify-center rounded-r-full transition-all duration-300 ease-in-out hover:bg-muted"
-                    style={{ left: sidebarOpen ? '16rem' : '0' }}
+                    className="fixed top-1/2 -translate-y-1/2 z-40 bg-background border h-8 w-8 flex items-center justify-center rounded-full transition-all duration-300 ease-in-out hover:bg-muted"
+                    style={{ left: sidebarOpen ? 'calc(16rem - 1rem)' : '1rem' }}
                 >
-                    <ChevronLeft className={cn("h-5 w-5 text-muted-foreground transition-transform", !sidebarOpen && "rotate-180")} />
+                    <ChevronLeft className={cn("h-4 w-4 text-muted-foreground transition-transform", !sidebarOpen && "rotate-180")} />
                 </button>
             )}
 
