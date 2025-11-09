@@ -146,7 +146,7 @@ const StudySetCard = ({ course, quizResults, notes }: { course: Course, quizResu
                             </Link>
                         </TooltipTrigger>
                         <TooltipContent>
-                            <p>Upload any study material and get a personalized study guide in seconds.</p>
+                            <p>Upload material and get an instant study guide. Perfect for last-minute prep.</p>
                         </TooltipContent>
                     </Tooltip>
                 </TooltipProvider>
