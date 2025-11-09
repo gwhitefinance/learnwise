@@ -41,6 +41,7 @@ import './flows/summary-flow';
 import './flows/text-to-speech-flow';
 import './flows/problem-solving-flow';
 import './tools/problem-solving-tool';
+import './tools/math-solver-tool';
 import './flows/crunch-time-flow';
 import './tools/quiz-tool';
 import './flows/image-generation-flow';

@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview A Genkit tool for solving math and science problems.
