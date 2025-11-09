@@ -351,7 +351,7 @@ const Index = () => {
       <div className="max-w-7xl mx-auto">
         <header className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
           <div className="flex items-center gap-4">
-              <AIBuddy {...customizations} className="w-16 h-16 hidden sm:block" />
+              <AIBuddy {...customizations} className="w-12 h-12 hidden sm:block" />
               <div>
                 <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Good afternoon, {user?.displayName?.split(' ')[0] || 'User'}! 👋</h1>
                 <p className="text-slate-500 dark:text-slate-400">Which study set are you working on today?</p>
@@ -582,3 +582,4 @@ const Index = () => {
 };
 
 export default Index;
+
