@@ -386,10 +386,12 @@ const Index = () => {
             </button>
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                    <Avatar className="h-12 w-12 cursor-pointer">
-                        <AvatarImage src={user?.photoURL ?? undefined} />
-                        <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
-                    </Avatar>
+                    <div className="relative cursor-pointer group">
+                        <Avatar className="h-12 w-12 bg-white dark:bg-surface-dark p-1 shadow-md shadow-blue-500/10">
+                            <AvatarImage src={user?.photoURL ?? undefined} />
+                            <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                    </div>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                     <DropdownMenuItem asChild><Link href="/dashboard/profile">Profile</Link></DropdownMenuItem>
@@ -579,7 +581,7 @@ const Index = () => {
                 </Link>
               )}
             </div>
-            <Card>
+             <Card>
                 <CardContent className="p-4 flex flex-col items-center justify-center text-center">
                     <h3 className="font-semibold mb-2">Add Notes from Mobile</h3>
                     <p className="text-xs text-muted-foreground mb-4">Scan this QR code with your phone to quickly upload a picture of your notes for this course.</p>
@@ -596,4 +598,3 @@ const Index = () => {
 };
 
 export default Index;
-
