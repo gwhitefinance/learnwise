@@ -19,22 +19,25 @@ const TazCoinIcon = ({ className }: { className?: string }) => (
       </radialGradient>
     </defs>
     <g>
-      {/* Coin body */}
+      {/* Coin body with gold outline */}
       <circle cx="12" cy="12" r="11" fill="url(#coin-gradient)" stroke="#DAA520" strokeWidth="1.5" />
-      <circle cx="12" cy="12" r="9" fill="none" stroke="#B8860B" strokeWidth="1" strokeDasharray="2,2" />
-
+      
       {/* Taz Face - simplified */}
-      <g transform="translate(4, 5) scale(0.6)">
-        {/* Face Screen */}
-        <rect x="7" y="5" width="18" height="11" rx="4" fill="#222" />
-        {/* Eyes */}
-        <circle cx="12" cy="10" r="2.5" fill="white" />
-        <circle cx="20" cy="10" r="2.5" fill="white" />
-        <circle cx="12" cy="10" r="1" fill="black" />
-        <circle cx="20" cy="10" r="1" fill="black" />
+      <g transform="translate(0, 0.5) scale(0.45)">
+        {/* Face Screen - Blue Background */}
+        <rect x="13" y="13" width="22" height="14" rx="4" fill="#87CEEB" />
+        {/* Eyes - Centered */}
+        <circle cx="19" cy="20" r="2.5" fill="white" />
+        <circle cx="29" cy="20" r="2.5" fill="white" />
+        <circle cx="19" cy="20" r="1" fill="black" />
+        <circle cx="29" cy="20" r="1" fill="black" />
         {/* Mouth */}
-        <path d="M 14 14 Q 16 16 18 14" stroke="white" strokeWidth="1" fill="none" strokeLinecap="round" />
+        <path d="M 21 24 Q 24 26 27 24" stroke="white" strokeWidth="1" fill="none" strokeLinecap="round" />
       </g>
+      
+       {/* Inner gold ring */}
+      <circle cx="12" cy="12" r="9" fill="none" stroke="#B8860B" strokeWidth="0.5" />
+
     </g>
   </svg>
 );
