@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect, useContext } from 'react';
@@ -27,6 +26,12 @@ import { generateInitialCourseAndRoadmap } from '@/lib/actions';
 import { RewardContext } from '@/context/RewardContext';
 import RewardsDialog from '@/components/RewardsDialog';
 import TazCoinIcon from '@/components/TazCoinIcon';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 
 type Course = {
@@ -440,3 +445,5 @@ const Index = () => {
 };
 
 export default Index;
+
+    
