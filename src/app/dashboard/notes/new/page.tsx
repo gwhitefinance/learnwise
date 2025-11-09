@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -10,7 +9,7 @@ import Image from 'next/image';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import Draggable from 'react-draggable';
-import { generateNoteFromChat, studyPlannerAction } from '@/lib/actions';
+import { generateNoteFromChat, studyPlannerAction, analyzeImage } from '@/lib/actions';
 import { Textarea } from '@/components/ui/textarea';
 import AIBuddy from '@/components/ai-buddy';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -353,8 +352,32 @@ export default function NewNotePage() {
             const userCourses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
             setCourses(userCourses);
         });
-        return () => unsubscribe();
-    }, [user]);
+
+        // Listen for messages from the mobile upload window
+        const handleMessage = async (event: MessageEvent) => {
+            if (event.origin !== window.location.origin) return;
+
+            if (event.data.type === 'noteUpload') {
+                toast({ title: "Image Received!", description: "Analyzing image to create notes..." });
+                try {
+                    const { analysis } = await analyzeImage({ imageDataUri: event.data.imageDataUri });
+                    if (editorRef.current) {
+                        editorRef.current.innerHTML += `<h2>Note from Image Upload</h2><p>${analysis}</p>`;
+                    }
+                    toast({ title: "Success!", description: "Your image has been analyzed and added to your note." });
+                } catch (e) {
+                    toast({ variant: 'destructive', title: "Analysis Failed" });
+                }
+            }
+        };
+
+        window.addEventListener('message', handleMessage);
+
+        return () => {
+            unsubscribe();
+            window.removeEventListener('message', handleMessage);
+        };
+    }, [user, toast]);
 
     const handleCommand = (command: string, value?: string) => {
         document.execCommand(command, false, value);
