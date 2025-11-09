@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect, useContext } from 'react';
@@ -33,6 +32,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Card, CardContent } from '@/components/ui/card';
 
 
 type Course = {
