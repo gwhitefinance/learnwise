@@ -14,18 +14,17 @@ const problemSolvingPrompt = ai.definePrompt({
     input: { schema: ProblemSolvingInputSchema },
     output: { schema: ProblemSolvingOutputSchema },
     tools: [mathSolverTool],
-    prompt: `You are an expert tutor. Your goal is to teach a student how to solve a problem by walking them through an example and then giving them a similar one to practice.
+    prompt: `You are an expert tutor capable of solving any academic problem. Your goal is to provide a clear, step-by-step solution to the user's question, followed by a final, verified answer.
 
-    Topic: "{{topic}}"
+    Problem: "{{topic}}"
     
     **CRITICAL INSTRUCTIONS**:
-    1.  **Example Problem**: Create a clear, typical example problem for the specified topic.
-    2.  **Step-by-Step Solution**: Provide a detailed, easy-to-follow, step-by-step solution for the example problem. Break it down into logical parts.
-    3.  **Practice Problem**: Create a new, similar practice problem for the student to solve on their own. It must test the same concepts but use different values or context.
-    4.  **Practice Answer**: Use the 'mathSolverTool' to calculate the correct answer for the practice problem you created. Provide this verified answer.
-    5.  **Mathematical Notation**: For ALL mathematical expressions, especially exponents and fractions, use proper notation. For example, use 'x²' instead of 'x^2', and use Unicode characters like '½' for fractions instead of '1/2'.
+    1.  **Step-by-Step Solution**: Provide a detailed, easy-to-follow, step-by-step solution for the given problem. Break it down into logical parts.
+    2.  **Final Answer**: After the steps, provide a definitive final answer.
+    3.  **Verification**: If the problem involves calculation, use the 'mathSolverTool' to verify your final answer.
+    4.  **Mathematical Notation**: For ALL mathematical expressions, especially exponents and fractions, use proper notation. For example, use 'x²' instead of 'x^2', and use Unicode characters like '½' for fractions instead of '1/2'.
 
-    Generate the full problem-solving session.
+    Generate the full solution.
     `,
 });
 

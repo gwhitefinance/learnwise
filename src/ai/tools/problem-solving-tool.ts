@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview A Genkit tool for solving math and science problems.
@@ -12,28 +13,28 @@ const ProblemInputSchema = z.object({
 });
 
 const ProblemOutputSchema = z.object({
-    solution: z.string().describe("The final answer to the problem."),
+    answer: z.string().describe("The final answer to the problem."),
     steps: z.array(z.string()).describe("The step-by-step process used to arrive at the solution."),
 });
 
 export const problemSolvingTool = ai.defineTool(
   {
     name: 'problemSolvingTool',
-    description: 'Solves complex math and science problems, providing a step-by-step solution.',
+    description: 'Solves complex academic problems, providing a step-by-step solution.',
     inputSchema: ProblemInputSchema,
     outputSchema: ProblemOutputSchema,
   },
   async ({ problem, context }) => {
     try {
-      const result = await generateProblemSolvingSession({ topic: problem });
+      const result = await generateProblemSolvingSession({ topic: context ? `${problem}\nContext: ${context}`: problem });
       return {
-          solution: result.practiceProblem.answer,
-          steps: result.stepByStepSolution
+          answer: result.answer,
+          steps: result.steps
       };
     } catch (error: any) {
         console.error("Error solving problem:", error);
         return {
-            solution: "Could not solve the problem.",
+            answer: "Could not solve the problem.",
             steps: [error.message || "An unexpected error occurred in the solver."]
         }
     }

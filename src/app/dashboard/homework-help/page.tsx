@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import AIBuddy from "@/components/ai-buddy";
 
 type Solution = {
-    solution: string;
+    answer: string;
     steps: string[];
 }
 
@@ -106,7 +106,7 @@ export default function HomeworkSolverPage() {
                                 <AIBuddy className="h-10 w-10"/>
                                 <div>
                                     <p className="text-sm font-semibold">Tutorin's Answer</p>
-                                    <p className="font-bold text-lg">{solution.solution}</p>
+                                    <p className="font-bold text-lg">{solution.answer}</p>
                                 </div>
                             </CardContent>
                         </Card>
