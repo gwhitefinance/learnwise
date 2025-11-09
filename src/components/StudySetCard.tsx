@@ -1,10 +1,11 @@
 
 'use client';
 
-import { Bookmark, Settings, Play, ChevronDown, PenTool, BookMarked, GraduationCap, Gamepad2, Headphones, Plus, ArrowRight, FileText, Trophy, Eye } from 'lucide-react';
+import { Bookmark, Settings, Play, ChevronDown, PenTool, BookMarked, GraduationCap, Gamepad2, Headphones, Plus, ArrowRight, FileText, Trophy, Eye, Copy } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
 import { format } from 'date-fns';
+import { Button } from './ui/button';
 
 type Course = {
   id: string;
@@ -112,11 +113,27 @@ const StudySetCard = ({ course, quizResults, notes }: { course: Course, quizResu
                     </DropdownMenuContent>
                 </DropdownMenu>
 
-                <div className="bg-white/20 backdrop-blur-sm p-4 rounded-2xl flex items-center gap-4">
-                  <div className="w-10 h-10 flex items-center justify-center rounded-full bg-teal-200 text-teal-600 font-bold"><GraduationCap className="w-5 h-5" /></div>
-                  <div className="flex-1">Flashcards</div>
-                  <ChevronDown className="w-5 h-5" />
-                </div>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <button className="bg-white/20 backdrop-blur-sm p-4 rounded-2xl flex items-center gap-4 text-left w-full hover:bg-white/30 transition-colors">
+                            <div className="w-10 h-10 flex items-center justify-center rounded-full bg-teal-200 text-teal-600 font-bold"><Copy className="w-5 h-5" /></div>
+                            <div className="flex-1">Flashcards</div>
+                            <ChevronDown className="w-5 h-5" />
+                        </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-64">
+                        <DropdownMenuLabel>Key Concepts</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        {/* Future: Add recent session info here */}
+                        <DropdownMenuItem disabled>No recent sessions</DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <Link href="/dashboard/key-concepts">
+                            <DropdownMenuItem>
+                                <Plus className="w-4 h-4 mr-2" /> Start New Session
+                            </DropdownMenuItem>
+                        </Link>
+                    </DropdownMenuContent>
+                </DropdownMenu>
                 <div className="bg-white/20 backdrop-blur-sm p-4 rounded-2xl flex items-center gap-4">
                   <div className="w-10 h-10 flex items-center justify-center rounded-full bg-purple-200 text-purple-600 font-bold">0</div>
                   <div className="flex-1">Tutor Me</div>
