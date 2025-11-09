@@ -28,6 +28,7 @@ type Note = {
 
 const StudySetCard = ({ course, quizResults, notes }: { course: Course, quizResults: QuizResult[], notes: Note[] }) => {
     const { openChatWithPrompt } = useContext(FloatingChatContext) as any;
+    const materialCount = (quizResults?.length || 0) + (notes?.length || 0);
 
     const handleDeepDive = () => {
         if (openChatWithPrompt) {
@@ -40,7 +41,7 @@ const StudySetCard = ({ course, quizResults, notes }: { course: Course, quizResu
             <div className="flex justify-between items-start mb-6">
                 <div>
                     <h2 className="text-3xl font-bold">{course.name}</h2>
-                    <p className="text-indigo-200">9 materials</p>
+                    <p className="text-indigo-200">{materialCount} materials</p>
                 </div>
                 <div className="flex items-center gap-2">
                     <button className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20">
