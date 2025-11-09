@@ -3,12 +3,11 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { History, Crown, Paperclip, Code, Mic, Pen, Calculator, Sparkles, Loader2, PlayCircle, Bot } from "lucide-react";
+import { History, Paperclip, Code, Mic, Pen, Calculator, Sparkles, Loader2, PlayCircle, Bot } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { problemSolvingTool } from "@/ai/tools/problem-solving-tool";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import AIBuddy from "@/components/ai-buddy";
 
 type Solution = {
@@ -41,11 +40,11 @@ export default function HomeworkSolverPage() {
     };
 
     return (
-        <div className="min-h-screen flex flex-col p-4">
+        <div className="min-h-screen flex flex-col p-4 bg-background">
             <header className="flex justify-between items-center mb-6">
                  <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Snap & Solve Solution</h1>
-                    <p className="text-muted-foreground text-sm">Home &gt; Snap & Solve Solution</p>
+                    <h1 className="text-2xl font-bold tracking-tight">AI Homework Solver</h1>
+                    <p className="text-muted-foreground text-sm">Home &gt; Homework Help</p>
                 </div>
                  <Button variant="outline" className="rounded-full">
                     <History className="mr-2 h-4 w-4" />
