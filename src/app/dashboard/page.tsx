@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useContext } from 'react';
@@ -39,6 +40,13 @@ type Course = {
   name: string;
 };
 
+type QuizAttempt = {
+    id: string;
+    userId: string;
+    courseId: string;
+    topic: string;
+};
+
 const paces = [
   { value: "6", label: "Casual", description: "A relaxed pace for exploring.", icon: <Snail className="h-6 w-6" /> },
   { value: "3", label: "Steady", description: "A balanced pace for consistent learning.", icon: <Turtle className="h-6 w-6" /> },
@@ -64,6 +72,7 @@ const Index = () => {
   const { toast } = useToast();
   const router = useRouter();
   const { showReward } = useContext(RewardContext);
+  const [weakTopics, setWeakTopics] = useState<string[]>([]);
 
 
   useEffect(() => {
@@ -109,9 +118,28 @@ const Index = () => {
         }
     });
 
+    const attemptsQuery = query(collection(db, 'quizAttempts'), where('userId', '==', user.uid));
+    const unsubscribeAttempts = onSnapshot(attemptsQuery, (snapshot) => {
+        const attempts = snapshot.docs.map(doc => doc.data() as QuizAttempt);
+        if (activeCourse) {
+            const courseAttempts = attempts.filter(a => a.courseId === activeCourse.id);
+            const topicCounts: Record<string, number> = {};
+            courseAttempts.forEach(attempt => {
+                if(attempt.topic) {
+                    topicCounts[attempt.topic] = (topicCounts[attempt.topic] || 0) + 1;
+                }
+            });
+            const sortedTopics = Object.entries(topicCounts)
+                .sort(([, a], [, b]) => b - a)
+                .map(([topic]) => topic);
+            setWeakTopics(sortedTopics.slice(0, 3));
+        }
+    });
+
     return () => {
         unsubscribeCourses();
         unsubscribeUser();
+        unsubscribeAttempts();
     };
   }, [user, activeCourse]);
   
@@ -381,6 +409,26 @@ const Index = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             {activeCourse ? <StudySetCard course={activeCourse} /> : <div className="text-center p-12 bg-muted rounded-2xl">Select a course to see details.</div>}
+            
+            {activeCourse && weakTopics.length > 0 && (
+                <div className="mt-8">
+                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-4">Your Weak Links</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                        {weakTopics.map(topic => (
+                            <Card key={topic}>
+                                <CardContent className="p-4 flex flex-col items-center justify-center text-center">
+                                    <p className="font-semibold mb-2">{topic}</p>
+                                    <Button asChild variant="outline" size="sm">
+                                        <Link href={`/dashboard/practice-quiz?topic=${encodeURIComponent(topic)}`}>
+                                            Practice Quiz
+                                        </Link>
+                                    </Button>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
+                </div>
+            )}
           </div>
           <div className="space-y-8">
             <div className="bg-white dark:bg-surface-dark p-6 rounded-3xl shadow-md shadow-blue-500/10 flex items-center justify-between">
