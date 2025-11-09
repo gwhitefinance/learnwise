@@ -24,26 +24,38 @@ const Chest = ({ isOpen, onOpen, rarity }: { isOpen: boolean, onOpen: () => void
     };
 
     return (
-        <div className="relative w-48 h-48 cursor-pointer" onClick={onOpen}>
+        <motion.div 
+            className="relative w-48 h-48 cursor-pointer" 
+            onClick={onOpen}
+            animate={isOpen ? { scale: 1.5, zIndex: 50, transition: { duration: 0.3 } } : { scale: 1, zIndex: 1 }}
+        >
             <motion.div
-                className="absolute bottom-0 left-0 w-full h-2/3 bg-gradient-to-b rounded-md"
-                initial={false}
-                animate={{ scaleY: isOpen ? 0.95 : 1, y: isOpen ? 5 : 0 }}
-                transition={{ duration: 0.3, ease: "easeOut" }}
+                className="absolute w-full h-full"
+                animate={isOpen ? {
+                    rotate: [0, -2, 2, -2, 2, 0],
+                    transition: { duration: 0.5, delay: 0.3, repeat: 1, repeatType: "mirror" }
+                } : {}}
             >
-                <div className={cn("w-full h-full rounded-b-md bg-gradient-to-b", rarityClasses[rarity as keyof typeof rarityClasses] || rarityClasses.Common)}></div>
-                 <div className="absolute inset-x-2 -top-2 h-4 bg-yellow-400 border-2 border-yellow-600 rounded-sm"></div>
+                <motion.div
+                    className="absolute bottom-0 left-0 w-full h-2/3 bg-gradient-to-b rounded-md"
+                    initial={false}
+                    animate={{ scaleY: isOpen ? 0.95 : 1, y: isOpen ? 5 : 0 }}
+                    transition={{ duration: 0.3, ease: "easeOut", delay: isOpen ? 1.3 : 0 }}
+                >
+                    <div className={cn("w-full h-full rounded-b-md bg-gradient-to-b", rarityClasses[rarity as keyof typeof rarityClasses] || rarityClasses.Common)}></div>
+                    <div className="absolute inset-x-2 -top-2 h-4 bg-yellow-400 border-2 border-yellow-600 rounded-sm"></div>
+                </motion.div>
+                <motion.div
+                    className="absolute top-0 left-0 w-full h-2/3 origin-bottom"
+                    initial={false}
+                    animate={{ rotateX: isOpen ? -110 : 0 }}
+                    transition={{ duration: 0.4, ease: "easeOut", delay: isOpen ? 1.3 : 0 }}
+                >
+                    <div className={cn("w-full h-full rounded-t-md bg-gradient-to-b", rarityClasses[rarity as keyof typeof rarityClasses] || rarityClasses.Common)}></div>
+                    <div className="absolute inset-x-2 -bottom-2 h-4 bg-yellow-400 border-2 border-yellow-600 rounded-sm"></div>
+                </motion.div>
             </motion.div>
-            <motion.div
-                className="absolute top-0 left-0 w-full h-2/3 origin-bottom"
-                initial={false}
-                animate={{ rotateX: isOpen ? -110 : 0 }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
-            >
-                <div className={cn("w-full h-full rounded-t-md bg-gradient-to-b", rarityClasses[rarity as keyof typeof rarityClasses] || rarityClasses.Common)}></div>
-                <div className="absolute inset-x-2 -bottom-2 h-4 bg-yellow-400 border-2 border-yellow-600 rounded-sm"></div>
-            </motion.div>
-        </div>
+        </motion.div>
     );
 };
 
@@ -89,7 +101,7 @@ export default function RewardsDialog({ streak }: { streak: number }) {
                 localStorage.setItem(`lastClaimed_${chest.id}`, todayStr);
                 setClaimedChests(prev => ({ ...prev, [chestId]: true }));
                 setOpenedChest(null);
-            }, 1500); // Show coin amount before closing
+            }, 2500); // Show coin amount before closing
 
         } catch (error) {
             toast({ variant: 'destructive', title: 'Error claiming reward.' });
@@ -116,10 +128,10 @@ export default function RewardsDialog({ streak }: { streak: number }) {
                                     {openedChest === chest.id && (
                                          <motion.div
                                             initial={{ opacity: 0, y: 0, scale: 0.5 }}
-                                            animate={{ opacity: 1, y: -50, scale: 1.2 }}
+                                            animate={{ opacity: 1, y: -80, scale: [1, 1.4, 1.2] }}
                                             exit={{ opacity: 0 }}
-                                            transition={{ duration: 0.5, delay: 0.4 }}
-                                            className="absolute -top-12 left-1/2 -translate-x-1/2 flex items-center gap-2 font-bold text-2xl text-amber-400"
+                                            transition={{ duration: 0.8, delay: 1.5, type: 'spring' }}
+                                            className="absolute -top-12 left-1/2 -translate-x-1/2 flex items-center gap-2 font-bold text-3xl text-amber-400"
                                         >
                                             <Gem /> +{earnedAmount}
                                         </motion.div>
@@ -143,4 +155,3 @@ export default function RewardsDialog({ streak }: { streak: number }) {
         </DialogContent>
     );
 }
-
