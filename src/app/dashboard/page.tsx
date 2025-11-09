@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect, useContext } from 'react';
@@ -352,7 +351,7 @@ const Index = () => {
       <div className="max-w-7xl mx-auto">
         <header className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
           <div className="flex items-center gap-4">
-              <AIBuddy {...customizations} className="w-[25px] h-[25px] hidden sm:block" />
+              <AIBuddy {...customizations} className="w-[100px] h-[100px] hidden sm:block" />
               <div>
                 <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Good afternoon, {user?.displayName?.split(' ')[0] || 'User'}! 👋</h1>
                 <p className="text-slate-500 dark:text-slate-400">Which study set are you working on today?</p>
@@ -417,10 +416,9 @@ const Index = () => {
                                 <Textarea id="description" name="description" value={newCourse.description} onChange={handleInputChange} placeholder="A brief summary of the course"/>
                             </div>
                             <div className="grid gap-2">
-                                <Label htmlFor="url">Course URL (Optional)
-                                <Input id="url" name="url" value={newCourse.url} onChange={handleInputChange} placeholder="https://example.com/course-link"/>
-                                </Label>
-                            </div>
+                                 <Label htmlFor="url">Course URL (Optional)</Label>
+                                 <Input id="url" name="url" value={newCourse.url} onChange={handleInputChange} placeholder="https://example.com/course-link"/>
+                                 </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="is-new-topic">Are you currently in this course?</Label>
                                 <Select onValueChange={(value) => setNewCourse(prev => ({...prev, isNewTopic: value === 'true' }))}>
@@ -584,5 +582,3 @@ const Index = () => {
 };
 
 export default Index;
-
-
