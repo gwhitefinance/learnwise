@@ -9,7 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import Link from 'next/link';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
-import { collection, query, where, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, increment } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, increment, getDoc } from 'firebase/firestore';
 import StudySetCard from '@/components/StudySetCard';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -42,6 +42,7 @@ const paces = [
 
 const Index = () => {
   const [user, loading] = useAuthState(auth);
+  const [userCoins, setUserCoins] = useState(0);
   const [courses, setCourses] = useState<Course[]>([]);
   const [activeCourse, setActiveCourse] = useState<Course | null>(null);
   const [dataLoading, setDataLoading] = useState(true);
@@ -70,7 +71,6 @@ const Index = () => {
     const today = new Date().toDateString();
     const lastVisit = localStorage.getItem('lastVisit');
     let currentStreak = Number(localStorage.getItem('streakCount')) || 0;
-    const lastClaimedDate = localStorage.getItem('dailyRewardClaimed');
     
     if (lastVisit !== today) {
         const yesterday = new Date();
@@ -85,13 +85,9 @@ const Index = () => {
         localStorage.setItem('streakCount', String(currentStreak));
     }
     setStreak(currentStreak);
-    
-    if (lastClaimedDate !== today) {
-        setCanClaimDaily(true);
-    }
 
     const q = query(collection(db, "courses"), where("userId", "==", user.uid));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+    const unsubscribeCourses = onSnapshot(q, (snapshot) => {
         const userCourses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
         setCourses(userCourses);
         if (userCourses.length > 0 && !activeCourse) {
@@ -99,8 +95,19 @@ const Index = () => {
         }
         setDataLoading(false);
     });
+    
+    const userDocRef = doc(db, 'users', user.uid);
+    const unsubscribeUser = onSnapshot(userDocRef, (doc) => {
+        if (doc.exists()) {
+            const data = doc.data();
+            setUserCoins(data.coins || 0);
+        }
+    });
 
-    return () => unsubscribe();
+    return () => {
+        unsubscribeCourses();
+        unsubscribeUser();
+    };
   }, [user, activeCourse]);
   
   const resetAddCourseDialog = () => {
@@ -211,26 +218,6 @@ const Index = () => {
     }
   };
 
-  const handleClaimReward = async () => {
-    if (!user || !canClaimDaily) return;
-    
-    const amount = Math.floor(Math.random() * 41) + 10; // 10 to 50 coins
-
-    try {
-        const userRef = doc(db, 'users', user.uid);
-        await updateDoc(userRef, { coins: increment(amount) });
-        
-        localStorage.setItem('dailyRewardClaimed', new Date().toDateString());
-        setCanClaimDaily(false);
-        
-        showReward({ type: 'coins', amount });
-        toast({ title: 'Reward Claimed!', description: `You earned ${amount} coins!` });
-    } catch(e) {
-        console.error("Failed to claim reward:", e);
-        toast({ variant: 'destructive', title: 'Could not claim reward' });
-    }
-  };
-
   if (isGenerating) {
     return <GeneratingCourse courseName={generatingCourseName} />;
   }
@@ -269,15 +256,9 @@ const Index = () => {
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 bg-white dark:bg-surface-dark p-2 pl-3 pr-4 rounded-full shadow-md shadow-blue-500/10">
-              <Bolt className="text-amber-500" />
-              <span className="font-bold text-slate-900 dark:text-white">12,500 XP</span>
+                <TazCoinIcon className="h-6 w-6"/>
+                <span className="font-bold text-slate-900 dark:text-white">{userCoins}</span>
             </div>
-            <Dialog>
-                <DialogTrigger asChild>
-                    <Button className="text-sm font-semibold">See Rewards</Button>
-                </DialogTrigger>
-                <RewardsDialog streak={streak} />
-            </Dialog>
             <button className="w-12 h-12 flex items-center justify-center rounded-full bg-white dark:bg-surface-dark shadow-md shadow-blue-500/10">
               <Bell className="text-slate-500 dark:text-slate-400" />
             </button>
@@ -394,9 +375,12 @@ const Index = () => {
                   <p className="text-sm text-slate-500 dark:text-slate-400">Keep up the good work.</p>
                 </div>
               </div>
-                <Button onClick={handleClaimReward} disabled={!canClaimDaily} className="text-sm font-semibold">
-                    {canClaimDaily ? 'Claim Daily Coins' : 'Claimed'}
-                </Button>
+                <Dialog>
+                    <DialogTrigger asChild>
+                        <Button className="text-sm font-semibold">See Rewards</Button>
+                    </DialogTrigger>
+                    <RewardsDialog streak={streak} />
+                </Dialog>
             </div>
             <div className="bg-white dark:bg-surface-dark p-6 rounded-3xl shadow-md shadow-blue-500/10">
               <div className="flex justify-between items-center mb-4">
