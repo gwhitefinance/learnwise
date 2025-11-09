@@ -8,7 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import Link from 'next/link';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
-import { collection, query, where, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, increment, getDoc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, increment, getDoc, orderBy, limit } from 'firebase/firestore';
 import StudySetCard from '@/components/StudySetCard';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -38,6 +38,8 @@ import { Card, CardContent } from '@/components/ui/card';
 type Course = {
   id: string;
   name: string;
+  description: string;
+  url?: string;
 };
 
 type QuizAttempt = {
@@ -46,6 +48,18 @@ type QuizAttempt = {
     courseId: string;
     topic: string;
 };
+
+type QuizResult = {
+    id: string;
+    score: number;
+    timestamp: { toDate: () => Date };
+};
+
+type Note = {
+    id: string;
+    title: string;
+};
+
 
 const paces = [
   { value: "6", label: "Casual", description: "A relaxed pace for exploring.", icon: <Snail className="h-6 w-6" /> },
@@ -73,6 +87,9 @@ const Index = () => {
   const router = useRouter();
   const { showReward } = useContext(RewardContext);
   const [weakTopics, setWeakTopics] = useState<string[]>([]);
+  
+  const [recentQuizResults, setRecentQuizResults] = useState<QuizResult[]>([]);
+  const [recentNotes, setRecentNotes] = useState<Note[]>([]);
 
 
   useEffect(() => {
@@ -143,6 +160,44 @@ const Index = () => {
     };
   }, [user, activeCourse]);
   
+   useEffect(() => {
+    if (!user || !activeCourse) {
+        setRecentQuizResults([]);
+        setRecentNotes([]);
+        return;
+    }
+
+    const quizQuery = query(
+        collection(db, 'quizResults'),
+        where('userId', '==', user.uid),
+        where('courseId', '==', activeCourse.id),
+        orderBy('timestamp', 'desc'),
+        limit(3)
+    );
+    const unsubscribeQuizzes = onSnapshot(quizQuery, (snapshot) => {
+        const results = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as QuizResult));
+        setRecentQuizResults(results);
+    });
+
+    const notesQuery = query(
+        collection(db, 'notes'),
+        where('userId', '==', user.uid),
+        where('courseId', '==', activeCourse.id),
+        orderBy('date', 'desc'),
+        limit(3)
+    );
+    const unsubscribeNotes = onSnapshot(notesQuery, (snapshot) => {
+        const notes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Note));
+        setRecentNotes(notes);
+    });
+
+    return () => {
+        unsubscribeQuizzes();
+        unsubscribeNotes();
+    };
+
+  }, [user, activeCourse]);
+
   const resetAddCourseDialog = () => {
     setAddCourseStep(1);
     setNewCourse({ name: '', instructor: '', credits: '', url: '', description: '', isNewTopic: null });
@@ -408,7 +463,7 @@ const Index = () => {
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
-            {activeCourse ? <StudySetCard course={activeCourse} /> : <div className="text-center p-12 bg-muted rounded-2xl">Select a course to see details.</div>}
+            {activeCourse ? <StudySetCard course={activeCourse} quizResults={recentQuizResults} notes={recentNotes}/> : <div className="text-center p-12 bg-muted rounded-2xl">Select a course to see details.</div>}
             
             {activeCourse && weakTopics.length > 0 && (
                 <div className="mt-8">
