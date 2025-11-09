@@ -365,6 +365,30 @@ const Index = () => {
                 <p className="text-slate-500 dark:text-slate-400">Which course are you working on today?</p>
               </div>
           </div>
+          <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 bg-muted p-1 pr-3 rounded-full">
+                  <TazCoinIcon className="h-6 w-6"/>
+                  <span className="font-bold text-sm">{userCoins}</span>
+              </div>
+              <Button variant="ghost" size="icon" className="rounded-full">
+                  <Bell className="h-5 w-5"/>
+              </Button>
+              <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                       <Avatar className="h-9 w-9 cursor-pointer">
+                          <AvatarImage src={user?.photoURL ?? undefined} alt="User" />
+                          <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                      <DropdownMenuItem asChild><Link href="/dashboard/profile">Profile</Link></DropdownMenuItem>
+                      <DropdownMenuItem asChild><Link href="/dashboard/shop">Shop & Rewards</Link></DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => router.push('/dashboard/profile')}>Change Picture</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => auth.signOut()} className="text-destructive">Sign Out</DropdownMenuItem>
+                  </DropdownMenuContent>
+              </DropdownMenu>
+          </div>
         </header>
         <div className="flex items-center gap-2 border-b border-blue-200/80 dark:border-slate-700 mb-8">
             {courses.slice(0, 3).map(course => (
@@ -507,14 +531,6 @@ const Index = () => {
             <div className="bg-white dark:bg-surface-dark p-6 rounded-3xl shadow-md shadow-blue-500/10">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-xl font-bold text-slate-900 dark:text-white">Materials</h3>
-                 <div className="flex items-center gap-2">
-                    <Link href="/dashboard/upload">
-                        <Button variant="ghost" className="flex items-center gap-2 text-sm font-semibold text-primary-light">
-                            <Upload className="text-base" />
-                            Upload
-                        </Button>
-                    </Link>
-                </div>
               </div>
               <ul className="space-y-4">
                 {recentNotes.length > 0 ? (
@@ -562,3 +578,5 @@ const Index = () => {
 };
 
 export default Index;
+
+    
