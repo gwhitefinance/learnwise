@@ -370,6 +370,9 @@ const Index = () => {
                   <TazCoinIcon className="h-6 w-6"/>
                   <span className="font-bold text-sm">{userCoins}</span>
               </div>
+              <Button variant="ghost" size="icon" className="rounded-full" asChild>
+                <Link href="/dashboard/calendar"><Calendar className="h-5 w-5"/></Link>
+              </Button>
               <Button variant="ghost" size="icon" className="rounded-full">
                   <Bell className="h-5 w-5"/>
               </Button>
@@ -578,5 +581,7 @@ const Index = () => {
 };
 
 export default Index;
+
+    
 
     
