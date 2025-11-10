@@ -541,8 +541,8 @@ function DashboardLayoutContent({
                 )}
             >
                 <div className="flex h-full flex-col">
-                    <div className="px-4 pt-4 flex">
-                      <Logo className="w-40 h-auto" />
+                    <div className="p-4">
+                      <Logo className="w-32 h-auto" />
                     </div>
 
                     <div className="px-3 pb-4">
