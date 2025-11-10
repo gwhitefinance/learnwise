@@ -206,6 +206,17 @@ function AnalysisPage() {
       ];
   }, [courses]);
   
+    const groupedWeakLinks = useMemo(() => {
+        return incorrectAnswers.reduce((acc, attempt) => {
+            const courseName = courses.find(c => c.id === attempt.courseId)?.name || 'General Knowledge';
+            if (!acc[courseName]) {
+                acc[courseName] = [];
+            }
+            acc[courseName].push(attempt);
+            return acc;
+        }, {} as Record<string, QuizAttempt[]>);
+    }, [incorrectAnswers, courses]);
+
   const handleGeneratePracticeQuestion = async (attemptId: string) => {
     const attempt = incorrectAnswers.find(a => a.id === attemptId);
     if (!attempt) return;
@@ -323,16 +334,27 @@ function AnalysisPage() {
        <div>
         <h2 className="text-2xl font-semibold tracking-tight mb-4">Review Your Weak Links</h2>
         {incorrectAnswers.length > 0 ? (
-            <div className="grid gap-6 md:grid-cols-2">
-                {incorrectAnswers.map(attempt => (
-                    <WeakLinkCard 
-                        key={attempt.id} 
-                        attempt={attempt}
-                        onRetry={handleGeneratePracticeQuestion}
-                        onMarkAsReviewed={handleMarkAsReviewed}
-                    />
+           <Accordion type="multiple" defaultValue={Object.keys(groupedWeakLinks)} className="w-full space-y-4">
+                {Object.entries(groupedWeakLinks).map(([courseName, attempts]) => (
+                    <AccordionItem key={courseName} value={courseName} className="border bg-card rounded-lg">
+                        <AccordionTrigger className="p-4 font-semibold text-lg hover:no-underline">
+                           {courseName} ({attempts.length} weak links)
+                        </AccordionTrigger>
+                        <AccordionContent className="p-4 border-t">
+                             <div className="grid gap-6 md:grid-cols-2">
+                                {attempts.map(attempt => (
+                                    <WeakLinkCard 
+                                        key={attempt.id} 
+                                        attempt={attempt}
+                                        onRetry={handleGeneratePracticeQuestion}
+                                        onMarkAsReviewed={handleMarkAsReviewed}
+                                    />
+                                ))}
+                            </div>
+                        </AccordionContent>
+                    </AccordionItem>
                 ))}
-            </div>
+            </Accordion>
         ) : (
             <Card className="text-center p-8">
                 <CardContent>
