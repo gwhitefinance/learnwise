@@ -153,7 +153,7 @@ export default function Navbar() {
         )}>
            <div className="flex items-center gap-2 w-1/4">
                 <Link href="/" className="flex items-center gap-2">
-                    <Logo className="h-16 w-16" />
+                    <Logo className="h-20 w-20" />
                 </Link>
             </div>
           
@@ -193,7 +193,7 @@ export default function Navbar() {
                 <Button variant="ghost" className="text-black bg-white rounded-full hover:bg-gray-100 border border-gray-200">Login</Button>
             </Link>
             <Link href="/signup">
-                <Button className="bg-[#01A299] hover:bg-[#018a80] text-white rounded-full">
+                <Button className="bg-primary hover:bg-primary/90 text-white rounded-full pulse-glow-button">
                   Get started
                 </Button>
             </Link>
@@ -220,7 +220,7 @@ export default function Navbar() {
                           <Button variant="ghost" className="w-full text-black hover:bg-gray-100">Login</Button>
                       </Link>
                        <Link href="/signup">
-                          <Button className="w-full bg-[#01A299] text-white hover:bg-[#018a80]">Get started</Button>
+                          <Button className="w-full bg-primary text-white hover:bg-primary/90 pulse-glow-button">Get started</Button>
                       </Link>
                   </div>
               </div>
