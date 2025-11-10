@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview A flow for providing contextual answers to questions about a specific text.
@@ -11,7 +10,7 @@ import { TutorChatInputSchema, TutorChatOutputSchema, TutorChatInput, TutorChatO
 
 const prompt = ai.definePrompt({
     name: 'tutorChatPrompt',
-    model: googleAI.model('gemini-2.5-flash'),
+    model: googleAI.model('gemini-2.5-pro'),
     input: { schema: TutorChatInputSchema },
     output: { schema: TutorChatOutputSchema },
     prompt: `You are Tutor Taz, an expert SAT tutor. You are friendly, encouraging, and an expert in all sections of the Digital SAT: Reading, Writing, and Math.

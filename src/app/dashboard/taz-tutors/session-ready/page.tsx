@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Suspense } from 'react';
@@ -8,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import AIBuddy from '@/components/ai-buddy';
 import { Clock, Play, HelpCircle, ArrowRight, MessageSquare, List, GitMerge, FileAudio, FileVideo, Search, Mic, X } from 'lucide-react';
 import Loading from './loading';
+import { format } from 'date-fns';
 
 const voiceCommands = [
     { icon: <Play className="h-5 w-5" />, title: "Start Session", description: "Say \"let's start\" or \"begin session\" to kick things off" },
@@ -15,7 +15,7 @@ const voiceCommands = [
     { icon: <ArrowRight className="h-5 w-5" />, title: "Navigate Content", description: "Use commands like \"next page\" or \"go back to the introduction\"" },
     { icon: <MessageSquare className="h-5 w-5" />, title: "Chat Naturally", description: "Interact with Spark.E as you would with a real tutor" },
     { icon: <List className="h-5 w-5" />, title: "Check Progress", description: "Ask \"how am I doing?\" to get a quick progress update" },
-    { icon: <GitMerge className="h-5 w-5" />, title: "Explore Tangents", description: "Say \"tell me more about...\" to dive deeper into related topics" },
+    { icon: <GitMerge className="h-5 w-5" />, title: "Complete Section", description: "Ask to \"mark section complete\" to track your progress" },
     { icon: <FileAudio className="h-5 w-5" />, title: "Adjust Speech", description: "Say \"speak faster\" or \"slow down\" to control the pace" },
     { icon: <FileVideo className="h-5 w-5" />, title: "Request Visuals", description: "Ask Spark.E to \"show me a diagram\" or \"find a video\"" },
 ];

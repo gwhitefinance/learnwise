@@ -1,30 +1,81 @@
-
 'use client';
 
-import { Suspense } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import AIBuddy from '@/components/ai-buddy';
-import { Clock, Play, HelpCircle, ArrowRight, MessageSquare, List, GitMerge, FileAudio, FileVideo, Search, Mic, X } from 'lucide-react';
+import { Clock, Play, HelpCircle, ArrowRight, MessageSquare, List, GitMerge, FileAudio, FileVideo, Search, Mic, X, Loader2 } from 'lucide-react';
 import Loading from './loading';
 import { format } from 'date-fns';
+import { generateTextTutoringSession } from '@/lib/actions';
+import { TutoringSessionOutput } from '@/ai/schemas/image-tutoring-schema';
+import GeneratingTutorSession from './GeneratingTutorSession';
 
 function TutorSession() {
     const searchParams = useSearchParams();
     const router = useRouter();
 
+    const [isLoading, setIsLoading] = useState(true);
+    const [sessionContent, setSessionContent] = useState<TutoringSessionOutput | null>(null);
+    const [error, setError] = useState<string | null>(null);
+
     const materialName = searchParams.get('materialName') || 'your material';
     const learningGoal = searchParams.get('learningGoal') || 'Understand the key concepts.';
-    const pageRange = searchParams.get('pageRange') || 'All Pages';
-    const materialTitle = `${materialName} ${pageRange !== 'All Pages' ? `(${pageRange} pages)` : ''}`;
+    const materialId = searchParams.get('materialId');
 
-    const handleStart = () => {
-        // This is where the actual tutoring session would begin.
-        // For now, it can just show a toast or log a message.
-        console.log("Starting session...");
-        router.push('/dashboard/notes/new'); // Navigate to the notes page for the session
-    };
+    useEffect(() => {
+        const generateContent = async () => {
+            if (!materialId || !materialName) {
+                setError("Missing material information.");
+                setIsLoading(false);
+                return;
+            }
+
+            // In a real app, you'd fetch the content of the materialId from a database
+            // For now, we'll simulate it with the material name.
+            const mockContent = `This is the content for ${materialName}. The learning goal is: ${learningGoal}`;
+            
+            try {
+                const result = await generateTextTutoringSession({
+                    textContent: mockContent,
+                    prompt: learningGoal,
+                    learnerType: 'Reading/Writing' // Or get from localStorage
+                });
+                setSessionContent(result);
+            } catch (e) {
+                console.error("Failed to generate session content:", e);
+                setError("Failed to generate your tutoring session. Please try again.");
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        generateContent();
+    }, [materialId, materialName, learningGoal]);
+
+
+    if (isLoading) {
+        return <GeneratingTutorSession />;
+    }
+
+    if (error) {
+        return (
+            <div className="flex items-center justify-center h-full text-center">
+                <div>
+                    <p className="text-red-500 font-semibold">{error}</p>
+                    <Button onClick={() => router.push('/dashboard/taz-tutors')} className="mt-4">Go Back</Button>
+                </div>
+            </div>
+        );
+    }
+    
+    if (!sessionContent) {
+        return (
+             <div className="flex items-center justify-center h-full text-center">
+                <p>Could not load session content.</p>
+            </div>
+        )
+    }
 
     return (
         <div className="h-screen w-screen bg-background flex flex-col">
@@ -51,7 +102,7 @@ function TutorSession() {
                     <div className="w-full max-w-2xl text-center">
                         <h1 className="text-4xl font-bold mb-4">Introduction to AI and machine learning on Databricks</h1>
                         <p className="text-lg text-muted-foreground">
-                            This section introduces the tools that Mosaic AI (formerly Databricks Machine Learning) provides to help you build AI and ML systems. The following diagram shows how various products on Databricks platform help you implement your end to end workflows to build your own generative AI and ML systems
+                           {sessionContent.conceptualExplanation}
                         </p>
                     </div>
                 </main>
@@ -61,7 +112,7 @@ function TutorSession() {
                         <div className="flex items-start gap-3">
                             <AIBuddy className="w-8 h-8 flex-shrink-0" />
                             <div className="p-3 rounded-lg bg-primary text-primary-foreground max-w-xs text-sm">
-                                Alright, Averie! Let's dive into the introduction to AI and machine learning on Databricks. We're looking at the first page of our material, which gives us an overview of the tools provided by Mosaic AI on the Databricks platform.
+                                Alright, {user?.displayName}! Let's dive into the introduction to AI and machine learning on Databricks. We're looking at the first page of our material, which gives us an overview of the tools provided by Mosaic AI on the Databricks platform.
                             </div>
                         </div>
                          <div className="flex items-start gap-3">
