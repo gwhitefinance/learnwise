@@ -494,9 +494,7 @@ function DashboardLayoutContent({
               <div className="flex h-full flex-col border-r">
               <div className="flex items-center justify-between p-4">
                   <div className="flex items-center gap-3">
-                  <div className="flex aspect-square size-10 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-600 to-blue-600 text-white">
-                      <Logo className="size-6" />
-                  </div>
+                  <Logo className="h-10 w-10" />
                   </div>
                   <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(false)}>
                   <X className="h-5 w-5" />
@@ -544,11 +542,7 @@ function DashboardLayoutContent({
             >
                 <div className="flex h-full flex-col">
                 <div className="p-4">
-                    <div className="flex items-center gap-3">
-                    <div className="flex aspect-square size-10 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-600 to-blue-600 text-white">
-                        <Logo className="size-6" />
-                    </div>
-                    </div>
+                    <Logo className="h-16 w-16" />
                 </div>
 
                 <div className="px-3 py-2">
