@@ -180,7 +180,7 @@ export default function Navbar() {
                     </DropdownMenuContent>
                     </DropdownMenu>
                     {navLinksData.map((link) => (
-                        <AnimatedNavLink key={link.href} href={link.href}>
+                        <AnimatedNavLink key={link.label} href={link.href}>
                         {link.label}
                         </AnimatedNavLink>
                     ))}
@@ -211,7 +211,7 @@ export default function Navbar() {
           <div className="md:hidden bg-background/95 border-t border-gray-200/50">
               <div className="container mx-auto px-4 py-4 flex flex-col gap-4">
                   {navLinksData.map((link) => (
-                    <AnimatedNavLink key={link.href} href={link.href}>
+                    <AnimatedNavLink key={link.label} href={link.href}>
                       {link.label}
                     </AnimatedNavLink>
                   ))}
