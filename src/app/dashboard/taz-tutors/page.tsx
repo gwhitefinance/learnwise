@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -24,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-
+import { useRouter } from 'next/navigation';
 
 type Course = {
     id: string;
@@ -72,6 +70,8 @@ export default function TazTutorsPage() {
     const [isSessionDialogOpen, setIsSessionDialogOpen] = useState(false);
     const [learningGoal, setLearningGoal] = useState('');
     const [pageRange, setPageRange] = useState('');
+    const router = useRouter();
+
 
     useEffect(() => {
         if (!user) {
@@ -104,9 +104,18 @@ export default function TazTutorsPage() {
     }
     
     const handleStartSession = () => {
-        // This will be implemented in a future step
-        console.log("Starting session with:", selectedMaterial, "and goal:", learningGoal);
-        setIsSessionDialogOpen(false);
+        if (!selectedMaterial) return;
+
+        const materialName = courses.find(c => c.id === selectedMaterial)?.name || notes.find(n => n.id === selectedMaterial)?.title;
+
+        const queryParams = new URLSearchParams({
+            materialId: selectedMaterial,
+            materialName: materialName || "Selected Material",
+            learningGoal: learningGoal || "Explain the key concepts.",
+            pageRange: pageRange || "All Pages"
+        });
+
+        router.push(`/dashboard/taz-tutors/session?${queryParams.toString()}`);
     }
 
     const filteredCourses = courses.filter(course => course.name.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -229,7 +238,7 @@ export default function TazTutorsPage() {
                              <Card>
                                 <CardContent className="p-4 flex items-center justify-between">
                                     <div>
-                                        <h4 className="font-semibold">Select Number of Pages (Optional)</h4>
+                                        <h4 className="font-semibold">Select Amount of Pages (Optional)</h4>
                                         <p className="text-sm text-muted-foreground">Focus the AI on a specific number of pages.</p>
                                     </div>
                                     <Select onValueChange={setPageRange}>
