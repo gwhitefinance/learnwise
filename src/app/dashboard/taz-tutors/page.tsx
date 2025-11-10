@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -27,17 +26,20 @@ type Note = {
     date: Timestamp;
 };
 
-const MaterialCard = ({ name, date }: { name: string, date: string }) => (
+const MaterialCard = ({ name, date, isSelected, onClick }: { name: string, date: string, isSelected: boolean, onClick: () => void }) => (
     <TooltipProvider>
         <Tooltip>
             <TooltipTrigger asChild>
-                <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                <Card 
+                    className={`hover:shadow-md transition-shadow cursor-pointer ${isSelected ? 'ring-2 ring-primary' : ''}`}
+                    onClick={onClick}
+                >
                     <CardContent className="p-4 flex items-center gap-3">
-                    <FileText className="h-6 w-6 text-muted-foreground flex-shrink-0" />
-                    <div className="overflow-hidden">
-                        <p className="font-semibold text-sm truncate">{name}</p>
-                        <p className="text-xs text-muted-foreground">{date}</p>
-                    </div>
+                        <FileText className="h-6 w-6 text-muted-foreground flex-shrink-0" />
+                        <div className="overflow-hidden">
+                            <p className="font-semibold text-sm truncate">{name}</p>
+                            <p className="text-xs text-muted-foreground">{date}</p>
+                        </div>
                     </CardContent>
                 </Card>
             </TooltipTrigger>
@@ -54,6 +56,7 @@ export default function TazTutorsPage() {
     const [courses, setCourses] = useState<Course[]>([]);
     const [notes, setNotes] = useState<Note[]>([]);
     const [loading, setLoading] = useState(true);
+    const [selectedMaterial, setSelectedMaterial] = useState<string | null>(null);
 
     useEffect(() => {
         if (!user) {
@@ -80,6 +83,17 @@ export default function TazTutorsPage() {
         };
 
     }, [user, authLoading]);
+
+    const handleSelectMaterial = (id: string) => {
+        setSelectedMaterial(id);
+    }
+    
+    const handleStartSession = () => {
+        if(selectedMaterial) {
+            // Logic to start the session will go here
+            console.log("Starting session with:", selectedMaterial);
+        }
+    }
 
     const filteredCourses = courses.filter(course => course.name.toLowerCase().includes(searchTerm.toLowerCase()));
     const filteredNotes = notes.filter(note => note.title.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -127,7 +141,13 @@ export default function TazTutorsPage() {
                             Array.from({length: 3}).map((_, i) => <Skeleton key={i} className="h-20 w-full" />)
                         ) : filteredCourses.length > 0 ? (
                             filteredCourses.map((course) => (
-                                <MaterialCard key={course.id} name={course.name} date={format(course.createdAt?.toDate() || new Date(), 'MM/dd/yyyy')} />
+                                <MaterialCard 
+                                    key={course.id} 
+                                    name={course.name} 
+                                    date={format(course.createdAt?.toDate() || new Date(), 'MM/dd/yyyy')}
+                                    isSelected={selectedMaterial === course.id}
+                                    onClick={() => handleSelectMaterial(course.id)}
+                                />
                             ))
                         ) : (
                              <p className="col-span-full text-center text-muted-foreground">No courses found.</p>
@@ -140,7 +160,13 @@ export default function TazTutorsPage() {
                             Array.from({length: 3}).map((_, i) => <Skeleton key={i} className="h-20 w-full" />)
                         ) : filteredNotes.length > 0 ? (
                             filteredNotes.map((note) => (
-                                <MaterialCard key={note.id} name={note.title} date={format(note.date?.toDate() || new Date(), 'MM/dd/yyyy')} />
+                                <MaterialCard 
+                                    key={note.id} 
+                                    name={note.title} 
+                                    date={format(note.date?.toDate() || new Date(), 'MM/dd/yyyy')}
+                                    isSelected={selectedMaterial === note.id}
+                                    onClick={() => handleSelectMaterial(note.id)}
+                                />
                             ))
                         ) : (
                             <p className="col-span-full text-center text-muted-foreground">No notes found.</p>
@@ -148,6 +174,11 @@ export default function TazTutorsPage() {
                     </div>
                 </TabsContent>
             </Tabs>
+             <div className="mt-12 text-center">
+                <Button size="lg" onClick={handleStartSession} disabled={!selectedMaterial}>
+                    Start Session with Selected Material
+                </Button>
+            </div>
         </div>
     );
 }
