@@ -35,11 +35,29 @@ const generateProblemSolvingSessionFlow = ai.defineFlow(
         outputSchema: ProblemSolvingOutputSchema,
     },
     async (input) => {
-        const { output } = await problemSolvingPrompt(input);
-        if (!output) {
-            throw new Error('Failed to generate problem-solving session.');
+        const maxRetries = 3;
+        let lastError: any = null;
+
+        for (let attempt = 0; attempt < maxRetries; attempt++) {
+            try {
+                const { output } = await problemSolvingPrompt(input);
+                if (!output) {
+                    throw new Error('Failed to generate problem-solving session: No output from AI.');
+                }
+                return output; // Success
+            } catch (error: any) {
+                lastError = error;
+                console.warn(`Problem solving session generation failed (Attempt ${attempt + 1}/${maxRetries}):`, error.message);
+                if (attempt < maxRetries - 1) {
+                    const waitTime = 2000 * (attempt + 1); // Wait longer each retry
+                    console.log(`Retrying in ${waitTime / 1000}s...`);
+                    await new Promise(resolve => setTimeout(resolve, waitTime));
+                }
+            }
         }
-        return output;
+        // If all retries fail, throw the last captured error.
+        console.error("Problem solving session generation failed after all retries.", { input, lastError });
+        throw lastError;
     }
 );
 
