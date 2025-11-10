@@ -148,12 +148,6 @@ const sidebarItems: SidebarItem[] = [
             id: "roadmaps-link",
           },
           {
-            title: "Calendar",
-            icon: <Calendar />,
-            href: "/dashboard/calendar",
-            id: "calendar-link",
-          },
-          {
             title: "Practice Quiz",
             icon: <Lightbulb />,
             href: "/dashboard/practice-quiz",
@@ -633,6 +627,9 @@ function DashboardLayoutContent({
                     <div className="ml-auto flex items-center gap-3">
                         <Button variant="outline" size="sm" onClick={() => router.push('/dashboard/upload')}>
                             <UploadCloud className="mr-2 h-4 w-4" /> Quick Upload
+                        </Button>
+                        <Button variant="ghost" size="icon" className="rounded-full" asChild>
+                            <Link href="/dashboard/calendar"><Calendar className="h-5 w-5"/></Link>
                         </Button>
                         <div className="flex items-center gap-2 bg-muted p-1 pr-3 rounded-full">
                             <TazCoinIcon className="h-6 w-6"/>
