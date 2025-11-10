@@ -182,6 +182,8 @@ html.lenis {
 .typing-cursor {
   border-right: .15em solid hsl(var(--primary));
   animation: blink-caret .75s step-end infinite;
+  display: inline-block;
+  vertical-align: bottom;
 }
 
 @keyframes blink-caret {
