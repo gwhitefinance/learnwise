@@ -4,7 +4,7 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { History, Crown, Paperclip, Code, Mic, Pen, Calculator, Sparkles, Loader2, PlayCircle, Bot, Pilcrow } from "lucide-react";
+import { History, Crown, Paperclip, Code, Mic, Pen, Calculator, Sparkles, Loader2, PlayCircle, Bot } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { problemSolvingTool } from "@/ai/tools/problem-solving-tool";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -64,7 +64,7 @@ export default function HomeworkSolverPage() {
                      <Button variant="outline" className="rounded-full bg-purple-100 text-purple-700 border-purple-200 hover:bg-purple-200">
                         <Sparkles className="mr-2 h-4 w-4"/> Taz Helps
                     </Button>
-                    <h1 className="text-5xl font-bold tracking-tight mt-4">AI Homework Solver</h1>
+                    <h1 className="text-5xl font-bold tracking-tight mt-4">Taz Homework Help</h1>
                     <p className="text-muted-foreground mt-2">Type or upload a homework question and get detailed breakdown of the solution.</p>
                     
                     <div className="relative bg-card border rounded-2xl p-4 text-left shadow-lg mt-8">
@@ -84,8 +84,8 @@ export default function HomeworkSolverPage() {
                             <div className="flex items-center gap-2 text-muted-foreground">
                                 <Button variant="ghost" size="icon" className="rounded-full"><Paperclip className="h-5 w-5" /></Button>
                                 <Button variant="ghost" size="icon" className="rounded-full"><Code className="h-5 w-5" /></Button>
-                                <Button variant="ghost" size="icon" className="rounded-full"><Pilcrow className="h-5 w-5" /></Button>
                                 <Button variant="ghost" size="icon" className="rounded-full"><Calculator className="h-5 w-5" /></Button>
+                                <Button variant="ghost" size="icon" className="rounded-full"><Pen className="h-5 w-5" /></Button>
                                 <Button variant="ghost" size="icon" className="rounded-full"><Mic className="h-5 w-5" /></Button>
                             </div>
                              <Button onClick={handleSolve} className="rounded-full px-8 py-3 font-semibold text-base" disabled={isLoading}>
@@ -100,7 +100,7 @@ export default function HomeworkSolverPage() {
                         </div>
                         <div>
                             <h4 className="font-bold text-lg">Snap a photo of a problem on iOS & Android!</h4>
-                            <p className="text-muted-foreground text-sm mt-1">Scan the QR code and download the Knowt app to snap and solve problems from your phone.</p>
+                            <p className="text-muted-foreground text-sm mt-1">Scan the QR code to snap a pic of your homework and get help.</p>
                         </div>
                     </div>
                 </div>
