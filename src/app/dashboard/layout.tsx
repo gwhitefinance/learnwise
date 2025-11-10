@@ -198,10 +198,10 @@ const sidebarItems: SidebarItem[] = [
       id: "ai-tools-section",
       children: [
         {
-            title: "Analysis",
+            title: "Learning Insights",
             icon: <BarChart3 />,
-            href: "/dashboard/analysis",
-            id: "analysis-link",
+            href: "/dashboard/learning-insights",
+            id: "learning-insights-link",
         },
         {
             title: "Homework Help",
