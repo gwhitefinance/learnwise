@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -13,6 +14,8 @@ import { collection, query, where, onSnapshot, orderBy, Timestamp } from 'fireba
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 
 type Course = {
     id: string;
@@ -57,6 +60,8 @@ export default function TazTutorsPage() {
     const [notes, setNotes] = useState<Note[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedMaterial, setSelectedMaterial] = useState<string | null>(null);
+    const [isSessionDialogOpen, setIsSessionDialogOpen] = useState(false);
+    const [learningGoal, setLearningGoal] = useState('');
 
     useEffect(() => {
         if (!user) {
@@ -89,14 +94,20 @@ export default function TazTutorsPage() {
     }
     
     const handleStartSession = () => {
-        if(selectedMaterial) {
-            // Logic to start the session will go here
-            console.log("Starting session with:", selectedMaterial);
-        }
+        // This will be implemented in a future step
+        console.log("Starting session with:", selectedMaterial, "and goal:", learningGoal);
+        setIsSessionDialogOpen(false);
     }
 
     const filteredCourses = courses.filter(course => course.name.toLowerCase().includes(searchTerm.toLowerCase()));
     const filteredNotes = notes.filter(note => note.title.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    const quickExamples = [
+        "I just want to chat about the document",
+        "Explain the key concepts",
+        "Show me each page and explain it",
+        "Teach me in very simple terms for my exam"
+    ];
 
     return (
         <div className="max-w-4xl mx-auto p-8">
@@ -175,9 +186,43 @@ export default function TazTutorsPage() {
                 </TabsContent>
             </Tabs>
              <div className="mt-12 text-center">
-                <Button size="lg" onClick={handleStartSession} disabled={!selectedMaterial}>
-                    Start Session with Selected Material
-                </Button>
+                 <Dialog open={isSessionDialogOpen} onOpenChange={setIsSessionDialogOpen}>
+                    <DialogTrigger asChild>
+                        <Button size="lg" disabled={!selectedMaterial}>
+                            Start Session with Selected Material
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-2xl">
+                        <DialogHeader>
+                            <DialogTitle>Create Tutor Session</DialogTitle>
+                        </DialogHeader>
+                        <div className="py-4 space-y-6">
+                            <div className="space-y-2">
+                                <Label htmlFor="learning-goal">What is your learning goal for this session?</Label>
+                                <Input 
+                                    id="learning-goal" 
+                                    placeholder="e.g., Understand the key concepts, Help me solve these problems..."
+                                    value={learningGoal}
+                                    onChange={(e) => setLearningGoal(e.target.value)}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Quick examples:</Label>
+                                <div className="flex flex-wrap gap-2">
+                                    {quickExamples.map(ex => (
+                                        <Button key={ex} variant="outline" size="sm" onClick={() => setLearningGoal(ex)}>
+                                            {ex}
+                                        </Button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button variant="ghost" onClick={() => setIsSessionDialogOpen(false)}>Cancel</Button>
+                            <Button onClick={handleStartSession}>Create Session</Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
             </div>
         </div>
     );
