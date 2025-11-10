@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -7,8 +8,8 @@ const Logo = ({ className }: { className?: string }) => (
   <Image
     src="https://i.postimg.cc/gcsGkWRz/Tutor-1-removebg-preview.png"
     alt="Tutor Taz Logo"
-    width={80}
-    height={80}
+    width={120}
+    height={120}
     className={className}
   />
 );
