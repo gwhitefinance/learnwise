@@ -216,6 +216,18 @@ export default function TazTutorsPage() {
                                     ))}
                                 </div>
                             </div>
+                            <Card>
+                                <CardContent className="p-4 flex items-center justify-between">
+                                    <div>
+                                        <h4 className="font-semibold">Select Pages (Optional)</h4>
+                                        <p className="text-sm text-muted-foreground">Focus the AI on specific pages or chapters.</p>
+                                    </div>
+                                    <Button variant="outline">
+                                        <FileText className="h-4 w-4 mr-2" />
+                                        Select Pages
+                                    </Button>
+                                </CardContent>
+                            </Card>
                         </div>
                         <DialogFooter>
                             <Button variant="ghost" onClick={() => setIsSessionDialogOpen(false)}>Cancel</Button>
