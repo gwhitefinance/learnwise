@@ -1145,6 +1145,13 @@ function CoursesComponent() {
                     </DialogContent>
                 </Dialog>
             </div>
+            <div className="flex justify-between items-center mb-6">
+                <Button variant="outline" asChild>
+                    <Link href="/dashboard/taz-tutors">
+                        <Brain className="mr-2 h-4 w-4" /> Taz Tutors
+                    </Link>
+                </Button>
+            </div>
             {courses.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {courses.map(course => {
