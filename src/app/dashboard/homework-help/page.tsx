@@ -1,14 +1,15 @@
 
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { History, Paperclip, Code, Mic, Pen, Calculator, Sparkles, Loader2, PlayCircle, Bot } from "lucide-react";
+import { History, Crown, Paperclip, Code, Mic, Pen, Calculator, Sparkles, Loader2, PlayCircle, Bot, Pilcrow } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { problemSolvingTool } from "@/ai/tools/problem-solving-tool";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import AIBuddy from "@/components/ai-buddy";
+import QRCode from 'qrcode.react';
 
 type Solution = {
     answer: string;
@@ -20,6 +21,12 @@ export default function HomeworkSolverPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [question, setQuestion] = useState('');
     const [solution, setSolution] = useState<Solution | null>(null);
+    const [qrCodeUrl, setQrCodeUrl] = useState('');
+
+    useEffect(() => {
+        // We can only generate this on the client side
+        setQrCodeUrl(`${window.location.origin}/upload-note/homework`);
+    }, []);
 
     const handleSolve = async () => {
         if (!question.trim()) {
@@ -43,8 +50,7 @@ export default function HomeworkSolverPage() {
         <div className="min-h-screen flex flex-col p-4 bg-background">
             <header className="flex justify-between items-center mb-6">
                  <div>
-                    <h1 className="text-2xl font-bold tracking-tight">AI Homework Solver</h1>
-                    <p className="text-muted-foreground text-sm">Home &gt; Homework Help</p>
+                    {/* The main dashboard layout provides the top header, so we only need the History button */}
                 </div>
                  <Button variant="outline" className="rounded-full">
                     <History className="mr-2 h-4 w-4" />
@@ -52,11 +58,17 @@ export default function HomeworkSolverPage() {
                 </Button>
             </header>
 
-            <main className="w-full max-w-2xl mx-auto">
+            <main className="w-full max-w-2xl mx-auto flex-1">
                 <div className="w-full text-center mb-8">
-                     <div className="relative bg-card border rounded-2xl p-4 text-left shadow-lg">
+                     <Button variant="outline" className="rounded-full bg-purple-100 text-purple-700 border-purple-200 hover:bg-purple-200">
+                        <Sparkles className="mr-2 h-4 w-4"/> Ultra
+                    </Button>
+                    <h1 className="text-5xl font-bold tracking-tight mt-4">AI Homework Solver</h1>
+                    <p className="text-muted-foreground mt-2">Type or upload a homework question and get detailed breakdown of the solution.</p>
+                    
+                    <div className="relative bg-card border rounded-2xl p-4 text-left shadow-lg mt-8">
                         <textarea
-                            placeholder="If 3x – 5 = 16, what is the value of 6x + 4?"
+                            placeholder="Type your question here"
                             className="w-full h-24 bg-transparent border-none focus:outline-none focus:ring-0 resize-none text-lg placeholder:text-muted-foreground"
                             value={question}
                             onChange={(e) => setQuestion(e.target.value)}
@@ -71,14 +83,23 @@ export default function HomeworkSolverPage() {
                             <div className="flex items-center gap-2 text-muted-foreground">
                                 <Button variant="ghost" size="icon" className="rounded-full"><Paperclip className="h-5 w-5" /></Button>
                                 <Button variant="ghost" size="icon" className="rounded-full"><Code className="h-5 w-5" /></Button>
+                                <Button variant="ghost" size="icon" className="rounded-full"><Pilcrow className="h-5 w-5" /></Button>
                                 <Button variant="ghost" size="icon" className="rounded-full"><Calculator className="h-5 w-5" /></Button>
-                                <Button variant="ghost" size="icon" className="rounded-full"><Pen className="h-5 w-5" /></Button>
                                 <Button variant="ghost" size="icon" className="rounded-full"><Mic className="h-5 w-5" /></Button>
                             </div>
                              <Button onClick={handleSolve} className="rounded-full px-8 py-3 font-semibold text-base" disabled={isLoading}>
-                                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Sparkles className="mr-2 h-4 w-4"/>}
-                                Solve
+                                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : 'Solve'}
                             </Button>
+                        </div>
+                    </div>
+
+                    <div className="relative bg-card border rounded-2xl p-6 text-left shadow-lg mt-8 flex items-center gap-6">
+                        <div className="bg-white p-2 rounded-lg">
+                           {qrCodeUrl ? <QRCode value={qrCodeUrl} size={80} /> : <div className="h-[80px] w-[80px] bg-muted animate-pulse rounded-md" />}
+                        </div>
+                        <div>
+                            <h4 className="font-bold text-lg">Snap a photo of a problem on iOS & Android!</h4>
+                            <p className="text-muted-foreground text-sm mt-1">Scan the QR code and download the Knowt app to snap and solve problems from your phone.</p>
                         </div>
                     </div>
                 </div>
@@ -149,6 +170,10 @@ export default function HomeworkSolverPage() {
                     </div>
                 )}
             </main>
+            <footer className="w-full max-w-2xl mx-auto text-center text-xs text-muted-foreground mt-8">
+                 <p>By uploading your file to Knowt, you acknowledge that you agree to Knowt's Terms of Service and Community Guidelines.</p>
+                 <p>Please be sure not to violate others' copyright or privacy rights. Learn more</p>
+            </footer>
         </div>
     );
 }
