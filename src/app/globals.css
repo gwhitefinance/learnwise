@@ -247,6 +247,7 @@ html.lenis {
 }
 
 .sparkly-text {
+    font-weight: bold;
     font-family: 'Comic Sans MS', 'Arial Black', sans-serif;
     color: #fff;
     position: relative;
