@@ -25,7 +25,6 @@ import './flows/podcast-flow';
 import './flows/video-flow';
 import './flows/sat-question-flow';
 import './flows/initial-course-flow';
-import './flows/mindfulness-flow';
 import './flows/concept-explanation-flow';
 import './flows/sat-study-session-flow';
 import './flows/sat-feedback-flow';

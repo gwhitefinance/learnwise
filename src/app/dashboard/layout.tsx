@@ -198,12 +198,6 @@ const sidebarItems: SidebarItem[] = [
             id: "games-link",
         },
         {
-            title: "Mindfulness",
-            icon: <Wind />,
-            href: "/dashboard/mindfulness",
-            id: "mindfulness-link",
-        },
-        {
             title: "Podcasts",
             icon: <Podcast />,
             href: "/dashboard/podcasts",
