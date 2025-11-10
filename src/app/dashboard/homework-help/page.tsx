@@ -1,14 +1,13 @@
 
-
 'use client';
 
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { History, Crown, Paperclip, Mic, Pen, Calculator, Sparkles, Loader2, PlayCircle, Bot } from "lucide-react";
+import { History, Crown, Paperclip, Mic, Pen, Calculator, Sparkles, Loader2, PlayCircle, Bot, CardHeader, CardTitle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { generateProblemSolvingSession, analyzeImage } from "@/lib/actions";
+import { generateProblemSolvingSession, analyzeImage } from '@/lib/actions';
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import AIBuddy from "@/components/ai-buddy";
 import QRCode from 'qrcode.react';
 import Link from 'next/link';
@@ -214,7 +213,7 @@ export default function HomeworkSolverPage() {
     };
 
     return (
-        <div className="min-h-screen flex flex-col p-4 bg-white">
+        <div className="min-h-screen flex flex-col">
              <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
             <header className="flex justify-between items-center mb-6">
                  <div>
