@@ -328,7 +328,7 @@ const Hero = () => {
   const { theme } = useTheme();
 
   return (
-  <section className="relative py-20 lg:py-24 text-center overflow-hidden">
+  <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-24 text-center overflow-hidden">
         <div className="spotlight spotlight-left"></div>
         <div className="spotlight spotlight-right"></div>
     <div className="container mx-auto px-4 relative z-10">
