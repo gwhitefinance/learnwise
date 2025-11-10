@@ -329,7 +329,7 @@ const Hero = () => {
   const { theme } = useTheme();
 
   return (
-  <section className="relative pt-48 pb-24 text-center overflow-hidden">
+  <section className="relative pt-36 pb-24 text-center overflow-hidden">
         <div className="spotlight spotlight-left"></div>
         <div className="spotlight spotlight-right"></div>
     <div className="container mx-auto px-4 relative z-10">
@@ -375,7 +375,7 @@ const AudienceCTA = () => {
                                 For Educators
                             </div>
                             <Link href="/teacher-dashboard">
-                                <Button size="lg" className="bg-purple-600 hover:bg-purple-700 text-white rounded-full px-8 py-6 text-base">
+                                <Button size="lg" className="bg-[#5850ec] hover:bg-[#4a43d1] text-white rounded-full px-8 py-6 text-base">
                                     Get Started
                                 </Button>
                             </Link>
@@ -386,7 +386,7 @@ const AudienceCTA = () => {
                                 For Institutions
                             </div>
                             <Link href="#">
-                                <Button size="lg" className="bg-green-500 hover:bg-green-600 text-white rounded-full px-8 py-6 text-base">
+                                <Button size="lg" className="bg-[#4caf50] hover:bg-[#388e3c] text-white rounded-full px-8 py-6 text-base">
                                     Learn More
                                 </Button>
                             </Link>
