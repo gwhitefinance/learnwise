@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect } from "react";
@@ -61,7 +62,7 @@ export default function HomeworkSolverPage() {
             <main className="w-full max-w-2xl mx-auto flex-1">
                 <div className="w-full text-center mb-8">
                      <Button variant="outline" className="rounded-full bg-purple-100 text-purple-700 border-purple-200 hover:bg-purple-200">
-                        <Sparkles className="mr-2 h-4 w-4"/> Ultra
+                        <Sparkles className="mr-2 h-4 w-4"/> Taz Helps
                     </Button>
                     <h1 className="text-5xl font-bold tracking-tight mt-4">AI Homework Solver</h1>
                     <p className="text-muted-foreground mt-2">Type or upload a homework question and get detailed breakdown of the solution.</p>
@@ -173,3 +174,4 @@ export default function HomeworkSolverPage() {
         </div>
     );
 }
+
