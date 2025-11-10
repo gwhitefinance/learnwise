@@ -12,6 +12,7 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { collection, query, where, onSnapshot, orderBy, Timestamp } from 'firebase/firestore';
 import { format } from 'date-fns';
+import { Skeleton } from '@/components/ui/skeleton';
 
 type Course = {
     id: string;
