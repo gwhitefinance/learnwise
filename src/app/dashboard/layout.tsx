@@ -168,7 +168,7 @@ const sidebarItems: SidebarItem[] = [
         },
         {
             title: "Homework Help",
-            icon: <ClipboardPenLine />,
+            icon: <PenSquare />,
             href: "/dashboard/homework-help",
             id: "homework-help-link",
         },
