@@ -6,8 +6,7 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { History, Crown, Paperclip, Mic, Pen, Calculator, Sparkles, Loader2, PlayCircle, Bot } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { problemSolvingTool } from '@/ai/tools/problem-solving-tool';
-import { analyzeImage } from "@/ai/flows/image-analysis-flow";
+import { generateProblemSolvingSession, analyzeImage } from "@/lib/actions";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import AIBuddy from "@/components/ai-buddy";
@@ -169,7 +168,7 @@ export default function HomeworkSolverPage() {
         setIsLoading(true);
         setSolution(null);
         try {
-            const result = await problemSolvingTool({ problem: question });
+            const result = await generateProblemSolvingSession({ topic: question });
             setSolution(result);
         } catch (error) {
             console.error("Error solving problem:", error);
@@ -258,7 +257,7 @@ export default function HomeworkSolverPage() {
                                     </DialogTrigger>
                                     <DialogContent className="max-w-xs p-2">
                                         <DialogHeader>
-                                            <DialogTitle className="sr-only">Calculator</DialogTitle>
+                                            <DialogTitle>Calculator</DialogTitle>
                                         </DialogHeader>
                                         <CalculatorComponent />
                                     </DialogContent>
