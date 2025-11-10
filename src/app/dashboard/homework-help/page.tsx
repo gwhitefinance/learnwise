@@ -6,13 +6,14 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { History, Crown, Paperclip, Mic, Pen, Calculator, Sparkles, Loader2, PlayCircle, Bot } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { problemSolvingTool, analyzeImage } from "@/lib/actions";
+import { problemSolvingTool } from '@/ai/tools/problem-solving-tool';
+import { analyzeImage } from "@/ai/flows/image-analysis-flow";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import AIBuddy from "@/components/ai-buddy";
 import QRCode from 'qrcode.react';
 import Link from 'next/link';
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
 type Solution = {
@@ -214,7 +215,7 @@ export default function HomeworkSolverPage() {
     };
 
     return (
-        <div className="min-h-screen flex flex-col p-4 bg-background">
+        <div className="min-h-screen flex flex-col p-4 bg-white">
              <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
             <header className="flex justify-between items-center mb-6">
                  <div>
@@ -256,6 +257,9 @@ export default function HomeworkSolverPage() {
                                         <Button variant="ghost" size="icon" className="rounded-full"><Calculator className="h-5 w-5" /></Button>
                                     </DialogTrigger>
                                     <DialogContent className="max-w-xs p-2">
+                                        <DialogHeader>
+                                            <DialogTitle className="sr-only">Calculator</DialogTitle>
+                                        </DialogHeader>
                                         <CalculatorComponent />
                                     </DialogContent>
                                 </Dialog>
@@ -277,8 +281,8 @@ export default function HomeworkSolverPage() {
                            {qrCodeUrl ? <QRCode value={qrCodeUrl} size={80} /> : <div className="h-[80px] w-[80px] bg-muted animate-pulse rounded-md" />}
                         </div>
                         <div>
-                            <h4 className="font-bold text-lg">Snap a photo of a problem on iOS & Android!</h4>
-                            <p className="text-muted-foreground text-sm mt-1">Scan the QR code to snap a pic of your homework and get help.</p>
+                            <h4 className="font-bold text-lg">Scan the QR code to snap a pic of your homework and get help</h4>
+                            <p className="text-muted-foreground text-sm mt-1">Use your phone to upload an image of your homework.</p>
                         </div>
                     </div>
                 </div>
