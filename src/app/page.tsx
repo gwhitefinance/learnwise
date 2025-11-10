@@ -328,7 +328,7 @@ const Hero = () => {
   const { theme } = useTheme();
 
   return (
-  <section className="relative pt-28 pb-20 lg:pt-36 lg:pb-24 text-center overflow-hidden">
+  <section className="relative pt-32 pb-20 lg:pt-36 lg:pb-24 text-center overflow-hidden">
         <div className="spotlight spotlight-left"></div>
         <div className="spotlight spotlight-right"></div>
     <div className="container mx-auto px-4 relative z-10">
@@ -353,7 +353,7 @@ const AudienceCTA = () => {
     return (
         <section>
             <div className="container">
-                <div className="h-20"></div>
+                <div className="h-0"></div>
                  <div className={cn("max-w-4xl mx-auto p-8 rounded-3xl", theme === 'dark' ? 'bg-black/20 border border-white/10 backdrop-blur-sm' : 'bg-white/50 border border-gray-200 shadow-lg')}>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
                         <div className="flex flex-col items-center gap-4">
