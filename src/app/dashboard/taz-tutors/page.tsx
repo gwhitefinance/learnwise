@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -16,6 +17,14 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+
 
 type Course = {
     id: string;
@@ -62,6 +71,7 @@ export default function TazTutorsPage() {
     const [selectedMaterial, setSelectedMaterial] = useState<string | null>(null);
     const [isSessionDialogOpen, setIsSessionDialogOpen] = useState(false);
     const [learningGoal, setLearningGoal] = useState('');
+    const [pageRange, setPageRange] = useState('');
 
     useEffect(() => {
         if (!user) {
@@ -216,16 +226,22 @@ export default function TazTutorsPage() {
                                     ))}
                                 </div>
                             </div>
-                            <Card>
+                             <Card>
                                 <CardContent className="p-4 flex items-center justify-between">
                                     <div>
-                                        <h4 className="font-semibold">Select Pages (Optional)</h4>
-                                        <p className="text-sm text-muted-foreground">Focus the AI on specific pages or chapters.</p>
+                                        <h4 className="font-semibold">Select Page Range (Optional)</h4>
+                                        <p className="text-sm text-muted-foreground">Focus the AI on a specific range of pages.</p>
                                     </div>
-                                    <Button variant="outline">
-                                        <FileText className="h-4 w-4 mr-2" />
-                                        Select Pages
-                                    </Button>
+                                     <Select onValueChange={setPageRange}>
+                                        <SelectTrigger className="w-[180px]">
+                                            <SelectValue placeholder="Select range" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="1-5">Pages 1-5</SelectItem>
+                                            <SelectItem value="5-10">Pages 5-10</SelectItem>
+                                            <SelectItem value="10-15">Pages 10-15</SelectItem>
+                                        </SelectContent>
+                                    </Select>
                                 </CardContent>
                             </Card>
                         </div>
