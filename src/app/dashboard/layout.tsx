@@ -167,12 +167,6 @@ const sidebarItems: SidebarItem[] = [
             id: "notes-link",
         },
         {
-            title: "Whiteboard",
-            icon: <PenSquare />,
-            href: "/dashboard/whiteboard",
-            id: "whiteboard-link",
-        },
-        {
             title: "Games",
             icon: <Gamepad2 />,
             href: "/dashboard/games",
