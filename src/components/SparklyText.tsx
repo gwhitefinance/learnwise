@@ -11,7 +11,7 @@ const SparklyText = ({ text }: { text: string }) => {
         const textEl = textRef.current;
         if (!container || !textEl) return;
 
-        const emojis = ['🎅', '❄️', '⛄', '🎄'];
+        const emojis = ['✨', '⭐️', '💫']; // Replaced Christmas emojis with sparkles
         const intervalId = setInterval(() => {
             const rect = textEl.getBoundingClientRect();
             const sparkle = document.createElement('div');
@@ -30,7 +30,7 @@ const SparklyText = ({ text }: { text: string }) => {
             container.appendChild(sparkle);
 
             setTimeout(() => sparkle.remove(), 2000);
-        }, 150);
+        }, 250); // Increased interval to reduce frequency
 
         return () => clearInterval(intervalId);
     }, []);
