@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import AIBuddy from "@/components/ai-buddy";
 import QRCode from 'qrcode.react';
 import Link from 'next/link';
-import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
 type Solution = {
@@ -288,6 +288,10 @@ export default function HomeworkSolverPage() {
                 
                 <Dialog open={isLoading}>
                     <DialogContent className="bg-gray-800 border-none text-white w-full max-w-md p-12 text-center" hideCloseButton>
+                        <DialogHeader className="sr-only">
+                            <DialogTitle>Solving</DialogTitle>
+                            <DialogDescription>The AI is currently solving your problem.</DialogDescription>
+                        </DialogHeader>
                         <div className="w-48 h-48 mx-auto">
                             <AIBuddy isStatic={false} />
                         </div>
