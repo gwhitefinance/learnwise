@@ -541,6 +541,9 @@ function DashboardLayoutContent({
                 )}
             >
                 <div className="flex h-full flex-col">
+                    <div className="p-4 flex items-center justify-start">
+                      <Logo className="h-10 w-10" />
+                    </div>
                     <div className="px-3 pb-4">
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -563,7 +566,7 @@ function DashboardLayoutContent({
                     <div className="border-t p-3">
                         <div className="space-y-2">
                         <Button onClick={handleSignOut} className="flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm font-medium">
-                            <LogOut className="h-5 w-5" />
+                            <LogOut className="h-5 w-5" /> 
                             <span>Sign Out</span>
                         </Button>
                         {userProfileDisplay}
