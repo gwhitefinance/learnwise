@@ -147,7 +147,7 @@ export default function Navbar() {
         )}>
           <div className="flex items-center gap-8">
             <Link href="/" className="flex items-center gap-2">
-              <Logo className={cn("h-24 w-24 translate-y-3 translate-x-4", navTextColor)} />
+              <Logo className={cn("h-32 w-32 translate-y-3.5 translate-x-4", navTextColor)} />
             </Link>
              <div className="hidden md:flex items-center justify-center">
                 <nav className="flex items-center gap-8">
