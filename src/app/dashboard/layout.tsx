@@ -659,7 +659,8 @@ function DashboardLayoutContent({
 
             <main className={cn(
                 "flex-1 flex flex-col relative",
-                showTopBar ? "p-4 md:p-6" : ""
+                showTopBar ? "p-4 md:p-6" : "",
+                pathname === '/dashboard/calendar' && '!p-0'
             )}>
               <FloatingChat isHidden={isFocusLayout || pathname === '/dashboard/notes/new'}>
                 {React.cloneElement(children as React.ReactElement)}

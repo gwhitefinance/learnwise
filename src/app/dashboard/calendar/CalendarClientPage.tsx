@@ -514,7 +514,7 @@ export default function CalendarClientPage() {
         />
       )}
 
-      <main className="relative h-screen w-full flex">
+      <main className="relative h-screen w-full flex bg-white">
         <div
           className={`w-64 h-full ${bgClass} p-4 shadow-xl border-r ${borderClass} opacity-0 ${isLoaded ? "animate-fade-in" : ""} flex flex-col justify-between`}
           style={{ animationDelay: "0.4s" }}
@@ -684,8 +684,8 @@ export default function CalendarClientPage() {
             </div>
           </div>
 
-          <div className="flex-1 overflow-auto p-4">
-              <div className={`${bgClass} rounded-xl border ${borderClass} shadow-xl h-full`}>
+          <div className="flex-1 overflow-auto">
+              <div className={`${bgClass} h-full`}>
               {currentView === 'day' && (
                   <div className="grid grid-cols-[auto,1fr]">
                       <div className={`${textMutedClass}`}>
@@ -931,5 +931,3 @@ export default function CalendarClientPage() {
     </div>
   )
 }
-
-    
