@@ -229,17 +229,17 @@ export default function TazTutorsPage() {
                              <Card>
                                 <CardContent className="p-4 flex items-center justify-between">
                                     <div>
-                                        <h4 className="font-semibold">Select Page Range (Optional)</h4>
-                                        <p className="text-sm text-muted-foreground">Focus the AI on a specific range of pages.</p>
+                                        <h4 className="font-semibold">Select Number of Pages (Optional)</h4>
+                                        <p className="text-sm text-muted-foreground">Focus the AI on a specific number of pages.</p>
                                     </div>
-                                     <Select onValueChange={setPageRange}>
+                                    <Select onValueChange={setPageRange}>
                                         <SelectTrigger className="w-[180px]">
-                                            <SelectValue placeholder="Select range" />
+                                            <SelectValue placeholder="Select amount" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="1-5">Pages 1-5</SelectItem>
-                                            <SelectItem value="5-10">Pages 5-10</SelectItem>
-                                            <SelectItem value="10-15">Pages 10-15</SelectItem>
+                                            <SelectItem value="5">5 Pages</SelectItem>
+                                            <SelectItem value="10">10 Pages</SelectItem>
+                                            <SelectItem value="15">15 Pages</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </CardContent>
