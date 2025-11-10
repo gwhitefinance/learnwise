@@ -153,7 +153,7 @@ export default function Navbar() {
         )}>
            <div className="flex items-center gap-2 w-1/4">
                 <Link href="/" className="flex items-center gap-2">
-                    <Logo className="h-32 w-32 translate-y-2" />
+                    <Logo className={cn("h-32 w-32 transition-transform duration-300", isScrolled ? "translate-y-4" : "translate-y-3.5")} />
                 </Link>
             </div>
           
