@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import AIBuddy from "@/components/ai-buddy";
 import QRCode from 'qrcode.react';
 import Link from 'next/link';
-import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
 type Solution = {
@@ -232,7 +232,9 @@ export default function HomeworkSolverPage() {
                         </Card>
                         <Card>
                             <CardContent className="p-4 flex items-center gap-4">
-                                <AIBuddy className="h-10 w-10"/>
+                                <div style={{ width: '200px', height: '200px' }}>
+                                    <AIBuddy className="w-full h-full" />
+                                </div>
                                 <div>
                                     <p className="text-sm font-semibold">Tutorin's Answer</p>
                                     <p className="font-bold text-lg">{solution.answer}</p>
@@ -356,7 +358,7 @@ export default function HomeworkSolverPage() {
                 
                 <Dialog open={isLoading}>
                     <DialogContent className="bg-gray-800 border-none text-white w-full max-w-md p-12 text-center" hideCloseButton>
-                        <DialogHeader className="sr-only">
+                        <DialogHeader className='sr-only'>
                             <DialogTitle>Solving</DialogTitle>
                             <DialogDescription>The AI is currently solving your problem.</DialogDescription>
                         </DialogHeader>
