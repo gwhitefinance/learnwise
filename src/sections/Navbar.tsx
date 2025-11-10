@@ -189,6 +189,7 @@ export default function Navbar() {
           </div>
 
           <div className="hidden md:flex items-center justify-end gap-2 w-1/4">
+            {renderThemeToggle()}
             <Link href="/login">
                 <Button variant="ghost" className="text-black bg-white rounded-full hover:bg-gray-100 border border-gray-200">Login</Button>
             </Link>
