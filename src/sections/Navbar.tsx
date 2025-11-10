@@ -121,6 +121,9 @@ export default function Navbar() {
   const currentTheme = theme;
 
   const navLinksData = [
+    { label: "Pricing", href: "#pricing" },
+    { label: "About", href: "#" },
+    { label: "Blog", href: "#" },
     { label: "Leaderboard", href: "/leaderboard" },
   ]
 
@@ -150,18 +153,37 @@ export default function Navbar() {
         )}>
            <div className="flex items-center gap-2 w-1/4">
                 <Link href="/" className="flex items-center gap-2">
-                    <Logo className="h-16 w-auto" />
+                    <Logo className="h-16 w-16" />
                 </Link>
             </div>
           
           <div className="hidden md:flex items-center justify-center w-1/2">
              <div className="bg-gray-100/80 backdrop-blur-sm border border-gray-200/80 p-1 rounded-full">
                 <nav className="flex items-center gap-2">
-                    <AnimatedNavLink href="#features" isActive={true}>Students</AnimatedNavLink>
-                    <AnimatedNavLink href="#pricing">Teachers</AnimatedNavLink>
-                    <AnimatedNavLink href="#pricing">Schools</AnimatedNavLink>
-                    <AnimatedNavLink href="#pricing">Explore</AnimatedNavLink>
-                    <AnimatedNavLink href="#pricing">Exams</AnimatedNavLink>
+                   <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                       <Button variant="ghost" className="text-sm font-medium text-gray-500 hover:text-black px-4 py-2 rounded-full">Features <ChevronDown className="h-4 w-4 ml-1" /></Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-80">
+                        <div className="grid grid-cols-2 gap-4 p-4">
+                        {features.map((feature) => (
+                            <Link href={feature.href} key={feature.title}>
+                                <div className="p-2 rounded-lg hover:bg-muted">
+                                    <div className="flex items-center gap-2">
+                                        <div className="text-primary">{feature.icon}</div>
+                                        <p className="font-semibold text-sm">{feature.title}</p>
+                                    </div>
+                                </div>
+                            </Link>
+                        ))}
+                        </div>
+                    </DropdownMenuContent>
+                    </DropdownMenu>
+                    {navLinksData.map((link) => (
+                        <AnimatedNavLink key={link.href} href={link.href}>
+                        {link.label}
+                        </AnimatedNavLink>
+                    ))}
                 </nav>
               </div>
           </div>
