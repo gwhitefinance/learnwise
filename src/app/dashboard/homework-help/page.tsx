@@ -4,7 +4,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { History, Crown, Paperclip, Mic, Pen, Calculator, Sparkles, Loader2, PlayCircle, Bot } from "lucide-react";
+import { History, Crown, Paperclip, Mic, Pen, Calculator, Sparkles, Loader2, PlayCircle, Bot, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { generateProblemSolvingSession, analyzeImage } from '@/lib/actions';
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -213,6 +213,74 @@ export default function HomeworkSolverPage() {
         }
     };
 
+    if (solution) {
+        return (
+            <div className="min-h-screen flex flex-col p-4 bg-muted/30">
+                <header className="flex justify-end items-center mb-6">
+                    <Button onClick={() => setSolution(null)}>Solve Another Problem</Button>
+                </header>
+                <main className="w-full max-w-2xl mx-auto flex-1">
+                    <div className="space-y-6">
+                        <Card>
+                            <CardContent className="p-4 flex items-center gap-4">
+                                <Avatar><AvatarFallback>Y</AvatarFallback></Avatar>
+                                <div>
+                                    <p className="text-sm font-semibold">You</p>
+                                    <p>{question}</p>
+                                </div>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardContent className="p-4 flex items-center gap-4">
+                                <AIBuddy className="h-10 w-10"/>
+                                <div>
+                                    <p className="text-sm font-semibold">Tutorin's Answer</p>
+                                    <p className="font-bold text-lg">{solution.answer}</p>
+                                </div>
+                            </CardContent>
+                        </Card>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <Card className="hover:bg-muted transition-colors cursor-pointer">
+                                <CardContent className="p-4 flex items-center gap-4">
+                                    <div className="p-3 bg-primary/10 rounded-full text-primary">
+                                        <PlayCircle />
+                                    </div>
+                                    <div>
+                                        <p className="font-semibold">Watch a video</p>
+                                        <p className="text-sm text-muted-foreground">to learn how to solve this step-by-step</p>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                             <Card className="hover:bg-muted transition-colors cursor-pointer">
+                                <CardContent className="p-4 flex items-center gap-4">
+                                     <div className="p-3 bg-primary/10 rounded-full text-primary">
+                                        <Bot />
+                                    </div>
+                                    <div>
+                                        <p className="font-semibold">Practice questions</p>
+                                        <p className="text-sm text-muted-foreground">instantly with feedback</p>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
+
+                        {solution.steps.map((step, index) => (
+                            <Card key={index}>
+                                <CardHeader>
+                                    <CardTitle className="text-lg">Step {index + 1}:</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <p className="text-muted-foreground whitespace-pre-wrap">{step}</p>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
+                </main>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen flex flex-col p-4 bg-muted/30">
              <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
@@ -299,65 +367,6 @@ export default function HomeworkSolverPage() {
                         <p className="text-white/70">You'll be able to see your answer in just a moment.</p>
                     </DialogContent>
                 </Dialog>
-
-                {solution && (
-                     <div className="space-y-6">
-                        <Card>
-                            <CardContent className="p-4 flex items-center gap-4">
-                                <Avatar><AvatarFallback>Y</AvatarFallback></Avatar>
-                                <div>
-                                    <p className="text-sm font-semibold">You</p>
-                                    <p>{question}</p>
-                                </div>
-                            </CardContent>
-                        </Card>
-                         <Card>
-                            <CardContent className="p-4 flex items-center gap-4">
-                                <AIBuddy className="h-10 w-10"/>
-                                <div>
-                                    <p className="text-sm font-semibold">Tutorin's Answer</p>
-                                    <p className="font-bold text-lg">{solution.answer}</p>
-                                </div>
-                            </CardContent>
-                        </Card>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <Card className="hover:bg-muted transition-colors cursor-pointer">
-                                <CardContent className="p-4 flex items-center gap-4">
-                                    <div className="p-3 bg-primary/10 rounded-full text-primary">
-                                        <PlayCircle />
-                                    </div>
-                                    <div>
-                                        <p className="font-semibold">Watch a video</p>
-                                        <p className="text-sm text-muted-foreground">to learn how to solve this step-by-step</p>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                             <Card className="hover:bg-muted transition-colors cursor-pointer">
-                                <CardContent className="p-4 flex items-center gap-4">
-                                     <div className="p-3 bg-primary/10 rounded-full text-primary">
-                                        <Bot />
-                                    </div>
-                                    <div>
-                                        <p className="font-semibold">Practice questions</p>
-                                        <p className="text-sm text-muted-foreground">instantly with feedback</p>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </div>
-
-                        {solution.steps.map((step, index) => (
-                            <Card key={index}>
-                                <CardHeader>
-                                    <CardTitle className="text-lg">Step {index + 1}:</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <p className="text-muted-foreground whitespace-pre-wrap">{step}</p>
-                                </CardContent>
-                            </Card>
-                        ))}
-                    </div>
-                )}
             </main>
         </div>
     );
