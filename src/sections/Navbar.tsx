@@ -152,7 +152,7 @@ export default function Navbar() {
         )}>
            <div className="flex items-center gap-2 w-1/4">
                 <Link href="/" className="flex items-center gap-2">
-                    <Logo className="h-32 w-32" />
+                    <Logo className="h-32 w-32 translate-y-1" />
                 </Link>
             </div>
           
