@@ -150,8 +150,7 @@ export default function Navbar() {
         )}>
           <div className="flex items-center gap-2">
             <Link href="/" className="flex items-center gap-2">
-                <Logo className="h-10 w-auto" />
-                <span className="font-bold text-2xl text-[#01A299]">Knowt</span>
+                <Logo className="h-16 w-auto" />
             </Link>
           </div>
           
