@@ -471,7 +471,7 @@ export default function CalendarClientPage() {
   const textClass = backgroundImage ? "text-white" : "text-black";
   const textMutedClass = backgroundImage ? "text-white/70" : "text-gray-500";
   const borderClass = backgroundImage ? "border-white/20" : "border-gray-200";
-  const bgClass = backgroundImage ? "bg-white/10 backdrop-blur-sm" : "bg-white/50";
+  const bgClass = backgroundImage ? "bg-white/10 backdrop-blur-sm" : "bg-white";
   const placeholderClass = backgroundImage ? "placeholder:text-white/70" : "placeholder:text-gray-400";
   
   const handleAiPlan = () => {
