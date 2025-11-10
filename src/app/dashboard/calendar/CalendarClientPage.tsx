@@ -468,11 +468,11 @@ export default function CalendarClientPage() {
         { name: 'Teal', class: 'bg-teal-500' },
     ];
 
-  const textClass = backgroundImage ? "text-white" : "text-black";
-  const textMutedClass = backgroundImage ? "text-white/70" : "text-gray-500";
-  const borderClass = backgroundImage ? "border-white/20" : "border-gray-200";
-  const bgClass = backgroundImage ? "bg-white/10 backdrop-blur-sm" : "bg-white";
-  const placeholderClass = backgroundImage ? "placeholder:text-white/70" : "placeholder:text-gray-400";
+  const textClass = backgroundImage ? "text-white" : "";
+  const textMutedClass = backgroundImage ? "text-white/70" : "text-muted-foreground";
+  const borderClass = backgroundImage ? "border-white/20" : "border-border";
+  const bgClass = backgroundImage ? "bg-white/10 backdrop-blur-sm" : "bg-card";
+  const placeholderClass = backgroundImage ? "placeholder:text-white/70" : "placeholder:text-muted-foreground";
   
   const handleAiPlan = () => {
       setShowAIPopup(false);
@@ -502,7 +502,7 @@ export default function CalendarClientPage() {
 
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-white">
+    <div className={cn("relative min-h-screen w-full overflow-hidden", !backgroundImage && "bg-muted/30")}>
       <audio ref={audioRef} loop />
 
       {backgroundImage ? (
@@ -512,7 +512,7 @@ export default function CalendarClientPage() {
             fill
             className="object-cover z-0"
         />
-      ) : <div className="absolute inset-0 z-0 bg-white"></div>}
+      ) : <div className={cn("absolute inset-0 z-0", !backgroundImage && "bg-muted/30")}></div>}
 
       <header
         className={`absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-8 py-6 opacity-0 ${isLoaded ? "animate-fade-in" : ""}`}
