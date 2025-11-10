@@ -1,6 +1,5 @@
 
-
-"use client"
+'use client'
 
 import type React from "react"
 import { useState, useEffect, useRef } from "react"
@@ -153,7 +152,7 @@ export default function Navbar() {
         )}>
            <div className="flex items-center gap-2 w-1/4">
                 <Link href="/" className="flex items-center gap-2">
-                    <Logo className="h-20 w-20" />
+                    <Logo className="h-24 w-24" />
                 </Link>
             </div>
           
@@ -193,7 +192,7 @@ export default function Navbar() {
                 <Button variant="ghost" className="text-black bg-white rounded-full hover:bg-gray-100 border border-gray-200">Login</Button>
             </Link>
             <Link href="/signup">
-                <Button className="bg-primary hover:bg-primary/90 text-white rounded-full pulse-glow-button">
+                <Button className="bg-blue-500 hover:bg-blue-600 text-white rounded-full pulse-glow-button">
                   Get started
                 </Button>
             </Link>
