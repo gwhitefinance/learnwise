@@ -541,38 +541,38 @@ function DashboardLayoutContent({
                 )}
             >
                 <div className="flex h-full flex-col">
-                <div className="p-4">
-                    <Logo className="h-16 w-16" />
-                </div>
-
-                <div className="px-3 py-2">
-                    <div className="relative">
-                    <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input type="search" placeholder="Search..." className="w-full rounded-2xl bg-muted pl-9 pr-4 py-2" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+                    <div className="p-4 flex items-center justify-center">
+                        <Logo className="h-28 w-28" />
                     </div>
-                </div>
 
-                <ScrollArea className="flex-1 px-3 py-2">
-                    <div className="space-y-1">
-                    {filteredSidebarItems.length > 0 ? filteredSidebarItems.map((item: any) => (
-                        <div key={item.title} className="mb-1">
-                            <SidebarNavItem item={item} pathname={pathname} setMobileMenuOpen={setMobileMenuOpen} />
+                    <div className="px-3 pb-4">
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input type="search" placeholder="Search..." className="w-full rounded-2xl bg-muted pl-9 pr-4 py-2 h-10" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
                         </div>
-                    )) : (
-                        <div className="p-4 text-center text-sm text-muted-foreground">No results found.</div>
-                    )}
                     </div>
-                </ScrollArea>
 
-                <div className="border-t p-3">
-                    <div className="space-y-2">
-                    <Button onClick={handleSignOut} className="flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm font-medium">
-                        <LogOut className="h-5 w-5" />
-                        <span>Sign Out</span>
-                    </Button>
-                    {userProfileDisplay}
+                    <ScrollArea className="flex-1 px-3 py-2">
+                        <div className="space-y-1">
+                        {filteredSidebarItems.length > 0 ? filteredSidebarItems.map((item: any) => (
+                            <div key={item.title} className="mb-1">
+                                <SidebarNavItem item={item} pathname={pathname} setMobileMenuOpen={setMobileMenuOpen} />
+                            </div>
+                        )) : (
+                            <div className="p-4 text-center text-sm text-muted-foreground">No results found.</div>
+                        )}
+                        </div>
+                    </ScrollArea>
+
+                    <div className="border-t p-3">
+                        <div className="space-y-2">
+                        <Button onClick={handleSignOut} className="flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm font-medium">
+                            <LogOut className="h-5 w-5" />
+                            <span>Sign Out</span>
+                        </Button>
+                        {userProfileDisplay}
+                        </div>
                     </div>
-                </div>
                 </div>
             </div>
         )}
