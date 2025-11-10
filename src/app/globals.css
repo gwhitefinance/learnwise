@@ -260,10 +260,10 @@ html.lenis {
         0 0 50px #ff0000,
         0 0 60px #00ff00,
         0 0 70px #00ff00,
-        3px 3px 0 #8b0000,
-        -3px -3px 0 #0f4c29,
-        3px -3px 0 #8b0000,
-        -3px 3px 0 #0f4c29;
+        3px 3px 0 #a00000,
+        -3px -3px 0 #004d00,
+        3px -3px 0 #a00000,
+        -3px 3px 0 #004d00;
     animation: glow 1.5s ease-in-out infinite alternate;
 }
 
@@ -277,10 +277,10 @@ html.lenis {
             0 0 50px #ff0000,
             0 0 60px #00ff00,
             0 0 70px #00ff00,
-            3px 3px 0 #8b0000,
-            -3px -3px 0 #0f4c29,
-            3px -3px 0 #8b0000,
-            -3px 3px 0 #0f4c29;
+            3px 3px 0 #a00000,
+            -3px -3px 0 #004d00,
+            3px -3px 0 #a00000,
+            -3px 3px 0 #004d00;
     }
     to {
         text-shadow: 
@@ -291,10 +291,10 @@ html.lenis {
             0 0 60px #ff0000,
             0 0 70px #ff0000,
             0 0 80px #ffd700,
-            3px 3px 0 #8b0000,
-            -3px -3px 0 #0f4c29,
-            3px -3px 0 #8b0000,
-            -3px 3px 0 #0f4c29;
+            3px 3px 0 #a00000,
+            -3px -3px 0 #004d00,
+            3px -3px 0 #a00000,
+            -3px 3px 0 #004d00;
     }
 }
 
