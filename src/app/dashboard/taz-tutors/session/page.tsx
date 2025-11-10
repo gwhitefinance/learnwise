@@ -12,7 +12,8 @@ import { generateTextTutoringSession } from '@/lib/actions';
 import { TutoringSessionOutput } from '@/ai/schemas/image-tutoring-schema';
 import GeneratingTutorSession from './GeneratingTutorSession';
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { auth } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
+import { getDoc, doc } from 'firebase/firestore';
 
 
 function TutorSession() {
@@ -27,6 +28,7 @@ function TutorSession() {
     const materialName = searchParams.get('materialName') || 'your material';
     const learningGoal = searchParams.get('learningGoal') || 'Understand the key concepts.';
     const materialId = searchParams.get('materialId');
+    const pageRange = searchParams.get('pageRange');
 
     useEffect(() => {
         const generateContent = async () => {
@@ -36,27 +38,48 @@ function TutorSession() {
                 return;
             }
 
-            // In a real app, you'd fetch the content of the materialId from a database
-            // For now, we'll simulate it with the material name.
-            const mockContent = `This is the content for ${materialName}. The learning goal is: ${learningGoal}`;
-            
+            let fetchedContent = '';
             try {
+                // Determine if it's a course or note and fetch content
+                const courseDoc = await getDoc(doc(db, 'courses', materialId));
+                if (courseDoc.exists()) {
+                    const courseData = courseDoc.data();
+                    fetchedContent = courseData.units?.flatMap((u: any) => u.chapters).map((c: any) => c.content).join('\n\n') || `Course content for ${courseData.name}`;
+                } else {
+                    const noteDoc = await getDoc(doc(db, 'notes', materialId));
+                    if (noteDoc.exists()) {
+                        fetchedContent = noteDoc.data().content;
+                    } else {
+                        throw new Error("Could not find the selected material.");
+                    }
+                }
+
+                if (!fetchedContent.trim()) {
+                    fetchedContent = `The user selected the topic "${materialName}". Please generate a tutoring session about it.`;
+                }
+                
+                let fullPrompt = learningGoal;
+                if (pageRange) {
+                    fullPrompt += ` Please structure this session into ${pageRange} pages.`;
+                }
+
                 const result = await generateTextTutoringSession({
-                    textContent: mockContent,
-                    prompt: learningGoal,
-                    learnerType: 'Reading/Writing' // Or get from localStorage
+                    textContent: fetchedContent,
+                    prompt: fullPrompt,
+                    learnerType: (localStorage.getItem('learnerType') as any) || 'Reading/Writing'
                 });
                 setSessionContent(result);
-            } catch (e) {
+
+            } catch (e: any) {
                 console.error("Failed to generate session content:", e);
-                setError("Failed to generate your tutoring session. Please try again.");
+                setError(e.message || "Failed to generate your tutoring session. Please try again.");
             } finally {
                 setIsLoading(false);
             }
         };
 
         generateContent();
-    }, [materialId, materialName, learningGoal]);
+    }, [materialId, materialName, learningGoal, pageRange]);
 
 
     if (isLoading) {
@@ -139,7 +162,7 @@ function TutorSession() {
                 </aside>
             </div>
              <footer className="p-2 border-t flex justify-end items-center text-sm text-muted-foreground">
-                Page 1 of 7
+                Page 1 of {pageRange || 'many'}
             </footer>
         </div>
     );
