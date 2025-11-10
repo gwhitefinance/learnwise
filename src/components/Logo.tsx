@@ -7,8 +7,8 @@ const Logo = ({ className }: { className?: string }) => (
   <Image
     src="https://i.postimg.cc/wjNyZZmQ/Tutor-removebg-preview.png"
     alt="Tutor Taz Logo"
-    width={40}
-    height={40}
+    width={80}
+    height={80}
     className={className}
   />
 );
