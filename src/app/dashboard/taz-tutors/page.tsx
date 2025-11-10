@@ -13,6 +13,7 @@ import { auth, db } from '@/lib/firebase';
 import { collection, query, where, onSnapshot, orderBy, Timestamp } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 type Course = {
     id: string;
@@ -27,15 +28,24 @@ type Note = {
 };
 
 const MaterialCard = ({ name, date }: { name: string, date: string }) => (
-  <Card className="hover:shadow-md transition-shadow cursor-pointer">
-    <CardContent className="p-4 flex items-center gap-3">
-      <FileText className="h-6 w-6 text-muted-foreground flex-shrink-0" />
-      <div className="overflow-hidden">
-        <p className="font-semibold text-sm truncate">{name}</p>
-        <p className="text-xs text-muted-foreground">{date}</p>
-      </div>
-    </CardContent>
-  </Card>
+    <TooltipProvider>
+        <Tooltip>
+            <TooltipTrigger asChild>
+                <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                    <CardContent className="p-4 flex items-center gap-3">
+                    <FileText className="h-6 w-6 text-muted-foreground flex-shrink-0" />
+                    <div className="overflow-hidden">
+                        <p className="font-semibold text-sm truncate">{name}</p>
+                        <p className="text-xs text-muted-foreground">{date}</p>
+                    </div>
+                    </CardContent>
+                </Card>
+            </TooltipTrigger>
+            <TooltipContent>
+                <p>{name}</p>
+            </TooltipContent>
+        </Tooltip>
+    </TooltipProvider>
 );
 
 export default function TazTutorsPage() {
