@@ -113,10 +113,13 @@ export default function TazTutorsPage() {
             materialId: selectedMaterial,
             materialName: materialName || "Selected Material",
             learningGoal: learningGoal || "Explain the key concepts.",
-            pageRange: pageRange || "All Pages"
         });
+        
+        if (pageRange) {
+            queryParams.set('pageRange', pageRange);
+        }
 
-        router.push(`/dashboard/taz-tutors/session?${queryParams.toString()}`);
+        router.push(`/dashboard/taz-tutors/session-ready?${queryParams.toString()}`);
     }
 
     const filteredCourses = courses.filter(course => course.name.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -221,7 +224,7 @@ export default function TazTutorsPage() {
                                 <Label htmlFor="learning-goal">What is your learning goal for this session?</Label>
                                 <Input 
                                     id="learning-goal" 
-                                    placeholder="e.g., Understand the key concepts, Help me solve these problems..."
+                                    placeholder="e.g., Explain the key concepts, Help me solve these problems..."
                                     value={learningGoal}
                                     onChange={(e) => setLearningGoal(e.target.value)}
                                 />
@@ -236,7 +239,7 @@ export default function TazTutorsPage() {
                                     ))}
                                 </div>
                             </div>
-                             <Card>
+                            <Card>
                                 <CardContent className="p-4 flex items-center justify-between">
                                     <div>
                                         <h4 className="font-semibold">Select Amount of Pages (Optional)</h4>
