@@ -29,8 +29,8 @@ type Note = {
 const MaterialCard = ({ name, date }: { name: string, date: string }) => (
   <Card className="hover:shadow-md transition-shadow cursor-pointer">
     <CardContent className="p-4 flex items-center gap-3">
-      <FileText className="h-6 w-6 text-muted-foreground" />
-      <div>
+      <FileText className="h-6 w-6 text-muted-foreground flex-shrink-0" />
+      <div className="overflow-hidden">
         <p className="font-semibold text-sm truncate">{name}</p>
         <p className="text-xs text-muted-foreground">{date}</p>
       </div>
