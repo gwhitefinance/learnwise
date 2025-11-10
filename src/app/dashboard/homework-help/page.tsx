@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useRef, useEffect } from "react";
@@ -213,7 +214,7 @@ export default function HomeworkSolverPage() {
     };
 
     return (
-        <div className="min-h-screen flex flex-col bg-background">
+        <div className="min-h-screen flex flex-col p-4 bg-muted/30">
              <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
             <header className="flex justify-between items-center mb-6">
                  <div>
@@ -285,12 +286,15 @@ export default function HomeworkSolverPage() {
                     </div>
                 </div>
                 
-                {isLoading && (
-                    <div className="text-center">
-                        <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
-                        <p className="text-muted-foreground mt-2">Tutorin is thinking...</p>
-                    </div>
-                )}
+                <Dialog open={isLoading}>
+                    <DialogContent className="bg-gray-800 border-none text-white w-full max-w-md p-12 text-center" hideCloseButton>
+                        <div className="w-48 h-48 mx-auto">
+                            <AIBuddy isStatic={false} />
+                        </div>
+                        <h2 className="text-2xl font-bold mt-4">Taz's solving your question</h2>
+                        <p className="text-white/70">You'll be able to see your answer in just a moment.</p>
+                    </DialogContent>
+                </Dialog>
 
                 {solution && (
                      <div className="space-y-6">
