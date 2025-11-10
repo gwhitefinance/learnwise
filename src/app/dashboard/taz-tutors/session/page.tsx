@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Suspense, useState, useEffect } from 'react';
@@ -10,10 +11,14 @@ import { format } from 'date-fns';
 import { generateTextTutoringSession } from '@/lib/actions';
 import { TutoringSessionOutput } from '@/ai/schemas/image-tutoring-schema';
 import GeneratingTutorSession from './GeneratingTutorSession';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { auth } from '@/lib/firebase';
+
 
 function TutorSession() {
     const searchParams = useSearchParams();
     const router = useRouter();
+    const [user] = useAuthState(auth);
 
     const [isLoading, setIsLoading] = useState(true);
     const [sessionContent, setSessionContent] = useState<TutoringSessionOutput | null>(null);
