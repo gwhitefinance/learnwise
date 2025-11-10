@@ -1,19 +1,47 @@
 
 'use client';
 
-import { useState, useRef, ChangeEvent } from "react";
+import { useState, useRef, ChangeEvent, useEffect } from "react";
+import { useSearchParams } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { UploadCloud, Youtube, FileText, Video, Music, Copy } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { UploadCloud, Youtube, FileText, Video, Music, Copy, QrCode } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import QRCode from 'qrcode.react';
 
 export default function UploadPage() {
+    const searchParams = useSearchParams();
+    const courseId = searchParams.get('courseId');
     const [isRecording, setIsRecording] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isDragging, setIsDragging] = useState(false);
+    const [qrCodeUrl, setQrCodeUrl] = useState('');
     const { toast } = useToast();
+
+    useEffect(() => {
+        if (courseId) {
+            setQrCodeUrl(`${window.location.origin}/upload-note/${courseId}`);
+        }
+    }, [courseId]);
+
+    useEffect(() => {
+        const handleMessage = (event: MessageEvent) => {
+            if (event.origin !== window.location.origin) return;
+
+            if (event.data.type === 'noteUpload') {
+                toast({ title: "Image Received!", description: "Your image has been sent for processing." });
+                // In a real app, you would now handle this imageDataUri
+                // e.g., send it to your AI backend.
+                console.log("Received image data URI from mobile.");
+            }
+        };
+
+        window.addEventListener('message', handleMessage);
+        return () => window.removeEventListener('message', handleMessage);
+    }, [toast]);
 
     const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -81,14 +109,14 @@ export default function UploadPage() {
                             </div>
                         </div>
                     </Card>
-
+                    
                     <Card>
-                        <CardContent className="p-6 flex items-center justify-between">
-                            <div>
-                                <h3 className="font-semibold">Ask your friends to help upload Materials</h3>
-                                <p className="text-sm text-muted-foreground">Share this link with your classmates to collaborate.</p>
-                            </div>
-                            <Button variant="outline"><Copy className="w-4 h-4 mr-2"/> Copy Link</Button>
+                        <CardHeader>
+                            <CardTitle>Paste Text</CardTitle>
+                            <CardDescription>Copy and paste notes or text from any source.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                             <Textarea placeholder="Paste your text here..." className="h-32"/>
                         </CardContent>
                     </Card>
 
@@ -106,19 +134,24 @@ export default function UploadPage() {
                 </div>
 
                 <div className="md:col-span-1 space-y-4">
-                    <Card className="p-6">
-                        <CardHeader className="p-0 mb-4">
-                            <CardTitle>We will turn it into Digestible Study Materials</CardTitle>
+                     <Card>
+                        <CardHeader>
+                             <CardTitle className="flex items-center gap-2"><QrCode/> Add from Phone</CardTitle>
+                            <CardDescription>Scan this QR code with your phone's camera to snap a picture of your notes and upload them directly.</CardDescription>
                         </CardHeader>
-                        <CardContent className="p-0 space-y-4">
-                            <div className="p-4 bg-muted rounded-lg">
-                                <h4 className="font-semibold">Study Materials</h4>
-                                <p className="text-sm text-muted-foreground">Flashcards, Quizzes, games and more.</p>
+                        <CardContent className="flex items-center justify-center">
+                            <div className="bg-white p-2 rounded-lg">
+                                {qrCodeUrl ? <QRCode value={qrCodeUrl} size={160} /> : <div className="h-[160px] w-[160px] flex items-center justify-center text-muted-foreground text-sm">Select a course first.</div>}
                             </div>
-                             <div className="p-4 bg-muted rounded-lg">
-                                <h4 className="font-semibold">Plans & Progress Tracking</h4>
-                                <p className="text-sm text-muted-foreground">A Study Plan based off your exact class.</p>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardContent className="p-6 flex items-center justify-between">
+                            <div>
+                                <h3 className="font-semibold">Ask your friends to help</h3>
+                                <p className="text-sm text-muted-foreground">Share this link to collaborate.</p>
                             </div>
+                            <Button variant="outline"><Copy className="w-4 h-4 mr-2"/> Copy Link</Button>
                         </CardContent>
                     </Card>
                 </div>
