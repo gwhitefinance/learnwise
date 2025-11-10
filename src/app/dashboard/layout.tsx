@@ -154,11 +154,11 @@ const sidebarItems: SidebarItem[] = [
             id: "calendar-link",
           },
           {
-            title: "Notes",
-            icon: <ClipboardPenLine />,
-            href: "/dashboard/notes",
-            id: "notes-link",
-          },
+            title: "Practice Quiz",
+            icon: <Lightbulb />,
+            href: "/dashboard/practice-quiz",
+            id: "practice-quiz-link",
+        },
       ]
     },
     {
@@ -167,10 +167,10 @@ const sidebarItems: SidebarItem[] = [
       id: "study-tools-section",
       children: [
         {
-            title: "Practice Quiz",
-            icon: <Lightbulb />,
-            href: "/dashboard/practice-quiz",
-            id: "practice-quiz-link",
+            title: "Notes",
+            icon: <ClipboardPenLine />,
+            href: "/dashboard/notes",
+            id: "notes-link",
         },
         {
             title: "Whiteboard",
