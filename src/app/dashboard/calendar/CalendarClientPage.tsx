@@ -502,102 +502,21 @@ export default function CalendarClientPage() {
 
 
   return (
-    <div className={cn("relative min-h-screen w-full overflow-hidden", !backgroundImage && "bg-muted/30")}>
+    <div className={cn("relative min-h-screen w-full overflow-hidden bg-white")}>
       <audio ref={audioRef} loop />
 
-      {backgroundImage ? (
+      {backgroundImage && (
         <Image
             src={backgroundImage}
             alt="Custom background"
             fill
             className="object-cover z-0"
         />
-      ) : <div className={cn("absolute inset-0 z-0", !backgroundImage && "bg-muted/30")}></div>}
+      )}
 
-      <header
-        className={`absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-8 py-6 opacity-0 ${isLoaded ? "animate-fade-in" : ""}`}
-        style={{ animationDelay: "0.2s" }}
-      >
-        <div className="flex items-center gap-4">
-          <div className="relative">
-            <Search className={`absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 ${textMutedClass}`} />
-            <input
-              type="text"
-              placeholder="Search"
-              className={`rounded-full ${bgClass} pl-10 pr-4 py-2 ${textClass} ${placeholderClass} border ${borderClass} focus:outline-none focus:ring-2 focus:ring-white/30`}
-            />
-          </div>
-          <Dialog open={isSettingsOpen} onOpenChange={setSettingsOpen}>
-              <DialogTrigger asChild>
-                  <button className={`p-2 rounded-full hover:bg-white/20 ${textClass}`}><Settings className={`h-6 w-6 ${textClass} drop-shadow-md`} /></button>
-              </DialogTrigger>
-              <DialogContent>
-                  <DialogHeader>
-                      <DialogTitle>Customize Event Colors</DialogTitle>
-                  </DialogHeader>
-                  <div className="grid gap-4 py-4">
-                      {Object.keys(tempEventTypes).map((type) => (
-                          <div key={type} className="grid grid-cols-3 items-center gap-4">
-                              <Label htmlFor={`color-${type}`} className="text-right">
-                                  {type}
-                              </Label>
-                              <Select
-                                  value={tempEventTypes[type as keyof EventTypes]}
-                                  onValueChange={(value) => handleColorChange(type as keyof EventTypes, value)}
-                              >
-                                  <SelectTrigger className="col-span-2">
-                                      <SelectValue>
-                                        <div className="flex items-center gap-2">
-                                            <div className={`w-4 h-4 rounded-sm ${tempEventTypes[type as keyof EventTypes]}`}></div>
-                                            <span>{colorOptions.find(c => c.class === tempEventTypes[type as keyof EventTypes])?.name}</span>
-                                        </div>
-                                      </SelectValue>
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                      {colorOptions.map(color => (
-                                          <SelectItem key={color.class} value={color.class}>
-                                               <div className="flex items-center gap-2">
-                                                  <div className={`w-4 h-4 rounded-sm ${color.class}`}></div>
-                                                  <span>{color.name}</span>
-                                              </div>
-                                          </SelectItem>
-                                      ))}
-                                  </SelectContent>
-                              </Select>
-                          </div>
-                      ))}
-                  </div>
-                  <DialogFooter>
-                      <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
-                      <Button onClick={handleSaveSettings}>Save Changes</Button>
-                  </DialogFooter>
-              </DialogContent>
-          </Dialog>
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleBackgroundImageUpload}
-            className="hidden"
-            accept="image/*"
-          />
-          <button onClick={triggerFileUpload} className={`p-2 rounded-full hover:bg-white/20 ${textClass}`}>
-            <Upload className="h-5 w-5" />
-          </button>
-           {backgroundImage && (
-                <button onClick={clearBackgroundImage} className={`p-2 rounded-full hover:bg-white/20 ${textClass}`}>
-                    <Trash className="h-5 w-5" />
-                </button>
-            )}
-        </div>
-         <Button onClick={handleConnectGCal} variant="outline" className={`rounded-full ${textClass} ${bgClass} border ${borderClass} hover:bg-white/20`}>
-                <GoogleIcon className="h-5 w-5 mr-2"/>
-                {isGCalConnected ? 'Syncing' : 'Connect'} Google Calendar
-            </Button>
-      </header>
-
-      <main className="relative h-screen w-full pt-20 flex">
+      <main className="relative h-screen w-full flex">
         <div
-          className={`w-64 h-full ${bgClass} p-4 shadow-xl border-r ${borderClass} rounded-tr-3xl opacity-0 ${isLoaded ? "animate-fade-in" : ""} flex flex-col justify-between`}
+          className={`w-64 h-full ${bgClass} p-4 shadow-xl border-r ${borderClass} opacity-0 ${isLoaded ? "animate-fade-in" : ""} flex flex-col justify-between`}
           style={{ animationDelay: "0.4s" }}
         >
           <div>
@@ -1012,3 +931,5 @@ export default function CalendarClientPage() {
     </div>
   )
 }
+
+    
