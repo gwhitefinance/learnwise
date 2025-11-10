@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -152,13 +153,11 @@ export default function TeacherDashboardLayout({ children }: { children: React.R
             )}>
                 <div className="flex h-full flex-col">
                     <div className="p-4">
-                        <div className="flex items-center gap-3">
-                        <div className="flex aspect-square size-10 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-600 to-blue-600 text-white">
-                            <Logo className="size-6" />
-                        </div>
-                        <div>
-                            <h2 className="font-semibold">Teacher Portal</h2>
-                        </div>
+                        <div className="flex items-center gap-2">
+                           <Logo className="h-20 w-20" />
+                            <div>
+                                <h2 className="font-semibold text-lg">Teacher Portal</h2>
+                            </div>
                         </div>
                     </div>
                      <div className="px-3 py-2">
