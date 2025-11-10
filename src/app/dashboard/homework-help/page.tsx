@@ -170,10 +170,6 @@ export default function HomeworkSolverPage() {
                     </div>
                 )}
             </main>
-            <footer className="w-full max-w-2xl mx-auto text-center text-xs text-muted-foreground mt-8">
-                 <p>By uploading your file to Knowt, you acknowledge that you agree to Knowt's Terms of Service and Community Guidelines.</p>
-                 <p>Please be sure not to violate others' copyright or privacy rights. Learn more</p>
-            </footer>
         </div>
     );
 }
