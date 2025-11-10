@@ -26,7 +26,6 @@ import { generatePodcastEpisode } from '@/ai/flows/podcast-flow';
 import { generateVideo, checkVideo } from '@/ai/flows/video-flow';
 import { generateSatQuestion } from '@/ai/flows/sat-question-flow';
 import { generateInitialCourseAndRoadmap } from '@/ai/flows/initial-course-flow';
-import { generateMindfulnessExercise } from '@/ai/flows/mindfulness-flow';
 import { generateConceptExplanation } from '@/ai/flows/concept-explanation-flow';
 import { generateSatStudySessionAction } from '@/ai/flows/sat-study-session-flow';
 import { generateFeedbackAction } from '@/ai/flows/sat-feedback-flow';
@@ -70,7 +69,6 @@ export {
     checkVideo,
     generateSatQuestion,
     generateInitialCourseAndRoadmap,
-    generateMindfulnessExercise,
     generateConceptExplanation,
     generateSatStudySessionAction,
     generateFeedbackAction,
