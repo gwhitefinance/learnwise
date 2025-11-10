@@ -148,23 +148,25 @@ export default function Navbar() {
             "flex items-center justify-between h-20 transition-all duration-300 px-4",
              isScrolled ? "bg-white/50 border border-gray-200/50 rounded-2xl backdrop-blur-md" : ""
         )}>
-          <div className="flex items-center gap-2">
-            <Link href="/" className="flex items-center gap-2">
-                <Logo className="h-16 w-auto" />
-            </Link>
-          </div>
+           <div className="flex items-center gap-2 w-1/4">
+                <Link href="/" className="flex items-center gap-2">
+                    <Logo className="h-16 w-auto" />
+                </Link>
+            </div>
           
-          <div className="hidden md:flex items-center justify-center bg-gray-100/80 backdrop-blur-sm border border-gray-200/80 p-1 rounded-full">
-            <nav className="flex items-center gap-2">
-                <AnimatedNavLink href="#features" isActive={true}>Students</AnimatedNavLink>
-                <AnimatedNavLink href="#pricing">Teachers</AnimatedNavLink>
-                <AnimatedNavLink href="#pricing">Schools</AnimatedNavLink>
-                <AnimatedNavLink href="#pricing">Explore</AnimatedNavLink>
-                <AnimatedNavLink href="#pricing">Exams</AnimatedNavLink>
-            </nav>
+          <div className="hidden md:flex items-center justify-center w-1/2">
+             <div className="bg-gray-100/80 backdrop-blur-sm border border-gray-200/80 p-1 rounded-full">
+                <nav className="flex items-center gap-2">
+                    <AnimatedNavLink href="#features" isActive={true}>Students</AnimatedNavLink>
+                    <AnimatedNavLink href="#pricing">Teachers</AnimatedNavLink>
+                    <AnimatedNavLink href="#pricing">Schools</AnimatedNavLink>
+                    <AnimatedNavLink href="#pricing">Explore</AnimatedNavLink>
+                    <AnimatedNavLink href="#pricing">Exams</AnimatedNavLink>
+                </nav>
+              </div>
           </div>
 
-          <div className="hidden md:flex items-center gap-2">
+          <div className="hidden md:flex items-center justify-end gap-2 w-1/4">
             <Link href="/login">
                 <Button variant="ghost" className="text-black bg-white rounded-full hover:bg-gray-100 border border-gray-200">Login</Button>
             </Link>
