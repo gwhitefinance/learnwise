@@ -30,7 +30,7 @@ import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { useTheme } from 'next-themes';
 import { useToast } from '@/hooks/use-toast';
-import TypingAnimation from '@/components/TypingAnimation';
+import SparklyText from '@/components/SparklyText';
 
 
 type CrunchTimeOutput = {
@@ -335,7 +335,7 @@ const Hero = () => {
     <div className="container mx-auto px-4 relative z-10">
       
       <h1 className={cn("text-5xl md:text-7xl font-bold tracking-tighter", theme === 'dark' ? 'text-white' : 'text-black')}>
-        Reach your learning <br /> goals <TypingAnimation text="effortlessly" className="text-blue-400" />
+        Reach your learning <br /> goals <SparklyText text="effortlessly" />
       </h1>
       <p className={cn("max-w-xl mx-auto mt-6 text-lg", theme === 'dark' ? 'text-white/70' : 'text-black/70')}>
         Tutor Taz turns your class notes, docs, and study materials into your personal AI tutor. Generate quizzes, flashcards, and get 24/7 help.

@@ -247,3 +247,75 @@ html.lenis {
     box-shadow: 0 0 15px hsl(var(--primary) / 0.8), 0 0 25px hsl(var(--primary) / 0.5);
   }
 }
+
+.sparkly-text-effect {
+    font-family: 'Comic Sans MS', 'Arial Black', sans-serif;
+    color: #fff;
+    position: relative;
+    animation: glow 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+    from {
+        text-shadow: 
+            0 0 10px #fff,
+            0 0 20px #fff,
+            0 0 30px #ff00de,
+            0 0 40px #ff00de,
+            0 0 50px #ff00de,
+            0 0 60px #ff00de,
+            0 0 70px #ff00de;
+    }
+    to {
+        text-shadow: 
+            0 0 20px #fff,
+            0 0 30px #00ff9d,
+            0 0 40px #00ff9d,
+            0 0 50px #00ff9d,
+            0 0 60px #00ff9d,
+            0 0 70px #00ff9d,
+            0 0 80px #00ff9d;
+    }
+}
+
+.sparkle {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: white;
+    border-radius: 50%;
+    pointer-events: none;
+    animation: sparkleFloat 2s ease-in-out infinite;
+    box-shadow: 0 0 10px #fff, 0 0 20px #fff;
+}
+
+@keyframes sparkleFloat {
+    0%, 100% {
+        transform: translateY(0) scale(0);
+        opacity: 0;
+    }
+    50% {
+        transform: translateY(-30px) scale(1);
+        opacity: 1;
+    }
+}
+
+.star {
+    position: absolute;
+    color: #fff;
+    font-size: 24px;
+    pointer-events: none;
+    animation: starTwinkle 1.5s ease-in-out infinite;
+    text-shadow: 0 0 10px #fff, 0 0 20px #ff00de;
+}
+
+@keyframes starTwinkle {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1) rotate(0deg);
+    }
+    50% {
+        opacity: 0.5;
+        transform: scale(0.8) rotate(180deg);
+    }
+}
