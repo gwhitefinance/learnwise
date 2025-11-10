@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect, useRef, ChangeEvent } from "react";
@@ -36,7 +37,7 @@ import { useAuthState } from "react-firebase-hooks/auth";
 import { auth, db } from "@/lib/firebase";
 import { collection, addDoc, query, where, getDocs, deleteDoc, doc, updateDoc, onSnapshot, orderBy } from "firebase/firestore";
 import { useRouter, useSearchParams } from "next/navigation";
-import { format, eachDayOfInterval, startOfWeek, endOfWeek, startOfMonth, endOfMonth, getDay, isToday, isEqual, addMonths, subMonths, eachWeekOfInterval, addDays, getWeek, addWeeks, subWeeks } from 'date-fns';
+import { format, eachDayOfInterval, startOfWeek, endOfWeek, startOfMonth, endOfMonth, getDay, isToday, isEqual, addMonths, subMonths, eachWeekOfInterval, addDays, getWeek, addWeeks, subWeeks, startOfDay } from 'date-fns';
 import AIBuddy from "@/components/ai-buddy";
 
 
@@ -777,7 +778,7 @@ export default function CalendarClientPage() {
                                <div key={day.toString()} className={`relative p-2 border-r border-b ${borderClass} min-h-[120px]`}>
                                   <div className={`text-sm font-medium ${isToday(day) ? `bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center` : textClass}`}>{format(day, 'd')}</div>
                                   <div className="mt-1 space-y-1">
-                                      {events.filter(e => isEqual(new Date(e.date.split('T')[0]), day)).map(event => (
+                                      {events.filter(e => isEqual(startOfDay(new Date(e.date)), startOfDay(day))).map(event => (
                                           <div key={event.id} className={`${eventTypes[event.type]} text-white text-xs rounded p-1 truncate cursor-pointer`} onClick={() => handleEventClick(event)}>
                                               {event.title}
                                           </div>
