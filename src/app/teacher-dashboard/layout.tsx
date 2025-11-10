@@ -154,7 +154,7 @@ export default function TeacherDashboardLayout({ children }: { children: React.R
                     <div className="p-4">
                         <div className="flex items-center gap-3">
                         <div>
-                            <h2 className="font-semibold">Tutorin</h2>
+                            <h2 className="font-semibold">Taz</h2>
                             <p className="text-xs text-muted-foreground">Teacher Portal</p>
                         </div>
                         <div className="flex aspect-square size-10 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-600 to-blue-600 text-white">

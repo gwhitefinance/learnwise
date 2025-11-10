@@ -12,7 +12,7 @@ const prompt = ai.definePrompt({
     model: googleAI.model('gemini-2.5-flash'),
     input: { schema: FeedbackInputSchema },
     output: { schema: FeedbackOutputSchema },
-    prompt: `You are an expert SAT tutor named Tutorin, providing feedback on a student's practice set.
+    prompt: `You are an expert SAT tutor named Taz, providing feedback on a student's practice set.
     Analyze the student's performance based on the questions they answered. For each question, the 'topic' is provided.
 
     Your task is to provide a concise (2-3 sentences) and encouraging feedback summary.

@@ -242,7 +242,7 @@ export default function HomeworkSolverPage() {
                                     <AIBuddy className="w-full h-full" />
                                 </div>
                                 <div>
-                                    <p className="text-sm font-semibold">Tutorin's Answer</p>
+                                    <p className="text-sm font-semibold">Taz's Answer</p>
                                     <p className="font-bold text-lg">{solution.answer}</p>
                                 </div>
                             </CardContent>
@@ -290,7 +290,7 @@ export default function HomeworkSolverPage() {
     }
 
     return (
-        <div className="min-h-screen flex flex-col p-4 bg-background">
+        <div className="min-h-screen flex flex-col p-4 bg-muted/30">
              <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
             <header className="flex justify-between items-center mb-6">
                  <div>
@@ -365,8 +365,7 @@ export default function HomeworkSolverPage() {
                 <Dialog open={isLoading}>
                     <DialogContent className="bg-gray-800 border-none text-white w-full max-w-md p-12 text-center" hideCloseButton>
                         <DialogHeader className='sr-only'>
-                            <DialogTitle>Solving</DialogTitle>
-                            <DialogDescription>The AI is currently solving your problem.</DialogDescription>
+                            <DialogTitle>Solving your problem</DialogTitle>
                         </DialogHeader>
                         <div className="w-48 h-48 mx-auto">
                             <AIBuddy isStatic={false} />
@@ -379,4 +378,3 @@ export default function HomeworkSolverPage() {
         </div>
     );
 }
-

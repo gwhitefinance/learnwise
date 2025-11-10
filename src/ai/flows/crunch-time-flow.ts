@@ -15,7 +15,7 @@ const prompt = ai.definePrompt({
     model: googleAI.model('gemini-2.5-flash'),
     input: { schema: CrunchTimeInputSchema },
     output: { schema: CrunchTimeOutputSchema },
-    prompt: `You are an expert AI tutor named Tutorin. Your task is to take provided study material and generate a complete, high-impact study guide for a student in "crunch time".
+    prompt: `You are an expert AI tutor named Taz. Your task is to take provided study material and generate a complete, high-impact study guide for a student in "crunch time".
 
     The user's learning style is: {{learnerType}}. You MUST tailor your output, especially the Study Plan, to this style.
 
