@@ -247,6 +247,7 @@ html.lenis {
 }
 
 .sparkly-text {
+    font-size: 1em;
     font-weight: bold;
     font-family: 'Comic Sans MS', 'Arial Black', sans-serif;
     color: #fff;
@@ -255,14 +256,14 @@ html.lenis {
     text-shadow: 
         0 0 10px #fff,
         0 0 20px #fff,
-        0 0 30px #ff0000,
-        0 0 40px #ff0000,
-        0 0 50px #ff0000,
-        0 0 60px #ff0000,
-        0 0 70px #ff0000,
-        3px 3px 0 #8b0000,
+        0 0 30px #00ff00,
+        0 0 40px #00ff00,
+        0 0 50px #00ff00,
+        0 0 60px #00ff00,
+        0 0 70px #00ff00,
+        3px 3px 0 #0f4c29,
         -3px -3px 0 #0f4c29,
-        3px -3px 0 #8b0000,
+        3px -3px 0 #0f4c29,
         -3px 3px 0 #0f4c29;
     animation: glow 1.5s ease-in-out infinite alternate;
 }
@@ -272,28 +273,28 @@ html.lenis {
         text-shadow: 
             0 0 10px #fff,
             0 0 20px #fff,
-            0 0 30px #ff4d4d,
-            0 0 40px #ff4d4d,
-            0 0 50px #ff4d4d,
-            0 0 60px #ff4d4d,
-            0 0 70px #ff4d4d,
-            3px 3px 0 #8b0000,
+            0 0 30px #00ff00,
+            0 0 40px #00ff00,
+            0 0 50px #00ff00,
+            0 0 60px #00ff00,
+            0 0 70px #00ff00,
+            3px 3px 0 #0f4c29,
             -3px -3px 0 #0f4c29,
-            3px -3px 0 #8b0000,
+            3px -3px 0 #0f4c29,
             -3px 3px 0 #0f4c29;
     }
     to {
         text-shadow: 
             0 0 20px #fff,
-            0 0 30px #ff4d4d,
-            0 0 40px #ff4d4d,
-            0 0 50px #ff4d4d,
-            0 0 60px #ff4d4d,
-            0 0 70px #ff4d4d,
-            0 0 80px #ff4d4d,
-            3px 3px 0 #8b0000,
+            0 0 30px #00ff9d,
+            0 0 40px #00ff9d,
+            0 0 50px #00ff9d,
+            0 0 60px #00ff9d,
+            0 0 70px #00ff9d,
+            0 0 80px #00ff9d,
+            3px 3px 0 #0f4c29,
             -3px -3px 0 #0f4c29,
-            3px -3px 0 #8b0000,
+            3px -3px 0 #0f4c29,
             -3px 3px 0 #0f4c29;
     }
 }
