@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useRef, useEffect } from "react";
@@ -12,7 +11,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import AIBuddy from "@/components/ai-buddy";
 import QRCode from 'qrcode.react';
 import Link from 'next/link';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
 type Solution = {
@@ -215,7 +221,7 @@ export default function HomeworkSolverPage() {
 
     if (solution) {
         return (
-            <div className="min-h-screen flex flex-col p-4 bg-muted/30">
+            <div className="min-h-screen flex flex-col p-4 bg-background">
                 <header className="flex justify-end items-center mb-6">
                     <Button onClick={() => setSolution(null)}>Solve Another Problem</Button>
                 </header>
@@ -284,7 +290,7 @@ export default function HomeworkSolverPage() {
     }
 
     return (
-        <div className="min-h-screen flex flex-col p-4 bg-muted/30">
+        <div className="min-h-screen flex flex-col p-4 bg-background">
              <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
             <header className="flex justify-between items-center mb-6">
                  <div>
@@ -373,3 +379,4 @@ export default function HomeworkSolverPage() {
         </div>
     );
 }
+
