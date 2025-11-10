@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useRef, useEffect } from "react";
@@ -133,6 +134,19 @@ export default function HomeworkSolverPage() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const recognitionRef = useRef<any>(null);
     const [isListening, setIsListening] = useState(false);
+    const [dots, setDots] = useState('');
+
+    useEffect(() => {
+        if (isLoading) {
+            const interval = setInterval(() => {
+                setDots(d => {
+                    if (d.length >= 3) return '';
+                    return d + '.';
+                });
+            }, 500);
+            return () => clearInterval(interval);
+        }
+    }, [isLoading]);
 
     useEffect(() => {
         setQrCodeUrl(`${window.location.origin}/upload-note/homework`);
@@ -370,7 +384,7 @@ export default function HomeworkSolverPage() {
                         <div className="w-48 h-48 mx-auto">
                             <AIBuddy isStatic={false} />
                         </div>
-                        <h2 className="text-2xl font-bold mt-4">Taz's solving your question</h2>
+                        <h2 className="text-2xl font-bold mt-4">Taz's solving your question{dots}</h2>
                         <p className="text-white/70">You'll be able to see your answer in just a moment.</p>
                     </DialogContent>
                 </Dialog>
