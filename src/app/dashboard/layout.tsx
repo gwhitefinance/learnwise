@@ -541,11 +541,11 @@ function DashboardLayoutContent({
                 )}
             >
                 <div className="flex h-full flex-col">
-                    <div className="pt-12 px-4 flex items-start flex-col">
-                        <Logo className="h-32 w-32" />
+                    <div className="px-4 pt-4">
+                      <Logo className="w-40 h-auto" />
                     </div>
 
-                    <div className="px-3 pb-4">
+                    <div className="px-3 pb-4 pt-2">
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                             <Input type="search" placeholder="Search..." className="w-full rounded-2xl bg-muted pl-9 pr-4 py-2 h-10" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
