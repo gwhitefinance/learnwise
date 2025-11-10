@@ -1202,9 +1202,9 @@ function CoursesComponent() {
                                         {courseProgress > 0 ? 'Continue Learning' : 'Start Learning!'}
                                     </Button>
                                 ) : (
-                                    <Button className="w-full" onClick={() => router.push('/')} disabled={isGenerating}>
+                                    <Button className="w-full" onClick={() => router.push(`/dashboard/upload?courseId=${course.id}`)} disabled={isGenerating}>
                                         <Wand2 className="mr-2 h-4 w-4" />
-                                        {isGenerating ? 'Generating...' : 'Generate Lab'}
+                                        {isGenerating ? 'Generating...' : 'Add Materials'}
                                     </Button>
                                 )}
                             </CardFooter>
@@ -1902,10 +1902,3 @@ export default function CoursesClientPage() {
         </Suspense>
     )
 }
-
-    
-    
-
-    
-
-

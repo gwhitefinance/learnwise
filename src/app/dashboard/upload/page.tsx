@@ -1,154 +1,80 @@
+
 'use client';
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { History, Crown, Paperclip, Code, Mic, Pen, Calculator, Sparkles, Loader2, PlayCircle, Bot } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { problemSolvingTool } from "@/ai/tools/problem-solving-tool";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Card, CardContent } from "@/components/ui/card";
-import AIBuddy from "@/components/ai-buddy";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { UploadCloud, Youtube, FileText, Video, Music, Copy } from "lucide-react";
 
-type Solution = {
-    solution: string;
-    steps: string[];
-}
-
-export default function HomeworkSolverPage() {
-    const { toast } = useToast();
-    const [isLoading, setIsLoading] = useState(false);
-    const [question, setQuestion] = useState('');
-    const [solution, setSolution] = useState<Solution | null>(null);
-
-    const handleSolve = async () => {
-        if (!question.trim()) {
-            toast({ variant: 'destructive', title: 'Please enter a question.' });
-            return;
-        }
-        setIsLoading(true);
-        setSolution(null);
-        try {
-            const result = await problemSolvingTool({ problem: question });
-            setSolution(result);
-        } catch (error) {
-            console.error("Error solving problem:", error);
-            toast({ variant: 'destructive', title: 'Error', description: 'Could not get a solution.' });
-        } finally {
-            setIsLoading(false);
-        }
-    };
+export default function UploadPage() {
+    const [isRecording, setIsRecording] = useState(false);
 
     return (
-        <div className="min-h-screen flex flex-col p-4">
-            <header className="flex justify-between items-center mb-6">
-                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Snap & Solve Solution</h1>
-                    <p className="text-muted-foreground text-sm">Home &gt; Snap & Solve Solution</p>
-                </div>
-                 <Button variant="outline" className="rounded-full">
-                    <History className="mr-2 h-4 w-4" />
-                    History
-                </Button>
-            </header>
-
-            <main className="w-full max-w-2xl mx-auto">
-                <div className="w-full text-center mb-8">
-                     <div className="relative bg-card border rounded-2xl p-4 text-left shadow-lg">
-                        <textarea
-                            placeholder="If 3x – 5 = 16, what is the value of 6x + 4?"
-                            className="w-full h-24 bg-transparent border-none focus:outline-none focus:ring-0 resize-none text-lg placeholder:text-muted-foreground"
-                            value={question}
-                            onChange={(e) => setQuestion(e.target.value)}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter' && !e.shiftKey) {
-                                    e.preventDefault();
-                                    handleSolve();
-                                }
-                            }}
-                        />
-                        <div className="flex items-center justify-between mt-4">
-                            <div className="flex items-center gap-2 text-muted-foreground">
-                                <Button variant="ghost" size="icon" className="rounded-full"><Paperclip className="h-5 w-5" /></Button>
-                                <Button variant="ghost" size="icon" className="rounded-full"><Code className="h-5 w-5" /></Button>
-                                <Button variant="ghost" size="icon" className="rounded-full"><Calculator className="h-5 w-5" /></Button>
-                                <Button variant="ghost" size="icon" className="rounded-full"><Pen className="h-5 w-5" /></Button>
-                                <Button variant="ghost" size="icon" className="rounded-full"><Mic className="h-5 w-5" /></Button>
+        <div className="p-8 max-w-4xl mx-auto">
+            <h1 className="text-3xl font-bold tracking-tight">Add Materials</h1>
+            <p className="text-muted-foreground mb-8">Upload files, links, or record a lecture to start generating study materials.</p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="md:col-span-2 space-y-6">
+                    <Card className="p-8 text-center">
+                        <div className="border-2 border-dashed rounded-xl p-12 flex flex-col items-center gap-4">
+                            <div className="p-3 bg-muted rounded-full">
+                                <UploadCloud className="w-8 h-8 text-primary" />
                             </div>
-                             <Button onClick={handleSolve} className="rounded-full px-8 py-3 font-semibold text-base" disabled={isLoading}>
-                                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Sparkles className="mr-2 h-4 w-4"/>}
-                                Solve
+                            <h3 className="text-xl font-semibold">Upload any files from Class</h3>
+                            <p className="text-muted-foreground">Click to upload or drag and drop files</p>
+                            <div className="flex flex-wrap items-center justify-center gap-4 mt-4">
+                                <Button variant="outline" size="sm"><FileText className="w-4 h-4 mr-2"/>Powerpoints</Button>
+                                <Button variant="outline" size="sm"><FileText className="w-4 h-4 mr-2"/>PDF Documents</Button>
+                                <Button variant="outline" size="sm"><Music className="w-4 h-4 mr-2"/>Audio Files</Button>
+                                <Button variant="outline" size="sm"><Video className="w-4 h-4 mr-2"/>Video Files</Button>
+                                <Button variant="outline" size="sm"><Youtube className="w-4 h-4 mr-2"/>Youtube Video</Button>
+                            </div>
+                        </div>
+                    </Card>
+
+                    <Card>
+                        <CardContent className="p-6 flex items-center justify-between">
+                            <div>
+                                <h3 className="font-semibold">Ask your friends to help upload Materials</h3>
+                                <p className="text-sm text-muted-foreground">Share this link with your classmates to collaborate.</p>
+                            </div>
+                            <Button variant="outline"><Copy className="w-4 h-4 mr-2"/> Copy Link</Button>
+                        </CardContent>
+                    </Card>
+
+                    <Card className={isRecording ? "bg-red-500/10 border-red-500/30" : ""}>
+                        <CardContent className="p-6 flex items-center justify-between">
+                             <div>
+                                <h3 className="font-semibold">Are you in class? Start a live lecture</h3>
+                                <p className="text-sm text-muted-foreground">Record your lecture in real-time and get AI-powered notes.</p>
+                            </div>
+                            <Button variant={isRecording ? 'destructive' : 'outline'} onClick={() => setIsRecording(!isRecording)}>
+                                {isRecording ? 'Stop Recording' : 'Start Recording'}
                             </Button>
-                        </div>
-                    </div>
+                        </CardContent>
+                    </Card>
                 </div>
-                
-                {isLoading && (
-                    <div className="text-center">
-                        <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
-                        <p className="text-muted-foreground mt-2">Tutorin is thinking...</p>
-                    </div>
-                )}
 
-                {solution && (
-                     <div className="space-y-6">
-                        <Card>
-                            <CardContent className="p-4 flex items-center gap-4">
-                                <Avatar><AvatarFallback>Y</AvatarFallback></Avatar>
-                                <div>
-                                    <p className="text-sm font-semibold">You</p>
-                                    <p>{question}</p>
-                                </div>
-                            </CardContent>
-                        </Card>
-                         <Card>
-                            <CardContent className="p-4 flex items-center gap-4">
-                                <AIBuddy className="h-10 w-10"/>
-                                <div>
-                                    <p className="text-sm font-semibold">Tutorin's Answer</p>
-                                    <p className="font-bold text-lg">{solution.solution}</p>
-                                </div>
-                            </CardContent>
-                        </Card>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <Card className="hover:bg-muted transition-colors cursor-pointer">
-                                <CardContent className="p-4 flex items-center gap-4">
-                                    <div className="p-3 bg-primary/10 rounded-full text-primary">
-                                        <PlayCircle />
-                                    </div>
-                                    <div>
-                                        <p className="font-semibold">Watch a video</p>
-                                        <p className="text-sm text-muted-foreground">to learn how to solve this step-by-step</p>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                             <Card className="hover:bg-muted transition-colors cursor-pointer">
-                                <CardContent className="p-4 flex items-center gap-4">
-                                     <div className="p-3 bg-primary/10 rounded-full text-primary">
-                                        <Bot />
-                                    </div>
-                                    <div>
-                                        <p className="font-semibold">Practice questions</p>
-                                        <p className="text-sm text-muted-foreground">instantly with feedback</p>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </div>
-
-                        {solution.steps.map((step, index) => (
-                            <Card key={index}>
-                                <CardHeader>
-                                    <CardTitle className="text-lg">Step {index + 1}:</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <p className="text-muted-foreground whitespace-pre-wrap">{step}</p>
-                                </CardContent>
-                            </Card>
-                        ))}
-                    </div>
-                )}
-            </main>
+                <div className="md:col-span-1 space-y-4">
+                    <Card className="p-6">
+                        <CardHeader className="p-0 mb-4">
+                            <CardTitle>We will turn it into Digestible Study Materials</CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-0 space-y-4">
+                            <div className="p-4 bg-muted rounded-lg">
+                                <h4 className="font-semibold">Study Materials</h4>
+                                <p className="text-sm text-muted-foreground">Flashcards, Quizzes, games and more.</p>
+                            </div>
+                             <div className="p-4 bg-muted rounded-lg">
+                                <h4 className="font-semibold">Plans & Progress Tracking</h4>
+                                <p className="text-sm text-muted-foreground">A Study Plan based off your exact class.</p>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
         </div>
     );
 }
