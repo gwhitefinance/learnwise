@@ -167,10 +167,10 @@ const sidebarItems: SidebarItem[] = [
             id: "notes-link",
         },
         {
-            title: "Games",
-            icon: <Gamepad2 />,
-            href: "/dashboard/games",
-            id: "games-link",
+            title: "Homework Help",
+            icon: <ClipboardPenLine />,
+            href: "/dashboard/homework-help",
+            id: "homework-help-link",
         },
         {
             title: "Learning Squad",
@@ -192,10 +192,10 @@ const sidebarItems: SidebarItem[] = [
             id: "learning-insights-link",
         },
         {
-            title: "Homework Help",
-            icon: <ClipboardPenLine />,
-            href: "/dashboard/homework-help",
-            id: "homework-help-link",
+            title: "Games",
+            icon: <Gamepad2 />,
+            href: "/dashboard/games",
+            id: "games-link",
         },
         {
             title: "Mindfulness",
@@ -617,7 +617,7 @@ function DashboardLayoutContent({
                     <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileMenuOpen(true)}>
                         <Menu className="h-5 w-5" />
                     </Button>
-                    <h2 className="font-semibold">Tutor Taz</h2>
+                    <h2 className="font-semibold">Taz</h2>
                     <div className="ml-auto flex items-center gap-3">
                         <Button variant="outline" size="sm" onClick={() => router.push('/dashboard/upload')}>
                             <UploadCloud className="mr-2 h-4 w-4" /> Quick Upload
