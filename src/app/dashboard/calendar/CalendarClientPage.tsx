@@ -503,7 +503,7 @@ export default function CalendarClientPage() {
 
 
   return (
-    <div className={cn("relative min-h-screen w-full overflow-hidden bg-white")}>
+    <div className={cn("min-h-screen w-full overflow-hidden")}>
       <audio ref={audioRef} loop />
 
       {backgroundImage && (
@@ -515,7 +515,7 @@ export default function CalendarClientPage() {
         />
       )}
 
-      <main className="relative h-screen w-full flex bg-white">
+      <main className="relative h-screen w-full flex bg-background">
         <div
           className={`w-64 h-full ${bgClass} p-4 shadow-xl border-r ${borderClass} opacity-0 ${isLoaded ? "animate-fade-in" : ""} flex flex-col justify-between`}
           style={{ animationDelay: "0.4s" }}
@@ -888,7 +888,7 @@ export default function CalendarClientPage() {
                   <span>
                     <strong>Attendees:</strong>
                     <br />
-                    {selectedEvent.attendees.join(", ") || "No attendees"}
+                    {Array.isArray(selectedEvent.attendees) ? selectedEvent.attendees.join(", ") : "No attendees"}
                   </span>
                 </p>
                 <p>
