@@ -10,6 +10,8 @@ import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
 import { generateAssignmentGrade } from '@/lib/actions';
 import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
 
 type GradeResult = {
     score: number;
@@ -95,6 +97,11 @@ export default function AssignmentGraderPage() {
             reader.readAsText(file);
         }
     };
+
+    const handleTextChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
+        setAssignmentText(e.target.value);
+        if (fileName) setFileName(null);
+    };
     
     const handleGrade = async () => {
         if (!assignmentText.trim()) {
@@ -133,7 +140,7 @@ export default function AssignmentGraderPage() {
         <div className="max-w-4xl mx-auto space-y-8">
             <div>
                 <h1 className="text-3xl font-bold tracking-tight">AI Assignment Grader</h1>
-                <p className="text-muted-foreground">Upload your assignment and get instant feedback and a grade from Taz.</p>
+                <p className="text-muted-foreground">Upload or paste your assignment and get instant feedback from Taz.</p>
             </div>
             
             {gradeResult ? (
@@ -154,20 +161,37 @@ export default function AssignmentGraderPage() {
                         <CardTitle>Submit Your Assignment</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-6">
-                         <div 
-                            className="p-8 border-2 border-dashed rounded-lg text-center cursor-pointer hover:border-primary transition-colors"
-                            onClick={() => fileInputRef.current?.click()}
-                        >
-                            <input ref={fileInputRef} type="file" className="hidden" accept=".txt,.md,.docx,.pdf" onChange={handleFileChange} />
-                            <div className="p-3 bg-muted rounded-full inline-block">
-                                <UploadCloud className="h-8 w-8 text-primary"/>
-                            </div>
-                            <h4 className="mt-4 font-semibold">{fileName ? `Selected: ${fileName}` : 'Click to upload your assignment'}</h4>
-                            <p className="text-xs text-muted-foreground">TXT, MD, DOCX, or PDF</p>
-                        </div>
+                         <Tabs defaultValue="upload">
+                            <TabsList className="grid w-full grid-cols-2">
+                                <TabsTrigger value="upload">Upload File</TabsTrigger>
+                                <TabsTrigger value="paste">Paste Text</TabsTrigger>
+                            </TabsList>
+                            <TabsContent value="upload" className="pt-4">
+                                <div 
+                                    className="p-8 border-2 border-dashed rounded-lg text-center cursor-pointer hover:border-primary transition-colors"
+                                    onClick={() => fileInputRef.current?.click()}
+                                >
+                                    <input ref={fileInputRef} type="file" className="hidden" accept=".txt,.md,.docx,.pdf" onChange={handleFileChange} />
+                                    <div className="p-3 bg-muted rounded-full inline-block">
+                                        <UploadCloud className="h-8 w-8 text-primary"/>
+                                    </div>
+                                    <h4 className="mt-4 font-semibold">{fileName ? `Selected: ${fileName}` : 'Click to upload your assignment'}</h4>
+                                    <p className="text-xs text-muted-foreground">TXT, MD, DOCX, or PDF</p>
+                                </div>
+                            </TabsContent>
+                             <TabsContent value="paste" className="pt-4">
+                                <Textarea 
+                                    placeholder="Paste your assignment content here..."
+                                    className="h-48"
+                                    value={assignmentText}
+                                    onChange={handleTextChange}
+                                />
+                            </TabsContent>
+                        </Tabs>
+
                         <div className="space-y-2">
                             <Label htmlFor="rubric">Grading Rubric or Instructions (Optional)</Label>
-                            <textarea
+                            <Textarea
                                 id="rubric"
                                 placeholder="Paste the grading rubric or specific instructions from your teacher here..."
                                 className="w-full min-h-[100px] p-2 border rounded-md"
