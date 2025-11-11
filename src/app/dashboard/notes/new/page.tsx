@@ -345,6 +345,7 @@ export default function NewNotePage() {
     const [courses, setCourses] = useState<Course[]>([]);
     const [selectedCourseId, setSelectedCourseId] = useState<string | undefined>();
     const [selectedUnitId, setSelectedUnitId] = useState<string | undefined>();
+    const router = useRouter();
     
     useEffect(() => {
         if (!user) return;
@@ -513,6 +514,11 @@ export default function NewNotePage() {
                             </button>
                         </div>
                         <div className="flex items-center gap-2">
+                             <Button variant="outline" size="sm" asChild>
+                                <Link href="/dashboard/essay-grader">
+                                    <GraduationCap className="mr-2 h-4 w-4"/> Grade an Essay
+                                </Link>
+                            </Button>
                              <Button variant="outline" size="sm" onClick={() => setIsChatVisible(!isChatVisible)}>
                                 <MessageSquare className="mr-2 h-4 w-4"/>
                                 {isChatVisible ? 'Hide Chat' : 'Show Chat'}
@@ -564,19 +570,21 @@ export default function NewNotePage() {
                             <div className="p-4 space-y-4">
                                 {chatHistory.map((msg, index) => (
                                     <div key={index} className={cn("flex items-end gap-2", msg.role === 'user' ? 'justify-end' : '')}>
-                                        {msg.role === 'ai' && <div className="w-6 h-6 flex-shrink-0"><AIBuddy className="w-full h-full" /></div>}
-                                        <div className={cn("p-3 rounded-2xl max-w-[85%] text-sm prose dark:prose-invert prose-p:my-0 prose-headings:my-0 prose-table:my-0", msg.role === 'user' ? "bg-primary text-primary-foreground rounded-br-none" : "bg-muted rounded-bl-none")}>
+                                         {msg.role === 'ai' && <Avatar><AvatarFallback><Bot size={20}/></AvatarFallback></Avatar>}
+                                         <div className={cn("p-3 rounded-2xl max-w-[85%] text-sm prose dark:prose-invert prose-p:my-0 prose-headings:my-0 prose-table:my-0", msg.role === 'user' ? "bg-primary text-primary-foreground rounded-br-none" : "bg-muted rounded-bl-none")}>
                                             <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
                                         </div>
+                                         {msg.role === 'user' && <Avatar><AvatarFallback><User size={20}/></AvatarFallback></Avatar>}
                                     </div>
                                 ))}
                                 {isChatLoading && (
-                                    <div className="flex items-end gap-2">
-                                        <div className="w-6 h-6 flex-shrink-0"><AIBuddy className="w-full h-full" /></div>
+                                     <div className="flex items-end gap-2">
+                                        <Avatar><AvatarFallback><Bot size={20}/></AvatarFallback>
+                                        </Avatar>
                                         <div className="p-3 rounded-2xl max-w-[85%] text-sm bg-muted rounded-bl-none animate-pulse">
                                             ...
                                         </div>
-                                    </div>
+                                     </div>
                                 )}
                             </div>
                         )}
