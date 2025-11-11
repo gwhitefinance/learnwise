@@ -43,3 +43,4 @@ import './tools/math-solver-tool';
 import './flows/crunch-time-flow';
 import './tools/quiz-tool';
 import './flows/image-generation-flow';
+import './flows/assignment-grader-flow';

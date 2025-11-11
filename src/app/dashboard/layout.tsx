@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import React, { useEffect, useState, useRef, createContext, useContext, Suspense, useCallback } from 'react';
@@ -70,6 +68,7 @@ import {
   Wind,
   Copy,
   KeySquare,
+  CheckSquare,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -203,6 +202,12 @@ const sidebarItems: SidebarItem[] = [
             href: "/dashboard/podcasts",
             id: "podcasts-link",
         },
+        {
+            title: "Assignment Grader",
+            icon: <CheckSquare />,
+            href: "/dashboard/assignment-grader",
+            id: "assignment-grader-link",
+        }
       ]
     },
     {

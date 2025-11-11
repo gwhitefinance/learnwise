@@ -1,0 +1,187 @@
+'use client';
+
+import { useState, useRef, ChangeEvent } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
+import { UploadCloud, FileText, Wand2, Loader2, ArrowRight, RefreshCw } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
+import { Progress } from '@/components/ui/progress';
+import { generateAssignmentGrade } from '@/lib/actions';
+
+type GradeResult = {
+    score: number;
+    strengths: string[];
+    improvements: string[];
+    finalVerdict: string;
+};
+
+const GradeDisplay = ({ result }: { result: GradeResult }) => {
+    const scoreColor = result.score >= 90 ? 'text-green-500' : result.score >= 80 ? 'text-blue-500' : result.score >= 70 ? 'text-yellow-500' : 'text-red-500';
+
+    return (
+        <Card className="w-full">
+            <CardHeader className="text-center">
+                <CardTitle className="text-2xl">Your Grade</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+                <div className="flex flex-col items-center justify-center">
+                    <div className="relative w-40 h-40">
+                         <svg className="w-full h-full" viewBox="0 0 36 36">
+                            <path
+                                className="text-muted"
+                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                            />
+                            <path
+                                className={scoreColor}
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeDasharray={`${result.score}, 100`}
+                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                fill="none"
+                                strokeLinecap="round"
+                                transform="rotate(-90 18 18)"
+                            />
+                        </svg>
+                        <div className={`absolute inset-0 flex items-center justify-center text-5xl font-bold ${scoreColor}`}>
+                            {result.score}
+                        </div>
+                    </div>
+                     <p className="font-semibold text-lg mt-4">{result.finalVerdict}</p>
+                </div>
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="p-4 rounded-lg bg-green-500/10">
+                        <h4 className="font-semibold text-green-700 mb-2">Strengths</h4>
+                        <ul className="list-disc list-inside space-y-1 text-sm text-green-800/80">
+                            {result.strengths.map((item, i) => <li key={i}>{item}</li>)}
+                        </ul>
+                    </div>
+                     <div className="p-4 rounded-lg bg-red-500/10">
+                        <h4 className="font-semibold text-red-700 mb-2">Areas for Improvement</h4>
+                        <ul className="list-disc list-inside space-y-1 text-sm text-red-800/80">
+                             {result.improvements.map((item, i) => <li key={i}>{item}</li>)}
+                        </ul>
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+    )
+};
+
+
+export default function AssignmentGraderPage() {
+    const [assignmentText, setAssignmentText] = useState('');
+    const [rubricText, setRubricText] = useState('');
+    const [isGrading, setIsGrading] = useState(false);
+    const [gradeResult, setGradeResult] = useState<GradeResult | null>(null);
+    const [fileName, setFileName] = useState<string | null>(null);
+    const { toast } = useToast();
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setFileName(file.name);
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const text = event.target?.result as string;
+                setAssignmentText(text);
+            };
+            reader.readAsText(file);
+        }
+    };
+    
+    const handleGrade = async () => {
+        if (!assignmentText.trim()) {
+            toast({ variant: 'destructive', title: 'Assignment content is required.' });
+            return;
+        }
+
+        setIsGrading(true);
+        setGradeResult(null);
+
+        try {
+            const result = await generateAssignmentGrade({
+                assignment: assignmentText,
+                rubric: rubricText || "Standard grading rubric for this type of assignment.",
+            });
+            setGradeResult(result);
+        } catch (error) {
+            console.error("Grading failed:", error);
+            toast({ variant: 'destructive', title: 'Grading Failed', description: 'Could not grade the assignment. Please try again.' });
+        } finally {
+            setIsGrading(false);
+        }
+    };
+
+    const handleReset = () => {
+        setAssignmentText('');
+        setRubricText('');
+        setGradeResult(null);
+        setFileName(null);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    };
+
+    return (
+        <div className="max-w-4xl mx-auto space-y-8">
+            <div>
+                <h1 className="text-3xl font-bold tracking-tight">AI Assignment Grader</h1>
+                <p className="text-muted-foreground">Upload your assignment and get instant feedback and a grade from Taz.</p>
+            </div>
+            
+            {gradeResult ? (
+                 <div>
+                    <GradeDisplay result={gradeResult} />
+                    <div className="mt-6 flex justify-center gap-4">
+                        <Button onClick={handleReset}>
+                            <RefreshCw className="mr-2 h-4 w-4"/> Grade Another Assignment
+                        </Button>
+                        <Button variant="outline">
+                            Resubmit for a Better Grade <ArrowRight className="ml-2 h-4 w-4"/>
+                        </Button>
+                    </div>
+                </div>
+            ) : (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Submit Your Assignment</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                         <div 
+                            className="p-8 border-2 border-dashed rounded-lg text-center cursor-pointer hover:border-primary transition-colors"
+                            onClick={() => fileInputRef.current?.click()}
+                        >
+                            <input ref={fileInputRef} type="file" className="hidden" accept=".txt,.md,.docx,.pdf" onChange={handleFileChange} />
+                            <div className="p-3 bg-muted rounded-full inline-block">
+                                <UploadCloud className="h-8 w-8 text-primary"/>
+                            </div>
+                            <h4 className="mt-4 font-semibold">{fileName ? `Selected: ${fileName}` : 'Click to upload your assignment'}</h4>
+                            <p className="text-xs text-muted-foreground">TXT, MD, DOCX, or PDF</p>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="rubric">Grading Rubric or Instructions (Optional)</Label>
+                            <textarea
+                                id="rubric"
+                                placeholder="Paste the grading rubric or specific instructions from your teacher here..."
+                                className="w-full min-h-[100px] p-2 border rounded-md"
+                                value={rubricText}
+                                onChange={(e) => setRubricText(e.target.value)}
+                            />
+                        </div>
+                    </CardContent>
+                    <CardFooter>
+                        <Button onClick={handleGrade} disabled={isGrading || !assignmentText.trim()}>
+                            {isGrading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Wand2 className="mr-2 h-4 w-4"/>}
+                            {isGrading ? 'Grading...' : 'Grade with AI'}
+                        </Button>
+                    </CardFooter>
+                </Card>
+            )}
+        </div>
+    );
+}
