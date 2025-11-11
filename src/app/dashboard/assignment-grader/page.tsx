@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, ChangeEvent } from 'react';
@@ -8,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
 import { generateAssignmentGrade } from '@/lib/actions';
+import { Label } from '@/components/ui/label';
 
 type GradeResult = {
     score: number;
