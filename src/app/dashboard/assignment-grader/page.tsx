@@ -4,7 +4,7 @@
 import { useState, useRef, ChangeEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
-import { UploadCloud, FileText, Wand2, Loader2, ArrowRight, RefreshCw } from 'lucide-react';
+import { UploadCloud, FileText, Wand2, Loader2, ArrowRight, RefreshCw, GraduationCap } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
@@ -12,6 +12,7 @@ import { generateAssignmentGrade } from '@/lib/actions';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
+import Link from 'next/link';
 
 type GradeResult = {
     score: number;
@@ -150,8 +151,10 @@ export default function AssignmentGraderPage() {
                         <Button onClick={handleReset}>
                             <RefreshCw className="mr-2 h-4 w-4"/> Grade Another Assignment
                         </Button>
-                        <Button variant="outline">
-                            Resubmit for a Better Grade <ArrowRight className="ml-2 h-4 w-4"/>
+                         <Button variant="outline" asChild>
+                            <Link href="/dashboard/college-prep/essay-coach">
+                                <GraduationCap className="mr-2 h-4 w-4"/> Grade an Essay
+                            </Link>
                         </Button>
                     </div>
                 </div>
