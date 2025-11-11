@@ -21,6 +21,7 @@ const config: Config = {
     extend: {
       fontFamily: {
         display: ["var(--font-display)"],
+        bubble: ["var(--font-bubble)"],
       },
       colors: {
         border: "hsl(var(--border))",
