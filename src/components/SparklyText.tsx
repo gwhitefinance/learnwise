@@ -1,18 +1,13 @@
 
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 
 const SparklyText = ({ text }: { text: string }) => {
-    const containerRef = useRef<HTMLDivElement>(null);
-    const textRef = useRef<HTMLSpanElement>(null);
-
     return (
-        <div ref={containerRef} className="relative inline-block">
-            <span ref={textRef} className="sparkly-text">
-                {text}
-            </span>
-        </div>
+        <span className="text-blue-400">
+            {text}
+        </span>
     );
 };
 
