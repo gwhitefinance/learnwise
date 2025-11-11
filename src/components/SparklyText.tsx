@@ -5,7 +5,11 @@ import React from 'react';
 
 const SparklyText = ({ text }: { text: string }) => {
     return (
-        <span className="text-green-500" style={{ fontFamily: "'Comic Sans MS', 'Arial Black', sans-serif" }}>
+        <span style={{
+            fontFamily: "'Comic Sans MS', 'Arial Black', sans-serif",
+            color: '#fff',
+            textShadow: '0 0 10px #00ff00, 0 0 20px #00ff00, 0 0 30px #00ff00, 0 0 40px #00ff00'
+        }}>
             {text}
         </span>
     );
