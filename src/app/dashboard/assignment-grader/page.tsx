@@ -139,9 +139,16 @@ export default function AssignmentGraderPage() {
 
     return (
         <div className="max-w-4xl mx-auto space-y-8">
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight">AI Assignment Grader</h1>
-                <p className="text-muted-foreground">Upload or paste your assignment and get instant feedback from Taz.</p>
+            <div className="flex justify-between items-start">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight">AI Assignment Grader</h1>
+                    <p className="text-muted-foreground">Upload or paste your assignment and get instant feedback from Taz.</p>
+                </div>
+                <Button variant="outline" asChild>
+                    <Link href="/dashboard/essay-grader">
+                        <GraduationCap className="mr-2 h-4 w-4"/> Grade an Essay
+                    </Link>
+                </Button>
             </div>
             
             {gradeResult ? (
@@ -150,11 +157,6 @@ export default function AssignmentGraderPage() {
                     <div className="mt-6 flex justify-center gap-4">
                         <Button onClick={handleReset}>
                             <RefreshCw className="mr-2 h-4 w-4"/> Grade Another Assignment
-                        </Button>
-                         <Button variant="outline" asChild>
-                            <Link href="/dashboard/college-prep/essay-coach">
-                                <GraduationCap className="mr-2 h-4 w-4"/> Grade an Essay
-                            </Link>
                         </Button>
                     </div>
                 </div>
