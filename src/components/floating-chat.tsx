@@ -112,7 +112,7 @@ const ChatHomeScreen = ({ sessions, onNavigate, onStartNewChat, onSelectSession,
             </div>
             <ScrollArea className="flex-1 min-h-0">
                 <div className="p-4 space-y-8">
-                    <div className="flex flex-col items-center justify-center text-center p-6 bg-card rounded-xl border min-h-[300px]">
+                     <div className="flex flex-col items-center justify-center text-center p-6 rounded-xl min-h-[300px]">
                         <div style={{ width: '150px', height: '150px' }}>
                            <AIBuddy {...customizations} className="w-full h-full" />
                         </div>
@@ -794,15 +794,16 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
         const sessionRef = doc(db, "chatSessions", currentSessionId);
 
         const aiTextResponse = response.text || '';
-        const quizToolRequest = response.tool_code?.startsWith('startQuiz') ? JSON.parse(response.tool_code.slice(10, -1)) : null;
+        const toolRequest = response.tool_requests?.[0];
 
-        if (quizToolRequest) {
+        if (toolRequest) {
+            const quizParams = toolRequest.input;
             const quizCardMessage: Message = {
                 id: crypto.randomUUID(),
                 role: 'model',
                 content: aiTextResponse,
-                quizParams: quizToolRequest,
-                quizTitle: `Practice Quiz: ${quizToolRequest.topic}`,
+                quizParams: quizParams,
+                quizTitle: `Practice Quiz: ${quizParams.topic}`,
                 timestamp: Date.now(),
             };
             await updateDoc(sessionRef, { messages: arrayUnion(userMessage, quizCardMessage), timestamp: Timestamp.now() });
