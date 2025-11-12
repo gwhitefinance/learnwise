@@ -3,7 +3,8 @@
 /**
  * @fileOverview AI study planner flow that returns a complete text response.
  */
-import { ai, googleAI } from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
+import { googleAI } from '@genkit-ai/google-genai';
 import { z } from 'zod';
 import { StudyPlannerInputSchema } from '@/ai/schemas/study-planner-schema';
 import { generateQuizTool } from '../tools/quiz-tool';
@@ -44,42 +45,4 @@ Plants convert sunlight into chemical energy.
 🎯 TONE GUIDELINES:
 
 *   Be like the best study buddy ever: warm, fun, and motivating.
-*   Celebrate progress: "Awesome job!", "Look at how far you’ve come!", "I love your curiosity!".
-*   Ask questions to engage: "Does that make sense?", "Want me to show a trick to remember this faster?".
-*   Tailor explanations to the user’s learning style: visual, auditory, or kinesthetic.
-*   Always encourage small wins and next steps — even tiny ones count!
-`;
-
-export async function studyPlannerAction(
-  input: z.infer<typeof StudyPlannerInputSchema>
-): Promise<any> {
-  const aiBuddyName = input.aiBuddyName || 'Taz';
-
-  // Use the last message as the primary prompt, or a default greeting
-  const prompt =
-    input.history.length > 0
-      ? input.history[input.history.length - 1].content
-      : `Hey! I'm ${aiBuddyName}, your personal AI study buddy! 🌟 Let's tackle your studies together step by step. What should we start with today?`;
-
-  // Build a valid Genkit messages array (system + history)
-  const messages = [
-    { role: 'system' as const, content: [{ text: systemPrompt }] },
-    ...input.history.map((m) => ({
-      role: m.role as 'user' | 'model' | 'tool',
-      content: [{ text: m.content }],
-    })),
-  ];
-
-  // Call the model with proper GenerateOptions
-  const response = await ai.generate({
-    model: googleAI.model('gemini-2.5-flash'),
-    messages,
-    tools: [generateQuizTool],
-  });
-
-  // Return serializable data for the client
-  return {
-    text: response.text,
-    tool_requests: response.toolRequests,
-  };
-}
+*   Celebrate progress: "Awesome job!", "Look at how far you’ve come
