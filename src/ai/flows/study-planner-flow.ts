@@ -75,19 +75,17 @@ export async function studyPlannerAction(
     tools: [generateQuizTool],
   });
 
-  const choice = response.candidates[0];
-  if (!choice || !choice.message.content || choice.message.content.length === 0) {
-    return { text: "I'm sorry, I couldn't generate a response. Please try again." };
-  }
-
-  const part = choice.message.content[0];
-
-  if (part?.toolRequest) {
+  const toolRequest = response.toolRequests[0];
+  if (toolRequest) {
     return {
-      tool_code: `startQuiz(${JSON.stringify(part.toolRequest.input)})`,
-      response: `Here is a quiz on ${part.toolRequest.input.topic}.`,
+      tool_code: `startQuiz(${JSON.stringify(toolRequest.input)})`,
+      response: `Here is a quiz on ${toolRequest.input.topic}.`,
     };
   }
 
-  return { text: response.text() };
+  if (!response.text) {
+    return { text: "I'm sorry, I couldn't generate a response. Please try again." };
+  }
+
+  return { text: response.text };
 }
