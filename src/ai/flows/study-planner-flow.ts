@@ -33,7 +33,7 @@ Plants convert sunlight into chemical energy.
 
 | Component   | Function                  |
 | ----------- | ------------------------- |
-| Chlorophyll | Absorbs light energy   |
+| Chlorophyll | Absorbs light energy      |
 | CO₂ + H₂O   | Raw materials for glucose |
 | Glucose     | Stored energy             |
 
@@ -50,29 +50,36 @@ Plants convert sunlight into chemical energy.
 *   Always encourage small wins and next steps — even tiny ones count!
 `;
 
+export async function studyPlannerAction(
+  input: z.infer<typeof StudyPlannerInputSchema>
+): Promise<any> {
+  const aiBuddyName = input.aiBuddyName || 'Taz';
 
-export async function studyPlannerAction(input: z.infer<typeof StudyPlannerInputSchema>): Promise<any> {
-    const aiBuddyName = input.aiBuddyName || 'Taz';
-    
-    // Use the last message as the primary prompt, unless the history is empty
-    const prompt = input.history.length > 0 
-        ? input.history[input.history.length - 1].content
-        : `Hey! I'm ${aiBuddyName}, your personal AI study buddy! 🌟 Let's tackle your studies together step by step. What should we start with today?`;
+  // Use the last message as the primary prompt, or a default greeting
+  const prompt =
+    input.history.length > 0
+      ? input.history[input.history.length - 1].content
+      : `Hey! I'm ${aiBuddyName}, your personal AI study buddy! 🌟 Let's tackle your studies together step by step. What should we start with today?`;
 
-    // Use all but the last message as history for context
-    const history = input.history.length > 1 ? input.history.slice(0, -1) : [];
+  // Build a valid Genkit messages array (system + history)
+  const messages = [
+    { role: 'system' as const, content: [{ text: systemPrompt }] },
+    ...input.history.map((m) => ({
+      role: m.role as 'user' | 'model' | 'tool',
+      content: [{ text: m.content }],
+    })),
+  ];
 
-    const response = await ai.generate({
-        model: googleAI.model('gemini-2.5-flash'),
-        system: systemPrompt,
-        prompt: prompt,
-        history: history.map(m => ({ role: m.role, content: m.content })),
-        tools: [generateQuizTool],
-    });
+  // Call the model with proper GenerateOptions
+  const response = await ai.generate({
+    model: googleAI.model('gemini-2.5-flash'),
+    messages,
+    tools: [generateQuizTool],
+  });
 
-    // Return only the serializable data needed by the client.
-    return {
-        text: response.text,
-        tool_requests: response.toolRequests,
-    };
+  // Return serializable data for the client
+  return {
+    text: response.text,
+    tool_requests: response.toolRequests,
+  };
 }

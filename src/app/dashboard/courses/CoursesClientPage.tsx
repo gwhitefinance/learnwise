@@ -33,7 +33,7 @@ import Image from 'next/image';
 import { Textarea } from '@/components/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import GeneratingCourse from './GeneratingCourse';
-import { CallContext } from '@/context/CallContext';
+import { CallContext, CallParticipant } from '@/context/CallContext';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import AIBuddy from '@/components/ai-buddy';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -921,14 +921,14 @@ function CoursesComponent() {
       }
   }
   
-  const handleStartTutorCall = () => {
-    const aiParticipant = {
-        uid: 'tutorin-ai',
-        displayName: 'Tutorin',
-        status: 'Online',
-    };
-    startCall([aiParticipant]);
+ const handleStartTutorCall = () => {
+  const aiParticipant: CallParticipant = { // <-- Add the type here
+      uid: 'tutorin-ai',
+      displayName: 'Tutorin',
+      status: 'Online',
   };
+  startCall([aiParticipant]);
+};
   
   const handleOpenSlideshow = () => {
     if (!currentChapter) return;

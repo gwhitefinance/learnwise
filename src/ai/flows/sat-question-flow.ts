@@ -10,7 +10,7 @@ import { SatQuestionSchema, GenerateSatQuestionInputSchema, GenerateSatQuestionI
 
 const prompt = ai.definePrompt({
     name: 'satQuestionPrompt',
-    model: googleAI.model('gemini-2.0-flash'),
+    model: googleAI.model('gemini-2.5-flash'),
     input: { schema: GenerateSatQuestionInputSchema },
     output: { schema: SatQuestionSchema },
     prompt: `You are an expert SAT test creator. Your task is to generate a single, high-quality, challenging SAT-level practice question that mirrors the difficulty of the hardest questions on the official digital SAT.

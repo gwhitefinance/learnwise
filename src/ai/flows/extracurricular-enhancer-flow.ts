@@ -10,7 +10,7 @@ import { EnhanceExtracurricularInputSchema, EnhanceExtracurricularOutputSchema, 
 
 const prompt = ai.definePrompt({
     name: 'extracurricularEnhancerPrompt',
-    model: googleAI.model('gemini-2.0-flash'),
+    model: googleAI.model('gemini-2.5-flash'),
     input: { schema: EnhanceExtracurricularInputSchema },
     output: { schema: EnhanceExtracurricularOutputSchema },
     prompt: `You are an expert college admissions consultant. Your task is to take a student's description of an extracurricular activity and make it sound more professional and impactful for a college application. You will also provide a strength score.

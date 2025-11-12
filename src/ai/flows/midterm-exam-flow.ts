@@ -12,7 +12,7 @@ import { GenerateQuizOutput, GenerateQuizOutputSchema } from '@/ai/schemas/quiz-
 
 const prompt = ai.definePrompt({
     name: 'midtermExamGenerationPrompt',
-    model: googleAI.model('gemini-2.0-flash'),
+    model: googleAI.model('gemini-2.5-flash'),
     input: { schema: GenerateMidtermExamInputSchema },
     output: { schema: GenerateQuizOutputSchema },
     prompt: `You are an expert educator. Generate a 35-question multiple-choice midterm exam based *only* on the provided course content, which represents the first half of the course.

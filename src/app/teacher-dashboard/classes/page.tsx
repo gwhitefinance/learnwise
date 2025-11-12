@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -14,6 +15,7 @@ import { auth, db } from '@/lib/firebase';
 import { collection, addDoc, query, where, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
+import { nanoid } from 'nanoid';
 
 type Class = {
     id: string;
@@ -38,9 +40,13 @@ export default function ClassesPage() {
     useEffect(() => {
         if (authLoading || !user) return;
 
-        const q = query(collection(db, "classes"), where("ownerId", "==", user.uid));
+        const q = query(collection(db, "squads"), where("ownerId", "==", user.uid)); // FIX: Querying 'squads' collection
         const unsubscribe = onSnapshot(q, (snapshot) => {
-            const userClasses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Class));
+            const userClasses = snapshot.docs.map(doc => ({ 
+                id: doc.id, 
+                ...doc.data(),
+                studentCount: doc.data().members?.length || 0
+            } as Class));
             setClasses(userClasses);
             setIsLoading(false);
         });
@@ -56,12 +62,13 @@ export default function ClassesPage() {
 
         setIsCreating(true);
         try {
-            await addDoc(collection(db, 'classes'), {
+            const inviteCode = nanoid(10);
+            await addDoc(collection(db, 'squads'), { // FIX: Adding to 'squads' collection
                 name: newClassName,
                 description: newClassDescription,
                 ownerId: user.uid,
-                studentIds: [], // Start with no students
-                studentCount: 0,
+                members: [user.uid], // FIX: Changed from studentIds to members
+                inviteCode: inviteCode,
                 createdAt: serverTimestamp(),
             });
             toast({ title: 'Class Created!', description: `"${newClassName}" is ready to be set up.`});

@@ -11,7 +11,7 @@ import { CollegeDescriptionInputSchema, CollegeDescriptionOutputSchema, CollegeD
 
 const prompt = ai.definePrompt({
     name: 'collegeDescriptionPrompt',
-    model: googleAI.model('gemini-2.0-flash'),
+    model: googleAI.model('gemini-2.5-flash'),
     input: { schema: CollegeDescriptionInputSchema },
     output: { schema: CollegeDescriptionOutputSchema },
     prompt: `You are an expert college admissions consultant. Your task is to write a brief, engaging "About" section for a specific university.

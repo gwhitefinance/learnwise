@@ -34,9 +34,8 @@ export default function RootLayout({
       <body className={cn("font-display antialiased", poppins.variable, luckiestGuy.variable)}>
           <ThemeProvider
             attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
+            defaultTheme="light"
+            enableSystem={false}
           >
             {children}
         </ThemeProvider>

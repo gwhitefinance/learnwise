@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useRef, useCallback, useEffect } from 'react';
@@ -12,11 +11,36 @@ import { UploadCloud, Link as LinkIcon, Youtube, Wand2, Loader2, Image as ImageI
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { generateCrunchTimeStudyGuide } from '@/lib/actions';
-import type { CrunchTimeOutput } from '@/ai/flows/crunch-time-flow';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useRouter } from 'next/navigation';
 import AIBuddy from '@/components/ai-buddy';
+
+// Define the types
+type KeyConcept = {
+    term: string;
+    definition: string;
+};
+
+type StudyStep = {
+    step: string;
+    description: string;
+};
+
+type QuizQuestion = {
+    question: string;
+    options: string[];
+    answer: string;
+};
+
+type CrunchTimeOutput = {
+    title: string;
+    summary: string;
+    keyConcepts: KeyConcept[];
+    studyPlan: StudyStep[];
+    practiceQuiz: QuizQuestion[];
+};
+
 
 const ResourceInput = ({ onGenerate }: { onGenerate: (type: 'text' | 'url' | 'image', content: string) => void }) => {
     const [activeTab, setActiveTab] = useState('text');
@@ -112,7 +136,7 @@ const StudyGuideDisplay = ({ guide }: { guide: CrunchTimeOutput }) => {
                     <AccordionItem value="key-concepts" className="border rounded-lg bg-muted/20">
                         <AccordionTrigger className="p-4 font-semibold text-lg flex items-center gap-2"><BookOpen className="h-5 w-5 text-primary"/>Key Concepts</AccordionTrigger>
                         <AccordionContent className="px-6 pb-6 space-y-4 border-t pt-4">
-                            {guide.keyConcepts.map(concept => (
+                            {guide.keyConcepts.map((concept: KeyConcept) => (
                                 <div key={concept.term}>
                                     <p className="font-semibold">{concept.term}</p>
                                     <p className="text-sm text-muted-foreground">{concept.definition}</p>
@@ -123,7 +147,7 @@ const StudyGuideDisplay = ({ guide }: { guide: CrunchTimeOutput }) => {
                     <AccordionItem value="study-plan" className="border rounded-lg bg-muted/20">
                         <AccordionTrigger className="p-4 font-semibold text-lg flex items-center gap-2"><List className="h-5 w-5 text-primary"/>Action Plan</AccordionTrigger>
                         <AccordionContent className="px-6 pb-6 space-y-4 border-t pt-4">
-                             {guide.studyPlan.map((step, i) => (
+                             {guide.studyPlan.map((step: StudyStep, i: number) => (
                                 <div key={i} className="flex gap-4">
                                     <div className="flex-shrink-0 flex items-center justify-center h-8 w-8 rounded-full bg-primary text-primary-foreground font-bold">{i + 1}</div>
                                     <div>
@@ -137,13 +161,13 @@ const StudyGuideDisplay = ({ guide }: { guide: CrunchTimeOutput }) => {
                      <AccordionItem value="practice-quiz" className="border rounded-lg bg-muted/20">
                         <AccordionTrigger className="p-4 font-semibold text-lg flex items-center gap-2"><Lightbulb className="h-5 w-5 text-primary"/>Practice Quiz</AccordionTrigger>
                         <AccordionContent className="px-6 pb-6 space-y-6 border-t pt-4">
-                            {guide.practiceQuiz.map((q, qIndex) => {
+                            {guide.practiceQuiz.map((q: QuizQuestion, qIndex: number) => {
                                 const isCorrect = quizAnswers[qIndex] === q.answer;
                                 return (
                                 <div key={qIndex} className="space-y-3">
                                     <p className="font-semibold">{qIndex + 1}. {q.question}</p>
                                     <RadioGroup value={quizAnswers[qIndex]} onValueChange={(val) => setQuizAnswers(prev => ({...prev, [qIndex]: val}))} disabled={submitted}>
-                                        {q.options.map((opt, oIndex) => (
+                                        {q.options.map((opt: string, oIndex: number) => (
                                             <Label key={oIndex} className={cn("flex items-center gap-3 p-3 border rounded-md cursor-pointer", submitted && (opt === q.answer ? 'border-green-500 bg-green-500/10' : (quizAnswers[qIndex] === opt ? 'border-red-500 bg-red-500/10' : '')) )}>
                                                 <RadioGroupItem value={opt} />
                                                 {opt}
@@ -201,7 +225,7 @@ export default function CrunchTimePage() {
                 <h1 className="text-4xl font-bold tracking-tight text-primary flex items-center justify-center gap-2"><Zap/> Crunch Time</h1>
                 <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">
                     No time? No problem. Upload any study material and let your AI tutor create a personalized study guide to help you ace your test.
-                </p>
+                </p> 
             </div>
             
             {!studyGuide && !isLoading && <ResourceInput onGenerate={handleGenerate} />}

@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect, useCallback, Suspense, useContext } from 'react';
@@ -114,6 +113,7 @@ const CityRunGame = ({ topic }: { topic: string }) => {
                 type: 'obstacle',
                 lane: LANES[Math.floor(Math.random() * LANES.length)],
                 y: -200 - (i * 200),
+                text: '', // <-- FIX IS HERE
             });
         }
         setItems(newItems);

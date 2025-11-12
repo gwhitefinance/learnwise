@@ -1,11 +1,12 @@
 
+
 'use client';
 
 import React from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
-import { Home, Users, BookOpen, BarChart3, LogOut, PanelLeft, Bell, Settings, FilePlus, ChevronRight, MessageSquare, Podcast, ClipboardCheck, Award, Share2, Briefcase, GraduationCap, Link as LinkIcon, Folder, GitMerge, BrainCircuit, Lightbulb, Sparkles } from 'lucide-react';
+import { Home, Users, BookOpen, BarChart3, LogOut, PanelLeft, Bell, Settings, FilePlus, ChevronRight, MessageSquare, Podcast, ClipboardCheck, Award, Share2, Briefcase, GraduationCap, Link as LinkIcon, Folder, GitMerge, BrainCircuit, Lightbulb, Sparkles, X, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Link from 'next/link';
@@ -66,7 +67,7 @@ const sidebarItems: SidebarItem[] = [
     },
 ];
 
-const SidebarNavItem = ({ item, pathname }: { item: SidebarItem, pathname: string }) => {
+const SidebarNavItem = ({ item, pathname, setMobileMenuOpen }: { item: SidebarItem, pathname: string, setMobileMenuOpen?: (open: boolean) => void }) => {
     const [isOpen, setIsOpen] = React.useState(false);
     const hasChildren = item.children && item.children.length > 0;
     
@@ -79,6 +80,12 @@ const SidebarNavItem = ({ item, pathname }: { item: SidebarItem, pathname: strin
             setIsOpen(true);
         }
     }, [isActive, pathname]);
+
+    const handleClick = () => {
+        if (setMobileMenuOpen) {
+            setMobileMenuOpen(false);
+        }
+    }
 
     if (hasChildren) {
         return (
@@ -101,6 +108,7 @@ const SidebarNavItem = ({ item, pathname }: { item: SidebarItem, pathname: strin
                              <Link
                                 key={child.href}
                                 href={child.href || '#'}
+                                onClick={handleClick}
                                 className={cn(
                                 "flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm font-medium",
                                 pathname.startsWith(child.href) ? "text-primary" : "hover:bg-muted text-muted-foreground",
@@ -117,7 +125,7 @@ const SidebarNavItem = ({ item, pathname }: { item: SidebarItem, pathname: strin
     }
 
     return (
-        <Link href={item.href || '#'} >
+        <Link href={item.href || '#'} onClick={handleClick}>
             <div className={cn(
                 "flex items-center gap-3 rounded-2xl px-3 py-2 text-sm font-medium transition-all hover:bg-muted",
                 pathname === item.href && "bg-primary/10 text-primary"
@@ -134,6 +142,7 @@ export default function TeacherDashboardLayout({ children }: { children: React.R
     const router = useRouter();
     const pathname = usePathname();
     const [sidebarOpen, setSidebarOpen] = React.useState(true);
+    const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
 
     React.useEffect(() => {
         if (!loading && !user) {
@@ -144,60 +153,74 @@ export default function TeacherDashboardLayout({ children }: { children: React.R
     if (loading) {
         return <DashboardLoading />;
     }
+    
+    const sidebarContent = (
+        <div className="flex h-full flex-col">
+            <div className="p-4">
+                <div className="flex items-center gap-2">
+                    <Logo className="h-20 w-20" />
+                    <div>
+                        <h2 className="font-semibold text-lg">Teacher Portal</h2>
+                    </div>
+                </div>
+            </div>
+            <div className="px-3 py-2">
+                <div className="relative">
+                    <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input type="search" placeholder="Search..." className="w-full rounded-2xl bg-muted pl-9 pr-4 py-2" />
+                </div>
+            </div>
+            <ScrollArea className="flex-1 px-3 py-2">
+                <nav className="space-y-1">
+                    {sidebarItems.map(item => (
+                        <SidebarNavItem key={item.title} item={item} pathname={pathname} setMobileMenuOpen={setMobileMenuOpen} />
+                    ))}
+                </nav>
+            </ScrollArea>
+            <div className="border-t p-3">
+                <div className="space-y-2">
+                    <Button onClick={() => auth.signOut()} className="flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm font-medium">
+                        <LogOut className="h-5 w-5" /> 
+                        <span>Sign Out</span>
+                    </Button>
+                    <div className="w-full p-2 rounded-2xl hover:bg-muted cursor-pointer">
+                        <div className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10">
+                                <AvatarImage src={user?.photoURL ?? undefined} />
+                                <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <p className="font-semibold text-sm truncate">{user?.displayName}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
 
     return (
         <div className="flex min-h-screen bg-muted/40">
+            {mobileMenuOpen && (
+              <div className="fixed inset-0 z-40 bg-black/50 md:hidden" onClick={() => setMobileMenuOpen(false)} />
+            )}
+            <div className={cn("fixed inset-y-0 left-0 z-50 w-64 transform bg-background transition-transform duration-300 ease-in-out md:hidden", mobileMenuOpen ? "translate-x-0" : "-translate-x-full")}>
+                {sidebarContent}
+            </div>
+
              <aside className={cn(
                 "fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r bg-background transition-transform duration-300 ease-in-out md:flex",
                 sidebarOpen ? "translate-x-0" : "-translate-x-full"
             )}>
-                <div className="flex h-full flex-col">
-                    <div className="p-4">
-                        <div className="flex items-center gap-2">
-                           <Logo className="h-20 w-20" />
-                            <div>
-                                <h2 className="font-semibold text-lg">Teacher Portal</h2>
-                            </div>
-                        </div>
-                    </div>
-                     <div className="px-3 py-2">
-                        <div className="relative">
-                            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                            <Input type="search" placeholder="Search..." className="w-full rounded-2xl bg-muted pl-9 pr-4 py-2" />
-                        </div>
-                    </div>
-                    <ScrollArea className="flex-1 px-3 py-2">
-                        <nav className="space-y-1">
-                            {sidebarItems.map(item => (
-                                <SidebarNavItem key={item.title} item={item} pathname={pathname} />
-                            ))}
-                        </nav>
-                    </ScrollArea>
-                     <div className="border-t p-3">
-                         <div className="space-y-2">
-                            <Button onClick={() => auth.signOut()} className="flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm font-medium">
-                                <LogOut className="h-5 w-5" /> 
-                                <span>Sign Out</span>
-                            </Button>
-                            <div className="w-full p-2 rounded-2xl hover:bg-muted cursor-pointer">
-                                <div className="flex items-center gap-3">
-                                    <Avatar className="h-10 w-10">
-                                        <AvatarImage src={user?.photoURL ?? undefined} />
-                                        <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
-                                    </Avatar>
-                                    <p className="font-semibold text-sm truncate">{user?.displayName}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+               {sidebarContent}
             </aside>
             <div className={cn(
                 "flex flex-1 flex-col transition-all duration-300 ease-in-out",
                 sidebarOpen ? "md:pl-64" : "md:pl-0"
             )}>
                  <header className="sticky top-0 z-10 flex h-16 items-center gap-3 border-b bg-background/95 px-4 backdrop-blur">
-                    <Button variant="ghost" size="icon" className="md:flex" onClick={() => setSidebarOpen(!sidebarOpen)}>
+                     <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileMenuOpen(true)}>
+                        <Menu className="h-5 w-5" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="hidden md:flex" onClick={() => setSidebarOpen(!sidebarOpen)}>
                         <PanelLeft className="h-5 w-5" />
                     </Button>
                     <div className="ml-auto flex items-center gap-3">

@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowRight, RotateCcw, Lightbulb, CheckCircle, XCircle, PenSquare, Palette, Brush, Eraser, Minimize, Maximize, Clock, HelpCircle, Award, CheckSquare, GraduationCap, BookOpen, FileText, Loader2, Zap, Star } from 'lucide-react';
+import { ArrowRight, Award, BookOpen, Brush, CheckCircle, CheckSquare, ChevronLeft, ChevronRight, Clock, Eraser, FileText, GraduationCap, HelpCircle, Lightbulb, Loader2, Maximize, Minimize, Palette, PenSquare, RefreshCw, RotateCcw, Star, XCircle, Zap } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { GenerateQuizInput, GenerateQuizOutput, QuizQuestion } from '@/ai/schemas/quiz-schema';
 import { Progress } from '@/components/ui/progress';
@@ -32,7 +32,7 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { motion, AnimatePresence } from 'framer-motion';
-import type { CrunchTimeOutput } from '@/ai/flows/crunch-time-flow';
+import type { CrunchTimeOutput } from '@/ai/schemas/crunch-time-schema';
 import { Checkbox } from '@/components/ui/checkbox';
 import TazCoinIcon from '@/components/TazCoinIcon';
 
@@ -233,7 +233,7 @@ function PracticeQuizComponent() {
             setIsFocusMode(true);
             setQuizState('in-progress');
         }).catch(err => {
-            console.error(`Error attempting to enable full-screen mode: ${'${err.message}'} (${'${err.name}'})`);
+            console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
             setIsFocusMode(false);
             setQuizState('in-progress');
         });
@@ -1291,6 +1291,7 @@ export default function PracticeQuizPage() {
     
 
     
+
 
 
 

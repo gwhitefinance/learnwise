@@ -9,7 +9,7 @@ import { GenerateHintInputSchema, GenerateHintOutputSchema, GenerateHintInput, G
 
 const prompt = ai.definePrompt({
     name: 'quizHintPrompt',
-    model: googleAI.model('gemini-2.0-flash-lite'),
+    model: googleAI.model('gemini-2.5-flash'),
     input: { schema: GenerateHintInputSchema },
     output: { schema: GenerateHintOutputSchema },
     prompt: `You are an expert tutor. A student is stuck on a quiz question and has asked for a hint.

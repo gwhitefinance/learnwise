@@ -27,7 +27,7 @@ export type GenerateChatTitleOutput = z.infer<typeof GenerateChatTitleOutputSche
 
 const prompt = ai.definePrompt({
     name: 'chatTitlePrompt',
-    model: googleAI.model('gemini-2.0-flash-lite'),
+    model: googleAI.model('gemini-2.5-flash'),
     input: { schema: GenerateChatTitleInputSchema },
     output: { schema: GenerateChatTitleOutputSchema },
     prompt: `Based on the following conversation, create a short, descriptive title (3-5 words). 

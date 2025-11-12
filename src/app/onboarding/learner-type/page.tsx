@@ -12,9 +12,8 @@ import { cn } from '@/lib/utils';
 import { ArrowRight, Loader2 } from 'lucide-react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
-import { generateMiniCourse, generateChapterContent } from '@/lib/actions';
-import { collection, query, where, getDocs, doc, updateDoc, orderBy, limit } from 'firebase/firestore';
-import GeneratingCourse from '@/app/dashboard/courses/GeneratingCourse';
+import { generateInitialCourseAndRoadmap } from '@/lib/actions';
+import { collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
 
 
 const questions = [
@@ -26,7 +25,7 @@ const questions = [
       c: "By watching videos, looking at diagrams, or seeing demonstrations.",
       d: "By jumping in and trying it myself, learning through hands-on practice.",
     },
-    styles: { a: "Visual", b: "Auditory", c: "Visual", d: "Kinesthetic" },
+    styles: { a: "Reading/Writing", b: "Auditory", c: "Visual", d: "Kinesthetic" },
   },
   {
     question: "When you are trying to remember a phone number, you are most likely to:",
@@ -46,7 +45,7 @@ const questions = [
         c: "Look at the diagrams and pictures to see how it fits together.",
         d: "Start putting pieces together and figure it out as you go.",
     },
-    styles: { a: "Visual", b: "Auditory", c: "Visual", d: "Kinesthetic" },
+    styles: { a: "Reading/Writing", b: "Auditory", c: "Visual", d: "Kinesthetic" },
   },
    {
     question: "How do you best remember someone's name after meeting them?",
@@ -56,7 +55,7 @@ const questions = [
         c: "By picturing their face.",
         d: "By associating them with an action, like a firm handshake.",
     },
-    styles: { a: "Visual", b: "Auditory", c: "Visual", d: "Kinesthetic" },
+    styles: { a: "Reading/Writing", b: "Auditory", c: "Visual", d: "Kinesthetic" },
   },
   {
     question: "If you were learning a new dance step, you would prefer to:",
@@ -66,7 +65,7 @@ const questions = [
         c: "Watch a video of someone doing the step multiple times.",
         d: "Jump in and physically try to follow along.",
     },
-    styles: { a: "Visual", b: "Auditory", c: "Visual", d: "Kinesthetic" },
+    styles: { a: "Reading/Writing", b: "Auditory", c: "Visual", d: "Kinesthetic" },
   }
 ];
 
@@ -76,7 +75,6 @@ export default function LearnerTypeQuizPage() {
     const [answers, setAnswers] = useState<Record<number, string>>({});
     const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [generatingCourseName, setGeneratingCourseName] = useState('');
     const router = useRouter();
     const { toast } = useToast();
     const [user] = useAuthState(auth);
@@ -114,17 +112,14 @@ export default function LearnerTypeQuizPage() {
             }
         });
 
-        // Remove Reading/Writing from consideration for the dominant style
-        delete counts["Reading/Writing"];
-
         const dominantStyle = Object.keys(counts).reduce((a, b) =>
             counts[a as keyof typeof counts] > counts[b as keyof typeof counts] ? a : b
-        ) as "Visual" | "Auditory" | "Kinesthetic";
+        ) as "Visual" | "Auditory" | "Kinesthetic" | "Reading/Writing";
 
         localStorage.setItem('learnerType', dominantStyle);
         toast({
             title: 'Finalizing your setup...',
-            description: `You are a ${dominantStyle} learner. Generating your first course...`,
+            description: `You are a ${dominantStyle} learner. Generating your courses...`,
         });
 
         if (!user) {
@@ -134,52 +129,49 @@ export default function LearnerTypeQuizPage() {
         }
 
         try {
-            // Fetch the most recently created course for the user
-            const coursesQuery = query(collection(db, 'courses'), where('userId', '==', user.uid), orderBy('__name__', 'desc'), limit(1));
+            // Fetch the courses created during onboarding
+            const coursesQuery = query(collection(db, 'courses'), where('userId', '==', user.uid), where('units', '==', []));
             const querySnapshot = await getDocs(coursesQuery);
-            const courseDoc = querySnapshot.docs[0];
+            const userCourses = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
 
-            if (!courseDoc) {
-                throw new Error("No course found to generate content for.");
-            }
-            
-            const course = { id: courseDoc.id, ...courseDoc.data() };
-            setGeneratingCourseName(course.name);
-
-            // 1. Generate the course outline
-            const miniCourseResult = await generateMiniCourse({
-                courseName: course.name,
-                courseDescription: course.description,
-                learnerType: dominantStyle,
-            });
-
-            const newUnits = miniCourseResult.modules.map(module => ({
-                id: crypto.randomUUID(),
-                title: module.title,
-                chapters: module.chapters.map(chapter => ({ ...chapter, id: crypto.randomUUID() })),
-            }));
-
-            // 2. Generate content for the first chapter
-            if (newUnits.length > 0 && newUnits[0].chapters.length > 0) {
-                const firstModule = newUnits[0];
-                const firstChapter = firstModule.chapters[0];
-                
-                const chapterContentResult = await generateChapterContent({
+            for (const course of userCourses) {
+                const durationInMonths = parseInt(localStorage.getItem('learningPace') || '3', 10);
+                // Generate the course outline, first chapter content, and roadmap
+                const result = await generateInitialCourseAndRoadmap({
                     courseName: course.name,
-                    moduleTitle: firstModule.title,
-                    chapterTitle: firstChapter.title,
+                    courseDescription: course.description,
                     learnerType: dominantStyle,
+                    durationInMonths,
                 });
                 
-                // Add the generated content to the chapter object
-                newUnits[0].chapters[0] = { ...firstChapter, ...chapterContentResult, content: chapterContentResult.content as any };
-            }
+                const { courseOutline, firstChapterContent, roadmap } = result;
 
-            // 3. Update the course in Firestore
-            const courseRef = doc(db, 'courses', course.id);
-            await updateDoc(courseRef, { 
-                units: newUnits,
-            });
+                const newUnits = courseOutline.modules.map((module, mIdx) => ({
+                    id: crypto.randomUUID(),
+                    title: module.title,
+                    chapters: module.chapters.map((chapter, cIdx) => ({
+                        id: crypto.randomUUID(),
+                        title: chapter.title,
+                        ...(mIdx === 0 && cIdx === 0 ? {
+                            content: JSON.stringify(firstChapterContent.content),
+                            activity: JSON.stringify(firstChapterContent.activity),
+                        } : {}),
+                    }))
+                }));
+
+                const courseRef = doc(db, 'courses', course.id);
+                await updateDoc(courseRef, { 
+                    units: newUnits,
+                });
+
+                const roadmapData = {
+                    courseId: course.id,
+                    userId: user.uid,
+                    goals: roadmap.goals.map(g => ({ ...g, id: crypto.randomUUID() })),
+                    milestones: roadmap.milestones.map(m => ({ ...m, id: crypto.randomUUID(), completed: false }))
+                };
+                await addDoc(collection(db, 'roadmaps'), roadmapData);
+            }
             
             // Set the flag to trigger the welcome popup on the dashboard
             localStorage.setItem('quizCompleted', 'true');
@@ -188,16 +180,13 @@ export default function LearnerTypeQuizPage() {
             router.push('/dashboard');
 
         } catch (error) {
-            console.error("Course generation failed:", error);
-            toast({ variant: 'destructive', title: 'Setup Failed', description: 'Could not generate course content. You can generate it later.'});
+            console.error("Final setup failed:", error);
+            toast({ variant: 'destructive', title: 'Setup Failed', description: 'Could not generate all materials. You can generate them later from the dashboard.'});
             router.push('/dashboard'); // Still go to dashboard
+        } finally {
+            setIsSubmitting(false);
         }
     };
-
-    if (isSubmitting) {
-        return <GeneratingCourse courseName={generatingCourseName || 'Your First Course'} />;
-    }
-
 
     const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
     const currentQuestion = questions[currentQuestionIndex];

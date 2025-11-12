@@ -458,29 +458,36 @@ const plans = [
 
 
 export default function Home() {
-    const { theme } = useTheme();
+    const { theme, systemTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
         setMounted(true);
-    }, []);
+        if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    }, [theme]);
+
+    const effectiveTheme = mounted ? (theme === 'system' ? systemTheme : theme) : 'light';
 
     if (!mounted) {
-        return null; // Or a loading skeleton
+        return <div className="h-screen w-screen bg-background" />; // Prevent flash of unstyled content
     }
 
     return (
-        <main className={cn("bg-background", theme === 'dark' ? 'dark-grid' : 'bg-white')}>
+        <main className={cn("bg-background", effectiveTheme === 'dark' ? 'dark-grid' : 'bg-white')}>
             <Navbar />
             <Hero />
             <AudienceCTA />
-            <HowItWorks theme={theme || 'light'} />
-            <PersonalizedTutor theme={theme || 'light'} />
-            <DailyPractice theme={theme || 'light'} />
-            <Features theme={theme || 'light'} />
-            <Pricing plans={plans} theme={theme || 'light'} />
-            <Faqs theme={theme || 'light'} />
-            <NewReleasePromo theme={theme || 'light'}/>
+            <HowItWorks theme={effectiveTheme || 'light'} />
+            <PersonalizedTutor theme={effectiveTheme || 'light'} />
+            <DailyPractice theme={effectiveTheme || 'light'} />
+            <Features theme={effectiveTheme || 'light'} />
+            <Pricing plans={plans} theme={effectiveTheme || 'light'} />
+            <Faqs theme={effectiveTheme || 'light'} />
+            <NewReleasePromo theme={effectiveTheme || 'light'}/>
             <Footer />
         </main>
     );

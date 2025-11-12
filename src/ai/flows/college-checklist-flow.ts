@@ -10,7 +10,7 @@ import { CollegeChecklistInputSchema, CollegeChecklistOutputSchema } from '@/ai/
 
 const prompt = ai.definePrompt({
     name: 'collegeChecklistPrompt',
-    model: googleAI.model('gemini-2.0-flash'),
+    model: googleAI.model('gemini-2.5-flash'),
     input: { schema: CollegeChecklistInputSchema },
     output: { schema: CollegeChecklistOutputSchema },
     prompt: `You are an expert college admissions consultant. Your task is to generate a prioritized checklist of admission factors for a specific university based on its profile.

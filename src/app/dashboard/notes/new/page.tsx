@@ -1,10 +1,11 @@
-
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import {
-  Bold, Italic, Underline, Strikethrough, Palette, AlignLeft, AlignCenter, AlignRight, List, ListOrdered, Undo, Redo, X, ChevronDown, Mic, Sparkles, Clock, Music, UserPlus, Upload, Info, GitMerge, FileSignature, Plus, History, Printer, Expand, Search, FileText, ArrowRight, Type, GripVertical, Maximize, Square, Globe, GraduationCap, Loader2, MessageSquare, BrainCircuit, Lightbulb, Copy, ImageIcon, Link as LinkIcon, MessageSquarePlus, Paintbrush, Minus, Indent, Outdent, Pilcrow, LineChart, CheckSquare, Save
+  Bold, Italic, Underline, Strikethrough, Palette, AlignLeft, AlignCenter, AlignRight, List, ListOrdered, Undo, Redo, X, ChevronDown, Mic, Sparkles, Clock, Music, UserPlus, Upload, Info, GitMerge, FileSignature, Plus, History, Printer, Expand, Search, FileText, ArrowRight, Type, GripVertical, Maximize, Square, Globe, GraduationCap, Loader2, MessageSquare, BrainCircuit, Lightbulb, Copy, ImageIcon, Link as LinkIcon, MessageSquarePlus, Paintbrush, Minus, Indent, Outdent, Pilcrow, LineChart, CheckSquare, Save,
+  Bot, 
+  User 
 } from 'lucide-react';
 import Image from 'next/image';
 import { Input } from '@/components/ui/input';
@@ -40,6 +41,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'; 
+import { useRouter } from 'next/navigation'; 
 
 interface Message {
   role: 'user' | 'ai';
@@ -345,7 +348,7 @@ export default function NewNotePage() {
     const [courses, setCourses] = useState<Course[]>([]);
     const [selectedCourseId, setSelectedCourseId] = useState<string | undefined>();
     const [selectedUnitId, setSelectedUnitId] = useState<string | undefined>();
-    const router = useRouter();
+    const router = useRouter(); 
     
     useEffect(() => {
         if (!user) return;

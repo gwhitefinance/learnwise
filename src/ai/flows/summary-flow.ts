@@ -11,7 +11,7 @@ import { GenerateSummaryInputSchema, GenerateSummaryOutputSchema, GenerateSummar
 
 const prompt = ai.definePrompt({
     name: 'summaryPrompt',
-    model: googleAI.model('gemini-2.0-flash-lite'),
+    model: googleAI.model('gemini-2.5-flash'),
     input: { schema: GenerateSummaryInputSchema },
     output: { schema: GenerateSummaryOutputSchema },
     prompt: `You are an expert at creating concise summaries.

@@ -10,7 +10,7 @@ import { GenerateDailyFocusInput, GenerateDailyFocusInputSchema, GenerateDailyFo
 
 const prompt = ai.definePrompt({
     name: 'generateDailyFocusPrompt',
-    model: googleAI.model('gemini-2.0-flash-lite'),
+    model: googleAI.model('gemini-2.5-flash'),
     input: { schema: GenerateDailyFocusInputSchema },
     output: { schema: GenerateDailyFocusOutputSchema },
     prompt: `You are a helpful and concise academic advisor. Your task is to generate a list of exactly 5 specific, actionable study tasks for a student to complete today.

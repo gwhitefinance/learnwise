@@ -92,11 +92,11 @@ const features = [
     }
 ]
 
-const AnimatedNavLink = ({ href, children, isActive }: { href: string; children: React.ReactNode; isActive?: boolean }) => {
+const AnimatedNavLink = ({ href, children, isActive, theme }: { href: string; children: React.ReactNode; isActive?: boolean, theme: string }) => {
   return (
     <Link href={href} className={cn(
         "text-sm font-medium transition-colors px-4 py-2 rounded-full", 
-        isActive ? 'bg-neutral-800 text-white' : 'text-gray-500 hover:text-black'
+        isActive ? (theme === 'dark' ? 'bg-white/10 text-white' : 'bg-black/5 text-black') : (theme === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-black')
       )}>
       {children}
     </Link>
@@ -118,7 +118,7 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const currentTheme = theme;
+  const currentTheme = mounted ? theme : 'light';
 
   const navLinksData = [
     { label: "Pricing", href: "#pricing" },
@@ -127,15 +127,15 @@ export default function Navbar() {
     { label: "Leaderboard", href: "/leaderboard" },
   ]
 
-  const navTextColor = 'text-black';
-  const navIconHover = 'hover:bg-black/10';
+  const navTextColor = currentTheme === 'dark' ? 'text-white' : 'text-black';
+  const navIconHover = currentTheme === 'dark' ? 'hover:bg-white/10' : 'hover:bg-black/10';
 
   const renderThemeToggle = () => {
     if (!mounted) {
       return <div className="h-9 w-9" />; // Placeholder
     }
     return (
-      <Button variant="ghost" size="icon" onClick={() => setTheme(currentTheme === 'dark' ? 'light' : 'dark')} className={cn(navTextColor, navIconHover, 'hover:'+navTextColor)}>
+      <Button variant="ghost" size="icon" onClick={() => setTheme(currentTheme === 'dark' ? 'light' : 'dark')} className={cn(navIconHover, 'rounded-full', currentTheme === 'dark' ? 'text-white hover:text-white' : 'text-black hover:text-black')}>
         {currentTheme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
       </Button>
     );
@@ -149,7 +149,7 @@ export default function Navbar() {
       <div className="container mx-auto px-4">
         <div className={cn(
             "flex items-center justify-between h-20 transition-all duration-300 px-4",
-             isScrolled ? "bg-white/50 border border-gray-200/50 rounded-2xl backdrop-blur-md" : ""
+             isScrolled ? (currentTheme === 'dark' ? "bg-black/50 border border-white/10 rounded-2xl backdrop-blur-md" : "bg-white/50 border border-gray-200/50 rounded-2xl backdrop-blur-md") : ""
         )}>
            <div className="flex items-center gap-2 w-1/4">
                 <Link href="/" className="flex items-center gap-2">
@@ -158,11 +158,11 @@ export default function Navbar() {
             </div>
           
           <div className="hidden md:flex items-center justify-center w-1/2">
-             <div className="bg-gray-100/80 backdrop-blur-sm border border-gray-200/80 p-1 rounded-full">
+             <div className={cn("border p-1 rounded-full", currentTheme === 'dark' ? 'bg-black/30 border-white/10' : 'bg-gray-100/80 border-gray-200/80')}>
                 <nav className="flex items-center gap-2">
                    <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                       <Button variant="ghost" className="text-sm font-medium text-gray-500 hover:text-black px-4 py-2 rounded-full">Features <ChevronDown className="h-4 w-4 ml-1" /></Button>
+                       <Button variant="ghost" className={cn("text-sm font-medium px-4 py-2 rounded-full", currentTheme === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-black')}>Features <ChevronDown className="h-4 w-4 ml-1" /></Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="w-80">
                         <div className="grid grid-cols-2 gap-4 p-4">
@@ -180,7 +180,7 @@ export default function Navbar() {
                     </DropdownMenuContent>
                     </DropdownMenu>
                     {navLinksData.map((link) => (
-                        <AnimatedNavLink key={link.label} href={link.href}>
+                        <AnimatedNavLink key={link.label} href={link.href} theme={currentTheme || 'light'}>
                         {link.label}
                         </AnimatedNavLink>
                     ))}
@@ -191,7 +191,7 @@ export default function Navbar() {
           <div className="hidden md:flex items-center justify-end gap-2 w-1/4">
             {renderThemeToggle()}
             <Link href="/login">
-                <Button variant="ghost" className="text-black bg-white rounded-full hover:bg-gray-100 border border-gray-200">Login</Button>
+                <Button variant="ghost" className={cn(navTextColor, currentTheme === 'dark' ? 'bg-white/10 hover:bg-white/20' : 'bg-white hover:bg-gray-100', "rounded-full border", currentTheme === 'dark' ? 'border-white/10' : 'border-gray-200')}>Login</Button>
             </Link>
             <Link href="/signup">
                 <Button className="bg-blue-500 hover:bg-blue-600 text-white rounded-full pulse-glow-button">
@@ -209,16 +209,16 @@ export default function Navbar() {
         </div>
       </div>
       {isOpen && (
-          <div className="md:hidden bg-background/95 border-t border-gray-200/50">
+          <div className={cn("md:hidden border-t", currentTheme === 'dark' ? 'bg-black/95 border-white/10' : 'bg-white/95 border-gray-200/50')}>
               <div className="container mx-auto px-4 py-4 flex flex-col gap-4">
                   {navLinksData.map((link) => (
-                    <AnimatedNavLink key={link.label} href={link.href}>
+                    <AnimatedNavLink key={link.label} href={link.href} theme={currentTheme || 'light'}>
                       {link.label}
                     </AnimatedNavLink>
                   ))}
                   <div className="flex flex-col gap-2 pt-4 border-t border-gray-200/50">
                        <Link href="/login">
-                          <Button variant="ghost" className="w-full text-black hover:bg-gray-100">Login</Button>
+                          <Button variant="ghost" className={cn("w-full hover:bg-muted", navTextColor)}>Login</Button>
                       </Link>
                        <Link href="/signup">
                           <Button className="w-full bg-primary text-white hover:bg-primary/90 pulse-glow-button">Get started</Button>

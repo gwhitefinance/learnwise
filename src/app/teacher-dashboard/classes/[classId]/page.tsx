@@ -54,7 +54,7 @@ export default function SquadManagementPage() {
     const params = useParams();
     const router = useRouter();
     const { toast } = useToast();
-    const { squadId } = params;
+    const { classId } = params; // FIX: Changed from squadId to classId
     const [user, authLoading] = useAuthState(auth);
     const [squad, setSquad] = useState<Squad | null>(null);
     const [members, setMembers] = useState<Member[]>([]);
@@ -76,12 +76,12 @@ export default function SquadManagementPage() {
             return;
         }
 
-        if (typeof squadId !== 'string') {
+        if (typeof classId !== 'string') { // FIX: Changed from squadId to classId
             setLoading(false);
             return;
         }
 
-        const squadDocRef = doc(db, 'squads', squadId);
+        const squadDocRef = doc(db, 'squads', classId); // FIX: Changed from squadId to classId
         
         const unsubscribeSquad = onSnapshot(squadDocRef, (docSnap) => {
              if (docSnap.exists()) {
@@ -97,20 +97,20 @@ export default function SquadManagementPage() {
             setLoading(false);
         }, (error) => {
             console.error("Error fetching squad:", error);
-            toast({ variant: 'destructive', title: 'Permission Error', description: 'You may not have access to this squad.'})
+            toast({ variant: 'destructive', title: 'Permission Error', description: 'You may not have access to this class.'}) // FIX: Changed "squad" to "class"
             setSquad(null);
             setLoading(false);
         });
 
         // Listen to memberDetails subcollection
-        const memberDetailsColRef = collection(db, 'squads', squadId, 'memberDetails');
+        const memberDetailsColRef = collection(db, 'squads', classId, 'memberDetails'); // FIX: Changed from squadId to classId
         const unsubscribeMembers = onSnapshot(memberDetailsColRef, (snapshot) => {
             const membersData = snapshot.docs.map(doc => doc.data() as Member);
             setMembers(membersData);
         });
         
         // Listen to projects subcollection
-        const projectsColRef = collection(db, 'squads', squadId, 'projects');
+        const projectsColRef = collection(db, 'squads', classId, 'projects'); // FIX: Changed from squadId to classId
         const unsubscribeProjects = onSnapshot(query(projectsColRef), (snapshot) => {
             const projectsData = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()} as GroupProject));
             setProjects(projectsData);
@@ -121,7 +121,7 @@ export default function SquadManagementPage() {
             unsubscribeMembers();
             unsubscribeProjects();
         };
-    }, [user, authLoading, squadId, router, toast]);
+    }, [user, authLoading, classId, router, toast]); // FIX: Changed dependency from squadId to classId
     
     const copyInviteLink = () => {
         if (!squad) return;
@@ -159,10 +159,10 @@ export default function SquadManagementPage() {
 
         try {
             await deleteDoc(doc(db, 'squads', squad.id));
-            toast({ title: "Squad Deleted", description: "The squad has been permanently removed."});
-            router.push('/dashboard/learning-squad');
+            toast({ title: "Class Deleted", description: "The class has been permanently removed."}); // FIX: Changed "Squad" to "Class"
+            router.push('/teacher-dashboard/classes'); // FIX: Changed redirect path
         } catch (error) {
-            console.error("Error deleting squad:", error);
+            console.error("Error deleting class:", error); // FIX: Changed "squad" to "class"
             toast({ variant: 'destructive', title: "Deletion Failed"});
         }
     }
@@ -209,25 +209,25 @@ export default function SquadManagementPage() {
     if (!squad) {
         return (
             <div>
-                <Button variant="ghost" onClick={() => router.push('/dashboard/learning-squad')} className="mb-4">
+                <Button variant="ghost" onClick={() => router.push('/teacher-dashboard/classes')} className="mb-4">
                     <ArrowLeft className="mr-2 h-4 w-4"/>
-                    Back to All Squads
+                    Back to All Classes
                 </Button>
-                <h1 className="text-2xl font-bold">Squad not found</h1>
-                <p>You may not have access to this squad or it may have been deleted.</p>
+                <h1 className="text-2xl font-bold">Class not found</h1>
+                <p>You may not have access to this class or it may have been deleted.</p>
             </div>
         );
     }
 
     return (
         <div className="space-y-6">
-            <Button variant="ghost" onClick={() => router.push('/dashboard/learning-squad')}>
+            <Button variant="ghost" onClick={() => router.push('/teacher-dashboard/classes')}>
                 <ArrowLeft className="mr-2 h-4 w-4"/>
-                Back to All Squads
+                Back to All Classes
             </Button>
             <div>
-                <h1 className="text-3xl font-bold">Manage Squad: {squad.name}</h1>
-                <p className="text-muted-foreground">Manage members, permissions, and settings for your squad.</p>
+                <h1 className="text-3xl font-bold">Manage Class: {squad.name}</h1>
+                <p className="text-muted-foreground">Manage members, permissions, and settings for your class.</p>
             </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -235,7 +235,7 @@ export default function SquadManagementPage() {
                      <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2"><Users />Members ({squad.members.length})</CardTitle>
-                            <CardDescription>View and manage who is in your squad.</CardDescription>
+                            <CardDescription>View and manage who is in your class.</CardDescription>
                         </CardHeader>
                         <CardContent>
                              <div className="space-y-4">
@@ -273,7 +273,7 @@ export default function SquadManagementPage() {
                                                     <AlertDialogHeader>
                                                         <AlertDialogTitle>Remove {member.displayName}?</AlertDialogTitle>
                                                         <AlertDialogDescription>
-                                                            Are you sure you want to remove this member from the squad? This action cannot be undone.
+                                                            Are you sure you want to remove this member from the class? This action cannot be undone.
                                                         </AlertDialogDescription>
                                                     </AlertDialogHeader>
                                                     <AlertDialogFooter>
@@ -291,7 +291,7 @@ export default function SquadManagementPage() {
                      <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2"><Briefcase />Group Projects</CardTitle>
-                            <CardDescription>Shared projects for the squad.</CardDescription>
+                            <CardDescription>Shared projects for the class.</CardDescription>
                         </CardHeader>
                         <CardContent>
                              {projects.length > 0 ? (
@@ -339,7 +339,7 @@ export default function SquadManagementPage() {
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2"><Settings />Permissions</CardTitle>
-                            <CardDescription>Control what members can do in this squad.</CardDescription>
+                            <CardDescription>Control what members can do in this class.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                                <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
@@ -352,7 +352,7 @@ export default function SquadManagementPage() {
                                <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
                                     <div>
                                         <Label htmlFor="calendar-permission" className="font-semibold">Shared Calendar</Label>
-                                        <p className="text-xs text-muted-foreground">Allow members to view and add to a shared squad calendar.</p>
+                                        <p className="text-xs text-muted-foreground">Allow members to view and add to a shared class calendar.</p>
                                     </div>
                                     <Switch id="calendar-permission" checked={squad.permissions?.allowCalendar ?? false} onCheckedChange={(val) => handleTogglePermission('allowCalendar', val)} disabled={!isOwner} />
                                </div>
@@ -362,12 +362,12 @@ export default function SquadManagementPage() {
                 <div className="space-y-6">
                      <Card>
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2"><Phone />Squad Call</CardTitle>
-                            <CardDescription>Start a video call with your squad members.</CardDescription>
+                            <CardTitle className="flex items-center gap-2"><Phone />Class Call</CardTitle>
+                            <CardDescription>Start a video call with your class members.</CardDescription>
                         </CardHeader>
                         <CardContent>
                            <Button onClick={() => startCall(members)} disabled={isInCall} className="w-full">
-                                {isInCall ? "You are already in a call" : "Start Squad Call"}
+                                {isInCall ? "You are already in a call" : "Start Class Call"}
                            </Button>
                         </CardContent>
                     </Card>
@@ -376,7 +376,7 @@ export default function SquadManagementPage() {
                             <CardTitle className="flex items-center gap-2"><LinkIcon />Invite Link</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <p className="text-sm text-muted-foreground mb-4">Share this link to invite others to join your squad.</p>
+                            <p className="text-sm text-muted-foreground mb-4">Share this link to invite others to join your class.</p>
                              <div className="flex gap-2">
                                 <Input value={`${window.location.origin}/squad/join/${squad.inviteCode}`} readOnly />
                                 <Button onClick={copyInviteLink} size="icon" variant="outline">
@@ -392,18 +392,18 @@ export default function SquadManagementPage() {
                         <CardContent>
                             <AlertDialog>
                                 <AlertDialogTrigger asChild>
-                                    <Button variant="destructive" className="w-full" disabled={!isOwner}>Delete Squad</Button>
+                                    <Button variant="destructive" className="w-full" disabled={!isOwner}>Delete Class</Button>
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
                                     <AlertDialogHeader>
                                         <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                                         <AlertDialogDescription>
-                                            This action cannot be undone. This will permanently delete the squad and all of its data.
+                                            This action cannot be undone. This will permanently delete the class and all of its data.
                                         </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
                                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                        <AlertDialogAction onClick={handleDeleteSquad}>Delete Squad</AlertDialogAction>
+                                        <AlertDialogAction onClick={handleDeleteSquad}>Delete Class</AlertDialogAction>
                                     </AlertDialogFooter>
                                 </AlertDialogContent>
                             </AlertDialog>

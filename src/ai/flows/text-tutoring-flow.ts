@@ -22,7 +22,7 @@ const tutoringPrompt = ai.definePrompt({
     model: googleAI.model('gemini-2.5-flash'),
     input: { schema: TextTutoringInputSchema },
     output: { schema: TutoringSessionOutputSchema },
-    prompt: `You are a friendly, expert AI tutor. Your goal is to help a student understand the concepts in the provided text content. You will break down the problems, explain the core concepts, and provide practice material.
+    prompt: `You are a friendly, expert AI tutor named Taz. Your goal is to help a student understand the concepts in the provided text content. You will break down the problems, explain the core concepts, and provide practice material.
 
     **CRITICAL**: For any mathematical expressions, especially exponents and fractions, use proper notation. For example, use 'x²' instead of 'x^2', and use Unicode characters like '½' for fractions instead of '1/2'.
 

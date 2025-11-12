@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -208,8 +207,9 @@ const shirtComponents: Record<string, React.FC> = {
             <path d='M65 105 L135 105 L135 155 L65 155 Z' fill='#f59e0b' />
             {/* Turkey */}
             <path transform="translate(85, 120) scale(0.3)" d="M-25,0 a25,20 0 1,1 50,0 a25,20 0 1,1 -50,0" fill="#8B4513" />
-            <rect transform="translate(85, 120) scale(0.3)" x="-15" y="-10" width="10" height="5" fill="#DEB887" transform="rotate(-30 -15 -10)" />
-            <rect transform="translate(85, 120) scale(0.3)" x="5" y="-10" width="10" height="5" fill="#DEB887" transform="rotate(30 5 -10)" />
+            {/* --- FIX: Combined transform attributes --- */}
+            <rect transform="translate(85, 120) scale(0.3) rotate(-30 -15 -10)" x="-15" y="-10" width="10" height="5" fill="#DEB887" />
+            <rect transform="translate(85, 120) scale(0.3) rotate(30 5 -10)" x="5" y="-10" width="10" height="5" fill="#DEB887" />
              {/* Leaf */}
             <path transform="translate(110, 135) scale(0.3) rotate(30)" d="M0-25 C20-25 20,5 0,25 C-20,5 -20-25 0-25 Z" fill="#b33b00" />
         </g>
@@ -499,12 +499,3 @@ export const Shoes: React.FC<{ name?: string }> = ({ name }) => {
     const Component = shoeComponents[name];
     return Component ? <Component /> : <DefaultShoes />;
 };
-
-    
-
-    
-
-
-
-
-

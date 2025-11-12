@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -52,14 +51,17 @@ export default function PacePage() {
             }
 
             const courseDoc = querySnapshot.docs[0];
-            const course = { id: courseDoc.id, ...courseDoc.data() };
+            
+            // --- FIX: Add type assertion to tell TypeScript the shape of your data ---
+            const courseData = courseDoc.data() as { name: string, description: string, url: string };
+            const course = { id: courseDoc.id, ...courseData };
             
             toast({ title: "Generating your personalized roadmap..." });
             
             const roadmapResponse = await generateRoadmap({
-                courseName: course.name,
-                courseDescription: course.description,
-                courseUrl: course.url,
+                courseName: course.name, // This now works
+                courseDescription: course.description, // This now works
+                courseUrl: course.url, // This now works
                 durationInMonths: parseInt(selectedPace, 10),
             });
 
@@ -144,7 +146,7 @@ export default function PacePage() {
                                 Next
                                 <ArrowRight className="ml-2 h-5 w-5" />
                             </>
-                        )}
+                         )}
                     </Button>
                 </div>
             </motion.div>

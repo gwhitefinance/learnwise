@@ -7,9 +7,8 @@ import { ai, googleAI } from '@/ai/genkit';
 import { z } from 'zod';
 import { scrapeWebpageTool } from '@/ai/tools/web-scraper-tool';
 import { getYouTubeTranscript } from '@/ai/tools/youtube-transcript-tool';
-import { CrunchTimeInputSchema, CrunchTimeOutputSchema, CrunchTimeInput, CrunchTimeOutput } from '@/ai/schemas/crunch-time-schema';
-
-
+import { CrunchTimeInputSchema, CrunchTimeOutputSchema, type CrunchTimeInput, type CrunchTimeOutput } from '@/ai/schemas/crunch-time-schema';
+export type { CrunchTimeInput, CrunchTimeOutput } from '@/ai/schemas/crunch-time-schema';
 const prompt = ai.definePrompt({
     name: 'crunchTimePrompt',
     model: googleAI.model('gemini-2.5-flash'),

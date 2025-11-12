@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -62,6 +61,23 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 
+// --- FIX: Moved component definitions to the top ---
+
+// You might need to create these components if they don't exist
+const Storefront = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="m12 7.5-.001-.001M12 12.5-.001-.001M12 17.5-.001-.001"/><path d="M3 21V5.7a2.2 2.2 0 0 1 2.2-2.2h13.6a2.2 2.2 0 0 1 2.2 2.2V21"/><path d="M6 21h12"/>
+  </svg>
+);
+
+const BarChart3 = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>
+  </svg>
+);
+// --- End Fix ---
+
+
 const sidebarItems = [
   {
     title: "Dashboard",
@@ -75,12 +91,12 @@ const sidebarItems = [
   },
   {
     title: "Statistics",
-    icon: <BarChart3 />,
+    icon: <BarChart3 />, // This now works
     href: "/statistics",
   },
   {
     title: "Store",
-    icon: <Storefront />,
+    icon: <Storefront />, // This now works
     href: "/store",
   }
 ];
@@ -156,18 +172,3 @@ export default function DashboardLayout({
     </div>
   );
 }
-
-// You might need to create these components if they don't exist
-const Storefront = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="m12 7.5-.001-.001M12 12.5-.001-.001M12 17.5-.001-.001"/><path d="M3 21V5.7a2.2 2.2 0 0 1 2.2-2.2h13.6a2.2 2.2 0 0 1 2.2 2.2V21"/><path d="M6 21h12"/>
-  </svg>
-);
-
-const BarChart3 = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>
-  </svg>
-);
-
-    

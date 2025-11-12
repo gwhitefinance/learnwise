@@ -11,7 +11,7 @@ import { ConceptExplanationInputSchema, ConceptExplanationOutputSchema, ConceptE
 
 const prompt = ai.definePrompt({
     name: 'conceptExplanationPrompt',
-    model: googleAI.model('gemini-2.0-flash-lite'),
+    model: googleAI.model('gemini-2.5-flash'),
     input: { schema: ConceptExplanationInputSchema },
     output: { schema: ConceptExplanationOutputSchema },
     prompt: `You are an expert tutor who excels at explaining complex topics in simple and creative ways. A student needs help understanding a key term from their course.

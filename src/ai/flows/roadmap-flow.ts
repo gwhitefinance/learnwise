@@ -12,7 +12,7 @@ import { scrapeWebpageTool } from '@/ai/tools/web-scraper-tool';
 
 const prompt = ai.definePrompt({
     name: 'roadmapGenerationPrompt',
-    model: googleAI.model('gemini-2.0-flash'),
+    model: googleAI.model('gemini-2.5-flash'),
     input: { schema: GenerateRoadmapInputSchema },
     output: { schema: GenerateRoadmapOutputSchema },
     tools: [scrapeWebpageTool],
