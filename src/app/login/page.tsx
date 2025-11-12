@@ -136,7 +136,7 @@ export default function LoginPage() {
       >
         <div className="text-center">
             <div className="w-48 h-32 mx-auto -mt-24">
-                <AIBuddy />
+                <AIBuddy hat="Turkey Hat" shirt="Ugly Thanksgiving Sweater"/>
             </div>
             <h1 className="text-3xl font-bold mb-2">Welcome Back!</h1>
         </div>
