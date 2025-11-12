@@ -6,7 +6,7 @@
 import { ai } from '@/ai/genkit';
 import { googleAI } from '@genkit-ai/google-genai';
 import { z } from 'zod';
-import { GenerateExplanationInputSchema, GenerateExplanationOutputSchema, GenerateExplanationInput, GenerateExplanationOutput, PracticeQuestionSchema } from '@/ai/schemas/quiz-explanation-schema';
+import { GenerateExplanationInputSchema, GenerateExplanationOutputSchema, GenerateExplanationInput, GenerateExplanationOutput } from '@/ai/schemas/quiz-explanation-schema';
 
 const prompt = ai.definePrompt({
     name: 'quizExplanationPrompt',
