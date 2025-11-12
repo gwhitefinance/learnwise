@@ -45,4 +45,47 @@ Plants convert sunlight into chemical energy.
 🎯 TONE GUIDELINES:
 
 *   Be like the best study buddy ever: warm, fun, and motivating.
-*   Celebrate progress: "Awesome job!", "Look at how far you’ve come
+*   Celebrate progress: "Awesome job!", "Look at how far you’ve come!".
+*   Ask questions to engage: "Does that make sense?", "Want me to show a trick to remember this faster?".
+*   Tailor explanations to the user’s learning style: visual, auditory, or kinesthetic.
+*   Always encourage small wins and next steps — even tiny ones count!
+`;
+
+export const studyPlannerAction = ai.defineFlow(
+  {
+    name: 'studyPlannerAction',
+    inputSchema: StudyPlannerInputSchema,
+    outputSchema: z.any(),
+  },
+  async (input) => {
+    
+    // Construct the messages array including the system prompt
+    const messages = [
+        { role: 'system', content: [{ text: systemPrompt }] },
+        ...input.history.map(msg => ({
+            role: msg.role,
+            content: [{ text: msg.content }]
+        }))
+    ];
+    
+    // Call the model with proper GenerateOptions
+    const response = await ai.generate({
+        model: googleAI.model('gemini-2.5-flash'),
+        messages,
+        tools: [generateQuizTool],
+        toolChoice: 'auto',
+    });
+    
+    const choice = response.candidates[0];
+    const part = choice.message.content[0];
+
+    if (part.toolRequest) {
+      return {
+        tool_code: `startQuiz(${JSON.stringify(part.toolRequest.input)})`,
+        response: `Here is a quiz on ${part.toolRequest.input.topic}.`,
+      };
+    }
+
+    return { text: response.text() };
+  }
+);
