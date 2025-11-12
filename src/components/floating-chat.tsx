@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect, useRef, createContext, useContext } from 'react';
@@ -1076,7 +1075,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                     "bg-card rounded-2xl shadow-2xl border flex flex-col origin-bottom-right",
                     isFullscreen 
                         ? "fixed inset-0 z-50" 
-                        : "w-96 h-[700px]"
+                        : "w-96 h-[600px]"
                 )}
             >
                 {isFullscreen ? (
@@ -1087,11 +1086,11 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                                     <header className="p-2 border-b flex items-center justify-between gap-2">
                                         <div className="flex-1 flex items-center gap-2 overflow-hidden">
                                             <div className="flex-1 truncate">
-                                                <h3 className="font-semibold text-sm truncate">{activeSession?.title || 'Taz Thinking'}</h3>
+                                                <h3 className="font-semibold text-sm truncate">{activeSession?.title || 'Taz is Thinking'}</h3>
                                                 {activeSession?.courseContext && <p className="text-xs text-muted-foreground truncate">Focus: {courses.find(c => c.id === activeSession.courseId)?.name}</p>}
                                             </div>
                                         </div>
-                                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsFullscreen(false)}>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsFullscreen(false)}>
                                             <Minimize className="h-4 w-4" />
                                         </Button>
                                     </header>
@@ -1109,7 +1108,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                                                 <div className="flex items-end gap-2">
                                                     <Avatar className="h-10 w-10"><AIBuddy className="w-full h-full" {...customizations} /></Avatar>
                                                     <div className="p-3 rounded-2xl max-w-[80%] text-sm bg-muted rounded-bl-none animate-pulse">
-                                                        Taz Thinking...
+                                                        Taz is thinking...
                                                     </div>
                                                 </div>
                                             )}
@@ -1148,10 +1147,13 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                                      <header className="p-2 border-b flex items-center justify-between gap-2">
                                         <div className="flex-1 flex items-center gap-2 overflow-hidden">
                                             <div className="flex-1 truncate">
-                                                <h3 className="font-semibold text-sm truncate">{activeSession?.title || 'Taz Thinking'}</h3>
+                                                <h3 className="font-semibold text-sm truncate">{activeSession?.title || 'Taz is Thinking'}</h3>
                                                 {activeSession?.courseContext && <p className="text-xs text-muted-foreground truncate">Focus: {courses.find(c => c.id === activeSession.courseId)?.name}</p>}
                                             </div>
                                         </div>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsFullscreen(true)}>
+                                            <Maximize className="h-4 w-4"/>
+                                        </Button>
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0"><MoreVertical className="h-4 w-4" /></Button></DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
