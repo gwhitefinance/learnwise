@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -13,8 +13,8 @@ import { ArrowRight, Loader2 } from 'lucide-react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { generateInitialCourseAndRoadmap } from '@/lib/actions';
-import { collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
-
+import { collection, query, where, getDocs, doc, updateDoc, addDoc } from 'firebase/firestore';
+import GeneratingCourse from '@/app/dashboard/courses/GeneratingCourse';
 
 const questions = [
   {
@@ -75,6 +75,7 @@ export default function LearnerTypeQuizPage() {
     const [answers, setAnswers] = useState<Record<number, string>>({});
     const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [generatingCourseName, setGeneratingCourseName] = useState('');
     const router = useRouter();
     const { toast } = useToast();
     const [user] = useAuthState(auth);
@@ -96,7 +97,6 @@ export default function LearnerTypeQuizPage() {
         if (currentQuestionIndex < questions.length - 1) {
             setCurrentQuestionIndex(currentQuestionIndex + 1);
         } else {
-            // End of quiz, calculate result
             calculateResult(newAnswers);
         }
     };
@@ -129,14 +129,16 @@ export default function LearnerTypeQuizPage() {
         }
 
         try {
-            // Fetch the courses created during onboarding
             const coursesQuery = query(collection(db, 'courses'), where('userId', '==', user.uid), where('units', '==', []));
             const querySnapshot = await getDocs(coursesQuery);
             const userCourses = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
 
+            if (userCourses.length > 0) {
+                 setGeneratingCourseName(userCourses[0].name);
+            }
+
             for (const course of userCourses) {
                 const durationInMonths = parseInt(localStorage.getItem('learningPace') || '3', 10);
-                // Generate the course outline, first chapter content, and roadmap
                 const result = await generateInitialCourseAndRoadmap({
                     courseName: course.name,
                     courseDescription: course.description,
@@ -173,7 +175,6 @@ export default function LearnerTypeQuizPage() {
                 await addDoc(collection(db, 'roadmaps'), roadmapData);
             }
             
-            // Set the flag to trigger the welcome popup on the dashboard
             localStorage.setItem('quizCompleted', 'true');
             
             toast({ title: 'All set!', description: 'Redirecting to your personalized dashboard.' });
@@ -182,11 +183,13 @@ export default function LearnerTypeQuizPage() {
         } catch (error) {
             console.error("Final setup failed:", error);
             toast({ variant: 'destructive', title: 'Setup Failed', description: 'Could not generate all materials. You can generate them later from the dashboard.'});
-            router.push('/dashboard'); // Still go to dashboard
-        } finally {
-            setIsSubmitting(false);
+            router.push('/dashboard');
         }
     };
+
+    if (isSubmitting) {
+        return <GeneratingCourse courseName={generatingCourseName || "your first course"} />;
+    }
 
     const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
     const currentQuestion = questions[currentQuestionIndex];

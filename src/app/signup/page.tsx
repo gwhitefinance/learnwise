@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -152,7 +153,7 @@ export default function SignUpPage() {
 
         toast({
             title: "Account Created!",
-            description: "Welcome to Tutorin. Let's get you set up.",
+            description: "Welcome to Tutor Taz. Let's get you set up.",
         });
 
     } catch (error: any) {
@@ -183,7 +184,7 @@ export default function SignUpPage() {
         await handleSuccessfulLogin(user);
         toast({
             title: "Signed In with Google!",
-            description: "Welcome to Tutorin. Let's get you set up.",
+            description: "Welcome to Tutor Taz. Let's get you set up.",
         });
     } catch (error: any) {
         console.error("Google sign-up error:", error);
@@ -198,7 +199,7 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-800 p-4 relative overflow-hidden">
+    <div className="flex items-center justify-center min-h-screen bg-gray-800 p-4 relative overflow-hidden text-black">
       <TestimonialGrid />
        <Link href="/" className="absolute top-4 left-4 z-20">
         <Button variant="ghost" size="icon" className="bg-white/10 hover:bg-white/20 text-white rounded-full h-10 w-10">
