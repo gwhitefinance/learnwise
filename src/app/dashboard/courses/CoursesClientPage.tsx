@@ -938,7 +938,7 @@ function CoursesComponent() {
   
     const resetAddCourseDialog = () => {
         setAddCourseStep(1);
-        setNewCourse({ name: '', instructor: '', credits: '', url: '', description: '', isNewTopic: null });
+        setNewCourse({ name: '', instructor: '', credits: '', url: '', description: '', isNewTopic: null as boolean | null });
         setLearningPace("3");
     };
 
@@ -1805,6 +1805,15 @@ function CoursesComponent() {
                                 </Button>
                              </div>
                          </div>
+                         <div className="p-6 bg-rose-500/10 rounded-lg border border-rose-500/20">
+                           <h5 className="font-semibold flex items-center gap-2 text-rose-700"><Headphones size={18}/> Podcast Episode</h5>
+                           <div className="text-muted-foreground mt-2 flex items-center justify-between">
+                               <p>Generate a podcast episode from this chapter's content.</p>
+                               <Button size="sm" asChild>
+                                   <Link href={`/dashboard/podcasts/record?courseId=${activeCourse.id}&unitId=${currentModule.id}`}>Generate Episode</Link>
+                               </Button>
+                           </div>
+                       </div>
                     </div>
                      
                     <Card>

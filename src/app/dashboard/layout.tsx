@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useEffect, useState, useRef, createContext, useContext, Suspense, useCallback } from 'react';
@@ -195,12 +196,6 @@ const sidebarItems: SidebarItem[] = [
             icon: <Gamepad2 />,
             href: "/dashboard/games",
             id: "games-link",
-        },
-        {
-            title: "Podcasts",
-            icon: <Podcast />,
-            href: "/dashboard/podcasts",
-            id: "podcasts-link",
         },
         {
             title: "Assignment Grader",
