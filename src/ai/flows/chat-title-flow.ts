@@ -10,7 +10,7 @@ import { googleAI } from '@genkit-ai/google-genai';
 import { z } from 'zod';
 
 const MessageSchema = z.object({
-  role: z.enum(['user', 'ai']),
+  role: z.enum(['user', 'model']),
   content: z.string(),
 });
 

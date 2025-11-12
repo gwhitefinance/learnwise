@@ -1,10 +1,11 @@
+
 /**
  * @fileoverview Defines the data schemas for the chat-to-note generation feature.
  */
 import { z } from 'zod';
 
 const MessageSchema = z.object({
-  role: z.enum(['user', 'ai']),
+  role: z.enum(['user', 'model']),
   content: z.string(),
 });
 

@@ -761,7 +761,10 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
   
     try {
         const currentSession = sessions.find(s => s.id === currentSessionId);
-        const historyForAI = currentSession?.messages ? [...currentSession.messages, userMessage] : [userMessage];
+        
+        const historyForAI: { role: 'user' | 'model'; content: string }[] = currentSession?.messages
+          ? [...currentSession.messages, userMessage].map(({ role, content }) => ({ role, content }))
+          : [{ role: 'user' as const, content: messageContent }];
         
         const q = query(collection(db, "calendarEvents"), where("userId", "==", user.uid));
         const querySnapshot = await getDocs(q);
@@ -1082,7 +1085,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                                     <header className="p-2 border-b flex items-center justify-between gap-2">
                                         <div className="flex-1 flex items-center gap-2 overflow-hidden">
                                             <div className="flex-1 truncate">
-                                                <h3 className="font-semibold text-sm truncate">{activeSession?.title || 'AI Buddy'}</h3>
+                                                <h3 className="font-semibold text-sm truncate">{activeSession?.title || 'Taz Thinking'}</h3>
                                                 {activeSession?.courseContext && <p className="text-xs text-muted-foreground truncate">Focus: {courses.find(c => c.id === activeSession.courseId)?.name}</p>}
                                             </div>
                                         </div>
@@ -1143,7 +1146,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                                      <header className="p-2 border-b flex items-center justify-between gap-2">
                                         <div className="flex-1 flex items-center gap-2 overflow-hidden">
                                             <div className="flex-1 truncate">
-                                                <h3 className="font-semibold text-sm truncate">{activeSession?.title || 'AI Buddy'}</h3>
+                                                <h3 className="font-semibold text-sm truncate">{activeSession?.title || 'Taz Thinking'}</h3>
                                                 {activeSession?.courseContext && <p className="text-xs text-muted-foreground truncate">Focus: {courses.find(c => c.id === activeSession.courseId)?.name}</p>}
                                             </div>
                                         </div>
