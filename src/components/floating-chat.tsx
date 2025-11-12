@@ -100,10 +100,9 @@ const ChatHomeScreen = ({ sessions, onNavigate, onStartNewChat, onSelectSession,
     const [user] = useAuthState(auth);
 
     const conversationStarters = [
-        { icon: <Calendar className="h-5 w-5" />, text: "Help me create a study plan" },
-        { icon: <Lightbulb className="h-5 w-5" />, text: "Explain a difficult concept" },
-        { icon: <Sparkles className="h-5 w-5" />, text: "Give me ideas for a project" },
-        { icon: <HelpCircle className="h-5 w-5" />, text: "Generate practice questions" },
+        { icon: <FileText className="h-5 w-5" />, text: "Generate summary about this material" },
+        { icon: <BrainCircuit className="h-5 w-5" />, text: "Explain the difficult parts of this" },
+        { icon: <Lightbulb className="h-5 w-5" />, text: "Generate study questions for this" },
     ];
 
     return (
@@ -114,11 +113,11 @@ const ChatHomeScreen = ({ sessions, onNavigate, onStartNewChat, onSelectSession,
             </div>
             <ScrollArea className="flex-1 min-h-0">
                 <div className="p-4 space-y-8">
-                     <div className="flex flex-col items-center text-center p-6 bg-card rounded-xl border">
+                     <div className="flex flex-col items-center justify-center text-center p-6 bg-card rounded-xl border min-h-[300px]">
                         <div style={{ width: '150px', height: '150px' }}>
-                           <AIBuddy {...customizations} className="mb-2 w-full h-full" />
+                           <AIBuddy {...customizations} className="w-full h-full" />
                         </div>
-                        <h3 className="font-semibold text-lg">Hello, {user?.displayName?.split(' ')[0] || 'Learner'}!</h3>
+                        <h3 className="font-semibold text-lg">Hello, {user?.displayName?.split(' ')[0] || 'there'}!</h3>
                         <p className="text-sm text-muted-foreground">How can I help you learn today?</p>
                     </div>
 
@@ -1187,7 +1186,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                                                 <div className="flex items-end gap-2">
                                                     <Avatar className="h-10 w-10"><AIBuddy className="w-full h-full" {...customizations} /></Avatar>
                                                     <div className="p-3 rounded-2xl max-w-[80%] text-sm bg-muted rounded-bl-none animate-pulse">
-                                                        Taz Thinking...
+                                                        Taz is thinking...
                                                     </div>
                                                 </div>
                                             )}
