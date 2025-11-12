@@ -16,10 +16,6 @@ const enhanceDrawingPrompt = ai.definePrompt({
   name: 'enhanceDrawingPrompt',
   model: googleAI.model('gemini-2.5-flash-image-preview'),
   input: { schema: EnhanceDrawingInputSchema },
-  /**
-   * FIX 1: Define the prompt structure here using the 'messages' property.
-   * This function receives the 'input' and constructs the prompt.
-   */
   messages: (input) => [
     {
       role: 'user',
@@ -32,7 +28,7 @@ const enhanceDrawingPrompt = ai.definePrompt({
     },
   ],
   config: {
-    responseModalities: ['TEXT', 'IMAGE'],
+    responseModalities: ['IMAGE'],
   },
 });
 
@@ -43,10 +39,6 @@ const enhanceDrawingFlow = ai.defineFlow(
     outputSchema: EnhanceDrawingOutputSchema,
   },
   async (input) => {
-    /**
-     * FIX 2: Simply call the defined prompt with the 'input'.
-     * Genkit will automatically use the 'messages' function you defined above.
-     */
     const { media } = await enhanceDrawingPrompt(input);
 
     if (!media || !media.url) {

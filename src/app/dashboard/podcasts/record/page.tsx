@@ -143,9 +143,9 @@ export default function RecordPodcastPage() {
 
     return (
         <div className="space-y-6">
-             <Button variant="ghost" onClick={() => router.push('/dashboard/podcasts')}>
+             <Button variant="ghost" onClick={() => router.push('/dashboard/courses')}>
                 <ArrowLeft className="mr-2 h-4 w-4"/>
-                Back to Podcasts
+                Back to Courses
             </Button>
             <div>
                 <h1 className="text-3xl font-bold tracking-tight">Create New Podcast</h1>
