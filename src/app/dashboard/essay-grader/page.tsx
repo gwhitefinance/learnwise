@@ -4,10 +4,17 @@
 import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import {
-  Bold, Italic, Underline, List, ListOrdered, Undo, Redo, X, Printer, ImageIcon, Link as LinkIcon, Minus, Plus
+  Bold, Italic, Underline, List, ListOrdered, Undo, Redo, X, Printer, ImageIcon, Link as LinkIcon, Minus, Plus, Sparkles as SparklesIcon, Pen
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import Link from 'next/link';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { generateEssay } from '@/lib/actions';
+import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
+
 
 const EditorToolbar = ({ onCommand }: { onCommand: (command: string, value?: string) => void; }) => {
     
@@ -99,11 +106,43 @@ const GradingSidebar = () => {
 
 export default function EssayGraderPage() {
     const editorRef = useRef<HTMLDivElement>(null);
-    
+    const { toast } = useToast();
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [generationParams, setGenerationParams] = useState({
+        topic: '',
+        gradeLevel: '',
+        rubric: ''
+    });
+
     const handleCommand = (command: string, value?: string) => {
         document.execCommand(command, false, value);
         editorRef.current?.focus();
     };
+
+    const handleGenerateEssay = async () => {
+        if (!generationParams.topic || !generationParams.gradeLevel) {
+            toast({ variant: 'destructive', title: 'Please fill out all required fields.' });
+            return;
+        }
+
+        setIsGenerating(true);
+        setIsDialogOpen(false);
+        toast({ title: 'Generating your essay...', description: 'This may take a moment.' });
+        try {
+            const result = await generateEssay(generationParams);
+            if (editorRef.current) {
+                // Using innerHTML to preserve paragraphs
+                editorRef.current.innerHTML = result.essay.replace(/\n/g, '<br>');
+            }
+        } catch (error) {
+            console.error("Essay generation failed:", error);
+            toast({ variant: 'destructive', title: 'Generation Failed' });
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+    
 
     return (
         <div className="flex h-screen overflow-hidden bg-gray-50">
@@ -111,9 +150,40 @@ export default function EssayGraderPage() {
                 <div className="bg-white rounded-lg shadow-sm flex-1 flex flex-col">
                     <EditorToolbar onCommand={handleCommand} />
                     <div className="p-2">
-                        <Button variant="ghost" size="sm">
-                            <span className="font-mono mr-2">&gt;_</span> Start with an AI generation
-                        </Button>
+                         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                            <DialogTrigger asChild>
+                                 <Button variant="ghost" size="sm">
+                                    <SparklesIcon className="mr-2 h-4 w-4" /> Start with an AI generation
+                                </Button>
+                            </DialogTrigger>
+                             <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>Generate an Essay</DialogTitle>
+                                    <DialogDescription>Let AI kickstart your writing process. Just provide a few details.</DialogDescription>
+                                </DialogHeader>
+                                <div className="grid gap-4 py-4">
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="topic">What would you like your essay to be about?</Label>
+                                        <Input id="topic" value={generationParams.topic} onChange={e => setGenerationParams(p => ({...p, topic: e.target.value}))}/>
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="gradeLevel">What grade level should this be for?</Label>
+                                        <Input id="gradeLevel" value={generationParams.gradeLevel} onChange={e => setGenerationParams(p => ({...p, gradeLevel: e.target.value}))} placeholder="e.g., 'High School', 'College Freshman'"/>
+                                    </div>
+                                     <div className="grid gap-2">
+                                        <Label htmlFor="rubric">What rubric should it follow? (Optional)</Label>
+                                        <Textarea id="rubric" value={generationParams.rubric} onChange={e => setGenerationParams(p => ({...p, rubric: e.target.value}))} placeholder="e.g., 'Focus on clarity, evidence, and a strong thesis statement.'"/>
+                                    </div>
+                                </div>
+                                <DialogFooter>
+                                    <Button variant="ghost" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
+                                    <Button onClick={handleGenerateEssay} disabled={isGenerating}>
+                                        {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
+                                        Generate Essay
+                                    </Button>
+                                </DialogFooter>
+                            </DialogContent>
+                        </Dialog>
                          <Button variant="ghost" size="sm">
                             <Pen className="mr-2 h-4 w-4" /> Write an Outline
                         </Button>
@@ -133,7 +203,7 @@ export default function EssayGraderPage() {
 }
 
 // Dummy Pen icon for placeholder
-const Pen = (props: React.SVGProps<SVGSVGElement>) => (
+const PenIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
     </svg>

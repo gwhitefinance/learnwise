@@ -42,6 +42,7 @@ import { generateProblemSolvingSession } from '@/ai/flows/problem-solving-flow';
 import { generateCrunchTimeStudyGuide } from '@/ai/flows/crunch-time-flow';
 import { generateImage } from '@/ai/flows/image-generation-flow';
 import { generateAssignmentGrade } from '@/ai/flows/assignment-grader-flow';
+import { generateEssay } from '@/ai/flows/essay-generation-flow';
 
 // Re-exporting all AI functions as Server Actions
 export { 
@@ -86,4 +87,5 @@ export {
     generateCrunchTimeStudyGuide,
     generateImage,
     generateAssignmentGrade,
+    generateEssay,
 };
