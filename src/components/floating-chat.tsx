@@ -33,7 +33,7 @@ import { generateQuizAction, generateFlashcardsFromNote, generateExplanation } f
 
 interface Message {
   id: string;
-  role: 'user' | 'ai';
+  role: 'user' | 'model';
   content: string;
   streaming?: boolean;
   quizParams?: Omit<GenerateQuizInput, 'questionType'>;
@@ -714,7 +714,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
     
     const newSessionData = {
         title: prompt ? "New Chat" : "New Chat",
-        messages: [{ role: 'ai', content: `Hey ${user.displayName?.split(' ')[0] || 'there'}! How can I help?`, id: crypto.randomUUID() }],
+        messages: [{ role: 'model', content: `Hey ${user.displayName?.split(' ')[0] || 'there'}! How can I help?`, id: crypto.randomUUID() }],
         timestamp: Timestamp.now(),
         titleGenerated: !!prompt,
         userId: user.uid,
@@ -770,7 +770,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
             return { ...data, id: doc.id };
         });
         const learnerType = localStorage.getItem('learnerType');
-        const aiBuddyName = localStorage.getItem('aiBuddyName') || 'Tutorin';
+        const aiBuddyName = localStorage.getItem('aiBuddyName') || 'Tutor Taz';
     
         const response = await studyPlannerAction({
             userName: user?.displayName?.split(' ')[0],
@@ -797,7 +797,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
         if (quizToolRequest) {
             const quizCardMessage: Message = {
                 id: crypto.randomUUID(),
-                role: 'ai',
+                role: 'model',
                 content: aiTextResponse,
                 quizParams: quizToolRequest.output,
                 quizTitle: `Practice Quiz: ${quizToolRequest.output.topic}`,
@@ -806,7 +806,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
             await updateDoc(sessionRef, { messages: arrayUnion(userMessage, quizCardMessage), timestamp: Timestamp.now() });
         } else if (aiTextResponse) { // Only text response
              await updateDoc(sessionRef, {
-                messages: arrayUnion(userMessage, {role: 'ai', content: aiTextResponse, id: crypto.randomUUID()}),
+                messages: arrayUnion(userMessage, {role: 'model', content: aiTextResponse, id: crypto.randomUUID()}),
                 timestamp: Timestamp.now(),
             });
         }
@@ -820,7 +820,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
     } catch (error) {
         console.error(error);
         const errorMessage = "Sorry, I had trouble generating a response. Please try again.";
-        const botErrorMsg: Message = { id: crypto.randomUUID(), role: 'ai', content: errorMessage };
+        const botErrorMsg: Message = { id: crypto.randomUUID(), role: 'model', content: errorMessage };
         setSessions(prev => prev.map(s => s.id === currentSessionId ? { ...s, messages: [...s.messages, botErrorMsg] } : s));
     } finally {
         setIsLoading(false);
@@ -950,7 +950,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
     try {
         const sessionRef = doc(db, 'chatSessions', activeSessionId);
         await updateDoc(sessionRef, {
-            messages: [{ role: 'ai', content: `Hey ${user.displayName?.split(' ')[0] || 'there'}! How can I help?`, id: crypto.randomUUID() }]
+            messages: [{ role: 'model', content: `Hey ${user.displayName?.split(' ')[0] || 'there'}! How can I help?`, id: crypto.randomUUID() }]
         });
         toast({ title: 'Chat Cleared' });
     } catch(e) {
@@ -983,7 +983,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
             }
             const { analysis } = await analyzeImage({ imageDataUri });
 
-            const aiMessage: Message = { role: 'ai', content: analysis, id: crypto.randomUUID() };
+            const aiMessage: Message = { role: 'model', content: analysis, id: crypto.randomUUID() };
             const finalMessages = [...updatedMessages, aiMessage];
             
             setIsLoading(false);
@@ -1006,7 +1006,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
   
   const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); };
   const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); };
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); if (!isDragging) setIsDragging(true); };
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); };
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
@@ -1094,7 +1094,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                                         <div className="p-4 space-y-4">
                                             {activeSession?.messages.map((msg, index) => (
                                                 <div key={msg.id || index} className={cn("flex items-end gap-2", msg.role === 'user' ? 'justify-end' : '')}>
-                                                     {msg.role === 'ai' && <Avatar className="h-10 w-10"><AIBuddy className="w-full h-full" {...customizations} /></Avatar>}
+                                                     {msg.role === 'model' && <Avatar className="h-10 w-10"><AIBuddy className="w-full h-full" {...customizations} /></Avatar>}
                                                     <div className={cn( "p-3 rounded-2xl max-w-[80%] text-sm prose dark:prose-invert prose-p:my-0 prose-headings:my-0 prose-table:my-0", msg.role === 'user' ? "bg-primary text-primary-foreground rounded-br-none" : "bg-muted rounded-bl-none" )}>
                                                          {msg.streaming && msg.content === '' ? '...' : <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>}
                                                     </div>
@@ -1104,7 +1104,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                                                 <div className="flex items-end gap-2">
                                                     <Avatar className="h-10 w-10"><AIBuddy className="w-full h-full" {...customizations} /></Avatar>
                                                     <div className="p-3 rounded-2xl max-w-[80%] text-sm bg-muted rounded-bl-none animate-pulse">
-                                                        Tutorin Thinking...
+                                                        Taz Thinking...
                                                     </div>
                                                 </div>
                                             )}
@@ -1170,7 +1170,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                                                 }
                                                 return (
                                                     <div key={msg.id || index} className={cn("flex items-end gap-2", msg.role === 'user' ? 'justify-end' : '')}>
-                                                        {msg.role === 'ai' && <Avatar className="h-10 w-10"><AIBuddy className="w-full h-full" {...customizations} /></Avatar>}
+                                                        {msg.role === 'model' && <Avatar className="h-10 w-10"><AIBuddy className="w-full h-full" {...customizations} /></Avatar>}
                                                         <div className={cn( "p-3 rounded-2xl max-w-[80%] text-sm prose dark:prose-invert prose-p:my-0 prose-headings:my-0 prose-table:my-0", msg.role === 'user' ? "bg-primary text-primary-foreground rounded-br-none" : "bg-muted rounded-bl-none" )}>
                                                              {msg.streaming && msg.content === '' ? '...' : <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>}
                                                         </div>
@@ -1181,17 +1181,14 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                                                 <div className="flex items-end gap-2">
                                                     <Avatar className="h-10 w-10"><AIBuddy className="w-full h-full" {...customizations} /></Avatar>
                                                     <div className="p-3 rounded-2xl max-w-[80%] text-sm bg-muted rounded-bl-none animate-pulse">
-                                                        Tutorin Thinking...
+                                                        Taz Thinking...
                                                     </div>
                                                 </div>
                                             )}
                                         </div>
                                     </ScrollArea>
                                     <footer className="p-4 border-t space-y-2">
-                                        <Button variant="outline" size="sm" className="w-full" onClick={() => setIsFullscreen(true)}>
-                                            <Sparkles className="h-4 w-4 mr-2"/>
-                                            Interactive Mode
-                                        </Button>
+                                        
                                         <div className="relative">
                                             <Input placeholder="Ask anything..." className="pr-12 rounded-full" value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSendMessage()} disabled={isLoading} />
                                             <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-1">
