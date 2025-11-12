@@ -300,7 +300,7 @@ const AIToolsTab = ({ onStartChatWithPrompt }: { onStartChatWithPrompt: (prompt:
             toast({ variant: 'destructive', title: 'Failed to generate flashcards.' });
             setFlashcardDialogOpen(false);
         } finally {
-            setFlashcardLoading(false);
+            setIsFlashcardLoading(false);
         }
     };
 
@@ -770,7 +770,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
             return { ...data, id: doc.id };
         });
         const learnerType = localStorage.getItem('learnerType');
-        const aiBuddyName = localStorage.getItem('aiBuddyName') || 'Tutor Taz';
+        const aiBuddyName = localStorage.getItem('aiBuddyName') || 'Taz';
     
         const response = await studyPlannerAction({
             userName: user?.displayName?.split(' ')[0],
