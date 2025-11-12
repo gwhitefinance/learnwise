@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useRef, createContext, useContext } from 'react';
@@ -114,7 +115,9 @@ const ChatHomeScreen = ({ sessions, onNavigate, onStartNewChat, onSelectSession,
             <ScrollArea className="flex-1 min-h-0">
                 <div className="p-4 space-y-8">
                      <div className="flex flex-col items-center text-center p-6 bg-card rounded-xl border">
-                        <AIBuddy {...customizations} className="w-24 h-24 mb-2" />
+                        <div style={{ width: '150px', height: '150px' }}>
+                           <AIBuddy {...customizations} className="mb-2 w-full h-full" />
+                        </div>
                         <h3 className="font-semibold text-lg">Hello, {user?.displayName?.split(' ')[0] || 'Learner'}!</h3>
                         <p className="text-sm text-muted-foreground">How can I help you learn today?</p>
                     </div>
