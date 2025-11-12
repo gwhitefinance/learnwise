@@ -68,6 +68,7 @@ export async function studyPlannerAction(
     })),
   ];
 
+  // Call the model with proper GenerateOptions
   const response = await ai.generate({
     model: googleAI.model('gemini-2.5-flash'),
     messages,
@@ -75,7 +76,11 @@ export async function studyPlannerAction(
   });
 
   const choice = response.candidates[0];
-  const part = choice?.message.content[0];
+  if (!choice || !choice.message.content || choice.message.content.length === 0) {
+    return { text: "I'm sorry, I couldn't generate a response. Please try again." };
+  }
+
+  const part = choice.message.content[0];
 
   if (part?.toolRequest) {
     return {
