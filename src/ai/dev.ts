@@ -45,3 +45,4 @@ import './tools/quiz-tool';
 import './flows/image-generation-flow';
 import './flows/assignment-grader-flow';
 import './flows/essay-generation-flow';
+import './flows/essay-feedback-flow';
