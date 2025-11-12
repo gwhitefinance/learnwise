@@ -112,7 +112,7 @@ const ChatHomeScreen = ({ sessions, onNavigate, onStartNewChat, onSelectSession,
             </div>
             <ScrollArea className="flex-1 min-h-0">
                 <div className="p-4 space-y-8">
-                     <div className="flex flex-col items-center justify-center text-center p-6 bg-card rounded-xl border min-h-[300px]">
+                    <div className="flex flex-col items-center justify-center text-center p-6 bg-card rounded-xl border min-h-[300px]">
                         <div style={{ width: '150px', height: '150px' }}>
                            <AIBuddy {...customizations} className="w-full h-full" />
                         </div>
@@ -301,7 +301,7 @@ const AIToolsTab = ({ onStartChatWithPrompt }: { onStartChatWithPrompt: (prompt:
             toast({ variant: 'destructive', title: 'Failed to generate flashcards.' });
             setFlashcardDialogOpen(false);
         } finally {
-            setIsFlashcardLoading(false);
+            setFlashcardLoading(false);
         }
     };
 
@@ -553,9 +553,6 @@ interface FloatingChatProps {
 }
 
 const InteractiveCanvas = ({ quiz, isLoading, onAnswer, onSubmit }: { quiz: GenerateQuizOutput | null, isLoading: boolean, onAnswer: (answer: string) => void, onSubmit: () => void }) => {
-    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-    const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
-
     if (isLoading) {
         return (
              <div className="bg-muted h-full flex flex-col p-6 rounded-l-2xl items-center justify-center">
@@ -567,12 +564,13 @@ const InteractiveCanvas = ({ quiz, isLoading, onAnswer, onSubmit }: { quiz: Gene
     if (!quiz || !quiz.questions || quiz.questions.length === 0) {
         return (
             <div className="bg-muted h-full flex flex-col p-6 rounded-l-2xl items-center justify-center">
-                <p>No quiz generated or quiz has no questions.</p>
+                <p className="text-center text-muted-foreground">No quiz generated or quiz has no questions.</p>
             </div>
         );
     }
 
-    const currentQuestion = quiz.questions[currentQuestionIndex];
+    // For now, we just show a placeholder. A full implementation would cycle through questions.
+    const currentQuestion = quiz.questions[0];
 
     return (
         <div className="bg-muted h-full flex flex-col p-6 rounded-l-2xl">
@@ -586,7 +584,7 @@ const InteractiveCanvas = ({ quiz, isLoading, onAnswer, onSubmit }: { quiz: Gene
                 ))}
             </div>
             <div className="mt-auto pt-6 flex justify-end">
-                <Button onClick={onSubmit}>Submit Quiz</Button>
+                <Button onClick={onSubmit}>End Quiz</Button>
             </div>
         </div>
     );
@@ -796,15 +794,15 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
         const sessionRef = doc(db, "chatSessions", currentSessionId);
 
         const aiTextResponse = response.text || '';
-        const quizToolRequest = response.tool_requests?.find((tr: any) => tr.name === 'generateQuizTool');
+        const quizToolRequest = response.tool_code?.startsWith('startQuiz') ? JSON.parse(response.tool_code.slice(10, -1)) : null;
 
         if (quizToolRequest) {
             const quizCardMessage: Message = {
                 id: crypto.randomUUID(),
                 role: 'model',
                 content: aiTextResponse,
-                quizParams: quizToolRequest.output,
-                quizTitle: `Practice Quiz: ${quizToolRequest.output.topic}`,
+                quizParams: quizToolRequest,
+                quizTitle: `Practice Quiz: ${quizToolRequest.topic}`,
                 timestamp: Date.now(),
             };
             await updateDoc(sessionRef, { messages: arrayUnion(userMessage, quizCardMessage), timestamp: Timestamp.now() });
@@ -1079,8 +1077,11 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                 )}
             >
                 {isFullscreen ? (
-                    <div className="flex-1 grid grid-cols-5 h-full overflow-hidden">
-                        <div className="col-span-2 flex flex-col h-full overflow-hidden">
+                    <div className={cn(
+                        "flex-1 h-full overflow-hidden",
+                        interactiveQuiz || isGeneratingInteractiveQuiz ? "grid grid-cols-5" : "flex flex-col"
+                    )}>
+                        <div className={cn("flex flex-col h-full overflow-hidden", interactiveQuiz || isGeneratingInteractiveQuiz ? "col-span-2" : "col-span-5")}>
                            {activeTab === 'conversation' ? (
                                 <div className="flex-1 flex flex-col h-full overflow-hidden">
                                     <header className="p-2 border-b flex items-center justify-between gap-2">
@@ -1117,24 +1118,29 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                                     <footer className="p-4 border-t">
                                         <div className="relative">
                                             <Input placeholder="Ask anything..." className="pr-12 rounded-full" value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSendMessage()} disabled={isLoading} />
-                                            <Button size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full" onClick={() => handleSendMessage()} disabled={isLoading}><Send className="h-4 w-4" /></Button>
+                                            <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                                                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={openChatWithVoice}><Mic className="h-4 w-4"/></Button>
+                                                <Button size="icon" className="h-8 w-8 rounded-full" onClick={() => handleSendMessage()} disabled={isLoading}><Send className="h-4 w-4" /></Button>
+                                            </div>
                                         </div>
                                     </footer>
                                 </div>
                             ) : <div></div>}
                         </div>
-                        <div className="col-span-3 border-l">
-                            <InteractiveCanvas 
-                                quiz={interactiveQuiz}
-                                isLoading={isGeneratingInteractiveQuiz}
-                                onAnswer={() => {}} 
-                                onSubmit={() => {
-                                    setIsFullscreen(false);
-                                    setInteractiveQuiz(null);
-                                    setInteractiveQuizParams(null);
-                                }} 
-                            />
-                        </div>
+                        {(interactiveQuiz || isGeneratingInteractiveQuiz) && (
+                            <div className="col-span-3 border-l">
+                                <InteractiveCanvas 
+                                    quiz={interactiveQuiz}
+                                    isLoading={isGeneratingInteractiveQuiz}
+                                    onAnswer={() => {}} 
+                                    onSubmit={() => {
+                                        setIsFullscreen(false);
+                                        setInteractiveQuiz(null);
+                                        setInteractiveQuizParams(null);
+                                    }} 
+                                />
+                            </div>
+                        )}
                     </div>
                 ) : (
                     <>
