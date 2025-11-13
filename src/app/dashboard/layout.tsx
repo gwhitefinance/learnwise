@@ -328,7 +328,7 @@ function DashboardLayoutContent({
   const [userCoins, setUserCoins] = useState<number>(0);
   const [gradeLevel, setGradeLevel] = useState<string | null>(null);
   
-  const isFocusLayout = pathname.startsWith('/dashboard/sat-prep/study-session');
+  const isFocusLayout = pathname.startsWith('/dashboard/sat-prep/study-session') || pathname.startsWith('/dashboard/taz-showroom');
   
   const [showTopBar, setShowTopBar] = useState(false);
 
@@ -598,7 +598,7 @@ function DashboardLayoutContent({
                 </button>
             )}
 
-            {showTopBar && (
+            {showTopBar && !isFocusLayout && (
                 <div className="sticky top-0 z-10 flex h-16 items-center gap-3 border-b bg-background/95 px-4 backdrop-blur">
                     <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileMenuOpen(true)}>
                         <Menu className="h-5 w-5" />
@@ -639,7 +639,7 @@ function DashboardLayoutContent({
 
             <main className={cn(
                 "flex-1 flex flex-col relative",
-                showTopBar ? "p-4 md:p-6" : "",
+                showTopBar && !isFocusLayout ? "p-4 md:p-6" : "",
                 pathname === '/dashboard/calendar' && '!p-0'
             )}>
               <FloatingChat isHidden={isFocusLayout || pathname === '/dashboard/notes/new'}>
