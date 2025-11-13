@@ -7,7 +7,7 @@ import AIBuddy from '@/components/ai-buddy';
 import { ArrowLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-const allSpecies = ["Zappy", "Seedling", "Ember", "Shelly", "Puff", "Goo", "Chirpy", "Sparky", "Rocky", "Splash", "Bear", "Panda", "Bunny", "Boo", "Roly", "Whispy", "Spikey", "Bubbles", "Pilgrim Hat", "Viking Helmet", "Knight Helmet", "Astronaut Helmet", "Plague Doctor Mask", "Chef's Hat", "Detective Hat", "Headphones", "Flower Crown"];
+const allSpecies = ["Zappy", "Seedling", "Ember", "Shelly", "Puff", "Goo", "Chirpy", "Sparky", "Rocky", "Splash", "Bear", "Panda", "Bunny", "Boo", "Roly", "Whispy", "Spikey", "Bubbles"];
 
 const Rocket = () => (
     <motion.g 
@@ -44,7 +44,7 @@ export default function CrashSitePage() {
     const router = useRouter();
 
     return (
-        <div className="relative w-full h-screen bg-[#0a0a2a] overflow-hidden flex items-center justify-center">
+        <div className="relative w-full h-screen bg-[#0a0e27] overflow-hidden flex items-center justify-center">
             {/* Stars */}
             {[...Array(100)].map((_, i) => {
                 const style = {
