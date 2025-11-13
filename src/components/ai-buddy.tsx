@@ -30,23 +30,22 @@ const HeadZappy = ({ pupilX, pupilY, color }: any) => (
 const TorsoZappy = ({ color }: any) => (
     <>
         {/* Body */}
-        <motion.rect
-            x="60"
-            y="115"
-            width="80"
-            height="65"
-            rx="20"
+        <motion.ellipse
+            cx="100"
+            cy="155"
+            rx="55"
+            ry="50"
             fill={color}
             initial={{ scaleY: 1, y: 0 }}
             animate={{ scaleY: [1, 0.98, 1], y: [0, 5, 0] }}
             transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
         />
         {/* Feet */}
-        <path d="M 60 180 C 60 200, 90 200, 90 180" fill="#4B5563" />
-        <path d="M 110 180 C 110 200, 140 200, 140 180" fill="#4B5563" />
+        <path d="M 60 195 C 60 180, 90 180, 90 195" fill="#4B5563" />
+        <path d="M 110 195 C 110 180, 140 180, 140 195" fill="#4B5563" />
         {/* Hands */}
         <motion.circle 
-            cx="45" 
+            cx="40" 
             cy="150" 
             r="15" 
             fill={color} 
@@ -55,7 +54,7 @@ const TorsoZappy = ({ color }: any) => (
             transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 0.2 }}
         />
         <motion.circle 
-            cx="155" 
+            cx="160" 
             cy="150" 
             r="15" 
             fill={color} 
@@ -758,11 +757,13 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, species = "Zappy", color, 
                         initial={{ y: 200, opacity: 0 }}
                         animate={{ y: 0, opacity: 1, transition: { type: 'spring', stiffness: 100, damping: 15, delay: 0.2 } }}
                     >
-                        <Shoes name={shoes} />
-                        <Torso color={bodyColor} />
-                        <Shirt name={shirt} />
-                        <Head color={bodyColor} pupilX={pupilX} pupilY={pupilY} />
-                        <Hat name={hat} />
+                        <g transform="translate(0, -20)">
+                            <Shoes name={shoes} />
+                            <Torso color={bodyColor} />
+                            <Shirt name={shirt} />
+                            <Head color={bodyColor} pupilX={pupilX} pupilY={pupilY} />
+                            <Hat name={hat} />
+                        </g>
                     </motion.g>
                 </motion.g>
             </motion.svg>
