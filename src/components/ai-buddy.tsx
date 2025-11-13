@@ -44,16 +44,20 @@ const TorsoZappy = ({ color }: any) => (
         <path d="M 60 200 C 60 220, 90 220, 90 200" fill="#4B5563" />
         <path d="M 110 200 C 110 220, 140 220, 140 200" fill="#4B5563" />
         {/* Hands */}
-        <motion.path
-            d="M 60 160 C 40 160, 40 190, 60 190 V 210 C 60 180, 60 160, 60 160"
-            fill={color}
+        <motion.circle 
+            cx="45" 
+            cy="170" 
+            r="15" 
+            fill={color} 
             initial={{ rotate: 0, x: 0 }}
             animate={{ rotate: [-5, 5, -5] }}
             transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 0.2 }}
         />
-        <motion.path
-            d="M 140 160 C 160 160, 160 190, 140 190 V 210 C 140 180, 140 160, 140 160"
-            fill={color}
+        <motion.circle 
+            cx="155" 
+            cy="170" 
+            r="15" 
+            fill={color} 
             initial={{ rotate: 0, x: 0 }}
             animate={{ rotate: [5, -5, 5] }}
             transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 0.2 }}
