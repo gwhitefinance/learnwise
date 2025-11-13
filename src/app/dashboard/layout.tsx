@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useEffect, useState, useRef, createContext, useContext, Suspense, useCallback } from 'react';
@@ -202,6 +203,12 @@ const sidebarItems: SidebarItem[] = [
             icon: <CheckSquare />,
             href: "/dashboard/assignment-grader",
             id: "assignment-grader-link",
+        },
+        {
+          title: "Taz Showroom",
+          icon: <Palette />,
+          href: "/dashboard/taz-showroom",
+          id: "taz-showroom-link",
         }
       ]
     },
