@@ -69,7 +69,7 @@ const hatComponents: Record<string, React.FC> = {
         </g>
     ),
     "Turkey Hat": () => (
-        <g transform="translate(100, 35) scale(1.6)">
+        <g transform="translate(100, 70) scale(1.6)">
             <g>
                 <path d="M -15,-20 a 15,15 0 0,1 30,0" fill="#8B4513"/>
                 <path d="M -5,-35 a 10,10 0 0,1 10,0" fill="red" />
@@ -81,9 +81,9 @@ const hatComponents: Record<string, React.FC> = {
     ),
     "Viking Helmet": () => (
         <g transform="translate(58, 25)">
-            <path d="M0 10 C0 -10 85 -10 85 10" fill="#C0C0C0" stroke="#A9A9A9" strokeWidth="2" />
-            <path d="M-10 5 C-20 -15 -30 -5 -10 5" fill="#F0E68C" stroke="#B8860B" strokeWidth="1.5" />
-            <path d="M95 5 C 105 -15 115 -5 95 5" fill="#F0E68C" stroke="#B8860B" strokeWidth="1.5" />
+            <path d="M0 10 C0 -10, 85 -10, 85 10" fill="#C0C0C0" stroke="#A9A9A9" strokeWidth="2" />
+            <path d="M-10 5 C-20 -15, 0 -10, -10 5" fill="#F0E68C" stroke="#B8860B" strokeWidth="1.5" />
+            <path d="M95 5 C 105 -15, 85 -10, 95 5" fill="#F0E68C" stroke="#B8860B" strokeWidth="1.5" />
         </g>
     ),
     "Fedora": () => (
@@ -155,8 +155,42 @@ const hatComponents: Record<string, React.FC> = {
 };
 
 const shirtComponents: Record<string, React.FC> = {
-    // Shirts will be drawn on the body, so they are not implemented here.
-    // This is just a placeholder to prevent errors.
+    "T-Shirt": () => <path d="M 75 120 L 60 100 L 140 100 L 125 120 L 125 190 L 75 190 Z" fill="#3b82f6" opacity="0.8"/>,
+    "Ugly Thanksgiving Sweater": () => (
+        <g>
+            <path d="M 75 120 L 60 100 L 140 100 L 125 120 L 125 190 L 75 190 Z" fill="#f97316" />
+            <text x="80" y="160" fontSize="20" fill="white">🦃</text>
+            <path d="M 75 125 L 125 125" stroke="brown" strokeWidth="4"/>
+            <path d="M 75 185 L 125 185" stroke="brown" strokeWidth="4"/>
+        </g>
+    ),
+    "Football Jersey": () => (
+         <g>
+            <path d="M 75 120 L 60 100 L 140 100 L 125 120 L 125 190 L 75 190 Z" fill="darkblue" />
+            <text x="90" y="165" fontSize="40" fill="white" fontWeight="bold">88</text>
+        </g>
+    ),
+    "Tuxedo": () => (
+        <g>
+            <path d="M 75 120 L 60 100 L 140 100 L 125 120 L 125 190 L 75 190 Z" fill="black" />
+            <path d="M 90 120 L 110 120 L 100 170 Z" fill="white" />
+            <path d="M 95 120 L 105 120 L 100 130 Z" fill="red" />
+        </g>
+    ),
+    "Lab Coat": () => (
+        <g>
+            <path d="M 75 120 L 60 100 L 140 100 L 125 120 L 125 190 L 75 190 Z" fill="white" stroke="#ccc" strokeWidth="1"/>
+            <rect x="80" y="130" width="10" height="20" fill="lightblue" />
+        </g>
+    ),
+    "Superhero Cape": () => <path d="M 80 110 C 100 -10, 100 -10, 120 110 L 140 200 L 60 200 Z" fill="#dc2626" />,
+    "Overalls": () => (
+        <g>
+            <rect x="75" y="150" width="50" height="40" fill="#3b82f6" />
+            <path d="M75 150 L 70 120" stroke="#3b82f6" strokeWidth="8" />
+            <path d="M125 150 L 130 120" stroke="#3b82f6" strokeWidth="8" />
+        </g>
+    )
 };
 
 const shoeComponents: Record<string, React.FC> = {
@@ -218,7 +252,7 @@ const shoeComponents: Record<string, React.FC> = {
     ),
     "Sandals": () => (
         <g>
-            <path d='M70 180 L95 180 L95 185 L70 185 Z' fill='#8B4513' />
+            <path d='M70 182 L95 182 L95 187 L70 187 Z' fill='#8B4513' />
             <path d='M82 175 C 75 175, 75 182, 82 182' stroke='#A0522D' strokeWidth='3' fill='none'/>
             <path d='M110 182 L135 182 L135 187 L110 187 Z' fill='#8B4513' />
             <path d='M122 175 C 115 175, 115 182, 122 182' stroke='#A0522D' strokeWidth='3' fill='none'/>

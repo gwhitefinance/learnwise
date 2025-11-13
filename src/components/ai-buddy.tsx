@@ -3,6 +3,7 @@
 
 import React, { useRef, useEffect, useState } from 'react';
 import { motion, useSpring, useTransform } from 'framer-motion';
+import { Hat, Shirt, Shoes } from './robot-accessories';
 
 // --- Body Shape Components ---
 
@@ -43,7 +44,8 @@ const BodyZappy = ({ color, pupilX, pupilY }: any) => (
                 <motion.ellipse cx="120" cy="115" rx="8" ry="9" fill="black" style={{ x: pupilX, y: pupilY }}/>
                 <circle cx="118" cy="108" r="3" fill="white" />
             </g>
-            <path d="M 95 150 Q 100 155 105 150" stroke="black" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+            <path d="M 95 150 Q 100 155 105 150" stroke="black" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+            <path d="M 98 150 C 99 152, 101 152, 102 150" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round" />
         </motion.g>
     </>
 );
@@ -85,7 +87,8 @@ const BodySeedling = ({ color, pupilX, pupilY }: any) => (
                 <ellipse cx="115" cy="125" rx="12" ry="14" fill="black" transform="rotate(15 115 125)" />
                 <circle cx="112" cy="120" r="2.5" fill="white" transform="rotate(15 115 125)" />
             </g>
-            <path d="M 95 155 Q 100 160 105 155" stroke="black" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+            <path d="M 95 155 Q 100 160 105 155" stroke="black" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+            <path d="M 98 155 C 99 157, 101 157, 102 155" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round" />
         </motion.g>
     </>
 );
@@ -121,7 +124,8 @@ const BodyEmber = ({ color, pupilX, pupilY }: any) => (
                 <motion.circle cx="115"cy="105" r="7" fill="black" style={{ x: pupilX, y: pupilY }}/>
                 <circle cx="112" cy="99" r="2.5" fill="white" />
             </g>
-             <path d="M 95 135 Q 100 140 105 135" stroke="#4A0404" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+             <path d="M 95 135 Q 100 140 105 135" stroke="#4A0404" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+             <path d="M 98 135 C 99 137, 101 137, 102 135" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round" />
         </motion.g>
     </>
 );
@@ -154,7 +158,8 @@ const BodyShelly = ({ color, pupilX, pupilY }: any) => (
                 <motion.ellipse cx="115" cy="105" rx="6" ry="7" fill="black" style={{ x: pupilX, y: pupilY }}/>
                 <circle cx="113" cy="99" r="2.5" fill="white" />
             </g>
-            <path d="M 95 125 Q 100 130 105 125" stroke="black" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+            <path d="M 95 125 Q 100 130 105 125" stroke="black" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+            <path d="M 98 125 C 99 127, 101 127, 102 125" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round" />
         </motion.g>
     </>
 );
@@ -189,7 +194,8 @@ const BodyPuff = ({ color, pupilX, pupilY }: any) => (
                 <motion.ellipse cx="115" cy="125" rx="9" ry="11" fill="black" style={{ x: pupilX, y: pupilY }}/>
                 <circle cx="112" cy="117" r="3.5" fill="white" />
             </g>
-            <path d="M 95 160 Q 100 165 105 160" stroke="black" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+            <path d="M 95 160 Q 100 165 105 160" stroke="black" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+            <path d="M 98 160 C 99 162, 101 162, 102 160" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round" />
         </motion.g>
     </>
 );
@@ -222,7 +228,8 @@ const BodyGoo = ({ color, pupilX, pupilY }: any) => (
                 <motion.ellipse cx="115" cy="130" rx="6" ry="7" fill="black" style={{ x: pupilX, y: pupilY }} />
                 <circle cx="113" cy="124" r="2.5" fill="white" />
             </g>
-            <path d="M 95 155 Q 100 160 105 155" stroke="black" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+            <path d="M 95 155 Q 100 160 105 155" stroke="black" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+            <path d="M 98 155 C 99 157, 101 157, 102 155" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round" />
         </motion.g>
     </>
 );
@@ -352,7 +359,8 @@ const BodySplash = ({ color, pupilX, pupilY }: any) => (
                 <motion.ellipse cx="115" cy="130" rx="7" ry="8" fill="black" style={{ x: pupilX, y: pupilY }}/>
                 <circle cx="113" cy="123" r="3" fill="white" />
             </g>
-             <path d="M 95 160 Q 100 165 105 160" stroke="black" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+             <path d="M 95 160 Q 100 165 105 160" stroke="black" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+             <path d="M 98 160 C 99 162, 101 162, 102 160" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round" />
         </motion.g>
     </>
 );
@@ -381,7 +389,8 @@ const BodyBear = ({ color, pupilX, pupilY }: any) => (
                  <circle cx="112" cy="116" r="2.5" fill="white" />
             </g>
             <path d="M 100 135 L 100 150" stroke="black" strokeWidth="2" />
-            <path d="M 90 160 Q 100 170 110 160" stroke="black" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+            <path d="M 90 160 Q 100 170 110 160" stroke="black" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+            <path d="M 93 160 C 95 165, 105 165, 107 160" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round" />
         </motion.g>
     </>
 );
@@ -411,7 +420,8 @@ const BodyPanda = ({ color, pupilX, pupilY }: any) => (
                 <motion.circle cx="120" cy="125" r="4" fill="black" style={{ x: pupilX, y: pupilY }}/>
                  <circle cx="118" cy="122" r="2" fill="white" />
             </g>
-            <path d="M 95 155 Q 100 160 105 155" stroke="black" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+            <path d="M 95 155 Q 100 160 105 155" stroke="black" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+            <path d="M 98 155 C 99 157, 101 157, 102 155" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round" />
         </motion.g>
     </>
 );
@@ -463,7 +473,8 @@ const BodyBoo = ({ color, pupilX, pupilY }: any) => (
                 <ellipse cx="115" cy="130" rx="14" ry="16" fill="black" />
                 <circle cx="112" cy="124" r="3" fill="white" />
             </g>
-            <path d="M 95 155 Q 100 160 105 155" stroke="black" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+            <path d="M 95 155 Q 100 160 105 155" stroke="black" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+             <path d="M 98 155 C 99 157, 101 157, 102 155" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round" />
         </motion.g>
     </>
 );
@@ -562,7 +573,8 @@ const BodyBubbles = ({ color, pupilX, pupilY }: any) => (
                 <motion.ellipse cx="115" cy="130" rx="7" ry="8" fill="black" style={{ x: pupilX, y: pupilY }}/>
                 <circle cx="113" cy="125" r="3" fill="white" />
             </g>
-            <path d="M 95 155 Q 100 165 105 155" stroke="black" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+            <path d="M 95 155 Q 100 165 105 155" stroke="black" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+            <path d="M 98 155 C 99 157, 101 157, 102 155" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round" />
         </motion.g>
     </>
 );
@@ -704,7 +716,10 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, species = "Zappy", color, 
                         initial={{ y: 200, opacity: 0 }}
                         animate={{ y: 0, opacity: 1, transition: { type: 'spring', stiffness: 100, damping: 15, delay: 0.2 } }}
                     >
+                        <Shoes name={shoes} />
                         <BodyComponent color={bodyColor} pupilX={pupilX} pupilY={pupilY} />
+                        <Shirt name={shirt} />
+                        <Hat name={hat} />
                     </motion.g>
                 </motion.g>
             </motion.svg>
@@ -713,3 +728,4 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, species = "Zappy", color, 
 };
 
 export default AIBuddy;
+
