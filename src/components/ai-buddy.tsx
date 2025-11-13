@@ -424,7 +424,7 @@ const BodyBunny = ({ color, pupilX, pupilY }: any) => (
 );
 
 const BodyBoo = ({ color, pupilX, pupilY }: any) => (
-    <>
+    <g transform="scale(1, 0.9) translate(0, 10)">
         <motion.path d="M 50 190 C 20 80, 180 80, 150 190 C 140 180, 120 195, 100 180 C 80 195, 60 180, 50 190 Z" fill={color}
             initial={{ y: 0 }}
             animate={{ y: [0, -10, 0] }}
@@ -445,7 +445,7 @@ const BodyBoo = ({ color, pupilX, pupilY }: any) => (
             <path d="M 95 155 Q 100 160 105 155" stroke="black" strokeWidth="3.5" fill="none" strokeLinecap="round" />
              <path d="M 98 155 C 99 157, 101 157, 102 155" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round" />
         </motion.g>
-    </>
+    </g>
 );
 
 const BodyRoly = ({ color, pupilX, pupilY }: any) => (
@@ -509,7 +509,7 @@ const BodyWhispy = ({ color, pupilX, pupilY }: any) => (
 );
 
 const BodySpikey = ({ color, pupilX, pupilY }: any) => (
-    <g transform="scale(1.2) translate(-16, -20)">
+    <g transform="scale(1.3) translate(-15, -30)">
         {/* Feet */}
         <ellipse cx="80" cy="190" rx="20" ry="10" fill="#22C55E" />
         <ellipse cx="120" cy="190" rx="20" ry="10" fill="#22C55E" />
@@ -613,7 +613,6 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, species = "Zappy", color, 
             "Rocky": "#A8A29E",
             "Splash": "#60A5FA",
             "Bear": "#A0522D",
-            "Panda": "#FFFFFF",
             "Bunny": "#FCE7F3",
             "Boo": "#F0F8FF",
             "Roly": "#D1D5DB",
