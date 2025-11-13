@@ -50,7 +50,7 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, color, hat, shirt, shoes, 
                 { "name": "Electric Lime", "hex": "#CCFF00" },
                 { "name": "Hot Pink", "hex": "#FF69B4" }
             ];
-            const selectedColor = colors.find(c => c.name === color)?.hex || '#87CEEB';
+            const selectedColor = colors.find(c => c.name === color)?.hex || color || '#87CEEB';
             setBodyColor(selectedColor);
         }
     }, [color, isMounted]);

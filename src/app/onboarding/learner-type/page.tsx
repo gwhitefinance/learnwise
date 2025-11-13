@@ -119,13 +119,20 @@ export default function LearnerTypeQuizPage() {
         localStorage.setItem('learnerType', dominantStyle);
         toast({
             title: 'Finalizing your setup...',
-            description: `You are a ${dominantStyle} learner. Generating your courses...`,
+            description: `You are a ${dominantStyle} learner!`,
         });
 
         if (!user) {
             toast({ variant: 'destructive', title: 'User not found!'});
             router.push('/login');
             return;
+        }
+
+        const quizCompleted = localStorage.getItem('quizCompleted');
+
+        if(quizCompleted) {
+             router.push('/onboarding/hatch');
+             return;
         }
 
         try {
@@ -177,8 +184,8 @@ export default function LearnerTypeQuizPage() {
             
             localStorage.setItem('quizCompleted', 'true');
             
-            toast({ title: 'All set!', description: 'Redirecting to your personalized dashboard.' });
-            router.push('/dashboard');
+            toast({ title: 'All set!', description: 'Time to meet your new companion!' });
+            router.push('/onboarding/hatch');
 
         } catch (error) {
             console.error("Final setup failed:", error);
@@ -227,7 +234,7 @@ export default function LearnerTypeQuizPage() {
                             </>
                         ) : (
                              <>
-                                {currentQuestionIndex < questions.length - 1 ? 'Next' : 'Finish & Go to Dashboard'}
+                                {currentQuestionIndex < questions.length - 1 ? 'Next' : 'Finish & Meet Your Buddy'}
                                 <ArrowRight className="ml-2 h-5 w-5" />
                             </>
                         )}

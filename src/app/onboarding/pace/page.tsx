@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -47,21 +48,22 @@ export default function PacePage() {
             const querySnapshot = await getDocs(q);
 
             if (querySnapshot.empty) {
-                throw new Error("No course found to generate a roadmap for.");
+                // This case should ideally not happen if the flow is correct, but good to handle.
+                // We can just proceed to the next step.
+                router.push('/onboarding/learner-type');
+                return;
             }
 
             const courseDoc = querySnapshot.docs[0];
-            
-            // --- FIX: Add type assertion to tell TypeScript the shape of your data ---
             const courseData = courseDoc.data() as { name: string, description: string, url: string };
             const course = { id: courseDoc.id, ...courseData };
             
             toast({ title: "Generating your personalized roadmap..." });
             
             const roadmapResponse = await generateRoadmap({
-                courseName: course.name, // This now works
-                courseDescription: course.description, // This now works
-                courseUrl: course.url, // This now works
+                courseName: course.name,
+                courseDescription: course.description,
+                courseUrl: course.url,
                 durationInMonths: parseInt(selectedPace, 10),
             });
 

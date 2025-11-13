@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -207,9 +208,10 @@ const shirtComponents: Record<string, React.FC> = {
             <path d='M65 105 L135 105 L135 155 L65 155 Z' fill='#f59e0b' />
             {/* Turkey */}
             <path transform="translate(85, 120) scale(0.3)" d="M-25,0 a25,20 0 1,1 50,0 a25,20 0 1,1 -50,0" fill="#8B4513" />
-            {/* --- FIX: Combined transform attributes --- */}
-            <rect transform="translate(85, 120) scale(0.3) rotate(-30 -15 -10)" x="-15" y="-10" width="10" height="5" fill="#DEB887" />
-            <rect transform="translate(85, 120) scale(0.3) rotate(30 5 -10)" x="5" y="-10" width="10" height="5" fill="#DEB887" />
+            <g transform="translate(85, 120) scale(0.3)">
+                <rect transform="rotate(-30 -15 -10)" x="-15" y="-10" width="10" height="5" fill="#DEB887" />
+                <rect transform="rotate(30 5 -10)" x="5" y="-10" width="10" height="5" fill="#DEB887" />
+            </g>
              {/* Leaf */}
             <path transform="translate(110, 135) scale(0.3) rotate(30)" d="M0-25 C20-25 20,5 0,25 C-20,5 -20-25 0-25 Z" fill="#b33b00" />
         </g>
@@ -364,7 +366,7 @@ const shoeComponents: Record<string, React.FC> = {
      "Moccasins": () => (
         <g>
             <path d='M70 175 L95 175 L90 185 L75 185 Z' fill='#deb887' />
-            <path d='M105 175 L130 175 L125 185 L110 185 Z' fill='#deb887' />
+            <path d='M105 175 L130 175 L125 185 L110 185 Z' fill='#deb88tazName' />
             <line x1="75" y1="175" x2="90" y2="175" stroke="#8B4513" strokeWidth="1" strokeDasharray="2,2"/>
             <line x1="110" y1="175" x2="125" y2="175" stroke="#8B4513" strokeWidth="1" strokeDasharray="2,2"/>
         </g>
