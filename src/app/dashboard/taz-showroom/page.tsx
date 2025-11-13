@@ -3,7 +3,7 @@
 
 import dynamic from "next/dynamic";
 
-const TazShowroomCanvas = dynamic(
+const TazShowroomScene = dynamic(
   () => import("@/components/TazShowroomScene"),
   { ssr: false }
 );
@@ -11,7 +11,7 @@ const TazShowroomCanvas = dynamic(
 export default function TazShowroomPage() {
   return (
     <div className="w-full h-screen bg-gray-950">
-      <TazShowroomCanvas />
+      <TazShowroomScene />
     </div>
   );
 }
