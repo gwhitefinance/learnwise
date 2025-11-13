@@ -395,37 +395,6 @@ const BodyBear = ({ color, pupilX, pupilY }: any) => (
     </>
 );
 
-const BodyPanda = ({ color, pupilX, pupilY }: any) => (
-    <>
-        {/* Feet */}
-        <ellipse cx="75" cy="190" rx="25" ry="15" fill="black" />
-        <ellipse cx="125" cy="190" rx="25" ry="15" fill="black" />
-        {/* Body */}
-        <ellipse cx="100" cy="140" rx="60" ry="65" fill={color} />
-        {/* Ears */}
-        <circle cx="60" cy="80" r="22" fill="black" />
-        <circle cx="140" cy="80" r="22" fill="black" />
-        {/* Hands */}
-        <ellipse cx="50" cy="145" rx="18" ry="25" fill="black" transform="rotate(-20 50 145)" />
-        <ellipse cx="150" cy="145" rx="18" ry="25" fill="black" transform="rotate(20 150 145)" />
-        <motion.g initial={{ scale: 0 }} animate={{ scale: 1, transition: { delay: 0.3 } }}>
-            {/* Eye Patches */}
-            <ellipse cx="80" cy="125" rx="18" ry="14" fill="black" transform="rotate(20 80 125)" />
-            <ellipse cx="120" cy="125" rx="18" ry="14" fill="black" transform="rotate(-20 120 125)" />
-            <g>
-                <circle cx="80" cy="125" r="8" fill="white" />
-                <motion.circle cx="80" cy="125" r="4" fill="black" style={{ x: pupilX, y: pupilY }}/>
-                 <circle cx="78" cy="122" r="2" fill="white" />
-                <circle cx="120" cy="125" r="8" fill="white" />
-                <motion.circle cx="120" cy="125" r="4" fill="black" style={{ x: pupilX, y: pupilY }}/>
-                 <circle cx="118" cy="122" r="2" fill="white" />
-            </g>
-            <path d="M 95 155 Q 100 160 105 155" stroke="black" strokeWidth="3.5" fill="none" strokeLinecap="round" />
-            <path d="M 98 155 C 99 157, 101 157, 102 155" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round" />
-        </motion.g>
-    </>
-);
-
 const BodyBunny = ({ color, pupilX, pupilY }: any) => (
     <>
         {/* Feet */}
@@ -456,12 +425,12 @@ const BodyBunny = ({ color, pupilX, pupilY }: any) => (
 
 const BodyBoo = ({ color, pupilX, pupilY }: any) => (
     <>
-        <motion.path d="M 50 190 C 20 100, 180 100, 150 190 C 140 180, 120 195, 100 180 C 80 195, 60 180, 50 190 Z" fill={color}
+        <motion.path d="M 50 190 C 20 80, 180 80, 150 190 C 140 180, 120 195, 100 180 C 80 195, 60 180, 50 190 Z" fill={color}
             initial={{ y: 0 }}
             animate={{ y: [0, -10, 0] }}
             transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
         />
-        <path d="M 50 190 C 20 100, 180 100, 150 190 C 140 180, 120 195, 100 180 C 80 195, 60 180, 50 190 Z" fill="url(#bodyGradient)" />
+        <path d="M 50 190 C 20 80, 180 80, 150 190 C 140 180, 120 195, 100 180 C 80 195, 60 180, 50 190 Z" fill="url(#bodyGradient)" />
         
         <path d="M 40 140 C 20 130, 25 160, 45 155" fill={color} />
         <path d="M 160 140 C 180 130, 175 160, 155 155" fill={color} />
@@ -510,6 +479,20 @@ const BodyWhispy = ({ color, pupilX, pupilY }: any) => (
             transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
         />
         <path d="M 100 50 C 40 80, 40 150, 70 180 C 80 190, 120 190, 130 180 C 160 150, 160 80, 100 50 Z" fill="url(#bodyGradient)" opacity="0.7" />
+        
+        {/* Flame */}
+        <motion.path
+            d="M 100 40 Q 90 20 100 0 Q 110 20 100 40"
+            fill="orange"
+            animate={{ scaleY: [1, 1.2, 1], y: [0, -5, 0] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.path
+            d="M 100 35 Q 95 25 100 15 Q 105 25 100 35"
+            fill="yellow"
+            animate={{ scaleY: [1, 1.1, 1], y: [0, -3, 0] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.2 }}
+        />
 
         <motion.g initial={{ scale: 0 }} animate={{ scale: 1, transition: { delay: 0.3 } }}>
              <g>
@@ -526,7 +509,7 @@ const BodyWhispy = ({ color, pupilX, pupilY }: any) => (
 );
 
 const BodySpikey = ({ color, pupilX, pupilY }: any) => (
-    <>
+    <g transform="scale(1.2) translate(-16, -20)">
         {/* Feet */}
         <ellipse cx="80" cy="190" rx="20" ry="10" fill="#22C55E" />
         <ellipse cx="120" cy="190" rx="20" ry="10" fill="#22C55E" />
@@ -549,7 +532,7 @@ const BodySpikey = ({ color, pupilX, pupilY }: any) => (
             </g>
             <path d="M 95 160 Q 100 155 105 160" stroke="black" strokeWidth="2.5" fill="none" strokeLinecap="round" />
         </motion.g>
-    </>
+    </g>
 );
 
 const BodyBubbles = ({ color, pupilX, pupilY }: any) => (
@@ -593,7 +576,6 @@ const speciesComponents: Record<string, React.FC<any>> = {
     "Rocky": BodyRocky,
     "Splash": BodySplash,
     "Bear": BodyBear,
-    "Panda": BodyPanda,
     "Bunny": BodyBunny,
     "Boo": BodyBoo,
     "Roly": BodyRoly,
@@ -728,4 +710,3 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, species = "Zappy", color, 
 };
 
 export default AIBuddy;
-
