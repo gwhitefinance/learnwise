@@ -8,9 +8,9 @@ import { motion, useSpring, useTransform } from 'framer-motion';
 
 const BodyZappy = ({ color, pupilX, pupilY }: any) => (
     <>
-        {/* Feet */}
-        <path d="M 75 180 Q 60 200 85 195 Q 110 200 95 180" fill="#4B5563" />
-        <path d="M 125 180 Q 110 200 135 195 Q 160 200 145 180" fill="#4B5563" />
+        {/* Feet - Centered */}
+        <path d="M 70 180 Q 55 200 80 195 Q 105 200 85 180" fill="#4B5563" />
+        <path d="M 115 180 Q 100 200 125 195 Q 150 200 130 180" fill="#4B5563" />
         {/* Body */}
         <path d="M 60 180 C 40 120, 50 60, 100 60 C 150 60, 160 120, 140 180 Z" fill={color} />
         <path d="M 60 180 C 40 120, 50 60, 100 60 C 150 60, 160 120, 140 180 Z" fill="url(#bodyGradient)" />
@@ -31,7 +31,10 @@ const BodyZappy = ({ color, pupilX, pupilY }: any) => (
                 <motion.ellipse cx="120" cy="110" rx="7" ry="8" fill="black" style={{ x: pupilX, y: pupilY }}/>
                 <circle cx="118" cy="104" r="2.5" fill="white" />
             </g>
-            <path d="M 95 135 Q 100 143 105 135" stroke="black" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+             {/* Smile with Teeth */}
+            <path d="M 90 138 Q 100 148 110 138 L 105 136 Q 100 144 95 136 Z" fill="black" />
+            <path d="M 96 138 L 98 141 L 100 138" stroke="white" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+            <path d="M 100 138 L 102 141 L 104 138" stroke="white" strokeWidth="1.5" fill="none" strokeLinecap="round" />
         </motion.g>
     </>
 );
@@ -60,7 +63,9 @@ const BodySeedling = ({ color, pupilX, pupilY }: any) => (
                 <ellipse cx="115" cy="120" rx="10" ry="12" fill="black" transform="rotate(15 115 120)" />
                 <circle cx="112" cy="116" r="2" fill="white" transform="rotate(15 115 120)" />
             </g>
-            <path d="M 95 140 C 100 150 105 150, 110 140" stroke="black" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+            {/* Smile with Teeth */}
+            <path d="M 95 140 Q 102 150 110 140 L 105 138 Q 102 146 100 138 Z" fill="black" />
+            <path d="M 100 140 L 105 143 L 102 140" stroke="white" strokeWidth="1.5" fill="none" strokeLinecap="round" />
         </motion.g>
     </>
 );
@@ -92,7 +97,10 @@ const BodyEmber = ({ color, pupilX, pupilY }: any) => (
                 <motion.circle cx="115" cy="95" r="6" fill="black" style={{ x: pupilX, y: pupilY }}/>
                 <circle cx="112" cy="90" r="2" fill="white" />
             </g>
-            <path d="M 95,115 Q 100,125 105,115" stroke="black" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+            {/* Smile with Teeth */}
+            <path d="M 90 120 Q 100 135 110 120 L 105 118 Q 100 131 95 118 Z" fill="#4A0404" />
+            <path d="M 96 120 L 98 123 L 100 120" stroke="white" strokeWidth="1" fill="none" strokeLinecap="round" />
+            <path d="M 100 120 L 102 123 L 104 120" stroke="white" strokeWidth="1" fill="none" strokeLinecap="round" />
         </motion.g>
     </>
 );
@@ -125,7 +133,9 @@ const BodyShelly = ({ color, pupilX, pupilY }: any) => (
                 <motion.ellipse cx="115" cy="105" rx="5" ry="6" fill="black" style={{ x: pupilX, y: pupilY }}/>
                 <circle cx="113" cy="100" r="2" fill="white" />
             </g>
-            <path d="M 95 120 Q 100 128 105 120" stroke="black" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+            {/* Smile with Teeth */}
+            <path d="M 95 120 Q 100 128 105 120 L 103 118 Q 100 124 97 118 Z" fill="black" />
+            <path d="M 98 120 L 100 122 L 102 120" stroke="white" strokeWidth="1" fill="none" strokeLinecap="round"/>
         </motion.g>
     </>
 );
@@ -156,7 +166,9 @@ const BodyPuff = ({ color, pupilX, pupilY }: any) => (
                 <motion.ellipse cx="115" cy="115" rx="8" ry="10" fill="black" style={{ x: pupilX, y: pupilY }}/>
                 <circle cx="112" cy="108" r="3" fill="white" />
             </g>
-             <path d="M 95,145 C 100,155 105,155 110,145" stroke="black" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+            {/* Smile with Teeth */}
+             <path d="M 95 145 Q 100 155 105 145 L 103 143 Q 100 151 97 143 Z" fill="black" />
+             <path d="M 98 145 L 100 148 L 102 145" stroke="white" strokeWidth="1" fill="none" strokeLinecap="round" />
         </motion.g>
     </>
 );
@@ -184,7 +196,9 @@ const BodyDozer = ({ color, pupilX, pupilY }: any) => (
                 <path d="M 80 115 L 95 115" stroke="black" strokeWidth="4" strokeLinecap="round" />
                 <path d="M 105 115 L 120 115" stroke="black" strokeWidth="4" strokeLinecap="round" />
             </g>
-            <path d="M 90 130 C 95 138 105 138 110 130" stroke="black" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+             {/* Smile with Teeth */}
+            <path d="M 90 130 Q 100 140 110 130 L 105 128 Q 100 136 95 128 Z" fill="black" />
+            <rect x="96" y="130" width="8" height="3" fill="white" rx="1"/>
         </motion.g>
     </>
 );
