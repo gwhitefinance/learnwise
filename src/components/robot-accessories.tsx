@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React from 'react';
@@ -9,6 +10,21 @@ const hatComponents: Record<string, React.FC> = {
             <path d="M 0,30 C 0,25 5,25 10,20 H 70 C 75,25 80,25 80,30 V 28 H 0 Z" fill="#333"/>
             <rect x="15" y="0" width="50" height="25" fill="#333" />
             <rect x="12" y="18" width="56" height="4" fill="#555" />
+        </g>
+    ),
+    "Santa Hat": () => (
+        <g transform="translate(65, 20) scale(1.1)">
+            <path d="M0 40 L35 0 L70 40 Q 35 55 0 40" fill="red" stroke="white" strokeWidth="2" />
+            <circle cx="20" cy="-5" r="10" fill="white" />
+            <rect x="-5" y="38" width="80" height="10" fill="white" rx="5" />
+        </g>
+    ),
+    "Reindeer Antlers": () => (
+        <g transform="translate(100, 50) scale(0.8)">
+            <path d="M-30 0 C-50 -30, -40 -50, -20 -40" stroke="#8B4513" strokeWidth="6" fill="none" />
+            <path d="M-25 -20 L-35 -25" stroke="#8B4513" strokeWidth="5" fill="none" />
+            <path d="M30 0 C50 -30, 40 -50, 20 -40" stroke="#8B4513" strokeWidth="6" fill="none" />
+            <path d="M25 -20 L35 -25" stroke="#8B4513" strokeWidth="5" fill="none" />
         </g>
     ),
     "Propeller Hat": () => (
@@ -66,17 +82,6 @@ const hatComponents: Record<string, React.FC> = {
             <rect x="15" y="0" width="50" height="25" fill="#333" />
             <rect x="25" y="15" width="30" height="10" fill="#777" />
             <rect x="30" y="17" width="20" height="6" fill="#f0e68c" />
-        </g>
-    ),
-    "Turkey Hat": () => (
-        <g transform="translate(100, 70) scale(1.6)">
-            <g>
-                <path d="M -15,-20 a 15,15 0 0,1 30,0" fill="#8B4513"/>
-                <path d="M -5,-35 a 10,10 0 0,1 10,0" fill="red" />
-                 <path d="M-20,-15 Q0,-40 20,-15" fill="none" stroke="#A0522D" strokeWidth="5" />
-                 <path d="M-30,-5 Q0,-35 30,-5" fill="none" stroke="#d32f2f" strokeWidth="5" />
-                 <path d="M-40,10 Q0,-30 40,10" fill="none" stroke="#FFC107" strokeWidth="5" />
-            </g>
         </g>
     ),
     "Viking Helmet": () => (
@@ -156,12 +161,12 @@ const hatComponents: Record<string, React.FC> = {
 
 const shirtComponents: Record<string, React.FC> = {
     "T-Shirt": () => <path d="M 65 120 L 40 90 L 160 90 L 135 120 L 135 190 L 65 190 Z" fill="#3b82f6" opacity="0.8"/>,
-    "Ugly Thanksgiving Sweater": () => (
+    "Ugly Christmas Sweater": () => (
         <g>
-            <path d="M 65 120 L 40 90 L 160 90 L 135 120 L 135 190 L 65 190 Z" fill="#f97316" />
-            <text x="80" y="165" fontSize="30" fill="white">🦃</text>
-            <path d="M 65 125 L 135 125" stroke="brown" strokeWidth="5"/>
-            <path d="M 65 185 L 135 185" stroke="brown" strokeWidth="5"/>
+            <path d="M 65 120 L 40 90 L 160 90 L 135 120 L 135 190 L 65 190 Z" fill="#b91c1c" />
+            <text x="80" y="165" fontSize="30" fill="white">🎄</text>
+            <path d="M 65 125 L 135 125" stroke="#166534" strokeWidth="5"/>
+            <path d="M 65 185 L 135 185" stroke="#166534" strokeWidth="5"/>
         </g>
     ),
     "Football Jersey": () => (

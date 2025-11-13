@@ -136,9 +136,9 @@ export default function LoginPage() {
       >
         <div className="text-center">
             <div className="w-48 h-32 mx-auto -mt-24">
-                <AIBuddy hat="Turkey Hat" shirt="Ugly Thanksgiving Sweater"/>
+                <AIBuddy hat="Santa Hat" shirt="T-Shirt"/>
             </div>
-            <h1 className="text-3xl font-bold mb-2">Welcome Back!</h1>
+            <h1 className="text-3xl font-bold mb-2">Happy Holidays!</h1>
         </div>
 
         <form className="space-y-4 mt-6" onSubmit={handleLogin}>

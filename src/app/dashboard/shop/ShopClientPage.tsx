@@ -165,13 +165,14 @@ export default function ShopClientPage() {
         }
 
         const newDailyItems: Record<string, Item> = {};
-        const categories = ['colors', 'hats', 'shirts', 'shoes'];
-        categories.forEach((category, i) => {
-            const items = shopItems[category];
-            const randomIndex = Math.floor(seededRandom(seed + i) * items.length);
-            newDailyItems[category.slice(0, -1)] = items[randomIndex];
-        });
-        setDailyItems(newDailyItems);
+        const featuredItems = {
+            color: shopItems.colors.find(i => i.name === 'Cranberry'),
+            hat: shopItems.hats.find(i => i.name === 'Santa Hat'),
+            shirt: shopItems.shirts.find(i => i.name === 'Ugly Christmas Sweater'),
+            shoes: shopItems.shoes.find(i => i.name === 'Boots'),
+        };
+
+        setDailyItems(featuredItems as Record<string, Item>);
         
         const timer = setInterval(() => {
             const now = new Date();
@@ -280,13 +281,13 @@ export default function ShopClientPage() {
                 </div>
             </div>
             
-            <Card>
+            <Card className="bg-gradient-to-r from-red-500 to-rose-700 text-white">
                 <CardHeader>
                     <CardTitle className="flex justify-between items-center">
                         <div className="flex items-center gap-2">
-                            <Sparkles className="text-orange-400"/> Daily Shop
+                            <Sparkles/> Holiday Specials
                         </div>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground font-medium">
+                        <div className="flex items-center gap-2 text-sm font-medium text-white/80">
                             <Clock className="h-4 w-4"/>
                             <span>Refreshes in: {timeUntilRefresh}</span>
                         </div>
