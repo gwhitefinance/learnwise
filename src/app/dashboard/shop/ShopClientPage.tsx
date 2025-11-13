@@ -23,6 +23,9 @@ type UserProfile = {
     email: string;
     coins: number;
     unlockedItems?: Record<string, string[]>;
+    taz?: {
+        species: string;
+    };
 };
 
 type Item = {
@@ -315,6 +318,7 @@ export default function ShopClientPage() {
                          <div className="aspect-square w-full bg-muted flex items-center justify-center p-4">
                             <AIBuddy 
                                 className="w-64 h-64" 
+                                species={profile.taz?.species}
                                 color={customizations.color}
                                 hat={customizations.hat}
                                 shirt={customizations.shirt}

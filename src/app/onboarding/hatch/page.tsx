@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -91,6 +92,7 @@ export default function HatchPage() {
             
             const userRef = doc(db, 'users', user.uid);
             await updateDoc(userRef, {
+                uid: user.uid, // Ensure UID is set
                 taz: {
                     name: petName,
                     species: petSpecies,

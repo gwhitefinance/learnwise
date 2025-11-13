@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useRef, createContext, useContext } from 'react';
@@ -95,7 +96,7 @@ export const FloatingChatContext = createContext({
   openChatWithPrompt: (prompt: string) => {},
 });
 
-const ChatHomeScreen = ({ sessions, onNavigate, onStartNewChat, onSelectSession, onStartChatWithPrompt, customizations }: { sessions: ChatSession[], onNavigate: (tab: string) => void, onStartNewChat: () => void, onSelectSession: (sessionId: string) => void, onStartChatWithPrompt: (prompt: string) => void, customizations: Record<string, string> }) => {
+const ChatHomeScreen = ({ sessions, onNavigate, onStartNewChat, onSelectSession, onStartChatWithPrompt, customizations, tazSpecies }: { sessions: ChatSession[], onNavigate: (tab: string) => void, onStartNewChat: () => void, onSelectSession: (sessionId: string) => void, onStartChatWithPrompt: (prompt: string) => void, customizations: Record<string, string>, tazSpecies?: string }) => {
     const [user] = useAuthState(auth);
 
     const conversationStarters = [
@@ -114,7 +115,7 @@ const ChatHomeScreen = ({ sessions, onNavigate, onStartNewChat, onSelectSession,
                 <div className="p-4 space-y-8">
                      <div className="flex flex-col items-center justify-center text-center p-6 rounded-xl min-h-[300px]">
                         <div style={{ width: '150px', height: '150px' }}>
-                           <AIBuddy {...customizations} className="w-full h-full" />
+                           <AIBuddy {...customizations} species={tazSpecies} className="w-full h-full" />
                         </div>
                         <h3 className="font-semibold text-lg">Hello, {user?.displayName?.split(' ')[0] || 'there'}!</h3>
                         <p className="text-sm text-muted-foreground">How can I help you learn today?</p>
@@ -588,7 +589,7 @@ const InteractiveCanvas = ({ quiz, isLoading, onAnswer, onSubmit }: { quiz: Gene
             </div>
         </div>
     );
-}
+};
 
 const QuizCard = ({ title, timestamp, onOpen }: { title: string, timestamp: number, onOpen: () => void }) => {
     return (
@@ -622,6 +623,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
   const [isLoading, setIsLoading] = useState(false);
   const [user] = useAuthState(auth);
   const [customizations, setCustomizations] = useState<Record<string, string>>({});
+  const [tazSpecies, setTazSpecies] = useState<string | undefined>(undefined);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   
@@ -658,6 +660,15 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                 console.error("Failed to parse customizations from localStorage", e);
             }
         }
+        
+        const userDocRef = doc(db, 'users', user.uid);
+        const unsubscribeUser = onSnapshot(userDocRef, (doc) => {
+            if (doc.exists()) {
+                const data = doc.data();
+                setTazSpecies(data.taz?.species);
+            }
+        });
+        return () => unsubscribeUser();
     }
 
     const welcomeTimer = setTimeout(() => {
@@ -1100,7 +1111,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                                         <div className="p-4 space-y-4">
                                             {activeSession?.messages.map((msg, index) => (
                                                 <div key={msg.id || index} className={cn("flex items-end gap-2", msg.role === 'user' ? 'justify-end' : '')}>
-                                                     {msg.role === 'model' && <Avatar className="h-10 w-10"><AIBuddy className="w-full h-full" {...customizations} /></Avatar>}
+                                                     {msg.role === 'model' && <Avatar className="h-10 w-10"><AIBuddy className="w-full h-full" {...customizations} species={tazSpecies} /></Avatar>}
                                                     <div className={cn( "p-3 rounded-2xl max-w-[80%] text-sm prose dark:prose-invert prose-p:my-0 prose-headings:my-0 prose-table:my-0", msg.role === 'user' ? "bg-primary text-primary-foreground rounded-br-none" : "bg-muted rounded-bl-none" )}>
                                                          {msg.streaming && msg.content === '' ? '...' : <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>}
                                                     </div>
@@ -1108,7 +1119,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                                             ))}
                                             {isLoading && (
                                                 <div className="flex items-end gap-2">
-                                                    <Avatar className="h-10 w-10"><AIBuddy className="w-full h-full" {...customizations} /></Avatar>
+                                                    <Avatar className="h-10 w-10"><AIBuddy className="w-full h-full" {...customizations} species={tazSpecies} /></Avatar>
                                                     <div className="p-3 rounded-2xl max-w-[80%] text-sm bg-muted rounded-bl-none animate-pulse">
                                                         Taz is thinking...
                                                     </div>
@@ -1146,7 +1157,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                 ) : (
                     <>
                         <div className="flex-1 overflow-hidden flex flex-col">
-                            {activeTab === 'home' && <ChatHomeScreen sessions={sessions} onNavigate={setActiveTab} onStartNewChat={createNewSession} onSelectSession={(id) => { setActiveSessionId(id); setActiveTab('conversation'); }} onStartChatWithPrompt={handleStartChatWithPrompt} customizations={customizations} />}
+                            {activeTab === 'home' && <ChatHomeScreen sessions={sessions} onNavigate={setActiveTab} onStartNewChat={createNewSession} onSelectSession={(id) => { setActiveSessionId(id); setActiveTab('conversation'); }} onStartChatWithPrompt={handleStartChatWithPrompt} customizations={customizations} tazSpecies={tazSpecies} />}
                             {activeTab === 'ai tools' && <AIToolsTab onStartChatWithPrompt={handleStartChatWithPrompt} />}
                             {activeTab === 'my stats' && <MyStatsTab />}
                             {activeTab === 'conversation' && (
@@ -1184,7 +1195,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                                                 }
                                                 return (
                                                     <div key={msg.id || index} className={cn("flex items-end gap-2", msg.role === 'user' ? 'justify-end' : '')}>
-                                                        {msg.role === 'model' && <Avatar className="h-10 w-10"><AIBuddy className="w-full h-full" {...customizations} /></Avatar>}
+                                                        {msg.role === 'model' && <Avatar className="h-10 w-10"><AIBuddy className="w-full h-full" {...customizations} species={tazSpecies} /></Avatar>}
                                                         <div className={cn( "p-3 rounded-2xl max-w-[80%] text-sm prose dark:prose-invert prose-p:my-0 prose-headings:my-0 prose-table:my-0", msg.role === 'user' ? "bg-primary text-primary-foreground rounded-br-none" : "bg-muted rounded-bl-none" )}>
                                                              {msg.streaming && msg.content === '' ? '...' : <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>}
                                                         </div>
@@ -1193,7 +1204,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                                             })}
                                              {isLoading && (
                                                 <div className="flex items-end gap-2">
-                                                    <Avatar className="h-10 w-10"><AIBuddy className="w-full h-full" {...customizations} /></Avatar>
+                                                    <Avatar className="h-10 w-10"><AIBuddy className="w-full h-full" {...customizations} species={tazSpecies} /></Avatar>
                                                     <div className="p-3 rounded-2xl max-w-[80%] text-sm bg-muted rounded-bl-none animate-pulse">
                                                         Taz is thinking...
                                                     </div>
@@ -1279,7 +1290,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                                     exit={{ scale: 0 }}
                                     className="text-primary-foreground w-24 h-24"
                                 >
-                                    <AIBuddy {...customizations} />
+                                    <AIBuddy {...customizations} species={tazSpecies} />
                                 </motion.div>
                             )}
                         </AnimatePresence>

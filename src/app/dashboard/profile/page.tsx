@@ -32,6 +32,9 @@ type UserProfile = {
     xp?: number;
     uid?: string;
     photoURL?: string;
+    taz?: {
+        species: string;
+    };
 };
 
 type Course = {
@@ -300,6 +303,7 @@ export default function ProfilePage() {
                             <div className="flex items-center justify-center bg-muted rounded-lg p-4 relative aspect-square mb-4">
                                 <AIBuddy
                                     className="w-48 h-48"
+                                    species={profile.taz?.species}
                                     color={customizations.color}
                                     hat={customizations.hat}
                                     shirt={customizations.shirt}

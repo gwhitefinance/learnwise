@@ -101,6 +101,7 @@ const Index = () => {
   const [recentQuizResults, setRecentQuizResults] = useState<QuizResult[]>([]);
   const [recentNotes, setRecentNotes] = useState<Note[]>([]);
   const [customizations, setCustomizations] = useState<Record<string, string>>({});
+  const [tazSpecies, setTazSpecies] = useState<string | undefined>(undefined);
 
 
   useEffect(() => {
@@ -148,6 +149,7 @@ const Index = () => {
         if (doc.exists()) {
             const data = doc.data();
             setUserCoins(data.coins || 0);
+            setTazSpecies(data.taz?.species);
         }
     });
 
@@ -358,7 +360,7 @@ const Index = () => {
         <header className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
           <div className="flex items-center gap-4">
               <div style={{ width: '125px', height: '125px' }}>
-                <AIBuddy {...customizations} className="w-full h-full" />
+                <AIBuddy {...customizations} species={tazSpecies} className="w-full h-full" />
               </div>
               <div>
                 <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Good afternoon, {user?.displayName?.split(' ')[0] || 'User'}! 👋</h1>
@@ -585,3 +587,4 @@ export default Index;
     
 
     
+

@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -83,9 +84,9 @@ export default function SignUpPage() {
 
   const handleSuccessfulLogin = async (user: any) => {
     const userDocRef = doc(db, "users", user.uid);
-    const userDoc = await getDocs(query(collection(db, "users"), where("uid", "==", user.uid)));
+    const userDocSnap = await getDoc(userDocRef);
     
-    if (userDoc.empty) {
+    if (!userDocSnap.exists()) {
         await setDoc(userDocRef, {
             uid: user.uid,
             displayName: user.displayName || email.split('@')[0],
