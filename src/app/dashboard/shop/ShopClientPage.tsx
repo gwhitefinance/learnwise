@@ -45,7 +45,7 @@ const rarityConfig = {
 
 const shopItems: Record<string, Item[]> = shopItemsData as Record<string, Item[]>;
 
-const DailyItemCard = ({ category, item, onBuy, onSelect, isEquipped, hasPurchased, userCoins }: { category: string, item: Item, onBuy: (category: string, itemName: string, price: number) => void, onSelect: (category: string, itemName: string) => void, isEquipped: boolean, hasPurchased: boolean, userCoins: number }) => {
+const DailyItemCard = ({ species, category, item, onBuy, onSelect, isEquipped, hasPurchased, userCoins }: { species?: string, category: string, item: Item, onBuy: (category: string, itemName: string, price: number) => void, onSelect: (category: string, itemName: string) => void, isEquipped: boolean, hasPurchased: boolean, userCoins: number }) => {
     const rarityClass = rarityConfig[item.rarity as keyof typeof rarityConfig] || rarityConfig.Common;
     const categoryIcons = {
         color: <Palette className="h-5 w-5" />,
@@ -72,6 +72,7 @@ const DailyItemCard = ({ category, item, onBuy, onSelect, isEquipped, hasPurchas
                 ) : (
                     <AIBuddy 
                         className="w-24 h-24"
+                        species={species}
                         {...{[category]: item.name}}
                         color={category === 'hat' ? '#87CEEB' : 'transparent'} 
                     />
@@ -298,6 +299,7 @@ export default function ShopClientPage() {
                         return (
                              <DailyItemCard 
                                 key={item.name}
+                                species={profile.taz?.species}
                                 category={category} 
                                 item={item}
                                 onBuy={handleBuyItem}
@@ -349,6 +351,7 @@ export default function ShopClientPage() {
                                         return (
                                             <DailyItemCard
                                                 key={item.name}
+                                                species={profile.taz?.species}
                                                 category={category.id}
                                                 item={item}
                                                 onBuy={handleBuyItem}

@@ -376,7 +376,9 @@ const BodyBear = ({ color, pupilX, pupilY }: any) => (
             <ellipse cx="100" cy="150" rx="40" ry="30" fill="#D2B48C" />
             <g>
                 <circle cx="85" cy="120" r="10" fill="black" />
+                 <circle cx="82" cy="116" r="2.5" fill="white" />
                 <circle cx="115" cy="120" r="10" fill="black" />
+                 <circle cx="112" cy="116" r="2.5" fill="white" />
             </g>
             <path d="M 100 135 L 100 150" stroke="black" strokeWidth="2" />
             <path d="M 90 160 Q 100 170 110 160" stroke="black" strokeWidth="2.5" fill="none" strokeLinecap="round" />
@@ -404,8 +406,10 @@ const BodyPanda = ({ color, pupilX, pupilY }: any) => (
             <g>
                 <circle cx="80" cy="125" r="8" fill="white" />
                 <motion.circle cx="80" cy="125" r="4" fill="black" style={{ x: pupilX, y: pupilY }}/>
+                 <circle cx="78" cy="122" r="2" fill="white" />
                 <circle cx="120" cy="125" r="8" fill="white" />
                 <motion.circle cx="120" cy="125" r="4" fill="black" style={{ x: pupilX, y: pupilY }}/>
+                 <circle cx="118" cy="122" r="2" fill="white" />
             </g>
             <path d="M 95 155 Q 100 160 105 155" stroke="black" strokeWidth="2.5" fill="none" strokeLinecap="round" />
         </motion.g>
@@ -430,7 +434,9 @@ const BodyBunny = ({ color, pupilX, pupilY }: any) => (
         <motion.g initial={{ scale: 0 }} animate={{ scale: 1, transition: { delay: 0.3 } }}>
             <g>
                 <circle cx="85" cy="130" r="10" fill="black" />
+                 <circle cx="83" cy="126" r="2.5" fill="white" />
                 <circle cx="115" cy="130" r="10" fill="black" />
+                 <circle cx="113" cy="126" r="2.5" fill="white" />
             </g>
             <path d="M 100 140 L 100 150" stroke="black" strokeWidth="2" />
             <path d="M 95 150 C 90 155, 110 155, 105 150" stroke="black" strokeWidth="2" fill="none" />
@@ -476,7 +482,9 @@ const BodyRoly = ({ color, pupilX, pupilY }: any) => (
         <motion.g initial={{ scale: 0 }} animate={{ scale: 1, transition: { delay: 0.3 } }}>
             <g>
                 <circle cx="85" cy="120" r="8" fill="black" />
+                <circle cx="83" cy="116" r="2" fill="white" />
                 <circle cx="115" cy="120" r="8" fill="black" />
+                <circle cx="113" cy="116" r="2" fill="white" />
             </g>
             <path d="M 98 135 L 102 135" stroke="black" strokeWidth="2.5" fill="none" strokeLinecap="round" />
         </motion.g>
@@ -524,7 +532,9 @@ const BodySpikey = ({ color, pupilX, pupilY }: any) => (
         <motion.g initial={{ scale: 0 }} animate={{ scale: 1, transition: { delay: 0.3 } }}>
              <g>
                 <circle cx="90" cy="140" r="8" fill="black" />
+                <circle cx="88" cy="137" r="2" fill="white" />
                 <circle cx="110" cy="140" r="8" fill="black" />
+                 <circle cx="108" cy="137" r="2" fill="white" />
             </g>
             <path d="M 95 160 Q 100 155 105 160" stroke="black" strokeWidth="2.5" fill="none" strokeLinecap="round" />
         </motion.g>
@@ -547,8 +557,10 @@ const BodyBubbles = ({ color, pupilX, pupilY }: any) => (
             <g>
                 <ellipse cx="85" cy="130" rx="14" ry="16" fill="white" />
                 <motion.ellipse cx="85" cy="130" rx="7" ry="8" fill="black" style={{ x: pupilX, y: pupilY }}/>
+                 <circle cx="83" cy="125" r="3" fill="white" />
                 <ellipse cx="115" cy="130" rx="14" ry="16" fill="white" />
                 <motion.ellipse cx="115" cy="130" rx="7" ry="8" fill="black" style={{ x: pupilX, y: pupilY }}/>
+                <circle cx="113" cy="125" r="3" fill="white" />
             </g>
             <path d="M 95 155 Q 100 165 105 155" stroke="black" strokeWidth="2.5" fill="none" strokeLinecap="round" />
         </motion.g>
@@ -607,10 +619,13 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, species = "Zappy", color, 
             "Rocky": "#A8A29E",
             "Splash": "#60A5FA",
             "Bear": "#A0522D",
-            "Lion": "#FFD700",
             "Panda": "#FFFFFF",
-            "Fox": "#F97316",
             "Bunny": "#FCE7F3",
+            "Boo": "#F0F8FF",
+            "Roly": "#D1D5DB",
+            "Whispy": "#E0E7FF",
+            "Spikey": "#F59E0B",
+            "Bubbles": "#A5F3FC",
         };
         setBodyColor(color || defaultColors[species] || '#87CEEB');
     }, [color, species, isMounted]);
