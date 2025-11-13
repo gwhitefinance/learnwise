@@ -14,35 +14,49 @@ import { auth, db } from '@/lib/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 
 const eggShellVariants = {
-  initial: { rotate: 0, scale: 1 },
-  shake: { rotate: [0, -3, 3, -3, 3, 0], transition: { duration: 0.5 } },
-  crack: {
-    y: [0, -10, 0],
-    rotate: [0, -5, 5, -5, 5, 0],
-    transition: { duration: 0.7 }
-  },
-  breakTop: {
-    y: -50,
-    x: -20,
-    rotate: -35,
-    scale: 0.9,
-    opacity: 0,
-    transition: { duration: 0.8, delay: 0.3, ease: 'easeOut' }
-  },
-  breakBottom: {
-    y: 20,
-    scale: 0.95,
-    opacity: 0,
-    transition: { duration: 0.8, delay: 0.3, ease: 'easeOut' }
-  }
+    initial: { rotate: 0, scale: 1 },
+    shake: { 
+        rotate: [0, -2, 2, -2, 2, 0], 
+        transition: { duration: 0.5 } 
+    },
+    crack: {
+        y: [0, -5, 0],
+        scale: 1.02,
+        transition: { duration: 0.7, delay: 0.5 }
+    },
 };
+
+const crackVariants = {
+    hidden: { pathLength: 0, opacity: 0 },
+    visible: (i: number) => ({
+        pathLength: 1,
+        opacity: 1,
+        transition: {
+            pathLength: { delay: 1 + i * 0.1, type: "spring", duration: 0.5, bounce: 0 },
+            opacity: { delay: 1 + i * 0.1, duration: 0.01 }
+        }
+    })
+};
+
+const breakVariants = {
+    hidden: { opacity: 1, scale: 1, rotate: 0, x: 0, y: 0 },
+    break: (i: number) => ({
+        opacity: 0,
+        scale: 0.8,
+        rotate: (i % 2 === 0 ? 1 : -1) * (15 + Math.random() * 15),
+        x: (Math.random() - 0.5) * 80,
+        y: -40 + (Math.random() * -60),
+        transition: { duration: 0.8, delay: 1.8, ease: 'easeOut' }
+    })
+}
 
 const tazVariants = {
     hidden: { scale: 0, y: 20 },
-    visible: { scale: 1, y: 0, transition: { type: 'spring', stiffness: 100, damping: 10, delay: 0.5 } }
+    visible: { scale: 1, y: 0, transition: { type: 'spring', stiffness: 100, damping: 10, delay: 2 } }
 }
 
-const tazSpecies = ["Zappy", "Seedling", "Ember", "Shelly", "Puff", "Goo", "Chirpy", "Sparky", "Rocky", "Splash"];
+const tazSpecies = ["Zappy", "Seedling", "Ember", "Shelly", "Puff", "Goo", "Chirpy", "Sparky", "Rocky", "Splash", "Bear", "Panda", "Bunny", "Boo", "Roly", "Whispy", "Spikey", "Bubbles"];
+
 
 export default function HatchPage() {
     const [hatchState, setHatchState] = useState<'idle' | 'shaking' | 'cracking' | 'hatched'>('idle');
@@ -64,7 +78,7 @@ export default function HatchPage() {
     const handleHatch = () => {
         setHatchState('shaking');
         setTimeout(() => setHatchState('cracking'), 500);
-        setTimeout(() => setHatchState('hatched'), 1200);
+        setTimeout(() => setHatchState('hatched'), 2600); // Increased delay to allow animations
     };
 
     const handleContinue = async () => {
@@ -103,26 +117,48 @@ export default function HatchPage() {
                         
                         <div className="relative w-64 h-80 mx-auto cursor-pointer" onClick={handleHatch}>
                              <motion.svg
-                                viewBox="0 0 100 125"
+                                viewBox="0 0 200 250"
                                 className="absolute inset-0 w-full h-full drop-shadow-lg"
                                 style={{ transformOrigin: "bottom center" }}
                                 variants={eggShellVariants}
-                                animate={hatchState}
+                                animate={hatchState === 'shaking' || hatchState === 'cracking' ? 'shake' : 'initial'}
                             >
-                                <motion.path
-                                    d="M 50,5 C 20,5 10,40 10,75 C 10,110 40,120 50,120 C 60,120 90,110 90,75 C 90,40 80,5 50,5 Z"
-                                    fill="#fefce8"
-                                    stroke="#fde047"
-                                    strokeWidth="1"
-                                />
-                                {hatchState === 'cracking' && (
-                                    <motion.path
-                                        d="M 40 50 L 60 70 M 50 50 L 45 75"
-                                        stroke="#a16207"
-                                        strokeWidth="1.5"
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
+                                <defs>
+                                    <linearGradient id="eggGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" style={{stopColor: "#fdfdfd"}} />
+                                        <stop offset="100%" style={{stopColor: "#e4e4e7"}} />
+                                    </linearGradient>
+                                    <filter id="innerShadow">
+                                        <feFlood floodColor="#a1a1aa" result="outside-color"/>
+                                        <feComposite in="SourceGraphic" in2="outside-color" operator="atop"/>
+                                        <feGaussianBlur stdDeviation="3" result="blur"/>
+                                        <feComposite in="SourceGraphic" in2="blur" operator="in"/>
+                                    </filter>
+                                </defs>
+                                
+                                {/* Base Egg Shape */}
+                                <motion.g variants={breakVariants} custom={0} animate={hatchState === 'cracking' ? 'break' : 'hidden'}>
+                                    <path 
+                                        d="M 100,5 C 40,5 20,80 20,150 C 20,220 80,245 100,245 C 120,245 180,220 180,150 C 180,80 160,5 100,5 Z"
+                                        fill="url(#eggGradient)"
+                                        stroke="#18181b"
+                                        strokeWidth="2.5"
                                     />
+                                    {/* Highlight */}
+                                    <path d="M 100,20 C 70,20 60,60, 80,100 C 100,140 130,120 130,80 C 130,40 120,20 100,20 Z" fill="white" opacity="0.4" />
+                                    {/* Shadow */}
+                                    <path d="M 100,220 C 140,220 160,180 140,140 C 120,100 80,120 80,160 C 80,200 80,220 100,220 Z" fill="#000000" opacity="0.05" style={{filter: 'url(#innerShadow)'}}/>
+                                </motion.g>
+
+                                {/* Cracks */}
+                                {hatchState === 'cracking' && (
+                                    <>
+                                        <motion.path d="M 90 60 L 110 90 L 95 110 L 115 130" stroke="#18181b" strokeWidth="1.5" fill="none" variants={crackVariants} custom={1} initial="hidden" animate="visible" />
+                                        <motion.path d="M 110 90 L 130 110" stroke="#18181b" strokeWidth="1.5" fill="none" variants={crackVariants} custom={2} initial="hidden" animate="visible" />
+                                        <motion.path d="M 80 150 L 95 110" stroke="#18181b" strokeWidth="1.5" fill="none" variants={crackVariants} custom={3} initial="hidden" animate="visible" />
+                                        <motion.path d="M 100 200 L 115 130" stroke="#18181b" strokeWidth="1.5" fill="none" variants={crackVariants} custom={4} initial="hidden" animate="visible" />
+                                        <motion.path d="M 60 120 L 95 110" stroke="#18181b" strokeWidth="1.5" fill="none" variants={crackVariants} custom={5} initial="hidden" animate="visible" />
+                                    </>
                                 )}
                             </motion.svg>
                         </div>
