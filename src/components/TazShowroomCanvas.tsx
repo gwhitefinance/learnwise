@@ -1,9 +1,11 @@
+
 "use client";
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, Stars, Dodecahedron, Plane } from "@react-three/drei";
 import { Suspense, useMemo, useRef, useState } from "react";
 import * as THREE from 'three';
+import AIBuddy from "./ai-buddy";
 
 const UFO = ({ foundParts }: { foundParts: string[] }) => {
     return (
@@ -74,7 +76,7 @@ const CollectiblePart = ({ partType, position, onCollect }: { partType: string, 
     
     useFrame(({ clock }) => {
         if (meshRef.current) {
-            meshRef.current.position.y = position[1] + Math.sin(clock.getElapsedTime() * 2) * 0.2;
+            meshRef.current.position.y = position[1] + Math.sin(clock.getElapsedTime() * 2 + position[0]) * 0.2;
             meshRef.current.rotation.y += 0.02;
         }
     });
@@ -228,8 +230,43 @@ const Trees = () => {
     );
 };
 
+const Sparks = () => {
+    const sparksRef = useRef<THREE.Points>(null);
+    const count = 30;
+    const positions = useMemo(() => {
+        const arr = new Float32Array(count * 3);
+        for (let i = 0; i < count; i++) {
+            arr[i * 3] = (Math.random() - 0.5) * 3;
+            arr[i * 3 + 1] = Math.random() * 3 - 1;
+            arr[i * 3 + 2] = (Math.random() - 0.5) * 3;
+        }
+        return arr;
+    }, [count]);
+    
+    useFrame(() => {
+        if(sparksRef.current) {
+            const positions = sparksRef.current.geometry.attributes.position.array as Float32Array;
+            for(let i=0; i< count; i++) {
+                positions[i*3 + 1] += Math.random() * 0.05 + 0.03;
+                if(positions[i*3 + 1] > 8) {
+                    positions[i*3 + 1] = -1;
+                }
+            }
+            sparksRef.current.geometry.attributes.position.needsUpdate = true;
+        }
+    });
 
-const Scene = ({ onPartCollect }: { onPartCollect: (type: string) => void }) => {
+    return (
+        <points ref={sparksRef}>
+            <bufferGeometry>
+                <bufferAttribute attach="attributes-position" count={count} array={positions} itemSize={3} />
+            </bufferGeometry>
+            <pointsMaterial color={0xffaa00} size={0.15} transparent opacity={0.8} />
+        </points>
+    );
+};
+
+const Scene = ({ onPartCollect, foundParts }: { onPartCollect: (type: string) => void, foundParts: string[] }) => {
     const { camera } = useThree();
     useFrame(({ clock }) => {
         camera.position.x = Math.sin(clock.getElapsedTime() * 0.15) * 3;
@@ -244,7 +281,7 @@ const Scene = ({ onPartCollect }: { onPartCollect: (type: string) => void }) => 
             <pointLight color={0x00ffff} intensity={2} distance={30} position={[0, 2, 0]} />
             <pointLight color={0x00ff88} intensity={0.6} distance={100} position={[0, 50, -50]} />
             
-            <Stars radius={150} depth={50} count={5000} factor={0.4} saturation={0} fade />
+            <Stars radius={150} depth={50} count={5000} factor={4} saturation={0} fade />
             <Aurora />
 
             <mesh position={[-30, 40, -50]}>
@@ -255,14 +292,14 @@ const Scene = ({ onPartCollect }: { onPartCollect: (type: string) => void }) => 
             <Ground />
             <Trees />
             
-            <UFO foundParts={[]} />
+            <UFO foundParts={foundParts} />
+            <Sparks />
 
-            <CollectiblePart partType="strut1" position={[-7, -1.5, -4]} onCollect={onPartCollect} />
-            <CollectiblePart partType="strut2" position={[8, -2, 3]} onCollect={onPartCollect} />
-            <CollectiblePart partType="light1" position={[-5, -2, 6]} onCollect={onPartCollect} />
-            <CollectiblePart partType="light2" position={[6, -1.8, -5]} onCollect={onPartCollect} />
+            {!foundParts.includes('strut1') && <CollectiblePart partType="strut1" position={[-7, -1.5, -4]} onCollect={onPartCollect} />}
+            {!foundParts.includes('strut2') && <CollectiblePart partType="strut2" position={[8, -2, 3]} onCollect={onPartCollect} />}
+            {!foundParts.includes('light1') && <CollectiblePart partType="light1" position={[-5, -2, 6]} onCollect={onPartCollect} />}
+            {!foundParts.includes('light2') && <CollectiblePart partType="light2" position={[6, -1.8, -5]} onCollect={onPartCollect} />}
             
-            {/* Add more scene elements here like rocks, debris etc */}
         </>
     );
 };
@@ -281,8 +318,7 @@ export default function TazShowroomCanvas() {
         <div className="w-full h-full relative">
             <Canvas camera={{ position: [0, 12, 20], fov: 75 }} shadows>
                 <Suspense fallback={null}>
-                    <Scene onPartCollect={handlePartCollect} />
-                    <UFO foundParts={foundParts} />
+                    <Scene onPartCollect={handlePartCollect} foundParts={foundParts} />
                 </Suspense>
             </Canvas>
             <div className="absolute bottom-5 left-5 w-14 h-14 bg-white/10 border-2 border-white rounded-xl flex items-center justify-center text-3xl">🛸</div>
@@ -303,5 +339,3 @@ export default function TazShowroomCanvas() {
         </div>
     );
 }
-
-    
