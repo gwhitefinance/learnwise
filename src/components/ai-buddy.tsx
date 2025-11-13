@@ -29,29 +29,36 @@ const HeadZappy = ({ pupilX, pupilY, color }: any) => (
 const TorsoZappy = ({ color }: any) => (
     <>
         {/* Neck */}
-        <path d="M 90 135 V 140 H 110 V 135 Z" fill={color} />
+        <rect x="90" y="135" width="20" height="10" fill={color} />
         {/* Body */}
-        <motion.path d="M 70 210 C 70 150, 130 150, 130 210 V 140 H 70 V 210 Z" fill={color} 
+        <motion.rect
+            x="60"
+            y="145"
+            width="80"
+            height="60"
+            fill={color}
             initial={{ scaleY: 1, y: 0 }}
             animate={{ scaleY: [1, 0.98, 1], y: [0, 5, 0] }}
             transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
         />
         {/* Feet */}
-        <path d="M 70 210 Q 55 230 80 225 Q 105 230 85 210" fill="#4B5563" />
-        <path d="M 115 210 Q 100 230 125 225 Q 150 230 130 210" fill="#4B5563" />
+        <path d="M 60 205 C 60 225, 90 225, 90 205" fill="#4B5563" />
+        <path d="M 110 205 C 110 225, 140 225, 140 205" fill="#4B5563" />
         {/* Hands */}
-        <motion.path d="M 70 170 C 45 160, 50 190, 75 185" fill={color} 
-            initial={{ rotate: 0 }}
+        <motion.path
+            d="M 60 160 C 40 160, 40 190, 60 190 V 210 C 60 180, 60 160, 60 160"
+            fill={color}
+            initial={{ rotate: 0, x: 0 }}
             animate={{ rotate: [-5, 5, -5] }}
             transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 0.2 }}
         />
-        <motion.path d="M 130 170 C 155 160, 150 190, 125 185" fill={color}
-            initial={{ rotate: 0 }}
+        <motion.path
+            d="M 140 160 C 160 160, 160 190, 140 190 V 210 C 140 180, 140 160, 140 160"
+            fill={color}
+            initial={{ rotate: 0, x: 0 }}
             animate={{ rotate: [5, -5, 5] }}
             transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 0.2 }}
         />
-        {/* Body Details */}
-        <path d="M 80 180 L 90 195 L 85 200" fill="none" stroke="white" strokeWidth="3" strokeLinecap='round' opacity="0.3"/>
     </>
 );
 
