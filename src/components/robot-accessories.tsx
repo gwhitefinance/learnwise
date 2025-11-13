@@ -160,32 +160,32 @@ const hatComponents: Record<string, React.FC> = {
 };
 
 const shirtComponents: Record<string, React.FC> = {
-    "T-Shirt": () => <rect x="70" y="120" width="60" height="60" fill="#3b82f6" rx="10" opacity="0.9" />,
+    "T-Shirt": () => <path d="M 75 125 L 70 145 L 130 145 L 125 125 Z" fill="#3b82f6" opacity="0.9" />,
     "Ugly Christmas Sweater": () => (
         <g>
-            <rect x="70" y="120" width="60" height="70" fill="#b91c1c" rx="10" />
+            <path d="M 75 125 L 70 185 L 130 185 L 125 125 Z" fill="#b91c1c" />
             <text x="85" y="160" fontSize="24" fill="white">🎄</text>
-            <path d="M 70 130 L 130 130" stroke="#166534" strokeWidth="4"/>
-            <path d="M 70 180 L 130 180" stroke="#166534" strokeWidth="4"/>
+            <path d="M 70 135 L 130 135" stroke="#166534" strokeWidth="4"/>
+            <path d="M 70 175 L 130 175" stroke="#166534" strokeWidth="4"/>
         </g>
     ),
     "Football Jersey": () => (
          <g>
-            <rect x="70" y="120" width="60" height="70" fill="darkblue" rx="10" />
+            <path d="M 75 125 L 70 185 L 130 185 L 125 125 Z" fill="darkblue" />
             <text x="82" y="170" fontSize="40" fill="white" fontWeight="bold">88</text>
         </g>
     ),
     "Tuxedo": () => (
         <g>
-            <rect x="70" y="120" width="60" height="70" fill="black" rx="10" />
-            <path d="M 90 120 L 110 120 L 100 170 Z" fill="white" />
-            <path d="M 95 125 L 105 125 L 100 138 Z" fill="red" />
+            <path d="M 75 125 L 70 185 L 130 185 L 125 125 Z" fill="black" />
+            <path d="M 90 125 L 110 125 L 100 170 Z" fill="white" />
+            <path d="M 95 130 L 105 130 L 100 145 Z" fill="red" />
         </g>
     ),
     "Lab Coat": () => (
         <g>
-            <rect x="70" y="120" width="60" height="70" fill="white" rx="10" stroke="#ccc" strokeWidth="1"/>
-            <rect x="80" y="130" width="8" height="15" fill="lightblue" rx="2" />
+            <path d="M 75 125 L 70 185 L 130 185 L 125 125 Z" fill="white" stroke="#ccc" strokeWidth="1" />
+            <rect x="80" y="135" width="8" height="15" fill="lightblue" rx="2" />
         </g>
     ),
     "Superhero Cape": () => <path d="M 75 110 C 100 80, 100 80, 125 110 L 140 190 L 60 190 Z" fill="#dc2626" />,
@@ -195,8 +195,57 @@ const shirtComponents: Record<string, React.FC> = {
             <path d="M75 150 L 70 120" stroke="#3b82f6" strokeWidth="8" />
             <path d="M125 150 L 130 120" stroke="#3b82f6" strokeWidth="8" />
         </g>
-    )
+    ),
+    "Hoodie": () => <path d="M 75 125 L 70 185 L 130 185 L 125 125 Z" fill="#6b7280" />,
+    "Striped Shirt": () => (
+        <g>
+            <path d="M 75 125 L 70 185 L 130 185 L 125 125 Z" fill="white" />
+            <path d="M 70 135 L 130 135" stroke="#3b82f6" strokeWidth="8" />
+            <path d="M 70 155 L 130 155" stroke="#3b82f6" strokeWidth="8" />
+            <path d="M 70 175 L 130 175" stroke="#3b82f6" strokeWidth="8" />
+        </g>
+    ),
+    "Polka Dot Shirt": () => (
+        <g>
+            <path d="M 75 125 L 70 185 L 130 185 L 125 125 Z" fill="#ef4444" />
+            <circle cx="85" cy="140" r="5" fill="white" />
+            <circle cx="115" cy="140" r="5" fill="white" />
+            <circle cx="100" cy="160" r="5" fill="white" />
+        </g>
+    ),
+    "Sweater": () => <path d="M 75 125 L 70 185 L 130 185 L 125 125 Z" fill="#fbbf24" />,
+    "Plain Tee": () => <path d="M 75 125 L 70 145 L 130 145 L 125 125 Z" fill="#14b8a6" opacity="0.9" />,
+    "V-Neck": () => <path d="M 75 125 L 70 145 L 100 165 L 130 145 L 125 125 Z" fill="#8b5cf6" opacity="0.9" />,
+    "Pocket Tee": () => (
+        <g>
+            <path d="M 75 125 L 70 145 L 130 145 L 125 125 Z" fill="#ec4899" opacity="0.9" />
+            <rect x="80" y="130" width="15" height="12" fill="#db2777" rx="2" />
+        </g>
+    ),
+    "Long-Sleeve Tee": () => (
+        <>
+            <path d="M 75 125 L 70 145 L 130 145 L 125 125 Z" fill="#6366f1" opacity="0.9" />
+            <rect x="50" y="125" width="25" height="40" fill="#6366f1" rx="5" opacity="0.9" />
+            <rect x="125" y="125" width="25" height="40" fill="#6366f1" rx="5" opacity="0.9" />
+        </>
+    ),
+    "Basic Tank Top": () => (
+        <g>
+            <path d="M 85 125 L 80 185 L 120 185 L 115 125 Z" fill="#f59e0b" opacity="0.9" />
+            <path d="M85 125 C 80 115, 75 115, 70 125" stroke="#f59e0b" strokeWidth="6" fill="none" />
+            <path d="M115 125 C 120 115, 125 115, 130 125" stroke="#f59e0b" strokeWidth="6" fill="none" />
+        </g>
+    ),
+    "Henley Shirt": () => (
+        <g>
+            <path d="M 75 125 L 70 145 L 130 145 L 125 125 Z" fill="#10b981" opacity="0.9" />
+            <rect x="95" y="125" width="10" height="20" fill="#059669" />
+            <circle cx="100" cy="132" r="2" fill="white" />
+            <circle cx="100" cy="138" r="2" fill="white" />
+        </g>
+    ),
 };
+
 
 const shoeComponents: Record<string, React.FC> = {
     "Boots": () => (
