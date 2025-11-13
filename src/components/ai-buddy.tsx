@@ -32,8 +32,8 @@ const TorsoZappy = ({ color }: any) => (
         <motion.ellipse
             cx="100"
             cy="160"
-            rx="40"
-            ry="45"
+            rx="50"
+            ry="55"
             fill={color}
             initial={{ scaleY: 1, y: 0 }}
             animate={{ scaleY: [1, 0.98, 1], y: [0, 5, 0] }}
@@ -58,6 +58,9 @@ const TorsoZappy = ({ color }: any) => (
             animate={{ rotate: [5, -5, 5] }}
             transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 0.2 }}
         />
+        {/* Feet */}
+        <ellipse cx="85" cy="210" rx="15" ry="8" fill="#4B5563" />
+        <ellipse cx="115" cy="210" rx="15" ry="8" fill="#4B5563" />
     </g>
 );
 
@@ -76,7 +79,7 @@ const HeadSeedling = ({ pupilX, pupilY }: any) => (
 );
 
 const TorsoSeedling = ({ color }: any) => (
-    <>
+    <g transform="translate(0, -30)">
         {/* Body */}
         <motion.path d="M 50 210 C 20 140, 40 30, 100 30 C 160 30, 180 140, 150 210 Z" fill={color}
             initial={{ scaleY: 1, y: 0 }}
@@ -101,7 +104,7 @@ const TorsoSeedling = ({ color }: any) => (
         {/* Hands */}
         <path d="M 48 180 C 25 170, 30 195, 52 190" fill={color} />
         <path d="M 152 180 C 175 170, 170 195, 148 190" fill={color} />
-    </>
+    </g>
 );
 
 
@@ -121,7 +124,7 @@ const HeadEmber = ({ pupilX, pupilY }: any) => (
 );
 
 const TorsoEmber = ({ color }: any) => (
-    <>
+    <g transform="translate(0, -30)">
         {/* Body */}
         <motion.path d="M 70 210 C 40 140, 60 10, 100 10 C 140 10, 160 140, 130 210 Z" fill={color}
             initial={{ scaleY: 1, y: 0 }}
@@ -138,7 +141,7 @@ const TorsoEmber = ({ color }: any) => (
         {/* Hands */}
         <ellipse cx="55" cy="165" rx="20" ry="18" fill={color} />
         <ellipse cx="145" cy="165" rx="20" ry="18" fill={color} />
-    </>
+    </g>
 );
 
 
@@ -159,7 +162,7 @@ const HeadShelly = ({ pupilX, pupilY, color }: any) => (
 );
 
 const TorsoShelly = ({ color }: any) => (
-    <>
+    <g transform="translate(0, -30)">
         {/* Body */}
         <g>
             <path d="M 40 210 C 40 120, 160 120, 160 210 Z" fill={color} />
@@ -175,7 +178,7 @@ const TorsoShelly = ({ color }: any) => (
         {/* Hands */}
         <ellipse cx="35" cy="180" rx="22" ry="20" fill={color} />
         <ellipse cx="165" cy="180" rx="22" ry="20" fill={color} />
-    </>
+    </g>
 );
 
 
@@ -195,7 +198,7 @@ const HeadPuff = ({ pupilX, pupilY }: any) => (
 );
 
 const TorsoPuff = ({ color }: any) => (
-    <>
+    <g transform="translate(0, -30)">
         {/* Body */}
         <motion.circle cx="100" cy="160" r="75" fill={color} 
             initial={{ scale: 1 }}
@@ -211,7 +214,7 @@ const TorsoPuff = ({ color }: any) => (
         {/* Hands */}
         <path d="M 30 165 Q 5 155, 20 145" stroke={color} strokeWidth="30" fill="none" strokeLinecap="round"/>
         <path d="M 170 165 Q 195 155, 180 145" stroke={color} strokeWidth="30" fill="none" strokeLinecap="round"/>
-    </>
+    </g>
 );
 
 
@@ -231,7 +234,7 @@ const HeadGoo = ({ pupilX, pupilY }: any) => (
 );
 
 const TorsoGoo = ({ color }: any) => (
-    <>
+    <g transform="translate(0, -30)">
         {/* Body */}
         <motion.path d="M 50 210 Q 30 120, 100 90 Q 170 120, 150 210 Z" fill={color}
             initial={{ scaleY: 1, y: 0 }}
@@ -245,7 +248,7 @@ const TorsoGoo = ({ color }: any) => (
         {/* Hands */}
         <path d="M 40 180 C 20 170, 25 200, 45 195" fill={color} />
         <path d="M 160 180 C 180 170, 175 200, 155 195" fill={color} />
-    </>
+    </g>
 );
 
 
@@ -263,7 +266,7 @@ const HeadChirpy = ({ pupilX, pupilY }: any) => (
 );
 
 const TorsoChirpy = ({ color }: any) => (
-    <>
+    <g transform="translate(0, -30)">
         {/* Body */}
         <motion.circle cx="100" cy="160" r="65" fill={color} 
             initial={{ y: 0 }}
@@ -284,7 +287,7 @@ const TorsoChirpy = ({ color }: any) => (
         />
         {/* Head Feather (Ear) */}
         <path d="M 100 85 C 90 65, 110 65, 100 85 M 95 70 Q 100 60 105 70" fill={color} stroke="#CA8A04" strokeWidth="2" />
-    </>
+    </g>
 );
 
 
@@ -301,7 +304,7 @@ const HeadSparky = ({ pupilX, pupilY }: any) => (
 );
 
 const TorsoSparky = ({ color }: any) => (
-    <>
+    <g transform="translate(0, -30)">
         {/* Body */}
         <motion.path d="M 60 210 C 50 120, 150 120, 140 210 Z" fill={color} 
             initial={{ scaleX: 1 }}
@@ -317,7 +320,7 @@ const TorsoSparky = ({ color }: any) => (
         {/* Body Details (cheeks) */}
         <circle cx="70" cy="160" r="12" fill="#DC2626" />
         <circle cx="130" cy="160" r="12" fill="#DC2626" />
-    </>
+    </g>
 );
 
 
@@ -332,7 +335,7 @@ const HeadRocky = ({ pupilX, pupilY }: any) => (
 );
 
 const TorsoRocky = ({ color }: any) => (
-    <>
+    <g transform="translate(0, -30)">
         {/* Body */}
         <motion.path d="M 50 200 L 40 100 L 160 100 L 150 200 Z" fill={color} 
             initial={{ y: 0 }}
@@ -345,7 +348,7 @@ const TorsoRocky = ({ color }: any) => (
         {/* Details */}
         <path d="M 80 170 L 90 180" stroke="white" strokeWidth="3" opacity="0.2" strokeLinecap="round" />
         <path d="M 110 160 L 120 175" stroke="white" strokeWidth="3" opacity="0.2" strokeLinecap="round" />
-    </>
+    </g>
 );
 
 
@@ -354,10 +357,10 @@ const HeadSplash = ({ pupilX, pupilY }: any) => (
         <g>
             <ellipse cx="85" cy="130" rx="14" ry="16" fill="white" />
             <motion.ellipse cx="85" cy="130" rx="7" ry="8" fill="black" style={{ x: pupilX, y: pupilY }}/>
-            <circle cx="83" cy="123" r="3" fill="white" />
+            <circle cx="83" cy="125" r="3" fill="white" />
             <ellipse cx="115" cy="130" rx="14" ry="16" fill="white" />
             <motion.ellipse cx="115" cy="130" rx="7" ry="8" fill="black" style={{ x: pupilX, y: pupilY }}/>
-            <circle cx="113" cy="123" r="3" fill="white" />
+            <circle cx="113" cy="125" r="3" fill="white" />
         </g>
         <path d="M 95 155 Q 100 165 105 155" stroke="black" strokeWidth="3.5" fill="none" strokeLinecap="round" />
         <path d="M 98 155 C 99 157, 101 157, 102 155" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round" />
@@ -365,7 +368,7 @@ const HeadSplash = ({ pupilX, pupilY }: any) => (
 );
 
 const TorsoSplash = ({ color }: any) => (
-    <>
+    <g transform="translate(0, -30)">
         {/* Body */}
         <motion.path d="M 100 50 C 50 50, 40 210, 40 210 L 160 210 C 160 210, 150 50, 100 50 Z" fill={color} 
             initial={{ scaleY: 1, scaleX: 1 }}
@@ -379,7 +382,7 @@ const TorsoSplash = ({ color }: any) => (
         <circle cx="100" cy="80" r="5" fill="white" opacity="0.5" />
         <path d="M 70 80 Q 60 70, 65 60" stroke={color} strokeWidth="8" fill="none" strokeLinecap="round" />
         <path d="M 130 80 Q 140 70, 135 60" stroke={color} strokeWidth="8" fill="none" strokeLinecap="round" />
-    </>
+    </g>
 );
 
 
@@ -399,7 +402,7 @@ const HeadBear = ({ pupilX, pupilY }: any) => (
 );
 
 const TorsoBear = ({ color }: any) => (
-    <>
+    <g transform="translate(0, -30)">
         {/* Body */}
         <path d="M 50 210 C 20 150, 30 60, 100 60 C 170 60, 180 150, 150 210 Z" fill={color} />
         {/* Ears */}
@@ -410,7 +413,7 @@ const TorsoBear = ({ color }: any) => (
         {/* Hands */}
         <circle cx="45" cy="160" r="20" fill={color} />
         <circle cx="155" cy="160" r="20" fill={color} />
-    </>
+    </g>
 );
 
 
@@ -428,7 +431,7 @@ const HeadBunny = ({ pupilX, pupilY }: any) => (
 );
 
 const TorsoBunny = ({ color }: any) => (
-    <>
+    <g transform="translate(0, -30)">
         {/* Body */}
         <ellipse cx="100" cy="170" rx="55" ry="70" fill={color} />
         {/* Ears */}
@@ -439,7 +442,7 @@ const TorsoBunny = ({ color }: any) => (
         {/* Hands */}
         <ellipse cx="50" cy="170" rx="18" ry="15" fill={color} />
         <ellipse cx="150" cy="170" rx="18" ry="15" fill={color} />
-    </>
+    </g>
 );
 
 
@@ -457,7 +460,7 @@ const HeadBoo = ({ pupilX, pupilY }: any) => (
 );
 
 const TorsoBoo = ({ color }: any) => (
-     <g transform="scale(1, 1.2) translate(0, -10)">
+     <g transform="scale(1, 1.2) translate(0, -40)">
         <motion.path d="M 50 210 C 20 100, 180 100, 150 210 C 140 200, 120 215, 100 200 C 80 215, 60 200, 50 210 Z" fill={color}
             initial={{ y: 0 }}
             animate={{ y: [0, -10, 0] }}
@@ -483,7 +486,7 @@ const HeadRoly = ({ pupilX, pupilY }: any) => (
 );
 
 const TorsoRoly = ({ color }: any) => (
-    <>
+    <g transform="translate(0, -30)">
         <ellipse cx="100" cy="170" rx="70" ry="60" fill={color} />
         {/* Shell Lines */}
         <path d="M 30 170 C 40 120, 160 120, 170 170" stroke="#4B5563" strokeWidth="10" fill="none" />
@@ -492,7 +495,7 @@ const TorsoRoly = ({ color }: any) => (
         {/* Antennae (Ears) */}
         <path d="M 80 105 Q 70 85, 60 90" stroke="#374151" strokeWidth="3" fill="none" />
         <path d="M 120 105 Q 130 85, 140 90" stroke="#374151" strokeWidth="3" fill="none" />
-    </>
+    </g>
 );
 
 
@@ -524,13 +527,13 @@ const HeadWhispy = ({ pupilX, pupilY }: any) => (
 );
 
 const TorsoWhispy = ({ color }: any) => (
-    <>
+    <g transform="translate(0, -30)">
         <motion.path d="M 100 50 C 40 80, 40 170, 70 200 C 80 210, 120 210, 130 200 C 160 170, 160 80, 100 50 Z" fill={color}
             initial={{ y: 0 }}
             animate={{ y: [0, -8, 0] }}
             transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
         />
-    </>
+    </g>
 );
 
 
@@ -547,7 +550,7 @@ const HeadSpikey = ({ pupilX, pupilY }: any) => (
 );
 
 const TorsoSpikey = ({ color }: any) => (
-    <g transform="scale(1.2, 1) translate(-17, 30)">
+    <g transform="scale(1.2, 1) translate(-17, 0)">
         {/* Body */}
         <path d="M 70 210 C 70 120, 130 120, 130 210 Z" fill={color} />
         {/* Spikes (Ears) */}
@@ -577,7 +580,7 @@ const HeadBubbles = ({ pupilX, pupilY }: any) => (
 );
 
 const TorsoBubbles = ({ color }: any) => (
-    <>
+    <g transform="translate(0, -30)">
         <motion.circle cx="100" cy="160" r="70" fill={color} opacity="0.8" 
              initial={{ scale: 1 }}
              animate={{ scale: [1, 1.01, 1] }}
@@ -589,7 +592,7 @@ const TorsoBubbles = ({ color }: any) => (
         <circle cx="100" cy="200" r="8" fill="white" opacity="0.6" />
         <circle cx="65" cy="170" r="8" fill="white" opacity="0.5" />
         <circle cx="135" cy="140" r="6" fill="white" opacity="0.5" />
-    </>
+    </g>
 );
 
 
