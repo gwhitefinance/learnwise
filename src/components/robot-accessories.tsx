@@ -160,40 +160,40 @@ const hatComponents: Record<string, React.FC> = {
 };
 
 const shirtComponents: Record<string, React.FC> = {
-    "T-Shirt": () => <path d="M 65 120 L 40 90 L 160 90 L 135 120 L 135 190 L 65 190 Z" fill="#3b82f6" opacity="0.8"/>,
+    "T-Shirt": () => <rect x="70" y="120" width="60" height="60" fill="#3b82f6" rx="10" opacity="0.9" />,
     "Ugly Christmas Sweater": () => (
         <g>
-            <path d="M 65 120 L 40 90 L 160 90 L 135 120 L 135 190 L 65 190 Z" fill="#b91c1c" />
-            <text x="80" y="165" fontSize="30" fill="white">🎄</text>
-            <path d="M 65 125 L 135 125" stroke="#166534" strokeWidth="5"/>
-            <path d="M 65 185 L 135 185" stroke="#166534" strokeWidth="5"/>
+            <rect x="70" y="120" width="60" height="70" fill="#b91c1c" rx="10" />
+            <text x="85" y="160" fontSize="24" fill="white">🎄</text>
+            <path d="M 70 130 L 130 130" stroke="#166534" strokeWidth="4"/>
+            <path d="M 70 180 L 130 180" stroke="#166534" strokeWidth="4"/>
         </g>
     ),
     "Football Jersey": () => (
          <g>
-            <path d="M 65 120 L 40 90 L 160 90 L 135 120 L 135 190 L 65 190 Z" fill="darkblue" />
-            <text x="80" y="170" fontSize="50" fill="white" fontWeight="bold">88</text>
+            <rect x="70" y="120" width="60" height="70" fill="darkblue" rx="10" />
+            <text x="82" y="170" fontSize="40" fill="white" fontWeight="bold">88</text>
         </g>
     ),
     "Tuxedo": () => (
         <g>
-            <path d="M 65 120 L 40 90 L 160 90 L 135 120 L 135 190 L 65 190 Z" fill="black" />
-            <path d="M 90 120 L 110 120 L 100 180 Z" fill="white" />
-            <path d="M 95 120 L 105 120 L 100 135 Z" fill="red" />
+            <rect x="70" y="120" width="60" height="70" fill="black" rx="10" />
+            <path d="M 90 120 L 110 120 L 100 170 Z" fill="white" />
+            <path d="M 95 125 L 105 125 L 100 138 Z" fill="red" />
         </g>
     ),
     "Lab Coat": () => (
         <g>
-            <path d="M 65 120 L 40 90 L 160 90 L 135 120 L 135 190 L 65 190 Z" fill="white" stroke="#ccc" strokeWidth="1"/>
-            <rect x="80" y="130" width="10" height="20" fill="lightblue" />
+            <rect x="70" y="120" width="60" height="70" fill="white" rx="10" stroke="#ccc" strokeWidth="1"/>
+            <rect x="80" y="130" width="8" height="15" fill="lightblue" rx="2" />
         </g>
     ),
-    "Superhero Cape": () => <path d="M 75 110 C 100 -20, 100 -20, 125 110 L 150 200 L 50 200 Z" fill="#dc2626" />,
+    "Superhero Cape": () => <path d="M 75 110 C 100 80, 100 80, 125 110 L 140 190 L 60 190 Z" fill="#dc2626" />,
     "Overalls": () => (
         <g>
             <rect x="70" y="150" width="60" height="40" fill="#3b82f6" />
-            <path d="M75 150 L 65 110" stroke="#3b82f6" strokeWidth="10" />
-            <path d="M125 150 L 135 110" stroke="#3b82f6" strokeWidth="10" />
+            <path d="M75 150 L 70 120" stroke="#3b82f6" strokeWidth="8" />
+            <path d="M125 150 L 130 120" stroke="#3b82f6" strokeWidth="8" />
         </g>
     )
 };
