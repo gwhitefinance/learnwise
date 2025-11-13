@@ -281,6 +281,11 @@ export default function ShopClientPage() {
                 </div>
             </div>
             
+             <div className="bg-red-600 text-white rounded-2xl p-6 text-center shadow-lg">
+                <h2 className="text-3xl font-bold font-bubble tracking-wider">It's Tiiiimeee!</h2>
+                <p className="font-semibold">Our Christmas update is here! Check out the festive items below.</p>
+            </div>
+
             <Card className="bg-gradient-to-r from-red-500 to-rose-700 text-white">
                 <CardHeader>
                     <CardTitle className="flex justify-between items-center">
