@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from "react";
@@ -5,6 +6,7 @@ import AIBuddy from "@/components/ai-buddy";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
 
 const tazSpecies = ["Zappy", "Seedling", "Ember", "Shelly", "Puff", "Goo", "Chirpy", "Sparky", "Rocky", "Splash", "Bear", "Panda", "Bunny", "Boo", "Roly", "Whispy", "Spikey", "Bubbles"];
 const colors = ["#87CEEB", "#FFC0CB", "#98FF98", "#F0E68C", "#E6E6FA", "#FFA07A"];
