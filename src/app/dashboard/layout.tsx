@@ -205,6 +205,12 @@ const sidebarItems: SidebarItem[] = [
             id: "assignment-grader-link",
         },
         {
+            title: "3D Tazzes",
+            icon: <CuboidIcon />,
+            href: "/dashboard/taz-species",
+            id: "taz-species-link",
+        },
+        {
           title: "Taz Showroom",
           icon: <Palette />,
           href: "/dashboard/taz-showroom",
