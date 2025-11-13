@@ -4,7 +4,7 @@
 import dynamic from "next/dynamic";
 
 const TazShowroomCanvas = dynamic(
-  () => import("@/components/TazShowroomCanvas"),
+  () => import("@/components/TazShowroomScene"),
   { ssr: false }
 );
 
