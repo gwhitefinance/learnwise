@@ -468,6 +468,95 @@ const BodyKnight = ({ color, pupilX, pupilY }: any) => (
     </>
 );
 
+const BodyChef = ({ color, pupilX, pupilY }: any) => (
+    <>
+        <ellipse cx="100" cy="140" rx="45" ry="40" fill={color} />
+        <circle cx="70" cy="120" r="10" fill="#f3e8d7" />
+        <circle cx="130" cy="120" r="10" fill="#f3e8d7" />
+        <Shoes name="Clogs" />
+        <motion.g initial={{ scale: 0 }} animate={{ scale: 1, transition: { delay: 0.3 } }}>
+            <g>
+                <circle cx="85" cy="110" r="12" fill="white" />
+                <motion.circle cx="85" cy="110" r="6" fill="black" style={{ x: pupilX, y: pupilY }} />
+                <circle cx="115" cy="110" r="12" fill="white" />
+                <motion.circle cx="115" cy="110" r="6" fill="black" style={{ x: pupilX, y: pupilY }} />
+            </g>
+            <path d="M 95,130 C 100,140 105,140 110,130" stroke="black" strokeWidth="2" fill="none" strokeLinecap="round" />
+        </motion.g>
+    </>
+);
+
+const BodyDetective = ({ color, pupilX, pupilY }: any) => (
+    <>
+        <path d="M 70,175 C 70,110 130,110 130,175 Z" fill={color} />
+        <rect x="65" y="110" width="70" height="20" fill="#704214" />
+        <circle cx="60" cy="140" r="8" fill="#f3e8d7" />
+        <circle cx="140" cy="140" r="8" fill="#f3e8d7" />
+        <Shoes name="Formal Shoes" />
+        <motion.g initial={{ scale: 0 }} animate={{ scale: 1, transition: { delay: 0.3 } }}>
+            <g>
+                <circle cx="85" cy="90" r="8" fill="white" />
+                <motion.circle cx="85" cy="90" r="4" fill="black" style={{ x: pupilX, y: pupilY }} />
+                <circle cx="115" cy="90" r="8" fill="white" />
+                <motion.circle cx="115" cy="90" r="4" fill="black" style={{ x: pupilX, y: pupilY }} />
+            </g>
+             <path d="M 100,105 L 100,115" stroke="black" strokeWidth="2" fill="none" strokeLinecap="round" />
+        </motion.g>
+    </>
+);
+
+const BodyHeadphones = ({ color, pupilX, pupilY }: any) => (
+    <>
+        <ellipse cx="100" cy="135" rx="40" ry="40" fill={color} />
+        <circle cx="65" cy="130" r="10" fill={color} />
+        <circle cx="135" cy="130" r="10" fill={color} />
+        <Shoes name="Sneakers" />
+        <motion.g initial={{ scale: 0 }} animate={{ scale: 1, transition: { delay: 0.3 } }}>
+            <g>
+                <circle cx="85" cy="120" r="10" fill="white" />
+                <motion.path d="M 80 115 L 90 125 M 90 115 L 80 125" stroke="black" strokeWidth="2" style={{ x: pupilX, y: pupilY }} />
+                <circle cx="115" cy="120" r="10" fill="white" />
+                <motion.path d="M 110 115 L 120 125 M 120 115 L 110 125" stroke="black" strokeWidth="2" style={{ x: pupilX, y: pupilY }} />
+            </g>
+            <path d="M 90,140 C 100,155 110,140 90,140" fill="black" />
+        </motion.g>
+    </>
+);
+
+const BodyFlowerCrown = ({ color, pupilX, pupilY }: any) => (
+    <>
+        <path d="M 70,175 C 50,150 50,80 100,80 C 150,80 150,150 130,175 Z" fill={color} />
+        <circle cx="60" cy="140" r="10" fill={color} />
+        <circle cx="140" cy="140" r="10" fill={color} />
+        <Shoes name="Sandals" />
+        <motion.g initial={{ scale: 0 }} animate={{ scale: 1, transition: { delay: 0.3 } }}>
+            <g>
+                <circle cx="85" cy="115" r="12" fill="white" />
+                <motion.circle cx="85" cy="115" r="6" fill="black" style={{ x: pupilX, y: pupilY }} />
+                <circle cx="115" cy="115" r="12" fill="white" />
+                <motion.circle cx="115" cy="115" r="6" fill="black" style={{ x: pupilX, y: pupilY }} />
+            </g>
+            <path d="M 95,135 Q 100,125 105,135" stroke="black" strokeWidth="2" fill="none" strokeLinecap="round" />
+        </motion.g>
+    </>
+);
+
+const BodyAstronaut = ({ color, pupilX, pupilY }: any) => (
+    <>
+        <rect x="60" y="100" width="80" height="80" rx="20" fill="#E5E7EB" />
+        <circle cx="60" cy="140" r="15" fill="#D1D5DB" />
+        <circle cx="140" cy="140" r="15" fill="#D1D5DB" />
+        <Shoes name="Astronaut Boots" />
+        <motion.g initial={{ scale: 0 }} animate={{ scale: 1, transition: { delay: 0.3 } }}>
+            <g>
+                <rect x="75" y="70" width="50" height="40" fill="#111827" rx="10" />
+                 <rect x="75" y="70" width="50" height="40" fill="url(#glassReflection)" rx="10"/>
+            </g>
+        </motion.g>
+    </>
+);
+
+
 
 const speciesComponents: Record<string, React.FC<any>> = {
     "Bulby": BodyBulby,
@@ -486,6 +575,11 @@ const speciesComponents: Record<string, React.FC<any>> = {
     "Viking": BodyViking,
     "Fedora": BodyFedora,
     "Knight": BodyKnight,
+    "Chef": BodyChef,
+    "Detective": BodyDetective,
+    "Headphones": BodyHeadphones,
+    "Flower Crown": BodyFlowerCrown,
+    "Astronaut": BodyAstronaut,
 };
 
 const AIBuddy: React.FC<AIBuddyProps> = ({ className, species = "Bulby", color, hat, shirt, shoes, isStatic = false }) => {
@@ -614,3 +708,4 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, species = "Bulby", color, 
 };
 
 export default AIBuddy;
+

@@ -81,9 +81,9 @@ const hatComponents: Record<string, React.FC> = {
     ),
     "Viking Helmet": () => (
         <g transform="translate(58, 25)">
-            <path d="M0 10 C0 -10, 85 -10, 85 10" fill="#C0C0C0" stroke="#A9A9A9" strokeWidth="2" />
-            <path d="M-10 5 C-20 -15, -30 -5, -10 5" fill="#F0E68C" stroke="#B8860B" strokeWidth="1.5" />
-            <path d="M95 5 C 105 -15, 115 -5, 95 5" fill="#F0E68C" stroke="#B8860B" strokeWidth="1.5" />
+            <path d="M0 10 C0 -10 85 -10 85 10" fill="#C0C0C0" stroke="#A9A9A9" strokeWidth="2" />
+            <path d="M-10 5 C-20 -15 -30 -5 -10 5" fill="#F0E68C" stroke="#B8860B" strokeWidth="1.5" />
+            <path d="M95 5 C 105 -15 115 -5 95 5" fill="#F0E68C" stroke="#B8860B" strokeWidth="1.5" />
         </g>
     ),
     "Fedora": () => (
@@ -219,9 +219,9 @@ const shoeComponents: Record<string, React.FC> = {
     "Sandals": () => (
         <g>
             <path d='M70 180 L95 180 L95 185 L70 185 Z' fill='#8B4513' />
-            <path d='M75 175 L80 185' stroke='#A0522D' strokeWidth='3' />
-             <path d='M105 180 L130 180 L130 185 L105 185 Z' fill='#8B4513' />
-            <path d='M110 175 L115 185' stroke='#A0522D' strokeWidth='3' />
+            <path d='M82 175 C 75 175, 75 182, 82 182' stroke='#A0522D' strokeWidth='3' fill='none'/>
+            <path d='M110 182 L135 182 L135 187 L110 187 Z' fill='#8B4513' />
+            <path d='M122 175 C 115 175, 115 182, 122 182' stroke='#A0522D' strokeWidth='3' fill='none'/>
         </g>
     ),
     "Formal Shoes": () => (
