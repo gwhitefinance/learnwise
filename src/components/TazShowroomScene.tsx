@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -17,10 +18,10 @@ const UFO = ({ foundParts }: { foundParts: string[] }) => (
         <div className="absolute bottom-5 right-10 w-4 h-4 bg-green-500 rounded-full animate-pulse" />
         <AnimatePresence>
             {foundParts.includes("light1") && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute bottom-5 left-20 w-4 h-4 bg-red-500 rounded-full animate-pulse" />
+                <motion.div key="light1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute bottom-5 left-20 w-4 h-4 bg-red-500 rounded-full animate-pulse" />
             )}
             {foundParts.includes("light2") && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute bottom-5 right-20 w-4 h-4 bg-red-500 rounded-full animate-pulse" />
+                <motion.div key="light2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute bottom-5 right-20 w-4 h-4 bg-red-500 rounded-full animate-pulse" />
             )}
         </AnimatePresence>
     </div>
@@ -99,11 +100,11 @@ export default function TazShowroomScene() {
                     <div className="absolute bottom-0 left-1/2 -translate-x-1/2 flex items-end justify-center gap-12">
                         <Strut />
                          <AnimatePresence>
-                            {foundParts.includes("strut1") && <motion.div initial={{opacity: 0}} animate={{opacity: 1}}><Strut /></motion.div>}
+                            {foundParts.includes("strut1") && <motion.div key="strut1" initial={{opacity: 0}} animate={{opacity: 1}}><Strut /></motion.div>}
                         </AnimatePresence>
                         <div className="w-48"/>
                          <AnimatePresence>
-                            {foundParts.includes("strut2") && <motion.div initial={{opacity: 0}} animate={{opacity: 1}}><Strut /></motion.div>}
+                            {foundParts.includes("strut2") && <motion.div key="strut2" initial={{opacity: 0}} animate={{opacity: 1}}><Strut /></motion.div>}
                         </AnimatePresence>
                         <Strut />
                     </div>
