@@ -7,25 +7,29 @@ import { Hat, Shirt, Shoes } from './robot-accessories';
 
 // --- Body Shape Components ---
 
-const HeadZappy = ({ pupilX, pupilY }: any) => (
-     <motion.g initial={{ scale: 0 }} animate={{ scale: 1, transition: { delay: 0.3 } }}>
+const HeadZappy = ({ pupilX, pupilY, color }: any) => (
+    <motion.g initial={{ scale: 0 }} animate={{ scale: 1, transition: { delay: 0.3 } }}>
+        <circle cx="100" cy="100" r="40" fill={color} />
+        {/* Ears */}
+        <path d="M 60 80 C 40 40, 80 50, 75 80" fill={color} stroke="#4B5563" strokeWidth="2.5" />
+        <path d="M 140 80 C 160 40, 120 50, 125 80" fill={color} stroke="#4B5563" strokeWidth="2.5" />
         <g>
-            <ellipse cx="80" cy="115" rx="16" ry="18" fill="white" />
-            <motion.ellipse cx="80" cy="115" rx="8" ry="9" fill="black" style={{ x: pupilX, y: pupilY }}/>
-            <circle cx="78" cy="108" r="3" fill="white" />
-            <ellipse cx="120" cy="115" rx="16" ry="18" fill="white" />
-            <motion.ellipse cx="120" cy="115" rx="8" ry="9" fill="black" style={{ x: pupilX, y: pupilY }}/>
-            <circle cx="118" cy="108" r="3" fill="white" />
+            <ellipse cx="85" cy="105" rx="12" ry="14" fill="white" />
+            <motion.ellipse cx="85" cy="105" rx="6" ry="7" fill="black" style={{ x: pupilX, y: pupilY }}/>
+            <circle cx="83" cy="99" r="2.5" fill="white" />
+            
+            <ellipse cx="115" cy="105" rx="12" ry="14" fill="white" />
+            <motion.ellipse cx="115" cy="105" rx="6" ry="7" fill="black" style={{ x: pupilX, y: pupilY }}/>
+            <circle cx="113" cy="99" r="2.5" fill="white" />
         </g>
-        <path d="M 95 150 Q 100 155 105 150" stroke="black" strokeWidth="3.5" fill="none" strokeLinecap="round" />
-        <path d="M 98 150 C 99 152, 101 152, 102 150" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+        <path d="M 95 125 Q 100 130 105 125" stroke="black" strokeWidth="3.5" fill="none" strokeLinecap="round" />
     </motion.g>
 );
 
 const TorsoZappy = ({ color }: any) => (
     <>
         {/* Body */}
-        <motion.path d="M 60 210 C 20 140, 40 20, 100 20 C 160 20, 180 140, 140 210 Z" fill={color} 
+        <motion.path d="M 70 210 C 70 150, 130 150, 130 210 Z" fill={color} 
             initial={{ scaleY: 1, y: 0 }}
             animate={{ scaleY: [1, 0.98, 1], y: [0, 5, 0] }}
             transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
@@ -33,9 +37,6 @@ const TorsoZappy = ({ color }: any) => (
         {/* Feet */}
         <path d="M 70 210 Q 55 230 80 225 Q 105 230 85 210" fill="#4B5563" />
         <path d="M 115 210 Q 100 230 125 225 Q 150 230 130 210" fill="#4B5563" />
-        {/* Ears */}
-        <path d="M 60 80 C 40 40, 80 50, 75 80" fill={color} stroke="#4B5563" strokeWidth="2.5" />
-        <path d="M 140 80 C 160 40, 120 50, 125 80" fill={color} stroke="#4B5563" strokeWidth="2.5" />
         {/* Hands */}
         <motion.path d="M 50 170 C 25 160, 30 190, 55 185" fill={color} 
             initial={{ rotate: 0 }}
@@ -212,8 +213,8 @@ const TorsoPuff = ({ color }: any) => (
         <path d="M 65 95 Q 35 65, 75 80" fill={color} stroke="#F472B6" strokeWidth="3.5" />
         <path d="M 135 95 Q 165 65, 125 80" fill={color} stroke="#F472B6" strokeWidth="3.5" />
         {/* Hands */}
-        <path d="M 30 165 Q 5 155 20 145" stroke={color} strokeWidth="30" fill="none" strokeLinecap="round"/>
-        <path d="M 170 165 Q 195 155 180 145" stroke={color} strokeWidth="30" fill="none" strokeLinecap="round"/>
+        <path d="M 30 165 Q 5 155, 20 145" stroke={color} strokeWidth="30" fill="none" strokeLinecap="round"/>
+        <path d="M 170 165 Q 195 155, 180 145" stroke={color} strokeWidth="30" fill="none" strokeLinecap="round"/>
     </>
 );
 
@@ -533,16 +534,6 @@ const HeadWhispy = ({ pupilX, pupilY }: any) => (
             <circle cx="113" cy="125" r="2" fill="white" />
         </g>
         <path d="M 98 150 C 100 152, 100 152, 102 150" stroke="black" strokeWidth="2" fill="none" strokeLinecap="round"/>
-    </motion.g>
-);
-
-const TorsoWhispy = ({ color }: any) => (
-    <>
-        <motion.path d="M 100 50 C 40 80, 40 170, 70 200 C 80 210, 120 210, 130 200 C 160 170, 160 80, 100 50 Z" fill={color}
-            initial={{ y: 0 }}
-            animate={{ y: [0, -8, 0] }}
-            transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-        />
         {/* Flame (Ear) */}
         <motion.path
             d="M 100 40 Q 90 20 100 0 Q 110 20 100 40"
@@ -555,6 +546,16 @@ const TorsoWhispy = ({ color }: any) => (
             fill="yellow"
             animate={{ scaleY: [1, 1.1, 1], y: [0, -3, 0] }}
             transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.2 }}
+        />
+    </motion.g>
+);
+
+const TorsoWhispy = ({ color }: any) => (
+    <>
+        <motion.path d="M 100 50 C 40 80, 40 170, 70 200 C 80 210, 120 210, 130 200 C 160 170, 160 80, 100 50 Z" fill={color}
+            initial={{ y: 0 }}
+            animate={{ y: [0, -8, 0] }}
+            transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
         />
     </>
 );
@@ -573,7 +574,7 @@ const HeadSpikey = ({ pupilX, pupilY }: any) => (
 );
 
 const TorsoSpikey = ({ color }: any) => (
-    <g transform="scale(1.2) translate(-17, 0)">
+    <g transform="scale(1.2, 1) translate(-17, 30)">
         {/* Body */}
         <path d="M 70 210 C 70 120, 130 120, 130 210 Z" fill={color} />
         {/* Spikes (Ears) */}
