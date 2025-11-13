@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -14,7 +13,7 @@ import { auth, db } from '@/lib/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 
 const eggShellVariants = {
-  initial: { rotate: 0 },
+  initial: { rotate: 0, scale: 1 },
   shake: { rotate: [0, -3, 3, -3, 3, 0], transition: { duration: 0.5 } },
   crack: {
     y: [0, -10, 0],
@@ -22,16 +21,18 @@ const eggShellVariants = {
     transition: { duration: 0.7 }
   },
   breakTop: {
-    y: -80,
-    x: -30,
-    rotate: -45,
+    y: -50,
+    x: -20,
+    rotate: -35,
+    scale: 0.9,
     opacity: 0,
-    transition: { duration: 0.8, delay: 0.2, ease: 'easeOut' }
+    transition: { duration: 0.8, delay: 0.3, ease: 'easeOut' }
   },
   breakBottom: {
-    y: 30,
+    y: 20,
+    scale: 0.95,
     opacity: 0,
-    transition: { duration: 0.8, delay: 0.2, ease: 'easeOut' }
+    transition: { duration: 0.8, delay: 0.3, ease: 'easeOut' }
   }
 };
 
@@ -103,19 +104,25 @@ export default function HatchPage() {
                                 variants={eggShellVariants}
                                 animate={hatchState}
                             >
-                                <motion.div variants={eggShellVariants} animate="breakTop" custom={-1}>
-                                    <svg viewBox="0 0 100 100" className="absolute w-full h-full">
-                                        <path d="M 50 0 A 40 50 0 0 1 50 100" fill="#f0e68c" />
-                                        <path d="M 50 0 A 40 50 0 0 0 50 100" fill="#f8f0a4" />
-                                    </svg>
-                                </motion.div>
-                                <motion.div variants={eggShellVariants} animate="breakBottom" custom={1}>
-                                     <svg viewBox="0 0 100 100" className="absolute w-full h-full">
-                                        <path d="M 50 0 A 40 50 0 0 1 50 100 L 50 50 Z" fill="#f8f0a4" />
-                                        <path d="M 50 0 A 40 50 0 0 0 50 100 L 50 50 Z" fill="#f0e68c" />
-                                     </svg>
-                                </motion.div>
-                                {hatchState === 'cracking' && <div className="absolute top-1/2 left-0 w-full h-px bg-black/20 transform -translate-y-1/2 rotate-[-10deg]"></div>}
+                               <svg viewBox="0 0 100 100" className="absolute w-full h-full drop-shadow-lg">
+                                    <motion.path 
+                                        d="M 20 50 A 30 40 0 0 1 80 50" 
+                                        fill="#fefce8"
+                                        stroke="#fde047"
+                                        strokeWidth="1"
+                                        variants={eggShellVariants} 
+                                        animate="breakTop"
+                                    />
+                                     <motion.path 
+                                        d="M 20 50 A 30 40 0 0 0 80 50 L 80 90 L 20 90 Z" 
+                                        fill="#fefce8"
+                                        stroke="#fde047"
+                                        strokeWidth="1"
+                                        variants={eggShellVariants} 
+                                        animate="breakBottom"
+                                    />
+                                    {hatchState === 'cracking' && <path d="M 40 45 L 60 55" stroke="#a16207" strokeWidth="1.5" />}
+                                </svg>
                             </motion.div>
                         </div>
 
