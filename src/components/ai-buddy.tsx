@@ -74,16 +74,16 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, color, hat, shirt, shoes, 
     };
     
     useEffect(() => {
-        if (isMounted) {
+        if (isMounted && !isStatic) {
             window.addEventListener('mousemove', handleMouseMove);
             return () => {
                 window.removeEventListener('mousemove', handleMouseMove);
             };
         }
-    }, [isMounted]);
+    }, [isMounted, isStatic]);
 
-    const pupilX = useTransform(mouse.x, [0, 1], [-6, 6]);
-    const pupilY = useTransform(mouse.y, [0, 1], [-4, 4]);
+    const pupilX = useTransform(mouse.x, [0, 1], [-4, 4]);
+    const pupilY = useTransform(mouse.y, [0, 1], [-3, 3]);
     
 
     if (!isMounted) {
@@ -103,9 +103,9 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, color, hat, shirt, shoes, 
                 animate="animate"
             >
                 <defs>
-                    <radialGradient id="bodyGradient" cx="50%" cy="50%" r="50%">
-                        <stop offset="0%" style={{stopColor: '#ffffff', stopOpacity: 0.3}} />
-                        <stop offset="100%" style={{stopColor: '#ffffff', stopOpacity: 0}} />
+                    <radialGradient id="bodyGradient" cx="50%" cy="40%" r="60%">
+                        <stop offset="0%" style={{stopColor: 'white', stopOpacity: 0.3}} />
+                        <stop offset="100%" style={{stopColor: 'white', stopOpacity: 0}} />
                     </radialGradient>
                 </defs>
 
@@ -128,91 +128,64 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, color, hat, shirt, shoes, 
                 <motion.g
                      animate={bodyAnimation}
                 >
-                    {/* Feet/Shoes */}
+                    {/* Feet */}
                     <Shoes name={shoes} />
                     
-                     {/* Body */}
-                     <motion.g
+                    {/* Main Body - Creature Shape */}
+                    <motion.g
                         initial={{ y: 200, opacity: 0 }}
                         animate={{ y: 0, opacity: 1, transition: { type: 'spring', stiffness: 100, damping: 15, delay: 0.2 } }}
                     >
-                        {/* Legs */}
-                        <rect x="75" y="150" width="15" height="25" fill={bodyColor} />
-                        <rect x="110" y="150" width="15" height="25" fill={bodyColor} />
-                        
-                        {/* Main Body - Bigger */}
-                        <rect x="65" y="100" width="70" height="60" rx="20" fill={bodyColor} />
-                        
-                        {/* Shirt */}
-                        <Shirt name={shirt} />
-
-                        <rect x="65" y="100" width="70" height="60" rx="20" fill="url(#bodyGradient)" />
+                        {/* Body */}
+                        <path 
+                            d="M 60,170 C 40,140 40,80 70,60 C 90,40 110,40 130,60 C 160,80 160,140 140,170 Z" 
+                            fill={bodyColor} 
+                        />
+                        {/* Belly Patch */}
+                        <path 
+                             d="M 80,165 C 70,145 70,110 100,105 C 130,110 130,145 120,165 Z"
+                             fill="rgba(255, 255, 255, 0.2)"
+                        />
+                         <path 
+                            d="M 60,170 C 40,140 40,80 70,60 C 90,40 110,40 130,60 C 160,80 160,140 140,170 Z" 
+                            fill="url(#bodyGradient)"
+                        />
                     </motion.g>
 
-                    {/* Arms */}
                     <motion.g
-                        animate={{ rotate: isStatic ? 0 : [0, -8, 0, 8, 0], transition: { duration: 5, repeat: Infinity, ease: 'easeInOut' } }}
-                        style={{ transformOrigin: '70px 115px' }}
-                    >
-                        <rect x="45" y="110" width="20" height="35" rx="10" fill={bodyColor} />
-                    </motion.g>
-                     <motion.g
-                        animate={{ rotate: isStatic ? 0 : [0, 8, 0, -8, 0], transition: { duration: 5, delay: 0.5, repeat: Infinity, ease: 'easeInOut' }}}
-                        style={{ transformOrigin: '130px 115px' }}
-                    >
-                        <rect x="135" y="110" width="20" height="35" rx="10" fill={bodyColor} />
-                    </motion.g>
-                    
-
-                    {/* Head */}
-                     <motion.g
                         initial={{ scale: 0 }}
                         animate={{ scale: 1, transition: { delay: 0.3, type: 'spring', stiffness: 120 } }}
-                     >
-                        <rect x="50" y="30" width="100" height="80" rx="40" fill={bodyColor} />
-                        <rect x="50" y="30" width="100" height="80" rx="40" fill="url(#bodyGradient)" />
-
-                        {/* Antenna or Hat */}
-                        {(hat && hat !== 'None') ? (
-                            <Hat name={hat} />
-                        ) : (
-                          <motion.g 
-                              style={{ transformOrigin: '100px 30px'}}
-                              animate={{ rotate: isStatic ? 0 : [-5, 5, -5], transition: { duration: 6, repeat: Infinity, ease: 'linear' }}}
-                          >
-                              <line x1="100" y1="30" x2="100" y2="10" stroke="#333" strokeWidth="3" />
-                              <circle cx="100" cy="8" r="5" fill="#FFC700" />
-                          </motion.g>
-                        )}
-                        
-                        {/* Face Screen */}
-                        <rect x="65" y="50" width="70" height="45" rx="15" fill="#222" />
-                        
+                    >
                         {/* Eyes */}
                         <g>
                             {/* Left Eye */}
-                            <circle cx="85" cy="72" r="10" fill="white" />
+                            <circle cx="85" cy="85" r="15" fill="white" />
                             <motion.circle 
                                 cx="85" 
-                                cy="72" 
-                                r="5" 
+                                cy="85" 
+                                r="8" 
                                 fill="black"
                                 style={{ x: pupilX, y: pupilY }}
                             />
+                             <circle cx="80" cy="78" r="3" fill="white" />
                             
                              {/* Right Eye */}
-                            <circle cx="115" cy="72" r="10" fill="white" />
+                            <circle cx="115" cy="85" r="15" fill="white" />
                              <motion.circle 
                                 cx="115" 
-                                cy="72" 
-                                r="5" 
+                                cy="85" 
+                                r="8" 
                                 fill="black"
                                 style={{ x: pupilX, y: pupilY }}
                             />
-                            
-                             {/* Mouth */}
-                            <path d="M92,88 Q100,93 108,88" stroke="white" strokeWidth="2" fill="none" strokeLinecap="round" />
+                             <circle cx="110" cy="78" r="3" fill="white" />
                         </g>
+
+                         {/* Mouth */}
+                        <path d="M 95,105 Q 100,110 105,105" stroke="black" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+
+                        {/* Hat */}
+                        <Hat name={hat} />
                     </motion.g>
                 </motion.g>
             </motion.svg>

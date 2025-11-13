@@ -69,8 +69,7 @@ export default function HatchPage() {
             return;
         }
         if (user) {
-            localStorage.setItem(`tazName_${user.uid}`, petName);
-            localStorage.setItem(`tazColor_${user.uid}`, petColor);
+            localStorage.setItem(`aiBuddyName`, petName);
             
             const userRef = doc(db, 'users', user.uid);
             await updateDoc(userRef, {
