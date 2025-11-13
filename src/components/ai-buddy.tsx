@@ -102,11 +102,54 @@ const BodyGoop = ({ color, pupilX, pupilY }: any) => (
     </>
 );
 
+const BodyGhosty = ({ color, pupilX, pupilY }: any) => (
+    <>
+        <path d="M 60,100 C 60,50 140,50 140,100 V 170 Q 120,160 100,170 Q 80,180 60,170 Z" fill={color} />
+        <motion.g initial={{ scale: 0 }} animate={{ scale: 1, transition: { delay: 0.3, type: 'spring', stiffness: 120 } }}>
+            <g>
+                <path d="M 80 90 L 90 100 L 100 90" stroke="white" fill="none" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M 110 90 L 120 100 L 130 90" stroke="white" fill="none" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+            </g>
+            <path d="M 95,120 Q 105,130 115,120" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+        </motion.g>
+    </>
+);
+
+const BodyRocky = ({ color, pupilX, pupilY }: any) => (
+    <>
+        <path d="M 60,170 L 50,120 L 70,80 L 100,70 L 130,80 L 150,120 L 140,170 Z" fill={color} />
+        <motion.g initial={{ scale: 0 }} animate={{ scale: 1, transition: { delay: 0.3, type: 'spring', stiffness: 120 } }}>
+            <g>
+                <rect x="80" y="100" width="15" height="10" fill="black" />
+                <rect x="115" y="100" width="15" height="10" fill="black" />
+            </g>
+            <rect x="90" y="125" width="30" height="5" fill="black" />
+        </motion.g>
+    </>
+);
+
+const BodyLeafy = ({ color, pupilX, pupilY }: any) => (
+    <>
+        <ellipse cx="100" cy="130" rx="40" ry="45" fill={color} />
+        <path d="M 95,60 C 80,40 120,40 105,60 Q 100,50 95,60" fill="#22c55e" />
+        <motion.g initial={{ scale: 0 }} animate={{ scale: 1, transition: { delay: 0.3, type: 'spring', stiffness: 120 } }}>
+            <g>
+                <motion.circle cx="85" cy="125" r="8" fill="black" style={{ x: pupilX, y: pupilY }} />
+                <motion.circle cx="115" cy="125" r="8" fill="black" style={{ x: pupilX, y: pupilY }} />
+            </g>
+            <path d="M 95,145 Q 100,155 105,145" stroke="black" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+        </motion.g>
+    </>
+);
+
 
 const speciesComponents: Record<string, React.FC<any>> = {
     "Bulby": BodyBulby,
     "Spike": BodySpike,
     "Goop": BodyGoop,
+    "Ghosty": BodyGhosty,
+    "Rocky": BodyRocky,
+    "Leafy": BodyLeafy,
 };
 
 const AIBuddy: React.FC<AIBuddyProps> = ({ className, species = "Bulby", color, hat, shirt, shoes, isStatic = false }) => {
@@ -182,6 +225,10 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, species = "Bulby", color, 
                     <radialGradient id="bodyGradient" cx="50%" cy="40%" r="60%">
                         <stop offset="0%" style={{stopColor: 'white', stopOpacity: 0.3}} />
                         <stop offset="100%" style={{stopColor: 'white', stopOpacity: 0}} />
+                    </radialGradient>
+                    <radialGradient id="glassReflection">
+                        <stop offset="0%" stopColor="white" stopOpacity="0.4" />
+                        <stop offset="100%" stopColor="white" stopOpacity="0.1" />
                     </radialGradient>
                 </defs>
 
