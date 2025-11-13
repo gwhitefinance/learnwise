@@ -355,39 +355,44 @@ const BodyVolty = ({ color, pupilX, pupilY }: any) => (
 
 const BodyPilgrim = ({ color, pupilX, pupilY }: any) => (
     <>
+        {/* Pear-shaped body */}
+        <path d="M 100,180 C 60,180 50,100 70,70 C 85,45 115,45 130,70 C 150,100 140,180 100,180 Z" fill={color} />
+        <path d="M 100,180 C 60,180 50,100 70,70 C 85,45 115,45 130,70 C 150,100 140,180 100,180 Z" fill="url(#bodyGradient)"/>
+        {/* Hands */}
+        <circle cx="65" cy="130" r="8" fill="#f3e8d7" />
+        <circle cx="135" cy="130" r="8" fill="#f3e8d7" />
+        {/* Feet */}
         <Shoes name="Pilgrim Shoes"/>
-        <path d="M 60,170 C 40,140 40,80 70,60 C 90,40 110,40 130,60 C 160,80 160,140 140,170 Z" fill={color} />
-        <path d="M 60,170 C 40,140 40,80 70,60 C 90,40 110,40 130,60 C 160,80 160,140 140,170 Z" fill="url(#bodyGradient)"/>
         <motion.g initial={{ scale: 0 }} animate={{ scale: 1, transition: { delay: 0.3 } }}>
             <g>
-                <circle cx="85" cy="85" r="15" fill="white" />
-                <motion.circle cx="85" cy="85" r="8" fill="black" style={{ x: pupilX, y: pupilY }} />
-                <circle cx="115" cy="85" r="15" fill="white" />
-                <motion.circle cx="115" cy="85" r="8" fill="black" style={{ x: pupilX, y: pupilY }} />
+                <circle cx="85" cy="100" r="10" fill="white" />
+                <motion.circle cx="85" cy="100" r="5" fill="black" style={{ x: pupilX, y: pupilY }} />
+                <circle cx="115" cy="100" r="10" fill="white" />
+                <motion.circle cx="115" cy="100" r="5" fill="black" style={{ x: pupilX, y: pupilY }} />
             </g>
-            <path d="M 95,105 Q 100,115 105,105" stroke="black" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+            <path d="M 98,115 Q 100,120 102,115" stroke="black" strokeWidth="2" fill="none" strokeLinecap="round" />
         </motion.g>
     </>
 );
 
 const BodyTurkey = ({ color, pupilX, pupilY }: any) => (
      <>
-        {/* Feet */}
-        <path d="M80 170 L 70 185 L 75 185" stroke="#FFA500" strokeWidth="3" fill="none" strokeLinecap="round" />
-        <path d="M80 170 L 80 185" stroke="#FFA500" strokeWidth="3" fill="none" strokeLinecap="round" />
-        <path d="M80 170 L 90 185 L 85 185" stroke="#FFA500" strokeWidth="3" fill="none" strokeLinecap="round" />
-        <path d="M120 170 L 110 185 L 115 185" stroke="#FFA500" strokeWidth="3" fill="none" strokeLinecap="round" />
-        <path d="M120 170 L 120 185" stroke="#FFA500" strokeWidth="3" fill="none" strokeLinecap="round" />
-        <path d="M120 170 L 130 185 L 125 185" stroke="#FFA500" strokeWidth="3" fill="none" strokeLinecap="round" />
-        {/* Body */}
-        <ellipse cx="100" cy="130" rx="40" ry="45" fill="#8B4513"/>
         {/* Tail Feathers */}
         <path d="M 100,130 C 50,130 30,80 50,50" fill="#d32f2f" />
         <path d="M 100,130 C 70,130 50,90 60,60" fill="#FFC107" />
         <path d="M 100,130 C 130,130 150,90 140,60" fill="#FFC107" />
         <path d="M 100,130 C 150,130 170,80 150,50" fill="#d32f2f" />
         <path d="M 100,130 C 100,80 100,40 100,40" stroke="#A0522D" strokeWidth="10" strokeLinecap="round" />
-
+        {/* Body */}
+        <ellipse cx="100" cy="130" rx="40" ry="45" fill="#8B4513"/>
+        {/* Wings as Hands */}
+        <path d="M 60,130 C 40,120 50,160 60,150" fill="#a0522d" />
+        <path d="M 140,130 C 160,120 150,160 140,150" fill="#a0522d" />
+        {/* Feet */}
+        <g stroke="#FFA500" strokeWidth="3" strokeLinecap="round">
+            <path d="M80 170 L 70 185 M80 170 L 80 185 M80 170 L 90 185" />
+            <path d="M120 170 L 110 185 M120 170 L 120 185 M120 170 L 130 185" />
+        </g>
         <motion.g initial={{ scale: 0 }} animate={{ scale: 1, transition: { delay: 0.3, type: 'spring', stiffness: 120 } }}>
             <g>
                 <circle cx="85" cy="125" r="10" fill="white" />
@@ -402,9 +407,13 @@ const BodyTurkey = ({ color, pupilX, pupilY }: any) => (
 
 const BodyViking = ({ color, pupilX, pupilY }: any) => (
     <>
+        {/* Stocky Body */}
+        <path d="M 60,175 C 60,100 140,100 140,175 Z" fill={color} />
+        {/* Hands */}
+        <circle cx="55" cy="130" r="12" fill={color} />
+        <circle cx="145" cy="130" r="12" fill={color} />
+        {/* Feet */}
         <Shoes name="Boots"/>
-        <path d="M 60,170 C 40,140 40,80 70,60 C 90,40 110,40 130,60 C 160,80 160,140 140,170 Z" fill={color} />
-        <path d="M 60,170 C 40,140 40,80 70,60 C 90,40 110,40 130,60 C 160,80 160,140 140,170 Z" fill="url(#bodyGradient)"/>
         <motion.g initial={{ scale: 0 }} animate={{ scale: 1, transition: { delay: 0.3 } }}>
             <g>
                 <circle cx="85" cy="85" r="15" fill="white" />
@@ -412,35 +421,44 @@ const BodyViking = ({ color, pupilX, pupilY }: any) => (
                 <circle cx="115" cy="85" r="15" fill="white" />
                 <motion.circle cx="115" cy="85" r="8" fill="black" style={{ x: pupilX, y: pupilY }} />
             </g>
-            <path d="M 95,105 Q 100,115 105,105" stroke="black" strokeWidth="2.5" fill="none" strokeLinecap="round" />
             {/* Beard */}
-            <path d="M 80,100 L 100,130 L 120,100" fill="orange" />
+            <path d="M 80,100 C 80,130 120,130 120,100 L 100,135 Z" fill="orange" />
+            <path d="M 95,105 Q 100,115 105,105" stroke="black" strokeWidth="2.5" fill="none" strokeLinecap="round" />
         </motion.g>
     </>
 );
 
 const BodyFedora = ({ color, pupilX, pupilY }: any) => (
     <>
+        {/* Slender Body */}
+        <path d="M 75,175 C 70,100 130,100 125,175 Z" fill={color} />
+        {/* Hands */}
+        <ellipse cx="70" cy="130" rx="6" ry="12" fill={color} />
+        <ellipse cx="130" cy="130" rx="6" ry="12" fill={color} />
+        {/* Feet */}
         <Shoes name="Formal Shoes"/>
-        <path d="M 60,170 C 40,140 40,80 70,60 C 90,40 110,40 130,60 C 160,80 160,140 140,170 Z" fill={color} />
-        <path d="M 60,170 C 40,140 40,80 70,60 C 90,40 110,40 130,60 C 160,80 160,140 140,170 Z" fill="url(#bodyGradient)"/>
         <motion.g initial={{ scale: 0 }} animate={{ scale: 1, transition: { delay: 0.3 } }}>
             <g>
-                <circle cx="85" cy="85" r="15" fill="white" />
-                <motion.circle cx="85" cy="85" r="8" fill="black" style={{ x: pupilX, y: pupilY }} />
-                <circle cx="115" cy="85" r="15" fill="white" />
-                <motion.circle cx="115" cy="85" r="8" fill="black" style={{ x: pupilX, y: pupilY }} />
+                <circle cx="90" cy="95" r="10" fill="white" />
+                <motion.circle cx="90" cy="95" r="5" fill="black" style={{ x: pupilX, y: pupilY }} />
+                <circle cx="110" cy="95" r="10" fill="white" />
+                <motion.circle cx="110" cy="95" r="5" fill="black" style={{ x: pupilX, y: pupilY }} />
             </g>
-            <path d="M 95,105 Q 100,115 105,105" stroke="black" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+            <path d="M 98,110 Q 100,115 102,110" stroke="black" strokeWidth="2" fill="none" strokeLinecap="round" />
         </motion.g>
     </>
 );
 
 const BodyKnight = ({ color, pupilX, pupilY }: any) => (
     <>
+        {/* Armored Body */}
+        <path d="M 70,175 L 60,100 L 140,100 L 130,175 Z" fill="#b0c4de" />
+        <rect x="65" y="120" width="70" height="10" fill="#a9a9a9" />
+        {/* Hands (Gauntlets) */}
+        <circle cx="55" cy="140" r="10" fill="#a9a9a9" />
+        <circle cx="145" cy="140" r="10" fill="#a9a9a9" />
+        {/* Feet */}
         <Shoes name="Knight Boots"/>
-        <path d="M 60,170 C 40,140 40,80 70,60 C 90,40 110,40 130,60 C 160,80 160,140 140,170 Z" fill={color} />
-        <path d="M 60,170 C 40,140 40,80 70,60 C 90,40 110,40 130,60 C 160,80 160,140 140,170 Z" fill="url(#bodyGradient)"/>
         <motion.g initial={{ scale: 0 }} animate={{ scale: 1, transition: { delay: 0.3 } }}>
             <g>
                 <rect x="75" y="75" width="50" height="20" fill="#333" />
