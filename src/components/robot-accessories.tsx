@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import React from 'react';
@@ -160,90 +159,67 @@ const hatComponents: Record<string, React.FC> = {
 };
 
 const shirtComponents: Record<string, React.FC> = {
-    "T-Shirt": () => <path d="M 75 125 L 70 145 L 130 145 L 125 125 Z" fill="#3b82f6" opacity="0.9" />,
+    "T-Shirt": () => (
+        <path
+            d="M 75 125 A 50 50 0 0 1 125 125 V 145 H 75 Z M 75 145 H 125 V 165 H 75 Z"
+            transform="translate(0, 10)"
+            fill="#3b82f6"
+            opacity="0.9"
+        />
+    ),
     "Ugly Christmas Sweater": () => (
-        <g>
-            <path d="M 75 125 L 70 185 L 130 185 L 125 125 Z" fill="#b91c1c" />
+        <g opacity="0.9">
+            <path d="M 70 120 C 70 120, 60 190, 60 190 H 140 C 140 190, 130 120, 130 120 C 120 110, 80 110, 70 120 Z" fill="#b91c1c" />
             <text x="85" y="160" fontSize="24" fill="white">🎄</text>
-            <path d="M 70 135 L 130 135" stroke="#166534" strokeWidth="4"/>
-            <path d="M 70 175 L 130 175" stroke="#166534" strokeWidth="4"/>
+            <rect x="65" y="130" width="70" height="4" fill="#166534"/>
+            <rect x="65" y="170" width="70" height="4" fill="#166534"/>
         </g>
     ),
     "Football Jersey": () => (
-         <g>
-            <path d="M 75 125 L 70 185 L 130 185 L 125 125 Z" fill="darkblue" />
+        <g opacity="0.9">
+            <path d="M 70 120 C 70 120, 60 190, 60 190 H 140 C 140 190, 130 120, 130 120 C 120 110, 80 110, 70 120 Z" fill="darkblue" />
             <text x="82" y="170" fontSize="40" fill="white" fontWeight="bold">88</text>
         </g>
     ),
     "Tuxedo": () => (
-        <g>
-            <path d="M 75 125 L 70 185 L 130 185 L 125 125 Z" fill="black" />
-            <path d="M 90 125 L 110 125 L 100 170 Z" fill="white" />
-            <path d="M 95 130 L 105 130 L 100 145 Z" fill="red" />
+        <g opacity="0.9">
+            <path d="M 70 120 C 70 120, 60 190, 60 190 H 140 C 140 190, 130 120, 130 120 C 120 110, 80 110, 70 120 Z" fill="black" />
+            <path d="M 90 120 L 110 120 L 100 170 Z" fill="white" />
+            <path d="M 95 125 L 105 125 L 100 140 Z" fill="red" />
         </g>
     ),
     "Lab Coat": () => (
-        <g>
-            <path d="M 75 125 L 70 185 L 130 185 L 125 125 Z" fill="white" stroke="#ccc" strokeWidth="1" />
+        <g opacity="0.9">
+            <path d="M 70 120 C 70 120, 60 190, 60 190 H 140 C 140 190, 130 120, 130 120 C 120 110, 80 110, 70 120 Z" fill="white" stroke="#ccc" strokeWidth="1"/>
             <rect x="80" y="135" width="8" height="15" fill="lightblue" rx="2" />
         </g>
     ),
-    "Superhero Cape": () => <path d="M 75 110 C 100 80, 100 80, 125 110 L 140 190 L 60 190 Z" fill="#dc2626" />,
+    "Superhero Cape": () => <path d="M 75 110 C 100 80, 100 80, 125 110 L 140 190 H 60 Z" fill="#dc2626" />,
     "Overalls": () => (
-        <g>
-            <rect x="70" y="150" width="60" height="40" fill="#3b82f6" />
-            <path d="M75 150 L 70 120" stroke="#3b82f6" strokeWidth="8" />
-            <path d="M125 150 L 130 120" stroke="#3b82f6" strokeWidth="8" />
+        <g opacity="0.9">
+            <path d="M 70 150 C 70 150, 65 190, 65 190 H 135 C 135 190, 130 150, 130 150 Z" fill="#3b82f6" />
+            <path d="M 80 150 L 75 120" stroke="#3b82f6" strokeWidth="8" />
+            <path d="M 120 150 L 125 120" stroke="#3b82f6" strokeWidth="8" />
         </g>
     ),
-    "Hoodie": () => <path d="M 75 125 L 70 185 L 130 185 L 125 125 Z" fill="#6b7280" />,
+    "Hoodie": () => <path d="M 70 120 C 70 120, 60 190, 60 190 H 140 C 140 190, 130 120, 130 120 C 120 110, 80 110, 70 120 Z" fill="#6b7280" opacity="0.9" />,
     "Striped Shirt": () => (
-        <g>
-            <path d="M 75 125 L 70 185 L 130 185 L 125 125 Z" fill="white" />
-            <path d="M 70 135 L 130 135" stroke="#3b82f6" strokeWidth="8" />
-            <path d="M 70 155 L 130 155" stroke="#3b82f6" strokeWidth="8" />
-            <path d="M 70 175 L 130 175" stroke="#3b82f6" strokeWidth="8" />
+        <g opacity="0.9">
+            <path d="M 70 120 C 70 120, 60 190, 60 190 H 140 C 140 190, 130 120, 130 120 C 120 110, 80 110, 70 120 Z" fill="white" />
+            <rect x="65" y="130" width="70" height="8" fill="#3b82f6"/>
+            <rect x="65" y="150" width="70" height="8" fill="#3b82f6"/>
+            <rect x="65" y="170" width="70" height="8" fill="#3b82f6"/>
         </g>
     ),
     "Polka Dot Shirt": () => (
-        <g>
-            <path d="M 75 125 L 70 185 L 130 185 L 125 125 Z" fill="#ef4444" />
+        <g opacity="0.9">
+            <path d="M 70 120 C 70 120, 60 190, 60 190 H 140 C 140 190, 130 120, 130 120 C 120 110, 80 110, 70 120 Z" fill="#ef4444" />
             <circle cx="85" cy="140" r="5" fill="white" />
             <circle cx="115" cy="140" r="5" fill="white" />
             <circle cx="100" cy="160" r="5" fill="white" />
         </g>
     ),
-    "Sweater": () => <path d="M 75 125 L 70 185 L 130 185 L 125 125 Z" fill="#fbbf24" />,
-    "Plain Tee": () => <path d="M 75 125 L 70 145 L 130 145 L 125 125 Z" fill="#14b8a6" opacity="0.9" />,
-    "V-Neck": () => <path d="M 75 125 L 70 145 L 100 165 L 130 145 L 125 125 Z" fill="#8b5cf6" opacity="0.9" />,
-    "Pocket Tee": () => (
-        <g>
-            <path d="M 75 125 L 70 145 L 130 145 L 125 125 Z" fill="#ec4899" opacity="0.9" />
-            <rect x="80" y="130" width="15" height="12" fill="#db2777" rx="2" />
-        </g>
-    ),
-    "Long-Sleeve Tee": () => (
-        <>
-            <path d="M 75 125 L 70 145 L 130 145 L 125 125 Z" fill="#6366f1" opacity="0.9" />
-            <rect x="50" y="125" width="25" height="40" fill="#6366f1" rx="5" opacity="0.9" />
-            <rect x="125" y="125" width="25" height="40" fill="#6366f1" rx="5" opacity="0.9" />
-        </>
-    ),
-    "Basic Tank Top": () => (
-        <g>
-            <path d="M 85 125 L 80 185 L 120 185 L 115 125 Z" fill="#f59e0b" opacity="0.9" />
-            <path d="M85 125 C 80 115, 75 115, 70 125" stroke="#f59e0b" strokeWidth="6" fill="none" />
-            <path d="M115 125 C 120 115, 125 115, 130 125" stroke="#f59e0b" strokeWidth="6" fill="none" />
-        </g>
-    ),
-    "Henley Shirt": () => (
-        <g>
-            <path d="M 75 125 L 70 145 L 130 145 L 125 125 Z" fill="#10b981" opacity="0.9" />
-            <rect x="95" y="125" width="10" height="20" fill="#059669" />
-            <circle cx="100" cy="132" r="2" fill="white" />
-            <circle cx="100" cy="138" r="2" fill="white" />
-        </g>
-    ),
+    "Sweater": () => <path d="M 70 120 C 70 120, 60 190, 60 190 H 140 C 140 190, 130 120, 130 120 C 120 110, 80 110, 70 120 Z" fill="#fbbf24" opacity="0.9" />,
 };
 
 
