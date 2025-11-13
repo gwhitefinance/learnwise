@@ -28,25 +28,25 @@ const HeadZappy = ({ pupilX, pupilY, color }: any) => (
 );
 
 const TorsoZappy = ({ color }: any) => (
-    <>
+    <g transform="translate(0, -30)">
         {/* Body */}
         <motion.ellipse
             cx="100"
-            cy="155"
-            rx="55"
-            ry="50"
+            cy="145"
+            rx="45"
+            ry="45"
             fill={color}
             initial={{ scaleY: 1, y: 0 }}
             animate={{ scaleY: [1, 0.98, 1], y: [0, 5, 0] }}
             transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
         />
         {/* Feet */}
-        <path d="M 60 195 C 60 180, 90 180, 90 195" fill="#4B5563" />
-        <path d="M 110 195 C 110 180, 140 180, 140 195" fill="#4B5563" />
+        <ellipse cx="80" cy="190" rx="15" ry="10" fill="#4B5563" />
+        <ellipse cx="120" cy="190" rx="15" ry="10" fill="#4B5563" />
         {/* Hands */}
         <motion.circle 
-            cx="40" 
-            cy="150" 
+            cx="45" 
+            cy="145" 
             r="15" 
             fill={color} 
             initial={{ rotate: 0, x: 0 }}
@@ -54,15 +54,15 @@ const TorsoZappy = ({ color }: any) => (
             transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 0.2 }}
         />
         <motion.circle 
-            cx="160" 
-            cy="150" 
+            cx="155" 
+            cy="145" 
             r="15" 
             fill={color} 
             initial={{ rotate: 0, x: 0 }}
             animate={{ rotate: [5, -5, 5] }}
             transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 0.2 }}
         />
-    </>
+    </g>
 );
 
 
