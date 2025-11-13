@@ -285,6 +285,12 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
 
   const handleSuccessfulLogin = async (user: any) => {
     const userDocRef = doc(db, "users", user.uid);
@@ -382,7 +388,7 @@ export default function LoginPage() {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-900 p-4 relative overflow-hidden">
-        <WinterWonderland />
+        {isMounted && <WinterWonderland />}
        <Link href="/" className="absolute top-4 left-4 z-20">
             <Button variant="ghost" size="icon" className="bg-black/10 hover:bg-black/20 text-gray-800 rounded-full h-10 w-10">
               <X className="h-5 w-5 text-white" />
