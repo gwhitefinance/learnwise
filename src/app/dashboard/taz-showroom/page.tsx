@@ -1,9 +1,10 @@
+
 'use client';
 
 import AIBuddy from '@/components/ai-buddy';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-const allSpecies = ["Bulby", "Spike", "Goop", "Ghosty", "Rocky", "Leafy"];
+const allSpecies = ["Bulby", "Spike", "Goop", "Ghosty", "Rocky", "Leafy", "Dino"];
 
 export default function TazShowroomPage() {
     return (

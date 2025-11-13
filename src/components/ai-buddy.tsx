@@ -142,6 +142,50 @@ const BodyLeafy = ({ color, pupilX, pupilY }: any) => (
     </>
 );
 
+const BodyDino = ({ color, pupilX, pupilY }: any) => (
+    <>
+        {/* Main Body */}
+        <path 
+            d="M 50,180 C 50,120 30,80 70,50 C 90,30 110,30 130,50 C 170,80 150,120 150,180 Z"
+            fill={color} 
+        />
+        {/* Belly */}
+        <ellipse cx="100" cy="140" rx="35" ry="40" fill="rgba(255, 255, 255, 0.3)" />
+
+        <motion.g
+            initial={{ scale: 0 }}
+            animate={{ scale: 1, transition: { delay: 0.3, type: 'spring', stiffness: 120 } }}
+        >
+            <g>
+                {/* Left Eye */}
+                <circle cx="85" cy="80" r="12" fill="white" />
+                <circle cx="85" cy="80" r="8" fill="#22c55e" />
+                <motion.circle 
+                    cx="85" 
+                    cy="80" 
+                    r="5" 
+                    fill="black"
+                    style={{ x: pupilX, y: pupilY }}
+                />
+                 <circle cx="82" cy="76" r="2.5" fill="white" />
+                
+                 {/* Right Eye */}
+                <circle cx="115" cy="80" r="12" fill="white" />
+                <circle cx="115" cy="80" r="8" fill="#22c55e" />
+                 <motion.circle 
+                    cx="115" 
+                    cy="80" 
+                    r="5" 
+                    fill="black"
+                    style={{ x: pupilX, y: pupilY }}
+                />
+                 <circle cx="112" cy="76" r="2.5" fill="white" />
+            </g>
+             {/* Mouth */}
+            <path d="M 95,100 C 98,98 102,98 105,100" stroke="#a16207" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+        </motion.g>
+    </>
+);
 
 const speciesComponents: Record<string, React.FC<any>> = {
     "Bulby": BodyBulby,
@@ -150,10 +194,11 @@ const speciesComponents: Record<string, React.FC<any>> = {
     "Ghosty": BodyGhosty,
     "Rocky": BodyRocky,
     "Leafy": BodyLeafy,
+    "Dino": BodyDino,
 };
 
 const AIBuddy: React.FC<AIBuddyProps> = ({ className, species = "Bulby", color, hat, shirt, shoes, isStatic = false }) => {
-    const [bodyColor, setBodyColor] = useState('#87CEEB');
+    const [bodyColor, setBodyColor] = useState('#fde047');
     const [isMounted, setIsMounted] = useState(false);
 
     useEffect(() => {
@@ -162,6 +207,10 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, species = "Bulby", color, 
 
     useEffect(() => {
         if (isMounted) {
+            if (species === "Dino") {
+                setBodyColor('#fde047');
+                return;
+            }
             const colors = [
                 { "name": "Default", "hex": "#87CEEB" },
                 { "name": "Mint", "hex": "#98FF98" },
@@ -171,7 +220,7 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, species = "Bulby", color, 
             const selectedColor = colors.find(c => c.name === color)?.hex || color || '#87CEEB';
             setBodyColor(selectedColor);
         }
-    }, [color, isMounted]);
+    }, [color, species, isMounted]);
 
 
     const containerRef = useRef<HTMLDivElement>(null);
