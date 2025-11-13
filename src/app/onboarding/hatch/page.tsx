@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -41,20 +42,25 @@ const tazVariants = {
     visible: { scale: 1, y: 0, transition: { type: 'spring', stiffness: 100, damping: 10, delay: 0.5 } }
 }
 
+const tazSpecies = ["Bulby", "Spike", "Goop"];
+
 export default function HatchPage() {
     const [hatchState, setHatchState] = useState<'idle' | 'shaking' | 'cracking' | 'hatched'>('idle');
     const [petName, setPetName] = useState('');
     const [petColor, setPetColor] = useState('');
+    const [petSpecies, setPetSpecies] = useState('');
     const router = useRouter();
     const { toast } = useToast();
     const [user] = useAuthState(auth);
 
     useEffect(() => {
-        // Generate a unique pet color based on user ID
+        // Generate a unique pet color and species based on user ID
         if (user) {
             const hash = user.uid.split('').reduce((acc, char) => char.charCodeAt(0) + ((acc << 5) - acc), 0);
             const hue = hash % 360;
+            const speciesIndex = Math.abs(hash) % tazSpecies.length;
             setPetColor(`hsl(${hue}, 70%, 60%)`);
+            setPetSpecies(tazSpecies[speciesIndex]);
         }
     }, [user]);
 
@@ -77,6 +83,7 @@ export default function HatchPage() {
                 taz: {
                     name: petName,
                     color: petColor,
+                    species: petSpecies,
                     level: 1,
                     xp: 0,
                 }
@@ -99,31 +106,29 @@ export default function HatchPage() {
                         <p className="text-muted-foreground text-lg mb-12">This is your new AI-powered study buddy, a Taz. What's inside?</p>
                         
                         <div className="relative w-64 h-80 mx-auto cursor-pointer" onClick={handleHatch}>
-                            <motion.div 
-                                className="absolute inset-0"
+                             <motion.svg
+                                viewBox="0 0 100 125"
+                                className="absolute inset-0 w-full h-full drop-shadow-lg"
+                                style={{ transformOrigin: "bottom center" }}
                                 variants={eggShellVariants}
                                 animate={hatchState}
                             >
-                               <svg viewBox="0 0 100 100" className="absolute w-full h-full drop-shadow-lg">
-                                    <motion.path 
-                                        d="M 20 50 A 30 40 0 0 1 80 50" 
-                                        fill="#fefce8"
-                                        stroke="#fde047"
-                                        strokeWidth="1"
-                                        variants={eggShellVariants} 
-                                        animate="breakTop"
+                                <motion.path
+                                    d="M 50,5 C 20,5 10,40 10,75 C 10,110 40,120 50,120 C 60,120 90,110 90,75 C 90,40 80,5 50,5 Z"
+                                    fill="#fefce8"
+                                    stroke="#fde047"
+                                    strokeWidth="1"
+                                />
+                                {hatchState === 'cracking' && (
+                                    <motion.path
+                                        d="M 40 50 L 60 70 M 50 50 L 45 75"
+                                        stroke="#a16207"
+                                        strokeWidth="1.5"
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
                                     />
-                                     <motion.path 
-                                        d="M 20 50 A 30 40 0 0 0 80 50 L 80 90 L 20 90 Z" 
-                                        fill="#fefce8"
-                                        stroke="#fde047"
-                                        strokeWidth="1"
-                                        variants={eggShellVariants} 
-                                        animate="breakBottom"
-                                    />
-                                    {hatchState === 'cracking' && <path d="M 40 45 L 60 55" stroke="#a16207" strokeWidth="1.5" />}
-                                </svg>
-                            </motion.div>
+                                )}
+                            </motion.svg>
                         </div>
 
                          <Button size="lg" onClick={handleHatch} className="mt-12" disabled={hatchState !== 'idle'}>
@@ -137,12 +142,12 @@ export default function HatchPage() {
                         animate={{ opacity: 1, scale: 1 }}
                         className="w-full max-w-md"
                     >
-                        <h1 className="text-4xl font-bold mb-4">It's a baby Taz!</h1>
+                        <h1 className="text-4xl font-bold mb-4">It's a baby {petSpecies}!</h1>
                         <p className="text-muted-foreground text-lg mb-8">This little creature will grow as you learn. Give it a name!</p>
                         
                         <div className="w-48 h-48 mx-auto">
                             <motion.div variants={tazVariants} initial="hidden" animate="visible">
-                                <AIBuddy color={petColor} className="w-full h-full"/>
+                                <AIBuddy species={petSpecies} color={petColor} className="w-full h-full"/>
                             </motion.div>
                         </div>
                         
