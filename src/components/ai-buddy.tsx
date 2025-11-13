@@ -28,22 +28,21 @@ const HeadZappy = ({ pupilX, pupilY, color }: any) => (
 
 const TorsoZappy = ({ color }: any) => (
     <>
-        {/* Neck */}
-        <rect x="90" y="135" width="20" height="10" fill={color} />
         {/* Body */}
         <motion.rect
             x="60"
-            y="145"
+            y="135"
             width="80"
-            height="60"
+            height="65"
+            rx="20"
             fill={color}
             initial={{ scaleY: 1, y: 0 }}
             animate={{ scaleY: [1, 0.98, 1], y: [0, 5, 0] }}
             transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
         />
         {/* Feet */}
-        <path d="M 60 205 C 60 225, 90 225, 90 205" fill="#4B5563" />
-        <path d="M 110 205 C 110 225, 140 225, 140 205" fill="#4B5563" />
+        <path d="M 60 200 C 60 220, 90 220, 90 200" fill="#4B5563" />
+        <path d="M 110 200 C 110 220, 140 220, 140 200" fill="#4B5563" />
         {/* Hands */}
         <motion.path
             d="M 60 160 C 40 160, 40 190, 60 190 V 210 C 60 180, 60 160, 60 160"
