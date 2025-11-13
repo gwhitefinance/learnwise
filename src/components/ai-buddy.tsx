@@ -353,6 +353,103 @@ const BodyVolty = ({ color, pupilX, pupilY }: any) => (
     </>
 );
 
+const BodyPilgrim = ({ color, pupilX, pupilY }: any) => (
+    <>
+        <Shoes name="Pilgrim Shoes"/>
+        <path d="M 60,170 C 40,140 40,80 70,60 C 90,40 110,40 130,60 C 160,80 160,140 140,170 Z" fill={color} />
+        <path d="M 60,170 C 40,140 40,80 70,60 C 90,40 110,40 130,60 C 160,80 160,140 140,170 Z" fill="url(#bodyGradient)"/>
+        <motion.g initial={{ scale: 0 }} animate={{ scale: 1, transition: { delay: 0.3 } }}>
+            <g>
+                <circle cx="85" cy="85" r="15" fill="white" />
+                <motion.circle cx="85" cy="85" r="8" fill="black" style={{ x: pupilX, y: pupilY }} />
+                <circle cx="115" cy="85" r="15" fill="white" />
+                <motion.circle cx="115" cy="85" r="8" fill="black" style={{ x: pupilX, y: pupilY }} />
+            </g>
+            <path d="M 95,105 Q 100,115 105,105" stroke="black" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+        </motion.g>
+    </>
+);
+
+const BodyTurkey = ({ color, pupilX, pupilY }: any) => (
+     <>
+        {/* Feet */}
+        <path d="M80 170 L 70 185 L 75 185" stroke="#FFA500" strokeWidth="3" fill="none" strokeLinecap="round" />
+        <path d="M80 170 L 80 185" stroke="#FFA500" strokeWidth="3" fill="none" strokeLinecap="round" />
+        <path d="M80 170 L 90 185 L 85 185" stroke="#FFA500" strokeWidth="3" fill="none" strokeLinecap="round" />
+        <path d="M120 170 L 110 185 L 115 185" stroke="#FFA500" strokeWidth="3" fill="none" strokeLinecap="round" />
+        <path d="M120 170 L 120 185" stroke="#FFA500" strokeWidth="3" fill="none" strokeLinecap="round" />
+        <path d="M120 170 L 130 185 L 125 185" stroke="#FFA500" strokeWidth="3" fill="none" strokeLinecap="round" />
+        {/* Body */}
+        <ellipse cx="100" cy="130" rx="40" ry="45" fill="#8B4513"/>
+        {/* Tail Feathers */}
+        <path d="M 100,130 C 50,130 30,80 50,50" fill="#d32f2f" />
+        <path d="M 100,130 C 70,130 50,90 60,60" fill="#FFC107" />
+        <path d="M 100,130 C 130,130 150,90 140,60" fill="#FFC107" />
+        <path d="M 100,130 C 150,130 170,80 150,50" fill="#d32f2f" />
+        <path d="M 100,130 C 100,80 100,40 100,40" stroke="#A0522D" strokeWidth="10" strokeLinecap="round" />
+
+        <motion.g initial={{ scale: 0 }} animate={{ scale: 1, transition: { delay: 0.3, type: 'spring', stiffness: 120 } }}>
+            <g>
+                <circle cx="85" cy="125" r="10" fill="white" />
+                <motion.circle cx="85" cy="125" r="5" fill="black" style={{ x: pupilX, y: pupilY }}/>
+                <circle cx="115" cy="125" r="10" fill="white" />
+                <motion.circle cx="115" cy="125" r="5" fill="black" style={{ x: pupilX, y: pupilY }}/>
+            </g>
+            <path d="M 100,105 L 100,115 L 105,110 Z" fill="red" />
+        </motion.g>
+    </>
+);
+
+const BodyViking = ({ color, pupilX, pupilY }: any) => (
+    <>
+        <Shoes name="Boots"/>
+        <path d="M 60,170 C 40,140 40,80 70,60 C 90,40 110,40 130,60 C 160,80 160,140 140,170 Z" fill={color} />
+        <path d="M 60,170 C 40,140 40,80 70,60 C 90,40 110,40 130,60 C 160,80 160,140 140,170 Z" fill="url(#bodyGradient)"/>
+        <motion.g initial={{ scale: 0 }} animate={{ scale: 1, transition: { delay: 0.3 } }}>
+            <g>
+                <circle cx="85" cy="85" r="15" fill="white" />
+                <motion.circle cx="85" cy="85" r="8" fill="black" style={{ x: pupilX, y: pupilY }} />
+                <circle cx="115" cy="85" r="15" fill="white" />
+                <motion.circle cx="115" cy="85" r="8" fill="black" style={{ x: pupilX, y: pupilY }} />
+            </g>
+            <path d="M 95,105 Q 100,115 105,105" stroke="black" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+            {/* Beard */}
+            <path d="M 80,100 L 100,130 L 120,100" fill="orange" />
+        </motion.g>
+    </>
+);
+
+const BodyFedora = ({ color, pupilX, pupilY }: any) => (
+    <>
+        <Shoes name="Formal Shoes"/>
+        <path d="M 60,170 C 40,140 40,80 70,60 C 90,40 110,40 130,60 C 160,80 160,140 140,170 Z" fill={color} />
+        <path d="M 60,170 C 40,140 40,80 70,60 C 90,40 110,40 130,60 C 160,80 160,140 140,170 Z" fill="url(#bodyGradient)"/>
+        <motion.g initial={{ scale: 0 }} animate={{ scale: 1, transition: { delay: 0.3 } }}>
+            <g>
+                <circle cx="85" cy="85" r="15" fill="white" />
+                <motion.circle cx="85" cy="85" r="8" fill="black" style={{ x: pupilX, y: pupilY }} />
+                <circle cx="115" cy="85" r="15" fill="white" />
+                <motion.circle cx="115" cy="85" r="8" fill="black" style={{ x: pupilX, y: pupilY }} />
+            </g>
+            <path d="M 95,105 Q 100,115 105,105" stroke="black" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+        </motion.g>
+    </>
+);
+
+const BodyKnight = ({ color, pupilX, pupilY }: any) => (
+    <>
+        <Shoes name="Knight Boots"/>
+        <path d="M 60,170 C 40,140 40,80 70,60 C 90,40 110,40 130,60 C 160,80 160,140 140,170 Z" fill={color} />
+        <path d="M 60,170 C 40,140 40,80 70,60 C 90,40 110,40 130,60 C 160,80 160,140 140,170 Z" fill="url(#bodyGradient)"/>
+        <motion.g initial={{ scale: 0 }} animate={{ scale: 1, transition: { delay: 0.3 } }}>
+            <g>
+                <rect x="75" y="75" width="50" height="20" fill="#333" />
+                <rect x="75" y="78" width="50" height="4" fill="#555" />
+            </g>
+        </motion.g>
+    </>
+);
+
 
 const speciesComponents: Record<string, React.FC<any>> = {
     "Bulby": BodyBulby,
@@ -366,6 +463,11 @@ const speciesComponents: Record<string, React.FC<any>> = {
     "Aquan": BodyAquan,
     "Terran": BodyTerran,
     "Volty": BodyVolty,
+    "Pilgrim": BodyPilgrim,
+    "Turkey": BodyTurkey,
+    "Viking": BodyViking,
+    "Fedora": BodyFedora,
+    "Knight": BodyKnight,
 };
 
 const AIBuddy: React.FC<AIBuddyProps> = ({ className, species = "Bulby", color, hat, shirt, shoes, isStatic = false }) => {
