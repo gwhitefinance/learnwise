@@ -1,10 +1,12 @@
 
-import type React from "react"
+'use client';
+
 import type { Metadata } from "next"
 import { Poppins, Luckiest_Guy } from "next/font/google"
 import "./globals.css"
 import { cn } from "@/lib/utils"
 import { ThemeProvider } from "@/components/theme-provider"
+import * as React from "react";
 
 const poppins = Poppins({ 
   subsets: ["latin"],
@@ -18,12 +20,23 @@ const luckiestGuy = Luckiest_Guy({
   weight: "400",
 });
 
-export const metadata: Metadata = {
-  title: "Tutor Taz",
-  description: "Advanced AI-powered study suite for personalized learning.",
-}
+// Metadata can be exported from a client component in Next.js 13+
+// export const metadata: Metadata = {
+//   title: "Tutor Taz",
+//   description: "Advanced AI-powered study suite for personalized learning.",
+// }
 
 const WinterWonderland = () => {
+    const [isMounted, setIsMounted] = React.useState(false);
+
+    React.useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
+    if (!isMounted) {
+        return null; // Don't render on the server
+    }
+
     return (
         <div className="absolute inset-0 -z-10 h-screen w-screen overflow-hidden">
             <svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" className="w-full h-full object-cover">
