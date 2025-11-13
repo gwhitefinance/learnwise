@@ -9,7 +9,7 @@ import { Hat, Shirt, Shoes } from './robot-accessories';
 
 const HeadZappy = ({ pupilX, pupilY, color }: any) => (
     <motion.g initial={{ scale: 0 }} animate={{ scale: 1, transition: { delay: 0.3 } }}>
-        <circle cx="100" cy="100" r="40" fill={color} />
+        <circle cx="100" cy="100" r="40" fill={color} stroke="#4B5563" strokeWidth="2.5" />
         {/* Ears */}
         <path d="M 60 80 C 40 40, 80 50, 75 80" fill={color} stroke="#4B5563" strokeWidth="2.5" />
         <path d="M 140 80 C 160 40, 120 50, 125 80" fill={color} stroke="#4B5563" strokeWidth="2.5" />
@@ -28,8 +28,10 @@ const HeadZappy = ({ pupilX, pupilY, color }: any) => (
 
 const TorsoZappy = ({ color }: any) => (
     <>
+        {/* Neck */}
+        <path d="M 90 135 V 140 H 110 V 135 Z" fill={color} />
         {/* Body */}
-        <motion.path d="M 70 210 C 70 150, 130 150, 130 210 Z" fill={color} 
+        <motion.path d="M 70 210 C 70 150, 130 150, 130 210 V 140 H 70 V 210 Z" fill={color} 
             initial={{ scaleY: 1, y: 0 }}
             animate={{ scaleY: [1, 0.98, 1], y: [0, 5, 0] }}
             transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
@@ -38,12 +40,12 @@ const TorsoZappy = ({ color }: any) => (
         <path d="M 70 210 Q 55 230 80 225 Q 105 230 85 210" fill="#4B5563" />
         <path d="M 115 210 Q 100 230 125 225 Q 150 230 130 210" fill="#4B5563" />
         {/* Hands */}
-        <motion.path d="M 50 170 C 25 160, 30 190, 55 185" fill={color} 
+        <motion.path d="M 70 170 C 45 160, 50 190, 75 185" fill={color} 
             initial={{ rotate: 0 }}
             animate={{ rotate: [-5, 5, -5] }}
             transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 0.2 }}
         />
-        <motion.path d="M 150 170 C 175 160, 170 190, 145 185" fill={color}
+        <motion.path d="M 130 170 C 155 160, 150 190, 125 185" fill={color}
             initial={{ rotate: 0 }}
             animate={{ rotate: [5, -5, 5] }}
             transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 0.2 }}
