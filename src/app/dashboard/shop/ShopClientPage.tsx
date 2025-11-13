@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -281,7 +280,11 @@ export default function ShopClientPage() {
                 </div>
             </div>
             
-             <div className="bg-red-600 text-white rounded-2xl p-6 text-center shadow-lg">
+             <div className="relative bg-red-600 text-white rounded-2xl p-6 text-center shadow-lg overflow-hidden">
+                <span className="absolute top-2 left-2 text-2xl opacity-50 transform -rotate-12">❄️</span>
+                <span className="absolute top-2 right-2 text-2xl opacity-50 transform rotate-12">❄️</span>
+                <span className="absolute bottom-2 left-2 text-2xl opacity-50 transform rotate-12">❄️</span>
+                <span className="absolute bottom-2 right-2 text-2xl opacity-50 transform -rotate-12">❄️</span>
                 <h2 className="text-3xl font-bold font-bubble tracking-wider">It's Tiiiimeee!</h2>
                 <p className="font-semibold">Our Christmas update is here! Check out the festive items below.</p>
             </div>
