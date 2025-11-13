@@ -42,7 +42,7 @@ const tazVariants = {
     visible: { scale: 1, y: 0, transition: { type: 'spring', stiffness: 100, damping: 10, delay: 0.5 } }
 }
 
-const tazSpecies = ["Bulby", "Spike", "Goop", "Ghosty", "Rocky", "Leafy", "Dino"];
+const tazSpecies = ["Bulby", "Spike", "Goop", "Ghosty", "Rocky", "Leafy", "Dino", "Flarie", "Aquan", "Terran", "Volty"];
 
 export default function HatchPage() {
     const [hatchState, setHatchState] = useState<'idle' | 'shaking' | 'cracking' | 'hatched'>('idle');

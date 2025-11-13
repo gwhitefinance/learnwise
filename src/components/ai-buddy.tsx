@@ -187,6 +187,84 @@ const BodyDino = ({ color, pupilX, pupilY }: any) => (
     </>
 );
 
+const BodyFlarie = ({ color, pupilX, pupilY }: any) => (
+    <>
+        {/* Flame Tail */}
+        <motion.path
+            d="M 100,180 C 120,160 130,130 110,110 C 130,90 110,70 100,60 C 90,70 70,90 90,110 C 70,130 80,160 100,180 Z"
+            fill="url(#flameGradient)"
+            animate={{
+                scaleY: [1, 1.1, 1],
+                y: [0, -5, 0],
+            }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        {/* Body */}
+        <path d="M 80,140 C 60,110 70,70 100,70 C 130,70 140,110 120,140 C 110,150 90,150 80,140 Z" fill={color} />
+        <path d="M 80,140 C 60,110 70,70 100,70 C 130,70 140,110 120,140 C 110,150 90,150 80,140 Z" fill="url(#bodyGradient)" />
+        <motion.g initial={{ scale: 0 }} animate={{ scale: 1, transition: { delay: 0.3 } }}>
+            <g>
+                <circle cx="90" cy="100" r="10" fill="white" />
+                <motion.circle cx="90" cy="100" r="5" fill="black" style={{ x: pupilX, y: pupilY }}/>
+                <circle cx="110" cy="100" r="10" fill="white" />
+                <motion.circle cx="110" cy="100" r="5" fill="black" style={{ x: pupilX, y: pupilY }}/>
+            </g>
+            <path d="M 95,115 Q 100,125 105,115" stroke="black" strokeWidth="2" fill="none" strokeLinecap="round" />
+        </motion.g>
+    </>
+);
+
+const BodyAquan = ({ color, pupilX, pupilY }: any) => (
+    <>
+        {/* Body with water effect */}
+        <path d="M 70,170 C 40,150 40,80 100,80 C 160,80 160,150 130,170 Q 100,180 70,170 Z" fill={color} opacity="0.8"/>
+        {/* Bubbles */}
+        <circle cx="80" cy="110" r="5" fill="white" opacity="0.5" />
+        <circle cx="120" cy="100" r="8" fill="white" opacity="0.4" />
+        <circle cx="100" cy="140" r="3" fill="white" opacity="0.6" />
+        <motion.g initial={{ scale: 0 }} animate={{ scale: 1, transition: { delay: 0.3 } }}>
+            <g>
+                <motion.circle cx="90" cy="120" r="7" fill="black" style={{ x: pupilX, y: pupilY }} />
+                <motion.circle cx="110" cy="120" r="7" fill="black" style={{ x: pupilX, y: pupilY }} />
+            </g>
+            <path d="M 95,135 Q 100,130 105,135" stroke="black" strokeWidth="2" fill="none" strokeLinecap="round" />
+        </motion.g>
+    </>
+);
+
+const BodyTerran = ({ color, pupilX, pupilY }: any) => (
+    <>
+        {/* Jagged rock body */}
+        <path d="M 60,170 L 50,150 L 70,120 L 60,90 L 80,70 L 120,70 L 140,90 L 130,120 L 150,150 L 140,170 Z" fill={color} />
+        {/* Moss details */}
+        <circle cx="75" cy="155" r="8" fill="#556B2F" />
+        <circle cx="125" cy="95" r="5" fill="#556B2F" />
+        <motion.g initial={{ scale: 0 }} animate={{ scale: 1, transition: { delay: 0.3 } }}>
+            <g>
+                <rect x="80" y="105" width="10" height="10" fill="yellow" />
+                <rect x="110" y="105" width="10" height="10" fill="yellow" />
+            </g>
+        </motion.g>
+    </>
+);
+
+const BodyVolty = ({ color, pupilX, pupilY }: any) => (
+    <>
+        {/* Main Body */}
+        <ellipse cx="100" cy="130" rx="50" ry="40" fill={color} />
+        {/* Lightning bolts */}
+        <path d="M 80 110 L 90 130 L 85 140 L 95 160" stroke="#FFD700" strokeWidth="4" fill="none" strokeLinecap="round" />
+        <path d="M 120 110 L 110 130 L 115 140 L 105 160" stroke="#FFD700" strokeWidth="4" fill="none" strokeLinecap="round" />
+        <motion.g initial={{ scale: 0 }} animate={{ scale: 1, transition: { delay: 0.3 } }}>
+            <g>
+                <motion.circle cx="90" cy="115" r="8" fill="white" style={{ x: pupilX, y: pupilY }}/>
+                <motion.circle cx="110" cy="115" r="8" fill="white" style={{ x: pupilX, y: pupilY }}/>
+            </g>
+        </motion.g>
+    </>
+);
+
+
 const speciesComponents: Record<string, React.FC<any>> = {
     "Bulby": BodyBulby,
     "Spike": BodySpike,
@@ -195,6 +273,10 @@ const speciesComponents: Record<string, React.FC<any>> = {
     "Rocky": BodyRocky,
     "Leafy": BodyLeafy,
     "Dino": BodyDino,
+    "Flarie": BodyFlarie,
+    "Aquan": BodyAquan,
+    "Terran": BodyTerran,
+    "Volty": BodyVolty,
 };
 
 const AIBuddy: React.FC<AIBuddyProps> = ({ className, species = "Bulby", color, hat, shirt, shoes, isStatic = false }) => {
@@ -279,6 +361,11 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, species = "Bulby", color, 
                         <stop offset="0%" stopColor="white" stopOpacity="0.4" />
                         <stop offset="100%" stopColor="white" stopOpacity="0.1" />
                     </radialGradient>
+                    <linearGradient id="flameGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style={{stopColor: '#FFD700'}} />
+                        <stop offset="50%" style={{stopColor: '#FF8C00'}} />
+                        <stop offset="100%" style={{stopColor: '#FF4500'}} />
+                    </linearGradient>
                 </defs>
 
                 {!isStatic && (
