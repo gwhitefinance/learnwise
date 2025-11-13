@@ -18,16 +18,17 @@ import { collection, query, where, getDocs, updateDoc, arrayUnion, writeBatch, s
 const WinterWonderland = () => {
     const [isMounted, setIsMounted] = useState(false);
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
 
-  if (!isMounted) {
-    return <div className="absolute inset-0 bg-[#0a1128] -z-10" />;
-  }
-  return (
-    <div className="absolute inset-0 overflow-hidden -z-10">
-      <svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" className="w-full h-full object-cover">
+    if (!isMounted) {
+        return <div className="absolute inset-0 bg-[#0a1128] -z-10" />;
+    }
+  
+    return (
+      <div className="absolute inset-0 overflow-hidden -z-10">
+           <svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" className="w-full h-full object-cover">
   <rect width="800" height="600" fill="#0a1128"/>
   
   <circle cx="100" cy="50" r="1.5" fill="white" opacity="0.8"/>
@@ -126,21 +127,14 @@ const WinterWonderland = () => {
     <circle cx="0" cy="40" r="4" fill="#FF1493"/>
   </g>
   
-  <g transform="translate(100, 520)">
+  <g transform="translate(250, 520)">
     <rect x="0" y="0" width="40" height="35" fill="#DC143C"/>
     <rect x="17" y="0" width="6" height="35" fill="#FFD700"/>
     <rect x="0" y="15" width="40" height="6" fill="#FFD700"/>
     <path d="M 20 0 Q 15 -8, 20 -12 Q 25 -8, 20 0" fill="#FFD700"/>
   </g>
   
-  <g transform="translate(150, 525)">
-    <rect x="0" y="0" width="35" height="30" fill="#0000CD"/>
-    <rect x="15" y="0" width="5" height="30" fill="#FF69B4"/>
-    <rect x="0" y="13" width="35" height="5" fill="#FF69B4"/>
-    <path d="M 17.5 0 Q 13 -6, 17.5 -10 Q 22 -6, 17.5 0" fill="#FF69B4"/>
-  </g>
-  
-  <g transform="translate(200, 530)">
+  <g transform="translate(310, 530)">
     <rect x="0" y="0" width="30" height="25" fill="#228B22"/>
     <rect x="13" y="0" width="4" height="25" fill="#FFD700"/>
     <rect x="0" y="11" width="30" height="4" fill="#FFD700"/>
@@ -210,13 +204,13 @@ const WinterWonderland = () => {
     <circle cx="7" cy="2" r="1.5" fill="#FFD700"/>
   </g>
 
-    <g transform="translate(700, 520) scale(1.8)">
+    <g transform="translate(700, 520) scale(1.2)">
     <circle cx="0" cy="20" r="18" fill="#ffffff"/>
     <circle cx="0" cy="-5" r="14" fill="#ffffff"/>
     <circle cx="0" cy="-22" r="10" fill="#ffffff"/>
     <circle cx="-3" cy="-24" r="1.5" fill="#000"/>
     <circle cx="3" cy="-24" r="1.5" fill="#000"/>
-    <polygon points="0,-20 -2,-18 2,-18" fill="#FF6B00"/>
+    <polygon points="0,-18 -2,-16 2,-16" fill="#FF6B00"/>
     <circle cx="0" cy="20" r="2" fill="#000"/>
     <circle cx="0" cy="10" r="2" fill="#000"/>
     <circle cx="0" cy="0" r="2" fill="#000"/>
@@ -226,8 +220,8 @@ const WinterWonderland = () => {
     <rect x="-10" y="-32" width="20" height="3" fill="#DC143C"/>
   </g>
 </svg>
-    </div>
-  );
+      </div>
+    );
 };
 
 
@@ -413,5 +407,3 @@ export default function LoginPage() {
     </div>
   )
 }
-
-    
