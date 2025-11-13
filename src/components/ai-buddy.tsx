@@ -32,7 +32,7 @@ const TorsoZappy = ({ color }: any) => (
         <motion.ellipse
             cx="100"
             cy="160"
-            rx="50"
+            rx="40"
             ry="55"
             fill={color}
             initial={{ scaleY: 1, y: 0 }}
@@ -41,7 +41,7 @@ const TorsoZappy = ({ color }: any) => (
         />
         {/* Hands */}
         <motion.circle
-            cx="45"
+            cx="55"
             cy="160"
             r="15"
             fill="#4B5563"
@@ -50,7 +50,7 @@ const TorsoZappy = ({ color }: any) => (
             transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 0.2 }}
         />
         <motion.circle
-            cx="155"
+            cx="145"
             cy="160"
             r="15"
             fill="#4B5563"
@@ -59,8 +59,8 @@ const TorsoZappy = ({ color }: any) => (
             transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 0.2 }}
         />
         {/* Feet */}
-        <ellipse cx="85" cy="210" rx="15" ry="8" fill="#4B5563" />
-        <ellipse cx="115" cy="210" rx="15" ry="8" fill="#4B5563" />
+        <ellipse cx="80" cy="215" rx="18" ry="10" fill="#4B5563" />
+        <ellipse cx="120" cy="215" rx="18" ry="10" fill="#4B5563" />
     </g>
 );
 
