@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useRef, useEffect, useState } from 'react';
@@ -9,20 +10,20 @@ import { Hat, Shirt, Shoes } from './robot-accessories';
 
 const HeadZappy = ({ pupilX, pupilY, color }: any) => (
     <motion.g initial={{ scale: 0 }} animate={{ scale: 1, transition: { delay: 0.3 } }}>
-        <circle cx="100" cy="100" r="40" fill={color} stroke="#4B5563" strokeWidth="2.5" />
+        <circle cx="100" cy="80" r="40" fill={color} stroke="#4B5563" strokeWidth="2.5" />
         {/* Ears */}
-        <path d="M 60 80 C 40 40, 80 50, 75 80" fill={color} stroke="#4B5563" strokeWidth="2.5" />
-        <path d="M 140 80 C 160 40, 120 50, 125 80" fill={color} stroke="#4B5563" strokeWidth="2.5" />
+        <path d="M 60 60 C 40 20, 80 30, 75 60" fill={color} stroke="#4B5563" strokeWidth="2.5" />
+        <path d="M 140 60 C 160 20, 120 30, 125 60" fill={color} stroke="#4B5563" strokeWidth="2.5" />
         <g>
-            <ellipse cx="85" cy="105" rx="12" ry="14" fill="white" />
-            <motion.ellipse cx="85" cy="105" rx="6" ry="7" fill="black" style={{ x: pupilX, y: pupilY }}/>
-            <circle cx="83" cy="99" r="2.5" fill="white" />
+            <ellipse cx="85" cy="85" rx="12" ry="14" fill="white" />
+            <motion.ellipse cx="85" cy="85" rx="6" ry="7" fill="black" style={{ x: pupilX, y: pupilY }}/>
+            <circle cx="83" cy="79" r="2.5" fill="white" />
             
-            <ellipse cx="115" cy="105" rx="12" ry="14" fill="white" />
-            <motion.ellipse cx="115" cy="105" rx="6" ry="7" fill="black" style={{ x: pupilX, y: pupilY }}/>
-            <circle cx="113" cy="99" r="2.5" fill="white" />
+            <ellipse cx="115" cy="85" rx="12" ry="14" fill="white" />
+            <motion.ellipse cx="115" cy="85" rx="6" ry="7" fill="black" style={{ x: pupilX, y: pupilY }}/>
+            <circle cx="113" cy="79" r="2.5" fill="white" />
         </g>
-        <path d="M 95 125 Q 100 130 105 125" stroke="black" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+        <path d="M 95 105 Q 100 110 105 105" stroke="black" strokeWidth="3.5" fill="none" strokeLinecap="round" />
     </motion.g>
 );
 
@@ -31,7 +32,7 @@ const TorsoZappy = ({ color }: any) => (
         {/* Body */}
         <motion.rect
             x="60"
-            y="135"
+            y="115"
             width="80"
             height="65"
             rx="20"
@@ -41,12 +42,12 @@ const TorsoZappy = ({ color }: any) => (
             transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
         />
         {/* Feet */}
-        <path d="M 60 200 C 60 220, 90 220, 90 200" fill="#4B5563" />
-        <path d="M 110 200 C 110 220, 140 220, 140 200" fill="#4B5563" />
+        <path d="M 60 180 C 60 200, 90 200, 90 180" fill="#4B5563" />
+        <path d="M 110 180 C 110 200, 140 200, 140 180" fill="#4B5563" />
         {/* Hands */}
         <motion.circle 
             cx="45" 
-            cy="170" 
+            cy="150" 
             r="15" 
             fill={color} 
             initial={{ rotate: 0, x: 0 }}
@@ -55,7 +56,7 @@ const TorsoZappy = ({ color }: any) => (
         />
         <motion.circle 
             cx="155" 
-            cy="170" 
+            cy="150" 
             r="15" 
             fill={color} 
             initial={{ rotate: 0, x: 0 }}
