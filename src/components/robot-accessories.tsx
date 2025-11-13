@@ -344,8 +344,7 @@ const shoeComponents: Record<string, React.FC> = {
 
 const DefaultShoes = () => (
     <>
-        <ellipse cx="80" cy="205" rx="18" ry="10" fill="#4B5563" />
-        <ellipse cx="120" cy="205" rx="18" ry="10" fill="#4B5563" />
+        
     </>
 );
 

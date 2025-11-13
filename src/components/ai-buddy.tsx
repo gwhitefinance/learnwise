@@ -27,13 +27,13 @@ const HeadZappy = ({ pupilX, pupilY, color }: any) => (
 );
 
 const TorsoZappy = ({ color }: any) => (
-    <g transform="translate(0, -20)">
+    <g transform="translate(0, -10)">
         {/* Body */}
         <motion.ellipse
             cx="100"
-            cy="160"
-            rx="40"
-            ry="55"
+            cy="155"
+            rx="45"
+            ry="45"
             fill={color}
             initial={{ scaleY: 1, y: 0 }}
             animate={{ scaleY: [1, 0.98, 1], y: [0, 5, 0] }}
@@ -41,8 +41,8 @@ const TorsoZappy = ({ color }: any) => (
         />
         {/* Hands */}
         <motion.circle
-            cx="55"
-            cy="160"
+            cx="50"
+            cy="155"
             r="15"
             fill="#4B5563"
             initial={{ rotate: 0, x: 0 }}
@@ -50,8 +50,8 @@ const TorsoZappy = ({ color }: any) => (
             transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 0.2 }}
         />
         <motion.circle
-            cx="145"
-            cy="160"
+            cx="150"
+            cy="155"
             r="15"
             fill="#4B5563"
             initial={{ rotate: 0, x: 0 }}
@@ -59,8 +59,8 @@ const TorsoZappy = ({ color }: any) => (
             transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 0.2 }}
         />
         {/* Feet */}
-        <ellipse cx="80" cy="215" rx="18" ry="10" fill="#4B5563" />
-        <ellipse cx="120" cy="215" rx="18" ry="10" fill="#4B5563" />
+        <ellipse cx="80" cy="200" rx="18" ry="10" fill="#4B5563" />
+        <ellipse cx="120" cy="200" rx="18" ry="10" fill="#4B5563" />
     </g>
 );
 
