@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useRef, useEffect, useState } from 'react';
@@ -13,6 +14,9 @@ const BodyZappy = ({ color, pupilX, pupilY }: any) => (
         {/* Body */}
         <path d="M 70 170 C 50 120, 60 70, 100 70 C 140 70, 150 120, 130 170 Z" fill={color} />
         <path d="M 70 170 C 50 120, 60 70, 100 70 C 140 70, 150 120, 130 170" fill="url(#bodyGradient)" />
+        {/* Ears */}
+        <path d="M 70 75 Q 60 45, 80 60" fill={color} stroke="#4B5563" strokeWidth="2" />
+        <path d="M 130 75 Q 140 45, 120 60" fill={color} stroke="#4B5563" strokeWidth="2" />
         {/* Hands */}
         <circle cx="65" cy="130" r="10" fill={color} />
         <circle cx="135" cy="130" r="10" fill={color} />
@@ -23,9 +27,7 @@ const BodyZappy = ({ color, pupilX, pupilY }: any) => (
                 <ellipse cx="115" cy="100" rx="12" ry="14" fill="white" />
                 <motion.ellipse cx="115" cy="100" rx="6" ry="7" fill="black" style={{ x: pupilX, y: pupilY }}/>
             </g>
-            <path d="M 95 118 C 100 125 105 125 110 118" stroke="black" strokeWidth="2" fill="none" strokeLinecap="round" />
-            <circle cx="70" cy="105" r="8" fill="#FBBF24" />
-            <circle cx="130" cy="105" r="8" fill="#FBBF24" />
+            <path d="M 95 120 Q 100 128 105 120" stroke="black" strokeWidth="2" fill="none" strokeLinecap="round" />
         </motion.g>
     </>
 );
@@ -38,10 +40,9 @@ const BodySeedling = ({ color, pupilX, pupilY }: any) => (
         {/* Body */}
         <path d="M 60 175 C 40 120, 60 80, 100 80 C 140 80, 160 120, 140 175 Z" fill={color}/>
         <path d="M 60 175 C 40 120, 60 80, 100 80 C 140 80, 160 120, 140 175" fill="url(#bodyGradient)" />
-
-        {/* Bulb */}
-        <path d="M 85 85 C 80 60, 120 60, 115 85" fill="#6EE7B7" />
-        <path d="M 90 70 L 100 55 L 110 70" fill="#A7F3D0" />
+        {/* Ears (Leaves) */}
+        <path d="M 70 90 C 50 80, 60 60, 75 70" fill="#22C55E" />
+        <path d="M 130 90 C 150 80, 140 60, 125 70" fill="#22C55E" />
         {/* Hands */}
         <path d="M 58 140 C 40 130 45 150 58 145" fill={color} />
         <path d="M 142 140 C 160 130 155 150 142 145" fill={color} />
@@ -64,23 +65,9 @@ const BodyEmber = ({ color, pupilX, pupilY }: any) => (
         <path d="M 80 170 C 60 120, 80 50, 100 50 C 120 50, 140 120, 120 170 Z" fill={color}/>
         <path d="M 80 170 C 60 120, 80 50, 100 50 C 120 50, 140 120, 120 170" fill="url(#bodyGradient)" />
         <ellipse cx="100" cy="145" rx="30" ry="25" fill="#FEF3C7" />
-        {/* Tail */}
-        <motion.path 
-            d="M 120 160 C 140 160, 150 140, 130 120"
-            stroke="#FB923C" 
-            strokeWidth="8" 
-            fill="none" 
-            strokeLinecap="round"
-            animate={{ d: ["M 120 160 C 140 160, 150 140, 130 120", "M 120 160 C 145 155, 155 135, 130 120"] }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut', repeatType: "mirror" }}
-        />
-        {/* Flame */}
-        <motion.path
-            d="M 130 120 Q 135 110 140 120 Q 130 100 130 120"
-            fill="url(#flameGradient)"
-            animate={{ scaleY: [1, 1.2, 1], y: [0, -3, 0] }}
-            transition={{ duration: 1, repeat: Infinity, ease: 'easeInOut' }}
-        />
+        {/* Ears */}
+        <path d="M 75 60 Q 70 40 85 50" fill={color} stroke="#D97706" strokeWidth="2" />
+        <path d="M 125 60 Q 130 40 115 50" fill={color} stroke="#D97706" strokeWidth="2" />
         {/* Hands */}
         <ellipse cx="70" cy="130" rx="6" ry="10" fill={color} />
         <ellipse cx="130" cy="130" rx="6" ry="10" fill={color} />
@@ -107,15 +94,18 @@ const BodyShelly = ({ color, pupilX, pupilY }: any) => (
         {/* Shell */}
         <path d="M 60 140 C 60 90, 140 90, 140 140" fill="#374151" />
         <path d="M 60 140 C 60 90, 140 90, 140 140" stroke="#1F2937" strokeWidth="3" />
+        {/* Ears */}
+        <circle cx="70" cy="95" r="8" fill={color}/>
+        <circle cx="130" cy="95" r="8" fill={color}/>
         
         <motion.g initial={{ scale: 0 }} animate={{ scale: 1, transition: { delay: 0.3 } }}>
             <g>
-                <circle cx="85" cy="115" r="12" fill="white" />
-                <motion.circle cx="85" cy="115" r="6" fill="black" style={{ x: pupilX, y: pupilY }}/>
-                <circle cx="115" cy="115" r="12" fill="white" />
-                <motion.circle cx="115" cy="115" r="6" fill="black" style={{ x: pupilX, y: pupilY }}/>
+                <ellipse cx="85" cy="120" rx="10" ry="12" fill="white" />
+                <motion.ellipse cx="85" cy="120" rx="5" ry="6" fill="black" style={{ x: pupilX, y: pupilY }}/>
+                <ellipse cx="115" cy="120" rx="10" ry="12" fill="white" />
+                <motion.ellipse cx="115" cy="120" rx="5" ry="6" fill="black" style={{ x: pupilX, y: pupilY }}/>
             </g>
-            <path d="M 100 128 L 100 132" stroke="black" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+            <path d="M 95 135 Q 100 140 105 135" stroke="black" strokeWidth="2" fill="none" strokeLinecap="round" />
         </motion.g>
     </>
 );
@@ -128,6 +118,9 @@ const BodyPuff = ({ color, pupilX, pupilY }: any) => (
         {/* Body */}
         <circle cx="100" cy="125" r="50" fill={color} />
         <circle cx="100" cy="125" r="50" fill="url(#bodyGradient)" />
+        {/* Ears */}
+        <path d="M 70 80 Q 50 60, 80 70" fill={color} stroke="#F472B6" strokeWidth="2" />
+        <path d="M 130 80 Q 150 60, 120 70" fill={color} stroke="#F472B6" strokeWidth="2" />
         {/* Hands */}
         <path d="M 60 130 Q 40 120 50 110" stroke={color} strokeWidth="10" fill="none" strokeLinecap="round"/>
         <path d="M 140 130 Q 160 120 150 110" stroke={color} strokeWidth="10" fill="none" strokeLinecap="round"/>
@@ -152,6 +145,9 @@ const BodyDozer = ({ color, pupilX, pupilY }: any) => (
         <path d="M 50 180 C 50 100, 150 100, 150 180 Z" fill={color} />
         <path d="M 50 180 C 50 100, 150 100, 150 180" fill="url(#bodyGradient)" />
         <ellipse cx="100" cy="140" rx="35" ry="30" fill="#F5F5F4" />
+        {/* Ears */}
+        <circle cx="70" cy="100" r="10" fill={color} />
+        <circle cx="130" cy="100" r="10" fill={color} />
         {/* Hands */}
         <ellipse cx="60" cy="140" rx="18" ry="15" fill={color} />
         <ellipse cx="140" cy="140" rx="18" ry="15" fill={color} />
@@ -250,11 +246,10 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, species = "Zappy", color, 
                         <stop offset="0%" style={{stopColor: 'white', stopOpacity: 0.3}} />
                         <stop offset="100%" style={{stopColor: 'white', stopOpacity: 0}} />
                     </radialGradient>
-                    <linearGradient id="flameGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" style={{stopColor: '#FFD700'}} />
-                        <stop offset="50%" style={{stopColor: '#FF8C00'}} />
-                        <stop offset="100%" style={{stopColor: '#FF4500'}} />
-                    </linearGradient>
+                    <radialGradient id="glassReflection" cx="30%" cy="30%" r="40%">
+                        <stop offset="0%" style={{ stopColor: "white", stopOpacity: 0.6 }} />
+                        <stop offset="100%" style={{ stopColor: "white", stopOpacity: 0 }} />
+                    </radialGradient>
                 </defs>
 
                 {!isStatic && (
