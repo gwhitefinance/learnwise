@@ -3,7 +3,7 @@
 'use client';
 
 import { useState, useEffect, useContext } from 'react';
-import { Plus, Flame, Upload, ChevronDown, Calendar, FileText, Mic, LayoutGrid, Settings, LogOut, BarChart3, Bell, Bolt, School, Play, Users, GitMerge, GraduationCap, ClipboardCheck, BarChart, Award, MessageSquare, Briefcase, Share2, BookOpen, ChevronRight, Store, PenTool, BookMarked, Gamepad2, Headphones, Loader2, Wand2, ArrowRight, QrCode } from "lucide-react";
+import { Plus, Flame, Upload, ChevronDown, Calendar, FileText, Mic, LayoutGrid, Settings, LogOut, BarChart3, Bell, Bolt, School, Play, Users, GitMerge, GraduationCap, ClipboardCheck, BarChart, Award, MessageSquare, Briefcase, Share2, BookOpen, ChevronRight, Store, PenTool, BookMarked, Gamepad2, Headphones, Loader2, Wand2, ArrowRight, QrCode, Rocket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import Link from 'next/link';
@@ -533,39 +533,16 @@ const Index = () => {
                     <RewardsDialog streak={streak} />
                 </Dialog>
             </div>
-            <div className="bg-white dark:bg-surface-dark p-6 rounded-3xl shadow-md shadow-blue-500/10">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-bold text-slate-900 dark:text-white">Materials</h3>
-              </div>
-              <ul className="space-y-4">
-                {recentNotes.length > 0 ? (
-                  recentNotes.map((note) => (
-                    <li key={note.id} className="flex items-center gap-4">
-                      <div className="w-12 h-12 flex items-center justify-center bg-blue-100 dark:bg-slate-800/60 rounded-xl">
-                        {note.isWhiteboardNote ? (
-                          <PenTool className="text-blue-500 dark:text-blue-400" />
-                        ) : (
-                          <FileText className="text-blue-500 dark:text-blue-400" />
-                        )}
-                      </div>
-                      <div>
-                        <p className="font-semibold text-slate-800 dark:text-slate-200 truncate max-w-[150px]">{note.title}</p>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">{note.date.toDate().toLocaleDateString()}</p>
-                      </div>
-                    </li>
-                  ))
-                ) : (
-                  <p className="text-sm text-center text-slate-500 dark:text-slate-400 py-8">
-                    No recent materials for this course.
-                  </p>
-                )}
-              </ul>
-              {recentNotes.length > 0 && (
-                <Link href="/dashboard/notes">
-                    <button className="w-full text-center mt-6 text-sm font-semibold text-primary-light">View All</button>
-                </Link>
-              )}
-            </div>
+            <Card>
+                <CardContent className="p-4 flex flex-col items-center justify-center text-center">
+                    <Link href="/dashboard/taz-showroom" className="w-full">
+                        <Button variant="outline" className="w-full">
+                             <Rocket className="mr-2 h-4 w-4" />
+                            Taz Crash Site
+                        </Button>
+                    </Link>
+                </CardContent>
+            </Card>
              <Card>
                 <CardContent className="p-4 flex flex-col items-center justify-center text-center">
                     <h3 className="font-semibold mb-2">Add Notes from Mobile</h3>
@@ -587,4 +564,5 @@ export default Index;
     
 
     
+
 
