@@ -28,7 +28,7 @@ const WinterWonderland = () => {
 
     return (
     <div className="absolute inset-0 overflow-hidden -z-10">
-        <svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" className="w-full h-full object-cover" preserveAspectRatio="xMidYMid slice">
+        <svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" className="w-full h-full object-cover">
           {/* Starry night background */}
           <rect width="800" height="600" fill="#0a1128"/>
           
@@ -144,21 +144,21 @@ const WinterWonderland = () => {
           </g>
           
           {/* Gift boxes */}
-          <g transform="translate(250, 500)">
+          <g transform="translate(100, 520)">
             <rect x="0" y="0" width="40" height="35" fill="#DC143C"/>
             <rect x="17" y="0" width="6" height="35" fill="#FFD700"/>
             <rect x="0" y="15" width="40" height="6" fill="#FFD700"/>
             <path d="M 20 0 Q 15 -8, 20 -12 Q 25 -8, 20 0" fill="#FFD700"/>
           </g>
           
-          <g transform="translate(520, 510)">
+          <g transform="translate(150, 525)">
             <rect x="0" y="0" width="35" height="30" fill="#0000CD"/>
             <rect x="15" y="0" width="5" height="30" fill="#FF69B4"/>
             <rect x="0" y="13" width="35" height="5" fill="#FF69B4"/>
             <path d="M 17.5 0 Q 13 -6, 17.5 -10 Q 22 -6, 17.5 0" fill="#FF69B4"/>
           </g>
           
-          <g transform="translate(310, 520)">
+          <g transform="translate(200, 530)">
             <rect x="0" y="0" width="30" height="25" fill="#228B22"/>
             <rect x="13" y="0" width="4" height="25" fill="#FFD700"/>
             <rect x="0" y="11" width="30" height="4" fill="#FFD700"/>
@@ -234,7 +234,7 @@ const WinterWonderland = () => {
           </g>
           
           {/* Snowman */}
-          <g transform="translate(650, 480) scale(1.2)">
+          <g transform="translate(650, 485) scale(1.5)">
             <circle cx="0" cy="20" r="18" fill="#ffffff"/>
             <circle cx="0" cy="-5" r="14" fill="#ffffff"/>
             <circle cx="0" cy="-22" r="10" fill="#ffffff"/>
@@ -251,7 +251,7 @@ const WinterWonderland = () => {
           </g>
           
           {/* Bells */}
-          <g transform="translate(100, 380)">
+          <g transform="translate(700, 380)">
             <path d="M -6 0 Q -8 8, -5 12 L 5 12 Q 8 8, 6 0 Z" fill="#FFD700" stroke="#DAA520" strokeWidth="1"/>
             <circle cx="0" cy="14" r="2" fill="#FFD700"/>
             <path d="M 8 0 Q 10 8, 7 12 L 17 12 Q 20 8, 18 0 Z" fill="#FFD700" stroke="#DAA520" strokeWidth="1"/>
