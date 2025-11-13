@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -42,7 +41,7 @@ const tazVariants = {
     visible: { scale: 1, y: 0, transition: { type: 'spring', stiffness: 100, damping: 10, delay: 0.5 } }
 }
 
-const tazSpecies = ["Bulby", "Spike", "Goop", "Ghosty", "Rocky", "Leafy", "Dino", "Flarie", "Aquan", "Terran", "Volty", "Pilgrim", "Turkey", "Viking", "Fedora", "Knight", "Chef", "Detective", "Headphones", "Flower Crown", "Astronaut"];
+const tazSpecies = ["Zappy", "Seedling", "Ember", "Shelly", "Puff", "Dozer"];
 
 export default function HatchPage() {
     const [hatchState, setHatchState] = useState<'idle' | 'shaking' | 'cracking' | 'hatched'>('idle');
@@ -54,12 +53,9 @@ export default function HatchPage() {
     const [user] = useAuthState(auth);
 
     useEffect(() => {
-        // Generate a unique pet color and species based on user ID
         if (user) {
             const hash = user.uid.split('').reduce((acc, char) => char.charCodeAt(0) + ((acc << 5) - acc), 0);
-            const hue = hash % 360;
             const speciesIndex = Math.abs(hash) % tazSpecies.length;
-            setPetColor(`hsl(${hue}, 70%, 60%)`);
             setPetSpecies(tazSpecies[speciesIndex]);
         }
     }, [user]);
@@ -82,7 +78,6 @@ export default function HatchPage() {
             await updateDoc(userRef, {
                 taz: {
                     name: petName,
-                    color: petColor,
                     species: petSpecies,
                     level: 1,
                     xp: 0,
