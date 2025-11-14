@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsTrigger, TabsList, TabsContent } from '@/components/ui/tabs';
-import { UploadCloud, Link as LinkIcon, Youtube, Wand2, Loader2, Image as ImageIcon, FileText, ArrowLeft, BookOpen, List, BrainCircuit, Lightbulb, Zap, Plus, GitMerge, RefreshCw, XCircle, CheckCircle } from 'lucide-react';
+import { UploadCloud, Link as LinkIcon, Youtube, Wand2, Loader2, Image as ImageIcon, FileText, ArrowLeft, BookOpen, List, BrainCircuit, Lightbulb, Zap, Plus, GitMerge, RefreshCw, XCircle, CheckCircle, Save } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { generateCrunchTimeStudyGuide, generateExplanation } from '@/lib/actions';
@@ -16,6 +16,10 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useRouter } from 'next/navigation';
 import AIBuddy from '@/components/ai-buddy';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { auth, db } from '@/lib/firebase';
+import { addDoc, collection, Timestamp } from 'firebase/firestore';
 
 // Define the types
 type KeyConcept = {
@@ -136,6 +140,10 @@ const StudyGuideDisplay = ({ guide, onReset, learnerType }: { guide: CrunchTimeO
     const [isGeneratingNewQuestion, setIsGeneratingNewQuestion] = useState(false);
     const [incorrectAnswers, setIncorrectAnswers] = useState<number[]>([]);
     const [sessionState, setSessionState] = useState<'in-progress' | 'review'>('in-progress');
+    const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
+
+    const [user] = useAuthState(auth);
+    const { toast } = useToast();
 
     const currentQuestion = quizQuestions[currentQuestionIndex];
     const isCorrect = selectedAnswer === currentQuestion.answer;
@@ -214,6 +222,52 @@ const StudyGuideDisplay = ({ guide, onReset, learnerType }: { guide: CrunchTimeO
         }
     }
 
+    const handleSaveToNotes = async () => {
+        if (!user) {
+            toast({ variant: 'destructive', title: 'You must be logged in.' });
+            return;
+        }
+        
+        let content = `<h2>${guide.title}</h2>`;
+        content += `<h3>Summary</h3><p>${guide.summary}</p>`;
+        content += `<h3>Key Concepts</h3><ul>${guide.keyConcepts.map(c => `<li><strong>${c.term}:</strong> ${c.definition}</li>`).join('')}</ul>`;
+        content += `<h3>How-to Guide</h3><ol>${guide.howToGuide.map(s => `<li><strong>${s.step}:</strong> ${s.description}</li>`).join('')}</ol>`;
+        content += `<h3>Study Plan</h3><ol>${guide.studyPlan.map(s => `<li><strong>${s.step}:</strong> ${s.description}</li>`).join('')}</ol>`;
+
+        try {
+            await addDoc(collection(db, "notes"), {
+                title: `[Crunch Time] ${guide.title}`,
+                content: content,
+                date: Timestamp.now(),
+                color: 'bg-indigo-100 dark:bg-indigo-900/20',
+                isImportant: false,
+                isCompleted: false,
+                userId: user.uid,
+            });
+            toast({ title: "Study Guide Saved!", description: "Your guide has been saved to your notes." });
+            setIsSaveDialogOpen(false);
+        } catch (error) {
+            console.error("Error saving note:", error);
+            toast({ variant: "destructive", title: "Save Failed" });
+        }
+    };
+    
+    const handleExport = () => {
+        let content = `Study Guide: ${guide.title}\n\n`;
+        content += `SUMMARY\n${guide.summary}\n\n`;
+        content += `KEY CONCEPTS\n${guide.keyConcepts.map(c => `- ${c.term}: ${c.definition}`).join('\n')}\n\n`;
+        content += `HOW-TO GUIDE\n${guide.howToGuide.map((s, i) => `${i + 1}. ${s.step}: ${s.description}`).join('\n')}\n\n`;
+        content += `STUDY PLAN\n${guide.studyPlan.map((s, i) => `${i + 1}. ${s.step}: ${s.description}`).join('\n')}`;
+
+        const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.setAttribute('download', `${guide.title.replace(/ /g, '_')}_Study_Guide.txt`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setIsSaveDialogOpen(false);
+    };
 
     if (sessionState === 'review') {
         return (
@@ -254,8 +308,29 @@ const StudyGuideDisplay = ({ guide, onReset, learnerType }: { guide: CrunchTimeO
 
     return (
         <Card className="w-full">
-            <CardHeader>
-                <CardTitle className="text-2xl">{guide.title}</CardTitle>
+            <CardHeader className="flex flex-row justify-between items-start">
+                 <div>
+                    <CardTitle className="text-2xl">{guide.title}</CardTitle>
+                 </div>
+                  <Dialog open={isSaveDialogOpen} onOpenChange={setIsSaveDialogOpen}>
+                    <DialogTrigger asChild>
+                        <Button variant="outline">
+                            <Save className="mr-2 h-4 w-4"/> Save Study Guide
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Save or Export Your Study Guide</DialogTitle>
+                            <DialogDescription>
+                                Choose how you'd like to save your generated study guide.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="flex gap-4 py-4">
+                            <Button onClick={handleSaveToNotes} className="w-full">Save to My Notes</Button>
+                            <Button onClick={handleExport} variant="secondary" className="w-full">Export as .txt</Button>
+                        </div>
+                    </DialogContent>
+                </Dialog>
             </CardHeader>
             <CardContent className="space-y-8">
                  <Accordion type="multiple" defaultValue={['summary', 'key-concepts', 'how-to-guide', 'study-plan', 'practice-quiz']} className="w-full space-y-4">
@@ -331,7 +406,11 @@ const StudyGuideDisplay = ({ guide, onReset, learnerType }: { guide: CrunchTimeO
                                         <p className="text-green-600 font-semibold text-center">Correct! Great job.</p>
                                     ) : (
                                         <div className="p-4 bg-red-500/10 text-red-700 rounded-lg">
-                                            {isExplanationLoading ? <p>Loading explanation...</p> : <p>{explanation}</p>}
+                                            {isExplanationLoading ? (
+                                                <div className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin"/> Loading explanation...</div>
+                                            ) : (
+                                                <p>{explanation}</p>
+                                            )}
                                         </div>
                                     )}
                                     <div className="flex justify-center gap-2">
