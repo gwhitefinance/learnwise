@@ -136,6 +136,8 @@ export default function HomeworkSolverPage() {
     const recognitionRef = useRef<any>(null);
     const [isListening, setIsListening] = useState(false);
     const [dots, setDots] = useState('');
+    const [isDragging, setIsDragging] = useState(false);
+
 
     useEffect(() => {
         if (isLoading) {
@@ -199,8 +201,7 @@ export default function HomeworkSolverPage() {
         }
     };
     
-    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
+    const handleFileChange = async (file: File | null) => {
         if (file) {
             setIsLoading(true);
             setSolutions(null);
@@ -236,6 +237,17 @@ export default function HomeworkSolverPage() {
             toast({ title: 'Listening...', description: 'Please state your question.' });
         }
     };
+
+    const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); };
+    const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); };
+    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); };
+    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault(); e.stopPropagation(); setIsDragging(false);
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            handleFileChange(e.dataTransfer.files[0]);
+        }
+    };
+
 
     if (solutions) {
         return (
@@ -277,7 +289,7 @@ export default function HomeworkSolverPage() {
 
     return (
         <div className="min-h-screen flex flex-col p-4 bg-muted/30">
-             <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
+             <input type="file" ref={fileInputRef} onChange={(e) => handleFileChange(e.target.files?.[0] || null)} accept="image/*" className="hidden" />
             <header className="flex justify-between items-center mb-6">
                  <div>
                 </div>
@@ -295,9 +307,18 @@ export default function HomeworkSolverPage() {
                     <h1 className="text-5xl font-bold tracking-tight mt-4">Taz Homework Help</h1>
                     <p className="text-muted-foreground mt-2">Type or upload a homework question and get detailed breakdown of the solution.</p>
                     
-                    <div className="relative bg-card border rounded-2xl p-4 text-left shadow-lg mt-8">
+                    <div 
+                        onDragEnter={handleDragEnter}
+                        onDragLeave={handleDragLeave}
+                        onDragOver={handleDragOver}
+                        onDrop={handleDrop}
+                        className={cn(
+                            "relative bg-card border rounded-2xl p-4 text-left shadow-lg mt-8 transition-all",
+                            isDragging && "ring-2 ring-primary bg-primary/10"
+                        )}
+                    >
                         <textarea
-                            placeholder="Type your question here"
+                            placeholder="Type your question here or drag & drop an image..."
                             className="w-full h-24 bg-transparent border-none focus:outline-none focus:ring-0 resize-none text-lg placeholder:text-muted-foreground"
                             value={question}
                             onChange={(e) => setQuestion(e.target.value)}
