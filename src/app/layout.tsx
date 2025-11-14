@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { Metadata } from "next"
@@ -20,12 +19,6 @@ const luckiestGuy = Luckiest_Guy({
   weight: "400",
 });
 
-// Metadata can be exported from a client component in Next.js 13+
-// export const metadata: Metadata = {
-//   title: "Tutor Taz",
-//   description: "Advanced AI-powered study suite for personalized learning.",
-// }
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -33,7 +26,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={cn("font-display antialiased relative", poppins.variable, luckiestGuy.variable)}>
+      <body className={cn("font-display antialiased relative bg-[#0a1128]", poppins.variable, luckiestGuy.variable)}>
           <ThemeProvider
             attribute="class"
             defaultTheme="light"
