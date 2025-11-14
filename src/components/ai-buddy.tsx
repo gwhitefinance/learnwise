@@ -352,10 +352,6 @@ const TorsoSparky = ({ color }: any) => (
 const HeadRocky = ({ pupilX, pupilY, color }: any) => (
      <motion.g initial={{ scale: 0 }} animate={{ scale: 1, transition: { delay: 0.3 } }}>
         <path d="M 60,110 L 50,60 L 150,60 L 140,110 Z" fill={color} />
-        <g>
-            <rect x="75" y="80" width="20" height="10" fill="#4B5563" />
-            <rect x="105" y="80" width="20" height="10" fill="#4B5563" />
-        </g>
         <path d="M 80 100 L 120 100" stroke="black" strokeWidth="2.5" fill="none" strokeLinecap="round" />
     </motion.g>
 );
