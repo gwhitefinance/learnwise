@@ -72,7 +72,7 @@ const WinterWonderland = () => {
                 {/* Northern Lights */}
                 <defs>
                     <filter id="aurora-blur">
-                        <feGaussianBlur in="SourceGraphic" stdDeviation="15" />
+                        <feGaussianBlur in="SourceGraphic" stdDeviation="25" />
                     </filter>
                     <linearGradient id="aurora-gradient-1" x1="0%" y1="0%" x2="0%" y2="100%">
                         <stop offset="0%" style={{stopColor: 'rgba(50, 200, 100, 0.6)'}} />
@@ -84,7 +84,7 @@ const WinterWonderland = () => {
                     </linearGradient>
                 </defs>
                  <motion.path
-                    d="M -100,150 Q 150,50 400,150 T 900 150"
+                    d="M -200,300 Q 200,50 400,200 T 1000 150"
                     fill="url(#aurora-gradient-1)"
                     filter="url(#aurora-blur)"
                     initial={{ pathLength: 0.5, pathOffset: 0.25 }}
@@ -92,7 +92,7 @@ const WinterWonderland = () => {
                     transition={{ duration: 15, repeat: Infinity, ease: 'easeInOut' }}
                 />
                  <motion.path
-                    d="M -100,180 Q 200,80 450,180 T 900 180"
+                    d="M -200,250 Q 250,80 500,200 T 1000 180"
                     fill="url(#aurora-gradient-2)"
                     filter="url(#aurora-blur)"
                      initial={{ pathLength: 0.5, pathOffset: 0.75 }}
