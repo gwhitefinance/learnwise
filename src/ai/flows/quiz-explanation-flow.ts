@@ -21,7 +21,7 @@ const prompt = ai.definePrompt({
 
     {{#if provideFullExplanation}}
     Your tasks are:
-    1. Provide a clear, encouraging, and helpful explanation (2-3 sentences).
+    1. Provide a clear, encouraging, and helpful explanation (2-3 sentences) that clarifies why the user's answer is incorrect and how to arrive at the correct answer.
     2. Generate a brand new, similar multiple-choice practice question to test their understanding.
     {{else}}
     The student answered your last practice question incorrectly. Your ONLY task is to generate another brand new, similar multiple-choice practice question that tests the same concept but uses a different scenario. DO NOT provide any explanation text.
@@ -37,7 +37,7 @@ const prompt = ai.definePrompt({
     Correct Answer: "{{correctAnswer}}"
 
     {{#if provideFullExplanation}}
-    When explaining, clarify why their answer is incorrect and how to arrive at the correct answer. Keep the tone positive and supportive.
+    When explaining, keep the tone positive and supportive.
     Then, create a new multiple-choice question that tests the same concept but uses different numbers, scenarios, or wording. Provide 4 options and the correct answer for this new question.
     {{else}}
     Just generate the new practice question, 4 options, and the correct answer.
