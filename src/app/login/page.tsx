@@ -27,7 +27,7 @@ const ChristmasLights = () => {
     }, []);
 
     if (!isMounted) {
-        return null;
+        return null; // Don't render on the server
     }
 
     return (
@@ -184,10 +184,10 @@ export default function LoginPage() {
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5, ease: 'easeOut' }}
       >
-        <div className="absolute -top-4 -left-4 transform -rotate-12" style={{width: '25px', height: '25px'}}>
+        <div className="absolute -top-8 -left-8 transform -rotate-12 w-16 h-16" >
             <svg xmlns="http://www.w3.org/2000/svg" xmlSpace="preserve" viewBox="0 0 512 512"><path d="M473.187 0H193.989c-12.849 0-23.266 10.417-23.266 23.266v108.578c0 12.849 10.417 23.266 23.266 23.266h279.194c12.849 0 23.266-10.417 23.266-23.266V23.266C496.453 10.417 486.036 0 473.187 0" style={{fill:'#dedee0'}}/><path d="M442.165 155.111H201.471V248l-53.946.04c-72.773 0-131.977 59.205-131.977 131.978C15.547 452.793 74.75 512 147.523 512h.008l185.918-.059q.07-.002.14-.003c72.712-.076 131.843-59.25 131.843-131.977v-224.85z" style={{fill:'#d8143a'}}/><path d="M248.002 155.111h85.586V0H193.989c-12.849 0-23.266 10.417-23.266 23.266v108.578c0 12.849 10.417 23.266 23.266 23.266h54.013z" style={{fill:'#d6d5d8'}}/><path d="M147.523 512h.008l185.918-.059q.07-.002.14-.003V155.111H201.471V248l-53.946.04c-72.773 0-131.977 59.205-131.977 131.978C15.547 452.793 74.75 512 147.523 512" style={{fill:'#b8002b'}}/></svg>
         </div>
-        <div className="absolute -top-4 -right-4 transform rotate-12 scale-x-[-1]" style={{width: '25px', height: '25px'}}>
+        <div className="absolute -top-8 -right-8 transform rotate-12 scale-x-[-1] w-16 h-16">
              <svg xmlns="http://www.w3.org/2000/svg" xmlSpace="preserve" viewBox="0 0 512 512"><path d="M473.187 0H193.989c-12.849 0-23.266 10.417-23.266 23.266v108.578c0 12.849 10.417 23.266 23.266 23.266h279.194c12.849 0 23.266-10.417 23.266-23.266V23.266C496.453 10.417 486.036 0 473.187 0" style={{fill:'#dedee0'}}/><path d="M442.165 155.111H201.471V248l-53.946.04c-72.773 0-131.977 59.205-131.977 131.978C15.547 452.793 74.75 512 147.523 512h.008l185.918-.059q.07-.002.14-.003c72.712-.076 131.843-59.25 131.843-131.977v-224.85z" style={{fill:'#d8143a'}}/><path d="M248.002 155.111h85.586V0H193.989c-12.849 0-23.266 10.417-23.266 23.266v108.578c0 12.849 10.417 23.266 23.266 23.266h54.013z" style={{fill:'#d6d5d8'}}/><path d="M147.523 512h.008l185.918-.059q.07-.002.14-.003V155.111H201.471V248l-53.946.04c-72.773 0-131.977 59.205-131.977 131.978C15.547 452.793 74.75 512 147.523 512" style={{fill:'#b8002b'}}/></svg>
         </div>
         <div className="text-center">
