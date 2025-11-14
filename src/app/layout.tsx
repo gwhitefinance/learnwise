@@ -64,23 +64,6 @@ const WinterWonderland = () => {
 
     return (
         <div className="fixed inset-0 z-[-1] overflow-hidden pointer-events-none">
-            <div className="absolute inset-0 bg-[#0a1128]" />
-             <motion.div
-                className="absolute inset-0 opacity-50"
-                style={{
-                    backgroundImage: 'radial-gradient(ellipse at 70% 30%, hsla(180, 80%, 80%, 0.3), transparent 50%), radial-gradient(ellipse at 30% 20%, hsla(280, 80%, 80%, 0.3), transparent 50%)'
-                }}
-                animate={{
-                    opacity: [0.3, 0.6, 0.3],
-                    scale: [1, 1.02, 1],
-                }}
-                transition={{
-                    duration: 15,
-                    repeat: Infinity,
-                    ease: 'easeInOut',
-                    repeatType: 'mirror'
-                }}
-            />
             {snowflakes}
             
             <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-white/5" style={{clipPath: 'polygon(0 100%, 100% 100%, 100% 20%, 50% 0, 0 20%)'}}></div>
@@ -94,13 +77,13 @@ const WinterWonderland = () => {
                     {/* Tree Body */}
                     <g fill="#228B22" stroke="#166534" strokeWidth="2.5" strokeLinejoin="round">
                         {/* Bottom Layer */}
-                        <path d="M 0 130 C 10 120, 20 135, 30 125 C 40 135, 50 120, 50 120 C 50 120, 60 135, 70 125 C 80 135, 90 120, 100 130 L 50 140 Z" transform="translate(0, -10)" />
+                        <path d="M 0 130 C 10 120, 90 120, 100 130 L 50 140 Z" transform="translate(0, -10)" />
                         {/* Mid-Bottom Layer */}
-                        <path d="M 10 105 C 20 95, 30 110, 40 100 C 45 110, 50 95, 50 95 C 50 95, 55 110, 60 100 C 70 110, 80 95, 90 105 L 50 120 Z" transform="translate(0, -10)" />
+                        <path d="M 10 105 C 20 95, 80 95, 90 105 L 50 120 Z" transform="translate(0, -10)" />
                         {/* Mid-Top Layer */}
-                        <path d="M 25 80 C 30 70, 40 85, 50 75 C 60 85, 70 70, 75 80 L 50 95 Z" transform="translate(0, -10)" />
+                        <path d="M 25 80 C 30 70, 70 70, 75 80 L 50 95 Z" transform="translate(0, -10)" />
                         {/* Top Layer */}
-                        <path d="M 35 60 C 40 50, 50 60, 50 50 C 50 60, 60 50, 65 60 L 50 75 Z" transform="translate(0, -10)" />
+                        <path d="M 35 60 C 40 50, 60 50, 65 60 L 50 75 Z" transform="translate(0, -10)" />
                     </g>
                     
                     {/* Garlands */}
@@ -207,10 +190,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={cn("font-display antialiased", poppins.variable, luckiestGuy.variable)}>
+      <body className={cn("font-display antialiased bg-[#0a1128]", poppins.variable, luckiestGuy.variable)}>
           <ThemeProvider
             attribute="class"
-            defaultTheme="light"
+            defaultTheme="dark"
             enableSystem={false}
           >
             <WinterWonderland />
