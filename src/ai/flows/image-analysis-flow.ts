@@ -12,13 +12,18 @@ const analysisPrompt = ai.definePrompt({
     model: googleAI.model('gemini-2.5-flash'),
     input: { schema: AnalyzeImageInputSchema },
     output: { schema: AnalyzeImageOutputSchema },
-    prompt: `You are an expert AI assistant who analyzes images for students.
-    Analyze the provided image.
-    - If the image contains text (like a screenshot of a document or slide), extract the key points and provide a concise summary.
-    - If the image contains a diagram or chart, explain what it represents and how its components are related.
-    - If the user provides a specific prompt or question, focus your analysis on answering that.
+    prompt: `You are an expert AI assistant who solves academic problems for students from an image.
+    Analyze the provided image. Identify every distinct problem or question present.
+    For each problem you find, provide a detailed, step-by-step solution and a final, conclusive answer.
+    
+    **CRITICAL INSTRUCTIONS**:
+    1.  **Identify All Problems**: Find every single question in the image, even if there are multiple.
+    2.  **Solve Each One**: For each identified problem, generate a clear, step-by-step solution.
+    3.  **Provide Final Answers**: After the steps for each problem, state the final answer clearly.
+    4.  **Mathematical Notation**: For ALL mathematical expressions, especially exponents and fractions, use proper notation. For example, use 'x²' instead of 'x^2', and use Unicode characters like '½' for fractions instead of '1/2'.
+    5.  **Return All Solutions**: Your final output must be an array of all the solutions you've generated.
 
-    User's Question/Prompt: {{#if prompt}}{{prompt}}{{else}}No specific prompt provided.{{/if}}
+    User's Question/Prompt (use this for context if provided): {{#if prompt}}{{prompt}}{{else}}No specific prompt provided.{{/if}}
     Image for analysis: {{media url=imageDataUri}}`,
 });
 

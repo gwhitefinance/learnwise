@@ -23,6 +23,7 @@ import {
 import { cn } from "@/lib/utils";
 
 type Solution = {
+    problem: string;
     answer: string;
     steps: string[];
 }
@@ -129,7 +130,7 @@ export default function HomeworkSolverPage() {
     const { toast } = useToast();
     const [isLoading, setIsLoading] = useState(false);
     const [question, setQuestion] = useState('');
-    const [solution, setSolution] = useState<Solution | null>(null);
+    const [solutions, setSolutions] = useState<Solution[] | null>(null);
     const [qrCodeUrl, setQrCodeUrl] = useState('');
     const fileInputRef = useRef<HTMLInputElement>(null);
     const recognitionRef = useRef<any>(null);
@@ -186,10 +187,10 @@ export default function HomeworkSolverPage() {
             return;
         }
         setIsLoading(true);
-        setSolution(null);
+        setSolutions(null);
         try {
             const result = await generateProblemSolvingSession({ topic: question });
-            setSolution(result);
+            setSolutions([result]); // Wrap single result in an array
         } catch (error) {
             console.error("Error solving problem:", error);
             toast({ variant: 'destructive', title: 'Error', description: 'Could not get a solution.' });
@@ -202,16 +203,19 @@ export default function HomeworkSolverPage() {
         const file = e.target.files?.[0];
         if (file) {
             setIsLoading(true);
+            setSolutions(null);
+            setQuestion(`Analyzing image: ${file.name}`);
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onload = async () => {
                 const imageDataUri = reader.result as string;
                 try {
-                    const result = await analyzeImage({ imageDataUri, prompt: 'Extract the text from this homework problem.' });
-                    setQuestion(result.analysis);
+                    const result = await analyzeImage({ imageDataUri });
+                    setSolutions(result.solutions);
                     toast({ title: 'Image analyzed successfully!' });
                 } catch (err) {
-                    toast({ variant: 'destructive', title: 'Analysis failed.', description: 'Could not extract text from the image.'});
+                    toast({ variant: 'destructive', title: 'Analysis failed.', description: 'Could not solve problems from the image.'});
+                    setQuestion('');
                 } finally {
                     setIsLoading(false);
                 }
@@ -233,67 +237,35 @@ export default function HomeworkSolverPage() {
         }
     };
 
-    if (solution) {
+    if (solutions) {
         return (
             <div className="min-h-screen flex flex-col p-4 bg-background">
                 <header className="flex justify-end items-center mb-6">
-                    <Button onClick={() => setSolution(null)}>Solve Another Problem</Button>
+                    <Button onClick={() => {setSolutions(null); setQuestion('')}}>Solve Another Problem</Button>
                 </header>
                 <main className="w-full max-w-2xl mx-auto flex-1">
                     <div className="space-y-6">
-                        <Card>
-                            <CardContent className="p-4 flex items-center gap-4">
-                                <Avatar><AvatarFallback>Y</AvatarFallback></Avatar>
-                                <div>
-                                    <p className="text-sm font-semibold">You</p>
-                                    <p>{question}</p>
-                                </div>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardContent className="p-4 flex items-center gap-4">
-                                <div style={{ width: '200px', height: '200px' }}>
-                                    <AIBuddy className="w-full h-full" />
-                                </div>
-                                <div>
-                                    <p className="text-sm font-semibold">Taz's Answer</p>
-                                    <p className="font-bold text-lg">{solution.answer}</p>
-                                </div>
-                            </CardContent>
-                        </Card>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <Card className="hover:bg-muted transition-colors cursor-pointer">
-                                <CardContent className="p-4 flex items-center gap-4">
-                                    <div className="p-3 bg-primary/10 rounded-full text-primary">
-                                        <PlayCircle />
-                                    </div>
-                                    <div>
-                                        <p className="font-semibold">Watch a video</p>
-                                        <p className="text-sm text-muted-foreground">to learn how to solve this step-by-step</p>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                             <Card className="hover:bg-muted transition-colors cursor-pointer">
-                                <CardContent className="p-4 flex items-center gap-4">
-                                     <div className="p-3 bg-primary/10 rounded-full text-primary">
-                                        <Bot />
-                                    </div>
-                                    <div>
-                                        <p className="font-semibold">Practice questions</p>
-                                        <p className="text-sm text-muted-foreground">instantly with feedback</p>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </div>
-
-                        {solution.steps.map((step, index) => (
-                            <Card key={index}>
+                        {solutions.map((solution, s_idx) => (
+                             <Card key={s_idx}>
                                 <CardHeader>
-                                    <CardTitle className="text-lg">Step {index + 1}:</CardTitle>
+                                    <CardTitle>Problem {s_idx + 1}: {solution.problem}</CardTitle>
                                 </CardHeader>
-                                <CardContent>
-                                    <p className="text-muted-foreground whitespace-pre-wrap">{step}</p>
+                                <CardContent className="space-y-4">
+                                     <div className="p-4 bg-primary/10 rounded-lg">
+                                        <p className="font-semibold text-primary">Final Answer:</p>
+                                        <p className="font-bold text-lg">{solution.answer}</p>
+                                    </div>
+                                    <div>
+                                        <p className="font-semibold mb-2">Step-by-Step Solution:</p>
+                                        <div className="space-y-3">
+                                            {solution.steps.map((step, index) => (
+                                                <div key={index} className="flex items-start gap-3">
+                                                    <div className="flex-shrink-0 flex items-center justify-center h-8 w-8 rounded-full bg-muted text-muted-foreground font-bold">{index + 1}</div>
+                                                    <p className="text-muted-foreground pt-1">{step}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
                                 </CardContent>
                             </Card>
                         ))}

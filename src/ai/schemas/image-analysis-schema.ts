@@ -14,7 +14,13 @@ export const AnalyzeImageInputSchema = z.object({
 export type AnalyzeImageInput = z.infer<typeof AnalyzeImageInputSchema>;
 
 
+const SolvedProblemSchema = z.object({
+    problem: z.string().describe("The original question or problem identified from the image."),
+    steps: z.array(z.string()).describe("A detailed, step-by-step walkthrough of the solution. Each step should be a separate string in the array."),
+    answer: z.string().describe("The final, conclusive answer to the problem."),
+});
+
 export const AnalyzeImageOutputSchema = z.object({
-  analysis: z.string().describe('A detailed analysis or summary of the image content.'),
+  solutions: z.array(SolvedProblemSchema).describe("An array of solved problems found in the image. Each item contains the problem, the steps to solve it, and the final answer."),
 });
 export type AnalyzeImageOutput = z.infer<typeof AnalyzeImageOutputSchema>;
