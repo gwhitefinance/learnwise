@@ -1,7 +1,6 @@
 
 'use client';
 
-import type { Metadata } from "next"
 import * as React from "react";
 import { Poppins, Luckiest_Guy } from "next/font/google"
 import "./globals.css"
@@ -65,7 +64,7 @@ const WinterWonderland = () => {
 
     return (
         <div className="fixed inset-0 z-[-1] overflow-hidden pointer-events-none">
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0a1128] to-[#141b33]" />
+            <div className="absolute inset-0 bg-[#0a1128]" />
              <motion.div
                 className="absolute inset-0 opacity-50"
                 style={{
@@ -84,16 +83,56 @@ const WinterWonderland = () => {
             />
             {snowflakes}
             
-            {/* Added Christmas elements */}
             <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-white/5" style={{clipPath: 'polygon(0 100%, 100% 100%, 100% 20%, 50% 0, 0 20%)'}}></div>
 
             <svg viewBox="0 0 800 600" className="absolute inset-0 w-full h-full">
                 {/* Christmas Tree */}
-                <g transform="translate(100, 350) scale(1.2)">
-                    <polygon points="50,0 20,50 80,50" fill="#228B22" />
-                    <polygon points="50,20 30,70 70,70" fill="#32CD32" />
-                    <polygon points="50,40 40,90 60,90" fill="#008000" />
-                    <rect x="45" y="90" width="10" height="20" fill="#8B4513" />
+                <g transform="translate(100, 320) scale(1.2)">
+                    {/* Trunk */}
+                    <path d="M 45 130 L 55 130 L 60 145 L 40 145 Z" fill="#8B4513" />
+
+                    {/* Tree Body */}
+                    <g fill="#228B22" stroke="#166534" strokeWidth="2.5" strokeLinejoin="round">
+                        {/* Bottom Layer */}
+                        <path d="M 0 130 C 10 120, 20 135, 30 125 C 40 135, 50 120, 50 120 C 50 120, 60 135, 70 125 C 80 135, 90 120, 100 130 L 50 140 Z" transform="translate(0, -10)" />
+                        {/* Mid-Bottom Layer */}
+                        <path d="M 10 105 C 20 95, 30 110, 40 100 C 45 110, 50 95, 50 95 C 50 95, 55 110, 60 100 C 70 110, 80 95, 90 105 L 50 120 Z" transform="translate(0, -10)" />
+                        {/* Mid-Top Layer */}
+                        <path d="M 25 80 C 30 70, 40 85, 50 75 C 60 85, 70 70, 75 80 L 50 95 Z" transform="translate(0, -10)" />
+                        {/* Top Layer */}
+                        <path d="M 35 60 C 40 50, 50 60, 50 50 C 50 60, 60 50, 65 60 L 50 75 Z" transform="translate(0, -10)" />
+                    </g>
+                    
+                    {/* Garlands */}
+                    <g stroke="#C12828" strokeWidth="3" fill="none">
+                        <path d="M 30 85 Q 50 90, 70 85" />
+                        <path d="M 15 105 Q 50 115, 85 105" />
+                        <path d="M 5 125 Q 50 135, 95 125" />
+                    </g>
+                    
+                    {/* Ornaments */}
+                    <g>
+                        {/* Red Ornaments */}
+                        <circle cx="50" cy="58" r="5" fill="#E53E3E" /><circle cx="50" cy="56" r="1" fill="#4A5568"/>
+                        <circle cx="28" cy="103" r="5" fill="#E53E3E" /><circle cx="28" cy="101" r="1" fill="#4A5568"/>
+                        <circle cx="72" cy="103" r="5" fill="#E53E3E" /><circle cx="72" cy="101" r="1" fill="#4A5568"/>
+                        <circle cx="50" cy="108" r="6" fill="#E53E3E" /><circle cx="50" cy="106" r="1" fill="#4A5568"/>
+                        <circle cx="18" cy="123" r="6" fill="#E53E3E" /><circle cx="18" cy="121" r="1" fill="#4A5568"/>
+                        <circle cx="82" cy="123" r="6" fill="#E53E3E" /><circle cx="82" cy="121" r="1" fill="#4A5568"/>
+                        {/* Yellow Ornaments */}
+                        <circle cx="35" cy="83" r="5" fill="#FBBF24" /><circle cx="35" cy="81" r="1" fill="#4A5568"/>
+                        <circle cx="65" cy="83" r="5" fill="#FBBF24" /><circle cx="65" cy="81" r="1" fill="#4A5568"/>
+                        <circle cx="50" cy="88" r="4" fill="#FBBF24" /><circle cx="50" cy="86" r="1" fill="#4A5568"/>
+                        <circle cx="10" cy="105" r="5" fill="#FBBF24" /><circle cx="10" cy="103" r="1" fill="#4A5568"/>
+                        <circle cx="90" cy="105" r="5" fill="#FBBF24" /><circle cx="90" cy="103" r="1" fill="#4A5568"/>
+                        <circle cx="35" cy="128" r="4" fill="#FBBF24" /><circle cx="35" cy="126" r="1" fill="#4A5568"/>
+                        <circle cx="65" cy="128" r="4" fill="#FBBF24" /><circle cx="65" cy="126" r="1" fill="#4A5568"/>
+                    </g>
+
+                    {/* Star */}
+                    <g transform="translate(50, 25) scale(1.5)">
+                        <polygon points="0,-10 2.94,-4.05 9.51,-3.09 4.76,1.55 5.88,8.09 0,5 -5.88,8.09 -4.76,1.55 -9.51,-3.09 -2.94,-4.05" fill="#FBBF24" stroke="#F59E0B" strokeWidth="0.5"/>
+                    </g>
                 </g>
 
                 {/* Gifts under the tree */}
@@ -108,7 +147,7 @@ const WinterWonderland = () => {
                     <rect x="-2" y="6" width="19" height="3" fill="#C0C0C0" />
                 </g>
 
-                {/* Stockings by a non-existent fireplace :) */}
+                {/* Stockings */}
                 <g transform="translate(650, 300)">
                     <path d="M0,0 v20 a5,5 0 0,0 5,5 h10 a5,5 0 0,0 5,-5 v-5 a10,10 0 0,1 -20,0" fill="#DC143C"/>
                     <rect x="-2" y="0" width="24" height="5" fill="white" />
@@ -144,6 +183,18 @@ const WinterWonderland = () => {
                         </g>
                     </g>
                 </motion.g>
+
+                {/* Snowman */}
+                <g transform="translate(600, 420) scale(0.8)">
+                  <circle cx="50" cy="50" r="30" fill="white" />
+                  <circle cx="50" cy="0" r="20" fill="white" />
+                  <rect x="48" y="0" width="4" height="20" fill="#D2691E" transform="rotate(45 50 0)"/>
+                  <circle cx="45" cy="-5" r="2" fill="black" />
+                  <circle cx="55" cy="-5" r="2" fill="black" />
+                  <circle cx="50" cy="35" r="2.5" fill="black" />
+                  <circle cx="50" cy="50" r="2.5" fill="black" />
+                  <circle cx="50" cy="65" r="2.5" fill="black" />
+                </g>
             </svg>
         </div>
     );
