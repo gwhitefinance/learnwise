@@ -64,13 +64,15 @@ type Flashcard = {
 
 const NoteCard = ({ note, onDelete, onToggleImportant, onToggleComplete, onSummarize, onGenerateQuiz, onGenerateFlashcards }: { note: Note, onDelete: (id: string) => void, onToggleImportant: (id: string) => void, onToggleComplete: (id: string, isCompleted: boolean) => void, onSummarize: (content: string) => void, onGenerateQuiz: (noteContent: string) => void, onGenerateFlashcards: (noteContent: string) => void }) => {
   return (
-    <Card className={`overflow-hidden ${note.color}`}>
-      <CardHeader className="p-4">
+    <Card className={`overflow-hidden ${note.color} flex flex-col`}>
+      <CardHeader className="p-4 flex-grow">
         <div className="flex justify-between items-start">
-            <CardTitle className="text-lg font-semibold">{note.title}</CardTitle>
+            <Link href={`/dashboard/notes/new?id=${note.id}`} className="flex-1">
+                <CardTitle className="text-lg font-semibold hover:underline">{note.title}</CardTitle>
+            </Link>
              <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-6 w-6">
+                <Button variant="ghost" size="icon" className="h-6 w-6 flex-shrink-0">
                   <MoreVertical className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
@@ -97,15 +99,17 @@ const NoteCard = ({ note, onDelete, onToggleImportant, onToggleComplete, onSumma
               </DropdownMenuContent>
             </DropdownMenu>
         </div>
-        {note.isWhiteboardNote && note.imageUrl ? (
-            <div className="mt-2 aspect-video relative bg-muted rounded-md overflow-hidden">
-                <Image src={note.imageUrl} alt={note.title} layout="fill" objectFit="contain" />
-            </div>
-        ) : (
-            <CardDescription className="text-sm pt-2">{note.content}</CardDescription>
-        )}
+        <Link href={`/dashboard/notes/new?id=${note.id}`} className="block">
+            {note.isWhiteboardNote && note.imageUrl ? (
+                <div className="mt-2 aspect-video relative bg-muted rounded-md overflow-hidden">
+                    <Image src={note.imageUrl} alt={note.title} layout="fill" objectFit="contain" />
+                </div>
+            ) : (
+                <CardDescription className="text-sm pt-2 line-clamp-3" dangerouslySetInnerHTML={{ __html: note.content }} />
+            )}
+        </Link>
       </CardHeader>
-      <CardContent className="p-4 pt-0">
+      <CardContent className="p-4 pt-0 mt-auto">
          <p className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(note.date), { addSuffix: true })}</p>
       </CardContent>
     </Card>

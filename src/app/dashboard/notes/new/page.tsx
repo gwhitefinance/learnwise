@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -22,7 +23,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import Logo from '@/components/Logo';
 import Link from 'next/link';
-import { addDoc, collection, Timestamp, query, where, onSnapshot } from 'firebase/firestore';
+import { addDoc, collection, Timestamp, query, where, onSnapshot, doc, getDoc, updateDoc } from 'firebase/firestore';
 import {
   Dialog,
   DialogContent,
@@ -42,7 +43,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'; 
-import { useRouter } from 'next/navigation'; 
+import { useRouter, useSearchParams } from 'next/navigation'; 
 
 interface Message {
   role: 'user' | 'ai';
@@ -349,6 +350,9 @@ export default function NewNotePage() {
     const [selectedCourseId, setSelectedCourseId] = useState<string | undefined>();
     const [selectedUnitId, setSelectedUnitId] = useState<string | undefined>();
     const router = useRouter(); 
+    const searchParams = useSearchParams();
+    const noteId = searchParams.get('id');
+    const [isLoadingNote, setIsLoadingNote] = useState(!!noteId);
     
     useEffect(() => {
         if (!user) return;
@@ -365,9 +369,12 @@ export default function NewNotePage() {
             if (event.data.type === 'noteUpload') {
                 toast({ title: "Image Received!", description: "Analyzing image to create notes..." });
                 try {
-                    const { analysis } = await analyzeImage({ imageDataUri: event.data.imageDataUri });
+                    const result = await analyzeImage({ imageDataUri: event.data.imageDataUri });
                     if (editorRef.current) {
-                        editorRef.current.innerHTML += `<h2>Note from Image Upload</h2><p>${analysis}</p>`;
+                        const solutionsHtml = result.solutions.map(s => 
+                            `<h3>Problem: ${s.problem}</h3><p><strong>Answer:</strong> ${s.answer}</p><h4>Steps:</h4><ol>${s.steps.map(step => `<li>${step}</li>`).join('')}</ol>`
+                        ).join('<hr/>');
+                        editorRef.current.innerHTML += `<br/><h2>Note from Image Upload</h2>${solutionsHtml}`;
                     }
                     toast({ title: "Success!", description: "Your image has been analyzed and added to your note." });
                 } catch (e) {
@@ -377,12 +384,39 @@ export default function NewNotePage() {
         };
 
         window.addEventListener('message', handleMessage);
+        
+        const loadNote = async () => {
+            if (noteId && user) {
+                try {
+                    const noteRef = doc(db, 'notes', noteId);
+                    const noteSnap = await getDoc(noteRef);
+                    if (noteSnap.exists() && noteSnap.data().userId === user.uid) {
+                        const noteData = noteSnap.data();
+                        setNoteTitle(noteData.title);
+                        if (editorRef.current) {
+                            editorRef.current.innerHTML = noteData.content;
+                        }
+                        setSelectedCourseId(noteData.courseId);
+                        setSelectedUnitId(noteData.unitId);
+                    } else {
+                        toast({ variant: 'destructive', title: 'Note not found or access denied.' });
+                        router.push('/dashboard/notes');
+                    }
+                } catch (error) {
+                    toast({ variant: 'destructive', title: 'Error loading note.' });
+                } finally {
+                    setIsLoadingNote(false);
+                }
+            }
+        };
+
+        loadNote();
 
         return () => {
             unsubscribe();
             window.removeEventListener('message', handleMessage);
         };
-    }, [user, toast]);
+    }, [user, noteId, router, toast]);
 
     const handleCommand = (command: string, value?: string) => {
         document.execCommand(command, false, value);
@@ -465,19 +499,32 @@ export default function NewNotePage() {
     const handleSaveNote = async () => {
         if (!user || !editorRef.current) return;
     
+        const noteData = {
+            title: noteTitle,
+            content: editorRef.current.innerHTML,
+            date: Timestamp.now(),
+            courseId: selectedCourseId || null,
+            unitId: selectedUnitId || null,
+            userId: user.uid,
+        };
+
         try {
-            await addDoc(collection(db, "notes"), {
-                title: noteTitle,
-                content: editorRef.current.innerHTML,
-                date: Timestamp.now(),
-                color: 'bg-indigo-100 dark:bg-indigo-900/20', // Default color
-                isImportant: false,
-                isCompleted: false,
-                userId: user.uid,
-                courseId: selectedCourseId || null,
-                unitId: selectedUnitId || null,
-            });
-            toast({ title: "Note Saved!", description: "Your note has been successfully saved." });
+            if (noteId) {
+                // Update existing note
+                const noteRef = doc(db, "notes", noteId);
+                await updateDoc(noteRef, noteData);
+                toast({ title: "Note Updated!", description: "Your changes have been saved." });
+            } else {
+                 // Create new note
+                await addDoc(collection(db, "notes"), {
+                    ...noteData,
+                    color: 'bg-indigo-100 dark:bg-indigo-900/20', // Default color for new notes
+                    isImportant: false,
+                    isCompleted: false,
+                });
+                toast({ title: "Note Saved!", description: "Your note has been successfully saved." });
+            }
+            router.push('/dashboard/notes');
         } catch (error) {
             console.error("Error saving note: ", error);
             toast({ variant: "destructive", title: "Error", description: "Could not save the note." });
@@ -489,6 +536,10 @@ export default function NewNotePage() {
     };
 
     const selectedCourseForFilter = courses.find(c => c.id === selectedCourseId);
+
+    if (isLoadingNote) {
+        return <div className="h-screen w-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>
+    }
 
     return (
         <div className="flex h-screen overflow-hidden">
@@ -574,7 +625,7 @@ export default function NewNotePage() {
                                 {chatHistory.map((msg, index) => (
                                     <div key={index} className={cn("flex items-end gap-2", msg.role === 'user' ? 'justify-end' : '')}>
                                          {msg.role === 'ai' && <Avatar><AvatarFallback><Bot size={20}/></AvatarFallback></Avatar>}
-                                         <div className={cn("p-3 rounded-2xl max-w-[85%] text-sm prose dark:prose-invert prose-p:my-0 prose-headings:my-0 prose-table:my-0", msg.role === 'user' ? "bg-primary text-primary-foreground rounded-br-none" : "bg-muted rounded-bl-none")}>
+                                         <div className={cn("p-3 rounded-2xl max-w-[85%] text-sm prose dark:prose-invert prose-p:my-0 prose-headings:my-0 prose-table:my-0", msg.role === 'user' ? 'bg-primary text-primary-foreground rounded-br-none' : 'bg-muted rounded-bl-none')}>
                                             <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
                                         </div>
                                          {msg.role === 'user' && <Avatar><AvatarFallback><User size={20}/></AvatarFallback></Avatar>}
@@ -584,9 +635,7 @@ export default function NewNotePage() {
                                      <div className="flex items-end gap-2">
                                         <Avatar><AvatarFallback><Bot size={20}/></AvatarFallback>
                                         </Avatar>
-                                        <div className="p-3 rounded-2xl max-w-[85%] text-sm bg-muted rounded-bl-none animate-pulse">
-                                            ...
-                                        </div>
+                                        <div className="rounded-lg p-3 bg-background border animate-pulse">Thinking...</div>
                                      </div>
                                 )}
                             </div>
