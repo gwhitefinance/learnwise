@@ -30,10 +30,11 @@ const prompt = ai.definePrompt({
     **Instructions**:
 
     1.  **Title**: Generate a short, descriptive title for this study session based on the content.
-    2.  **Key Concepts**: Identify the 3-5 most critical vocabulary terms or concepts. Provide a concise definition for each.
-    3.  **Summary**: Write a 2-4 sentence summary that captures the absolute core information a student must know.
-    4.  **Practice Quiz**: Create a small quiz with exactly 3 multiple-choice questions. These questions should test the main ideas, not obscure details. For each question, provide 4 options and the correct answer.
-    5.  **Study Plan**: Devise a 3-step, actionable study plan tailored to the user's learning style.
+    2.  **Summary**: Write a 2-4 sentence summary that captures the absolute core information a student must know.
+    3.  **Key Concepts**: Identify the 3-5 most critical vocabulary terms or concepts. Provide a concise definition for each.
+    4.  **How-to Guide**: If the material includes a problem (like a math equation, a physics problem, or a specific question), provide a step-by-step "How-to Guide" that explains the process to solve it. If there are no specific problems, this can be a more general guide on how to approach the main topic.
+    5.  **Practice Quiz**: Create a small quiz with exactly 3 multiple-choice questions. These questions should test the main ideas, not obscure details. For each question, provide 4 options and the correct answer.
+    6.  **Study Plan**: Devise a 3-step, actionable study plan tailored to the user's learning style.
         -   **Visual**: Suggest creating diagrams, color-coding notes, or watching a specific type of video.
         -   **Auditory**: Suggest explaining the concepts out loud, creating a mnemonic device, or finding a related podcast.
         -   **Kinesthetic**: Suggest a hands-on activity, a real-world application, or a way to physically interact with the concept.

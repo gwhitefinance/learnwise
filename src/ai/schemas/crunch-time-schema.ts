@@ -17,6 +17,11 @@ const StudyStepSchema = z.object({
   description: z.string().describe('A brief explanation of what to do in this step.')
 });
 
+const HowToStepSchema = z.object({
+  step: z.string().describe('The title of the step in the how-to guide.'),
+  description: z.string().describe('A detailed explanation of this step.'),
+});
+
 export const CrunchTimeInputSchema = z.object({
   inputType: z.enum(['text', 'url', 'image']).describe('The type of input provided.'),
   content: z.string().describe("The text content, URL, or image data URI."),
@@ -28,8 +33,9 @@ export type CrunchTimeInput = z.infer<typeof CrunchTimeInputSchema>;
 
 export const CrunchTimeOutputSchema = z.object({
   title: z.string().describe('A concise title for the study session, derived from the content.'),
-  keyConcepts: z.array(KeyConceptSchema).describe('A list of 3-5 most important terms and their definitions from the material.'),
   summary: z.string().describe('A 2-4 sentence summary of the core information.'),
+  keyConcepts: z.array(KeyConceptSchema).describe('A list of 3-5 most important terms and their definitions from the material.'),
+  howToGuide: z.array(HowToStepSchema).describe('A step-by-step guide for solving a problem or understanding a process from the material.'),
   practiceQuiz: z.array(PracticeQuestionSchema).describe('A small quiz of 3 multiple-choice questions to test understanding.'),
   studyPlan: z.array(StudyStepSchema).describe("A 3-step actionable study plan tailored to the user's learning style.")
 });

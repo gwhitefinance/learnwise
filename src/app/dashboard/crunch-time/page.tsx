@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, useCallback, useEffect } from 'react';
@@ -7,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsTrigger, TabsList, TabsContent } from '@/components/ui/tabs';
-import { UploadCloud, Link as LinkIcon, Youtube, Wand2, Loader2, Image as ImageIcon, FileText, ArrowLeft, BookOpen, List, BrainCircuit, Lightbulb, Zap, Plus } from 'lucide-react';
+import { UploadCloud, Link as LinkIcon, Youtube, Wand2, Loader2, Image as ImageIcon, FileText, ArrowLeft, BookOpen, List, BrainCircuit, Lightbulb, Zap, Plus, GitMerge } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { generateCrunchTimeStudyGuide } from '@/lib/actions';
@@ -27,6 +28,11 @@ type StudyStep = {
     description: string;
 };
 
+type HowToStep = {
+    step: string;
+    description: string;
+};
+
 type QuizQuestion = {
     question: string;
     options: string[];
@@ -37,6 +43,7 @@ type CrunchTimeOutput = {
     title: string;
     summary: string;
     keyConcepts: KeyConcept[];
+    howToGuide: HowToStep[];
     studyPlan: StudyStep[];
     practiceQuiz: QuizQuestion[];
 };
@@ -128,7 +135,7 @@ const StudyGuideDisplay = ({ guide }: { guide: CrunchTimeOutput }) => {
                 <CardTitle className="text-2xl">{guide.title}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-8">
-                 <Accordion type="multiple" defaultValue={['summary', 'key-concepts', 'study-plan', 'practice-quiz']} className="w-full space-y-4">
+                 <Accordion type="multiple" defaultValue={['summary', 'key-concepts', 'how-to-guide', 'study-plan', 'practice-quiz']} className="w-full space-y-4">
                     <AccordionItem value="summary" className="border rounded-lg bg-muted/20">
                         <AccordionTrigger className="p-4 font-semibold text-lg flex items-center gap-2"><FileText className="h-5 w-5 text-primary"/>Summary</AccordionTrigger>
                         <AccordionContent className="px-6 pb-6 text-muted-foreground border-t pt-4">{guide.summary}</AccordionContent>
@@ -140,6 +147,20 @@ const StudyGuideDisplay = ({ guide }: { guide: CrunchTimeOutput }) => {
                                 <div key={concept.term}>
                                     <p className="font-semibold">{concept.term}</p>
                                     <p className="text-sm text-muted-foreground">{concept.definition}</p>
+                                </div>
+                            ))}
+                        </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem value="how-to-guide" className="border rounded-lg bg-muted/20">
+                        <AccordionTrigger className="p-4 font-semibold text-lg flex items-center gap-2"><GitMerge className="h-5 w-5 text-primary"/>How-to Guide</AccordionTrigger>
+                        <AccordionContent className="px-6 pb-6 space-y-4 border-t pt-4">
+                            {guide.howToGuide.map((step: HowToStep, i: number) => (
+                                <div key={i} className="flex gap-4">
+                                    <div className="flex-shrink-0 flex items-center justify-center h-8 w-8 rounded-full bg-primary text-primary-foreground font-bold">{i + 1}</div>
+                                    <div>
+                                        <p className="font-semibold">{step.step}</p>
+                                        <p className="text-sm text-muted-foreground">{step.description}</p>
+                                    </div>
                                 </div>
                             ))}
                         </AccordionContent>
