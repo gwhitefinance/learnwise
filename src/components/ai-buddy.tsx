@@ -446,6 +446,37 @@ const TorsoBear = ({ color }: any) => (
     </g>
 );
 
+const HeadPanda = ({ pupilX, pupilY, color }: any) => (
+    <motion.g initial={{ scale: 0 }} animate={{ scale: 1, transition: { delay: 0.3 } }}>
+        <circle cx="65" cy="45" r="20" fill="#333" />
+        <circle cx="135" cy="45" r="20" fill="#333" />
+        <circle cx="100" cy="80" r="40" fill={color} />
+        <ellipse cx="85" cy="80" rx="14" ry="18" fill="#333" transform="rotate(-20 85 80)" />
+        <ellipse cx="115" cy="80" rx="14" ry="18" fill="#333" transform="rotate(20 115 80)" />
+        <g>
+            <circle cx="85" cy="80" r="8" fill="white" />
+            <motion.circle cx="85" cy="80" r="4" fill="black" style={{ x: pupilX, y: pupilY }}/>
+            <circle cx="115" cy="80" r="8" fill="white" />
+            <motion.circle cx="115" cy="80" r="4" fill="black" style={{ x: pupilX, y: pupilY }}/>
+        </g>
+        <path d="M 98 105 C 100 108, 100 108, 102 105" stroke="black" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+    </motion.g>
+);
+
+const TorsoPanda = ({ color }: any) => (
+     <g>
+        <motion.path d="M 50,190 C 20,150 30,110 100,110 C 170,110 180,150 150,190 L 50 190 Z" fill={color} />
+        <motion.circle cx="45" cy="150" r="20" fill="#333" 
+            animate={{ rotate: [-5, 5, -5] }}
+            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        <motion.circle cx="155" cy="150" r="20" fill="#333"
+            animate={{ rotate: [5, -5, 5] }}
+            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+        />
+    </g>
+);
+
 
 const HeadBunny = ({ pupilX, pupilY, color }: any) => (
     <motion.g initial={{ scale: 0 }} animate={{ scale: 1, transition: { delay: 0.3 } }}>
@@ -653,6 +684,7 @@ const speciesComponents: Record<string, { Head: React.FC<any>; Torso: React.FC<a
     "Rocky": { Head: HeadRocky, Torso: TorsoRocky },
     "Splash": { Head: HeadSplash, Torso: TorsoSplash },
     "Bear": { Head: HeadBear, Torso: TorsoBear },
+    "Panda": { Head: HeadPanda, Torso: TorsoPanda },
     "Bunny": { Head: HeadBunny, Torso: TorsoBunny },
     "Boo": { Head: HeadBoo, Torso: TorsoBoo },
     "Roly": { Head: HeadRoly, Torso: TorsoRoly },
@@ -690,6 +722,7 @@ const AIBuddy: React.FC<AIBuddyProps> = ({ className, species = "Zappy", color, 
             "Rocky": "#A8A29E",
             "Splash": "#60A5FA",
             "Bear": "#A0522D",
+            "Panda": "#E5E7EB",
             "Bunny": "#FCE7F3",
             "Boo": "#F0F8FF",
             "Roly": "#D1D5DB",
