@@ -360,38 +360,9 @@ export default function NewNotePage() {
     const [isLoadingNote, setIsLoadingNote] = useState(!!noteId);
     
     useEffect(() => {
-        if (!user) return;
-        const q = query(collection(db, "courses"), where("userId", "==", user.uid));
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const userCourses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
-            setCourses(userCourses);
-        });
-
-        // Listen for messages from the mobile upload window
-        const handleMessage = async (event: MessageEvent) => {
-            if (event.origin !== window.location.origin) return;
-
-            if (event.data.type === 'noteUpload') {
-                toast({ title: "Image Received!", description: "Analyzing image to create notes..." });
-                try {
-                    const result = await analyzeImage({ imageDataUri: event.data.imageDataUri });
-                    if (editorRef.current) {
-                        const solutionsHtml = result.solutions.map(s => 
-                            `<h3>Problem: ${s.problem}</h3><p><strong>Answer:</strong> ${s.answer}</p><h4>Steps:</h4><ol>${s.steps.map(step => `<li>${step}</li>`).join('')}</ol>`
-                        ).join('<hr/>');
-                        editorRef.current.innerHTML += `<br/><h2>Note from Image Upload</h2>${solutionsHtml}`;
-                    }
-                    toast({ title: "Success!", description: "Your image has been analyzed and added to your note." });
-                } catch (e) {
-                    toast({ variant: 'destructive', title: "Analysis Failed" });
-                }
-            }
-        };
-
-        window.addEventListener('message', handleMessage);
-
         const loadNote = async () => {
-            if (noteId && user) {
+            if (noteId && user && editorRef.current) {
+                setIsLoadingNote(true);
                 try {
                     const noteRef = doc(db, 'notes', noteId);
                     const noteSnap = await getDoc(noteRef);
@@ -417,17 +388,46 @@ export default function NewNotePage() {
             }
         };
 
-        if (noteId) {
+        if(user) {
             loadNote();
-        } else {
-            setIsLoadingNote(false);
         }
+    }, [noteId, user, router, toast]);
+
+    useEffect(() => {
+        if (!user) return;
+        const q = query(collection(db, "courses"), where("userId", "==", user.uid));
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const userCourses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
+            setCourses(userCourses);
+        });
+
+        const handleMessage = async (event: MessageEvent) => {
+            if (event.origin !== window.location.origin) return;
+
+            if (event.data.type === 'noteUpload') {
+                toast({ title: "Image Received!", description: "Analyzing image to create notes..." });
+                try {
+                    const result = await analyzeImage({ imageDataUri: event.data.imageDataUri });
+                    if (editorRef.current) {
+                        const solutionsHtml = result.solutions.map(s => 
+                            `<h3>Problem: ${s.problem}</h3><p><strong>Answer:</strong> ${s.answer}</p><h4>Steps:</h4><ol>${s.steps.map(step => `<li>${step}</li>`).join('')}</ol>`
+                        ).join('<hr/>');
+                        editorRef.current.innerHTML += `<br/><h2>Note from Image Upload</h2>${solutionsHtml}`;
+                    }
+                    toast({ title: "Success!", description: "Your image has been analyzed and added to your note." });
+                } catch (e) {
+                    toast({ variant: 'destructive', title: "Analysis Failed" });
+                }
+            }
+        };
+
+        window.addEventListener('message', handleMessage);
 
         return () => {
             unsubscribe();
             window.removeEventListener('message', handleMessage);
         };
-    }, [user, noteId, router, toast]);
+    }, [user, toast]);
 
     const handleCommand = (command: string, value?: string) => {
         document.execCommand(command, false, value);
