@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from "react";
@@ -119,12 +120,12 @@ const WinterWonderland = () => {
                 </g>
 
                 {/* Gifts under the tree */}
-                <g transform="translate(120, 450)">
+                <g transform="translate(130, 455)">
                     <rect x="0" y="0" width="20" height="20" fill="#DC143C" />
                     <rect x="8" y="-2" width="4" height="24" fill="#FFD700" />
                     <rect x="-2" y="8" width="24" height="4" fill="#FFD700" />
                 </g>
-                <g transform="translate(150, 460)">
+                <g transform="translate(160, 465)">
                     <rect x="0" y="0" width="15" height="15" fill="#1E90FF" />
                     <rect x="6" y="-2" width="3" height="19" fill="#C0C0C0" />
                     <rect x="-2" y="6" width="19" height="3" fill="#C0C0C0" />
