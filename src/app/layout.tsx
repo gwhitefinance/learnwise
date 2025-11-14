@@ -66,7 +66,7 @@ const WinterWonderland = () => {
         <div className="fixed inset-0 z-[-1] overflow-hidden pointer-events-none">
             {snowflakes}
             
-            <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-white/5" style={{clipPath: 'polygon(0 100%, 100% 100%, 100% 20%, 50% 0, 0 20%)'}}></div>
+            <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-white" style={{clipPath: 'polygon(0 100%, 100% 100%, 100% 40%, 80% 30%, 50% 45%, 20% 35%, 0 40%)'}}></div>
 
             <svg viewBox="0 0 800 600" className="absolute inset-0 w-full h-full">
                 {/* Christmas Tree */}
