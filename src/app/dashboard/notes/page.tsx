@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -67,7 +68,7 @@ const NoteCard = ({ note, onDelete, onToggleImportant, onToggleComplete, onSumma
     <Card className={`overflow-hidden ${note.color} flex flex-col`}>
       <CardHeader className="p-4 flex-grow">
         <div className="flex justify-between items-start">
-            <Link href={`/dashboard/notes/new?id=${note.id}`} className="flex-1">
+            <Link href={`/dashboard/notes/${note.id}`} className="flex-1">
                 <CardTitle className="text-lg font-semibold hover:underline">{note.title}</CardTitle>
             </Link>
              <DropdownMenu>
@@ -99,7 +100,7 @@ const NoteCard = ({ note, onDelete, onToggleImportant, onToggleComplete, onSumma
               </DropdownMenuContent>
             </DropdownMenu>
         </div>
-        <Link href={`/dashboard/notes/new?id=${note.id}`} className="block">
+        <Link href={`/dashboard/notes/${note.id}`} className="block">
             {note.isWhiteboardNote && note.imageUrl ? (
                 <div className="mt-2 aspect-video relative bg-muted rounded-md overflow-hidden">
                     <Image src={note.imageUrl} alt={note.title} layout="fill" objectFit="contain" />
@@ -349,7 +350,7 @@ export default function NotesPage() {
                   <SelectContent>
                       <SelectItem value="all">All Units</SelectItem>
                       {selectedCourseForFilter?.units?.map(unit => (
-                          <SelectItem key={unit.id} value={unit.id}>{unit.name}</SelectItem>
+                          <SelectItem key={unit.id} value={unit.name}>{unit.name}</SelectItem>
                       ))}
                   </SelectContent>
               </Select>

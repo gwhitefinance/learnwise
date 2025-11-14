@@ -44,7 +44,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'; 
-import { useRouter, useSearchParams, useParams } from 'next/navigation'; 
+import { useRouter, useParams } from 'next/navigation'; 
 
 interface Message {
   id: string;
@@ -338,7 +338,7 @@ const ChatHomeScreen = ({ onStartChatWithPrompt, customizations }: { onStartChat
 };
 
 
-export default function NewNotePage() {
+export default function NoteEditorPage() {
     const editorRef = useRef<HTMLDivElement>(null);
     const [showLiveLecture, setShowLiveLecture] = useState(false);
     const [lectureTranscript, setLectureTranscript] = useState('');
@@ -382,7 +382,7 @@ export default function NewNotePage() {
                 } finally {
                     setIsLoadingNote(false);
                 }
-            } else if (!noteId) {
+            } else if (!noteId || noteId === 'new') {
                 // This is a new note, clear the editor
                 if (editorRef.current) editorRef.current.innerHTML = '';
                 setNoteTitle('Untitled Note');
@@ -392,7 +392,7 @@ export default function NewNotePage() {
             }
         };
 
-        if(user) {
+        if(user && editorRef.current) {
             loadNote();
         }
     }, [noteId, user, router, toast]);
@@ -533,7 +533,7 @@ export default function NewNotePage() {
                  // Create new note
                 const docRef = await addDoc(collection(db, "notes"), {
                     ...noteData,
-                    color: 'bg-indigo-100 dark:bg-indigo-900/20',
+                    color: 'bg-indigo-100 dark:bg-indigo-900/20', // Default color for new notes
                     isImportant: false,
                     isCompleted: false,
                 });
@@ -541,6 +541,7 @@ export default function NewNotePage() {
                 router.replace(`/dashboard/notes/${docRef.id}`);
                 toast({ title: "Note Saved!", description: "Your note has been successfully saved." });
             }
+            router.push('/dashboard/notes');
         } catch (error) {
             console.error("Error saving note: ", error);
             toast({ variant: "destructive", title: "Error", description: "Could not save the note." });
@@ -712,7 +713,7 @@ export default function NewNotePage() {
                                     <SelectContent>
                                         <SelectItem value="none">No specific module</SelectItem>
                                         {selectedCourseForFilter.units.map(unit => (
-                                            <SelectItem key={unit.id} value={unit.id}>{unit.title}</SelectItem>
+                                            <SelectItem key={unit.id} value={unit.title}>{unit.title}</SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
