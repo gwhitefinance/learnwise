@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -360,11 +359,17 @@ export default function NoteEditorPage() {
     const params = useParams();
     const noteId = params.noteId as string;
     const [isLoadingNote, setIsLoadingNote] = useState(true);
+    const [isMounted, setIsMounted] = useState(false);
     
     useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
+    useEffect(() => {
+        if (!isMounted || !user) return;
+
         const loadNote = async () => {
-            if (!user) return;
-            
+            setIsLoadingNote(true);
             if (noteId && noteId !== 'new') {
                 try {
                     const noteRef = doc(db, 'notes', noteId);
@@ -373,7 +378,7 @@ export default function NoteEditorPage() {
                         const noteData = noteSnap.data();
                         setNoteTitle(noteData.title);
                         if (editorRef.current) {
-                            editorRef.current.innerHTML = noteData.content;
+                            editorRef.current.innerHTML = noteData.content || '';
                         }
                         setSelectedCourseId(noteData.courseId);
                         setSelectedUnitId(noteData.unitId);
@@ -383,17 +388,21 @@ export default function NoteEditorPage() {
                     }
                 } catch (error) {
                     toast({ variant: 'destructive', title: 'Error loading note.' });
+                    console.error("Error loading note:", error);
+                } finally {
+                    setIsLoadingNote(false);
                 }
             } else {
                 setNoteTitle('Untitled Note');
                 if (editorRef.current) editorRef.current.innerHTML = '';
                 setSelectedCourseId(undefined);
                 setSelectedUnitId(undefined);
+                setIsLoadingNote(false);
             }
-            setIsLoadingNote(false);
         };
+        
         loadNote();
-    }, [noteId, user, router, toast]);
+    }, [noteId, user, isMounted, router, toast]);
 
     useEffect(() => {
         if (!user) return;
@@ -551,7 +560,7 @@ export default function NoteEditorPage() {
 
     const selectedCourseForFilter = courses.find(c => c.id === selectedCourseId);
 
-    if (isLoadingNote) {
+    if (isLoadingNote || !isMounted) {
         return <Loading />
     }
 
