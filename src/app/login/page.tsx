@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from "react";
@@ -124,6 +123,38 @@ export default function LoginPage() {
 
   return (
     <div className="flex items-center justify-center h-screen w-screen relative overflow-hidden">
+        <svg
+            className="absolute top-0 left-0 w-full h-auto"
+            viewBox="0 0 1440 80"
+            preserveAspectRatio="none"
+        >
+            <path
+                d="M0,40 C200,80 400,20 600,40 C800,60 1000,20 1200,40 C1400,60 1440,30 1440,30 L1440,0 L0,0 Z"
+                stroke="#4A5568"
+                strokeWidth="2"
+                fill="none"
+            />
+            <g>
+                {[...Array(20)].map((_, i) => (
+                    <motion.circle
+                        key={i}
+                        cx={70 * (i + 1)}
+                        cy={40 + 20 * Math.sin((i * Math.PI) / 5)}
+                        r="8"
+                        fill={['#FF5733', '#33FF57', '#3357FF', '#FF33A1', '#FFFF33'][i % 5]}
+                    >
+                        <animate
+                            attributeName="opacity"
+                            values="0.5;1;0.5"
+                            dur="2s"
+                            begin={`${i * 0.2}s`}
+                            repeatCount="indefinite"
+                        />
+                    </motion.circle>
+                ))}
+            </g>
+        </svg>
+
         <Link href="/" className="absolute top-4 left-4 z-20">
             <Button variant="ghost" size="icon" className="bg-black/10 hover:bg-black/20 text-white rounded-full h-10 w-10">
               <X className="h-5 w-5 text-white" />
