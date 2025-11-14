@@ -8,10 +8,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsTrigger, TabsList, TabsContent } from '@/components/ui/tabs';
-import { UploadCloud, Link as LinkIcon, Youtube, Wand2, Loader2, Image as ImageIcon, FileText, ArrowLeft, BookOpen, List, BrainCircuit, Lightbulb, Zap, Plus, GitMerge } from 'lucide-react';
+import { UploadCloud, Link as LinkIcon, Youtube, Wand2, Loader2, Image as ImageIcon, FileText, ArrowLeft, BookOpen, List, BrainCircuit, Lightbulb, Zap, Plus, GitMerge, RefreshCw, XCircle, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { generateCrunchTimeStudyGuide } from '@/lib/actions';
+import { generateCrunchTimeStudyGuide, generateExplanation } from '@/lib/actions';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useRouter } from 'next/navigation';
@@ -37,6 +37,7 @@ type QuizQuestion = {
     question: string;
     options: string[];
     answer: string;
+    explanation?: string;
 };
 
 type CrunchTimeOutput = {
@@ -125,9 +126,83 @@ const ResourceInput = ({ onGenerate }: { onGenerate: (type: 'text' | 'url' | 'im
     )
 }
 
-const StudyGuideDisplay = ({ guide }: { guide: CrunchTimeOutput }) => {
-    const [quizAnswers, setQuizAnswers] = useState<Record<number, string>>({});
-    const [submitted, setSubmitted] = useState(false);
+const StudyGuideDisplay = ({ guide, onReset, learnerType }: { guide: CrunchTimeOutput, onReset: () => void, learnerType: string }) => {
+    const [quizQuestions, setQuizQuestions] = useState(guide.practiceQuiz);
+    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+    const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+    const [isSubmitted, setIsSubmitted] = useState(false);
+    const [explanation, setExplanation] = useState<string | null>(null);
+    const [isExplanationLoading, setIsExplanationLoading] = useState(false);
+    const [isGeneratingNewQuestion, setIsGeneratingNewQuestion] = useState(false);
+
+    const currentQuestion = quizQuestions[currentQuestionIndex];
+    const isCorrect = selectedAnswer === currentQuestion.answer;
+
+    const handleNextQuestion = () => {
+        if (currentQuestionIndex < quizQuestions.length - 1) {
+            setCurrentQuestionIndex(prev => prev + 1);
+            resetQuestionState();
+        } else {
+            // End of quiz logic could go here, e.g. show summary
+            onReset(); // For now, just reset the whole guide
+        }
+    };
+    
+    const resetQuestionState = () => {
+        setSelectedAnswer(null);
+        setIsSubmitted(false);
+        setExplanation(null);
+    };
+
+    const handleCheckAnswer = async () => {
+        if (!selectedAnswer) return;
+        setIsSubmitted(true);
+        if (selectedAnswer !== currentQuestion.answer) {
+            setIsExplanationLoading(true);
+            try {
+                const result = await generateExplanation({
+                    question: currentQuestion.question,
+                    userAnswer: selectedAnswer,
+                    correctAnswer: currentQuestion.answer,
+                    learnerType: learnerType as any,
+                });
+                setExplanation(result.explanation);
+                // Optionally, generate a new question to replace the wrong one for future practice
+            } catch (error) {
+                console.error(error);
+                setExplanation("Sorry, couldn't load an explanation.");
+            } finally {
+                setIsExplanationLoading(false);
+            }
+        }
+    };
+
+    const handleGenerateNewQuestion = async () => {
+        setIsGeneratingNewQuestion(true);
+        try {
+            const result = await generateExplanation({
+                question: currentQuestion.question,
+                userAnswer: selectedAnswer || "",
+                correctAnswer: currentQuestion.answer,
+                learnerType: learnerType as any,
+            });
+            const newQuestion = {
+                ...result.practiceQuestion,
+                answer: result.practiceQuestion.answer
+            };
+            setQuizQuestions(prev => {
+                const newQuestions = [...prev];
+                newQuestions.splice(currentQuestionIndex + 1, 0, newQuestion);
+                return newQuestions;
+            });
+            handleNextQuestion();
+        } catch(e) {
+            console.error(e);
+        } finally {
+            setIsGeneratingNewQuestion(false);
+        }
+    }
+
 
     return (
         <Card className="w-full">
@@ -182,26 +257,58 @@ const StudyGuideDisplay = ({ guide }: { guide: CrunchTimeOutput }) => {
                      <AccordionItem value="practice-quiz" className="border rounded-lg bg-muted/20">
                         <AccordionTrigger className="p-4 font-semibold text-lg flex items-center gap-2"><Lightbulb className="h-5 w-5 text-primary"/>Practice Quiz</AccordionTrigger>
                         <AccordionContent className="px-6 pb-6 space-y-6 border-t pt-4">
-                            {guide.practiceQuiz.map((q: QuizQuestion, qIndex: number) => {
-                                const isCorrect = quizAnswers[qIndex] === q.answer;
-                                return (
-                                <div key={qIndex} className="space-y-3">
-                                    <p className="font-semibold">{qIndex + 1}. {q.question}</p>
-                                    <RadioGroup value={quizAnswers[qIndex]} onValueChange={(val) => setQuizAnswers(prev => ({...prev, [qIndex]: val}))} disabled={submitted}>
-                                        {q.options.map((opt: string, oIndex: number) => (
-                                            <Label key={oIndex} className={cn("flex items-center gap-3 p-3 border rounded-md cursor-pointer", submitted && (opt === q.answer ? 'border-green-500 bg-green-500/10' : (quizAnswers[qIndex] === opt ? 'border-red-500 bg-red-500/10' : '')) )}>
-                                                <RadioGroupItem value={opt} />
-                                                {opt}
-                                            </Label>
-                                        ))}
-                                    </RadioGroup>
-                                    {submitted && !isCorrect && <p className="text-sm text-red-500">Correct answer: {q.answer}</p>}
+                            <div className="text-sm text-muted-foreground text-center">
+                                Question {currentQuestionIndex + 1} of {quizQuestions.length}
+                            </div>
+                            <p className="font-semibold text-center text-lg">{currentQuestion.question}</p>
+                            <RadioGroup value={selectedAnswer || ''} onValueChange={setSelectedAnswer} disabled={isSubmitted}>
+                                <div className="space-y-3">
+                                {currentQuestion.options.map((opt: string, oIndex: number) => (
+                                    <Label key={oIndex} className={cn(
+                                        "flex items-center gap-3 p-3 border rounded-md transition-all",
+                                        isSubmitted && (opt === currentQuestion.answer ? 'border-green-500 bg-green-500/10' : (selectedAnswer === opt ? 'border-red-500 bg-red-500/10' : '')),
+                                        !isSubmitted && (selectedAnswer === opt ? "border-primary bg-primary/10" : "cursor-pointer")
+                                    )}>
+                                        <RadioGroupItem value={opt} />
+                                        <span>{opt}</span>
+                                        {isSubmitted && opt === currentQuestion.answer && <CheckCircle className="h-5 w-5 text-green-500 ml-auto"/>}
+                                        {isSubmitted && selectedAnswer === opt && !isCorrect && <XCircle className="h-5 w-5 text-red-500 ml-auto"/>}
+                                    </Label>
+                                ))}
                                 </div>
-                            )})}
-                             <Button onClick={() => setSubmitted(true)} disabled={submitted}>Check Answers</Button>
+                            </RadioGroup>
+                             {isSubmitted && (
+                                <div className="space-y-4 pt-4 border-t">
+                                    {isCorrect ? (
+                                        <p className="text-green-600 font-semibold text-center">Correct! Great job.</p>
+                                    ) : (
+                                        <div className="p-4 bg-red-500/10 text-red-700 rounded-lg">
+                                            <p className="font-bold">Not quite.</p>
+                                            {isExplanationLoading ? <p>Loading explanation...</p> : <p>{explanation}</p>}
+                                        </div>
+                                    )}
+                                    <div className="flex justify-center gap-2">
+                                        {!isCorrect && (
+                                             <Button variant="outline" onClick={handleGenerateNewQuestion} disabled={isGeneratingNewQuestion}>
+                                                {isGeneratingNewQuestion ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <RefreshCw className="mr-2 h-4 w-4"/>}
+                                                New Question
+                                            </Button>
+                                        )}
+                                        <Button onClick={handleNextQuestion}>
+                                            {currentQuestionIndex < quizQuestions.length - 1 ? 'Next Question' : 'Finish Session'}
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
+                             {!isSubmitted && <Button onClick={handleCheckAnswer} disabled={!selectedAnswer}>Check Answer</Button>}
                         </AccordionContent>
                     </AccordionItem>
                 </Accordion>
+                <div className="pt-6 border-t">
+                     <Button variant="ghost" onClick={onReset} className="w-full text-muted-foreground">
+                        <RefreshCw className="w-4 h-4 mr-2"/> Start Over
+                    </Button>
+                </div>
             </CardContent>
         </Card>
     )
@@ -260,12 +367,10 @@ export default function CrunchTimePage() {
             
             {studyGuide && (
                 <div className="space-y-4">
-                    <StudyGuideDisplay guide={studyGuide} />
-                    <Button onClick={() => setStudyGuide(null)} className="w-full">
-                        <Plus className="mr-2 h-4 w-4"/> Start a New Session
-                    </Button>
+                    <StudyGuideDisplay guide={studyGuide} onReset={() => setStudyGuide(null)} learnerType={learnerType}/>
                 </div>
             )}
         </div>
     );
 }
+
