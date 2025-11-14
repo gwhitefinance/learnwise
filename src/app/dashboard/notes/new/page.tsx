@@ -46,8 +46,13 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useRouter, useSearchParams } from 'next/navigation'; 
 
 interface Message {
+  id: string;
   role: 'user' | 'ai';
   content: string;
+  streaming?: boolean;
+  quizParams?: Omit<GenerateQuizInput, 'questionType'>;
+  quizTitle?: string;
+  timestamp?: number;
 }
 
 type Unit = {
@@ -384,7 +389,7 @@ export default function NewNotePage() {
         };
 
         window.addEventListener('message', handleMessage);
-        
+
         const loadNote = async () => {
             if (noteId && user) {
                 try {
@@ -407,10 +412,16 @@ export default function NewNotePage() {
                 } finally {
                     setIsLoadingNote(false);
                 }
+            } else {
+                setIsLoadingNote(false);
             }
         };
 
-        loadNote();
+        if (noteId) {
+            loadNote();
+        } else {
+            setIsLoadingNote(false);
+        }
 
         return () => {
             unsubscribe();
@@ -435,7 +446,7 @@ export default function NewNotePage() {
         const messageContent = prompt || chatInput.trim();
         if (!messageContent) return;
     
-        const userMessage: Message = { role: 'user', content: messageContent };
+        const userMessage: Message = { role: 'user', content: messageContent, id: crypto.randomUUID() };
         setChatHistory(prev => [...prev, userMessage]);
         setChatInput('');
         setIsChatLoading(true);
@@ -445,7 +456,7 @@ export default function NewNotePage() {
             history: [...chatHistory, userMessage],
             courseContext: editorRef.current?.innerText || '', // Use innerText for context
           });
-          const aiMessage: Message = { role: 'ai', content: response.text };
+          const aiMessage: Message = { role: 'ai', content: response.text, id: crypto.randomUUID() };
           setChatHistory(prev => [...prev, aiMessage]);
     
         } catch (error) {
