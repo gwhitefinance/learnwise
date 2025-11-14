@@ -134,17 +134,22 @@ const StudyGuideDisplay = ({ guide, onReset, learnerType }: { guide: CrunchTimeO
     const [explanation, setExplanation] = useState<string | null>(null);
     const [isExplanationLoading, setIsExplanationLoading] = useState(false);
     const [isGeneratingNewQuestion, setIsGeneratingNewQuestion] = useState(false);
+    const [incorrectAnswers, setIncorrectAnswers] = useState<number[]>([]);
+    const [sessionState, setSessionState] = useState<'in-progress' | 'review'>('in-progress');
 
     const currentQuestion = quizQuestions[currentQuestionIndex];
     const isCorrect = selectedAnswer === currentQuestion.answer;
+
+    const finishSession = () => {
+        setSessionState('review');
+    };
 
     const handleNextQuestion = () => {
         if (currentQuestionIndex < quizQuestions.length - 1) {
             setCurrentQuestionIndex(prev => prev + 1);
             resetQuestionState();
         } else {
-            // End of quiz logic could go here, e.g. show summary
-            onReset(); // For now, just reset the whole guide
+            finishSession();
         }
     };
     
@@ -156,8 +161,11 @@ const StudyGuideDisplay = ({ guide, onReset, learnerType }: { guide: CrunchTimeO
 
     const handleCheckAnswer = async () => {
         if (!selectedAnswer) return;
-        setIsSubmitted(true);
+        
         if (selectedAnswer !== currentQuestion.answer) {
+            if (!incorrectAnswers.includes(currentQuestionIndex)) {
+                setIncorrectAnswers(prev => [...prev, currentQuestionIndex]);
+            }
             setIsExplanationLoading(true);
             try {
                 const result = await generateExplanation({
@@ -167,7 +175,6 @@ const StudyGuideDisplay = ({ guide, onReset, learnerType }: { guide: CrunchTimeO
                     learnerType: learnerType as any,
                 });
                 setExplanation(result.explanation);
-                // Optionally, generate a new question to replace the wrong one for future practice
             } catch (error) {
                 console.error(error);
                 setExplanation("Sorry, couldn't load an explanation.");
@@ -175,6 +182,7 @@ const StudyGuideDisplay = ({ guide, onReset, learnerType }: { guide: CrunchTimeO
                 setIsExplanationLoading(false);
             }
         }
+        setIsSubmitted(true);
     };
 
     const handleGenerateNewQuestion = async () => {
@@ -203,6 +211,43 @@ const StudyGuideDisplay = ({ guide, onReset, learnerType }: { guide: CrunchTimeO
         }
     }
 
+
+    if (sessionState === 'review') {
+        return (
+            <Card>
+                <CardHeader>
+                    <CardTitle>Session Review</CardTitle>
+                    <CardDescription>
+                        You got {quizQuestions.length - incorrectAnswers.length} out of {quizQuestions.length} correct.
+                        Review the questions you got wrong.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    {incorrectAnswers.length > 0 ? (
+                        incorrectAnswers.map(index => {
+                            const q = quizQuestions[index];
+                            return (
+                                <div key={index} className="p-4 border rounded-lg bg-muted/50">
+                                    <p className="font-semibold">{q.question}</p>
+                                    <p className="text-sm text-red-500 mt-2">Your answer was incorrect.</p>
+                                    <p className="text-sm text-green-500">The correct answer is: {q.answer}</p>
+                                </div>
+                            );
+                        })
+                    ) : (
+                        <p className="text-center text-green-600 font-semibold">You got all questions correct! Great job!</p>
+                    )}
+                </CardContent>
+                <CardFooter className="flex-col gap-4">
+                    <Button onClick={() => handleGenerateNewQuestion()} disabled={isGeneratingNewQuestion}>
+                        {isGeneratingNewQuestion ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <RefreshCw className="mr-2 h-4 w-4"/>}
+                        Practice More Questions
+                    </Button>
+                    <Button variant="ghost" onClick={onReset}>Start a New Session</Button>
+                </CardFooter>
+            </Card>
+        );
+    }
 
     return (
         <Card className="w-full">
@@ -283,7 +328,6 @@ const StudyGuideDisplay = ({ guide, onReset, learnerType }: { guide: CrunchTimeO
                                         <p className="text-green-600 font-semibold text-center">Correct! Great job.</p>
                                     ) : (
                                         <div className="p-4 bg-red-500/10 text-red-700 rounded-lg">
-                                            <p className="font-bold">Not quite.</p>
                                             {isExplanationLoading ? <p>Loading explanation...</p> : <p>{explanation}</p>}
                                         </div>
                                     )}

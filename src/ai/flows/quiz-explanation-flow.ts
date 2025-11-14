@@ -28,16 +28,17 @@ const prompt = ai.definePrompt({
     {{/if}}
 
     The user's learning style is {{learnerType}}. Tailor your explanation (if providing one) and question accordingly:
-    - For Visual learners, use descriptive language that helps them visualize the concept.
-    - For Auditory learners, explain it as if you were speaking to them.
+    - For Visual learners, use descriptive language that helps them visualize the concept (e.g., "Imagine the process like...").
+    - For Auditory learners, explain it as if you were speaking to them in simple steps.
     - For Kinesthetic learners, relate the concept to a real-world example or a physical action.
+    - For Reading/Writing learners, provide a clear, logical breakdown of the correct answer.
 
     Original Question: "{{question}}"
     Their Incorrect Answer: "{{userAnswer}}"
     Correct Answer: "{{correctAnswer}}"
 
     {{#if provideFullExplanation}}
-    When explaining, keep the tone positive and supportive.
+    When explaining, start by acknowledging their answer (e.g., "That's a good guess, but..."). Then, explain *why* their specific answer is incorrect and clearly guide them to the logic behind the correct answer.
     Then, create a new multiple-choice question that tests the same concept but uses different numbers, scenarios, or wording. Provide 4 options and the correct answer for this new question.
     {{else}}
     Just generate the new practice question, 4 options, and the correct answer.
