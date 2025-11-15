@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -44,7 +42,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'; 
-import { useRouter, useSearchParams, useParams } from 'next/navigation'; 
+import { useRouter, useParams } from 'next/navigation';
+import type { GenerateQuizInput } from '@/ai/schemas/quiz-schema';
 
 interface Message {
   id: string;
@@ -338,7 +337,7 @@ const ChatHomeScreen = ({ onStartChatWithPrompt, customizations }: { onStartChat
 };
 
 
-export default function NewNotePage() {
+export default function NoteEditorPage() {
     const editorRef = useRef<HTMLDivElement>(null);
     const [showLiveLecture, setShowLiveLecture] = useState(false);
     const [lectureTranscript, setLectureTranscript] = useState('');
@@ -358,43 +357,41 @@ export default function NewNotePage() {
     const router = useRouter(); 
     const params = useParams();
     const noteId = params.noteId as string;
-    const [isLoadingNote, setIsLoadingNote] = useState(!!noteId);
+    const [isLoadingNote, setIsLoadingNote] = useState(true);
     
     useEffect(() => {
+        if (!user || !noteId) {
+            if (noteId === 'new') {
+                setIsLoadingNote(false);
+            }
+            return;
+        };
+
         const loadNote = async () => {
-            if (noteId && user && editorRef.current) {
-                setIsLoadingNote(true);
-                try {
-                    const noteRef = doc(db, 'notes', noteId);
-                    const noteSnap = await getDoc(noteRef);
-                    if (noteSnap.exists() && noteSnap.data().userId === user.uid) {
-                        const noteData = noteSnap.data();
-                        setNoteTitle(noteData.title);
-                        editorRef.current.innerHTML = noteData.content;
-                        setSelectedCourseId(noteData.courseId);
-                        setSelectedUnitId(noteData.unitId);
-                    } else {
-                        toast({ variant: 'destructive', title: 'Note not found or access denied.' });
-                        router.push('/dashboard/notes');
+            setIsLoadingNote(true);
+            try {
+                const noteRef = doc(db, 'notes', noteId);
+                const noteSnap = await getDoc(noteRef);
+                if (noteSnap.exists() && noteSnap.data().userId === user.uid) {
+                    const noteData = noteSnap.data();
+                    setNoteTitle(noteData.title);
+                    if (editorRef.current) {
+                        editorRef.current.innerHTML = noteData.content || '';
                     }
-                } catch (error) {
-                    toast({ variant: 'destructive', title: 'Error loading note.' });
-                } finally {
-                    setIsLoadingNote(false);
+                    setSelectedCourseId(noteData.courseId);
+                    setSelectedUnitId(noteData.unitId);
+                } else {
+                    toast({ variant: 'destructive', title: 'Note not found or access denied.' });
+                    router.push('/dashboard/notes');
                 }
-            } else if (!noteId) {
-                // This is a new note, clear the editor
-                if (editorRef.current) editorRef.current.innerHTML = '';
-                setNoteTitle('Untitled Note');
-                setSelectedCourseId(undefined);
-                setSelectedUnitId(undefined);
+            } catch (error) {
+                toast({ variant: 'destructive', title: 'Error loading note.' });
+            } finally {
                 setIsLoadingNote(false);
             }
         };
-
-        if(user) {
-            loadNote();
-        }
+        
+        loadNote();
     }, [noteId, user, router, toast]);
 
     useEffect(() => {
@@ -552,10 +549,11 @@ export default function NewNotePage() {
     };
 
     const selectedCourseForFilter = courses.find(c => c.id === selectedCourseId);
-
+    
     if (isLoadingNote) {
-        return <div className="h-screen w-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>
+        return <div className="flex h-screen w-screen items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
     }
+
 
     return (
         <div className="flex h-screen overflow-hidden">

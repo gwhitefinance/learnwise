@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState, useEffect, useRef, use } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Bold, Italic, Underline, Strikethrough, Palette, AlignLeft, AlignCenter, AlignRight, List, ListOrdered, Undo, Redo, X, ChevronDown, Mic, Sparkles, Clock, Music, UserPlus, Upload, Info, GitMerge, FileSignature, Plus, History, Printer, Expand, Search, FileText, ArrowRight, Type, GripVertical, Maximize, Square, Globe, GraduationCap, Loader2, MessageSquare, BrainCircuit, Lightbulb, Copy, ImageIcon, Link as LinkIcon, MessageSquarePlus, Paintbrush, Minus, Indent, Outdent, Pilcrow, LineChart, CheckSquare, Save,
@@ -44,9 +44,7 @@ import {
 } from '@/components/ui/select';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'; 
 import { useRouter, useParams } from 'next/navigation';
-import Loading from './loading';
 import type { GenerateQuizInput } from '@/ai/schemas/quiz-schema';
-
 
 interface Message {
   id: string;
@@ -361,55 +359,41 @@ export default function NoteEditorPage() {
     const params = useParams();
     const noteId = params.noteId as string;
     const [isLoadingNote, setIsLoadingNote] = useState(true);
-    const [isMounted, setIsMounted] = useState(false);
     
     useEffect(() => {
-        setIsMounted(true);
-    }, []);
-
-    useEffect(() => {
-        if (!isMounted || !user) return;
-    
-        const loadNote = async () => {
+        if (!user || !noteId) {
             if (noteId === 'new') {
-                setNoteTitle('Untitled Note');
-                if (editorRef.current) editorRef.current.innerHTML = '';
-                setSelectedCourseId(undefined);
-                setSelectedUnitId(undefined);
                 setIsLoadingNote(false);
-                return;
             }
+            return;
+        };
 
-            if (noteId) {
-                setIsLoadingNote(true);
-                try {
-                    const noteRef = doc(db, 'notes', noteId);
-                    const noteSnap = await getDoc(noteRef);
-                    if (noteSnap.exists() && noteSnap.data().userId === user.uid) {
-                        const noteData = noteSnap.data();
-                        setNoteTitle(noteData.title);
-                        if (editorRef.current) {
-                            editorRef.current.innerHTML = noteData.content || '';
-                        }
-                        setSelectedCourseId(noteData.courseId);
-                        setSelectedUnitId(noteData.unitId);
-                    } else {
-                        toast({ variant: 'destructive', title: 'Note not found or access denied.' });
-                        router.push('/dashboard/notes');
+        const loadNote = async () => {
+            setIsLoadingNote(true);
+            try {
+                const noteRef = doc(db, 'notes', noteId);
+                const noteSnap = await getDoc(noteRef);
+                if (noteSnap.exists() && noteSnap.data().userId === user.uid) {
+                    const noteData = noteSnap.data();
+                    setNoteTitle(noteData.title);
+                    if (editorRef.current) {
+                        editorRef.current.innerHTML = noteData.content || '';
                     }
-                } catch (error) {
-                    toast({ variant: 'destructive', title: 'Error loading note.' });
-                    console.error("Error loading note:", error);
-                } finally {
-                    setIsLoadingNote(false);
+                    setSelectedCourseId(noteData.courseId);
+                    setSelectedUnitId(noteData.unitId);
+                } else {
+                    toast({ variant: 'destructive', title: 'Note not found or access denied.' });
+                    router.push('/dashboard/notes');
                 }
-            } else {
+            } catch (error) {
+                toast({ variant: 'destructive', title: 'Error loading note.' });
+            } finally {
                 setIsLoadingNote(false);
             }
         };
         
         loadNote();
-    }, [noteId, user, isMounted, router, toast]);
+    }, [noteId, user, router, toast]);
 
     useEffect(() => {
         if (!user) return;
@@ -566,10 +550,11 @@ export default function NoteEditorPage() {
     };
 
     const selectedCourseForFilter = courses.find(c => c.id === selectedCourseId);
-
-    if (isLoadingNote || !isMounted) {
-        return <Loading />
+    
+    if (isLoadingNote) {
+        return <div className="flex h-screen w-screen items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
     }
+
 
     return (
         <div className="flex h-screen overflow-hidden">
@@ -726,7 +711,7 @@ export default function NoteEditorPage() {
                                     <SelectContent>
                                         <SelectItem value="none">No specific module</SelectItem>
                                         {selectedCourseForFilter.units.map(unit => (
-                                            <SelectItem key={unit.id} value={unit.title}>{unit.title}</SelectItem>
+                                            <SelectItem key={unit.id} value={unit.id}>{unit.title}</SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
@@ -744,5 +729,3 @@ export default function NoteEditorPage() {
         </div>
     );
 }
-
-    
