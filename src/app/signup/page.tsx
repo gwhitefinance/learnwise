@@ -3,13 +3,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { getAuth, createUserWithEmailAndPassword, updateProfile, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { app, db } from '@/lib/firebase';
-import { doc, setDoc, serverTimestamp, collection, query, where, getDocs, updateDoc, arrayUnion, writeBatch, getDoc } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp, collection, query, where, getDocs, updateDoc, arrayUnion, writeBatch, getDoc, increment } from 'firebase/firestore';
 import Link from 'next/link';
 import AIBuddy from '@/components/ai-buddy';
 import { Eye, EyeOff, X, Check, Loader2, Star } from 'lucide-react';
@@ -68,6 +68,7 @@ const TestimonialGrid = () => {
 
 export default function SignUpPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -96,8 +97,26 @@ export default function SignUpPage() {
             coins: 0,
         });
     }
-    
+
+    const refId = searchParams.get('ref');
     const inviteCode = localStorage.getItem('squadInviteCode');
+
+    if (refId) {
+        try {
+            const referrerRef = doc(db, "users", refId);
+            await updateDoc(referrerRef, {
+                coins: increment(500)
+            });
+            const newUserRef = doc(db, "users", user.uid);
+            await updateDoc(newUserRef, {
+                coins: increment(500)
+            });
+            toast({ title: "Referral Success!", description: "You and your friend have both been awarded 500 coins!" });
+        } catch (error) {
+            console.error("Error applying referral bonus:", error);
+        }
+    }
+    
     if (inviteCode) {
         const squadsRef = collection(db, 'squads');
         const q = query(squadsRef, where('inviteCode', '==', inviteCode));

@@ -10,7 +10,7 @@ import { doc, onSnapshot, query, collection, where, updateDoc, deleteDoc } from 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Zap, Shield, Star, Award, Flame, Brain, Pen, Trash2, Trophy } from 'lucide-react';
+import { Zap, Shield, Star, Award, Flame, Brain, Pen, Trash2, Trophy, Copy, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import AIBuddy from '@/components/ai-buddy';
 import { Progress } from '@/components/ui/progress';
@@ -65,6 +65,7 @@ export default function ProfilePage() {
     const [isEditingName, setIsEditingName] = useState(false);
     const router = useRouter();
     const { toast } = useToast();
+    const [copied, setCopied] = useState(false);
 
     const [leaderboard, setLeaderboard] = useState<UserProfile[]>([]);
     const [currentUserRank, setCurrentUserRank] = useState<number | null>(null);
@@ -176,6 +177,16 @@ export default function ProfilePage() {
             toast({ variant: 'destructive', title: "Deletion Failed", description });
         }
     }
+    
+    const copyReferralLink = () => {
+        if (!user) return;
+        const link = `${window.location.origin}/signup?ref=${user.uid}`;
+        navigator.clipboard.writeText(link).then(() => {
+            setCopied(true);
+            toast({ title: 'Referral link copied!' });
+            setTimeout(() => setCopied(false), 2000);
+        });
+    }
 
     if (authLoading || profileLoading) {
         return (
@@ -198,11 +209,10 @@ export default function ProfilePage() {
     }
     
     const allCompletedMilestones = roadmaps.flatMap(r => r.milestones.filter(m => m.completed));
-    const totalXp = profile.xp || 0;
-    const level = Math.floor(totalXp / 100) + 1;
+    const level = Math.floor((profile.xp || 0) / 100) + 1;
     const xpForCurrentLevel = (level - 1) * 100;
     const xpForNextLevel = level * 100;
-    const xpProgressInLevel = totalXp - xpForCurrentLevel;
+    const xpProgressInLevel = (profile.xp || 0) - xpForCurrentLevel;
     const xpProgressPercentage = (xpProgressInLevel / 100) * 100;
 
 
@@ -327,6 +337,20 @@ export default function ProfilePage() {
                             )}
                         </CardContent>
                     </Card>
+                     <Card>
+                        <CardHeader>
+                            <CardTitle>Refer a Friend</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <p className="text-sm text-muted-foreground mb-4">Share your link with friends. You both get <span className="font-bold text-amber-500">500 coins</span> when they sign up!</p>
+                            <div className="flex gap-2">
+                                <Input value={`${window.location.origin}/signup?ref=${user?.uid}`} readOnly />
+                                <Button onClick={copyReferralLink} size="icon" variant="outline">
+                                    {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
 
                     {learnerType && (
                          <Card className="bg-blue-500/10 border-blue-500/20">
@@ -416,3 +440,4 @@ export default function ProfilePage() {
         </div>
     );
 }
+
