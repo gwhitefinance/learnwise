@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useRef, ChangeEvent, DragEvent, useContext } from 'react';
@@ -16,7 +15,7 @@ import Link from 'next/link';
 import { RewardContext } from '@/context/RewardContext';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
-import { doc, updateDoc, increment } from 'firebase/firestore';
+import { doc, updateDoc, increment, getDoc } from 'firebase/firestore';
 
 
 type GradeResult = {
@@ -177,11 +176,36 @@ export default function AssignmentGraderPage() {
                 const coinsEarned = 10;
                 const xpEarned = 25;
                 const userRef = doc(db, 'users', user.uid);
-                await updateDoc(userRef, {
-                    coins: increment(coinsEarned),
-                    xp: increment(xpEarned),
-                });
-                showReward({ type: 'coins_and_xp', amount: coinsEarned, xp: xpEarned });
+                
+                const userSnap = await getDoc(userRef);
+                if (userSnap.exists()) {
+                    const userData = userSnap.data();
+                    let currentLevel = userData.level || 1;
+                    let currentXp = userData.xp || 0;
+                    
+                    let newTotalXp = currentXp + xpEarned;
+                    let xpForNextLevel = currentLevel * 100;
+                    
+                    let leveledUp = false;
+                    while (newTotalXp >= xpForNextLevel) {
+                        newTotalXp -= xpForNextLevel;
+                        currentLevel++;
+                        xpForNextLevel = currentLevel * 100;
+                        leveledUp = true;
+                    }
+                    
+                    await updateDoc(userRef, {
+                        coins: increment(coinsEarned),
+                        xp: newTotalXp,
+                        level: currentLevel,
+                    });
+                    
+                    if (leveledUp) {
+                        showReward({ type: 'level_up', newLevel: currentLevel });
+                    } else {
+                        showReward({ type: 'coins_and_xp', amount: coinsEarned, xp: xpEarned });
+                    }
+                }
             }
 
         } catch (error) {
@@ -298,4 +322,3 @@ export default function AssignmentGraderPage() {
         </div>
     );
 }
-
