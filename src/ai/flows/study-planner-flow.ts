@@ -26,6 +26,11 @@ For all other requests, follow these formatting rules:
 
 Do NOT use random emojis or decoration. Everything should have visual meaning.
 
+Here is some context about the user's current course material. Use it to answer their questions:
+"""
+{{courseContext}}
+"""
+
 ---
 EXAMPLE 1 (Non-Quiz Request)
 ---
@@ -53,15 +58,17 @@ Plants convert sunlight into chemical energy.
 
 export async function studyPlannerAction(
   input: z.infer<typeof StudyPlannerInputSchema>
-): Promise<any> {
+): Promise<{ text?: string; tool_requests?: any[] }> {
   // Normalize history: convert "ai" -> "model"
   const normalizedHistory = input.history.map((m) => ({
     ...m,
     role: m.role === 'ai' ? 'model' : m.role,
   }));
 
+  const systemMessageText = systemPrompt.replace('{{courseContext}}', input.courseContext || 'No specific course context provided.');
+
   const messages = [
-    { role: 'system' as const, content: [{ text: systemPrompt }] },
+    { role: 'system' as const, content: [{ text: systemMessageText }] },
     ...normalizedHistory.map((m) => ({
       role: m.role as 'user' | 'model' | 'tool',
       content: [{ text: m.content }],
@@ -75,14 +82,14 @@ export async function studyPlannerAction(
     tools: [generateQuizTool],
   });
 
-  const toolRequest = response.toolRequests[0];
-  if (toolRequest) {
+  const toolRequests = response.toolRequests;
+  if (toolRequests.length > 0) {
     return {
-      tool_code: `startQuiz(${JSON.stringify(toolRequest.input)})`,
-      response: `Here is a quiz on ${toolRequest.input.topic}.`,
+      text: response.text,
+      tool_requests: toolRequests,
     };
   }
-
+  
   if (!response.text) {
     return { text: "I'm sorry, I couldn't generate a response. Please try again." };
   }

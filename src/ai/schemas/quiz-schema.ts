@@ -1,3 +1,4 @@
+
 /**
  * @fileoverview Defines the data schemas for the quiz generation feature.
  *
@@ -22,14 +23,15 @@ export const GenerateQuizInputSchema = z.object({
 export type GenerateQuizInput = z.infer<typeof GenerateQuizInputSchema>;
 
 export const QuizQuestionSchema = z.object({
-    question: z.string(),
-    options: z.array(z.string()).optional(),
-    answer: z.string(),
+    question: z.string().describe("The text of the quiz question."),
+    options: z.array(z.string()).optional().describe("An array of 4 possible answers for multiple-choice questions."),
+    answer: z.string().describe("The correct answer to the question."),
     type: z.string().optional().describe("The type of question, added programmatically."),
 });
 export type QuizQuestion = z.infer<typeof QuizQuestionSchema>;
 
 export const GenerateQuizOutputSchema = z.object({
+  quizTitle: z.string().optional().describe("A title for the generated quiz."),
   questions: z.array(QuizQuestionSchema),
 });
 export type GenerateQuizOutput = z.infer<typeof GenerateQuizOutputSchema>;

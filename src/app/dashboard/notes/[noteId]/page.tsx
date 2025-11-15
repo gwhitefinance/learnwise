@@ -729,7 +729,7 @@ export default function NoteEditorPage() {
                                     <SelectContent>
                                         <SelectItem value="none">No specific module</SelectItem>
                                         {selectedCourseForFilter.units.map(unit => (
-                                            <SelectItem key={unit.id} value={unit.id}>{unit.title}</SelectItem>
+                                            <SelectItem key={unit.id} value={unit.title}>{unit.title}</SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
@@ -747,4 +747,3 @@ export default function NoteEditorPage() {
         </div>
     );
 }
-

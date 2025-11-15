@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect, useRef, createContext, useContext } from 'react';
@@ -30,7 +29,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Skeleton } from './ui/skeleton';
-import { generateQuizAction, generateFlashcardsFromNote, generateExplanation } from '@/lib/actions';
+import { generateQuizAction } from '@/lib/actions';
 
 interface Message {
   id: string;
@@ -80,11 +79,6 @@ type CalendarEvent = {
   startTime: string;
   type: 'Test' | 'Homework' | 'Quiz' | 'Event' | 'Project';
   description: string;
-};
-
-type Flashcard = {
-    front: string;
-    back: string;
 };
 
 type QuizState = 'configuring' | 'in-progress' | 'results';
@@ -164,324 +158,41 @@ const ChatHomeScreen = ({ sessions, onNavigate, onStartNewChat, onSelectSession,
 };
 
 const AIToolsTab = ({ onStartChatWithPrompt }: { onStartChatWithPrompt: (prompt: string) => void }) => {
-    const [quizTopic, setQuizTopic] = useState('');
-    const [numQuestions, setNumQuestions] = useState('3');
-    const [flashcardContent, setFlashcardContent] = useState('');
-    const { toast } = useToast();
-    const [learnerType, setLearnerType] = useState<string | null>(null);
-
-    // Quiz state
-    const [isQuizDialogOpen, setQuizDialogOpen] = useState(false);
-    const [isQuizLoading, setQuizLoading] = useState(false);
-    const [generatedQuiz, setGeneratedQuiz] = useState<GenerateQuizOutput | null>(null);
-    const [quickQuizState, setQuickQuizState] = useState<QuizState>('configuring');
-    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-    const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
-    const [answerState, setAnswerState] = useState<AnswerState>('unanswered');
-    const [feedback, setFeedback] = useState<AnswerFeedback | null>(null);
-    const [explanation, setExplanation] = useState<string | null>(null);
-    const [isExplanationLoading, setIsExplanationLoading] = useState(false);
-    const [answers, setAnswers] = useState<AnswerFeedback[]>([]);
-
-
-    // Flashcard dialog state
-    const [isFlashcardDialogOpen, setFlashcardDialogOpen] = useState(false);
-    const [isFlashcardLoading, setFlashcardLoading] = useState(false);
-    const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
-    const [currentFlashcardIndex, setCurrentFlashcardIndex] = useState(0);
-    const [isFlipped, setIsFlipped] = useState(false);
-
-    useEffect(() => {
-        const type = localStorage.getItem('learnerType');
-        setLearnerType(type);
-    }, []);
-
-    const resetQuiz = () => {
-        setGeneratedQuiz(null);
-        setQuickQuizState('configuring');
-        setCurrentQuestionIndex(0);
-        setSelectedAnswer(null);
-        setAnswerState('unanswered');
-        setFeedback(null);
-        setExplanation(null);
-        setAnswers([]);
-    }
-
-    const handleGenerateQuiz = async () => {
-        if (!quizTopic) {
-            toast({ variant: 'destructive', title: 'Topic is required.'});
-            return;
-        }
-        setQuizDialogOpen(true);
-        setQuizLoading(true);
-        resetQuiz();
-        try {
-            const result = await generateQuizAction({
-                topics: quizTopic,
-                questionType: 'Multiple Choice',
-                difficulty: 'Medium',
-                numQuestions: parseInt(numQuestions),
-            });
-            setGeneratedQuiz(result);
-            setQuickQuizState('in-progress');
-        } catch (error) {
-            console.error("Quiz generation failed:", error);
-            toast({ variant: 'destructive', title: 'Failed to generate quiz.' });
-            setQuizDialogOpen(false);
-        } finally {
-            setQuizLoading(false);
-        }
-    };
-    
-    const handleSubmitAnswer = async () => {
-        if (!generatedQuiz || selectedAnswer === null) return;
-        
-        const currentQuestion = generatedQuiz.questions[currentQuestionIndex];
-        const isCorrect = selectedAnswer.toLowerCase() === currentQuestion.answer.toLowerCase();
-
-        const answerFeedback: AnswerFeedback = {
-            question: currentQuestion.question,
-            answer: selectedAnswer,
-            correctAnswer: currentQuestion.answer,
-            isCorrect: isCorrect,
-        };
-        
-        setAnswerState('answered');
-        setFeedback(answerFeedback);
-        setAnswers(prev => [...prev, answerFeedback]);
-        
-        if (!isCorrect) {
-            setIsExplanationLoading(true);
-            setExplanation(null);
-            try {
-                const explanationResult = await generateExplanation({
-                    question: currentQuestion.question,
-                    userAnswer: selectedAnswer,
-                    correctAnswer: currentQuestion.answer,
-                    learnerType: (learnerType as any) ?? 'Unknown',
-                    provideFullExplanation: true,
-                });
-                setExplanation(explanationResult.explanation);
-            } catch (error) {
-                console.error(error);
-            } finally {
-                setIsExplanationLoading(false);
-            }
-        }
-    }
-
-    const handleNextQuestion = async () => {
-        setFeedback(null);
-        setExplanation(null);
-        setSelectedAnswer(null);
-        setAnswerState('unanswered');
-        
-        if (currentQuestionIndex < (generatedQuiz?.questions.length ?? 0) - 1) {
-            setCurrentQuestionIndex(prev => prev + 1);
-        } else {
-            setQuickQuizState('results');
-        }
-    };
-
-    const handleGenerateFlashcards = async () => {
-        if (!flashcardContent) {
-            toast({ variant: 'destructive', title: 'Content is required.'});
-            return;
-        }
-        setFlashcardDialogOpen(true);
-        setFlashcardLoading(true);
-        setFlashcards([]);
-        try {
-            const result = await generateFlashcardsFromNote({
-                noteContent: flashcardContent,
-                learnerType: (learnerType as any) ?? 'Reading/Writing',
-            });
-            setFlashcards(result.flashcards);
-        } catch (error) {
-            console.error("Flashcard generation failed:", error);
-            toast({ variant: 'destructive', title: 'Failed to generate flashcards.' });
-            setFlashcardDialogOpen(false);
-        } finally {
-            setFlashcardLoading(false);
-        }
-    };
-
     return (
-        <>
         <div className="flex flex-col h-full">
             <div className="p-4 border-b">
                 <h2 className="text-lg font-bold text-center">AI Toolkit</h2>
             </div>
             <ScrollArea className="flex-1 p-4 space-y-6">
-                <div className="space-y-4 p-4 border rounded-lg bg-card">
-                    <h3 className="font-semibold flex items-center gap-2"><Lightbulb className="text-yellow-500"/> Quick Quiz</h3>
-                    <Input placeholder="Enter a topic..." value={quizTopic} onChange={(e) => setQuizTopic(e.target.value)} />
-                    <Select value={numQuestions} onValueChange={setNumQuestions}>
-                        <SelectTrigger><SelectValue/></SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="3">3 Questions</SelectItem>
-                            <SelectItem value="5">5 Questions</SelectItem>
-                            <SelectItem value="10">10 Questions</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <Button className="w-full" onClick={handleGenerateQuiz}>Generate Quiz</Button>
-                </div>
-                 <div className="space-y-4 p-4 border rounded-lg bg-card">
-                    <h3 className="font-semibold flex items-center gap-2"><FileText className="text-blue-500"/> Flashcard Factory</h3>
-                    <Textarea placeholder="Paste notes or concepts here..." value={flashcardContent} onChange={(e) => setFlashcardContent(e.target.value)} />
-                    <Button className="w-full" onClick={handleGenerateFlashcards}>Create Flashcards</Button>
-                </div>
-                 <div className="space-y-4 p-4 border rounded-lg bg-card">
-                    <h3 className="font-semibold flex items-center gap-2"><BrainCircuit className="text-purple-500"/> AI Tutor</h3>
-                    <p className="text-sm text-muted-foreground">Upload an image of your homework to get a step-by-step walkthrough.</p>
-                    <Button className="w-full" variant="outline" onClick={() => onStartChatWithPrompt("I need help with my homework, I'm uploading an image.")}>Start AI Tutor</Button>
-                </div>
+                <button className="w-full text-left bg-card p-4 rounded-lg border hover:bg-muted" onClick={() => onStartChatWithPrompt("Generate a 3 question multiple choice quiz about photosynthesis.")}>
+                    <div className="flex items-start gap-3">
+                         <div className="p-2 bg-yellow-500/10 rounded-lg text-yellow-500"><Lightbulb/></div>
+                        <div>
+                            <h3 className="font-semibold">Quick Quiz</h3>
+                            <p className="text-sm text-muted-foreground">Generate a short quiz on any topic.</p>
+                        </div>
+                    </div>
+                </button>
+                <button className="w-full text-left bg-card p-4 rounded-lg border hover:bg-muted" onClick={() => onStartChatWithPrompt("Create flashcards for these terms: Mitosis, Meiosis, Cytokinesis.")}>
+                    <div className="flex items-start gap-3">
+                        <div className="p-2 bg-blue-500/10 rounded-lg text-blue-500"><Copy/></div>
+                        <div>
+                            <h3 className="font-semibold">Flashcard Factory</h3>
+                            <p className="text-sm text-muted-foreground">Turn notes or concepts into a deck of flashcards.</p>
+                        </div>
+                    </div>
+                </button>
+                <button className="w-full text-left bg-card p-4 rounded-lg border hover:bg-muted" onClick={() => onStartChatWithPrompt("I need help with my homework, I'm uploading an image.")}>
+                    <div className="flex items-start gap-3">
+                         <div className="p-2 bg-purple-500/10 rounded-lg text-purple-500"><BrainCircuit/></div>
+                        <div>
+                            <h3 className="font-semibold">AI Tutor</h3>
+                            <p className="text-sm text-muted-foreground">Upload an image of your homework for a walkthrough.</p>
+                        </div>
+                    </div>
+                </button>
             </ScrollArea>
         </div>
-
-        <Dialog open={isQuizDialogOpen} onOpenChange={(open) => { if(!open) { setQuizTopic(''); resetQuiz(); } setQuizDialogOpen(open); }}>
-            <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                        <Lightbulb className="text-yellow-500" />
-                        Quick Quiz on "{quizTopic}"
-                    </DialogTitle>
-                </DialogHeader>
-                <div className="py-4 max-h-[70vh] overflow-y-auto">
-                    {isQuizLoading ? (
-                        <div className="flex justify-center items-center h-40">
-                            <Loader2 className="w-8 h-8 animate-spin" />
-                        </div>
-                    ) : (
-                       generatedQuiz && quickQuizState === 'in-progress' && (
-                           <div className="space-y-6">
-                                <div className="text-center">
-                                    <p className="text-muted-foreground mb-2">Question {currentQuestionIndex + 1} of {generatedQuiz.questions.length}</p>
-                                    <Progress value={((currentQuestionIndex + 1) / generatedQuiz.questions.length) * 100} className="mb-4 h-2"/>
-                                    <h3 className="text-2xl font-bold">{generatedQuiz.questions[currentQuestionIndex].question}</h3>
-                                </div>
-                                 <RadioGroup value={selectedAnswer ?? ''} onValueChange={setSelectedAnswer} disabled={answerState === 'answered'}>
-                                    <div className="space-y-4">
-                                    {generatedQuiz.questions[currentQuestionIndex].options?.map((option, index) => {
-                                        const isCorrect = option.toLowerCase() === generatedQuiz.questions[currentQuestionIndex].answer.toLowerCase();
-                                        return (
-                                        <Label key={index} htmlFor={`q${index}-opt${index}`} className={cn(
-                                            "flex items-center gap-4 p-4 rounded-lg border transition-all cursor-pointer",
-                                            answerState === 'unanswered' && (selectedAnswer === option ? "border-primary bg-primary/10" : "border-border hover:bg-muted"),
-                                            answerState === 'answered' && isCorrect && "border-green-500 bg-green-500/10",
-                                            answerState === 'answered' && selectedAnswer === option && !isCorrect && "border-red-500 bg-red-500/10",
-                                        )}>
-                                            <RadioGroupItem value={option} id={`q${index}-opt${index}`} />
-                                            <span>{option}</span>
-                                            {answerState === 'answered' && isCorrect && <CheckCircle className="h-5 w-5 text-green-500 ml-auto"/>}
-                                            {answerState === 'answered' && selectedAnswer === option && !isCorrect && <XCircle className="h-5 w-5 text-red-500 ml-auto"/>}
-                                        </Label>
-                                    )})}
-                                    </div>
-                                </RadioGroup>
-                                {answerState === 'answered' && !feedback?.isCorrect && (
-                                     <div className="p-4 bg-amber-500/10 rounded-lg border border-amber-500/20">
-                                        <h4 className="font-semibold flex items-center gap-2 text-amber-700"><Lightbulb/> Explanation</h4>
-                                        {isExplanationLoading ? (
-                                            <p className="animate-pulse text-muted-foreground mt-2">Generating personalized feedback...</p>
-                                        ) : (
-                                            <div className="text-muted-foreground mt-2"><p>{explanation}</p></div>
-                                        )}
-                                    </div>
-                                )}
-                           </div>
-                       )
-                    )}
-                    {quickQuizState === 'results' && (
-                        <div className="text-center space-y-4 py-12">
-                            <h2 className="text-3xl font-bold">Quiz Complete!</h2>
-                             <p className="text-5xl font-bold text-primary my-4">{answers.filter(a => a.isCorrect).length} / {generatedQuiz?.questions.length}</p>
-                            <p className="text-muted-foreground">Great job practicing!</p>
-                        </div>
-                    )}
-                </div>
-                <DialogFooter>
-                    {quickQuizState === 'in-progress' && (
-                         <div className="w-full flex justify-end">
-                            {answerState === 'unanswered' ? (
-                                <Button onClick={handleSubmitAnswer} disabled={!selectedAnswer}>Submit</Button>
-                            ) : (
-                                <Button onClick={handleNextQuestion}>
-                                    {currentQuestionIndex < (generatedQuiz?.questions.length ?? 0) - 1 ? 'Next Question' : 'Finish Quiz'}
-                                    <ArrowRight className="ml-2 h-4 w-4" />
-                                </Button>
-                            )}
-                        </div>
-                    )}
-                    {quickQuizState === 'results' && (
-                         <DialogClose asChild><Button>Done</Button></DialogClose>
-                    )}
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-
-        <Dialog open={isFlashcardDialogOpen} onOpenChange={setFlashcardDialogOpen}>
-            <DialogContent className="max-w-xl">
-                 <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                        <Copy className="text-blue-500" />
-                        Flashcards
-                    </DialogTitle>
-                </DialogHeader>
-                <div className="py-4">
-                    {isFlashcardLoading ? (
-                        <div className="flex items-center justify-center h-52">
-                            <Loader2 className="w-8 h-8 animate-spin" />
-                        </div>
-                    ) : flashcards.length > 0 ? (
-                        <div className="space-y-4">
-                             <div className="text-center text-sm text-muted-foreground">
-                                Card {currentFlashcardIndex + 1} of {flashcards.length}
-                            </div>
-                            <div
-                                className="relative w-full h-64 cursor-pointer"
-                                onClick={() => setIsFlipped(!isFlipped)}
-                            >
-                                <AnimatePresence>
-                                    <motion.div
-                                        key={isFlipped ? 'back' : 'front'}
-                                        initial={{ rotateY: isFlipped ? 180 : 0 }}
-                                        animate={{ rotateY: 0 }}
-                                        exit={{ rotateY: isFlipped ? 0 : -180 }}
-                                        transition={{ duration: 0.5 }}
-                                        className="absolute w-full h-full p-6 flex items-center justify-center text-center rounded-lg border bg-card text-card-foreground shadow-sm"
-                                        style={{ backfaceVisibility: 'hidden' }}
-                                    >
-                                        <p className="text-xl font-semibold">
-                                            {isFlipped ? flashcards[currentFlashcardIndex].back : flashcards[currentFlashcardIndex].front}
-                                        </p>
-                                    </motion.div>
-                                </AnimatePresence>
-                            </div>
-                            <div className="flex justify-center items-center gap-4">
-                                <Button variant="outline" size="icon" onClick={() => { setIsFlipped(false); setCurrentFlashcardIndex(prev => Math.max(0, prev - 1))}} disabled={currentFlashcardIndex === 0}>
-                                    <ChevronLeft className="h-4 w-4" />
-                                </Button>
-                                <Button onClick={() => setIsFlipped(!isFlipped)}>
-                                    <RefreshCw className="mr-2 h-4 w-4"/> Flip Card
-                                </Button>
-                                <Button variant="outline" size="icon" onClick={() => { setIsFlipped(false); setCurrentFlashcardIndex(prev => Math.min(flashcards.length - 1, prev + 1))}} disabled={currentFlashcardIndex === flashcards.length - 1}>
-                                    <ChevronRight className="h-4 w-4" />
-                                </Button>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="flex items-center justify-center h-52">
-                            <p>No flashcards were generated.</p>
-                        </div>
-                    )}
-                </div>
-                <DialogFooter>
-                    <DialogClose asChild><Button>Close</Button></DialogClose>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-        </>
     )
 }
 
@@ -803,7 +514,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
         });
 
         const sessionRef = doc(db, "chatSessions", currentSessionId);
-
+        
         const aiTextResponse = response.text || '';
         const toolRequest = response.tool_requests?.[0];
 
@@ -818,7 +529,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                 timestamp: Date.now(),
             };
             await updateDoc(sessionRef, { messages: arrayUnion(userMessage, quizCardMessage), timestamp: Timestamp.now() });
-        } else if (aiTextResponse) { // Only text response
+        } else if (aiTextResponse) {
              await updateDoc(sessionRef, {
                 messages: arrayUnion(userMessage, {role: 'model', content: aiTextResponse, id: crypto.randomUUID()}),
                 timestamp: Timestamp.now(),
