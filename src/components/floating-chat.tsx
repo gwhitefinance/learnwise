@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { collection, query, where, getDocs, onSnapshot, addDoc, doc, updateDoc, Timestamp, deleteDoc, orderBy, getDoc, arrayUnion } from 'firebase/firestore';
-import { studyPlannerAction, generateChatTitle, generateNoteFromChat, analyzeImage } from '@/lib/actions';
+import { studyPlannerAction, generateChatTitle, generateNoteFromChat, analyzeImage, generateQuizAction } from '@/lib/actions';
 import { cn } from '@/lib/utils';
 import AIBuddy from './ai-buddy';
 import { useToast } from '@/hooks/use-toast';
@@ -29,7 +29,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Skeleton } from './ui/skeleton';
-import { generateQuizAction } from '@/lib/actions';
 
 interface Message {
   id: string;
@@ -265,14 +264,28 @@ interface FloatingChatProps {
     isEmbedded?: boolean;
 }
 
-const InteractiveQuiz = ({ quiz, onFinish }: { quiz: GenerateQuizOutput, onFinish: (finalScore: number, totalQuestions: number) => void }) => {
+const InteractiveQuiz = ({ quiz, isLoading, onSubmit }: { quiz: GenerateQuizOutput | null, isLoading: boolean, onSubmit: (finalScore: number, total: number) => void }) => {
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [score, setScore] = useState(0);
 
-    const currentQuestion = quiz.questions[currentQuestionIndex];
-    const isCorrect = selectedAnswer ? quiz.questions[currentQuestionIndex].options[quiz.questions[currentQuestionIndex].correctAnswerIndex] === selectedAnswer : false;
+    const currentQuestion = quiz?.questions[currentQuestionIndex];
+    
+    if (isLoading) {
+        return (
+            <div className="flex flex-col items-center justify-center h-full p-6">
+                <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                <p className="mt-4 text-muted-foreground">Generating your quiz...</p>
+            </div>
+        );
+    }
+    
+    if (!quiz || !currentQuestion) {
+        return <div className="p-6">Error: Could not load quiz.</div>;
+    }
+    
+    const isCorrect = selectedAnswer === currentQuestion.options[currentQuestion.correctAnswerIndex];
 
     const handleNext = () => {
         if (currentQuestionIndex < quiz.questions.length - 1) {
@@ -280,7 +293,7 @@ const InteractiveQuiz = ({ quiz, onFinish }: { quiz: GenerateQuizOutput, onFinis
             setSelectedAnswer(null);
             setIsSubmitted(false);
         } else {
-            onFinish(score, quiz.questions.length);
+            onSubmit(score, quiz.questions.length);
         }
     };
     
@@ -538,7 +551,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
         const toolRequest = response.tool_requests?.[0];
 
         let aiMessage: Message | null = null;
-        if (toolRequest && toolRequest.tool === 'generateQuizTool') {
+        if (toolRequest && toolRequest.name === 'generateQuizTool') {
             const quizParams = toolRequest.input;
             aiMessage = {
                 id: crypto.randomUUID(),
@@ -558,7 +571,6 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                 timestamp: Timestamp.now(),
             });
         } else {
-            // If there's no AI message but there was a user message, at least save that.
             await updateDoc(sessionRef, {
                 messages: arrayUnion(userMessage),
                 timestamp: Timestamp.now(),
@@ -724,7 +736,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
     }
   };
   
-  const handleOpenInteractiveQuiz = async (params: Omit<GenerateQuizInput, 'questionType'>) => {
+  const handleOpenInteractiveQuiz = async (params: Omit<GenerateQuizInput, 'numQuestions' | 'difficulty'> & { numQuestions: number; difficulty: 'Easy' | 'Medium' | 'Hard' }) => {
     setInteractiveQuiz(null);
     setInteractiveQuizParams(params);
     setIsFullscreen(true);
@@ -828,11 +840,11 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                                 <InteractiveQuiz 
                                     quiz={interactiveQuiz}
                                     isLoading={isGeneratingInteractiveQuiz}
-                                    onAnswer={() => {}} 
-                                    onSubmit={() => {
+                                    onSubmit={(finalScore, total) => {
                                         setIsFullscreen(false);
                                         setInteractiveQuiz(null);
                                         setInteractiveQuizParams(null);
+                                        toast({ title: 'Quiz Complete!', description: `You scored ${finalScore}/${total}.`});
                                     }} 
                                 />
                             </div>
