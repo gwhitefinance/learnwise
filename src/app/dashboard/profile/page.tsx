@@ -200,7 +200,7 @@ export default function ProfilePage() {
     const level = profile.level || 1;
     const xp = profile.xp || 0;
     const xpForNextLevel = level * 100;
-    const xpProgress = (xp / xpForNextLevel) * 100;
+    const xpProgress = xpForNextLevel > 0 ? (xp / xpForNextLevel) * 100 : 0;
 
     return (
         <div className="space-y-8">

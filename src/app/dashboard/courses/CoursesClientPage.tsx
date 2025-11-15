@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useContext, Suspense, useRef } from 'react';
@@ -471,8 +472,12 @@ function CoursesComponent() {
 
             if (score > 0) {
                 const coinsEarned = score * 10;
-                await updateDoc(doc(db, 'users', user.uid), { coins: increment(coinsEarned) });
-                showReward({ type: 'coins', amount: coinsEarned });
+                const xpEarned = score * 5;
+                await updateDoc(doc(db, 'users', user.uid), { 
+                    coins: increment(coinsEarned),
+                    xp: increment(xpEarned),
+                });
+                showReward({ type: 'coins_and_xp', amount: coinsEarned, xp: xpEarned });
             }
             toast({ title: "Quiz Complete!", description: `You scored ${score}/${total}.` });
             setQuizState('results');
@@ -552,8 +557,11 @@ function CoursesComponent() {
         const courseRef = doc(db, 'courses', activeCourse.id);
         updateDoc(courseRef, { labCompleted: true });
         if(user) {
-            updateDoc(doc(db, 'users', user.uid), { coins: increment(500) });
-            showReward({ type: 'coins', amount: 500 });
+            updateDoc(doc(db, 'users', user.uid), { 
+                coins: increment(500),
+                xp: increment(100),
+            });
+            showReward({ type: 'coins_and_xp', amount: 500, xp: 100 });
         }
     } else {
         setCurrentModuleIndex(nextModuleIndex);

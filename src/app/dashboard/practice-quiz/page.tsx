@@ -413,6 +413,20 @@ function PracticeQuizComponent() {
             } finally {
                 setIsExplanationLoading(false);
             }
+        } else {
+            // Award points for correct answer
+             try {
+                const xpEarned = difficulty === 'Hard' ? 15 : difficulty === 'Medium' ? 10 : 5;
+                const coinsEarned = xpEarned * 2;
+                const userRef = doc(db, 'users', user.uid);
+                await updateDoc(userRef, {
+                    xp: increment(xpEarned),
+                    coins: increment(coinsEarned),
+                });
+                showReward({ type: 'coins_and_xp', amount: coinsEarned, xp: xpEarned });
+            } catch (e) {
+                console.error("Error awarding points:", e);
+            }
         }
     };
 
@@ -434,21 +448,23 @@ function PracticeQuizComponent() {
 
             if (correctAnswers > 0) {
                 let coinsEarned = correctAnswers * 5;
-
+                let xpEarned = correctAnswers * 10;
+                
                 try {
                     const userRef = doc(db, 'users', user.uid);
                     await updateDoc(userRef, {
-                        coins: increment(coinsEarned)
+                        coins: increment(coinsEarned),
+                        xp: increment(xpEarned)
                     });
-                    showReward({ type: 'coins', amount: coinsEarned });
-                    toast({ title: "Quiz Complete!", description: `You earned ${coinsEarned} coins!`});
+                    showReward({ type: 'coins_and_xp', amount: coinsEarned, xp: xpEarned });
+                    toast({ title: "Quiz Complete!", description: `You earned ${coinsEarned} coins and ${xpEarned} XP!`});
 
                 } catch(e) {
                     console.error("Error awarding coins:", e);
                     toast({
                         variant: 'destructive',
                         title: "Reward Award Failed",
-                        description: "There was an issue awarding your coins. Please try again."
+                        description: "There was an issue awarding your rewards. Please try again."
                     })
                 }
             }
@@ -1291,6 +1307,7 @@ export default function PracticeQuizPage() {
     
 
     
+
 
 
 
