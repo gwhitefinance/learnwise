@@ -332,6 +332,7 @@ function DashboardLayoutContent({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [userCoins, setUserCoins] = useState<number>(0);
+  const [userLevel, setUserLevel] = useState<number>(1);
   const [gradeLevel, setGradeLevel] = useState<string | null>(null);
   
   const isFocusLayout = pathname.startsWith('/dashboard/sat-prep/study-session') || pathname.startsWith('/dashboard/taz-showroom');
@@ -339,7 +340,7 @@ function DashboardLayoutContent({
   const [showTopBar, setShowTopBar] = useState(false);
 
   useEffect(() => {
-    const shouldShow = pathname !== '/dashboard' && !pathname.startsWith('/dashboard/notes/new') && !pathname.startsWith('/dashboard/sat-prep/practice-test');
+    const shouldShow = pathname !== '/dashboard' && !pathname.startsWith('/dashboard/notes/') && !pathname.startsWith('/dashboard/sat-prep/practice-test');
     setShowTopBar(shouldShow);
   }, [pathname]);
 
@@ -380,6 +381,7 @@ function DashboardLayoutContent({
             if (doc.exists()) {
                 const data = doc.data();
                 setUserCoins(data.coins || 0);
+                setUserLevel(data.level || 1);
             }
         });
         
@@ -462,6 +464,7 @@ function DashboardLayoutContent({
             </Avatar>
             <div className="flex-1 overflow-hidden">
                 <p className="font-semibold text-sm truncate">{user?.displayName}</p>
+                <p className="text-xs text-muted-foreground">Level {userLevel}</p>
             </div>
              <Badge variant="outline" className="flex items-center gap-1.5 shrink-0">
                 <TazCoinIcon className="h-4 w-4" /> {userCoins}
