@@ -1,5 +1,6 @@
 
 
+
 'use client';
 
 import React, { useEffect, useState, useRef, createContext, useContext, Suspense, useCallback } from 'react';
@@ -107,6 +108,7 @@ import { CallProvider } from '@/context/CallContext';
 import CallView from '@/components/CallView';
 import IncomingCall from '@/components/IncomingCall';
 import TazCoinIcon from '@/components/TazCoinIcon';
+import LevelBadge from '@/components/LevelBadge';
 
 type SidebarChild = {
   title: string;
@@ -464,7 +466,9 @@ function DashboardLayoutContent({
             </Avatar>
             <div className="flex-1 overflow-hidden">
                 <p className="font-semibold text-sm truncate">{user?.displayName}</p>
-                <p className="text-xs text-muted-foreground">Level {userLevel}</p>
+                <div className="flex items-center gap-2">
+                    <LevelBadge level={userLevel} size="sm" />
+                </div>
             </div>
              <Badge variant="outline" className="flex items-center gap-1.5 shrink-0">
                 <TazCoinIcon className="h-4 w-4" /> {userCoins}

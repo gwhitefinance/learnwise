@@ -4,7 +4,8 @@
 import React, { createContext, useState, useCallback, ReactNode } from 'react';
 
 type RewardInfo = 
-  | { type: 'coins_and_xp'; amount: number; xp: number };
+  | { type: 'coins_and_xp'; amount: number; xp: number }
+  | { type: 'level_up'; newLevel: number };
 
 interface RewardContextType {
   isRewardVisible: boolean;

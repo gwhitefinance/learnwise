@@ -3,13 +3,14 @@
 
 import { useContext, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Star } from 'lucide-react';
+import { X, Star, ArrowUp } from 'lucide-react';
 import { RewardContext } from '@/context/RewardContext';
 import AIBuddy from '@/components/ai-buddy';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '@/lib/firebase';
 import TazCoinIcon from './TazCoinIcon';
 import confetti from 'canvas-confetti';
+import LevelBadge from './LevelBadge';
 
 export default function RewardPopup() {
     const { rewardInfo, isRewardVisible, hideReward } = useContext(RewardContext);
@@ -28,8 +29,8 @@ export default function RewardPopup() {
             }
             // Trigger confetti when the popup is shown
             confetti({
-                particleCount: 100,
-                spread: 70,
+                particleCount: 150,
+                spread: 90,
                 origin: { y: 0.6 }
             });
         }
@@ -46,6 +47,16 @@ export default function RewardPopup() {
                         <div className="flex justify-center items-center gap-4 mt-2">
                              <span className="font-bold text-amber-500 flex items-center justify-center gap-1"><TazCoinIcon className="w-5 h-5"/> +{rewardInfo.amount}</span>
                              <span className="font-bold text-blue-500 flex items-center justify-center gap-1"><Star className="w-4 h-4 fill-current"/> +{rewardInfo.xp} XP</span>
+                        </div>
+                    </div>
+                )
+             case 'level_up':
+                return (
+                     <div className="text-center">
+                        <p className="font-bold text-2xl text-primary animate-pulse">LEVEL UP!</p>
+                        <p className="font-semibold text-lg mt-2">You've reached a new level!</p>
+                        <div className="mt-4 flex justify-center">
+                            <LevelBadge level={rewardInfo.newLevel} size="lg"/>
                         </div>
                     </div>
                 )

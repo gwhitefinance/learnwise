@@ -1,5 +1,6 @@
 
 
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -22,6 +23,7 @@ import { deleteUser } from 'firebase/auth';
 import Link from 'next/link';
 import { getLeaderboard } from '@/app/leaderboard/actions';
 import TazCoinIcon from '@/components/TazCoinIcon';
+import LevelBadge from '@/components/LevelBadge';
 
 type UserProfile = {
     displayName: string;
@@ -235,7 +237,7 @@ export default function ProfilePage() {
                             </div>
                             <div className="p-4 bg-muted rounded-lg text-center col-span-2">
                                 <div className="flex justify-between items-center text-sm mb-1">
-                                    <p className="font-semibold">Level {level}</p>
+                                    <LevelBadge level={level} />
                                     <p className="text-muted-foreground">{xp} / {xpForNextLevel} XP</p>
                                 </div>
                                 <Progress value={xpProgress}/>
@@ -416,3 +418,4 @@ export default function ProfilePage() {
     
 
     
+
