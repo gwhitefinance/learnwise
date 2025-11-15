@@ -285,7 +285,7 @@ const InteractiveQuiz = ({ message, onUpdateQuizState }: { message: Message, onU
         // This might happen if the quiz data is malformed
         return <div className="p-4 text-red-500">Error: Could not load question.</div>;
     }
-    const isCorrect = selectedAnswer === currentQuestion.options[currentQuestion.correctAnswerIndex];
+    const isCorrect = selectedAnswer === currentQuestion.answer;
 
     const handleAnswerSelect = (answer: string) => {
         if (isSubmitted) return;
@@ -331,7 +331,7 @@ const InteractiveQuiz = ({ message, onUpdateQuizState }: { message: Message, onU
                         key={index} 
                         className={cn(
                             "flex items-center gap-3 p-3 rounded-lg border cursor-pointer",
-                            isSubmitted && index === currentQuestion.correctAnswerIndex && "border-green-500 bg-green-500/10",
+                            isSubmitted && option === currentQuestion.answer && "border-green-500 bg-green-500/10",
                             isSubmitted && selectedAnswer === option && !isCorrect && "border-red-500 bg-red-500/10",
                             !isSubmitted && selectedAnswer === option && "border-primary bg-primary/10",
                             !isSubmitted && "hover:bg-background"
@@ -339,7 +339,7 @@ const InteractiveQuiz = ({ message, onUpdateQuizState }: { message: Message, onU
                     >
                         <RadioGroupItem value={option} onClick={() => handleAnswerSelect(option)} disabled={isSubmitted} />
                         {option}
-                        {isSubmitted && index === currentQuestion.correctAnswerIndex && <CheckCircle className="h-5 w-5 text-green-500 ml-auto"/>}
+                        {isSubmitted && option === currentQuestion.answer && <CheckCircle className="h-5 w-5 text-green-500 ml-auto"/>}
                         {isSubmitted && selectedAnswer === option && !isCorrect && <XCircle className="h-5 w-5 text-red-500 ml-auto"/>}
                     </Label>
                 ))}
@@ -900,7 +900,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                                     <footer className="p-4 border-t space-y-2">
                                         
                                         <div className="relative">
-                                            <Input placeholder="Ask anything..." className="pr-12 rounded-full" value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSendMessage()} disabled={isLoading} />
+                                            <Input placeholder="Ask anything..." className="pr-20 rounded-full" value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSendMessage()} disabled={isLoading} />
                                             <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-1">
                                                 <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={openChatWithVoice}><Mic className="h-4 w-4"/></Button>
                                                 <Button size="icon" className="h-8 w-8 rounded-full" onClick={() => handleSendMessage()} disabled={isLoading}><Send className="h-4 w-4" /></Button>

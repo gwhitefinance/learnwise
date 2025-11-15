@@ -369,7 +369,7 @@ export default function NoteEditorPage() {
     const [noteData, setNoteData] = useState<Note | null>(null);
     
     useEffect(() => {
-        if (!user || !noteId) {
+        if (!user) {
             if (noteId === 'new') {
                 setIsLoadingNote(false);
             }
@@ -678,7 +678,7 @@ export default function NoteEditorPage() {
                         <div className="relative">
                             <Textarea 
                                 placeholder="Ask your AI tutor anything..." 
-                                className="bg-gray-100 dark:bg-gray-800 border-none rounded-lg p-4 pr-12 text-base resize-none"
+                                className="bg-gray-100 dark:bg-gray-800 border-none rounded-lg p-4 pr-20 text-base resize-none"
                                 rows={1}
                                 value={chatInput}
                                 onChange={(e) => setChatInput(e.target.value)}
@@ -689,9 +689,14 @@ export default function NoteEditorPage() {
                                     }
                                 }}
                             />
-                            <Button size="icon" className="absolute right-3 bottom-3 w-8 h-8 rounded-full bg-blue-600 hover:bg-blue-700" onClick={() => handleSendMessage()} disabled={isChatLoading}>
-                                <ArrowRight size={16}/>
-                            </Button>
+                            <div className="absolute right-3 bottom-3 flex items-center gap-1">
+                                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
+                                    <Mic className="h-4 w-4"/>
+                                </Button>
+                                <Button size="icon" className="h-8 w-8 rounded-full bg-blue-600 hover:bg-blue-700" onClick={() => handleSendMessage()} disabled={isChatLoading}>
+                                    <ArrowRight size={16}/>
+                                </Button>
+                            </div>
                         </div>
                     </footer>
                 </aside>
@@ -729,7 +734,7 @@ export default function NoteEditorPage() {
                                     <SelectContent>
                                         <SelectItem value="none">No specific module</SelectItem>
                                         {selectedCourseForFilter.units.map(unit => (
-                                            <SelectItem key={unit.id} value={unit.title}>{unit.title}</SelectItem>
+                                            <SelectItem key={unit.id} value={unit.id}>{unit.title}</SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
