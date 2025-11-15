@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { getAuth, createUserWithEmailAndPassword, updateProfile, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { app, db } from '@/lib/firebase';
-import { doc, setDoc, serverTimestamp, collection, query, where, getDocs, updateDoc, arrayUnion, writeBatch } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp, collection, query, where, getDocs, updateDoc, arrayUnion, writeBatch, getDoc } from 'firebase/firestore';
 import Link from 'next/link';
 import AIBuddy from '@/components/ai-buddy';
 import { Eye, EyeOff, X, Check, Loader2, Star } from 'lucide-react';
