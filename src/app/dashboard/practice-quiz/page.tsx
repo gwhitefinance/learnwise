@@ -281,27 +281,13 @@ function PracticeQuizComponent() {
 
         setIsLoading(true);
         try {
-            const generatedQuiz: GenerateQuizOutput = { questions: [] };
-
-            const standardQuestionTypes = ['Multiple Choice', 'Short Answer', 'True/False', 'Fill in the Blank', 'Free Response (FRQ)'];
-
-            for (const [type, count] of Object.entries(questionCounts)) {
-                if (count > 0) {
-                    const isStandard = standardQuestionTypes.includes(type);
-                     const input: GenerateQuizInput = {
-                        topics: isStandard ? finalTopics : `${finalTopics} - ${type}`,
-                        questionType: isStandard ? type as any : 'Multiple Choice',
-                        difficulty: difficulty, 
-                        numQuestions: count,
-                    };
-                    const result = await generateQuizAction(input);
-                    // Manually add the type to each question object
-                    const questionsWithType = result.questions.map(q => ({...q, type }));
-                    generatedQuiz.questions.push(...questionsWithType);
-                }
-            }
-
-            setQuiz(generatedQuiz);
+            const input: Omit<GenerateQuizInput, 'questionType'> = {
+                topic: finalTopics,
+                difficulty: difficulty, 
+                numQuestions: totalQuestions,
+            };
+            const result = await generateQuizAction(input);
+            setQuiz(result);
             setTopics(finalTopics);
             setQuizState('pre-quiz');
              toast({
@@ -336,7 +322,7 @@ function PracticeQuizComponent() {
         const cleanAndSplit = (text: string) => text.toLowerCase().replace(/[^A-Za-z0-9\s]/g, '').split(/\s+/).filter(Boolean);
 
         if (currentQuestion.type === 'Free Response (FRQ)') {
-            const answerKeywords = cleanAndSplit(currentQuestion.answer);
+            const answerKeywords = cleanAndSplit(currentQuestion.correctAnswer);
             const userKeywords = cleanAndSplit(selectedAnswer);
             const matchingKeywords = userKeywords.filter(uk => answerKeywords.some(ak => uk.includes(ak) || ak.includes(uk))).length;
             isCorrect = matchingKeywords >= 3;
@@ -365,15 +351,15 @@ function PracticeQuizComponent() {
                 };
                 return (longerLength - editDistance(longer, shorter)) / parseFloat(longerLength.toString());
             };
-            isCorrect = similarity(selectedAnswer, currentQuestion.answer) >= 0.8;
+            isCorrect = similarity(selectedAnswer, currentQuestion.correctAnswer) >= 0.8;
         } else {
-            isCorrect = selectedAnswer.toLowerCase() === currentQuestion.answer.toLowerCase();
+            isCorrect = selectedAnswer.toLowerCase() === currentQuestion.correctAnswer.toLowerCase();
         }
 
         const answerFeedback: AnswerFeedback = {
-            question: currentQuestion.question,
+            question: currentQuestion.questionText,
             answer: selectedAnswer,
-            correctAnswer: currentQuestion.answer,
+            correctAnswer: currentQuestion.correctAnswer,
             isCorrect: isCorrect,
         };
         
@@ -385,9 +371,9 @@ function PracticeQuizComponent() {
             try {
                 await addDoc(collection(db, 'quizAttempts'), {
                     userId: user.uid,
-                    question: currentQuestion.question,
+                    question: currentQuestion.questionText,
                     userAnswer: selectedAnswer,
-                    correctAnswer: currentQuestion.answer,
+                    correctAnswer: currentQuestion.correctAnswer,
                     topic: topics,
                     courseId: selectedCourseId,
                     timestamp: serverTimestamp()
@@ -400,9 +386,9 @@ function PracticeQuizComponent() {
             setExplanation(null);
             try {
                 const explanationResult = await generateExplanation({
-                    question: currentQuestion.question,
+                    question: currentQuestion.questionText,
                     userAnswer: selectedAnswer,
-                    correctAnswer: currentQuestion.answer,
+                    correctAnswer: currentQuestion.correctAnswer,
                     learnerType: (learnerType as 'Visual' | 'Auditory' | 'Kinesthetic' | 'Reading/Writing' | 'Unknown') ?? 'Unknown',
                     provideFullExplanation: true,
                 });
@@ -510,9 +496,9 @@ function PracticeQuizComponent() {
 
             const currentQuestion = quiz.questions[currentQuestionIndex];
             const { hint } = await generateHint({
-                question: currentQuestion.question,
+                question: currentQuestion.questionText,
                 options: currentQuestion.options || [],
-                correctAnswer: currentQuestion.answer
+                correctAnswer: currentQuestion.correctAnswer
             });
             
             setHint(hint);
@@ -533,7 +519,7 @@ function PracticeQuizComponent() {
         setFlashcardDialogOpen(true);
         setFlashcardLoading(true);
         setFlashcards([]);
-        const quizContent = quiz.questions.map(q => `Q: ${q.question}\nA: ${q.answer}`).join('\n\n');
+        const quizContent = quiz.questions.map(q => `Q: ${q.questionText}\nA: ${q.correctAnswer}`).join('\n\n');
         try {
             const result = await generateFlashcardsFromNote({
                 noteContent: quizContent,
@@ -554,7 +540,7 @@ function PracticeQuizComponent() {
         setStudyGuideDialogOpen(true);
         setStudyGuideLoading(true);
         setStudyGuide(null);
-        const content = `A quiz on the following topics: ${topics}. The questions covered were: ${quiz.questions.map(q => q.question).join(', ')}`;
+        const content = `A quiz on the following topics: ${topics}. The questions covered were: ${quiz.questions.map(q => q.questionText).join(', ')}`;
         try {
             const result = await generateCrunchTimeStudyGuide({
                 inputType: 'text',
@@ -999,7 +985,7 @@ function PracticeQuizComponent() {
                 <div className="text-center mb-10 w-full max-w-3xl">
                     <p className="text-muted-foreground mb-2">Question {currentQuestionIndex + 1} of {quiz.questions.length}</p>
                     <Progress value={progress} className="mb-4 h-2"/>
-                    <h1 className="text-3xl font-bold mt-8">{currentQuestion.question}</h1>
+                    <h1 className="text-3xl font-bold mt-8">{currentQuestion.questionText}</h1>
                 </div>
 
                 <Card className="w-full max-w-3xl">
@@ -1011,8 +997,8 @@ function PracticeQuizComponent() {
                                     <Label key={index} htmlFor={`option-${index}`} className={cn(
                                         "flex items-center gap-4 p-4 rounded-lg border transition-all cursor-pointer",
                                         answerState === 'unanswered' && (selectedAnswer === option ? "border-primary bg-primary/10" : "border-border hover:bg-muted"),
-                                        answerState === 'answered' && option === currentQuestion.answer && "border-green-500 bg-green-500/10",
-                                        answerState === 'answered' && selectedAnswer === option && option !== currentQuestion.answer && "border-red-500 bg-red-500/10",
+                                        answerState === 'answered' && option === currentQuestion.correctAnswer && "border-green-500 bg-green-500/10",
+                                        answerState === 'answered' && selectedAnswer === option && option !== currentQuestion.correctAnswer && "border-red-500 bg-red-500/10",
                                     )}>
                                         <RadioGroupItem value={option} id={`option-${index}`} />
                                         <span>{option}</span>
@@ -1143,10 +1129,7 @@ function PracticeQuizComponent() {
                                 {isExplanationLoading ? (
                                     <p className="animate-pulse text-muted-foreground mt-2">Generating personalized feedback...</p>
                                 ) : (
-                                    <div className="text-muted-foreground mt-2">
-                                        {explanation && <AudioPlayer textToPlay={explanation} />}
-                                        <p>{explanation}</p>
-                                    </div>
+                                    <div className="text-muted-foreground mt-2"><AudioPlayer textToPlay={explanation || ''} /><p>{explanation}</p></div>
                                 )}
                             </div>
                         </div>
@@ -1307,6 +1290,7 @@ export default function PracticeQuizPage() {
     
 
     
+
 
 
 

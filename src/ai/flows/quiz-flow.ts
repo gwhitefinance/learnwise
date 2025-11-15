@@ -20,7 +20,7 @@ const prompt = ai.definePrompt({
     The quiz should have the following parameters:
     - Difficulty Level: {{difficulty}}
     - Each question must have exactly 4 options.
-    - The 'correctAnswerIndex' must be a number from 0 to 3, corresponding to the correct option in the 'options' array.
+    - The 'correctAnswer' must be one of the strings from the 'options' array.
 
     CRITICAL: For any mathematical expressions, especially exponents and fractions, use proper notation. For example, use 'x²' instead of 'x^2', and use Unicode characters like '½' for fractions instead of '1/2'.
     `,
