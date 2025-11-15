@@ -10,7 +10,7 @@ import { doc, onSnapshot, updateDoc, arrayUnion, increment } from 'firebase/fire
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Palette, Shirt, CheckCircle, Footprints, GraduationCap as HatIcon, Sparkles, Clock, Copy, Check } from 'lucide-react';
+import { Palette, Shirt, CheckCircle, Footprints, GraduationCap as HatIcon, Sparkles, Clock, Copy, Check, Percent } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import shopItemsData from '@/lib/shop-items.json';
 import { useToast } from '@/hooks/use-toast';
@@ -34,6 +34,7 @@ type Item = {
     price: number;
     rarity: 'Common' | 'Uncommon' | 'Rare' | 'Epic' | 'Legendary';
     hex?: string;
+    originalPrice?: number;
 };
 
 const rarityConfig = {
@@ -64,6 +65,11 @@ const DailyItemCard = ({ species, category, item, onBuy, onSelect, isEquipped, h
                 rarityClass.bg
             )}
         >
+             {item.originalPrice && (
+                <div className="absolute top-2 right-2 px-1.5 py-0.5 text-xs font-bold bg-yellow-400 text-yellow-900 rounded-full flex items-center gap-1">
+                    <Percent className="h-3 w-3"/> On Sale!
+                </div>
+            )}
             <div className="w-full aspect-square flex items-center justify-center p-3 relative">
                 <div className="absolute top-2 left-2 p-1.5 bg-background/50 rounded-full">
                      {(categoryIcons as any)[category]}
@@ -92,7 +98,9 @@ const DailyItemCard = ({ species, category, item, onBuy, onSelect, isEquipped, h
                         onClick={(e) => { e.stopPropagation(); onBuy(category, item.name, item.price); }}
                         disabled={userCoins < item.price}
                     >
-                        <TazCoinIcon className="w-4 h-4 mr-1.5" /> {item.price}
+                        <TazCoinIcon className="w-4 h-4 mr-1.5" /> 
+                        {item.originalPrice && <span className="mr-1.5 text-red-300 line-through">{item.originalPrice}</span>}
+                        {item.price}
                     </Button>
                 ) : isEquipped ? (
                     <Button
@@ -159,22 +167,30 @@ export default function ShopClientPage() {
 
         // --- Daily Shop Logic ---
         const today = new Date();
-        const seed = today.getFullYear() * 1000 + today.getMonth() * 100 + today.getDate();
+        const seed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
         
-        function seededRandom(seed: number) {
-            let x = Math.sin(seed) * 10000;
+        let currentSeed = seed;
+        function seededRandom() {
+            const x = Math.sin(currentSeed++) * 10000;
             return x - Math.floor(x);
         }
 
-        const newDailyItems: Record<string, Item> = {};
-        const featuredItems = {
-            color: shopItems.colors.find(i => i.name === 'Cranberry'),
-            hat: shopItems.hats.find(i => i.name === 'Santa Hat'),
-            shirt: shopItems.shirts.find(i => i.name === 'Ugly Christmas Sweater'),
-            shoes: shopItems.shoes.find(i => i.name === 'Boots'),
+        const selectDailyItem = (items: Item[]) => {
+            const randomIndex = Math.floor(seededRandom() * items.length);
+            const selected = items[randomIndex];
+            const originalPrice = selected.price;
+            // Apply a 15% discount, rounded to the nearest 5 coins
+            const discountedPrice = Math.round((originalPrice * 0.85) / 5) * 5;
+            return { ...selected, price: discountedPrice, originalPrice };
         };
 
-        setDailyItems(featuredItems as Record<string, Item>);
+        const newDailyItems: Record<string, Item> = {
+            color: selectDailyItem(shopItems.colors),
+            hat: selectDailyItem(shopItems.hats),
+            shirt: selectDailyItem(shopItems.shirts),
+            shoes: selectDailyItem(shopItems.shoes),
+        };
+        setDailyItems(newDailyItems);
         
         const timer = setInterval(() => {
             const now = new Date();
@@ -292,21 +308,12 @@ export default function ShopClientPage() {
                     <span>{profile.coins}</span>
                 </div>
             </div>
-            
-             <div className="relative bg-red-600 text-white rounded-2xl p-6 text-center shadow-lg overflow-hidden">
-                <span className="absolute top-2 left-2 text-2xl opacity-50 transform -rotate-12">❄️</span>
-                <span className="absolute top-2 right-2 text-2xl opacity-50 transform rotate-12">❄️</span>
-                <span className="absolute bottom-2 left-2 text-2xl opacity-50 transform rotate-12">❄️</span>
-                <span className="absolute bottom-2 right-2 text-2xl opacity-50 transform -rotate-12">❄️</span>
-                <h2 className="text-3xl font-bold font-bubble tracking-wider">It's Tiiiimeee!</h2>
-                <p className="font-semibold">Our Christmas update is here! Check out the festive items below.</p>
-            </div>
 
-            <Card className="bg-gradient-to-r from-red-500 to-rose-700 text-white">
+            <Card className="bg-gradient-to-r from-blue-500 to-indigo-700 text-white">
                 <CardHeader>
                     <CardTitle className="flex justify-between items-center">
                         <div className="flex items-center gap-2">
-                            <Sparkles/> Holiday Specials
+                            <Sparkles/> Daily Deals
                         </div>
                         <div className="flex items-center gap-2 text-sm font-medium text-white/80">
                             <Clock className="h-4 w-4"/>
