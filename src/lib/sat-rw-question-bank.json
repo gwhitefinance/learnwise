@@ -201,8 +201,8 @@
             "topic": "Standard English Conventions",
             "subTopic": "Dangling Modifiers",
             "difficulty": "Hard",
-            "passage": "After weeks of intense research, the solution to the complex problem was finally found by the scientist.",
-            "question": "Which of the following is the best revision of the sentence to fix the dangling modifier?",
+            "passage": "Covered in mud, the dog was given a bath by the owner.",
+            "question": "Which of the following is the best revision of the sentence?",
             "options": [
                 "The sentence is correct as is.",
                 "After weeks of intense research, the scientist finally found the solution to the complex problem.",
@@ -459,7 +459,7 @@
             "passage": "Covered in mud, the dog was given a bath by the owner.",
             "question": "Which of the following is the best revision of the sentence?",
             "options": [
-                "The dog was given a bath by the owner covered in mud.",
+                "The sentence is correct as is.",
                 "The owner gave the dog, which was covered in mud, a bath.",
                 "The bath was given to the dog by the owner, covered in mud.",
                 "Covered in mud, the owner gave the dog a bath."
@@ -486,15 +486,15 @@
             "topic": "Craft and Structure",
             "subTopic": "Words in Context",
             "difficulty": "Medium",
-            "passage": "The CEO's speech was filled with bombastic claims about the company's future, but it lacked any concrete data or strategy to support his grand pronouncements.",
-            "question": "As used in the text, what does 'bombastic' most nearly mean?",
+            "passage": "The new law was designed to be a panacea for the city's economic woes, but critics argued that its effects would be limited and that it failed to address the root causes of unemployment.",
+            "question": "As used in the text, what does 'panacea' most nearly mean?",
             "options": [
-                "Humble and modest",
-                "Quiet and reserved",
-                "Pompous and inflated",
-                "Concise and to the point"
+                "A major problem",
+                "A partial solution",
+                "A cure-all",
+                "A minor setback"
             ],
-            "answer": "Pompous and inflated"
+            "answer": "A cure-all"
         },
         {
             "id": "rwb-h-11",
@@ -606,7 +606,7 @@
             "topic": "Standard English Conventions",
             "subTopic": "Verb Tense",
             "difficulty": "Easy",
-            "passage": "Yesterday, I ______ to the library to return my books and check out some new ones for the weekend.",
+            "passage": "Last year, my family and I ______ to the Grand Canyon and were amazed by the breathtaking views and the vastness of the landscape.",
             "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
             "options": [
                 "go",
@@ -1005,6 +1005,471 @@
                 "has presented"
             ],
             "answer": "present"
+        },
+        {
+            "id": "rwb-h-23",
+            "topic": "Standard English Conventions",
+            "subTopic": "Pronoun Case (who vs. whom)",
+            "difficulty": "Hard",
+            "passage": "The detective interviewed the witness ______ claimed to have seen the suspect fleeing the scene.",
+            "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
+            "options": [
+                "who",
+                "whom",
+                "which",
+                "that"
+            ],
+            "answer": "who"
+        },
+        {
+            "id": "rwb-h-24",
+            "topic": "Expression of Ideas",
+            "subTopic": "Logical Completion",
+            "difficulty": "Hard",
+            "passage": "The author's argument is ______, starting from a flawed premise and proceeding through a series of logical fallacies to arrive at an unsupported conclusion.",
+            "question": "Which choice completes the text with the most logical and precise word or phrase?",
+            "options": [
+                "cogent",
+                "tenuous",
+                "irrefutable",
+                "succinct"
+            ],
+            "answer": "tenuous"
+        },
+        {
+            "id": "rwb-m-23",
+            "topic": "Craft and Structure",
+            "subTopic": "Words in Context",
+            "difficulty": "Medium",
+            "passage": "The politician's speech was intended to assuage the public's fears following the economic downturn, but his reassurances were met with skepticism.",
+            "question": "As used in the text, what does 'assuage' most nearly mean?",
+            "options": [
+                "Increase",
+                "Exaggerate",
+                "Soothe",
+                "Ignore"
+            ],
+            "answer": "Soothe"
+        },
+        {
+            "id": "rwb-e-24",
+            "topic": "Standard English Conventions",
+            "subTopic": "Punctuation",
+            "difficulty": "Easy",
+            "passage": "The play was a huge success ______ the actors received a standing ovation.",
+            "question": "Which choice best corrects the punctuation error in the sentence?",
+            "options": [
+                "success, the actors",
+                "success and, the actors",
+                "success; the actors",
+                "success, and the actors"
+            ],
+            "answer": "success; the actors"
+        },
+        {
+            "id": "rwb-h-25",
+            "topic": "Information and Ideas",
+            "subTopic": "Inference",
+            "difficulty": "Hard",
+            "passage": "The artist's style underwent a dramatic transformation. Her early canvases were dominated by somber earth tones and rigid, geometric forms. Her later works, however, explode with vibrant, almost chaotic color and fluid, organic shapes. This shift coincided with her move from the stark, urban environment of her youth to a lush, tropical landscape.",
+            "question": "What can most reasonably be inferred from the text?",
+            "options": [
+                "The artist's early work was more popular with critics.",
+                "The artist's change in style was likely influenced by her change in environment.",
+                "The artist lost her technical skill over time.",
+                "The artist exclusively painted landscapes in her later period."
+            ],
+            "answer": "The artist's change in style was likely influenced by her change in environment."
+        },
+        {
+            "id": "rwb-m-24",
+            "topic": "Expression of Ideas",
+            "subTopic": "Transitions",
+            "difficulty": "Medium",
+            "passage": "The defendant provided a seemingly solid alibi for the time of the crime. ______, the prosecution presented new DNA evidence that directly placed him at the scene.",
+            "question": "Which choice completes the text with the most logical transition?",
+            "options": [
+                "Furthermore",
+                "Nevertheless",
+                "As a result",
+                "Similarly"
+            ],
+            "answer": "Nevertheless"
+        },
+        {
+            "id": "rwb-e-25",
+            "topic": "Standard English Conventions",
+            "subTopic": "Subject-Verb Agreement",
+            "difficulty": "Easy",
+            "passage": "Either the cat or the dogs ______ responsible for the mess in the living room.",
+            "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
+            "options": [
+                "is",
+                "are",
+                "was",
+                "be"
+            ],
+            "answer": "are"
+        },
+        {
+            "id": "rwb-h-26",
+            "topic": "Standard English Conventions",
+            "subTopic": "Parallel Structure",
+            "difficulty": "Hard",
+            "passage": "The ideal candidate for this position should be proficient in coding, adept at problem-solving, and ______.",
+            "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
+            "options": [
+                "a good communicator",
+                "possess strong communication skills",
+                "communicates well",
+                "an effective communicator"
+            ],
+            "answer": "an effective communicator"
+        },
+        {
+            "id": "rwb-m-25",
+            "topic": "Craft and Structure",
+            "subTopic": "Text Structure and Purpose",
+            "difficulty": "Medium",
+            "passage": "The author opens by stating the commonly held belief that creativity is a rare gift. The subsequent paragraphs, however, methodically debunk this myth by citing studies on neuroplasticity, growth mindset, and the effectiveness of creativity-training techniques. The conclusion reasserts that creativity is a skill accessible to anyone willing to practice.",
+            "question": "Which choice best describes the text's organizational strategy?",
+            "options": [
+                "Chronological narration",
+                "Presenting a popular misconception and then refuting it with evidence",
+                "Comparison and contrast of two different theories",
+                "Cause and effect analysis"
+            ],
+            "answer": "Presenting a popular misconception and then refuting it with evidence"
+        },
+        {
+            "id": "rwb-e-26",
+            "topic": "Information and Ideas",
+            "subTopic": "Central Ideas and Details",
+            "difficulty": "Easy",
+            "passage": "The Earth's core is composed primarily of iron and nickel. It is divided into two parts: a solid inner core and a liquid outer core. The movement of the liquid outer core is believed to generate the Earth's magnetic field.",
+            "question": "According to the text, what is believed to generate the Earth's magnetic field?",
+            "options": [
+                "The solid inner core",
+                "The presence of nickel",
+                "The movement of the liquid outer core",
+                "The Earth's rotation"
+            ],
+            "answer": "The movement of the liquid outer core"
+        },
+        {
+            "id": "rwb-h-27",
+            "topic": "Craft and Structure",
+            "subTopic": "Words in Context",
+            "difficulty": "Hard",
+            "passage": "The ancient philosopher's writings were notably laconic; he conveyed profound ideas in just a few, carefully chosen words, avoiding any superfluous ornamentation.",
+            "question": "As used in the text, what does 'laconic' most nearly mean?",
+            "options": [
+                "Verbose and wordy",
+                "Complex and confusing",
+                "Using very few words",
+                "Poetic and ornate"
+            ],
+            "answer": "Using very few words"
+        },
+        {
+            "id": "rwb-m-26",
+            "topic": "Standard English Conventions",
+            "subTopic": "Punctuation (Commas)",
+            "difficulty": "Medium",
+            "passage": "Although the team played well, they lost the game in the final seconds.",
+            "question": "Which of the following is true about the comma in the sentence?",
+            "options": [
+                "It should be a semicolon.",
+                "It should be removed.",
+                "It is correctly used to separate a dependent clause from an independent clause.",
+                "It should be placed after 'game'."
+            ],
+            "answer": "It is correctly used to separate a dependent clause from an independent clause."
+        },
+        {
+            "id": "rwb-e-27",
+            "topic": "Expression of Ideas",
+            "subTopic": "Logical Completion",
+            "difficulty": "Easy",
+            "passage": "The sun was shining brightly and the temperature was warm; it was a ______ day for a picnic.",
+            "question": "Which choice completes the text with the most logical and precise word or phrase?",
+            "options": [
+                "terrible",
+                "perfect",
+                "gloomy",
+                "dangerous"
+            ],
+            "answer": "perfect"
+        },
+        {
+            "id": "rwb-h-28",
+            "topic": "Expression of Ideas",
+            "subTopic": "Rhetorical Synthesis",
+            "difficulty": "Hard",
+            "passage": "A student is writing an essay analyzing the theme of ambition in Shakespeare's 'Macbeth'. Which statement would be the most effective and analytical thesis statement for the essay?",
+            "question": "Which thesis statement is most effective?",
+            "options": [
+                "'Macbeth' is a play about a Scottish general who becomes king.",
+                "Ambition is a major theme in Shakespeare's 'Macbeth'.",
+                "In 'Macbeth,' Shakespeare explores the destructive nature of unchecked ambition, portraying it as a corrosive force that inevitably leads to moral decay, psychological torment, and political chaos.",
+                "Macbeth and Lady Macbeth are both very ambitious characters."
+            ],
+            "answer": "In 'Macbeth,' Shakespeare explores the destructive nature of unchecked ambition, portraying it as a corrosive force that inevitably leads to moral decay, psychological torment, and political chaos."
+        },
+        {
+            "id": "rwb-m-27",
+            "topic": "Information and Ideas",
+            "subTopic": "Inference",
+            "difficulty": "Medium",
+            "passage": "The city has recently implemented a bike-sharing program. Stations with bicycles are now available throughout the downtown area, and users can rent a bike for short trips using a mobile app. The city's stated goal is to reduce traffic congestion and encourage healthier lifestyles.",
+            "question": "Based on the text, which of the following is a likely intended outcome of the bike-sharing program?",
+            "options": [
+                "An increase in car sales.",
+                "A decrease in the number of people using public transit.",
+                "An increase in physical activity among residents and visitors.",
+                "The closure of downtown parking garages."
+            ],
+            "answer": "An increase in physical activity among residents and visitors."
+        },
+        {
+            "id": "rwb-h-29",
+            "topic": "Standard English Conventions",
+            "subTopic": "Verb Mood (Indicative vs. Subjunctive)",
+            "difficulty": "Hard",
+            "passage": "If I ______ a millionaire, I would donate a significant portion of my wealth to environmental causes.",
+            "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
+            "options": [
+                "was",
+                "am",
+                "were",
+                "be"
+            ],
+            "answer": "were"
+        },
+        {
+            "id": "rwb-m-28",
+            "topic": "Standard English Conventions",
+            "subTopic": "Punctuation (Apostrophes)",
+            "difficulty": "Medium",
+            "passage": "The two ______ cars were parked side-by-side in the driveway.",
+            "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
+            "options": [
+                "neighbors",
+                "neighbor's",
+                "neighbors'",
+                "neighbors's"
+            ],
+            "answer": "neighbors'"
+        },
+        {
+            "id": "rwb-e-28",
+            "topic": "Craft and Structure",
+            "subTopic": "Words in Context",
+            "difficulty": "Easy",
+            "passage": "The ancient tree had a gargantuan trunk, so wide that it would take four people holding hands to encircle it.",
+            "question": "As used in the text, what does 'gargantuan' most nearly mean?",
+            "options": [
+                "Tiny",
+                "Enormous",
+                "Smooth",
+                "Hollow"
+            ],
+            "answer": "Enormous"
+        },
+        {
+            "id": "rwb-h-30",
+            "topic": "Craft and Structure",
+            "subTopic": "Cross-Text Connections",
+            "difficulty": "Hard",
+            "passage": "Text 1: A recent study suggests that the key to happiness is not the pursuit of grand achievements, but rather the consistent practice of gratitude and mindfulness. Finding joy in small, everyday moments contributes more to life satisfaction than occasional major successes. Text 2: In his book on achieving success, author John Smith argues that setting ambitious, long-term goals is paramount. He claims that true fulfillment comes from striving for and reaching significant personal and professional milestones, which provide a lasting sense of accomplishment.",
+            "question": "How do the perspectives on fulfillment presented in Text 1 and Text 2 relate to each other?",
+            "options": [
+                "Text 2 provides a specific example of the principles discussed in Text 1.",
+                "Text 1 and Text 2 present opposing views on the primary source of fulfillment.",
+                "Text 1 critiques the ideas presented by the author in Text 2.",
+                "Text 2 offers a more detailed explanation of the concepts introduced in Text 1."
+            ],
+            "answer": "Text 1 and Text 2 present opposing views on the primary source of fulfillment."
+        },
+        {
+            "id": "rwb-m-29",
+            "topic": "Information and Ideas",
+            "subTopic": "Central Ideas and Details",
+            "difficulty": "Medium",
+            "passage": "The Coriolis effect, a phenomenon caused by the Earth's rotation, significantly influences weather patterns. In the Northern Hemisphere, it deflects moving objects (like wind and ocean currents) to the right, and in the Southern Hemisphere, it deflects them to the left. This effect is responsible for the rotation of large-scale weather systems, such as hurricanes and cyclones.",
+            "question": "According to the text, what is a direct consequence of the Coriolis effect?",
+            "options": [
+                "The changing of the seasons.",
+                "The generation of the Earth's magnetic field.",
+                "The direction in which large storms spin.",
+                "The daily cycle of day and night."
+            ],
+            "answer": "The direction in which large storms spin."
+        },
+        {
+            "id": "rwb-e-29",
+            "topic": "Expression of Ideas",
+            "subTopic": "Transitions",
+            "difficulty": "Easy",
+            "passage": "The book was long and complex. ______, it was a rewarding read that offered deep insights into the subject.",
+            "question": "Which choice completes the text with the most logical transition?",
+            "options": [
+                "Therefore,",
+                "For example,",
+                "Nevertheless,",
+                "In addition,"
+            ],
+            "answer": "Nevertheless,"
+        },
+        {
+            "id": "rwb-h-31",
+            "topic": "Standard English Conventions",
+            "subTopic": "Comma Splice",
+            "difficulty": "Hard",
+            "passage": "The artist finished her painting, she felt a sense of accomplishment.",
+            "question": "Which revision best corrects the comma splice in the sentence?",
+            "options": [
+                "The artist finished her painting, and she felt a sense of accomplishment.",
+                "After the artist finished her painting, she felt a sense of accomplishment.",
+                "The artist finished her painting; she felt a sense of accomplishment.",
+                "All of the above are correct."
+            ],
+            "answer": "All of the above are correct."
+        },
+        {
+            "id": "rwb-m-30",
+            "topic": "Expression of Ideas",
+            "subTopic": "Logical Completion",
+            "difficulty": "Medium",
+            "passage": "The documentary's attempt to present a balanced view was commendable; however, by giving equal airtime to a fringe conspiracy theory alongside established scientific fact, it inadvertently created a false ______.",
+            "question": "Which choice completes the text with the most logical and precise word or phrase?",
+            "options": [
+                "consensus",
+                "narrative",
+                "equivalency",
+                "conclusion"
+            ],
+            "answer": "equivalency"
+        },
+        {
+            "id": "rwb-e-30",
+            "topic": "Standard English Conventions",
+            "subTopic": "Verb Tense",
+            "difficulty": "Easy",
+            "passage": "Next summer, my friends and I ______ to Europe for a backpacking trip.",
+            "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
+            "options": [
+                "will travel",
+                "traveled",
+                "have traveled",
+                "were traveling"
+            ],
+            "answer": "will travel"
+        },
+        {
+            "id": "rwb-h-32",
+            "topic": "Craft and Structure",
+            "subTopic": "Words in Context",
+            "difficulty": "Hard",
+            "passage": "The CEO's speech was more of a diatribe than a constructive address, filled with angry accusations and devoid of any solutions.",
+            "question": "As used in the text, 'diatribe' most nearly means",
+            "options": [
+              "a thoughtful analysis.",
+              "a bitter and abusive speech.",
+              "a concise summary.",
+              "an inspiring message."
+            ],
+            "answer": "a bitter and abusive speech."
+        },
+        {
+            "id": "rwb-m-31",
+            "topic": "Craft and Structure",
+            "subTopic": "Inference",
+            "difficulty": "Medium",
+            "passage": "The study found that subjects who slept for eight hours performed significantly better on cognitive tests than those who slept for only six. The six-hour group showed slower reaction times and a higher rate of errors on memory-based tasks.",
+            "question": "What can be inferred from the text?",
+            "options": [
+              "Six hours of sleep is sufficient for most people.",
+              "Sleep deprivation can negatively impact cognitive performance.",
+              "All cognitive tests are memory-based.",
+              "Eight hours is the maximum amount of sleep a person should get."
+            ],
+            "answer": "Sleep deprivation can negatively impact cognitive performance."
+        },
+        {
+            "id": "rwb-e-31",
+            "topic": "Information and Ideas",
+            "subTopic": "Central Ideas and Details",
+            "difficulty": "Easy",
+            "passage": "The Eiffel Tower was constructed from 1887 to 1889 as the centerpiece of the 1889 World's Fair. Initially criticized by some of France's leading artists and intellectuals for its design, it has since become a global cultural icon of France and one of the most recognizable structures in the world.",
+            "question": "What was the original purpose of the Eiffel Tower?",
+            "options": [
+              "To be a permanent monument in Paris.",
+              "To serve as a radio transmission tower.",
+              "To be the entrance to the 1889 World's Fair.",
+              "To be a military observation post."
+            ],
+            "answer": "To be the entrance to the 1889 World's Fair."
+        },
+        {
+            "id": "rwb-h-33",
+            "topic": "Expression of Ideas",
+            "subTopic": "Rhetorical Synthesis",
+            "difficulty": "Hard",
+            "passage": "A student is writing an essay arguing for the preservation of historical buildings. Which statement most effectively frames the argument in a way that addresses potential counterarguments about cost?",
+            "question": "Which statement is most effective?",
+            "options": [
+              "Old buildings should be saved because they are pretty.",
+              "Destroying historical buildings is like erasing our past.",
+              "While the restoration of historical buildings can be costly, the long-term cultural, educational, and economic benefits—such as tourism and a unique community identity—often outweigh the initial investment.",
+              "It is too expensive to maintain old buildings, so they should be replaced with modern, efficient structures."
+            ],
+            "answer": "While the restoration of historical buildings can be costly, the long-term cultural, educational, and economic benefits—such as tourism and a unique community identity—often outweigh the initial investment."
+        },
+        {
+            "id": "rwb-m-32",
+            "topic": "Standard English Conventions",
+            "subTopic": "Subject-Verb Agreement",
+            "difficulty": "Medium",
+            "passage": "A key part of the ecosystem, the mangrove forests ______ as a crucial nursery for many marine species and protect the coastline from erosion.",
+            "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
+            "options": [
+              "serves",
+              "serving",
+              "serve",
+              "has served"
+            ],
+            "answer": "serve"
+        },
+        {
+            "id": "rwb-e-32",
+            "topic": "Standard English Conventions",
+            "subTopic": "Punctuation",
+            "difficulty": "Easy",
+            "passage": "The team celebrated its victory ______ a hard-fought game.",
+            "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
+            "options": [
+              "after",
+              "after,",
+              "after;",
+              "after:"
+            ],
+            "answer": "after"
+        },
+        {
+            "id": "rwb-m-33",
+            "topic": "Information and Ideas",
+            "subTopic": "Command of Evidence",
+            "difficulty": "Medium",
+            "passage": "The artist Georgia O'Keeffe is renowned for her paintings of enlarged flowers, New York skyscrapers, and New Mexico landscapes. A central theme in her work is the close observation of nature, finding abstract forms and monumental grandeur in objects both large and small. She famously said, 'I found I could say things with color and shapes that I couldn't say any other way—things I had no words for.'",
+            "question": "Which choice from the text best illustrates O'Keeffe's artistic philosophy?",
+            "options": [
+              "She is renowned for her paintings of enlarged flowers.",
+              "Her work includes New York skyscrapers and New Mexico landscapes.",
+              "She could say things with color and shapes that she had no words for.",
+              "A central theme in her work is the close observation of nature."
+            ],
+            "answer": "She could say things with color and shapes that she had no words for."
         }
     ]
 }
