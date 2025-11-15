@@ -67,6 +67,13 @@ type Course = {
     units?: Unit[];
 };
 
+type Note = {
+    title: string;
+    content: string;
+    courseId?: string;
+    unitId?: string;
+}
+
 
 const EditorToolbar = ({ onCommand, onImageUpload, onLinkCreate, onToggleChat }: { onCommand: (command: string, value?: string) => void; onImageUpload: () => void; onLinkCreate: () => void; onToggleChat: () => void; }) => {
     
@@ -359,6 +366,7 @@ export default function NoteEditorPage() {
     const params = useParams();
     const noteId = params.noteId as string;
     const [isLoadingNote, setIsLoadingNote] = useState(true);
+    const [noteData, setNoteData] = useState<Note | null>(null);
     
     useEffect(() => {
         if (!user || !noteId) {
@@ -368,19 +376,23 @@ export default function NoteEditorPage() {
             return;
         };
 
+        if (noteId === 'new') {
+            setIsLoadingNote(false);
+            setNoteData({ title: 'Untitled Note', content: ''});
+            return;
+        }
+
         const loadNote = async () => {
             setIsLoadingNote(true);
             try {
                 const noteRef = doc(db, 'notes', noteId);
                 const noteSnap = await getDoc(noteRef);
                 if (noteSnap.exists() && noteSnap.data().userId === user.uid) {
-                    const noteData = noteSnap.data();
-                    setNoteTitle(noteData.title);
-                    if (editorRef.current) {
-                        editorRef.current.innerHTML = noteData.content || '';
-                    }
-                    setSelectedCourseId(noteData.courseId);
-                    setSelectedUnitId(noteData.unitId);
+                    const data = noteSnap.data() as Note;
+                    setNoteData(data);
+                    setNoteTitle(data.title);
+                    setSelectedCourseId(data.courseId);
+                    setSelectedUnitId(data.unitId);
                 } else {
                     toast({ variant: 'destructive', title: 'Note not found or access denied.' });
                     router.push('/dashboard/notes');
@@ -394,6 +406,12 @@ export default function NoteEditorPage() {
         
         loadNote();
     }, [noteId, user, router, toast]);
+
+    useEffect(() => {
+        if (!isLoadingNote && editorRef.current && noteData) {
+            editorRef.current.innerHTML = noteData.content || '';
+        }
+    }, [isLoadingNote, noteData]);
 
     useEffect(() => {
         if (!user) return;
@@ -512,7 +530,7 @@ export default function NoteEditorPage() {
     const handleSaveNote = async () => {
         if (!user || !editorRef.current) return;
     
-        const noteData = {
+        const notePayload = {
             title: noteTitle,
             content: editorRef.current.innerHTML,
             date: Timestamp.now(),
@@ -525,12 +543,12 @@ export default function NoteEditorPage() {
             if (noteId && noteId !== 'new') {
                 // Update existing note
                 const noteRef = doc(db, "notes", noteId);
-                await updateDoc(noteRef, noteData);
+                await updateDoc(noteRef, notePayload);
                 toast({ title: "Note Updated!", description: "Your changes have been saved." });
             } else {
                  // Create new note
                 const docRef = await addDoc(collection(db, "notes"), {
-                    ...noteData,
+                    ...notePayload,
                     color: 'bg-indigo-100 dark:bg-indigo-900/20',
                     isImportant: false,
                     isCompleted: false,
@@ -729,3 +747,4 @@ export default function NoteEditorPage() {
         </div>
     );
 }
+
