@@ -337,20 +337,6 @@ export default function ProfilePage() {
                             )}
                         </CardContent>
                     </Card>
-                     <Card>
-                        <CardHeader>
-                            <CardTitle>Refer a Friend</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-sm text-muted-foreground mb-4">Share your link with friends. You both get <span className="font-bold text-amber-500">500 coins</span> when they sign up!</p>
-                            <div className="flex gap-2">
-                                <Input value={`${window.location.origin}/signup?ref=${user?.uid}`} readOnly />
-                                <Button onClick={copyReferralLink} size="icon" variant="outline">
-                                    {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
-                                </Button>
-                            </div>
-                        </CardContent>
-                    </Card>
 
                     {learnerType && (
                          <Card className="bg-blue-500/10 border-blue-500/20">
@@ -440,4 +426,3 @@ export default function ProfilePage() {
         </div>
     );
 }
-
