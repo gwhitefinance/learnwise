@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -14,7 +15,7 @@ import { Skeleton } from './ui/skeleton';
 
 export default function SidebarProfile() {
     const [user, loading] = useAuthState(auth);
-    const [profile, setProfile] = useState<{ displayName: string, photoURL: string | null, level: number, coins: number } | null>(null);
+    const [profile, setProfile] = useState<{ displayName: string, photoURL: string | null, level: number, xp: number, coins: number } | null>(null);
     const router = useRouter();
 
     useEffect(() => {
@@ -28,6 +29,7 @@ export default function SidebarProfile() {
                     displayName: data.displayName || 'User',
                     photoURL: data.photoURL || null,
                     level: data.level || 1,
+                    xp: data.xp || 0,
                     coins: data.coins || 0,
                 });
             }
@@ -50,6 +52,8 @@ export default function SidebarProfile() {
         );
     }
     
+    const level = Math.floor(profile.xp / 100) + 1;
+
     return (
          <div className="w-full p-2 rounded-2xl hover:bg-muted cursor-pointer" onClick={() => router.push('/dashboard/profile')}>
             <div className="flex items-center gap-3">
@@ -60,7 +64,7 @@ export default function SidebarProfile() {
                 <div className="flex-1 overflow-hidden">
                     <p className="font-semibold text-sm truncate">{profile.displayName}</p>
                     <div className="flex items-center gap-2">
-                        <LevelBadge level={profile.level} size="sm" />
+                        <LevelBadge level={level} size="sm" />
                     </div>
                 </div>
                 <Badge variant="outline" className="flex items-center gap-1.5 shrink-0">

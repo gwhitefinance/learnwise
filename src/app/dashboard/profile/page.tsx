@@ -198,10 +198,13 @@ export default function ProfilePage() {
     }
     
     const allCompletedMilestones = roadmaps.flatMap(r => r.milestones.filter(m => m.completed));
-    const level = profile.level || 1;
-    const xp = profile.xp || 0;
+    const totalXp = profile.xp || 0;
+    const level = Math.floor(totalXp / 100) + 1;
+    const xpForCurrentLevel = (level - 1) * 100;
     const xpForNextLevel = level * 100;
-    const xpProgress = xpForNextLevel > 0 ? (xp / xpForNextLevel) * 100 : 0;
+    const xpProgressInLevel = totalXp - xpForCurrentLevel;
+    const xpProgressPercentage = (xpProgressInLevel / 100) * 100;
+
 
     return (
         <div className="space-y-8">
@@ -234,12 +237,12 @@ export default function ProfilePage() {
                                 <p className="text-sm text-muted-foreground font-semibold">Streak</p>
                                 <p className="text-2xl font-bold flex items-center justify-center gap-1 text-orange-500"><Flame size={20}/> {streak}</p>
                             </div>
-                            <div className="p-4 bg-muted rounded-lg text-center col-span-2">
+                             <div className="p-4 bg-muted rounded-lg text-center col-span-2">
                                 <div className="flex justify-between items-center text-sm mb-1">
                                     <LevelBadge level={level} />
-                                    <p className="text-muted-foreground">{xp} / {xpForNextLevel} XP</p>
+                                    <p className="text-muted-foreground">{xpProgressInLevel} / 100 XP</p>
                                 </div>
-                                <Progress value={xpProgress}/>
+                                <Progress value={xpProgressPercentage}/>
                             </div>
                         </CardContent>
                     </Card>
