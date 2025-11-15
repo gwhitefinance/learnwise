@@ -4,7 +4,7 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, MoreVertical, Trash2, Star, Archive, Sparkles, Wand2, Lightbulb, Copy, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
+import { Plus, MoreVertical, Trash2, Star, Archive, Sparkles, Wand2, Lightbulb, Copy, ChevronLeft, ChevronRight, RefreshCw, Edit } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
 import type { GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
@@ -63,21 +63,19 @@ type Flashcard = {
     back: string;
 };
 
-const NoteCard = ({ note, onDelete, onToggleImportant, onToggleComplete, onSummarize, onGenerateQuiz, onGenerateFlashcards }: { note: Note, onDelete: (id: string) => void, onToggleImportant: (id: string) => void, onToggleComplete: (id: string, isCompleted: boolean) => void, onSummarize: (content: string) => void, onGenerateQuiz: (noteContent: string) => void, onGenerateFlashcards: (noteContent: string) => void }) => {
+const NoteCard = ({ note, onDelete, onToggleImportant, onToggleComplete, onSummarize, onGenerateQuiz, onGenerateFlashcards, onViewNote }: { note: Note, onDelete: (id: string) => void, onToggleImportant: (id: string) => void, onToggleComplete: (id: string, isCompleted: boolean) => void, onSummarize: (content: string) => void, onGenerateQuiz: (noteContent: string) => void, onGenerateFlashcards: (noteContent: string) => void, onViewNote: (note: Note) => void }) => {
   return (
     <Card className={`overflow-hidden ${note.color} flex flex-col`}>
-      <CardHeader className="p-4 flex-grow">
+      <CardHeader className="p-4 flex-grow cursor-pointer" onClick={() => onViewNote(note)}>
         <div className="flex justify-between items-start">
-            <Link href={`/dashboard/notes/${note.id}`} className="flex-1">
-                <CardTitle className="text-lg font-semibold hover:underline">{note.title}</CardTitle>
-            </Link>
+            <CardTitle className="text-lg font-semibold">{note.title}</CardTitle>
              <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-6 w-6 flex-shrink-0">
+                <Button variant="ghost" size="icon" className="h-6 w-6 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                   <MoreVertical className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
                  <DropdownMenuItem onClick={() => onSummarize(note.content)} disabled={note.isWhiteboardNote}>
                     <Wand2 className="mr-2 h-4 w-4 text-purple-500"/> Summarize with AI
                 </DropdownMenuItem>
@@ -88,6 +86,9 @@ const NoteCard = ({ note, onDelete, onToggleImportant, onToggleComplete, onSumma
                     <Lightbulb className="mr-2 h-4 w-4 text-yellow-500"/> Generate Quiz
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
+                 <DropdownMenuItem asChild>
+                    <Link href={`/dashboard/notes/${note.id}`}><Edit className="mr-2 h-4 w-4" /> Edit Note</Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => onToggleImportant(note.id)}>
                     <Star className="mr-2 h-4 w-4"/> {note.isImportant ? 'Unmark' : 'Mark'} as Important
                 </DropdownMenuItem>
@@ -100,7 +101,7 @@ const NoteCard = ({ note, onDelete, onToggleImportant, onToggleComplete, onSumma
               </DropdownMenuContent>
             </DropdownMenu>
         </div>
-        <Link href={`/dashboard/notes/${note.id}`} className="block">
+        <div className="block">
             {note.isWhiteboardNote && note.imageUrl ? (
                 <div className="mt-2 aspect-video relative bg-muted rounded-md overflow-hidden">
                     <Image src={note.imageUrl} alt={note.title} layout="fill" objectFit="contain" />
@@ -108,7 +109,7 @@ const NoteCard = ({ note, onDelete, onToggleImportant, onToggleComplete, onSumma
             ) : (
                 <CardDescription className="text-sm pt-2 line-clamp-3" dangerouslySetInnerHTML={{ __html: note.content }} />
             )}
-        </Link>
+        </div>
       </CardHeader>
       <CardContent className="p-4 pt-0 mt-auto">
          <p className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(note.date), { addSuffix: true })}</p>
@@ -154,6 +155,7 @@ export default function NotesPage() {
   const [currentFlashcardIndex, setCurrentFlashcardIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [isNotesLoading, setIsNotesLoading] = useState(true);
+  const [viewingNote, setViewingNote] = useState<Note | null>(null);
   
   const [user, authLoading] = useAuthState(auth);
   const router = useRouter();
@@ -382,7 +384,7 @@ export default function NotesPage() {
             ) : (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {displayedNotes.map(note => (
-                        <NoteCard key={note.id} note={note} onDelete={handleDeleteNote} onToggleImportant={handleToggleImportant} onToggleComplete={handleToggleComplete} onSummarize={handleSummarize} onGenerateQuiz={handleGenerateQuiz} onGenerateFlashcards={handleGenerateFlashcards}/>
+                        <NoteCard key={note.id} note={note} onDelete={handleDeleteNote} onToggleImportant={handleToggleImportant} onToggleComplete={handleToggleComplete} onSummarize={handleSummarize} onGenerateQuiz={handleGenerateQuiz} onGenerateFlashcards={handleGenerateFlashcards} onViewNote={setViewingNote} />
                     ))}
                     {displayedNotes.length === 0 && <p className="text-center text-muted-foreground col-span-full py-12">No active notes. Create one to get started!</p>}
                 </div>
@@ -397,7 +399,7 @@ export default function NotesPage() {
             ) : (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {displayedNotes.map(note => (
-                    <NoteCard key={note.id} note={note} onDelete={handleDeleteNote} onToggleImportant={handleToggleImportant} onToggleComplete={handleToggleComplete} onSummarize={handleSummarize} onGenerateQuiz={handleGenerateQuiz} onGenerateFlashcards={handleGenerateFlashcards}/>
+                    <NoteCard key={note.id} note={note} onDelete={handleDeleteNote} onToggleImportant={handleToggleImportant} onToggleComplete={handleToggleComplete} onSummarize={handleSummarize} onGenerateQuiz={handleGenerateQuiz} onGenerateFlashcards={handleGenerateFlashcards} onViewNote={setViewingNote} />
                 ))}
                 {displayedNotes.length === 0 && <p className="text-center text-muted-foreground col-span-full py-12">No important notes yet.</p>}
                 </div>
@@ -433,7 +435,7 @@ export default function NotesPage() {
             ) : (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {displayedNotes.map(note => (
-                    <NoteCard key={note.id} note={note} onDelete={handleDeleteNote} onToggleImportant={handleToggleImportant} onToggleComplete={handleToggleComplete} onSummarize={handleSummarize} onGenerateQuiz={handleGenerateQuiz} onGenerateFlashcards={handleGenerateFlashcards}/>
+                    <NoteCard key={note.id} note={note} onDelete={handleDeleteNote} onToggleImportant={handleToggleImportant} onToggleComplete={handleToggleComplete} onSummarize={handleSummarize} onGenerateQuiz={handleGenerateQuiz} onGenerateFlashcards={handleGenerateFlashcards} onViewNote={setViewingNote} />
                 ))}
                 {displayedNotes.length === 0 && <p className="text-center text-muted-foreground col-span-full py-12">No archived notes.</p>}
                 </div>
@@ -441,6 +443,24 @@ export default function NotesPage() {
         </TabsContent>
       </Tabs>
     </div>
+
+    <Dialog open={!!viewingNote} onOpenChange={(open) => !open && setViewingNote(null)}>
+        <DialogContent className="max-w-2xl">
+            <DialogHeader>
+                <DialogTitle>{viewingNote?.title}</DialogTitle>
+                <DialogDescription>
+                    {viewingNote?.date ? formatDistanceToNow(new Date(viewingNote.date), { addSuffix: true }) : ''}
+                </DialogDescription>
+            </DialogHeader>
+            <div className="py-4 max-h-[60vh] overflow-y-auto prose dark:prose-invert" dangerouslySetInnerHTML={{ __html: viewingNote?.content || '' }} />
+            <DialogFooter>
+                <Button variant="ghost" onClick={() => setViewingNote(null)}>Close</Button>
+                <Button asChild>
+                    <Link href={`/dashboard/notes/${viewingNote?.id}`}>Edit Note</Link>
+                </Button>
+            </DialogFooter>
+        </DialogContent>
+    </Dialog>
 
     <Dialog open={isSummaryDialogOpen} onOpenChange={setSummaryDialogOpen}>
         <DialogContent>
@@ -486,14 +506,16 @@ export default function NotesPage() {
                            {generatedQuiz.questions.map((q, index) => (
                                <div key={index}>
                                    <p className="font-semibold">{index + 1}. {q.question}</p>
-                                   <RadioGroup className="mt-2 space-y-2">
-                                       {q.options?.map((opt, i) => (
-                                           <div key={i} className="flex items-center space-x-2">
-                                                <RadioGroupItem value={opt} id={`q${index}-opt${i}`} />
-                                                <Label htmlFor={`q${index}-opt${i}`}>{opt}</Label>
-                                           </div>
-                                       ))}
-                                   </RadioGroup>
+                                   {q.options && (
+                                       <RadioGroup className="mt-2 space-y-2">
+                                           {q.options.map((opt, i) => (
+                                               <div key={i} className="flex items-center space-x-2">
+                                                    <RadioGroupItem value={opt} id={`q${index}-opt${i}`} />
+                                                    <Label htmlFor={`q${index}-opt${i}`}>{opt}</Label>
+                                               </div>
+                                           ))}
+                                       </RadioGroup>
+                                   )}
                                </div>
                            ))}
                        </div>
@@ -570,5 +592,3 @@ export default function NotesPage() {
     </>
   );
 }
-
-    
