@@ -15,15 +15,14 @@ const prompt = ai.definePrompt({
     model: googleAI.model('gemini-2.5-flash'),
     input: { schema: GenerateQuizInputSchema },
     output: { schema: GenerateQuizOutputSchema },
-    prompt: `Generate a {{numQuestions}}-question quiz on the following topics: {{topics}}.
+    prompt: `Generate a {{numQuestions}}-question multiple-choice quiz on the following topic: "{{topic}}".
     
     The quiz should have the following parameters:
-    - Question Type: {{questionType}}
     - Difficulty Level: {{difficulty}}
+    - Each question must have exactly 4 options.
+    - The 'correctAnswerIndex' must be a number from 0 to 3, corresponding to the correct option in the 'options' array.
 
-    **CRITICAL**: For any mathematical expressions, especially exponents and fractions, use proper notation. For example, use 'x²' instead of 'x^2', and use Unicode characters like '½' for fractions instead of '1/2'.
-
-    For each question, provide the question text, options (if multiple choice), and the correct answer.
+    CRITICAL: For any mathematical expressions, especially exponents and fractions, use proper notation. For example, use 'x²' instead of 'x^2', and use Unicode characters like '½' for fractions instead of '1/2'.
     `,
 });
 

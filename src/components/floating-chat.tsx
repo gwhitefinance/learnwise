@@ -23,7 +23,7 @@ import { Textarea } from './ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Progress } from './ui/progress';
 import Link from 'next/link';
-import type { GenerateQuizOutput, GenerateQuizInput } from '@/ai/schemas/quiz-schema';
+import type { GenerateQuizOutput, GenerateQuizInput, QuizQuestion } from '@/ai/schemas/quiz-schema';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuPortal } from './ui/dropdown-menu';
 import ReactMarkdown from 'react-markdown';
@@ -36,10 +36,11 @@ interface Message {
   role: 'user' | 'model';
   content: string;
   streaming?: boolean;
-  quizParams?: Omit<GenerateQuizInput, 'questionType'>;
+  quizParams?: Omit<GenerateQuizInput, 'numQuestions' | 'difficulty'> & { numQuestions: number; difficulty: 'Easy' | 'Medium' | 'Hard' };
   quizTitle?: string;
   timestamp?: number;
 }
+
 
 interface ChatSession {
     id: string;
@@ -264,39 +265,63 @@ interface FloatingChatProps {
     isEmbedded?: boolean;
 }
 
-const InteractiveCanvas = ({ quiz, isLoading, onAnswer, onSubmit }: { quiz: GenerateQuizOutput | null, isLoading: boolean, onAnswer: (answer: string) => void, onSubmit: () => void }) => {
-    if (isLoading) {
-        return (
-             <div className="bg-muted h-full flex flex-col p-6 rounded-l-2xl items-center justify-center">
-                <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
-                <p className="text-lg font-semibold">Generating Quiz...</p>
-            </div>
-        );
-    }
-    if (!quiz || !quiz.questions || quiz.questions.length === 0) {
-        return (
-            <div className="bg-muted h-full flex flex-col p-6 rounded-l-2xl items-center justify-center">
-                <p className="text-center text-muted-foreground">No quiz generated or quiz has no questions.</p>
-            </div>
-        );
-    }
+const InteractiveQuiz = ({ quiz, onFinish }: { quiz: GenerateQuizOutput, onFinish: (finalScore: number, totalQuestions: number) => void }) => {
+    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+    const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+    const [isSubmitted, setIsSubmitted] = useState(false);
+    const [score, setScore] = useState(0);
 
-    // For now, we just show a placeholder. A full implementation would cycle through questions.
-    const currentQuestion = quiz.questions[0];
+    const currentQuestion = quiz.questions[currentQuestionIndex];
+    const isCorrect = selectedAnswer ? quiz.questions[currentQuestionIndex].options[quiz.questions[currentQuestionIndex].correctAnswerIndex] === selectedAnswer : false;
+
+    const handleNext = () => {
+        if (currentQuestionIndex < quiz.questions.length - 1) {
+            setCurrentQuestionIndex(prev => prev + 1);
+            setSelectedAnswer(null);
+            setIsSubmitted(false);
+        } else {
+            onFinish(score, quiz.questions.length);
+        }
+    };
+    
+    const checkAnswer = () => {
+        setIsSubmitted(true);
+        if(isCorrect) setScore(s => s + 1);
+    }
 
     return (
         <div className="bg-muted h-full flex flex-col p-6 rounded-l-2xl">
-            <h3 className="text-xl font-bold mb-2">Practice Quiz</h3>
-            <p className="text-muted-foreground mb-6">{currentQuestion.question}</p>
-             <div className="space-y-3">
-                {currentQuestion.options?.map((option) => (
-                    <Button key={option} variant="outline" className="w-full justify-start h-auto py-3" onClick={() => onAnswer(option)}>
+            <h3 className="text-xl font-bold mb-2">{quiz.quizTitle}</h3>
+             <div className="flex justify-between items-center text-sm text-muted-foreground mb-6">
+                <span>Question {currentQuestionIndex + 1} of {quiz.questions.length}</span>
+                <span>Score: {score}</span>
+            </div>
+            <p className="font-semibold mb-4">{currentQuestion.questionText}</p>
+            <div className="space-y-3">
+                {currentQuestion.options.map((option, index) => (
+                    <Label 
+                        key={index} 
+                        className={cn(
+                            "flex items-center gap-3 p-3 rounded-lg border cursor-pointer",
+                            isSubmitted && index === currentQuestion.correctAnswerIndex && "border-green-500 bg-green-500/10",
+                            isSubmitted && selectedAnswer === option && !isCorrect && "border-red-500 bg-red-500/10",
+                            !isSubmitted && selectedAnswer === option && "border-primary bg-primary/10",
+                            !isSubmitted && "hover:bg-background"
+                        )}
+                    >
+                        <RadioGroupItem value={option} onClick={() => setSelectedAnswer(option)} disabled={isSubmitted} />
                         {option}
-                    </Button>
+                        {isSubmitted && index === currentQuestion.correctAnswerIndex && <CheckCircle className="h-5 w-5 text-green-500 ml-auto"/>}
+                        {isSubmitted && selectedAnswer === option && !isCorrect && <XCircle className="h-5 w-5 text-red-500 ml-auto"/>}
+                    </Label>
                 ))}
             </div>
             <div className="mt-auto pt-6 flex justify-end">
-                <Button onClick={onSubmit}>End Quiz</Button>
+                {isSubmitted ? (
+                    <Button onClick={handleNext}>Next <ArrowRight className="ml-2 h-4 w-4"/></Button>
+                ) : (
+                    <Button onClick={checkAnswer} disabled={!selectedAnswer}>Check Answer</Button>
+                )}
             </div>
         </div>
     );
@@ -341,12 +366,6 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
   const [renameInput, setRenameInput] = useState('');
   
-  // State for upload dialog
-  const [isUploadOpen, setUploadOpen] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
-  const [fileToUpload, setFileToUpload] = useState<File | null>(null);
-
-  // State for "Save as Note" dialog
   const [isNoteDialogOpen, setNoteDialogOpen] = useState(false);
   const [noteGenerationLoading, setNoteGenerationLoading] = useState(false);
   const [generatedNoteTitle, setGeneratedNoteTitle] = useState('');
@@ -518,9 +537,10 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
         const aiTextResponse = response.text || '';
         const toolRequest = response.tool_requests?.[0];
 
-        if (toolRequest) {
+        let aiMessage: Message | null = null;
+        if (toolRequest && toolRequest.tool === 'generateQuizTool') {
             const quizParams = toolRequest.input;
-            const quizCardMessage: Message = {
+            aiMessage = {
                 id: crypto.randomUUID(),
                 role: 'model',
                 content: aiTextResponse,
@@ -528,10 +548,19 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                 quizTitle: `Practice Quiz: ${quizParams.topic}`,
                 timestamp: Date.now(),
             };
-            await updateDoc(sessionRef, { messages: arrayUnion(userMessage, quizCardMessage), timestamp: Timestamp.now() });
         } else if (aiTextResponse) {
-             await updateDoc(sessionRef, {
-                messages: arrayUnion(userMessage, {role: 'model', content: aiTextResponse, id: crypto.randomUUID()}),
+             aiMessage = {role: 'model', content: aiTextResponse, id: crypto.randomUUID()};
+        }
+        
+        if (aiMessage) {
+            await updateDoc(sessionRef, {
+                messages: arrayUnion(userMessage, aiMessage),
+                timestamp: Timestamp.now(),
+            });
+        } else {
+            // If there's no AI message but there was a user message, at least save that.
+            await updateDoc(sessionRef, {
+                messages: arrayUnion(userMessage),
                 timestamp: Timestamp.now(),
             });
         }
@@ -683,65 +712,6 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
     }
   };
 
-
-  const handleUpload = async () => {
-    if (!fileToUpload || !activeSessionId) {
-      toast({ variant: 'destructive', title: 'No file selected' });
-      return;
-    }
-    
-    setIsLoading(true);
-    setUploadOpen(false);
-
-    const userMessageContent = `I've uploaded an image: ${fileToUpload.name}. Can you help me with this?`;
-    const userMessage: Message = { role: 'user', content: userMessageContent, id: crypto.randomUUID() };
-    const updatedMessages = activeSession ? [...activeSession.messages, userMessage] : [userMessage];
-    setSessions(sessions.map(s => s.id === activeSessionId ? { ...s, messages: updatedMessages } : s));
-
-    try {
-        const reader = new FileReader();
-        reader.readAsDataURL(fileToUpload);
-        reader.onload = async (e) => {
-            const imageDataUri = e.target?.result as string;
-            if (!imageDataUri) {
-                throw new Error("Could not read file data.");
-            }
-            const { analysis } = await analyzeImage({ imageDataUri });
-
-            const aiMessage: Message = { role: 'model', content: analysis, id: crypto.randomUUID() };
-            const finalMessages = [...updatedMessages, aiMessage];
-            
-            setIsLoading(false);
-            const sessionRef = doc(db, "chatSessions", activeSessionId);
-            await updateDoc(sessionRef, { messages: finalMessages });
-        }
-        reader.onerror = (error) => {
-            throw error;
-        }
-
-    } catch (error) {
-        console.error(error);
-        setIsLoading(false);
-        toast({ variant: 'destructive', title: 'Analysis Failed', description: 'Could not analyze the uploaded image.' });
-        setSessions(sessions.map(s => s.id === activeSessionId ? activeSession! : s)); // Revert
-    } finally {
-        setFileToUpload(null);
-    }
-  };
-  
-  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); };
-  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); };
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); };
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-    const droppedFiles = e.dataTransfer.files;
-    if (droppedFiles && droppedFiles.length > 0) {
-      setFileToUpload(droppedFiles[0]);
-    }
-  };
-  
   const openChatWithVoice = () => {
     setIsOpen(true);
     setActiveTab('conversation');
@@ -762,7 +732,9 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
 
     try {
       const quiz = await generateQuizAction({
-        ...params,
+        topic: params.topic,
+        numQuestions: params.numQuestions,
+        difficulty: params.difficulty,
         questionType: 'Multiple Choice',
       });
       setInteractiveQuiz(quiz);
@@ -773,6 +745,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
       setIsGeneratingInteractiveQuiz(false);
     }
   };
+
   
   const TabButton = ({ name, icon, currentTab, setTab }: {name: string, icon: React.ReactNode, currentTab: string, setTab: (tab:string) => void}) => (
     <button onClick={() => setTab(name.toLowerCase())} className={cn(
@@ -852,7 +825,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                         </div>
                         {(interactiveQuiz || isGeneratingInteractiveQuiz) && (
                             <div className="col-span-3 border-l">
-                                <InteractiveCanvas 
+                                <InteractiveQuiz 
                                     quiz={interactiveQuiz}
                                     isLoading={isGeneratingInteractiveQuiz}
                                     onAnswer={() => {}} 
