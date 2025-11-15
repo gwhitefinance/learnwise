@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useRef, ChangeEvent, DragEvent } from 'react';
+import { useState, useRef, ChangeEvent, DragEvent, useContext } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { UploadCloud, FileText, Wand2, Loader2, ArrowRight, RefreshCw, GraduationCap, Image as ImageIcon } from 'lucide-react';
@@ -13,6 +13,11 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import Link from 'next/link';
+import { RewardContext } from '@/context/RewardContext';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { auth, db } from '@/lib/firebase';
+import { doc, updateDoc, increment } from 'firebase/firestore';
+
 
 type GradeResult = {
     score: number;
@@ -87,6 +92,8 @@ export default function AssignmentGraderPage() {
     const [isDragging, setIsDragging] = useState(false);
     const { toast } = useToast();
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const { showReward } = useContext(RewardContext);
+    const [user] = useAuthState(auth);
 
     const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -166,6 +173,17 @@ export default function AssignmentGraderPage() {
                 });
             }
             setGradeResult(result);
+            if (user && result.score > 0) {
+                const coinsEarned = 10;
+                const xpEarned = 25;
+                const userRef = doc(db, 'users', user.uid);
+                await updateDoc(userRef, {
+                    coins: increment(coinsEarned),
+                    xp: increment(xpEarned),
+                });
+                showReward({ type: 'coins_and_xp', amount: coinsEarned, xp: xpEarned });
+            }
+
         } catch (error) {
             console.error("Grading failed:", error);
             toast({ variant: 'destructive', title: 'Grading Failed', description: 'Could not grade the assignment. Please try again.' });

@@ -9,6 +9,7 @@ import AIBuddy from '@/components/ai-buddy';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '@/lib/firebase';
 import TazCoinIcon from './TazCoinIcon';
+import confetti from 'canvas-confetti';
 
 export default function RewardPopup() {
     const { rewardInfo, isRewardVisible, hideReward } = useContext(RewardContext);
@@ -25,6 +26,12 @@ export default function RewardPopup() {
                     // handle error if JSON is malformed
                 }
             }
+            // Trigger confetti when the popup is shown
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
         }
     }, [user, isRewardVisible]);
 
@@ -51,13 +58,19 @@ export default function RewardPopup() {
         <AnimatePresence>
             {isRewardVisible && rewardInfo && (
                 <motion.div
-                    initial={{ opacity: 0, y: 50, scale: 0.9 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 50, scale: 0.9 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                    className="fixed bottom-8 right-8 z-[200]"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                    className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50"
+                    onClick={hideReward}
                 >
-                    <div className="w-[400px] relative bg-card/80 backdrop-blur-lg p-6 rounded-2xl shadow-xl border border-border/30 text-card-foreground">
+                    <motion.div 
+                        initial={{ scale: 0.5, y: 50 }}
+                        animate={{ scale: 1, y: 0 }}
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-full max-w-sm relative bg-card/80 backdrop-blur-lg p-6 rounded-2xl shadow-xl border border-border/30 text-card-foreground"
+                    >
                         <button
                             onClick={hideReward}
                             className="absolute top-2 right-2 text-muted-foreground hover:text-foreground transition-colors"
@@ -65,13 +78,16 @@ export default function RewardPopup() {
                             <X className="h-5 w-5" />
                         </button>
                         <div className="flex flex-col items-center text-center gap-4">
-                            <AIBuddy 
-                                className="w-24 h-24" 
-                                {...customizations}
-                            />
+                             <div className="w-32 h-32">
+                                <AIBuddy 
+                                    isStatic={false}
+                                    className="w-full h-full" 
+                                    {...customizations}
+                                />
+                            </div>
                             {getMessage()}
                         </div>
-                    </div>
+                    </motion.div>
                 </motion.div>
             )}
         </AnimatePresence>
