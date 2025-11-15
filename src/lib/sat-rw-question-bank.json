@@ -1,0 +1,230 @@
+
+{
+    "questions": [
+        {
+            "id": "rwb-e-1",
+            "topic": "Information and Ideas",
+            "subTopic": "Central Ideas and Details",
+            "difficulty": "Easy",
+            "passage": "The platypus is one of nature's most unusual creatures. A semi-aquatic mammal native to eastern Australia, it is one of the five extant species of monotremes, the only mammals that lay eggs instead of giving birth to live young. Along with its distinctive bill, which resembles that of a duck, the platypus has webbed feet and a tail like a beaver's.",
+            "question": "What is the main idea of the text?",
+            "options": [
+                "The platypus lives in Australia.",
+                "The platypus is a mammal that lays eggs.",
+                "The platypus has a unique combination of features.",
+                "Monotremes are a rare type of mammal."
+            ],
+            "answer": "The platypus has a unique combination of features."
+        },
+        {
+            "id": "rwb-e-2",
+            "topic": "Craft and Structure",
+            "subTopic": "Words in Context",
+            "difficulty": "Easy",
+            "passage": "The artist was known for her meticulous attention to detail. Every brushstroke was deliberate, every color choice was considered, and the final composition was always a testament to her painstaking process.",
+            "question": "As used in the text, what does the word 'meticulous' most nearly mean?",
+            "options": [
+                "Careless",
+                "Quick",
+                "Thorough",
+                "Creative"
+            ],
+            "answer": "Thorough"
+        },
+        {
+            "id": "rwb-e-3",
+            "topic": "Expression of Ideas",
+            "subTopic": "Transitions",
+            "difficulty": "Easy",
+            "passage": "The team practiced for weeks, honing their skills and strategy. ______, they were confident they would win the championship game.",
+            "question": "Which choice completes the text with the most logical transition?",
+            "options": [
+                "However,",
+                "Consequently,",
+                "Nevertheless,",
+                "Meanwhile,"
+            ],
+            "answer": "Consequently,"
+        },
+        {
+            "id": "rwb-e-4",
+            "topic": "Standard English Conventions",
+            "subTopic": "Punctuation",
+            "difficulty": "Easy",
+            "passage": "The solar system has eight planets ______ Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, and Neptune.",
+            "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
+            "options": [
+                "planets:",
+                "planets;",
+                "planets, being",
+                "planets are"
+            ],
+            "answer": "planets:"
+        },
+        {
+            "id": "rwb-e-5",
+            "topic": "Information and Ideas",
+            "subTopic": "Command of Evidence",
+            "difficulty": "Easy",
+            "passage": "Photosynthesis is the process by which green plants use sunlight, water, and carbon dioxide to create their own food. The process produces oxygen as a byproduct, which is essential for most life on Earth. Without photosynthesis, the planet's atmosphere would not be able to support complex life forms.",
+            "question": "Which choice best describes a result of photosynthesis mentioned in the text?",
+            "options": [
+                "The consumption of oxygen.",
+                "The production of carbon dioxide.",
+                "The creation of water.",
+                "The release of oxygen into the atmosphere."
+            ],
+            "answer": "The release of oxygen into the atmosphere."
+        },
+        {
+            "id": "rwb-m-1",
+            "topic": "Craft and Structure",
+            "subTopic": "Text Structure and Purpose",
+            "difficulty": "Medium",
+            "passage": "The following text is from a review of a new restaurant. 'The appetizers were a revelation, particularly the seared scallops with a citrus reduction. The main course, a duck confit, was executed with technical perfection, though it lacked a certain innovative spark. Dessert, however, was a letdown; the chocolate lava cake was overcooked and dry.'",
+            "question": "What is the main purpose of the text?",
+            "options": [
+                "To recommend the restaurant to all diners.",
+                "To provide a balanced critique of a meal.",
+                "To praise the restaurant's dessert menu.",
+                "To complain about the service."
+            ],
+            "answer": "To provide a balanced critique of a meal."
+        },
+        {
+            "id": "rwb-m-2",
+            "topic": "Standard English Conventions",
+            "subTopic": "Subject-Verb Agreement",
+            "difficulty": "Medium",
+            "passage": "The collection of paintings, which includes masterpieces from several different artistic periods, ______ scheduled to be displayed in the new wing of the museum.",
+            "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
+            "options": [
+                "are",
+                "is",
+                "have been",
+                "be"
+            ],
+            "answer": "is"
+        },
+        {
+            "id": "rwb-m-3",
+            "topic": "Expression of Ideas",
+            "subTopic": "Rhetorical Synthesis",
+            "difficulty": "Medium",
+            "passage": "A student is writing an essay arguing for the benefits of learning a second language. Which of the following statements provides the most effective and well-supported claim?",
+            "question": "Which claim is most effective?",
+            "options": [
+                "Learning a second language is a fun hobby for many people around the world.",
+                "Studies have shown that bilingualism can enhance cognitive abilities, such as problem-solving and multitasking, and may even delay the onset of dementia.",
+                "Speaking another language can make traveling to foreign countries easier and more enjoyable.",
+                "Many schools require students to take at least two years of a foreign language."
+            ],
+            "answer": "Studies have shown that bilingualism can enhance cognitive abilities, such as problem-solving and multitasking, and may even delay the onset of dementia."
+        },
+        {
+            "id": "rwb-m-4",
+            "topic": "Standard English Conventions",
+            "subTopic": "Pronoun-Antecedent Agreement",
+            "difficulty": "Medium",
+            "passage": "Each of the committee members must cast ______ vote before the end of the day to ensure the proposal can move forward.",
+            "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
+            "options": [
+                "their",
+                "his or her",
+                "its",
+                "they're"
+            ],
+            "answer": "his or her"
+        },
+        {
+            "id": "rwb-m-5",
+            "topic": "Information and Ideas",
+            "subTopic": "Inference",
+            "difficulty": "Medium",
+            "passage": "The Mojave Desert, characterized by its extreme temperatures and scarce rainfall, is home to a surprising variety of life. Plants like the Joshua tree have extensive root systems to capture moisture, while animals such as the kangaroo rat have adapted to survive without drinking water, obtaining all the moisture they need from the seeds they eat.",
+            "question": "What can be inferred from the text about life in the Mojave Desert?",
+            "options": [
+                "It is easy for most plants and animals to survive there.",
+                "There is no water at all in the desert.",
+                "Organisms living there have developed special adaptations to cope with the harsh conditions.",
+                "The Joshua tree is the only plant that can grow in the Mojave."
+            ],
+            "answer": "Organisms living there have developed special adaptations to cope with the harsh conditions."
+        },
+        {
+            "id": "rwb-h-1",
+            "topic": "Craft and Structure",
+            "subTopic": "Cross-Text Connections",
+            "difficulty": "Hard",
+            "passage": "Text 1: Historian A argues that the primary cause of the fall of the Roman Empire was a series of internal weaknesses, including political instability, economic decay, and social unrest. These factors, she contends, made the empire vulnerable to external pressures that it might otherwise have withstood. Text 2: Historian B posits that while internal issues were a factor, the decisive blow came from the relentless and increasingly sophisticated barbarian invasions. The sheer military pressure on the frontiers, according to Historian B, was the ultimate cause of the collapse.",
+            "question": "How does Historian B's perspective relate to Historian A's?",
+            "options": [
+                "Historian B completely rejects Historian A's argument.",
+                "Historian B builds upon Historian A's argument by adding more detail.",
+                "Historian B offers a different emphasis, focusing on external factors as more decisive than the internal ones Historian A highlights.",
+                "Historian B provides a specific example of the political instability mentioned by Historian A."
+            ],
+            "answer": "Historian B offers a different emphasis, focusing on external factors as more decisive than the internal ones Historian A highlights."
+        },
+        {
+            "id": "rwb-h-2",
+            "topic": "Standard English Conventions",
+            "subTopic": "Parallel Structure",
+            "difficulty": "Hard",
+            "passage": "An effective leader must possess not only the vision to set a clear direction and the charisma to inspire their team, but also ______ to make difficult decisions under pressure.",
+            "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
+            "options": [
+                "the courage",
+                "courageousness",
+                "being courageous",
+                "to be courageous"
+            ],
+            "answer": "the courage"
+        },
+        {
+            "id": "rwb-h-3",
+            "topic": "Expression of Ideas",
+            "subTopic": "Logical Completion",
+            "difficulty": "Hard",
+            "passage": "The study's conclusion that the new drug is effective is ______ by the fact that the sample size was extremely small and the control group was not properly randomized, making it impossible to rule out the influence of confounding variables.",
+            "question": "Which choice completes the text with the most logical and precise word or phrase?",
+            "options": [
+                "bolstered",
+                "substantiated",
+                "compromised",
+                "irrelevant"
+            ],
+            "answer": "compromised"
+        },
+        {
+            "id": "rwb-h-4",
+            "topic": "Standard English Conventions",
+            "subTopic": "Dangling Modifiers",
+            "difficulty": "Hard",
+            "passage": "After weeks of intense research, the solution to the complex problem was finally found by the scientist.",
+            "question": "Which of the following is the best revision of the sentence to fix the dangling modifier?",
+            "options": [
+                "The sentence is correct as is.",
+                "After weeks of intense research, the scientist finally found the solution to the complex problem.",
+                "The solution to the complex problem was finally found by the scientist after weeks of intense research.",
+                "Finally finding the solution, the scientist had been researching for weeks."
+            ],
+            "answer": "After weeks of intense research, the scientist finally found the solution to the complex problem."
+        },
+        {
+            "id": "rwb-h-5",
+            "topic": "Craft and Structure",
+            "subTopic": "Tone",
+            "difficulty": "Hard",
+            "passage": "The author's prose is characterized by its labyrinthine sentences, replete with arcane vocabulary and esoteric allusions. While intellectually stimulating for some, this style can render the text inaccessible to a general audience, creating a barrier to the widespread dissemination of the author's otherwise insightful ideas.",
+            "question": "Which word best describes the author's tone in this passage?",
+            "options": [
+                "Laudatory",
+                "Derisive",
+                "Analytical",
+                "Apathetic"
+            ],
+            "answer": "Analytical"
+        }
+    ]
+}

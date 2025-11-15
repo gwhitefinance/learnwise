@@ -297,8 +297,10 @@ export default function SatPrepPage() {
                         <CardDescription>Practice specific types of questions from a large database.</CardDescription>
                     </CardHeader>
                     <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <Button variant="outline" size="lg" asChild>
+                            <Link href="/dashboard/sat-prep/reading-writing-bank">Reading & Writing Question Bank</Link>
+                        </Button>
                         <Button variant="outline" size="lg" disabled>Math Question Bank</Button>
-                        <Button variant="outline" size="lg" disabled>Reading & Writing Question Bank</Button>
                     </CardContent>
                 </Card>
 
