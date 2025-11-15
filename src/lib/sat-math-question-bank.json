@@ -1,3 +1,4 @@
+
 {
     "questions": [
         {
@@ -194,6 +195,569 @@
             "question": "Given f(x) = 2x + 1 and g(x) = x², what is the value of f(g(3))?",
             "answer": "19",
             "type": "grid-in"
+        },
+        {
+            "id": "m-e-8",
+            "topic": "Algebra",
+            "subTopic": "Linear equations",
+            "difficulty": "Easy",
+            "question": "If (x + 5) / 3 = 7, what is the value of x?",
+            "answer": "16",
+            "type": "grid-in"
+        },
+        {
+            "id": "m-e-9",
+            "topic": "Problem Solving and Data Analysis",
+            "subTopic": "Ratios",
+            "difficulty": "Easy",
+            "question": "A school has 40 teachers and 800 students. What is the teacher-to-student ratio?",
+            "options": ["1:10", "1:20", "1:30", "1:40"],
+            "answer": "1:20",
+            "type": "multiple-choice"
+        },
+        {
+            "id": "m-e-10",
+            "topic": "Geometry and Trigonometry",
+            "subTopic": "Perimeter",
+            "difficulty": "Easy",
+            "question": "A square has an area of 64 square inches. What is its perimeter?",
+            "answer": "32",
+            "type": "grid-in"
+        },
+        {
+            "id": "m-e-11",
+            "topic": "Algebra",
+            "subTopic": "Inequalities",
+            "difficulty": "Easy",
+            "question": "Which of the following integers is a solution to the inequality 4x - 1 < 11?",
+            "options": ["3", "4", "2", "5"],
+            "answer": "2",
+            "type": "multiple-choice"
+        },
+        {
+            "id": "m-e-12",
+            "topic": "Problem Solving and Data Analysis",
+            "subTopic": "Percentages",
+            "difficulty": "Easy",
+            "question": "What is 15% of 200?",
+            "answer": "30",
+            "type": "grid-in"
+        },
+        {
+            "id": "m-e-13",
+            "topic": "Algebra",
+            "subTopic": "Expressions",
+            "difficulty": "Easy",
+            "question": "What is the value of 3x²y when x = 2 and y = 5?",
+            "answer": "60",
+            "type": "grid-in"
+        },
+        {
+            "id": "m-e-14",
+            "topic": "Geometry and Trigonometry",
+            "subTopic": "Angles",
+            "difficulty": "Easy",
+            "question": "If two lines are parallel, what is the relationship between their slopes?",
+            "options": ["They are opposite reciprocals", "They are equal", "They are opposites", "They are reciprocals"],
+            "answer": "They are equal",
+            "type": "multiple-choice"
+        },
+        {
+            "id": "m-e-15",
+            "topic": "Problem Solving and Data Analysis",
+            "subTopic": "Rates",
+            "difficulty": "Easy",
+            "question": "If a car travels 150 miles in 3 hours, what is its average speed in miles per hour?",
+            "answer": "50",
+            "type": "grid-in"
+        },
+        {
+            "id": "m-e-16",
+            "topic": "Algebra",
+            "subTopic": "Solving for a variable",
+            "difficulty": "Easy",
+            "question": "If 5(x - 1) = 25, what is the value of x?",
+            "answer": "6",
+            "type": "grid-in"
+        },
+        {
+            "id": "m-e-17",
+            "topic": "Problem Solving and Data Analysis",
+            "subTopic": "Unit Conversion",
+            "difficulty": "Easy",
+            "question": "How many inches are in 4 feet?",
+            "answer": "48",
+            "type": "grid-in"
+        },
+        {
+            "id": "m-m-8",
+            "topic": "Advanced Math",
+            "subTopic": "Systems of Inequalities",
+            "difficulty": "Medium",
+            "question": "A system of inequalities is given by y > 2x - 1 and y < -x + 5. Which of the following points is a solution to the system?",
+            "options": ["(2, 4)", "(3, 1)", "(0, 0)", "(4, 3)"],
+            "answer": "(0, 0)",
+            "type": "multiple-choice"
+        },
+        {
+            "id": "m-m-9",
+            "topic": "Geometry and Trigonometry",
+            "subTopic": "Volume",
+            "difficulty": "Medium",
+            "question": "A rectangular prism has a length of 6, a width of 4, and a height of 3. What is its volume?",
+            "answer": "72",
+            "type": "grid-in"
+        },
+        {
+            "id": "m-m-10",
+            "topic": "Algebra",
+            "subTopic": "Absolute Value",
+            "difficulty": "Medium",
+            "question": "If |x + 3| = 5, what are the two possible values for x?",
+            "options": ["2 and -8", "2 and 8", "-2 and 8", "-2 and -8"],
+            "answer": "2 and -8",
+            "type": "multiple-choice"
+        },
+        {
+            "id": "m-m-11",
+            "topic": "Advanced Math",
+            "subTopic": "Exponential Growth",
+            "difficulty": "Medium",
+            "question": "A population of bacteria doubles every 20 minutes. If the initial population is 100, what will the population be after 2 hours?",
+            "answer": "6400",
+            "type": "grid-in"
+        },
+        {
+            "id": "m-m-12",
+            "topic": "Problem Solving and Data Analysis",
+            "subTopic": "Median",
+            "difficulty": "Medium",
+            "question": "What is the median of the following set of numbers: 12, 5, 22, 15, 9, 18, 5?",
+            "answer": "12",
+            "type": "grid-in"
+        },
+        {
+            "id": "m-m-13",
+            "topic": "Geometry and Trigonometry",
+            "subTopic": "Similar Triangles",
+            "difficulty": "Medium",
+            "question": "Two triangles are similar. The sides of the first triangle are 3, 4, and 5. The shortest side of the second triangle is 9. What is the perimeter of the second triangle?",
+            "options": ["12", "24", "36", "48"],
+            "answer": "36",
+            "type": "multiple-choice"
+        },
+        {
+            "id": "m-m-14",
+            "topic": "Algebra",
+            "subTopic": "Quadratics",
+            "difficulty": "Medium",
+            "question": "What is the sum of the solutions to the equation 2x² - 8x - 10 = 0?",
+            "answer": "4",
+            "type": "grid-in"
+        },
+        {
+            "id": "m-m-15",
+            "topic": "Advanced Math",
+            "subTopic": "Radicals",
+            "difficulty": "Medium",
+            "question": "Simplify: √72",
+            "options": ["2√18", "3√8", "6√2", "36"],
+            "answer": "6√2",
+            "type": "multiple-choice"
+        },
+        {
+            "id": "m-m-16",
+            "topic": "Problem Solving and Data Analysis",
+            "subTopic": "Data Interpretation",
+            "difficulty": "Medium",
+            "question": "A survey of 50 students shows 20 prefer history, 15 prefer math, and 15 prefer science. If a student is chosen at random, what is the probability they prefer history?",
+            "answer": "2/5",
+            "type": "grid-in"
+        },
+        {
+            "id": "m-m-17",
+            "topic": "Geometry and Trigonometry",
+            "subTopic": "Trigonometry",
+            "difficulty": "Medium",
+            "question": "In a right triangle with angle θ, if cos(θ) = 12/13, what is sin(θ)?",
+            "answer": "5/13",
+            "type": "grid-in"
+        },
+        {
+            "id": "m-h-7",
+            "topic": "Advanced Math",
+            "subTopic": "Logarithms",
+            "difficulty": "Hard",
+            "question": "If log₂(x) = 5, what is the value of x?",
+            "answer": "32",
+            "type": "grid-in"
+        },
+        {
+            "id": "m-h-8",
+            "topic": "Geometry and Trigonometry",
+            "subTopic": "Radians",
+            "difficulty": "Hard",
+            "question": "An angle measures 3π/4 radians. What is its measure in degrees?",
+            "answer": "135",
+            "type": "grid-in"
+        },
+        {
+            "id": "m-h-9",
+            "topic": "Problem Solving and Data Analysis",
+            "subTopic": "Weighted Averages",
+            "difficulty": "Hard",
+            "question": "A student scores 80 on a test worth 30% of the grade, and 90 on a test worth 70% of the grade. What is the student's weighted average?",
+            "options": ["85", "86", "87", "88"],
+            "answer": "87",
+            "type": "multiple-choice"
+        },
+        {
+            "id": "m-h-10",
+            "topic": "Advanced Math",
+            "subTopic": "Complex Numbers",
+            "difficulty": "Hard",
+            "question": "What is the product of (3 + 2i) and (4 - i)?",
+            "options": ["12 - 2i", "14 + 5i", "10 + 5i", "12 + 5i"],
+            "answer": "14 + 5i",
+            "type": "multiple-choice"
+        },
+        {
+            "id": "m-h-11",
+            "topic": "Algebra",
+            "subTopic": "Polynomials",
+            "difficulty": "Hard",
+            "question": "If (x - 2) is a factor of the polynomial p(x) = x³ - 5x² + kx - 6, what is the value of k?",
+            "answer": "11",
+            "type": "grid-in"
+        },
+        {
+            "id": "m-h-12",
+            "topic": "Geometry and Trigonometry",
+            "subTopic": "Solid Geometry",
+            "difficulty": "Hard",
+            "question": "What is the length of the longest diagonal that can be drawn in a rectangular prism with dimensions 3, 4, and 5?",
+            "options": ["5√2", "5√3", "12", "50"],
+            "answer": "5√2",
+            "type": "multiple-choice"
+        },
+        {
+            "id": "m-h-13",
+            "topic": "Advanced Math",
+            "subTopic": "Matrices",
+            "difficulty": "Hard",
+            "question": "Given two matrices, A = [[1, 2], [3, 4]] and B = [[5, 6], [7, 8]], what is the product AB?",
+            "options": ["[[19, 22], [43, 50]]", "[[22, 19], [50, 43]]", "[[6, 8], [10, 12]]", "[[5, 12], [21, 32]]"],
+            "answer": "[[19, 22], [43, 50]]",
+            "type": "multiple-choice"
+        },
+        {
+            "id": "m-h-14",
+            "topic": "Problem Solving and Data Analysis",
+            "subTopic": "Combinations",
+            "difficulty": "Hard",
+            "question": "From a group of 10 people, how many different committees of 3 people can be formed?",
+            "answer": "120",
+            "type": "grid-in"
+        },
+        {
+            "id": "m-h-15",
+            "topic": "Geometry and Trigonometry",
+            "subTopic": "Unit Circle",
+            "difficulty": "Hard",
+            "question": "What is the value of tan(3π/4)?",
+            "options": ["1", "-1", "√2/2", "-√2/2"],
+            "answer": "-1",
+            "type": "multiple-choice"
+        },
+        {
+            "id": "m-h-16",
+            "topic": "Advanced Math",
+            "subTopic": "Sequences",
+            "difficulty": "Hard",
+            "question": "What is the sum of the first 10 terms of the arithmetic sequence 2, 5, 8, ...?",
+            "answer": "155",
+            "type": "grid-in"
+        },
+        {
+            "id": "m-e-18",
+            "topic": "Algebra",
+            "subTopic": "Linear equations",
+            "difficulty": "Easy",
+            "question": "What is the value of x if 8 + x = 15?",
+            "answer": "7",
+            "type": "grid-in"
+        },
+        {
+            "id": "m-e-19",
+            "topic": "Geometry and Trigonometry",
+            "subTopic": "Area of a rectangle",
+            "difficulty": "Easy",
+            "question": "A rectangle is 10 inches long and 5 inches wide. What is its area?",
+            "options": ["15 sq in", "25 sq in", "30 sq in", "50 sq in"],
+            "answer": "50 sq in",
+            "type": "multiple-choice"
+        },
+        {
+            "id": "m-e-20",
+            "topic": "Problem Solving and Data Analysis",
+            "subTopic": "Reading charts",
+            "difficulty": "Easy",
+            "question": "A bar chart shows 50 apples and 75 oranges sold. How many more oranges were sold than apples?",
+            "answer": "25",
+            "type": "grid-in"
+        },
+        {
+            "id": "m-e-21",
+            "topic": "Algebra",
+            "subTopic": "Simplifying expressions",
+            "difficulty": "Easy",
+            "question": "Simplify the expression: 3(x + 2y) - 2(y - x)",
+            "options": ["x + 4y", "5x + 4y", "x + 8y", "5x + 8y"],
+            "answer": "5x + 4y",
+            "type": "multiple-choice"
+        },
+        {
+            "id": "m-e-22",
+            "topic": "Geometry and Trigonometry",
+            "subTopic": "Perimeter",
+            "difficulty": "Easy",
+            "question": "An equilateral triangle has a side length of 8 cm. What is its perimeter?",
+            "answer": "24",
+            "type": "grid-in"
+        },
+        {
+            "id": "m-e-23",
+            "topic": "Problem Solving and Data Analysis",
+            "subTopic": "Mode",
+            "difficulty": "Easy",
+            "question": "What is the mode of the following set of numbers: 2, 3, 5, 3, 7, 3, 8?",
+            "answer": "3",
+            "type": "grid-in"
+        },
+        {
+            "id": "m-m-18",
+            "topic": "Algebra",
+            "subTopic": "Linear function graphs",
+            "difficulty": "Medium",
+            "question": "The graph of the equation y = -3x + 2 is a line. What is its y-intercept?",
+            "answer": "2",
+            "type": "grid-in"
+        },
+        {
+            "id": "m-m-19",
+            "topic": "Geometry and Trigonometry",
+            "subTopic": "Volume of a sphere",
+            "difficulty": "Medium",
+            "question": "A sphere has a radius of 3. What is its volume? (Volume = 4/3 * π * r³)",
+            "options": ["9π", "12π", "27π", "36π"],
+            "answer": "36π",
+            "type": "multiple-choice"
+        },
+        {
+            "id": "m-m-20",
+            "topic": "Problem Solving and Data Analysis",
+            "subTopic": "Probability",
+            "difficulty": "Medium",
+            "question": "If you roll a standard six-sided die, what is the probability of rolling an even number?",
+            "options": ["1/6", "1/3", "1/2", "2/3"],
+            "answer": "1/2",
+            "type": "multiple-choice"
+        },
+        {
+            "id": "m-m-21",
+            "topic": "Advanced Math",
+            "subTopic": "Quadratics",
+            "difficulty": "Medium",
+            "question": "What is the vertex of the parabola defined by the equation y = (x - 3)² + 5?",
+            "answer": "(3, 5)",
+            "type": "grid-in"
+        },
+        {
+            "id": "m-m-22",
+            "topic": "Algebra",
+            "subTopic": "Systems of equations",
+            "difficulty": "Medium",
+            "question": "If 3x + 2y = 16 and 7x + y = 19, what is the value of y?",
+            "answer": "5",
+            "type": "grid-in"
+        },
+        {
+            "id": "m-m-23",
+            "topic": "Geometry and Trigonometry",
+            "subTopic": "Special right triangles",
+            "difficulty": "Medium",
+            "question": "In a 45-45-90 triangle, one leg has a length of 7. What is the length of the hypotenuse?",
+            "options": ["7", "7√2", "14", "7√3"],
+            "answer": "7√2",
+            "type": "multiple-choice"
+        },
+        {
+            "id": "m-h-17",
+            "topic": "Advanced Math",
+            "subTopic": "Polynomial division",
+            "difficulty": "Hard",
+            "question": "When x³ + 3x² - 4x - 12 is divided by (x + 2), what is the remainder?",
+            "answer": "0",
+            "type": "grid-in"
+        },
+        {
+            "id": "m-h-18",
+            "topic": "Geometry and Trigonometry",
+            "subTopic": "Arc length",
+            "difficulty": "Hard",
+            "question": "A circle has a radius of 12. What is the length of an arc intercepted by a central angle of 60 degrees?",
+            "options": ["2π", "4π", "6π", "12π"],
+            "answer": "4π",
+            "type": "multiple-choice"
+        },
+        {
+            "id": "m-h-19",
+            "topic": "Problem Solving and Data Analysis",
+            "subTopic": "Exponential growth",
+            "difficulty": "Hard",
+            "question": "A city's population grows at a rate of 2% per year. If the current population is 500,000, what will the population be in 10 years, to the nearest whole number?",
+            "answer": "609497",
+            "type": "grid-in"
+        },
+        {
+            "id": "m-h-20",
+            "topic": "Advanced Math",
+            "subTopic": "Matrix operations",
+            "difficulty": "Hard",
+            "question": "What is the determinant of the matrix [[4, 7], [2, 6]]?",
+            "answer": "10",
+            "type": "grid-in"
+        },
+        {
+            "id": "m-h-21",
+            "topic": "Algebra",
+            "subTopic": "Solving rational equations",
+            "difficulty": "Hard",
+            "question": "Solve for x: (x + 1) / (x - 2) = 4",
+            "answer": "3",
+            "type": "grid-in"
+        },
+        {
+            "id": "m-h-22",
+            "topic": "Geometry and Trigonometry",
+            "subTopic": "Trigonometric identities",
+            "difficulty": "Hard",
+            "question": "If sin(θ) = 0.6 and θ is in Quadrant II, what is the value of cos(θ)?",
+            "answer": "-0.8",
+            "type": "grid-in"
+        },
+        {
+            "id": "m-e-24",
+            "topic": "Algebra",
+            "subTopic": "Absolute value",
+            "difficulty": "Easy",
+            "question": "What is the value of |-8| + |3|?",
+            "answer": "11",
+            "type": "grid-in"
+        },
+        {
+            "id": "m-m-24",
+            "topic": "Advanced Math",
+            "subTopic": "Functions as models",
+            "difficulty": "Medium",
+            "question": "The height H, in feet, of a ball thrown upwards is modeled by the function H(t) = -16t² + 64t, where t is the time in seconds. What is the maximum height the ball reaches?",
+            "answer": "64",
+            "type": "grid-in"
+        },
+        {
+            "id": "m-h-23",
+            "topic": "Problem Solving and Data Analysis",
+            "subTopic": "Permutations",
+            "difficulty": "Hard",
+            "question": "In how many different ways can 5 books be arranged on a shelf?",
+            "answer": "120",
+            "type": "grid-in"
+        },
+        {
+            "id": "m-e-25",
+            "topic": "Geometry and Trigonometry",
+            "subTopic": "Volume of a cube",
+            "difficulty": "Easy",
+            "question": "A cube has a side length of 4 cm. What is its volume?",
+            "options": ["12 cm³", "16 cm³", "32 cm³", "64 cm³"],
+            "answer": "64 cm³",
+            "type": "multiple-choice"
+        },
+        {
+            "id": "m-m-25",
+            "topic": "Algebra",
+            "subTopic": "Slope-intercept form",
+            "difficulty": "Medium",
+            "question": "What is the equation of a line with a slope of 2 that passes through the point (1, 5)?",
+            "options": ["y = 2x + 3", "y = 2x - 3", "y = x + 4", "y = 3x + 2"],
+            "answer": "y = 2x + 3",
+            "type": "multiple-choice"
+        },
+        {
+            "id": "m-h-24",
+            "topic": "Advanced Math",
+            "subTopic": "Solving exponential equations",
+            "difficulty": "Hard",
+            "question": "If 5^(2x - 1) = 125, what is the value of x?",
+            "answer": "2",
+            "type": "grid-in"
+        },
+        {
+            "id": "m-e-26",
+            "topic": "Problem Solving and Data Analysis",
+            "subTopic": "Range",
+            "difficulty": "Easy",
+            "question": "What is the range of the following set of data: 15, 2, 9, 21, 5?",
+            "answer": "19",
+            "type": "grid-in"
+        },
+        {
+            "id": "m-m-26",
+            "topic": "Geometry and Trigonometry",
+            "subTopic": "Surface area of a cylinder",
+            "difficulty": "Medium",
+            "question": "A cylinder has a radius of 3 and a height of 10. What is its total surface area? (Surface Area = 2πrh + 2πr²)",
+            "options": ["60π", "69π", "78π", "90π"],
+            "answer": "78π",
+            "type": "multiple-choice"
+        },
+        {
+            "id": "m-h-25",
+            "topic": "Algebra",
+            "subTopic": "Factoring polynomials",
+            "difficulty": "Hard",
+            "question": "Which of the following is a factor of x² - 81?",
+            "options": ["x - 9", "x + 81", "x - 3", "x + 3"],
+            "answer": "x - 9",
+            "type": "multiple-choice"
+        },
+        {
+            "id": "m-e-27",
+            "topic": "Algebra",
+            "subTopic": "Evaluating expressions",
+            "difficulty": "Easy",
+            "question": "If x = -2 and y = 4, what is the value of xy + y?",
+            "answer": "-4",
+            "type": "grid-in"
+        },
+        {
+            "id": "m-m-27",
+            "topic": "Advanced Math",
+            "subTopic": "Function composition",
+            "difficulty": "Medium",
+            "question": "If f(x) = x + 5 and g(x) = 3x, what is g(f(2))?",
+            "answer": "21",
+            "type": "grid-in"
+        },
+        {
+            "id": "m-h-26",
+            "topic": "Problem Solving and Data Analysis",
+            "subTopic": "Data analysis",
+            "difficulty": "Hard",
+            "question": "A dataset has a mean of 50 and a standard deviation of 5. According to Chebyshev's theorem, at least what percentage of the data lies between 40 and 60?",
+            "options": ["68%", "75%", "95%", "99%"],
+            "answer": "75%",
+            "type": "multiple-choice"
         }
     ]
 }
