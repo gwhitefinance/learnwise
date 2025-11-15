@@ -300,7 +300,9 @@ export default function SatPrepPage() {
                         <Button variant="outline" size="lg" asChild>
                             <Link href="/dashboard/sat-prep/reading-writing-bank">Reading & Writing Question Bank</Link>
                         </Button>
-                        <Button variant="outline" size="lg" disabled>Math Question Bank</Button>
+                        <Button variant="outline" size="lg" asChild>
+                             <Link href="/dashboard/sat-prep/math-bank">Math Question Bank</Link>
+                        </Button>
                     </CardContent>
                 </Card>
 
@@ -329,7 +331,7 @@ export default function SatPrepPage() {
                                             <p className="text-xs text-muted-foreground">{formatDistanceToNow(session.timestamp.toDate(), { addSuffix: true })}</p>
                                         </div>
                                         <div className="flex items-center gap-4">
-                                            <p className="font-semibold text-primary">{session.score.toFixed(0)}%</p>
+                                            <p className="font-semibold text-primary text-lg">{session.score.toFixed(0)}%</p>
                                             <Button variant="ghost" size="sm">Review</Button>
                                         </div>
                                     </div>

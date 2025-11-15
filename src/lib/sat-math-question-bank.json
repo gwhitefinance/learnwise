@@ -1,0 +1,199 @@
+{
+    "questions": [
+        {
+            "id": "m-e-1",
+            "topic": "Algebra",
+            "subTopic": "Linear equations",
+            "difficulty": "Easy",
+            "question": "If 2x + 3 = 9, what is the value of 4x - 1?",
+            "answer": "11",
+            "type": "grid-in"
+        },
+        {
+            "id": "m-e-2",
+            "topic": "Problem Solving and Data Analysis",
+            "subTopic": "Ratios and Proportions",
+            "difficulty": "Easy",
+            "question": "A recipe for 12 cookies requires 2 cups of flour. How many cups of flour are needed to make 30 cookies?",
+            "options": ["3", "4", "5", "6"],
+            "answer": "5",
+            "type": "multiple-choice"
+        },
+        {
+            "id": "m-e-3",
+            "topic": "Geometry and Trigonometry",
+            "subTopic": "Area of a circle",
+            "difficulty": "Easy",
+            "question": "A circle has a radius of 5. What is its area?",
+            "options": ["5π", "10π", "25π", "100π"],
+            "answer": "25π",
+            "type": "multiple-choice"
+        },
+        {
+            "id": "m-e-4",
+            "topic": "Algebra",
+            "subTopic": "Solving for a variable",
+            "difficulty": "Easy",
+            "question": "If y = 3x and x = 4, what is the value of y?",
+            "answer": "12",
+            "type": "grid-in"
+        },
+        {
+            "id": "m-m-1",
+            "topic": "Advanced Math",
+            "subTopic": "Quadratics",
+            "difficulty": "Medium",
+            "question": "What is a solution to the equation x² - 5x - 14 = 0?",
+            "options": ["-2", "-7", "5", "14"],
+            "answer": "-2",
+            "type": "multiple-choice"
+        },
+        {
+            "id": "m-m-2",
+            "topic": "Geometry and Trigonometry",
+            "subTopic": "Pythagorean theorem",
+            "difficulty": "Medium",
+            "question": "In a right triangle, the two legs have lengths of 5 and 12. What is the length of the hypotenuse?",
+            "answer": "13",
+            "type": "grid-in"
+        },
+        {
+            "id": "m-m-3",
+            "topic": "Problem Solving and Data Analysis",
+            "subTopic": "Percentages",
+            "difficulty": "Medium",
+            "question": "A smartphone is on sale for 20% off. If the sale price is $600, what was the original price of the phone?",
+            "options": ["$620", "$720", "$750", "$800"],
+            "answer": "$750",
+            "type": "multiple-choice"
+        },
+        {
+            "id": "m-m-4",
+            "topic": "Algebra",
+            "subTopic": "Systems of equations",
+            "difficulty": "Medium",
+            "question": "If 2x + y = 10 and x - y = 2, what is the value of x?",
+            "answer": "4",
+            "type": "grid-in"
+        },
+        {
+            "id": "m-h-1",
+            "topic": "Advanced Math",
+            "subTopic": "Functions",
+            "difficulty": "Hard",
+            "question": "The function f is defined by f(x) = ax² + 24. For what positive value of 'a' does the graph of y=f(x) pass through the point (2, 32)?",
+            "answer": "2",
+            "type": "grid-in"
+        },
+        {
+            "id": "m-h-2",
+            "topic": "Geometry and Trigonometry",
+            "subTopic": "Circles in the xy-plane",
+            "difficulty": "Hard",
+            "question": "A circle in the xy-plane has the equation (x - 3)² + (y + 2)² = 25. Which of the following points does NOT lie in the interior of the circle?",
+            "options": ["(0, 0)", "(3, -2)", "(3, 3)", "(7, -5)"],
+            "answer": "(7, -5)",
+            "type": "multiple-choice"
+        },
+        {
+            "id": "m-h-3",
+            "topic": "Problem Solving and Data Analysis",
+            "subTopic": "Standard Deviation",
+            "difficulty": "Hard",
+            "question": "Set A: {5, 10, 15, 20, 25}. Set B: {5, 5, 15, 25, 25}. Which of the following is true about the standard deviations (SD) of the two sets?",
+            "options": [
+                "SD of Set A > SD of Set B",
+                "SD of Set B > SD of Set A",
+                "SD of Set A = SD of Set B",
+                "Cannot be determined"
+            ],
+            "answer": "SD of Set A > SD of Set B",
+            "type": "multiple-choice"
+        },
+        {
+            "id": "m-h-4",
+            "topic": "Advanced Math",
+            "subTopic": "Exponents",
+            "difficulty": "Hard",
+            "question": "If 9^(x/2) = 27, what is the value of x?",
+            "answer": "3",
+            "type": "grid-in"
+        },
+        {
+            "id": "m-e-5",
+            "topic": "Problem Solving and Data Analysis",
+            "subTopic": "Mean, Median, Mode",
+            "difficulty": "Easy",
+            "question": "What is the average (arithmetic mean) of 4, 8, and 15?",
+            "options": ["8", "9", "12", "27"],
+            "answer": "9",
+            "type": "multiple-choice"
+        },
+        {
+            "id": "m-m-5",
+            "topic": "Algebra",
+            "subTopic": "Inequalities",
+            "difficulty": "Medium",
+            "question": "Which of the following numbers is a solution to the inequality 3x - 5 > 10?",
+            "options": ["4", "5", "6", "-1"],
+            "answer": "6",
+            "type": "multiple-choice"
+        },
+        {
+            "id": "m-h-5",
+            "topic": "Geometry and Trigonometry",
+            "subTopic": "Trigonometry",
+            "difficulty": "Hard",
+            "question": "In a right triangle, if sin(x) = 3/5, what is cos(x)?",
+            "answer": "4/5",
+            "type": "grid-in"
+        },
+        {
+            "id": "m-e-6",
+            "topic": "Algebra",
+            "subTopic": "Expressions",
+            "difficulty": "Easy",
+            "question": "If a = 5, what is the value of 2a² - 10?",
+            "answer": "40",
+            "type": "grid-in"
+        },
+        {
+            "id": "m-m-6",
+            "topic": "Problem Solving and Data Analysis",
+            "subTopic": "Probability",
+            "difficulty": "Medium",
+            "question": "A bag contains 6 red marbles and 4 blue marbles. What is the probability of drawing a red marble?",
+            "options": ["2/5", "3/5", "1/2", "2/3"],
+            "answer": "3/5",
+            "type": "multiple-choice"
+        },
+        {
+            "id": "m-h-6",
+            "topic": "Advanced Math",
+            "subTopic": "Radicals and Exponents",
+            "difficulty": "Hard",
+            "question": "If √x = 9, what is the value of x^(3/2)?",
+            "options": ["27", "81", "243", "729"],
+            "answer": "729",
+            "type": "multiple-choice"
+        },
+        {
+            "id": "m-e-7",
+            "topic": "Geometry and Trigonometry",
+            "subTopic": "Angles",
+            "difficulty": "Easy",
+            "question": "Two angles are supplementary. If one angle measures 60 degrees, what is the measure of the other angle?",
+            "answer": "120",
+            "type": "grid-in"
+        },
+        {
+            "id": "m-m-7",
+            "topic": "Algebra",
+            "subTopic": "Functions",
+            "difficulty": "Medium",
+            "question": "Given f(x) = 2x + 1 and g(x) = x², what is the value of f(g(3))?",
+            "answer": "19",
+            "type": "grid-in"
+        }
+    ]
+}
