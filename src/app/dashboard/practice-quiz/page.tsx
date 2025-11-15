@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import React, { useState, useEffect, useRef, useContext, Suspense } from 'react';
@@ -102,7 +101,7 @@ function PracticeQuizComponent() {
     const [isLoading, setIsLoading] = useState(false);
     const [isExplanationLoading, setIsExplanationLoading] = useState(false);
     const [quizState, setQuizState] = useState<QuizState>('start');
-    const [answerState, setAnswerState] = useState<AnswerState>('unanswered');
+    const [answerState, setAnswerState] = useState<AnswerState>('unanswered' | 'answered');
     const [quiz, setQuiz] = useState<GenerateQuizOutput | null>(null);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
@@ -399,20 +398,6 @@ function PracticeQuizComponent() {
             } finally {
                 setIsExplanationLoading(false);
             }
-        } else {
-            // Award points for correct answer
-             try {
-                const xpEarned = difficulty === 'Hard' ? 15 : difficulty === 'Medium' ? 10 : 5;
-                const coinsEarned = xpEarned * 2;
-                const userRef = doc(db, 'users', user.uid);
-                await updateDoc(userRef, {
-                    xp: increment(xpEarned),
-                    coins: increment(coinsEarned),
-                });
-                showReward({ type: 'coins_and_xp', amount: coinsEarned, xp: xpEarned });
-            } catch (e) {
-                console.error("Error awarding points:", e);
-            }
         }
     };
 
@@ -433,8 +418,14 @@ function PracticeQuizComponent() {
             saveQuizResult(correctAnswers, quiz.questions.length);
 
             if (correctAnswers > 0) {
-                let coinsEarned = correctAnswers * 5;
-                let xpEarned = correctAnswers * 10;
+                const baseCoins = correctAnswers * 5;
+                const baseXp = correctAnswers * 10;
+                
+                // Bonus for difficulty
+                const difficultyMultiplier = difficulty === 'Hard' ? 1.5 : difficulty === 'Medium' ? 1.2 : 1;
+                
+                const coinsEarned = Math.round(baseCoins * difficultyMultiplier);
+                const xpEarned = Math.round(baseXp * difficultyMultiplier);
                 
                 try {
                     const userRef = doc(db, 'users', user.uid);
@@ -1198,7 +1189,9 @@ function PracticeQuizComponent() {
                                         <div className="flex items-center justify-center h-52"><Loader2 className="w-8 h-8 animate-spin" /></div>
                                     ) : flashcards.length > 0 ? (
                                         <div className="space-y-4">
-                                            <div className="text-center text-sm text-muted-foreground">Card {currentFlashcardIndex + 1} of {flashcards.length}</div>
+                                            <div className="text-center text-sm text-muted-foreground">
+                                                Card {currentFlashcardIndex + 1} of {flashcards.length}
+                                            </div>
                                             <div className="relative w-full h-64 cursor-pointer" onClick={() => setIsFlipped(!isFlipped)}>
                                                 <AnimatePresence>
                                                     <motion.div key={isFlipped ? 'back' : 'front'} initial={{ rotateY: isFlipped ? 180 : 0 }} animate={{ rotateY: 0 }} exit={{ rotateY: isFlipped ? 0 : -180 }} transition={{ duration: 0.5 }} style={{ backfaceVisibility: 'hidden' }} className="absolute w-full h-full p-6 flex items-center justify-center text-center rounded-lg border bg-card shadow-sm">
@@ -1305,3 +1298,6 @@ export default function PracticeQuizPage() {
 
 
 
+
+
+    
