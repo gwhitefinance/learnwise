@@ -280,6 +280,11 @@ const InteractiveQuiz = ({ message, onUpdateQuizState }: { message: Message, onU
     const currentQuestion = quiz.questions[quizState.currentQuestionIndex];
     const selectedAnswer = quizState.answers[quizState.currentQuestionIndex];
     const isSubmitted = !!selectedAnswer;
+    
+    if (!currentQuestion) {
+        // This might happen if the quiz data is malformed
+        return <div className="p-4 text-red-500">Error: Could not load question.</div>;
+    }
     const isCorrect = selectedAnswer === currentQuestion.options[currentQuestion.correctAnswerIndex];
 
     const handleAnswerSelect = (answer: string) => {
@@ -488,30 +493,24 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
   
     const userMessage: Message = { role: 'user', content: messageContent, id: crypto.randomUUID() };
     
-    setSessions(prev =>
-      prev.map(s =>
-        s.id === currentSessionId
-          ? { ...s, messages: [...(s.messages || []), userMessage] }
-          : s
-      )
-    );
+    const sessionRef = doc(db, "chatSessions", currentSessionId);
+    await updateDoc(sessionRef, {
+        messages: arrayUnion(userMessage),
+        timestamp: Timestamp.now()
+    });
     
     setInput('');
     setIsLoading(true);
   
     try {
-        const currentSession = sessions.find(s => s.id === currentSessionId);
+        const currentSessionDoc = await getDoc(sessionRef);
+        const currentSession = {id: currentSessionDoc.id, ...currentSessionDoc.data()} as ChatSession;
         
-        const historyForAI: { role: 'user' | 'model'; content: string }[] = currentSession?.messages
-          ? [...currentSession.messages, userMessage].map(({ role, content }) => ({ role, content }))
-          : [{ role: 'user' as const, content: messageContent }];
+        const historyForAI: { role: 'user' | 'model'; content: string }[] = currentSession?.messages.map(({ role, content }) => ({ role, content })) || [];
         
         const q = query(collection(db, "calendarEvents"), where("userId", "==", user.uid));
         const querySnapshot = await getDocs(q);
-        const calendarEventsData = querySnapshot.docs.map(doc => {
-            const data = doc.data() as CalendarEvent;
-            return { ...data, id: doc.id };
-        });
+        const calendarEventsData = querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as CalendarEvent));
         const learnerType = localStorage.getItem('learnerType');
         const aiBuddyName = localStorage.getItem('aiBuddyName') || 'Taz';
     
@@ -532,8 +531,6 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
             })),
         });
 
-        const sessionRef = doc(db, "chatSessions", currentSessionId);
-        
         const aiTextResponse = response.text || '';
         const toolRequest = response.tool_requests?.[0];
 
@@ -554,27 +551,21 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
         
         if (aiMessage) {
             await updateDoc(sessionRef, {
-                messages: arrayUnion(userMessage, aiMessage),
-                timestamp: Timestamp.now(),
-            });
-        } else {
-            await updateDoc(sessionRef, {
-                messages: arrayUnion(userMessage),
+                messages: arrayUnion(aiMessage),
                 timestamp: Timestamp.now(),
             });
         }
         
-        const finalSessionState = sessions.find(s => s.id === currentSessionId);
-        if (finalSessionState && !finalSessionState.titleGenerated && finalSessionState.messages.length <= 4) {
-            generateChatTitle({ messages: finalSessionState.messages }).then(({title}) => {
-                updateDoc(doc(db, "chatSessions", currentSessionId!), { title, titleGenerated: true });
+        if (currentSession && !currentSession.titleGenerated && (currentSession.messages.length || 0) <= 2) {
+            generateChatTitle({ messages: currentSession.messages }).then(({title}) => {
+                updateDoc(sessionRef, { title, titleGenerated: true });
             });
         }
     } catch (error) {
         console.error(error);
         const errorMessage = "Sorry, I had trouble generating a response. Please try again.";
         const botErrorMsg: Message = { id: crypto.randomUUID(), role: 'model', content: errorMessage };
-        setSessions(prev => prev.map(s => s.id === currentSessionId ? { ...s, messages: [...s.messages, botErrorMsg] } : s));
+        await updateDoc(sessionRef, { messages: arrayUnion(botErrorMsg) });
     } finally {
         setIsLoading(false);
     }
@@ -724,8 +715,12 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
   };
   
   const handleOpenInteractiveQuiz = async (messageId: string, params: NonNullable<Message['quizParams']>) => {
-    const sessionRef = doc(db, 'chatSessions', activeSessionId!);
-    setSessions(prev => prev.map(s => s.id === activeSessionId ? { ...s, messages: s.messages.map(m => m.id === messageId ? {...m, interactiveQuiz: undefined} : m) } : s));
+    if (!activeSessionId) return;
+    const sessionRef = doc(db, 'chatSessions', activeSessionId);
+    
+    // Clear old quiz state first
+    let tempMessages = activeSession?.messages.map(m => ({ ...m, interactiveQuiz: undefined, quizState: undefined })) || [];
+    setSessions(prev => prev.map(s => s.id === activeSessionId ? { ...s, messages: tempMessages } : s));
 
     try {
         const quiz = await generateQuizAction({
@@ -734,7 +729,7 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
             difficulty: params.difficulty,
         });
 
-        const updatedMessages = activeSession?.messages.map(m => 
+        const updatedMessages = tempMessages.map(m => 
             m.id === messageId ? { 
                 ...m, 
                 interactiveQuiz: quiz,
@@ -747,26 +742,27 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
             } : m
         );
         
-        if (updatedMessages) {
-             await updateDoc(sessionRef, { messages: updatedMessages });
-        }
+        await updateDoc(sessionRef, { messages: updatedMessages });
     } catch(e) {
         toast({ variant: 'destructive', title: 'Error', description: 'Could not generate quiz.'});
     }
   };
 
   const updateQuizState = async (messageId: string, newState: Partial<Message['quizState']>) => {
-    const sessionRef = doc(db, 'chatSessions', activeSessionId!);
-    const updatedMessages = activeSession?.messages.map(m => 
+    if (!activeSessionId) return;
+    const sessionRef = doc(db, 'chatSessions', activeSessionId);
+    
+    const currentMessages = sessions.find(s => s.id === activeSessionId)?.messages || [];
+
+    const updatedMessages = currentMessages.map(m => 
         m.id === messageId ? { 
             ...m, 
-            quizState: { ...m.quizState!, ...newState }
+            quizState: { ...(m.quizState!), ...newState }
         } : m
     );
 
-    if (updatedMessages) {
-        await updateDoc(sessionRef, { messages: updatedMessages });
-    }
+    setSessions(prev => prev.map(s => s.id === activeSessionId ? {...s, messages: updatedMessages} : s));
+    await updateDoc(sessionRef, { messages: updatedMessages });
   }
 
   
@@ -779,6 +775,24 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
         <span className="text-xs font-medium">{name}</span>
     </button>
   );
+
+  const QuizCard = ({ title, timestamp, onOpen }: { title: string, timestamp: number, onOpen: () => void }) => {
+    return (
+        <div className="bg-muted p-4 rounded-xl border">
+            <div className="flex items-center gap-3">
+                <div className="p-3 bg-background rounded-lg border">
+                    <Lightbulb className="w-6 h-6 text-yellow-500" />
+                </div>
+                <div className="flex-1">
+                    <h4 className="font-semibold">{title}</h4>
+                    <p className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(timestamp), { addSuffix: true })}</p>
+                </div>
+                <Button size="sm" onClick={onOpen}>Open</Button>
+            </div>
+        </div>
+    )
+  };
+
 
   const ChatComponent = (
     <AnimatePresence>
@@ -857,14 +871,18 @@ export default function FloatingChat({ children, isHidden, isEmbedded }: Floatin
                                     <ScrollArea className="flex-1" viewportRef={scrollAreaRef}>
                                         <div className="p-4 space-y-4">
                                             {activeSession?.messages.map((msg, index) => {
-                                                if (msg.quizParams) {
+                                                if (msg.quizParams && !msg.interactiveQuiz) {
                                                     return <QuizCard key={msg.id} title={msg.quizTitle || 'Practice Quiz'} timestamp={msg.timestamp || Date.now()} onOpen={() => handleOpenInteractiveQuiz(msg.id, msg.quizParams!)} />;
                                                 }
                                                 return (
                                                     <div key={msg.id || index} className={cn("flex items-end gap-2", msg.role === 'user' ? 'justify-end' : '')}>
                                                         {msg.role === 'model' && <Avatar className="h-10 w-10"><AIBuddy className="w-full h-full" {...customizations} species={tazSpecies} /></Avatar>}
                                                         <div className={cn( "p-3 rounded-2xl max-w-[80%] text-sm prose dark:prose-invert prose-p:my-0 prose-headings:my-0 prose-table:my-0", msg.role === 'user' ? "bg-primary text-primary-foreground rounded-br-none" : "bg-muted rounded-bl-none" )}>
-                                                             {msg.streaming && msg.content === '' ? '...' : <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>}
+                                                             {msg.interactiveQuiz ? (
+                                                                <InteractiveQuiz message={msg} onUpdateQuizState={(newState) => updateQuizState(msg.id, newState)} />
+                                                            ) : (
+                                                                msg.streaming && msg.content === '' ? '...' : <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 );
