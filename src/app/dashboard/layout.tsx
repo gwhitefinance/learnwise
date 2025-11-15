@@ -109,6 +109,7 @@ import CallView from '@/components/CallView';
 import IncomingCall from '@/components/IncomingCall';
 import TazCoinIcon from '@/components/TazCoinIcon';
 import LevelBadge from '@/components/LevelBadge';
+import SidebarProfile from '@/components/SidebarProfile';
 
 type SidebarChild = {
   title: string;
@@ -333,8 +334,6 @@ function DashboardLayoutContent({
   const [profilePic, setProfilePic] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [userCoins, setUserCoins] = useState<number>(0);
-  const [userLevel, setUserLevel] = useState<number>(1);
   const [gradeLevel, setGradeLevel] = useState<string | null>(null);
   
   const isFocusLayout = pathname.startsWith('/dashboard/sat-prep/study-session') || pathname.startsWith('/dashboard/taz-showroom');
@@ -378,15 +377,6 @@ function DashboardLayoutContent({
         };
         initUserProfile();
 
-        const userDocRef = doc(db, 'users', user.uid);
-        const unsubscribe = onSnapshot(userDocRef, (doc) => {
-            if (doc.exists()) {
-                const data = doc.data();
-                setUserCoins(data.coins || 0);
-                setUserLevel(data.level || 1);
-            }
-        });
-        
         const savedPic = user.photoURL || localStorage.getItem('profilePic');
         if (savedPic) {
           setProfilePic(savedPic);
@@ -403,8 +393,6 @@ function DashboardLayoutContent({
         }
         
         requestPermission();
-        
-        return () => unsubscribe();
     }
   }, [user, loading, router, isMounted]);
 
@@ -453,29 +441,6 @@ function DashboardLayoutContent({
   if (loading || !isMounted) {
     return <DashboardLoading />;
   }
-
-  const userProfileDisplay = (
-    <div className="w-full p-2 rounded-2xl hover:bg-muted cursor-pointer" onClick={() => router.push('/dashboard/profile')}>
-        <div className="flex items-center gap-3">
-            <Avatar className="h-10 w-10">
-                {profilePic ? (
-                    <AvatarImage src={profilePic} alt="User" />
-                ): (
-                    <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
-                )}
-            </Avatar>
-            <div className="flex-1 overflow-hidden">
-                <p className="font-semibold text-sm truncate">{user?.displayName}</p>
-                <div className="flex items-center gap-2">
-                    <LevelBadge level={userLevel} size="sm" />
-                </div>
-            </div>
-             <Badge variant="outline" className="flex items-center gap-1.5 shrink-0">
-                <TazCoinIcon className="h-4 w-4" /> {userCoins}
-            </Badge>
-        </div>
-    </div>
-);
 
 
   return (
@@ -546,7 +511,7 @@ function DashboardLayoutContent({
                           <LogOut className="h-5 w-5" />
                           <span>Sign Out</span>
                       </Button>
-                  {userProfileDisplay}
+                  <SidebarProfile />
                   </div>
               </div>
               </div>
@@ -589,7 +554,7 @@ function DashboardLayoutContent({
                             <LogOut className="h-5 w-5" /> 
                             <span>Sign Out</span>
                         </Button>
-                        {userProfileDisplay}
+                        <SidebarProfile />
                         </div>
                     </div>
                 </div>
@@ -624,11 +589,7 @@ function DashboardLayoutContent({
                         <Button variant="ghost" size="icon" className="rounded-full" asChild>
                             <Link href="/dashboard/calendar"><Calendar className="h-5 w-5"/></Link>
                         </Button>
-                        <div className="flex items-center gap-2 bg-muted p-1 pr-3 rounded-full">
-                            <TazCoinIcon className="h-6 w-6"/>
-                            <span className="font-bold text-sm">{userCoins}</span>
-                        </div>
-                         <Button variant="ghost" size="icon" className="rounded-full">
+                        <Button variant="ghost" size="icon" className="rounded-full">
                             <Bell className="h-5 w-5"/>
                         </Button>
                         <DropdownMenu>
