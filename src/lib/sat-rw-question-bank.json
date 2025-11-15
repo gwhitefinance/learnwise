@@ -111,15 +111,15 @@
             "topic": "Expression of Ideas",
             "subTopic": "Rhetorical Synthesis",
             "difficulty": "Medium",
-            "passage": "A student is writing an essay arguing for the benefits of learning a second language. Which of the following statements provides the most effective and well-supported claim?",
+            "passage": "A student is writing an argumentative essay claiming that schools should implement later start times for high school students. Which of the following statements provides the most effective evidence to support the student's claim?",
             "question": "Which claim is most effective?",
             "options": [
-                "Learning a second language is a fun hobby for many people around the world.",
-                "Studies have shown that bilingualism can enhance cognitive abilities, such as problem-solving and multitasking, and may even delay the onset of dementia.",
-                "Speaking another language can make traveling to foreign countries easier and more enjoyable.",
-                "Many schools require students to take at least two years of a foreign language."
+                "A personal anecdote about how tired the student feels in their first-period class.",
+                "A study from the American Academy of Pediatrics that links later school start times to improved student health, academic performance, and safety.",
+                "An interview with a teacher who prefers the current school schedule.",
+                "A general statement that teenagers need more sleep than adults."
             ],
-            "answer": "Studies have shown that bilingualism can enhance cognitive abilities, such as problem-solving and multitasking, and may even delay the onset of dementia."
+            "answer": "A study from the American Academy of Pediatrics that links later school start times to improved student health, academic performance, and safety."
         },
         {
             "id": "rwb-m-4",
@@ -225,6 +225,786 @@
                 "Apathetic"
             ],
             "answer": "Analytical"
+        },
+        {
+            "id": "rwb-e-6",
+            "topic": "Information and Ideas",
+            "subTopic": "Central Ideas and Details",
+            "difficulty": "Easy",
+            "passage": "Bees play a vital role in agriculture as pollinators. As they travel from flower to flower to collect nectar, they transfer pollen, which is necessary for many plants to produce fruits and seeds. It is estimated that one-third of the food consumed by humans relies on pollination by bees.",
+            "question": "What is the main function of bees described in the text?",
+            "options": [
+                "Producing honey",
+                "Building complex hives",
+                "Pollinating plants",
+                "Consuming nectar"
+            ],
+            "answer": "Pollinating plants"
+        },
+        {
+            "id": "rwb-e-7",
+            "topic": "Craft and Structure",
+            "subTopic": "Words in Context",
+            "difficulty": "Easy",
+            "passage": "Despite the storm's ferocity, the old lighthouse remained steadfast, its powerful beam cutting through the darkness.",
+            "question": "As used in the text, what does 'steadfast' most nearly mean?",
+            "options": [
+                "Bright",
+                "Moving",
+                "Hidden",
+                "Unwavering"
+            ],
+            "answer": "Unwavering"
+        },
+        {
+            "id": "rwb-e-8",
+            "topic": "Standard English Conventions",
+            "subTopic": "Punctuation",
+            "difficulty": "Easy",
+            "passage": "The students project was a success it received the highest grade in the class.",
+            "question": "Which choice best corrects the punctuation error in the sentence?",
+            "options": [
+                "success, it received",
+                "success; it received",
+                "success and it received",
+                "success that received"
+            ],
+            "answer": "success; it received"
+        },
+        {
+            "id": "rwb-m-6",
+            "topic": "Information and Ideas",
+            "subTopic": "Inference",
+            "difficulty": "Medium",
+            "passage": "The rise of streaming services has fundamentally altered the entertainment industry. Traditional cable subscriptions have declined, while content production has skyrocketed. However, this has also led to a fragmented market, with consumers needing multiple subscriptions to access all the shows they want to watch.",
+            "question": "What can be inferred about the impact of streaming services?",
+            "options": [
+                "They have made television cheaper for everyone.",
+                "They have created both new opportunities and new challenges for consumers.",
+                "They have led to a decrease in the quality of television shows.",
+                "They are less popular than traditional cable."
+            ],
+            "answer": "They have created both new opportunities and new challenges for consumers."
+        },
+        {
+            "id": "rwb-m-7",
+            "topic": "Standard English Conventions",
+            "subTopic": "Verb Tense",
+            "difficulty": "Medium",
+            "passage": "By the time the rescue team arrived, the hikers ______ a fire and set up a temporary shelter.",
+            "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
+            "options": [
+                "build",
+                "have built",
+                "will build",
+                "had built"
+            ],
+            "answer": "had built"
+        },
+        {
+            "id": "rwb-h-6",
+            "topic": "Craft and Structure",
+            "subTopic": "Tone",
+            "difficulty": "Hard",
+            "passage": "The politician's speech was a masterclass in equivocation. He deftly sidestepped every direct question with vague platitudes and appeals to emotion, leaving the audience with the impression of agreement without committing to any specific policy. It was a performance that was simultaneously impressive in its rhetorical skill and disheartening in its lack of substance.",
+            "question": "The author's tone can best be described as",
+            "options": [
+                "wholly admiring.",
+                "scathingly critical.",
+                "critically appreciative.",
+                "completely indifferent."
+            ],
+            "answer": "critically appreciative."
+        },
+        {
+            "id": "rwb-h-7",
+            "topic": "Expression of Ideas",
+            "subTopic": "Logical Completion",
+            "difficulty": "Hard",
+            "passage": "The manager's attempt to boost morale by offering free donuts was a well-intentioned but ultimately ______ gesture, as it failed to address the employees' core concerns about low pay and excessive workload.",
+            "question": "Which word best completes the sentence?",
+            "options": [
+                "profound",
+                "superficial",
+                "malicious",
+                "effective"
+            ],
+            "answer": "superficial"
+        },
+        {
+            "id": "rwb-e-9",
+            "topic": "Standard English Conventions",
+            "subTopic": "Subject-Verb Agreement",
+            "difficulty": "Easy",
+            "passage": "A flock of birds ______ flying south for the winter.",
+            "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
+            "options": [
+                "are",
+                "is",
+                "were",
+                "be"
+            ],
+            "answer": "is"
+        },
+        {
+            "id": "rwb-m-8",
+            "topic": "Expression of Ideas",
+            "subTopic": "Transitions",
+            "difficulty": "Medium",
+            "passage": "Many people believe that creativity is an innate talent. ______, recent studies suggest that it is a skill that can be developed and enhanced through consistent practice and specific techniques.",
+            "question": "Which choice completes the text with the most logical transition?",
+            "options": [
+                "Therefore",
+                "For instance",
+                "On the contrary",
+                "In addition"
+            ],
+            "answer": "On the contrary"
+        },
+        {
+            "id": "rwb-h-8",
+            "topic": "Standard English Conventions",
+            "subTopic": "Idiomatic Expressions",
+            "difficulty": "Hard",
+            "passage": "The lawyer advised her client to not only prepare for the main arguments but also to be ready for any unexpected questions the judge might ask, essentially telling her to prepare for ______. ",
+            "question": "Which idiomatic expression best completes the sentence?",
+            "options": [
+                "the whole nine yards",
+                "a blessing in disguise",
+                "every eventuality",
+                "the best of both worlds"
+            ],
+            "answer": "every eventuality"
+        },
+        {
+            "id": "rwb-e-10",
+            "topic": "Craft and Structure",
+            "subTopic": "Words in Context",
+            "difficulty": "Easy",
+            "passage": "The old library was a sanctuary for book lovers, a quiet haven where one could escape the hustle and bustle of the city.",
+            "question": "As used in the text, what does 'sanctuary' most nearly mean?",
+            "options": [
+                "A place of worship",
+                "A busy market",
+                "A safe and peaceful place",
+                "A historical landmark"
+            ],
+            "answer": "A safe and peaceful place"
+        },
+        {
+            "id": "rwb-m-9",
+            "topic": "Standard English Conventions",
+            "subTopic": "Punctuation",
+            "difficulty": "Medium",
+            "passage": "The storm was intense ______ however, the house, built on a solid foundation, withstood the powerful winds.",
+            "question": "Which choice best corrects the punctuation error in the sentence?",
+            "options": [
+                "intense, however",
+                "intense; however,",
+                "intense, however,",
+                "intense however"
+            ],
+            "answer": "intense; however,"
+        },
+        {
+            "id": "rwb-h-9",
+            "topic": "Craft and Structure",
+            "subTopic": "Text Structure and Purpose",
+            "difficulty": "Hard",
+            "passage": "The essay begins by posing a provocative question. It then explores three historical case studies that offer different perspectives on the question. It concludes not with a definitive answer, but with a nuanced synthesis of the case studies, suggesting that the answer is complex and context-dependent.",
+            "question": "Which choice best describes the text's organizational structure?",
+            "options": [
+                "A chronological narration of events.",
+                "A simple problem-solution format.",
+                "An introduction of a thesis followed by supporting evidence.",
+                "An inquiry-based exploration leading to a complex conclusion."
+            ],
+            "answer": "An inquiry-based exploration leading to a complex conclusion."
+        },
+        {
+            "id": "rwb-e-11",
+            "topic": "Information and Ideas",
+            "subTopic": "Central Ideas and Details",
+            "difficulty": "Easy",
+            "passage": "The water cycle describes the continuous movement of water on, above, and below the surface of the Earth. The main processes involved are evaporation, condensation, precipitation, and collection. Water evaporates from the surface, condenses into clouds, falls back to Earth as precipitation, and collects in rivers, lakes, and oceans to start the cycle anew.",
+            "question": "Which process is NOT mentioned as a main part of the water cycle in the text?",
+            "options": [
+                "Evaporation",
+                "Condensation",
+                "Erosion",
+                "Precipitation"
+            ],
+            "answer": "Erosion"
+        },
+        {
+            "id": "rwb-m-10",
+            "topic": "Information and Ideas",
+            "subTopic": "Command of Evidence",
+            "difficulty": "Medium",
+            "passage": "Research has shown a strong correlation between regular exercise and improved mental health. A 2019 study published in The Lancet Psychiatry found that individuals who exercised for 45 minutes three to five times a week had 1.5 fewer days of poor mental health per month than those who did not exercise. The study analyzed data from 1.2 million adults in the United States.",
+            "question": "Which finding is explicitly supported by the text?",
+            "options": [
+                "Exercise is the only way to improve mental health.",
+                "All forms of exercise have the same effect on mental health.",
+                "A large-scale study linked regular exercise to a measurable decrease in days of poor mental health.",
+                "The study was only conducted on professional athletes."
+            ],
+            "answer": "A large-scale study linked regular exercise to a measurable decrease in days of poor mental health."
+        },
+        {
+            "id": "rwb-h-10",
+            "topic": "Standard English Conventions",
+            "subTopic": "Modifier Placement",
+            "difficulty": "Hard",
+            "passage": "Covered in mud, the dog was given a bath by the owner.",
+            "question": "Which of the following is the best revision of the sentence?",
+            "options": [
+                "The dog was given a bath by the owner covered in mud.",
+                "The owner gave the dog, which was covered in mud, a bath.",
+                "The bath was given to the dog by the owner, covered in mud.",
+                "Covered in mud, the owner gave the dog a bath."
+            ],
+            "answer": "The owner gave the dog, which was covered in mud, a bath."
+        },
+        {
+            "id": "rwb-e-12",
+            "topic": "Expression of Ideas",
+            "subTopic": "Transitions",
+            "difficulty": "Easy",
+            "passage": "The museum is free to the public. ______, it is a popular destination for school field trips.",
+            "question": "Which choice completes the text with the most logical transition?",
+            "options": [
+                "However",
+                "In contrast",
+                "Therefore",
+                "Despite this"
+            ],
+            "answer": "Therefore"
+        },
+        {
+            "id": "rwb-m-11",
+            "topic": "Craft and Structure",
+            "subTopic": "Words in Context",
+            "difficulty": "Medium",
+            "passage": "The CEO's speech was filled with bombastic claims about the company's future, but it lacked any concrete data or strategy to support his grand pronouncements.",
+            "question": "As used in the text, what does 'bombastic' most nearly mean?",
+            "options": [
+                "Humble and modest",
+                "Quiet and reserved",
+                "Pompous and inflated",
+                "Concise and to the point"
+            ],
+            "answer": "Pompous and inflated"
+        },
+        {
+            "id": "rwb-h-11",
+            "topic": "Craft and Structure",
+            "subTopic": "Cross-Text Connections",
+            "difficulty": "Hard",
+            "passage": "Text 1: Shakespeare's 'Hamlet' is a tragedy driven by individual character flaws, primarily Hamlet's indecisiveness and melancholy. His inability to act decisively on his desire for revenge leads directly to the play's catastrophic conclusion. The external political situation in Denmark is merely a backdrop for this internal, psychological drama. Text 2: To view 'Hamlet' solely as a psychological drama is to miss its profound political dimension. The play is deeply concerned with issues of succession, legitimacy, and the health of the state. Hamlet's personal crisis is inseparable from the political crisis in Denmark; his inaction is not just a personal failing but a symptom of a diseased political body.",
+            "question": "Which choice best describes the relationship between the two texts?",
+            "options": [
+                "Text 2 offers a supporting example for the argument made in Text 1.",
+                "Text 2 challenges the primary focus of Text 1's interpretation.",
+                "Text 1 and Text 2 discuss two different Shakespearean plays.",
+                "Text 1 summarizes the plot of Hamlet, while Text 2 analyzes its themes."
+            ],
+            "answer": "Text 2 challenges the primary focus of Text 1's interpretation."
+        },
+        {
+            "id": "rwb-e-13",
+            "topic": "Standard English Conventions",
+            "subTopic": "Punctuation",
+            "difficulty": "Easy",
+            "passage": "My three favorite hobbies are reading hiking and cooking.",
+            "question": "Which choice best corrects the punctuation error in the sentence?",
+            "options": [
+                "reading hiking, and cooking.",
+                "reading, hiking and, cooking.",
+                "reading, hiking, and cooking.",
+                "reading hiking and cooking."
+            ],
+            "answer": "reading, hiking, and cooking."
+        },
+        {
+            "id": "rwb-m-12",
+            "topic": "Standard English Conventions",
+            "subTopic": "Subject-Verb Agreement",
+            "difficulty": "Medium",
+            "passage": "The results of the recent survey, which were published in a major scientific journal, ______ that a majority of respondents support the new environmental policy.",
+            "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
+            "options": [
+                "indicates",
+                "indicate",
+                "is indicating",
+                "has indicated"
+            ],
+            "answer": "indicate"
+        },
+        {
+            "id": "rwb-h-12",
+            "topic": "Standard English Conventions",
+            "subTopic": "Pronoun Case",
+            "difficulty": "Hard",
+            "passage": "The award was given to my colleague and ______, in recognition of our collaborative work on the project.",
+            "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
+            "options": [
+                "I",
+                "me",
+                "myself",
+                "mine"
+            ],
+            "answer": "me"
+        },
+        {
+            "id": "rwb-e-14",
+            "topic": "Information and Ideas",
+            "subTopic": "Command of Evidence",
+            "difficulty": "Easy",
+            "passage": "The Amazon rainforest is often called the 'lungs of the planet' because it produces more than 20% of the world's oxygen. This vast tropical forest is home to millions of species of plants, insects, and animals, many of which are still undiscovered.",
+            "question": "Which piece of evidence from the text supports the nickname 'lungs of the planet'?",
+            "options": [
+                "It is home to millions of species.",
+                "Many species are still undiscovered.",
+                "It is a vast tropical forest.",
+                "It produces more than 20% of the world's oxygen."
+            ],
+            "answer": "It produces more than 20% of the world's oxygen."
+        },
+        {
+            "id": "rwb-m-13",
+            "topic": "Expression of Ideas",
+            "subTopic": "Rhetorical Synthesis",
+            "difficulty": "Medium",
+            "passage": "A student is writing an essay arguing that graffiti can be a legitimate art form. Which of the following statements provides the most nuanced and effective claim?",
+            "question": "Which claim is most nuanced and effective?",
+            "options": [
+                "Graffiti is always a beautiful form of art.",
+                "All graffiti should be considered vandalism and removed immediately.",
+                "While often associated with vandalism, some graffiti exhibits a high level of artistic skill, social commentary, and cultural significance, deserving consideration as a public art form.",
+                "Famous artists like Banksy have created graffiti."
+            ],
+            "answer": "While often associated with vandalism, some graffiti exhibits a high level of artistic skill, social commentary, and cultural significance, deserving consideration as a public art form."
+        },
+        {
+            "id": "rwb-h-13",
+            "topic": "Information and Ideas",
+            "subTopic": "Inference",
+            "difficulty": "Hard",
+            "passage": "The philosopher's latest work is intentionally abstruse, filled with dense, academic jargon and complex syntactical structures. It seems not to invite understanding so much as to demand it, requiring the reader to engage in a rigorous intellectual struggle to parse its meaning. This is in stark contrast to his earlier, more populist writings which aimed for clarity and broad accessibility.",
+            "question": "What can be inferred about the philosopher's intentions with his latest work?",
+            "options": [
+                "He is trying to reach a wider, more general audience.",
+                "He is targeting a specialized, academic audience willing to do significant intellectual work.",
+                "He has simplified his ideas over time.",
+                "He no longer believes in the ideas presented in his earlier work."
+            ],
+            "answer": "He is targeting a specialized, academic audience willing to do significant intellectual work."
+        },
+        {
+            "id": "rwb-e-15",
+            "topic": "Standard English Conventions",
+            "subTopic": "Verb Tense",
+            "difficulty": "Easy",
+            "passage": "Yesterday, I ______ to the library to return my books and check out some new ones for the weekend.",
+            "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
+            "options": [
+                "go",
+                "went",
+                "have gone",
+                "will go"
+            ],
+            "answer": "went"
+        },
+        {
+            "id": "rwb-m-14",
+            "topic": "Information and Ideas",
+            "subTopic": "Words in Context",
+            "difficulty": "Medium",
+            "passage": "The new law was designed to be a panacea for the city's economic woes, but critics argued that its effects would be limited and that it failed to address the root causes of unemployment.",
+            "question": "As used in the text, what does 'panacea' most nearly mean?",
+            "options": [
+                "A major problem",
+                "A partial solution",
+                "A cure-all",
+                "A minor setback"
+            ],
+            "answer": "A cure-all"
+        },
+        {
+            "id": "rwb-h-14",
+            "topic": "Expression of Ideas",
+            "subTopic": "Transitions",
+            "difficulty": "Hard",
+            "passage": "The discovery of DNA's double helix structure was a monumental achievement in biology. ______ , it did not immediately reveal how genetic information was copied. It took further research by Meselson and Stahl to demonstrate the semi-conservative replication mechanism, thus completing a major piece of the puzzle.",
+            "question": "Which choice provides the most logical transition?",
+            "options": [
+                "Therefore,",
+                "For example,",
+                "In fact,",
+                "However,"
+            ],
+            "answer": "However,"
+        },
+        {
+            "id": "rwb-e-16",
+            "topic": "Expression of Ideas",
+            "subTopic": "Logical Completion",
+            "difficulty": "Easy",
+            "passage": "The student diligently studied for the exam; as a result, she felt ______ and prepared on test day.",
+            "question": "Which choice completes the text with the most logical and precise word or phrase?",
+            "options": [
+                "anxious",
+                "confident",
+                "confused",
+                "indifferent"
+            ],
+            "answer": "confident"
+        },
+        {
+            "id": "rwb-m-15",
+            "topic": "Standard English Conventions",
+            "subTopic": "Pronoun Case",
+            "difficulty": "Medium",
+            "passage": "The manager gave the promotion to Sarah and ______, as we had both exceeded our sales targets for the quarter.",
+            "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
+            "options": [
+                "I",
+                "me",
+                "myself",
+                "my"
+            ],
+            "answer": "me"
+        },
+        {
+            "id": "rwb-h-15",
+            "topic": "Standard English Conventions",
+            "subTopic": "Punctuation (Semicolons vs. Colons)",
+            "difficulty": "Hard",
+            "passage": "The experiment yielded a surprising result ______ the compound, which was expected to be inert, reacted vigorously with water.",
+            "question": "Which choice best corrects the punctuation in the sentence?",
+            "options": [
+                "result, the compound",
+                "result; the compound",
+                "result: the compound",
+                "result. The compound"
+            ],
+            "answer": "result: the compound"
+        },
+        {
+            "id": "rwb-e-17",
+            "topic": "Standard English Conventions",
+            "subTopic": "Possessives",
+            "difficulty": "Easy",
+            "passage": "The cat chased ______ tail in circles.",
+            "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
+            "options": [
+                "it's",
+                "its",
+                "its'",
+                "it is"
+            ],
+            "answer": "its"
+        },
+        {
+            "id": "rwb-m-16",
+            "topic": "Craft and Structure",
+            "subTopic": "Text Structure and Purpose",
+            "difficulty": "Medium",
+            "passage": "The article first defines the concept of 'cognitive dissonance.' It then provides a real-world example of a person buying an expensive item and subsequently seeking out reviews that praise their purchase. Finally, it discusses the psychological mechanisms that drive this behavior.",
+            "question": "The text is structured to first ______, then ______, and finally ______.",
+            "options": [
+                "provide an example, define a term, discuss mechanisms",
+                "define a term, provide an example, discuss mechanisms",
+                "discuss mechanisms, define a term, provide an example",
+                "provide an example, discuss mechanisms, define a term"
+            ],
+            "answer": "define a term, provide an example, discuss mechanisms"
+        },
+        {
+            "id": "rwb-h-16",
+            "topic": "Information and Ideas",
+            "subTopic": "Central Ideas and Details",
+            "difficulty": "Hard",
+            "passage": "In economics, 'moral hazard' describes a situation where one party gets involved in a risky event knowing that it is protected against the risk and the other party will incur the cost. It's a common problem in the insurance industry. For example, if a person has excellent theft insurance for their bicycle, they may be less likely to buy a high-quality lock, knowing that if the bike is stolen, the insurance company will bear the financial loss. This behavioral change increases the likelihood of a negative outcome (theft).",
+            "question": "Which situation best illustrates the concept of 'moral hazard' as described in the text?",
+            "options": [
+                "A driver with collision insurance who decides to drive more cautiously.",
+                "A homeowner who installs a smoke detector after buying fire insurance.",
+                "A company with government bailout protection that takes on excessively risky financial investments.",
+                "A student who studies harder after seeing a low grade on a test."
+            ],
+            "answer": "A company with government bailout protection that takes on excessively risky financial investments."
+        },
+        {
+            "id": "rwb-e-18",
+            "topic": "Expression of Ideas",
+            "subTopic": "Logical Completion",
+            "difficulty": "Easy",
+            "passage": "After the long hike, the campers were ______, so they quickly set up their tent and prepared a meal.",
+            "question": "Which choice completes the text with the most logical and precise word or phrase?",
+            "options": [
+                "energized",
+                "bored",
+                "exhausted",
+                "amused"
+            ],
+            "answer": "exhausted"
+        },
+        {
+            "id": "rwb-m-17",
+            "topic": "Expression of Ideas",
+            "subTopic": "Rhetorical Synthesis",
+            "difficulty": "Medium",
+            "passage": "A student is writing an essay about the importance of biodiversity. Which of the following would be the most effective thesis statement?",
+            "question": "Which thesis statement is most effective?",
+            "options": [
+                "Biodiversity is the variety of life on Earth.",
+                "There are many different types of animals and plants in the world.",
+                "Protecting biodiversity is crucial not only for ecosystem stability and resilience but also for providing essential resources and services, such as clean air, water, and medicine, that are vital to human survival.",
+                "Many species are currently facing extinction due to human activities."
+            ],
+            "answer": "Protecting biodiversity is crucial not only for ecosystem stability and resilience but also for providing essential resources and services, such as clean air, water, and medicine, that are vital to human survival."
+        },
+        {
+            "id": "rwb-h-17",
+            "topic": "Standard English Conventions",
+            "subTopic": "Subject-Verb Agreement (Complex)",
+            "difficulty": "Hard",
+            "passage": "The list of books, along with the required supplementary articles and online resources, ______ overwhelming to the students at first glance.",
+            "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
+            "options": [
+                "seem",
+                "seeming",
+                "have seemed",
+                "seems"
+            ],
+            "answer": "seems"
+        },
+        {
+            "id": "rwb-e-19",
+            "topic": "Standard English Conventions",
+            "subTopic": "Pronoun-Antecedent Agreement",
+            "difficulty": "Easy",
+            "passage": "The dog wagged ______ tail excitedly when its owner came home.",
+            "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
+            "options": [
+                "it's",
+                "its",
+                "their",
+                "its'"
+            ],
+            "answer": "its"
+        },
+        {
+            "id": "rwb-m-18",
+            "topic": "Information and Ideas",
+            "subTopic": "Central Ideas and Details",
+            "difficulty": "Medium",
+            "passage": "The concept of 'opportunity cost' is fundamental to economics. It represents the potential benefits an individual, investor, or business misses out on when choosing one alternative over another. Since resources are finite, every choice involves a trade-off. For example, if you spend two hours and $20 at a movie, you cannot spend that same time studying or that same money on a book. The lost opportunity to study or buy a book is the opportunity cost of seeing the movie.",
+            "question": "According to the text, what is 'opportunity cost'?",
+            "options": [
+                "The monetary price of an item or service.",
+                "The total amount of resources available.",
+                "The benefits foregone by choosing one option over another.",
+                "A calculation of profit and loss."
+            ],
+            "answer": "The benefits foregone by choosing one option over another."
+        },
+        {
+            "id": "rwb-h-18",
+            "topic": "Craft and Structure",
+            "subTopic": "Words in Context",
+            "difficulty": "Hard",
+            "passage": "The politician's speech was a disingenuous attempt to placate the angry crowd, offering vague promises without any concrete plans for action. His words rang hollow to those who had heard similar empty assurances before.",
+            "question": "As used in the text, what does 'disingenuous' most nearly mean?",
+            "options": [
+                "Honest and straightforward",
+                "Well-intentioned but ineffective",
+                "Not candid or sincere",
+                "Complex and difficult to understand"
+            ],
+            "answer": "Not candid or sincere"
+        },
+        {
+            "id": "rwb-e-20",
+            "topic": "Standard English Conventions",
+            "subTopic": "Punctuation",
+            "difficulty": "Easy",
+            "passage": "I need to buy three things from the store milk, bread, and eggs.",
+            "question": "Which choice best corrects the punctuation error in the sentence?",
+            "options": [
+                "store, milk,",
+                "store: milk,",
+                "store; milk,",
+                "store milk"
+            ],
+            "answer": "store: milk,"
+        },
+        {
+            "id": "rwb-m-19",
+            "topic": "Standard English Conventions",
+            "subTopic": "Verb Tense",
+            "difficulty": "Medium",
+            "passage": "By the time he graduates from college next year, he ______ in this city for over eight years.",
+            "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
+            "options": [
+                "will live",
+                "lived",
+                "will have lived",
+                "is living"
+            ],
+            "answer": "will have lived"
+        },
+        {
+            "id": "rwb-h-19",
+            "topic": "Information and Ideas",
+            "subTopic": "Inference",
+            "difficulty": "Hard",
+            "passage": "The artist's early work was characterized by vibrant colors and joyful themes. However, following a period of personal tragedy, his palette became muted, and his subject matter turned to themes of loss and isolation. Critics noted that while his later work was somber, it possessed a new, profound depth and emotional resonance that was absent from his earlier, more decorative pieces.",
+            "question": "What can be inferred about the artist's later work?",
+            "options": [
+                "It was less technically skilled than his early work.",
+                "It was more commercially successful than his early work.",
+                "It was emotionally deeper and more complex than his early work.",
+                "It was a complete rejection of his previous artistic style."
+            ],
+            "answer": "It was emotionally deeper and more complex than his early work."
+        },
+        {
+            "id": "rwb-e-21",
+            "topic": "Craft and Structure",
+            "subTopic": "Words in Context",
+            "difficulty": "Easy",
+            "passage": "The old, abandoned house on the hill was an eerie sight, especially at night.",
+            "question": "As used in the text, what does the word 'eerie' most nearly mean?",
+            "options": [
+                "Beautiful",
+                "Colorful",
+                "Strange and frightening",
+                "Comforting"
+            ],
+            "answer": "Strange and frightening"
+        },
+        {
+            "id": "rwb-m-20",
+            "topic": "Expression of Ideas",
+            "subTopic": "Transitions",
+            "difficulty": "Medium",
+            "passage": "The invention of the microscope opened up a previously unseen world. ______, scientists were able to observe microorganisms for the first time, leading to the development of germ theory.",
+            "question": "Which choice completes the text with the most logical transition?",
+            "options": [
+                "In contrast",
+                "Similarly",
+                "For instance",
+                "Despite this"
+            ],
+            "answer": "For instance"
+        },
+        {
+            "id": "rwb-h-20",
+            "topic": "Standard English Conventions",
+            "subTopic": "Comma Splice",
+            "difficulty": "Hard",
+            "passage": "The concert was sold out, thousands of fans gathered outside the stadium.",
+            "question": "Which of the following revisions best fixes the comma splice in the sentence?",
+            "options": [
+                "The concert was sold out, and thousands of fans gathered outside the stadium.",
+                "The concert was sold out, thousands of fans, gathered outside the stadium.",
+                "Because the concert was sold out, thousands of fans gathered outside the stadium.",
+                "All of the above are correct."
+            ],
+            "answer": "All of the above are correct."
+        },
+        {
+            "id": "rwb-e-22",
+            "topic": "Standard English Conventions",
+            "subTopic": "Verb Form",
+            "difficulty": "Easy",
+            "passage": "Every morning, she ______ a mile before starting her workday.",
+            "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
+            "options": [
+                "run",
+                "running",
+                "runs",
+                "had run"
+            ],
+            "answer": "runs"
+        },
+        {
+            "id": "rwb-m-21",
+            "topic": "Information and Ideas",
+            "subTopic": "Central Ideas and Details",
+            "difficulty": "Medium",
+            "passage": "Climate change poses a significant threat to global food security. Rising temperatures and altered precipitation patterns can lead to crop failures, while ocean acidification harms marine ecosystems and fisheries. To mitigate these risks, a transition to more sustainable agricultural practices and a reduction in greenhouse gas emissions are essential.",
+            "question": "According to the text, what are two major impacts of climate change on food security?",
+            "options": [
+                "Increased crop yields and healthier oceans.",
+                "Crop failures and harm to marine ecosystems.",
+                "Lower food prices and greater food availability.",
+                "The development of new, climate-resistant crops."
+            ],
+            "answer": "Crop failures and harm to marine ecosystems."
+        },
+        {
+            "id": "rwb-h-21",
+            "topic": "Craft and Structure",
+            "subTopic": "Tone",
+            "difficulty": "Hard",
+            "passage": "The proposal, while ambitious in its scope, is predicated on a series of unsubstantiated assumptions and overly optimistic financial projections. A more pragmatic approach would involve a phased implementation with clear, measurable milestones and contingency plans for potential setbacks. Without such revisions, the project is a high-risk gamble rather than a sound investment.",
+            "question": "The author's tone in this passage can best be described as",
+            "options": [
+                "Enthusiastic and supportive",
+                "Skeptical and cautionary",
+                "Neutral and objective",
+                "Dismissive and sarcastic"
+            ],
+            "answer": "Skeptical and cautionary"
+        },
+        {
+            "id": "rwb-e-23",
+            "topic": "Expression of Ideas",
+            "subTopic": "Logical Completion",
+            "difficulty": "Easy",
+            "passage": "The student forgot to set his alarm clock; ______, he was late for class.",
+            "question": "Which choice completes the text with the most logical and precise word or phrase?",
+            "options": [
+                "however",
+                "nevertheless",
+                "consequently",
+                "similarly"
+            ],
+            "answer": "consequently"
+        },
+        {
+            "id": "rwb-m-22",
+            "topic": "Standard English Conventions",
+            "subTopic": "Pronoun-Antecedent Agreement",
+            "difficulty": "Medium",
+            "passage": "A person should always do ______ best to be honest and fair in their dealings with others.",
+            "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
+            "options": [
+                "their",
+                "his",
+                "her",
+                "his or her"
+            ],
+            "answer": "his or her"
+        },
+        {
+            "id": "rwb-h-22",
+            "topic": "Standard English Conventions",
+            "subTopic": "Subjunctive Mood",
+            "difficulty": "Hard",
+            "passage": "The rules require that every student ______ a valid ID card to enter the library.",
+            "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
+            "options": [
+                "presents",
+                "present",
+                "is presenting",
+                "has presented"
+            ],
+            "answer": "present"
         }
     ]
 }
