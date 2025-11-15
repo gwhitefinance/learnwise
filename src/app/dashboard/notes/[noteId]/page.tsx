@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, use } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Bold, Italic, Underline, Strikethrough, Palette, AlignLeft, AlignCenter, AlignRight, List, ListOrdered, Undo, Redo, X, ChevronDown, Mic, Sparkles, Clock, Music, UserPlus, Upload, Info, GitMerge, FileSignature, Plus, History, Printer, Expand, Search, FileText, ArrowRight, Type, GripVertical, Maximize, Square, Globe, GraduationCap, Loader2, MessageSquare, BrainCircuit, Lightbulb, Copy, ImageIcon, Link as LinkIcon, MessageSquarePlus, Paintbrush, Minus, Indent, Outdent, Pilcrow, LineChart, CheckSquare, Save,
@@ -43,8 +43,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'; 
-import { useRouter, useParams } from 'next/navigation'; 
+import { useRouter, useParams } from 'next/navigation';
 import Loading from './loading';
+import type { GenerateQuizInput } from '@/ai/schemas/quiz-schema';
+
 
 interface Message {
   id: string;
@@ -367,10 +369,19 @@ export default function NoteEditorPage() {
 
     useEffect(() => {
         if (!isMounted || !user) return;
-
+    
         const loadNote = async () => {
-            setIsLoadingNote(true);
-            if (noteId && noteId !== 'new') {
+            if (noteId === 'new') {
+                setNoteTitle('Untitled Note');
+                if (editorRef.current) editorRef.current.innerHTML = '';
+                setSelectedCourseId(undefined);
+                setSelectedUnitId(undefined);
+                setIsLoadingNote(false);
+                return;
+            }
+
+            if (noteId) {
+                setIsLoadingNote(true);
                 try {
                     const noteRef = doc(db, 'notes', noteId);
                     const noteSnap = await getDoc(noteRef);
@@ -393,10 +404,6 @@ export default function NoteEditorPage() {
                     setIsLoadingNote(false);
                 }
             } else {
-                setNoteTitle('Untitled Note');
-                if (editorRef.current) editorRef.current.innerHTML = '';
-                setSelectedCourseId(undefined);
-                setSelectedUnitId(undefined);
                 setIsLoadingNote(false);
             }
         };
@@ -719,7 +726,7 @@ export default function NoteEditorPage() {
                                     <SelectContent>
                                         <SelectItem value="none">No specific module</SelectItem>
                                         {selectedCourseForFilter.units.map(unit => (
-                                            <SelectItem key={unit.id} value={unit.id}>{unit.title}</SelectItem>
+                                            <SelectItem key={unit.id} value={unit.title}>{unit.title}</SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
@@ -737,3 +744,5 @@ export default function NoteEditorPage() {
         </div>
     );
 }
+
+    

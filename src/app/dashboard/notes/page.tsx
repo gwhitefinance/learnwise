@@ -176,11 +176,19 @@ export default function NotesPage() {
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const userNotes = querySnapshot.docs.map(doc => {
             const data = doc.data() as FirestoreNote;
-            const { id, ...restOfData } = data as any; // Prevent id from being in spread
             return { 
                 id: doc.id,
-                ...restOfData,
-                date: data.date.toDate()
+                title: data.title,
+                content: data.content,
+                date: data.date.toDate(),
+                color: data.color,
+                isImportant: data.isImportant,
+                isCompleted: data.isCompleted,
+                userId: data.userId,
+                courseId: data.courseId,
+                unitId: data.unitId,
+                isWhiteboardNote: data.isWhiteboardNote,
+                imageUrl: data.imageUrl,
             } as Note;
         });
         
@@ -562,3 +570,5 @@ export default function NotesPage() {
     </>
   );
 }
+
+    
