@@ -1,14 +1,14 @@
 
 'use client';
 
-import { useState, useRef, ChangeEvent } from 'react';
+import { useState, useRef, ChangeEvent, DragEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
-import { UploadCloud, FileText, Wand2, Loader2, ArrowRight, RefreshCw, GraduationCap } from 'lucide-react';
+import { UploadCloud, FileText, Wand2, Loader2, ArrowRight, RefreshCw, GraduationCap, Image as ImageIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
-import { generateAssignmentGrade } from '@/lib/actions';
+import { generateAssignmentGrade, analyzeImage } from '@/lib/actions';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
@@ -79,17 +79,34 @@ const GradeDisplay = ({ result }: { result: GradeResult }) => {
 
 export default function AssignmentGraderPage() {
     const [assignmentText, setAssignmentText] = useState('');
+    const [assignmentImage, setAssignmentImage] = useState<string | null>(null);
     const [rubricText, setRubricText] = useState('');
     const [isGrading, setIsGrading] = useState(false);
     const [gradeResult, setGradeResult] = useState<GradeResult | null>(null);
     const [fileName, setFileName] = useState<string | null>(null);
+    const [isDragging, setIsDragging] = useState(false);
     const { toast } = useToast();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            setFileName(file.name);
+            handleFile(file);
+        }
+    };
+    
+    const handleFile = (file: File) => {
+        setFileName(file.name);
+        setAssignmentImage(null);
+        setAssignmentText('');
+        
+        if (file.type.startsWith('image/')) {
+             const reader = new FileReader();
+            reader.onload = (event) => {
+                setAssignmentImage(event.target?.result as string);
+            };
+            reader.readAsDataURL(file);
+        } else {
             const reader = new FileReader();
             reader.onload = (event) => {
                 const text = event.target?.result as string;
@@ -99,13 +116,26 @@ export default function AssignmentGraderPage() {
         }
     };
 
+    const handleDragEnter = (e: DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); };
+    const handleDragLeave = (e: DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); };
+    const handleDragOver = (e: DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); };
+    const handleDrop = (e: DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            handleFile(e.dataTransfer.files[0]);
+        }
+    };
+
     const handleTextChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
         setAssignmentText(e.target.value);
         if (fileName) setFileName(null);
+        if (assignmentImage) setAssignmentImage(null);
     };
     
     const handleGrade = async () => {
-        if (!assignmentText.trim()) {
+        if (!assignmentText.trim() && !assignmentImage) {
             toast({ variant: 'destructive', title: 'Assignment content is required.' });
             return;
         }
@@ -114,10 +144,27 @@ export default function AssignmentGraderPage() {
         setGradeResult(null);
 
         try {
-            const result = await generateAssignmentGrade({
-                assignment: assignmentText,
-                rubric: rubricText || "Standard grading rubric for this type of assignment.",
-            });
+            let result;
+            if (assignmentImage) {
+                 const analysis = await analyzeImage({
+                    imageDataUri: assignmentImage,
+                    prompt: `Grade this assignment based on the following rubric: ${rubricText || "Standard academic rubric"}. Provide an overall score (0-100), 2-3 strengths, 2-3 areas for improvement, and a final one-sentence verdict. Format the output like the assignment grader tool.`,
+                });
+                // This is a simplified mapping. Assumes the AI follows the prompt format.
+                const firstSolution = analysis.solutions[0];
+                const content = `${firstSolution.problem}\n\n${firstSolution.steps.join('\n')}\n\n${firstSolution.answer}`;
+
+                result = await generateAssignmentGrade({
+                    assignment: content,
+                    rubric: rubricText,
+                });
+
+            } else {
+                result = await generateAssignmentGrade({
+                    assignment: assignmentText,
+                    rubric: rubricText || "Standard grading rubric for this type of assignment.",
+                });
+            }
             setGradeResult(result);
         } catch (error) {
             console.error("Grading failed:", error);
@@ -129,6 +176,7 @@ export default function AssignmentGraderPage() {
 
     const handleReset = () => {
         setAssignmentText('');
+        setAssignmentImage(null);
         setRubricText('');
         setGradeResult(null);
         setFileName(null);
@@ -142,7 +190,7 @@ export default function AssignmentGraderPage() {
             <div className="flex justify-between items-start">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">AI Assignment Grader</h1>
-                    <p className="text-muted-foreground">Upload or paste your assignment and get instant feedback from Taz.</p>
+                    <p className="text-muted-foreground">Upload, paste, or drag & drop your assignment and get instant feedback from Taz.</p>
                 </div>
                 <Button variant="outline" asChild>
                     <Link href="/dashboard/essay-grader">
@@ -161,36 +209,52 @@ export default function AssignmentGraderPage() {
                     </div>
                 </div>
             ) : (
-                <Card>
+                <Card
+                    onDragEnter={handleDragEnter}
+                    onDragLeave={handleDragLeave}
+                    onDragOver={handleDragOver}
+                    onDrop={handleDrop}
+                    className={cn("transition-colors", isDragging && "border-primary ring-2 ring-primary")}
+                >
                     <CardHeader>
                         <CardTitle>Submit Your Assignment</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-6">
-                         <Tabs defaultValue="upload">
+                         <Tabs defaultValue="paste">
                             <TabsList className="grid w-full grid-cols-2">
-                                <TabsTrigger value="upload">Upload File</TabsTrigger>
                                 <TabsTrigger value="paste">Paste Text</TabsTrigger>
+                                <TabsTrigger value="upload">Upload File</TabsTrigger>
                             </TabsList>
-                            <TabsContent value="upload" className="pt-4">
-                                <div 
-                                    className="p-8 border-2 border-dashed rounded-lg text-center cursor-pointer hover:border-primary transition-colors"
-                                    onClick={() => fileInputRef.current?.click()}
-                                >
-                                    <input ref={fileInputRef} type="file" className="hidden" accept=".txt,.md,.docx,.pdf" onChange={handleFileChange} />
-                                    <div className="p-3 bg-muted rounded-full inline-block">
-                                        <UploadCloud className="h-8 w-8 text-primary"/>
-                                    </div>
-                                    <h4 className="mt-4 font-semibold">{fileName ? `Selected: ${fileName}` : 'Click to upload your assignment'}</h4>
-                                    <p className="text-xs text-muted-foreground">TXT, MD, DOCX, or PDF</p>
-                                </div>
-                            </TabsContent>
-                             <TabsContent value="paste" className="pt-4">
+                            <TabsContent value="paste" className="pt-4">
                                 <Textarea 
                                     placeholder="Paste your assignment content here..."
                                     className="h-48"
                                     value={assignmentText}
                                     onChange={handleTextChange}
                                 />
+                            </TabsContent>
+                             <TabsContent value="upload" className="pt-4">
+                                <div 
+                                    className="p-8 border-2 border-dashed rounded-lg text-center cursor-pointer hover:border-primary transition-colors"
+                                    onClick={() => fileInputRef.current?.click()}
+                                >
+                                    <input ref={fileInputRef} type="file" className="hidden" accept=".txt,.md,.docx,.pdf,image/*" onChange={handleFileChange} />
+                                    {assignmentImage ? (
+                                        <div className="flex flex-col items-center">
+                                            <ImageIcon className="h-10 w-10 text-primary mb-2" />
+                                            <p className="font-semibold">Image selected: {fileName}</p>
+                                            <img src={assignmentImage} alt="Preview" className="max-h-32 mt-4 rounded-md" />
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <div className="p-3 bg-muted rounded-full inline-block">
+                                                <UploadCloud className="h-8 w-8 text-primary"/>
+                                            </div>
+                                            <h4 className="mt-4 font-semibold">{fileName ? `Selected: ${fileName}` : 'Click to upload or drag & drop your assignment'}</h4>
+                                            <p className="text-xs text-muted-foreground">Text files, PDFs, or images</p>
+                                        </>
+                                    )}
+                                </div>
                             </TabsContent>
                         </Tabs>
 
@@ -206,7 +270,7 @@ export default function AssignmentGraderPage() {
                         </div>
                     </CardContent>
                     <CardFooter>
-                        <Button onClick={handleGrade} disabled={isGrading || !assignmentText.trim()}>
+                        <Button onClick={handleGrade} disabled={isGrading || (!assignmentText.trim() && !assignmentImage)}>
                             {isGrading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Wand2 className="mr-2 h-4 w-4"/>}
                             {isGrading ? 'Grading...' : 'Grade with AI'}
                         </Button>
@@ -216,3 +280,4 @@ export default function AssignmentGraderPage() {
         </div>
     );
 }
+
