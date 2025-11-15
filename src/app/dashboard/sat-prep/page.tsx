@@ -4,7 +4,7 @@
 import { useState, useEffect, useContext } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { BookOpen, Calculator, Loader2, RefreshCw, FileText, Trophy, Clock, GraduationCap, ArrowRight, Rocket, Send } from 'lucide-react';
+import { BookOpen, Calculator, Loader2, RefreshCw, FileText, Trophy, Clock, GraduationCap, ArrowRight, Rocket, Send, FolderSearch } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -290,6 +290,18 @@ export default function SatPrepPage() {
                         </Button>
                     </div>
                 </div>
+
+                 <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2"><FolderSearch/>Question Bank</CardTitle>
+                        <CardDescription>Practice specific types of questions from a large database.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <Button variant="outline" size="lg" disabled>Math Question Bank</Button>
+                        <Button variant="outline" size="lg" disabled>Reading & Writing Question Bank</Button>
+                    </CardContent>
+                </Card>
+
                  <DailyQuestion />
                  <Card>
                     <CardHeader className="flex flex-row justify-between items-center">
