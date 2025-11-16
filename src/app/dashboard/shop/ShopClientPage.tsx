@@ -309,6 +309,10 @@ export default function ShopClientPage() {
                 </div>
             </div>
 
+             <div className="bg-red-600 text-white p-4 rounded-xl text-center font-bold shadow-lg">
+                🎄 Our Christmas Update is Here! Check out the daily deals for festive items! 🎄
+            </div>
+
             <Card className="bg-gradient-to-r from-blue-500 to-indigo-700 text-white">
                 <CardHeader>
                     <CardTitle className="flex justify-between items-center">
