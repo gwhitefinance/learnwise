@@ -27,24 +27,16 @@ const defaultGenerationSteps = [
     { progress: 99, label: "Almost there!" },
 ];
 
-const quizGenerationSteps = [
-    { progress: 15, label: "Analyzing module content..." },
-    { progress: 50, label: "Crafting challenging questions..." },
-    { progress: 85, label: "Polishing distractors and explanations..." },
-    { progress: 99, label: "Assembling your quiz..." },
-];
-
-
-export default function GeneratingCourse({ courseName, isQuiz = false }: { courseName: string, isQuiz?: boolean }) {
+export default function GeneratingCourse({ courseName }: { courseName: string }) {
     const [progress, setProgress] = useState(0);
     const [currentStep, setCurrentStep] = useState(0);
     const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
     
-    const generationSteps = isQuiz ? quizGenerationSteps : defaultGenerationSteps;
+    const generationSteps = defaultGenerationSteps;
 
     useEffect(() => {
-        const totalDuration = isQuiz ? 8000 : 15000;
-        const stepDurations = isQuiz ? [0.2, 0.4, 0.3, 0.1] : [0.1, 0.4, 0.3, 0.15, 0.05];
+        const totalDuration = 15000;
+        const stepDurations = [0.1, 0.4, 0.3, 0.15, 0.05];
 
         let stepStartTime = 0;
         let stepIndex = 0;
@@ -86,7 +78,7 @@ export default function GeneratingCourse({ courseName, isQuiz = false }: { cours
             cancelAnimationFrame(animationFrameId);
             clearInterval(quoteInterval);
         };
-    }, [isQuiz, generationSteps]);
+    }, [generationSteps]);
 
     return (
         <div className="flex flex-col items-center justify-center h-full text-center p-6">
@@ -99,7 +91,7 @@ export default function GeneratingCourse({ courseName, isQuiz = false }: { cours
                 <div className="relative mb-8 flex flex-col items-center">
                     <div className="relative w-48 h-48">
                         <AIBuddy className="w-full h-full" isStatic={false}/>
-                        {!isQuiz && (
+                        
                             <motion.div
                                 key={currentQuoteIndex}
                                 initial={{ opacity: 0, y: 10, scale: 0.9 }}
@@ -112,12 +104,12 @@ export default function GeneratingCourse({ courseName, isQuiz = false }: { cours
                                     <div className="absolute left-4 -bottom-2 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[8px] border-t-muted" />
                                 </div>
                             </motion.div>
-                        )}
+                        
                     </div>
                      <div className="h-2 w-56 bg-gray-200 dark:bg-gray-700 rounded-t-sm shadow-inner" />
                 </div>
                 
-                <h1 className="text-3xl font-bold">{isQuiz ? 'Building your quiz:' : 'Building your course:'}</h1>
+                <h1 className="text-3xl font-bold">Building your course:</h1>
                 <h2 className="text-2xl font-bold text-primary mb-4">{courseName}</h2>
                 <p className="text-muted-foreground max-w-md mx-auto mb-8">This may take a minute, grab some popcorn. I promise it will all be worth it!</p>
 
@@ -148,3 +140,5 @@ export default function GeneratingCourse({ courseName, isQuiz = false }: { cours
         </div>
     );
 }
+
+    

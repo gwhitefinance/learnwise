@@ -18,6 +18,8 @@ import { Progress } from '@/components/ui/progress';
 import { generateQuizFromModule } from '@/lib/actions';
 import type { QuizQuestion } from '@/ai/schemas/quiz-schema';
 import GeneratingCourse from '@/app/dashboard/courses/GeneratingCourse';
+import AIBuddy from '@/components/ai-buddy';
+import { motion } from 'framer-motion';
 
 type ChapterContentBlock = {
     type: 'text' | 'question';
@@ -55,10 +57,11 @@ const ChapterContentDisplay = ({ chapter }: { chapter: Chapter }) => {
     useEffect(() => {
         if (chapter.content && typeof chapter.content === 'string') {
             try {
-                setContentBlocks(JSON.parse(chapter.content));
+                const parsedContent = JSON.parse(chapter.content);
+                setContentBlocks(parsedContent);
             } catch (e) {
-                console.error("Failed to parse chapter content:", e);
-                setContentBlocks([{ type: 'text', content: 'Error displaying content.' }]);
+                 // If it's not a valid JSON string, treat it as plain text.
+                setContentBlocks([{ type: 'text', content: chapter.content }]);
             }
         } else if (Array.isArray(chapter.content)) {
             setContentBlocks(chapter.content);
@@ -116,7 +119,7 @@ const ChapterContentDisplay = ({ chapter }: { chapter: Chapter }) => {
                 </div>
             ))}
             {chapter.activity && (
-                <Card className="bg-yellow-500/10 border-yellow-500/20">
+                 <Card className="bg-yellow-500/10 border-yellow-500/20">
                     <CardContent className="p-6">
                          <h4 className="font-bold text-yellow-700">Quick Activity</h4>
                          <p className="text-yellow-800/80">{chapter.activity}</p>
@@ -126,6 +129,89 @@ const ChapterContentDisplay = ({ chapter }: { chapter: Chapter }) => {
         </div>
     )
 };
+
+const quizGenerationSteps = [
+    { progress: 15, label: "Analyzing module content..." },
+    { progress: 50, label: "Crafting challenging questions..." },
+    { progress: 85, label: "Polishing distractors and explanations..." },
+    { progress: 99, label: "Assembling your quiz..." },
+];
+
+const QuizLoadingState = ({ unitTitle }: { unitTitle: string }) => {
+    const [progress, setProgress] = useState(0);
+    const [currentStep, setCurrentStep] = useState(0);
+
+     useEffect(() => {
+        const totalDuration = 8000;
+        const stepDurations = [0.2, 0.4, 0.3, 0.1];
+
+        let stepStartTime = 0;
+        let stepIndex = 0;
+        let animationFrameId: number;
+
+        const animateProgress = (timestamp: number) => {
+            if (!stepStartTime) stepStartTime = timestamp;
+            const elapsedTime = timestamp - stepStartTime;
+
+            const currentStepInfo = quizGenerationSteps[stepIndex];
+            const previousStepProgress = stepIndex > 0 ? quizGenerationSteps[stepIndex - 1].progress : 0;
+            const stepDuration = totalDuration * stepDurations[stepIndex];
+            
+            let stepProgress = Math.min(1, elapsedTime / stepDuration);
+            let newOverallProgress = Math.floor(previousStepProgress + stepProgress * (currentStepInfo.progress - previousStepProgress));
+
+            setProgress(newOverallProgress);
+            setCurrentStep(stepIndex);
+
+            if (stepProgress >= 1) {
+                if (stepIndex < quizGenerationSteps.length - 1) {
+                    stepIndex++;
+                    stepStartTime = timestamp;
+                } else {
+                    setProgress(99); 
+                    return;
+                }
+            }
+            animationFrameId = requestAnimationFrame(animateProgress);
+        };
+        
+        animationFrameId = requestAnimationFrame(animateProgress);
+        
+        return () => cancelAnimationFrame(animationFrameId);
+    }, []);
+
+    return (
+        <div className="flex flex-col items-center justify-center h-full text-center p-6 max-w-md mx-auto">
+            <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5 }}
+                className="w-full"
+            >
+                <div className="relative mb-8 flex flex-col items-center">
+                    <div className="relative w-32 h-32">
+                        <AIBuddy className="w-full h-full" isStatic={false}/>
+                    </div>
+                </div>
+                
+                <h1 className="text-2xl font-bold">Building your quiz:</h1>
+                <h2 className="text-xl font-bold text-primary mb-4">{unitTitle}</h2>
+                <p className="text-muted-foreground text-sm max-w-md mx-auto mb-8">Get ready to show what you know!</p>
+
+                <div className="w-full max-w-sm mx-auto">
+                     <div className="flex justify-between items-center mb-1">
+                        <p className="text-xs text-muted-foreground text-left">
+                            {quizGenerationSteps[currentStep].label}
+                        </p>
+                         <p className="text-xs font-semibold text-primary">{progress}%</p>
+                    </div>
+                    <Progress value={progress} className="mb-6 h-2"/>
+                </div>
+            </motion.div>
+        </div>
+    );
+};
+
 
 const ModuleQuiz = ({ course, unit }: { course: Course, unit: Unit }) => {
     const [quiz, setQuiz] = useState<QuizQuestion[] | null>(null);
@@ -193,7 +279,7 @@ const ModuleQuiz = ({ course, unit }: { course: Course, unit: Unit }) => {
     };
 
     if (isGenerating) {
-        return <GeneratingCourse courseName={`Quiz for ${unit.title}`} />;
+        return <QuizLoadingState unitTitle={unit.title} />;
     }
 
     if (!quiz) {
@@ -314,7 +400,7 @@ export default function ChapterPage() {
     }, [courseId, chapterId, user, authLoading, router, toast]);
 
     const handleComplete = async () => {
-        if (!course || !user || !chapter) return;
+        if (!course || !user || !chapter || !unit) return;
         
         const courseRef = doc(db, 'courses', courseId as string);
         
@@ -325,20 +411,10 @@ export default function ChapterPage() {
             
             toast({ title: 'Chapter Complete!', description: 'Moving to the next chapter.'});
 
-            let currentUnit: Unit | undefined;
-            let chapterIndex = -1;
-
-            for(const u of course.units) {
-                const index = u.chapters.findIndex(c => c.id === chapter.id);
-                if (index !== -1) {
-                    currentUnit = u;
-                    chapterIndex = index;
-                    break;
-                }
-            }
+            const chapterIndex = unit.chapters.findIndex(c => c.id === chapter.id);
             
-            if (currentUnit && chapterIndex < currentUnit.chapters.length - 1) {
-                const nextChapter = currentUnit.chapters[chapterIndex + 1];
+            if (chapterIndex < unit.chapters.length - 1) {
+                const nextChapter = unit.chapters[chapterIndex + 1];
                 router.push(`/dashboard/courses/${courseId}/${nextChapter.id}`);
             } else {
                 router.push(`/dashboard/courses/${courseId}`);
@@ -381,3 +457,5 @@ export default function ChapterPage() {
         </div>
     )
 }
+
+    
