@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -45,6 +44,17 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'; 
 import { useRouter, useParams } from 'next/navigation';
 import type { GenerateQuizInput } from '@/ai/schemas/quiz-schema';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 interface Message {
   id: string;
@@ -370,6 +380,7 @@ export default function NoteEditorPage() {
     const noteId = params.noteId as string;
     const [isLoadingNote, setIsLoadingNote] = useState(true);
     const [noteData, setNoteData] = useState<Note | null>(null);
+    const [isNoteSaved, setIsNoteSaved] = useState(false);
     
     useEffect(() => {
         const isNewNote = noteId === 'new';
@@ -380,6 +391,7 @@ export default function NoteEditorPage() {
 
         if (isNewNote) {
             setNoteData({ title: 'Untitled Note', content: ''});
+            setIsNoteSaved(false); // A new note is not saved
             setIsLoadingNote(false);
             return;
         }
@@ -395,18 +407,28 @@ export default function NoteEditorPage() {
                     setNoteTitle(data.title);
                     setSelectedCourseId(data.courseId);
                     setSelectedUnitId(data.unitId);
+                    setIsNoteSaved(true); // An existing note is considered saved
                 } else {
-                    toast({ variant: 'destructive', title: 'Note not found or access denied.' });
+                    // Only show toast if it's not a 'new' note page causing a check
+                    if (noteId !== 'new') {
+                       toast({ variant: 'destructive', title: 'Note not found or access denied.' });
+                    }
                     router.push('/dashboard/notes');
                 }
             } catch (error) {
-                toast({ variant: 'destructive', title: 'Error loading note.' });
+                 if (noteId !== 'new') {
+                    toast({ variant: 'destructive', title: 'Error loading note.' });
+                 }
             } finally {
                 setIsLoadingNote(false);
             }
         };
         
-        loadNote();
+        if(noteId !== 'new') {
+            loadNote();
+        } else {
+            setIsLoadingNote(false);
+        }
     }, [noteId, user, router, toast]);
 
     useEffect(() => {
@@ -435,6 +457,7 @@ export default function NoteEditorPage() {
                             `<h3>Problem: ${s.problem}</h3><p><strong>Answer:</strong> ${s.answer}</p><h4>Steps:</h4><ol>${s.steps.map(step => `<li>${step}</li>`).join('')}</ol>`
                         ).join('<hr/>');
                         editorRef.current.innerHTML += `<br/><h2>Note from Image Upload</h2>${solutionsHtml}`;
+                         setIsNoteSaved(false); // Content has changed
                     }
                     toast({ title: "Success!", description: "Your image has been analyzed and added to your note." });
                 } catch (e) {
@@ -454,6 +477,7 @@ export default function NoteEditorPage() {
     const handleCommand = (command: string, value?: string) => {
         document.execCommand(command, false, value);
         editorRef.current?.focus();
+        setIsNoteSaved(false);
     };
     
     const handleNoteGenerated = (noteHtml: string) => {
@@ -461,6 +485,7 @@ export default function NoteEditorPage() {
             const currentContent = editorRef.current.innerHTML;
             const newContent = currentContent + '<br>' + noteHtml;
             editorRef.current.innerHTML = newContent;
+            setIsNoteSaved(false);
         }
     };
 
@@ -470,7 +495,7 @@ export default function NoteEditorPage() {
     
         const userMessage: Message = { role: 'user', content: messageContent, id: crypto.randomUUID() };
         setChatHistory(prev => [...prev, userMessage]);
-        setChatInput('');
+        setInput('');
         setIsChatLoading(true);
     
         try {
@@ -505,6 +530,7 @@ export default function NoteEditorPage() {
             reader.onload = (event) => {
                 const dataUrl = event.target?.result as string;
                 document.execCommand('insertImage', false, dataUrl);
+                setIsNoteSaved(false);
             };
             reader.readAsDataURL(file);
         }
@@ -514,6 +540,7 @@ export default function NoteEditorPage() {
         const url = prompt("Enter the URL:");
         if (url) {
             document.execCommand('createLink', false, url);
+            setIsNoteSaved(false);
         }
     };
     
@@ -543,31 +570,35 @@ export default function NoteEditorPage() {
 
         try {
             if (noteId && noteId !== 'new') {
-                // Update existing note
                 const noteRef = doc(db, "notes", noteId);
                 await updateDoc(noteRef, notePayload);
                 toast({ title: "Note Updated!", description: "Your changes have been saved." });
             } else {
-                 // Create new note
                 const docRef = await addDoc(collection(db, "notes"), {
                     ...notePayload,
                     color: 'bg-indigo-100 dark:bg-indigo-900/20',
                     isImportant: false,
                     isCompleted: false,
                 });
-                // After creating, redirect to the new note's dynamic URL
                 router.replace(`/dashboard/notes/${docRef.id}`);
                 toast({ title: "Note Saved!", description: "Your note has been successfully saved." });
             }
+            setIsNoteSaved(true);
         } catch (error) {
             console.error("Error saving note: ", error);
             toast({ variant: "destructive", title: "Error", description: "Could not save the note." });
         } finally {
             setIsSaveDialogOpen(false);
-            setSelectedCourseId(undefined);
-            setSelectedUnitId(undefined);
         }
     };
+    
+    const handleEditorChange = () => {
+        const content = editorRef.current?.innerHTML || '';
+        const initialContent = noteData?.content || '';
+        if (content !== initialContent) {
+            setIsNoteSaved(false);
+        }
+    }
 
     const selectedCourseForFilter = courses.find(c => c.id === selectedCourseId);
     
@@ -577,7 +608,7 @@ export default function NoteEditorPage() {
 
 
     return (
-        <div className="h-screen w-screen">
+        <div className="relative h-screen w-screen flex flex-col">
             <LiveLecturePanel show={showLiveLecture} setShow={setShowLiveLecture} onNoteGenerated={handleNoteGenerated} onTranscriptUpdate={setLectureTranscript} onAudioUpdate={setLectureAudioUrl} />
             <div className="flex h-full overflow-hidden">
                 <main className={cn(
@@ -587,14 +618,32 @@ export default function NoteEditorPage() {
                     <header className="flex-shrink-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-6 py-3">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                                <Link href="/dashboard/notes">
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500 dark:text-gray-400">
-                                        <X size={20} />
-                                    </Button>
-                                </Link>
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500 dark:text-gray-400">
+                                            <X size={20} />
+                                        </Button>
+                                    </AlertDialogTrigger>
+                                    {!isNoteSaved && (
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Unsaved Changes</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    You have unsaved changes. Are you sure you want to exit without saving?
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Stay</AlertDialogCancel>
+                                                <AlertDialogAction onClick={() => router.push('/dashboard/notes')}>Exit Without Saving</AlertDialogAction>
+                                                <Button onClick={() => { handleSaveNote(); router.push('/dashboard/notes'); }}>Save and Exit</Button>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    )}
+                                </AlertDialog>
+
                                 <Input 
                                     value={noteTitle}
-                                    onChange={(e) => setNoteTitle(e.target.value)}
+                                    onChange={(e) => {setNoteTitle(e.target.value); setIsNoteSaved(false);}}
                                     className="text-xl font-semibold text-gray-900 dark:text-white bg-transparent border-none focus-visible:ring-0 shadow-none p-0 h-auto"
                                 />
                                 <button className="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 p-1 rounded-full">
@@ -638,6 +687,7 @@ export default function NoteEditorPage() {
                                 className="relative flex-1 p-8 prose prose-lg max-w-none dark:prose-invert outline-none" 
                                 suppressContentEditableWarning={true}
                                 data-placeholder="Start writing note here..."
+                                onInput={handleEditorChange}
                             >
                             </div>
                         </div>
