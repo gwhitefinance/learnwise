@@ -173,10 +173,10 @@ export default function UploadPage() {
                 learnerType,
             });
             
-            const newUnits = result.modules.map((module) => ({
+            const newUnits = result.modules.map((module: any) => ({
                 id: crypto.randomUUID(),
                 title: module.title,
-                chapters: module.chapters.map((chapter) => ({
+                chapters: module.chapters.map((chapter: any) => ({
                     id: crypto.randomUUID(),
                     title: chapter.title,
                     content: chapter.content,
