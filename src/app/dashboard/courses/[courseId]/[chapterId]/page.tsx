@@ -1,18 +1,23 @@
+
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
-import { doc, onSnapshot, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
-import { ArrowLeft, Check, Loader2 } from 'lucide-react';
+import { doc, onSnapshot, getDoc, updateDoc, arrayUnion, collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { ArrowLeft, Check, Loader2, X, CheckCircle, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Loading from './loading';
+import { Progress } from '@/components/ui/progress';
+import { generateQuizFromModule } from '@/lib/actions';
+import type { QuizQuestion } from '@/ai/schemas/quiz-schema';
+import GeneratingCourse from '@/app/dashboard/courses/GeneratingCourse';
 
 type ChapterContentBlock = {
     type: 'text' | 'question';
@@ -42,6 +47,219 @@ type Course = {
     completedChapters?: string[];
 };
 
+const ChapterContentDisplay = ({ chapter }: { chapter: Chapter }) => {
+    const [contentBlocks, setContentBlocks] = useState<ChapterContentBlock[]>([]);
+    const [userAnswers, setUserAnswers] = useState<Record<number, string>>({});
+    const [submittedAnswers, setSubmittedAnswers] = useState<Record<number, boolean>>({});
+
+    useEffect(() => {
+        if (chapter.content && typeof chapter.content === 'string') {
+            try {
+                setContentBlocks(JSON.parse(chapter.content));
+            } catch (e) {
+                console.error("Failed to parse chapter content:", e);
+                setContentBlocks([{ type: 'text', content: 'Error displaying content.' }]);
+            }
+        } else if (Array.isArray(chapter.content)) {
+            setContentBlocks(chapter.content);
+        }
+    }, [chapter]);
+
+    const handleAnswerChange = (questionIndex: number, answer: string) => {
+        setUserAnswers(prev => ({...prev, [questionIndex]: answer}));
+    };
+    
+    const handleSubmitAnswer = (questionIndex: number) => {
+        setSubmittedAnswers(prev => ({...prev, [questionIndex]: true}));
+    };
+
+    return (
+        <div className="py-4 space-y-8 prose dark:prose-invert max-w-none">
+            {contentBlocks.map((block, index) => (
+                <div key={index}>
+                    {block.type === 'text' && (
+                        <p>{block.content}</p>
+                    )}
+                    {block.type === 'question' && (
+                        <Card className="bg-muted/50 my-6">
+                            <CardContent className="p-6">
+                                <p className="font-semibold mb-4">{block.question}</p>
+                                <RadioGroup 
+                                    value={userAnswers[index]} 
+                                    onValueChange={(val) => handleAnswerChange(index, val)}
+                                    disabled={submittedAnswers[index]}
+                                >
+                                    <div className="space-y-2">
+                                    {block.options?.map((option, i) => {
+                                        const isSubmitted = submittedAnswers[index];
+                                        const isCorrect = option === block.correctAnswer;
+                                        const isSelected = userAnswers[index] === option;
+                                        return (
+                                            <Label key={i} className={cn("flex items-center gap-3 p-3 rounded-md border transition-all cursor-pointer",
+                                                isSubmitted && isCorrect && "border-green-500 bg-green-500/10",
+                                                isSubmitted && isSelected && !isCorrect && "border-red-500 bg-red-500/10",
+                                                !isSubmitted && "hover:bg-background"
+                                            )}>
+                                                <RadioGroupItem value={option} />
+                                                {option}
+                                            </Label>
+                                        )
+                                    })}
+                                    </div>
+                                </RadioGroup>
+                                {!submittedAnswers[index] && (
+                                    <Button onClick={() => handleSubmitAnswer(index)} size="sm" className="mt-4" disabled={!userAnswers[index]}>Submit</Button>
+                                )}
+                            </CardContent>
+                        </Card>
+                    )}
+                </div>
+            ))}
+            {chapter.activity && (
+                <Card className="bg-yellow-500/10 border-yellow-500/20">
+                    <CardContent className="p-6">
+                         <h4 className="font-bold text-yellow-700">Quick Activity</h4>
+                         <p className="text-yellow-800/80">{chapter.activity}</p>
+                    </CardContent>
+                </Card>
+            )}
+        </div>
+    )
+};
+
+const ModuleQuiz = ({ course, unit }: { course: Course, unit: Unit }) => {
+    const [quiz, setQuiz] = useState<QuizQuestion[] | null>(null);
+    const [isGenerating, setIsGenerating] = useState(true);
+    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+    const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+    const [answers, setAnswers] = useState<Record<number, {answer: string, isCorrect: boolean}>>({});
+    const [isFinished, setIsFinished] = useState(false);
+    const [user] = useAuthState(auth);
+    const router = useRouter();
+    const { toast } = useToast();
+
+    useEffect(() => {
+        const generateQuiz = async () => {
+            setIsGenerating(true);
+            try {
+                const moduleContent = unit.chapters
+                    .filter(c => c.title !== 'Module Quiz')
+                    .map(c => `Chapter: ${c.title}\n${typeof c.content === 'string' ? c.content : JSON.stringify(c.content)}`)
+                    .join('\n\n');
+
+                const result = await generateQuizFromModule({
+                    moduleContent,
+                    learnerType: (localStorage.getItem('learnerType') as any) || 'Reading/Writing'
+                });
+                setQuiz(result.questions);
+            } catch (error) {
+                console.error("Quiz generation failed:", error);
+                toast({ variant: 'destructive', title: 'Failed to generate quiz.' });
+            } finally {
+                setIsGenerating(false);
+            }
+        };
+        generateQuiz();
+    }, [unit, toast]);
+
+    const handleSubmitAnswer = () => {
+        if (!quiz || selectedAnswer === null) return;
+        
+        const isCorrect = selectedAnswer === quiz[currentQuestionIndex].correctAnswer;
+        setAnswers(prev => ({...prev, [currentQuestionIndex]: { answer: selectedAnswer, isCorrect }}));
+        setSelectedAnswer(null);
+    };
+
+    const handleFinishQuiz = async () => {
+        if (!quiz || !user) return;
+        const score = Object.values(answers).filter(a => a.isCorrect).length;
+        const total = quiz.length;
+        
+        try {
+            await addDoc(collection(db, 'quizResults'), {
+                userId: user.uid,
+                courseId: course.id,
+                moduleId: unit.id,
+                score: score,
+                totalQuestions: total,
+                answers: answers,
+                timestamp: serverTimestamp()
+            });
+        } catch(e) {
+            console.error(e);
+        }
+
+        setIsFinished(true);
+    };
+
+    if (isGenerating) {
+        return <GeneratingCourse courseName={`Quiz for ${unit.title}`} />;
+    }
+
+    if (!quiz) {
+        return <div className="text-center p-8">Could not load the quiz. Please try again.</div>;
+    }
+    
+    const currentQuestion = quiz[currentQuestionIndex];
+    const isAnswered = answers[currentQuestionIndex] !== undefined;
+
+    if (isFinished) {
+        const score = Object.values(answers).filter(a => a.isCorrect).length;
+        const total = quiz.length;
+        return (
+            <div className="max-w-xl mx-auto text-center py-16">
+                <h2 className="text-3xl font-bold">Quiz Complete!</h2>
+                <p className="text-6xl font-bold my-6">{score} / {total}</p>
+                <Button onClick={() => router.push(`/dashboard/courses/${course.id}`)}>Back to Course</Button>
+            </div>
+        );
+    }
+
+    return (
+        <div className="max-w-2xl mx-auto py-8">
+            <div className="text-center mb-8">
+                <p className="text-sm text-muted-foreground">Question {currentQuestionIndex + 1} of {quiz.length}</p>
+                <Progress value={((currentQuestionIndex + 1) / quiz.length) * 100} className="mt-2 h-2" />
+            </div>
+            <Card>
+                <CardHeader>
+                    <CardTitle>{currentQuestion.questionText}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <RadioGroup value={selectedAnswer || ''} onValueChange={setSelectedAnswer} disabled={isAnswered}>
+                        <div className="space-y-3">
+                            {currentQuestion.options.map((option, index) => (
+                                 <Label key={index} className={cn(
+                                    "flex items-center gap-4 p-4 rounded-lg border transition-all",
+                                    isAnswered && option === currentQuestion.correctAnswer && "border-green-500 bg-green-500/10",
+                                    isAnswered && selectedAnswer === option && option !== currentQuestion.correctAnswer && "border-red-500 bg-red-500/10",
+                                    !isAnswered && "cursor-pointer hover:bg-muted"
+                                )}>
+                                    <RadioGroupItem value={option} />
+                                    <span>{option}</span>
+                                     {isAnswered && option === currentQuestion.correctAnswer && <CheckCircle className="h-5 w-5 text-green-500 ml-auto"/>}
+                                    {isAnswered && selectedAnswer === option && option !== currentQuestion.correctAnswer && <XCircle className="h-5 w-5 text-red-500 ml-auto"/>}
+                                </Label>
+                            ))}
+                        </div>
+                    </RadioGroup>
+                </CardContent>
+                <CardFooter className="justify-end">
+                    {isAnswered ? (
+                         currentQuestionIndex < quiz.length - 1 ? (
+                            <Button onClick={() => setCurrentQuestionIndex(prev => prev + 1)}>Next</Button>
+                        ) : (
+                            <Button onClick={handleFinishQuiz}>Finish Quiz</Button>
+                        )
+                    ) : (
+                        <Button onClick={handleSubmitAnswer} disabled={!selectedAnswer}>Submit</Button>
+                    )}
+                </CardFooter>
+            </Card>
+        </div>
+    )
+}
+
 export default function ChapterPage() {
     const params = useParams();
     const router = useRouter();
@@ -52,10 +270,8 @@ export default function ChapterPage() {
     
     const [course, setCourse] = useState<Course | null>(null);
     const [chapter, setChapter] = useState<Chapter | null>(null);
+    const [unit, setUnit] = useState<Unit | null>(null);
     const [loading, setLoading] = useState(true);
-
-    const [userAnswers, setUserAnswers] = useState<Record<number, string>>({});
-    const [submittedAnswers, setSubmittedAnswers] = useState<Record<number, boolean>>({});
 
     useEffect(() => {
         if (!user || !courseId || !chapterId) {
@@ -69,23 +285,21 @@ export default function ChapterPage() {
                 const courseData = { id: docSnap.id, ...docSnap.data() } as Course;
                 setCourse(courseData);
                 
-                const foundChapter = courseData.units
-                    ?.flatMap(u => u.chapters)
-                    .find(c => c.id === chapterId);
+                let foundChapter: Chapter | undefined;
+                let foundUnit: Unit | undefined;
 
-                if (foundChapter) {
-                    if (typeof foundChapter.content === 'string' && foundChapter.content.trim().startsWith('[')) {
-                        try {
-                            foundChapter.content = JSON.parse(foundChapter.content);
-                        } catch (e) {
-                            console.error("Failed to parse chapter content:", e);
-                            foundChapter.content = [{ type: 'text', content: 'Error displaying content.' }];
-                        }
-                    } else if (typeof foundChapter.content === 'string') {
-                         foundChapter.content = [{ type: 'text', content: foundChapter.content }];
+                for (const u of courseData.units || []) {
+                    const c = u.chapters.find(c => c.id === chapterId);
+                    if (c) {
+                        foundChapter = c;
+                        foundUnit = u;
+                        break;
                     }
-                    
+                }
+
+                if (foundChapter && foundUnit) {
                     setChapter(foundChapter);
+                    setUnit(foundUnit);
                 } else {
                     toast({ variant: 'destructive', title: 'Chapter not found' });
                 }
@@ -98,14 +312,6 @@ export default function ChapterPage() {
 
         return () => unsubscribe();
     }, [courseId, chapterId, user, authLoading, router, toast]);
-
-    const handleAnswerChange = (questionIndex: number, answer: string) => {
-        setUserAnswers(prev => ({...prev, [questionIndex]: answer}));
-    };
-    
-    const handleSubmitAnswer = (questionIndex: number) => {
-        setSubmittedAnswers(prev => ({...prev, [questionIndex]: true}));
-    };
 
     const handleComplete = async () => {
         if (!course || !user || !chapter) return;
@@ -122,10 +328,10 @@ export default function ChapterPage() {
             let currentUnit: Unit | undefined;
             let chapterIndex = -1;
 
-            for(const unit of course.units) {
-                const index = unit.chapters.findIndex(c => c.id === chapter.id);
+            for(const u of course.units) {
+                const index = u.chapters.findIndex(c => c.id === chapter.id);
                 if (index !== -1) {
-                    currentUnit = unit;
+                    currentUnit = u;
                     chapterIndex = index;
                     break;
                 }
@@ -153,8 +359,10 @@ export default function ChapterPage() {
         return <div>Chapter not found.</div>
     }
 
-    const contentBlocks = Array.isArray(chapter.content) ? chapter.content : [];
-
+    if (chapter.title === 'Module Quiz' && course && unit) {
+        return <ModuleQuiz course={course} unit={unit} />;
+    }
+    
     return (
         <div className="max-w-4xl mx-auto p-4 md:p-8">
             <Button variant="ghost" onClick={() => router.push(`/dashboard/courses/${courseId}`)} className="mb-4">
@@ -164,56 +372,7 @@ export default function ChapterPage() {
             <h1 className="text-4xl font-bold mb-2">{chapter.title}</h1>
             <p className="text-muted-foreground mb-8">From course: {course?.name}</p>
 
-            <div className="py-4 space-y-8 prose dark:prose-invert max-w-none">
-                {contentBlocks.map((block, index) => (
-                    <div key={index}>
-                        {block.type === 'text' && (
-                            <p>{block.content}</p>
-                        )}
-                        {block.type === 'question' && (
-                            <Card className="bg-muted/50 my-6">
-                                <CardContent className="p-6">
-                                    <p className="font-semibold mb-4">{block.question}</p>
-                                    <RadioGroup 
-                                        value={userAnswers[index]} 
-                                        onValueChange={(val) => handleAnswerChange(index, val)}
-                                        disabled={submittedAnswers[index]}
-                                    >
-                                        <div className="space-y-2">
-                                        {block.options?.map((option, i) => {
-                                            const isSubmitted = submittedAnswers[index];
-                                            const isCorrect = option === block.correctAnswer;
-                                            const isSelected = userAnswers[index] === option;
-                                            return (
-                                                <Label key={i} className={cn("flex items-center gap-3 p-3 rounded-md border transition-all cursor-pointer",
-                                                    isSubmitted && isCorrect && "border-green-500 bg-green-500/10",
-                                                    isSubmitted && isSelected && !isCorrect && "border-red-500 bg-red-500/10",
-                                                    !isSubmitted && "hover:bg-background"
-                                                )}>
-                                                    <RadioGroupItem value={option} />
-                                                    {option}
-                                                </Label>
-                                            )
-                                        })}
-                                        </div>
-                                    </RadioGroup>
-                                    {!submittedAnswers[index] && (
-                                        <Button onClick={() => handleSubmitAnswer(index)} size="sm" className="mt-4" disabled={!userAnswers[index]}>Submit</Button>
-                                    )}
-                                </CardContent>
-                            </Card>
-                        )}
-                    </div>
-                ))}
-                {chapter.activity && (
-                    <Card className="bg-yellow-500/10 border-yellow-500/20">
-                        <CardContent className="p-6">
-                             <h4 className="font-bold text-yellow-700">Quick Activity</h4>
-                             <p className="text-yellow-800/80">{chapter.activity}</p>
-                        </CardContent>
-                    </Card>
-                )}
-            </div>
+            <ChapterContentDisplay chapter={chapter} />
             
             <Button onClick={handleComplete} size="lg" className="w-full mt-12">
                 <Check className="mr-2 h-5 w-5"/>
