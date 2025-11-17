@@ -10,7 +10,7 @@ import { auth, db } from '@/lib/firebase';
 import { doc, onSnapshot, getDoc, collection, query, where, updateDoc, arrayUnion } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
-import { CheckCircle, Lock, ArrowLeft, Loader2, X, Check, BookMarked, BrainCircuit, MessageSquare, Copy } from 'lucide-react';
+import { CheckCircle, Lock, ArrowLeft, Loader2, X, Check, BookMarked, BrainCircuit, MessageSquare, Copy, Lightbulb, Play } from 'lucide-react';
 import { generateModuleContent, generateSummary, generateChapterContent } from '@/lib/actions';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
@@ -224,10 +224,10 @@ export default function CoursePage() {
             const courseSnap = await getDoc(courseRef);
             if (courseSnap.exists()) {
                 const currentCourseData = courseSnap.data() as Course;
-                const updatedUnits = currentCourseData.units.map(u => u.id === updatedModule.id ? { ...updatedModule, chapters: updatedModule.chapters.map(c => ({...c, content: JSON.stringify(c.content)})) } : u);
+                const updatedUnits = currentCourseData.units.map(u => u.id === updatedModule.id ? { ...updatedModule, chapters: updatedModule.chapters.map(c => ({...c, content: c.content })) } : u);
                 await updateDoc(courseRef, { units: updatedUnits });
                 
-                setSelectedUnit({ ...updatedModule, chapters: updatedModule.chapters.map(c => ({...c, content: JSON.stringify(c.content)})) });
+                setSelectedUnit({ ...updatedModule, chapters: updatedModule.chapters.map(c => ({...c, content: c.content})) });
             }
 
             toast({ title: 'Content Generated!', description: `${unit.title} is ready.`});
@@ -381,6 +381,7 @@ export default function CoursePage() {
                                     </div>
                                     <div className="flex flex-col gap-2 mt-auto">
                                         <Button className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200" onClick={() => openModule(unit)}>
+                                            <Play className="mr-2 h-4 w-4"/>
                                             {completedChaptersCount > 0 ? 'Continue Module' : 'Start Module'}
                                         </Button>
                                         <Button className="w-full" variant="outline">
@@ -388,7 +389,8 @@ export default function CoursePage() {
                                         </Button>
                                         <hr className="my-2 border-border" />
                                         <Button className="w-full" asChild>
-                                            <Link href={`/dashboard/courses/${course.id}/${unit.chapters.find(c => c.title === 'Module Quiz')?.id || ''}`}>
+                                            <Link href={`/dashboard/courses/${courseId}/${unit.chapters.find(c => c.title === 'Module Quiz')?.id || ''}`}>
+                                                <Lightbulb className="mr-2 h-4 w-4"/>
                                                 Take Practice Quiz
                                             </Link>
                                         </Button>
@@ -454,4 +456,3 @@ export default function CoursePage() {
     );
 }
 
-    
