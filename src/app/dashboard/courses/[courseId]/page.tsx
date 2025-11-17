@@ -23,7 +23,7 @@ import { Progress } from '@/components/ui/progress';
 import { FloatingChatContext } from '@/components/floating-chat';
 import AIBuddy from '@/components/ai-buddy';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogTrigger, DialogClose, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTrigger, DialogClose, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import type { QuizQuestion } from '@/ai/schemas/quiz-schema';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -556,7 +556,7 @@ export default function CoursePage() {
                             <Card>
                                 <CardHeader>
                                     <div className="flex justify-between items-center">
-                                        <CardTitle className="flex items-center gap-2"><Tag /> Key Concepts</CardTitle>
+                                        <CardTitle className="flex items-center gap-2"><Tag /> AI Settings</CardTitle>
                                         <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setIsEditingConcepts(!isEditingConcepts)}><Pen className="h-4 w-4"/></Button>
                                     </div>
                                     <CardDescription>Define the core topics for the AI to focus on, separated by commas.</CardDescription>
@@ -589,14 +589,12 @@ export default function CoursePage() {
                                         </Button>
                                     )}
                                 </CardContent>
-                                {isEditingConcepts && (
-                                    <CardFooter>
-                                         <Button variant="secondary" size="sm" className="w-full" onClick={handleRegenerateOutline} disabled={isRegenerating}>
-                                            {isRegenerating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
-                                            Regenerate Course Outline
-                                        </Button>
-                                    </CardFooter>
-                                )}
+                                <CardFooter>
+                                        <Button variant="secondary" size="sm" className="w-full" onClick={handleRegenerateOutline} disabled={isRegenerating}>
+                                        {isRegenerating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
+                                        Regenerate Course Outline
+                                    </Button>
+                                </CardFooter>
                             </Card>
                         </div>
                     </aside>
