@@ -14,6 +14,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '
 import { CheckCircle, Lock } from 'lucide-react';
 import { generateModuleContent } from '@/lib/actions';
 import { Loader2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 type Material = {
     type: 'file' | 'text' | 'url' | 'audio';
