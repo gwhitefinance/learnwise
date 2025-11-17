@@ -10,13 +10,14 @@ import { auth, db } from '@/lib/firebase';
 import { doc, onSnapshot, getDoc, collection, query, where, updateDoc, arrayUnion } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
-import { CheckCircle, Lock, ArrowLeft, Loader2, X, Check, BookMarked, BrainCircuit, MessageSquare, Copy, Lightbulb, Play } from 'lucide-react';
-import { generateModuleContent, generateSummary, generateChapterContent } from '@/lib/actions';
+import { CheckCircle, Lock, ArrowLeft, Loader2, X, Check, BookMarked, BrainCircuit, MessageSquare, Copy, Lightbulb, Play, Pen, Tag, RefreshCw } from 'lucide-react';
+import { generateModuleContent, generateSummary, generateChapterContent, generateMiniCourse } from '@/lib/actions';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { FloatingChatContext } from '@/components/floating-chat';
 import AIBuddy from '@/components/ai-buddy';
@@ -49,6 +50,7 @@ type Course = {
     description?: string;
     units: Unit[];
     completedChapters?: string[];
+    keyConcepts?: string[];
 };
 
 const ChapterContentDisplay = ({ chapter }: { chapter: Chapter }) => {
@@ -172,6 +174,11 @@ export default function CoursePage() {
     const [currentSummary, setCurrentSummary] = useState('');
     const [generationProgress, setGenerationProgress] = useState(0);
 
+    const [isEditingConcepts, setIsEditingConcepts] = useState(false);
+    const [tempConcepts, setTempConcepts] = useState('');
+    const [isRegenerating, setIsRegenerating] = useState(false);
+
+
     const { toast } = useToast();
     const { openChatWithPrompt } = useContext(FloatingChatContext) as any;
 
@@ -191,6 +198,7 @@ export default function CoursePage() {
             if (docSnap.exists() && docSnap.data().userId === user.uid) {
                 const courseData = { id: docSnap.id, ...docSnap.data() } as Course;
                 setCourse(courseData);
+                 setTempConcepts(courseData.keyConcepts?.join(', ') || '');
             } else {
                 router.push('/dashboard/courses');
             }
@@ -224,10 +232,10 @@ export default function CoursePage() {
             const courseSnap = await getDoc(courseRef);
             if (courseSnap.exists()) {
                 const currentCourseData = courseSnap.data() as Course;
-                const updatedUnits = currentCourseData.units.map(u => u.id === updatedModule.id ? { ...updatedModule, chapters: updatedModule.chapters.map(c => ({...c, content: c.content })) } : u);
+                const updatedUnits = currentCourseData.units.map(u => u.id === updatedModule.id ? { ...updatedModule, chapters: updatedModule.chapters.map(c => ({...c, content: c.content as any })) } : u);
                 await updateDoc(courseRef, { units: updatedUnits });
                 
-                setSelectedUnit({ ...updatedModule, chapters: updatedModule.chapters.map(c => ({...c, content: c.content})) });
+                setSelectedUnit({ ...updatedModule, chapters: updatedModule.chapters.map(c => ({...c, content: c.content as any})) });
             }
 
             toast({ title: 'Content Generated!', description: `${unit.title} is ready.`});
@@ -274,7 +282,7 @@ export default function CoursePage() {
                      setIsSheetOpen(false);
                     setIsGeneratingNext(true);
 
-                    const summaryResult = await generateSummary({ noteContent: JSON.stringify(activeChapter.content) });
+                    const summaryResult = await generateSummary({ noteContent: typeof activeChapter.content === 'string' ? activeChapter.content : JSON.stringify(activeChapter.content) });
                     setCurrentSummary(summaryResult.summary);
                     setGenerationProgress(20);
 
@@ -320,6 +328,48 @@ export default function CoursePage() {
         }
     };
     
+     const handleSaveConcepts = async () => {
+        if (!course) return;
+        const conceptsArray = tempConcepts.split(',').map(c => c.trim()).filter(Boolean);
+        try {
+            const courseRef = doc(db, 'courses', course.id);
+            await updateDoc(courseRef, { keyConcepts: conceptsArray });
+            toast({ title: 'Key Concepts Updated!' });
+            setIsEditingConcepts(false);
+        } catch (error) {
+            console.error("Error saving concepts:", error);
+            toast({ variant: 'destructive', title: 'Could not save concepts.' });
+        }
+    };
+
+    const handleRegenerateOutline = async () => {
+        if (!course) return;
+        setIsRegenerating(true);
+        toast({ title: 'Regenerating Course Outline...' });
+        try {
+            const result = await generateMiniCourse({
+                courseName: course.name,
+                courseDescription: `A course about ${course.name}. The key concepts are: ${course.keyConcepts?.join(', ') || ''}`,
+                learnerType: (localStorage.getItem('learnerType') as any) || 'Reading/Writing',
+            });
+            const newUnits = result.modules.map(module => ({
+                id: crypto.randomUUID(),
+                title: module.title,
+                chapters: module.chapters.map(chapter => ({
+                    id: crypto.randomUUID(),
+                    title: chapter.title,
+                }))
+            }));
+            const courseRef = doc(db, 'courses', course.id);
+            await updateDoc(courseRef, { units: newUnits, completedChapters: [] }); // Reset progress
+            toast({ title: 'Course Outline Regenerated!' });
+        } catch(error) {
+            toast({ variant: 'destructive', title: 'Failed to regenerate outline.' });
+        } finally {
+            setIsRegenerating(false);
+        }
+    };
+
     if (isGeneratingNext) {
         return <GeneratingNextChapter summary={currentSummary} progress={generationProgress} />;
     }
@@ -400,23 +450,65 @@ export default function CoursePage() {
                         </div>
                     </div>
                     <aside className="w-full lg:w-72 xl:w-80 lg:sticky top-24 self-start flex-shrink-0">
-                        <div className="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
-                            <h3 className="text-lg font-bold mb-4">Study Tools</h3>
-                            <div className="flex flex-col gap-3">
-                                <Button variant="outline" className="w-full justify-start" asChild>
-                                    <Link href="/dashboard/key-concepts">
-                                        <BookMarked className="mr-2 h-4 w-4" /> Key Concepts
-                                    </Link>
-                                </Button>
-                                <Button variant="outline" className="w-full justify-start" asChild>
-                                    <Link href="/dashboard/taz-tutors">
-                                        <BrainCircuit className="mr-2 h-4 w-4" /> Taz Study Session
-                                    </Link>
-                                </Button>
-                                <Button variant="outline" className="w-full justify-start" onClick={() => openChatWithPrompt(`I have a question about ${course.name}`)}>
-                                    <MessageSquare className="mr-2 h-4 w-4" /> Ask {aiBuddyName}
-                                </Button>
+                        <div className="space-y-6">
+                            <div className="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
+                                <h3 className="text-lg font-bold mb-4">Study Tools</h3>
+                                <div className="flex flex-col gap-3">
+                                    <Button variant="outline" className="w-full justify-start" asChild>
+                                        <Link href="/dashboard/key-concepts">
+                                            <BookMarked className="mr-2 h-4 w-4" /> Key Concepts
+                                        </Link>
+                                    </Button>
+                                    <Button variant="outline" className="w-full justify-start" asChild>
+                                        <Link href="/dashboard/taz-tutors">
+                                            <BrainCircuit className="mr-2 h-4 w-4" /> {aiBuddyName} Study Session
+                                        </Link>
+                                    </Button>
+                                    <Button variant="outline" className="w-full justify-start" onClick={() => openChatWithPrompt(`I have a question about ${course.name}`)}>
+                                        <MessageSquare className="mr-2 h-4 w-4" /> Ask {aiBuddyName}
+                                    </Button>
+                                </div>
                             </div>
+                            <Card>
+                                <CardHeader>
+                                    <div className="flex justify-between items-center">
+                                        <CardTitle className="flex items-center gap-2"><Tag /> Key Concepts</CardTitle>
+                                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setIsEditingConcepts(!isEditingConcepts)}><Pen className="h-4 w-4"/></Button>
+                                    </div>
+                                    <CardDescription>Define the core topics for the AI to focus on.</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    {isEditingConcepts ? (
+                                        <div className="space-y-2">
+                                            <Input 
+                                                value={tempConcepts}
+                                                onChange={(e) => setTempConcepts(e.target.value)}
+                                                placeholder="e.g., Photosynthesis, Cellular Respiration"
+                                            />
+                                            <div className="flex gap-2">
+                                                <Button size="sm" onClick={handleSaveConcepts}>Save</Button>
+                                                <Button size="sm" variant="ghost" onClick={() => setIsEditingConcepts(false)}>Cancel</Button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="flex flex-wrap gap-2">
+                                            {course.keyConcepts && course.keyConcepts.length > 0 ? (
+                                                course.keyConcepts.map(c => <Badge key={c}>{c}</Badge>)
+                                            ) : (
+                                                <p className="text-sm text-muted-foreground">No concepts defined yet.</p>
+                                            )}
+                                        </div>
+                                    )}
+                                </CardContent>
+                                {isEditingConcepts && (
+                                    <CardFooter>
+                                         <Button variant="secondary" size="sm" className="w-full" onClick={handleRegenerateOutline} disabled={isRegenerating}>
+                                            {isRegenerating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
+                                            Regenerate Course Outline
+                                        </Button>
+                                    </CardFooter>
+                                )}
+                            </Card>
                         </div>
                     </aside>
                 </div>
@@ -455,4 +547,3 @@ export default function CoursePage() {
         </>
     );
 }
-
