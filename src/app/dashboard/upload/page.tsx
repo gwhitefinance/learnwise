@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useRef, ChangeEvent, useEffect } from "react";
@@ -7,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { UploadCloud, Youtube, FileText, Video, Music, Copy, QrCode, Mic, Trash2, Plus, Play, StopCircle, Wand2, Loader2 } from "lucide-react";
+import { UploadCloud, Youtube, FileText, Video, Music, Copy, QrCode, Mic, Trash2, Plus, Play, StopCircle, Wand2, Loader2, BookOpen, GitMerge, List, Lightbulb } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import QRCode from 'qrcode.react';
@@ -15,8 +14,92 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth, db } from "@/lib/firebase";
 import { addDoc, collection, doc, updateDoc } from "firebase/firestore";
-import { generateCourseFromMaterials } from "@/lib/actions";
+import { generateCrunchTimeStudyGuide } from "@/lib/actions";
+import type { CrunchTimeOutput } from '@/ai/schemas/crunch-time-schema';
 import GeneratingCourse from "../courses/GeneratingCourse";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+
+
+const StudyGuideDisplay = ({ guide, onReset }: { guide: CrunchTimeOutput, onReset: () => void }) => {
+    return (
+        <Card className="w-full mt-8">
+            <CardHeader>
+                <CardTitle className="text-2xl">{guide.title}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-8">
+                 <Accordion type="multiple" defaultValue={['summary', 'key-concepts']} className="w-full space-y-4">
+                    <AccordionItem value="summary" className="border rounded-lg bg-muted/20">
+                        <AccordionTrigger className="p-4 font-semibold text-lg flex items-center gap-2">Summary</AccordionTrigger>
+                        <AccordionContent className="px-6 pb-6 text-muted-foreground border-t pt-4">{guide.summary}</AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem value="key-concepts" className="border rounded-lg bg-muted/20">
+                        <AccordionTrigger className="p-4 font-semibold text-lg flex items-center gap-2"><BookOpen className="h-5 w-5 text-primary"/>Key Concepts</AccordionTrigger>
+                        <AccordionContent className="px-6 pb-6 space-y-4 border-t pt-4">
+                            {guide.keyConcepts.map((concept) => (
+                                <div key={concept.term}>
+                                    <p className="font-semibold">{concept.term}</p>
+                                    <p className="text-sm text-muted-foreground">{concept.definition}</p>
+                                </div>
+                            ))}
+                        </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem value="how-to-guide" className="border rounded-lg bg-muted/20">
+                        <AccordionTrigger className="p-4 font-semibold text-lg flex items-center gap-2"><GitMerge className="h-5 w-5 text-primary"/>How-to Guide</AccordionTrigger>
+                        <AccordionContent className="px-6 pb-6 space-y-4 border-t pt-4">
+                            {guide.howToGuide.map((step, i) => (
+                                <div key={i} className="flex gap-4">
+                                    <div className="flex-shrink-0 flex items-center justify-center h-8 w-8 rounded-full bg-primary text-primary-foreground font-bold">{i + 1}</div>
+                                    <div>
+                                        <p className="font-semibold">{step.step}</p>
+                                        <p className="text-sm text-muted-foreground">{step.description}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem value="study-plan" className="border rounded-lg bg-muted/20">
+                        <AccordionTrigger className="p-4 font-semibold text-lg flex items-center gap-2"><List className="h-5 w-5 text-primary"/>Action Plan</AccordionTrigger>
+                        <AccordionContent className="px-6 pb-6 space-y-4 border-t pt-4">
+                             {guide.studyPlan.map((step, i) => (
+                                <div key={i} className="flex gap-4">
+                                    <div className="flex-shrink-0 flex items-center justify-center h-8 w-8 rounded-full bg-primary text-primary-foreground font-bold">{i + 1}</div>
+                                    <div>
+                                        <p className="font-semibold">{step.step}</p>
+                                        <p className="text-sm text-muted-foreground">{step.description}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </AccordionContent>
+                    </AccordionItem>
+                     <AccordionItem value="practice-quiz" className="border rounded-lg bg-muted/20">
+                        <AccordionTrigger className="p-4 font-semibold text-lg flex items-center gap-2"><Lightbulb className="h-5 w-5 text-primary"/>Practice Quiz</AccordionTrigger>
+                        <AccordionContent className="px-6 pb-6 space-y-6 border-t pt-4">
+                            {guide.practiceQuiz.map((q, qIndex) => (
+                                <div key={qIndex} className="space-y-3">
+                                    <p className="font-semibold">{qIndex + 1}. {q.question}</p>
+                                    <RadioGroup>
+                                        {q.options.map((opt, oIndex) => (
+                                            <Label key={oIndex} className="flex items-center gap-3 p-3 border rounded-md cursor-pointer hover:bg-muted">
+                                                <RadioGroupItem value={opt} />
+                                                {opt}
+                                            </Label>
+                                        ))}
+                                    </RadioGroup>
+                                </div>
+                            ))}
+                        </AccordionContent>
+                    </AccordionItem>
+                </Accordion>
+            </CardContent>
+            <CardFooter>
+                 <Button variant="outline" onClick={onReset} className="w-full">Start Over</Button>
+            </CardFooter>
+        </Card>
+    );
+};
+
 
 export default function UploadPage() {
     const searchParams = useSearchParams();
@@ -29,21 +112,17 @@ export default function UploadPage() {
     const { toast } = useToast();
     const [user] = useAuthState(auth);
     const [isGenerating, setIsGenerating] = useState(false);
-    const [generatingCourseName, setGeneratingCourseName] = useState('');
-
-    // State for multiple inputs
-    const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
-    const [textSnippets, setTextSnippets] = useState<string[]>([]);
-    const [youtubeLinks, setYoutubeLinks] = useState<string[]>([]);
     
+    // Combined state for all materials
+    const [materials, setMaterials] = useState<{type: 'file' | 'text' | 'url' | 'audio', content: string, file?: File}[]>([]);
+
     const [currentText, setCurrentText] = useState('');
     const [currentLink, setCurrentLink] = useState('');
 
-    // Recording state
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const audioChunksRef = useRef<Blob[]>([]);
-    const [recordedAudioUrl, setRecordedAudioUrl] = useState<string | null>(null);
 
+    const [studyGuide, setStudyGuide] = useState<CrunchTimeOutput | null>(null);
 
     useEffect(() => {
         if (courseId) {
@@ -51,25 +130,11 @@ export default function UploadPage() {
         }
     }, [courseId]);
 
-    useEffect(() => {
-        const handleMessage = (event: MessageEvent) => {
-            if (event.origin !== window.location.origin) return;
-
-            if (event.data.type === 'noteUpload') {
-                toast({ title: "Image Received!", description: "Your image has been sent for processing." });
-                // Here you would typically handle the uploaded image data
-            }
-        };
-
-        window.addEventListener('message', handleMessage);
-        return () => window.removeEventListener('message', handleMessage);
-    }, [toast]);
-    
     const handleFilesSelected = (files: FileList | null) => {
         if (files) {
-            const newFiles = Array.from(files);
-            setUploadedFiles(prev => [...prev, ...newFiles]);
-            toast({ title: `${newFiles.length} file(s) added.` });
+            const newMaterials = Array.from(files).map(file => ({ type: 'file' as const, content: file.name, file }));
+            setMaterials(prev => [...prev, ...newMaterials]);
+            toast({ title: `${newMaterials.length} file(s) added.` });
         }
     }
 
@@ -85,36 +150,26 @@ export default function UploadPage() {
     const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); };
     const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); };
     const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setIsDragging(false);
+        e.preventDefault(); e.stopPropagation(); setIsDragging(false);
         handleFilesSelected(e.dataTransfer.files);
     };
     
-    const removeFile = (index: number) => {
-        setUploadedFiles(prev => prev.filter((_, i) => i !== index));
+    const removeItem = (index: number) => {
+        setMaterials(prev => prev.filter((_, i) => i !== index));
     };
 
     const addTextSnippet = () => {
         if (currentText.trim()) {
-            setTextSnippets(prev => [...prev, currentText.trim()]);
+            setMaterials(prev => [...prev, { type: 'text', content: currentText.trim() }]);
             setCurrentText('');
         }
-    };
-    
-    const removeTextSnippet = (index: number) => {
-        setTextSnippets(prev => prev.filter((_, i) => i !== index));
     };
 
     const addYoutubeLink = () => {
         if (currentLink.trim()) {
-            setYoutubeLinks(prev => [...prev, currentLink.trim()]);
+            setMaterials(prev => [...prev, { type: 'url', content: currentLink.trim() }]);
             setCurrentLink('');
         }
-    };
-    
-    const removeYoutubeLink = (index: number) => {
-        setYoutubeLinks(prev => prev.filter((_, i) => i !== index));
     };
     
     const toggleRecording = async () => {
@@ -134,13 +189,12 @@ export default function UploadPage() {
                 mediaRecorderRef.current.onstop = () => {
                     const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
                     const url = URL.createObjectURL(audioBlob);
-                    setRecordedAudioUrl(url);
+                    setMaterials(prev => [...prev, { type: 'audio', content: 'Recorded Audio', file: new File([audioBlob], "recording.wav") }]);
                     stream.getTracks().forEach(track => track.stop());
                 };
                 
                 mediaRecorderRef.current.start();
                 setIsRecording(true);
-                setRecordedAudioUrl(null);
                 toast({ title: 'Recording started...' });
             } catch (err) {
                  toast({ variant: 'destructive', title: 'Microphone access denied.' });
@@ -148,70 +202,73 @@ export default function UploadPage() {
         }
     };
 
-    const hasContent = uploadedFiles.length > 0 || textSnippets.length > 0 || youtubeLinks.length > 0 || recordedAudioUrl;
+    const hasContent = materials.length > 0;
 
-    const handleGenerateCourse = async () => {
-        if (!hasContent || !user) {
-            toast({ variant: 'destructive', title: 'No content to generate from.' });
+    const handleGenerateStudyGuide = async () => {
+        if (!materials.length) {
+            toast({ variant: 'destructive', title: 'No content provided.' });
             return;
         }
 
-        const courseName = `New Course from Materials - ${new Date().toLocaleDateString()}`;
-        setGeneratingCourseName(courseName);
         setIsGenerating(true);
+        setStudyGuide(null);
 
-        // This is a simplified approach. A real implementation would handle file uploads and content extraction.
-        // For now, we'll just use text snippets and URLs.
-        const allText = textSnippets.join('\n\n');
+        // For now, we prioritize the first piece of content for generation.
+        // A more advanced version could combine them.
+        const firstMaterial = materials[0];
 
         try {
+            let inputType: 'text' | 'url' | 'image' = 'text';
+            let content = '';
+
+            if (firstMaterial.type === 'url') {
+                inputType = 'url';
+                content = firstMaterial.content;
+            } else if (firstMaterial.type === 'file' && firstMaterial.file?.type.startsWith('image/')) {
+                inputType = 'image';
+                content = await new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target?.result as string);
+                    reader.readAsDataURL(firstMaterial.file!);
+                });
+            } else {
+                 // All other files and text are treated as text for now
+                inputType = 'text';
+                content = materials.map(m => m.content).join('\n\n');
+            }
+            
             const learnerType = localStorage.getItem('learnerType') as any || 'Reading/Writing';
-            const result = await generateCourseFromMaterials({
-                courseName,
-                textContext: allText,
-                urls: youtubeLinks,
+
+            const result = await generateCrunchTimeStudyGuide({
+                inputType,
+                content,
                 learnerType,
             });
-            
-             const newUnits = result.modules.map((module: any) => ({
-                id: crypto.randomUUID(),
-                title: module.title,
-                chapters: module.chapters.map((chapter: any) => ({
-                    id: crypto.randomUUID(),
-                    title: chapter.title,
-                }))
-            }));
-            
-            const courseData = {
-                name: result.courseTitle,
-                description: `An AI-generated course based on your uploaded materials.`,
-                userId: user.uid,
-                units: newUnits,
-                isNewTopic: true,
-                completedChapters: [],
-            };
-
-            const docRef = await addDoc(collection(db, "courses"), courseData);
-            
-            toast({ title: 'Course Generated!', description: 'Your new learning lab is ready.'});
-            router.push(`/dashboard/courses?courseId=${docRef.id}`);
-
+            setStudyGuide(result);
         } catch (error) {
             console.error(error);
-            toast({ variant: 'destructive', title: 'Course Generation Failed' });
+            toast({ variant: 'destructive', title: 'Study Guide Generation Failed' });
         } finally {
             setIsGenerating(false);
         }
-    }
+    };
 
-    if (isGenerating) {
-        return <GeneratingCourse courseName={generatingCourseName} />;
+    if (isGenerating && !studyGuide) {
+        return <GeneratingCourse courseName={"your study guide"} />;
+    }
+    
+    if (studyGuide) {
+        return (
+            <div className="p-8 max-w-6xl mx-auto">
+                 <StudyGuideDisplay guide={studyGuide} onReset={() => { setStudyGuide(null); setMaterials([]); }} />
+            </div>
+        )
     }
 
     return (
         <div className="p-8 max-w-6xl mx-auto">
             <h1 className="text-3xl font-bold tracking-tight">Add Materials</h1>
-            <p className="text-muted-foreground mb-8">Upload files, links, or record a lecture to start generating study materials.</p>
+            <p className="text-muted-foreground mb-8">Upload files, links, or record a lecture to generate a personalized study guide.</p>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div className="md:col-span-2 space-y-6">
@@ -300,39 +357,24 @@ export default function UploadPage() {
                                 <CardTitle>Staged Materials</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                {uploadedFiles.length > 0 && uploadedFiles.map((file, index) => (
-                                    <div key={index} className="flex items-center justify-between p-2 bg-muted rounded-md text-sm">
-                                        <FileText className="h-4 w-4 mr-2 flex-shrink-0"/>
-                                        <span className="flex-1 truncate">{file.name}</span>
-                                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeFile(index)}><Trash2 className="h-4 w-4 text-destructive"/></Button>
-                                    </div>
-                                ))}
-                                {textSnippets.length > 0 && textSnippets.map((text, index) => (
-                                     <div key={index} className="flex items-center justify-between p-2 bg-muted rounded-md text-sm">
-                                        <FileText className="h-4 w-4 mr-2 flex-shrink-0"/>
-                                        <span className="flex-1 truncate">"{text}"</span>
-                                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeTextSnippet(index)}><Trash2 className="h-4 w-4 text-destructive"/></Button>
-                                    </div>
-                                ))}
-                                {youtubeLinks.length > 0 && youtubeLinks.map((link, index) => (
-                                    <div key={index} className="flex items-center justify-between p-2 bg-muted rounded-md text-sm">
-                                        <Youtube className="h-4 w-4 mr-2 flex-shrink-0 text-red-500"/>
-                                        <span className="flex-1 truncate">{link}</span>
-                                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeYoutubeLink(index)}><Trash2 className="h-4 w-4 text-destructive"/></Button>
-                                    </div>
-                                ))}
-                                {recordedAudioUrl && (
-                                     <div className="flex items-center justify-between p-2 bg-muted rounded-md text-sm">
-                                        <Music className="h-4 w-4 mr-2 flex-shrink-0"/>
-                                        <audio src={recordedAudioUrl} controls className="flex-1" />
-                                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setRecordedAudioUrl(null)}><Trash2 className="h-4 w-4 text-destructive"/></Button>
-                                    </div>
-                                )}
+                                {materials.map((material, index) => {
+                                    let Icon = FileText;
+                                    if(material.type === 'url') Icon = Youtube;
+                                    if(material.type === 'audio') Icon = Music;
+
+                                    return (
+                                        <div key={index} className="flex items-center justify-between p-2 bg-muted rounded-md text-sm">
+                                            <Icon className={cn("h-4 w-4 mr-2 flex-shrink-0", material.type === 'url' && 'text-red-500')}/>
+                                            <span className="flex-1 truncate">{material.content}</span>
+                                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeItem(index)}><Trash2 className="h-4 w-4 text-destructive"/></Button>
+                                        </div>
+                                    )
+                                })}
                             </CardContent>
                              <CardFooter>
-                                <Button className="w-full" onClick={handleGenerateCourse} disabled={isGenerating}>
+                                <Button className="w-full" onClick={handleGenerateStudyGuide} disabled={isGenerating}>
                                     {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Wand2 className="mr-2 h-4 w-4"/>}
-                                    {isGenerating ? 'Generating...' : 'Generate Course with AI'}
+                                    {isGenerating ? 'Generating...' : 'Generate Study Guide with AI'}
                                 </Button>
                             </CardFooter>
                         </Card>
