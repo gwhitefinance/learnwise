@@ -11,7 +11,7 @@ import { auth, db } from '@/lib/firebase';
 import { doc, onSnapshot, getDoc, collection, query, where, updateDoc, arrayUnion } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
-import { CheckCircle, Lock, ArrowLeft, Loader2, X, Check, BookMarked, BrainCircuit, MessageSquare, Copy, Lightbulb, Play, Pen, Tag, RefreshCw, PenSquare, PlayCircle } from 'lucide-react';
+import { CheckCircle, Lock, ArrowLeft, Loader2, X, Check, BookMarked, BrainCircuit, MessageSquare, Copy, Lightbulb, Play, Pen, Tag, RefreshCw, PenSquare, PlayCircle, RotateCcw } from 'lucide-react';
 import { generateModuleContent, generateSummary, generateChapterContent, generateMiniCourse, generateQuizFromModule } from '@/lib/actions';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
@@ -183,6 +183,8 @@ export default function CoursePage() {
     const [isEditingConcepts, setIsEditingConcepts] = useState(false);
     const [tempConcepts, setTempConcepts] = useState('');
     const [isRegenerating, setIsRegenerating] = useState(false);
+    const [previousKeyConcepts, setPreviousKeyConcepts] = useState<string[] | null>(null);
+
 
     // Practice Quiz State
     const [isQuizDialogOpen, setIsQuizDialogOpen] = useState(false);
@@ -360,6 +362,7 @@ export default function CoursePage() {
     const handleRegenerateOutline = async () => {
         if (!course) return;
         setIsRegenerating(true);
+        setPreviousKeyConcepts(course.keyConcepts || []);
         toast({ title: 'Regenerating Course Outline...' });
         try {
             const result = await generateMiniCourse({
@@ -376,12 +379,25 @@ export default function CoursePage() {
                 }))
             }));
             const courseRef = doc(db, 'courses', course.id);
-            await updateDoc(courseRef, { units: newUnits, completedChapters: [] }); // Reset progress
+            await updateDoc(courseRef, { units: newUnits, keyConcepts: result.keyConcepts, completedChapters: [] }); // Reset progress
             toast({ title: 'Course Outline Regenerated!' });
         } catch(error) {
             toast({ variant: 'destructive', title: 'Failed to regenerate outline.' });
         } finally {
             setIsRegenerating(false);
+        }
+    };
+
+    const handleRevertConcepts = async () => {
+        if (!course || !previousKeyConcepts) return;
+        try {
+            const courseRef = doc(db, 'courses', course.id);
+            await updateDoc(courseRef, { keyConcepts: previousKeyConcepts });
+            toast({ title: 'Key Concepts Reverted!' });
+            setPreviousKeyConcepts(null); // Hide revert button after use
+        } catch (error) {
+            console.error("Error reverting concepts:", error);
+            toast({ variant: 'destructive', title: 'Could not revert concepts.' });
         }
     };
 
@@ -566,6 +582,11 @@ export default function CoursePage() {
                                                 <p className="text-sm text-muted-foreground">No concepts defined yet.</p>
                                             )}
                                         </div>
+                                    )}
+                                    {previousKeyConcepts && !isEditingConcepts && (
+                                        <Button size="sm" variant="outline" className="mt-4 w-full" onClick={handleRevertConcepts}>
+                                            <RotateCcw className="h-4 w-4 mr-2" /> Revert to Previous
+                                        </Button>
                                     )}
                                 </CardContent>
                                 {isEditingConcepts && (
