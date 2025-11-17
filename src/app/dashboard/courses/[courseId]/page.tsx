@@ -9,7 +9,7 @@ import { auth, db } from '@/lib/firebase';
 import { doc, onSnapshot, getDoc, collection, query, where, updateDoc, arrayUnion } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
-import { CheckCircle, Lock } from 'lucide-react';
+import { CheckCircle, Lock, ArrowLeft } from 'lucide-react';
 import { generateModuleContent } from '@/lib/actions';
 import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -91,10 +91,24 @@ export default function StudyHubPage() {
             const courseSnap = await getDoc(courseRef);
             if (courseSnap.exists()) {
                 const currentCourseData = courseSnap.data() as Course;
-                const updatedUnits = currentCourseData.units.map(u => u.id === updatedModule.id ? updatedModule : u);
+                const updatedUnits = currentCourseData.units.map(u => u.id === updatedModule.id ? {
+                    ...updatedModule,
+                    chapters: updatedModule.chapters.map(c => ({
+                        ...c,
+                        content: typeof c.content === 'object' ? JSON.stringify(c.content) : c.content,
+                        activity: typeof c.activity === 'object' ? JSON.stringify(c.activity) : c.activity,
+                    }))
+                } : u);
                 await updateDoc(courseRef, { units: updatedUnits });
                 
-                setSelectedUnit(updatedModule); 
+                setSelectedUnit({
+                    ...updatedModule,
+                    chapters: updatedModule.chapters.map(c => ({
+                        ...c,
+                        content: typeof c.content === 'object' ? JSON.stringify(c.content) : c.content,
+                        activity: typeof c.activity === 'object' ? JSON.stringify(c.activity) : c.activity,
+                    }))
+                }); 
             }
 
             toast({ title: 'Content Generated!', description: `${unit.title} is ready.`});
@@ -143,6 +157,10 @@ export default function StudyHubPage() {
     return (
         <>
             <main className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-7xl mx-auto">
+                 <Button variant="ghost" onClick={() => router.push('/dashboard/courses')} className="mb-4">
+                    <ArrowLeft className="mr-2 h-4 w-4"/>
+                    Back to Courses
+                </Button>
                 <div className="flex flex-col lg:flex-row gap-8">
                     <div className="flex-grow">
                         <div className="flex flex-wrap justify-between gap-4 mb-6">

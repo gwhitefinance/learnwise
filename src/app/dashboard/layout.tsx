@@ -139,7 +139,7 @@ const sidebarItems: SidebarItem[] = [
       id: "workspace-section",
       children: [
           {
-            title: "Study Hubs",
+            title: "Courses",
             icon: <GraduationCap />,
             href: "/dashboard/courses",
             id: "courses-link",
