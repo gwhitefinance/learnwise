@@ -23,7 +23,7 @@ import { Progress } from '@/components/ui/progress';
 import { FloatingChatContext } from '@/components/floating-chat';
 import AIBuddy from '@/components/ai-buddy';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogTrigger, DialogClose, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTrigger, DialogClose, DialogHeader, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import type { QuizQuestion } from '@/ai/schemas/quiz-schema';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -436,6 +436,7 @@ export default function CoursePage() {
             
             if (!content.trim()) {
                 toast({ variant: 'destructive', title: 'Selected chapters have no content.' });
+                setIsGeneratingQuiz(false);
                 return;
             }
 
@@ -490,6 +491,7 @@ export default function CoursePage() {
     const totalChapters = course.units?.flatMap(u => u.chapters).length || 0;
     const completedChaptersCount = course.completedChapters?.length || 0;
     const progress = totalChapters > 0 ? (completedChaptersCount / totalChapters) * 100 : 0;
+    const hasContent = course.units && course.units.length > 0;
 
     return (
         <TooltipProvider>
@@ -532,7 +534,7 @@ export default function CoursePage() {
                                             <Copy className="mr-2 h-4 w-4"/> Start Flashcards
                                         </Button>
                                         <hr className="my-2 border-border" />
-                                        <Button className="w-full justify-start bg-blue-500 hover:bg-blue-600 text-white" onClick={() => handlePracticeQuizOpen(unit)}>
+                                        <Button className="w-full justify-start" onClick={() => handlePracticeQuizOpen(unit)}>
                                             <PenSquare className="mr-2 h-4 w-4"/> Take Practice Quiz
                                         </Button>
                                     </div>
@@ -565,7 +567,7 @@ export default function CoursePage() {
                             <Card>
                                 <CardHeader>
                                     <div className="flex justify-between items-center">
-                                        <CardTitle className="flex items-center gap-2"><Tag /> AI Settings</CardTitle>
+                                        <CardTitle className="flex items-center gap-2"><Tag /> Key Concepts</CardTitle>
                                         <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setIsEditingConcepts(!isEditingConcepts)}><Pen className="h-4 w-4"/></Button>
                                     </div>
                                     <CardDescription>Define the core topics for the AI to focus on, separated by commas.</CardDescription>
@@ -592,13 +594,9 @@ export default function CoursePage() {
                                             )}
                                         </div>
                                     )}
-                                     {previousKeyConcepts && !isEditingConcepts && (
-                                        <Button size="sm" variant="outline" className="mt-4 w-full" onClick={handleRevertOutline}>
-                                            <RotateCcw className="h-4 w-4 mr-2" /> Revert to Previous
-                                        </Button>
-                                    )}
                                 </CardContent>
-                                <CardFooter>
+                                {hasContent && (
+                                <CardFooter className="flex flex-col gap-2">
                                     <Tooltip>
                                         <TooltipTrigger asChild>
                                             <Button variant="secondary" size="sm" className="w-full" onClick={handleRegenerateOutline} disabled={isRegenerating}>
@@ -610,7 +608,13 @@ export default function CoursePage() {
                                             <p>Regenerates the course modules and chapters based on the current Key Concepts.</p>
                                         </TooltipContent>
                                     </Tooltip>
+                                    {previousKeyConcepts && !isEditingConcepts && (
+                                        <Button size="sm" variant="outline" className="mt-4 w-full" onClick={handleRevertOutline}>
+                                            <RotateCcw className="h-4 w-4 mr-2" /> Revert to Previous
+                                        </Button>
+                                    )}
                                 </CardFooter>
+                                )}
                             </Card>
                         </div>
                     </aside>
@@ -747,3 +751,4 @@ export default function CoursePage() {
         </TooltipProvider>
     );
 }
+
