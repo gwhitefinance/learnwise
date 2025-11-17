@@ -8,20 +8,12 @@ import { googleAI } from '@genkit-ai/google-genai';
 import { z } from 'zod';
 import { scrapeWebpageTool } from '@/ai/tools/web-scraper-tool';
 import { getYouTubeTranscript } from '@/ai/tools/youtube-transcript-tool';
-import { GenerateMiniCourseOutputSchema } from '@/ai/schemas/mini-course-schema';
-
-export const GenerateCourseFromMaterialsInputSchema = z.object({
-  courseName: z.string().describe("The desired name for the new course."),
-  textContext: z.string().optional().describe("A collection of raw text snippets."),
-  urls: z.array(z.string().url()).optional().describe("A list of URLs to scrape for content."),
-  learnerType: z.enum(['Visual', 'Auditory', 'Kinesthetic', 'Reading/Writing', 'Unknown']),
-});
-export type GenerateCourseFromMaterialsInput = z.infer<typeof GenerateCourseFromMaterialsInputSchema>;
+import { GenerateCourseFromMaterialsInputSchema, GenerateCourseFromMaterialsOutputSchema, GenerateCourseFromMaterialsInput, GenerateCourseFromMaterialsOutput } from '@/ai/schemas/course-from-materials-schema';
 
 const prompt = ai.definePrompt({
     name: 'courseFromMaterialsPrompt',
     model: googleAI.model('gemini-2.5-pro'),
-    output: { schema: GenerateMiniCourseOutputSchema },
+    output: { schema: GenerateCourseFromMaterialsOutputSchema },
     prompt: `You are an expert instructional designer. Your task is to synthesize various pieces of content into a single, cohesive mini-course outline.
 
     **Course Name**: {{courseName}}
@@ -48,7 +40,7 @@ export const generateCourseFromMaterialsFlow = ai.defineFlow(
   {
     name: 'generateCourseFromMaterialsFlow',
     inputSchema: GenerateCourseFromMaterialsInputSchema,
-    outputSchema: GenerateMiniCourseOutputSchema,
+    outputSchema: GenerateCourseFromMaterialsOutputSchema,
   },
   async (input) => {
     let combinedContent = input.textContext || '';
@@ -83,6 +75,6 @@ export const generateCourseFromMaterialsFlow = ai.defineFlow(
   }
 );
 
-export async function generateCourseFromMaterials(input: GenerateCourseFromMaterialsInput) {
+export async function generateCourseFromMaterials(input: GenerateCourseFromMaterialsInput): Promise<GenerateCourseFromMaterialsOutput> {
     return generateCourseFromMaterialsFlow(input);
 }
