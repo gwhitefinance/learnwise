@@ -27,6 +27,7 @@ import { Dialog, DialogContent, DialogTrigger, DialogClose, DialogHeader, Dialog
 import { Checkbox } from '@/components/ui/checkbox';
 import type { QuizQuestion } from '@/ai/schemas/quiz-schema';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 type Chapter = {
     id: string;
@@ -485,7 +486,7 @@ export default function CoursePage() {
     const progress = totalChapters > 0 ? (completedChaptersCount / totalChapters) * 100 : 0;
 
     return (
-        <>
+        <TooltipProvider>
             <main className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-7xl mx-auto">
                  <Button variant="ghost" onClick={() => router.push('/dashboard/courses')} className="mb-4">
                     <ArrowLeft className="mr-2 h-4 w-4"/>
@@ -585,17 +586,24 @@ export default function CoursePage() {
                                             )}
                                         </div>
                                     )}
-                                    {previousKeyConcepts && !isEditingConcepts && (
+                                     {previousKeyConcepts && !isEditingConcepts && (
                                         <Button size="sm" variant="outline" className="mt-4 w-full" onClick={handleRevertConcepts}>
                                             <RotateCcw className="h-4 w-4 mr-2" /> Revert to Previous
                                         </Button>
                                     )}
                                 </CardContent>
                                 <CardFooter>
-                                        <Button variant="secondary" size="sm" className="w-full" onClick={handleRegenerateOutline} disabled={isRegenerating}>
-                                        {isRegenerating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
-                                        Regenerate Course Outline
-                                    </Button>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button variant="secondary" size="sm" className="w-full" onClick={handleRegenerateOutline} disabled={isRegenerating}>
+                                                {isRegenerating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
+                                                Regenerate Outline
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>Regenerates the course modules and chapters based on the current Key Concepts.</p>
+                                        </TooltipContent>
+                                    </Tooltip>
                                 </CardFooter>
                             </Card>
                         </div>
@@ -730,6 +738,6 @@ export default function CoursePage() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-        </>
+        </TooltipProvider>
     );
 }
