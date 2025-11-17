@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useRef, ChangeEvent, useEffect } from "react";
@@ -7,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { UploadCloud, Youtube, FileText, Music, Trash2, Plus, Wand2, Loader2, BookOpen, Lightbulb, Copy, ArrowLeft } from "lucide-react";
+import { UploadCloud, Youtube, FileText, Music, Trash2, Plus, Wand2, Loader2, BookOpen, Lightbulb, Copy, ArrowLeft, QrCode } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -21,6 +22,7 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, Dialog
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import GeneratingCourse from "../courses/GeneratingCourse";
+import QRCode from 'qrcode.react';
 
 type Material = {
     type: 'file' | 'text' | 'url' | 'audio';
@@ -110,6 +112,7 @@ export default function UploadPage() {
     const [isFlashcardDialogOpen, setFlashcardDialogOpen] = useState(false);
     const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
     const [generatingCourseName, setGeneratingCourseName] = useState('');
+    const [qrCodeUrl, setQrCodeUrl] = useState('');
 
     useEffect(() => {
         if (!courseId || !user) {
@@ -126,6 +129,7 @@ export default function UploadPage() {
                 router.push('/dashboard/courses');
             }
         });
+        setQrCodeUrl(`${window.location.origin}/upload-note/${courseId}`);
 
         return () => unsubscribe();
     }, [courseId, user, router, toast, authLoading]);
@@ -257,7 +261,7 @@ export default function UploadPage() {
                 chapters: module.chapters.map(chapter => ({
                     id: crypto.randomUUID(),
                     title: chapter.title,
-                    content: '',
+                    content: '', // Content will be generated on-demand
                     activity: ''
                 }))
             }));
@@ -300,7 +304,7 @@ export default function UploadPage() {
             <h1 className="text-3xl font-bold tracking-tight">Materials for: {course?.name}</h1>
             <p className="text-muted-foreground mb-8">This is your central hub. Add materials and use AI tools to generate study aids.</p>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div className="space-y-6">
                     <h2 className="text-xl font-semibold">Add New Material</h2>
                      <Card>
@@ -332,9 +336,35 @@ export default function UploadPage() {
                             </Tabs>
                         </CardContent>
                     </Card>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2"><QrCode/> Add from Phone</CardTitle>
+                            <CardDescription>Scan this QR code with your phone's camera to snap a picture of your notes and upload them directly.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="flex items-center justify-center">
+                            <div className="bg-white p-2 rounded-lg">
+                                {qrCodeUrl ? <QRCode value={qrCodeUrl} size={128} /> : <div className="h-[128px] w-[128px] flex items-center justify-center text-muted-foreground text-sm">Select a course</div>}
+                            </div>
+                        </CardContent>
+                    </Card>
+                     <Card>
+                        <CardHeader>
+                             <CardTitle className="flex items-center gap-2"><LinkIcon/> Invite Link</CardTitle>
+                             <CardDescription>Share a link to this page to collaborate with others.</CardDescription>
+                         </CardHeader>
+                         <CardContent className="flex items-center justify-between">
+                             <Button variant="outline"><Copy className="w-4 h-4 mr-2"/> Copy Link</Button>
+                         </CardContent>
+                     </Card>
                 </div>
                  <div className="space-y-6">
-                    <h2 className="text-xl font-semibold">Your Materials ({course?.materials?.length || 0})</h2>
+                    <div className="flex justify-between items-center">
+                         <h2 className="text-xl font-semibold">Your Materials ({course?.materials?.length || 0})</h2>
+                         <Button onClick={handleGenerateCourse} disabled={!hasContent || isGenerating}>
+                            {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Wand2 className="mr-2 h-4 w-4"/>}
+                            Generate Course with AI
+                        </Button>
+                    </div>
                      {hasContent ? (
                         <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
                             {course.materials?.map((material, index) => (
@@ -348,22 +378,6 @@ export default function UploadPage() {
                     )}
                 </div>
             </div>
-            {hasContent && (
-                <div className="mt-8 pt-8 border-t">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2"><Wand2/> Generate Course</CardTitle>
-                            <CardDescription>Once you've added all your materials, let the AI build a structured course with units and chapters for you.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <Button className="w-full" onClick={handleGenerateCourse} disabled={isGenerating}>
-                                {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Wand2 className="mr-2 h-4 w-4"/>}
-                                {isGenerating ? 'Generating...' : 'Generate Course with AI'}
-                            </Button>
-                        </CardContent>
-                    </Card>
-                </div>
-            )}
 
             {/* AI Generation Modals */}
             <Dialog open={isQuizDialogOpen} onOpenChange={setQuizDialogOpen}>

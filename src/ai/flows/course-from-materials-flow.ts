@@ -36,7 +36,7 @@ const prompt = ai.definePrompt({
     `,
 });
 
-export const generateCourseFromMaterials = async (input: GenerateCourseFromMaterialsInput): Promise<GenerateCourseFromMaterialsOutput> => {
+export const generateCourseFromMaterialsFlow = async (input: GenerateCourseFromMaterialsInput): Promise<GenerateCourseFromMaterialsOutput> => {
     let combinedContent = input.textContext || '';
 
     if (input.urls && input.urls.length > 0) {
@@ -67,3 +67,6 @@ export const generateCourseFromMaterials = async (input: GenerateCourseFromMater
     }
     return output;
 };
+
+
+export { generateCourseFromMaterialsFlow as generateCourseFromMaterials };

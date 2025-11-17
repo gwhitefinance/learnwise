@@ -33,7 +33,7 @@ import { generateHint } from '@/ai/flows/quiz-hint-flow';
 import { enhanceExtracurricular } from '@/ai/flows/extracurricular-enhancer-flow';
 import { generateCollegeDescription } from '@/ai/flows/college-description-flow';
 import { generateCollegeChecklist } from '@/ai/flows/college-checklist-flow';
-import { generateEssayFeedback } from '@/ai/flows/essay-coach-flow';
+import { generateEssayFeedback, generateEssayGrade } from '@/ai/flows/essay-feedback-flow';
 import { generateDailyFocus } from '@/ai/flows/daily-focus-flow';
 import { generateTextTutoringSession } from '@/ai/flows/text-tutoring-flow';
 import { enhanceDrawing } from '@/ai/flows/enhance-drawing-flow';
@@ -43,7 +43,6 @@ import { generateCrunchTimeStudyGuide } from '@/ai/flows/crunch-time-flow';
 import { generateImage } from '@/ai/flows/image-generation-flow';
 import { generateAssignmentGrade } from '@/ai/flows/assignment-grader-flow';
 import { generateEssay } from '@/ai/flows/essay-generation-flow';
-import { generateEssayGrade } from '@/ai/flows/essay-feedback-flow';
 import { generateCourseFromMaterials } from '@/ai/flows/course-from-materials-flow';
 
 // Re-exporting all AI functions as Server Actions
