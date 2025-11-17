@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useCallback, useRef, useContext } from 'react';
@@ -379,14 +380,14 @@ export default function CoursePage() {
                                         <p className="text-secondary-dark-text dark:text-gray-400 text-sm font-normal leading-normal mt-1 mb-4">{unit.description || `${unit.chapters.length} chapters`}</p>
                                     </div>
                                     <div className="flex flex-col gap-2 mt-auto">
-                                        <Button className="w-full" variant="secondary" onClick={() => openModule(unit)}>
+                                        <Button className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200" onClick={() => openModule(unit)}>
                                             {completedChaptersCount > 0 ? 'Continue Module' : 'Start Module'}
                                         </Button>
                                         <Button className="w-full" variant="outline">
                                             <Copy className="mr-2 h-4 w-4"/> Start Flashcards
                                         </Button>
                                         <hr className="my-2 border-border" />
-                                        <Button variant="outline" className="w-full" asChild>
+                                        <Button className="w-full" asChild>
                                             <Link href={`/dashboard/courses/${course.id}/${unit.chapters.find(c => c.title === 'Module Quiz')?.id || ''}`}>
                                                 Take Practice Quiz
                                             </Link>
@@ -452,3 +453,5 @@ export default function CoursePage() {
         </>
     );
 }
+
+    
