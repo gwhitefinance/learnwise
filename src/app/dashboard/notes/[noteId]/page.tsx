@@ -138,7 +138,10 @@ const LiveLecturePanel = ({ show, setShow, onNoteGenerated, onTranscriptUpdate, 
 
     const finalTranscriptRef = useRef('');
     const recognitionRef = useRef<any>(null);
-    const nodeRef = useRef(null);
+    const nodeRef = React.useRef(null);
+    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+    const audioChunksRef = useRef<Blob[]>([]);
+    
     const { toast } = useToast();
 
     useEffect(() => {
@@ -176,13 +179,24 @@ const LiveLecturePanel = ({ show, setShow, onNoteGenerated, onTranscriptUpdate, 
         }
     }, [toast]);
 
+    const handleStopRecording = () => {
+        if (recognitionRef.current) {
+            recognitionRef.current.stop();
+        }
+        if(mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
+            mediaRecorderRef.current.stop();
+        }
+        onTranscriptUpdate(finalTranscriptRef.current);
+        setIsListening(false);
+    };
+    
     const toggleListening = async () => {
         if (!recognitionRef.current) {
             toast({ variant: 'destructive', title: 'Voice input not supported in this browser.' });
             return;
         }
         if (isListening) {
-            recognitionRef.current.stop();
+            handleStopRecording();
         } else {
             setCurrentTranscript('');
             finalTranscriptRef.current = '';
@@ -191,21 +205,21 @@ const LiveLecturePanel = ({ show, setShow, onNoteGenerated, onTranscriptUpdate, 
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 const mediaRecorder = new MediaRecorder(stream);
-                const audioChunks: Blob[] = [];
+                audioChunksRef.current = [];
 
                 mediaRecorder.ondataavailable = (event) => {
-                    audioChunks.push(event.data);
+                    audioChunksRef.current.push(event.data);
                 };
 
                 mediaRecorder.onstop = () => {
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                    const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
                     const url = URL.createObjectURL(audioBlob);
                     setCurrentAudioUrl(url);
                     onAudioUpdate(url); // Pass URL to parent
                     stream.getTracks().forEach(track => track.stop());
                 };
                 
-                (recognitionRef.current as any).mediaRecorder = mediaRecorder;
+                mediaRecorderRef.current = mediaRecorder;
                 mediaRecorder.start();
 
             } catch (err) {
@@ -218,16 +232,6 @@ const LiveLecturePanel = ({ show, setShow, onNoteGenerated, onTranscriptUpdate, 
         }
     };
     
-    const handleStopRecording = () => {
-        if (recognitionRef.current) {
-            recognitionRef.current.stop();
-            if((recognitionRef.current as any).mediaRecorder) {
-                (recognitionRef.current as any).mediaRecorder.stop();
-            }
-        }
-        onTranscriptUpdate(finalTranscriptRef.current);
-        setIsListening(false);
-    }
     
     const handleGenerateNote = async () => {
         if (!currentTranscript.trim()) {
@@ -269,8 +273,8 @@ const LiveLecturePanel = ({ show, setShow, onNoteGenerated, onTranscriptUpdate, 
                              <Globe size={16} className="mr-1" />
                             EN
                          </Button>
-                         <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500 dark:text-gray-400">
-                            <Maximize size={16} />
+                         <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500 dark:text-gray-400" onClick={() => setShow(false)}>
+                            <X size={16} />
                          </Button>
                     </div>
                 </header>
@@ -467,7 +471,7 @@ export default function NoteEditorPage() {
     
         const userMessage: Message = { role: 'user', content: messageContent, id: crypto.randomUUID() };
         setChatHistory(prev => [...prev, userMessage]);
-        setChatInput('');
+        setInput('');
         setIsChatLoading(true);
     
         try {
