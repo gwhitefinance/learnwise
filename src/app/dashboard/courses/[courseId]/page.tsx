@@ -7,14 +7,16 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
-import { doc, onSnapshot, getDoc, collection, query, where, updateDoc } from 'firebase/firestore';
+import { doc, onSnapshot, getDoc, collection, query, where, updateDoc, arrayUnion } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
-import { CheckCircle, Lock } from 'lucide-react';
+import { CheckCircle, Lock, ArrowLeft } from 'lucide-react';
 import { generateModuleContent } from '@/lib/actions';
 import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 
 type Material = {
     type: 'file' | 'text' | 'url' | 'audio';
@@ -22,10 +24,18 @@ type Material = {
     fileName?: string;
 };
 
+type ChapterContentBlock = {
+    type: 'text' | 'question';
+    content?: string;
+    question?: string;
+    options?: string[];
+    correctAnswer?: string;
+};
+
 type Chapter = {
     id: string;
     title: string;
-    content?: string;
+    content?: string; // This will be a JSON string of ChapterContentBlock[]
     activity?: string;
 };
 
@@ -44,14 +54,75 @@ type Course = {
     completedChapters?: string[];
 };
 
-const MaterialIcon = ({ type }: { type: Material['type'] }) => {
-    switch (type) {
-        case 'file': return <span className="material-symbols-outlined text-base">description</span>;
-        case 'text': return <span className="material-symbols-outlined text-base">notes</span>;
-        case 'url': return <span className="material-symbols-outlined text-base">smart_display</span>;
-        default: return <span className="material-symbols-outlined text-base">attachment</span>;
+const ChapterContentDisplay = ({ chapter, courseId, onComplete }: { chapter: Chapter; courseId: string; onComplete: () => void }) => {
+    const [contentBlocks, setContentBlocks] = useState<ChapterContentBlock[]>([]);
+    const [userAnswers, setUserAnswers] = useState<Record<number, string>>({});
+    const [submittedAnswers, setSubmittedAnswers] = useState<Record<number, boolean>>({});
+
+    useEffect(() => {
+        if (chapter.content) {
+            try {
+                setContentBlocks(JSON.parse(chapter.content));
+            } catch (e) {
+                console.error("Failed to parse chapter content:", e);
+                setContentBlocks([{ type: 'text', content: 'Error displaying content.' }]);
+            }
+        }
+    }, [chapter]);
+
+    const handleAnswerChange = (questionIndex: number, answer: string) => {
+        setUserAnswers(prev => ({...prev, [questionIndex]: answer}));
     }
+    
+    const handleSubmitAnswer = (questionIndex: number) => {
+        setSubmittedAnswers(prev => ({...prev, [questionIndex]: true}));
+    }
+
+    return (
+        <div className="py-4 space-y-6">
+            {contentBlocks.map((block, index) => (
+                <div key={index}>
+                    {block.type === 'text' && (
+                        <p className="text-muted-foreground leading-relaxed">{block.content}</p>
+                    )}
+                    {block.type === 'question' && (
+                        <Card className="bg-muted/50">
+                            <CardContent className="p-6">
+                                <p className="font-semibold mb-4">{block.question}</p>
+                                <RadioGroup 
+                                    value={userAnswers[index]} 
+                                    onValueChange={(val) => handleAnswerChange(index, val)}
+                                    disabled={submittedAnswers[index]}
+                                >
+                                    {block.options?.map((option, i) => {
+                                        const isSubmitted = submittedAnswers[index];
+                                        const isCorrect = option === block.correctAnswer;
+                                        const isSelected = userAnswers[index] === option;
+                                        return (
+                                            <Label key={i} className={cn("flex items-center gap-3 p-3 rounded-md border transition-all cursor-pointer",
+                                                isSubmitted && isCorrect && "border-green-500 bg-green-500/10",
+                                                isSubmitted && isSelected && !isCorrect && "border-red-500 bg-red-500/10",
+                                                !isSubmitted && "hover:bg-background"
+                                            )}>
+                                                <RadioGroupItem value={option} />
+                                                {option}
+                                            </Label>
+                                        )
+                                    })}
+                                </RadioGroup>
+                                {!submittedAnswers[index] && (
+                                    <Button onClick={() => handleSubmitAnswer(index)} size="sm" className="mt-4" disabled={!userAnswers[index]}>Submit</Button>
+                                )}
+                            </CardContent>
+                        </Card>
+                    )}
+                </div>
+            ))}
+             <Button onClick={onComplete} className="w-full mt-8">Complete &amp; Next Chapter</Button>
+        </div>
+    );
 };
+
 
 export default function StudyHubPage() {
     const params = useParams();
@@ -62,6 +133,7 @@ export default function StudyHubPage() {
     const [loading, setLoading] = useState(true);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);
+    const [activeChapter, setActiveChapter] = useState<Chapter | null>(null);
     const [isGeneratingContent, setIsGeneratingContent] = useState<Record<string, boolean>>({});
 
     const { toast } = useToast();
@@ -77,6 +149,9 @@ export default function StudyHubPage() {
                 router.push('/dashboard/courses');
             }
             setLoading(false);
+        }, (error) => {
+            console.error("Error fetching course:", error);
+            router.push('/dashboard/courses');
         });
 
         return () => unsubscribe();
@@ -100,10 +175,15 @@ export default function StudyHubPage() {
             });
             
             const courseRef = doc(db, 'courses', courseId);
-            const updatedUnits = course.units.map(u => u.id === updatedModule.id ? updatedModule : u);
-            await updateDoc(courseRef, { units: updatedUnits });
-            
-            setSelectedUnit(updatedModule);
+            const courseSnap = await getDoc(courseRef);
+            if (courseSnap.exists()) {
+                const currentCourseData = courseSnap.data() as Course;
+                const updatedUnits = currentCourseData.units.map(u => u.id === updatedModule.id ? updatedModule : u);
+                await updateDoc(courseRef, { units: updatedUnits });
+                
+                setSelectedUnit(updatedModule); // Update the selected unit with new content
+            }
+
             toast({ title: 'Content Generated!', description: `${unit.title} is ready.`});
 
         } catch (error) {
@@ -115,14 +195,40 @@ export default function StudyHubPage() {
     }
 
     const openModule = (unit: Unit) => {
+        setSelectedUnit(unit);
+        setActiveChapter(null); // Reset active chapter when opening a module
         const hasContent = unit.chapters.some(c => c.content);
-        if (!hasContent) {
+        if (!hasContent && !isGeneratingContent[unit.id]) {
             handleGenerateContent(unit);
-        } else {
-            setSelectedUnit(unit);
         }
         setIsSheetOpen(true);
     };
+
+    const handleChapterComplete = async () => {
+        if (!course || !user || !activeChapter || !selectedUnit) return;
+        
+        const courseRef = doc(db, 'courses', courseId);
+        
+        try {
+            await updateDoc(courseRef, {
+                completedChapters: arrayUnion(activeChapter.id)
+            });
+            
+            const currentIndex = selectedUnit.chapters.findIndex(c => c.id === activeChapter.id);
+            if (currentIndex < selectedUnit.chapters.length - 1) {
+                // Go to next chapter
+                setActiveChapter(selectedUnit.chapters[currentIndex + 1]);
+            } else {
+                // Last chapter completed
+                setActiveChapter(null); // Go back to chapter list
+                toast({ title: 'Module Complete!', description: `You finished ${selectedUnit.title}.` });
+            }
+
+        } catch (error) {
+            console.error("Failed to mark chapter as complete:", error);
+            toast({ variant: 'destructive', title: 'Update failed.' });
+        }
+    }
 
     if (loading || authLoading) {
         return (
@@ -140,12 +246,12 @@ export default function StudyHubPage() {
     }
     
     if (!course) {
-        return <div>Course not found.</div>;
+        return <div>Course not found or you do not have permission to view it.</div>;
     }
 
     const totalChapters = course.units?.flatMap(u => u.chapters).length || 0;
-    const completedChapters = course.completedChapters?.length || 0;
-    const progress = totalChapters > 0 ? (completedChapters / totalChapters) * 100 : 0;
+    const completedChaptersCount = course.completedChapters?.length || 0;
+    const progress = totalChapters > 0 ? (completedChaptersCount / totalChapters) * 100 : 0;
 
     return (
         <>
@@ -177,7 +283,7 @@ export default function StudyHubPage() {
                                     </div>
                                     <div className="flex flex-col gap-2 mt-auto">
                                         <Button className="w-full" onClick={() => openModule(unit)}>
-                                            {completedChapters > 0 ? 'Continue Module' : 'Start Module'}
+                                            {completedChaptersCount > 0 ? 'Continue Module' : 'Start Module'}
                                         </Button>
                                         <Button variant="outline" className="w-full">
                                             <span className="material-symbols-outlined text-base">quiz</span> Take Practice Quiz
@@ -207,33 +313,42 @@ export default function StudyHubPage() {
             <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
                 <SheetContent className="max-w-xl">
                     <SheetHeader>
-                        <SheetTitle>{selectedUnit?.title}</SheetTitle>
-                        <SheetDescription>{selectedUnit?.description}</SheetDescription>
+                         {activeChapter ? (
+                            <Button variant="ghost" size="sm" onClick={() => setActiveChapter(null)} className="mb-2 -ml-2 self-start">
+                                <ArrowLeft className="h-4 w-4 mr-2" />
+                                Back to Chapters
+                            </Button>
+                        ) : null}
+                        <SheetTitle>{activeChapter ? activeChapter.title : selectedUnit?.title}</SheetTitle>
+                        <SheetDescription>{activeChapter ? `Chapter in ${selectedUnit?.title}` : selectedUnit?.description}</SheetDescription>
                     </SheetHeader>
-                    <div className="py-4 space-y-4">
-                         {isGeneratingContent[selectedUnit?.id || ''] && (
-                            <div className="flex flex-col items-center justify-center h-64 gap-4">
-                                <Loader2 className="w-10 h-10 animate-spin text-primary" />
-                                <p className="text-muted-foreground">Generating chapter content...</p>
-                            </div>
-                        )}
-
-                        {!isGeneratingContent[selectedUnit?.id || ''] && selectedUnit?.chapters.map((chapter, index) => {
-                            const isCompleted = course?.completedChapters?.includes(chapter.id);
-                            const isLocked = index > 0 && !course?.completedChapters?.includes(selectedUnit.chapters[index - 1].id);
-                            
-                            return (
-                            <div key={chapter.id} className="p-4 border rounded-lg flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    {isCompleted ? <CheckCircle className="h-6 w-6 text-green-500" /> : isLocked ? <Lock className="h-6 w-6 text-muted-foreground"/> : <div className="h-6 w-6 rounded-full border-2 border-primary" />}
-                                    <span className={cn("font-medium", isLocked && "text-muted-foreground")}>{chapter.title}</span>
+                    {isGeneratingContent[selectedUnit?.id || ''] && !activeChapter ? (
+                        <div className="flex flex-col items-center justify-center h-64 gap-4">
+                            <Loader2 className="w-10 h-10 animate-spin text-primary" />
+                            <p className="text-muted-foreground">Generating chapter content...</p>
+                        </div>
+                    ) : activeChapter ? (
+                        <ChapterContentDisplay chapter={activeChapter} courseId={course.id} onComplete={handleChapterComplete} />
+                    ) : (
+                        <div className="py-4 space-y-4">
+                            {selectedUnit?.chapters.map((chapter, index) => {
+                                const isCompleted = course?.completedChapters?.includes(chapter.id);
+                                const isLocked = index > 0 && !course?.completedChapters?.includes(selectedUnit.chapters[index - 1].id);
+                                return (
+                                <div key={chapter.id} className="p-4 border rounded-lg flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        {isCompleted ? <CheckCircle className="h-6 w-6 text-green-500" /> : isLocked ? <Lock className="h-6 w-6 text-muted-foreground"/> : <div className="h-6 w-6 rounded-full border-2 border-primary" />}
+                                        <span className={cn("font-medium", isLocked && "text-muted-foreground")}>{chapter.title}</span>
+                                    </div>
+                                    <Button variant="secondary" size="sm" disabled={isLocked} onClick={() => setActiveChapter(chapter)}>View</Button>
                                 </div>
-                                <Button variant="secondary" size="sm" disabled={isLocked}>View</Button>
-                            </div>
-                        )})}
-                    </div>
+                            )})}
+                        </div>
+                    )}
                 </SheetContent>
             </Sheet>
         </>
     );
 }
+
+    
