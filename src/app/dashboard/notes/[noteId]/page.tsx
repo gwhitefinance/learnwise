@@ -45,7 +45,6 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'; 
 import { useRouter, useParams } from 'next/navigation';
 import type { GenerateQuizInput } from '@/ai/schemas/quiz-schema';
-import Loading from './loading';
 
 interface Message {
   id: string;
@@ -747,5 +746,3 @@ export default function NoteEditorPage() {
         </div>
     );
 }
-
-    
