@@ -1,6 +1,5 @@
 
 
-
 'use client';
 
 import React, { useEffect, useState, useRef, createContext, useContext, Suspense, useCallback } from 'react';
@@ -140,7 +139,7 @@ const sidebarItems: SidebarItem[] = [
       id: "workspace-section",
       children: [
           {
-            title: "Courses",
+            title: "Study Hubs",
             icon: <GraduationCap />,
             href: "/dashboard/courses",
             id: "courses-link",
@@ -616,7 +615,7 @@ function DashboardLayoutContent({
                 showTopBar && !isFocusLayout ? "p-4 md:p-6" : "",
                 pathname === '/dashboard/calendar' && '!p-0'
             )}>
-              <FloatingChat isHidden={isFocusLayout || pathname === '/dashboard/notes/new'}>
+              <FloatingChat isHidden={isFocusLayout || pathname === '/dashboard/notes/new' || pathname.startsWith('/dashboard/notes/')}>
                 {React.cloneElement(children as React.ReactElement)}
               </FloatingChat>
             </main>
