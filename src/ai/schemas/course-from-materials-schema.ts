@@ -1,4 +1,3 @@
-'use server';
 import { z } from 'zod';
 import { GenerateMiniCourseOutputSchema } from '@/ai/schemas/mini-course-schema';
 
