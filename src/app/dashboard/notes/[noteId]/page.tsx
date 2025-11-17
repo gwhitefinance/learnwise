@@ -258,7 +258,7 @@ const LiveLecturePanel = ({ show, setShow, onNoteGenerated, onTranscriptUpdate, 
     if (!show) return null;
 
     return (
-        <Draggable nodeRef={nodeRef} handle=".drag-handle" cancel="button, textarea, audio" bounds="parent">
+        <Draggable nodeRef={nodeRef} handle=".drag-handle" cancel="button, textarea, audio">
             <div ref={nodeRef} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-auto max-h-[500px] bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800 flex flex-col pointer-events-auto z-20">
                  <header className="drag-handle cursor-move flex-shrink-0 flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
                     <div className="flex items-center gap-2">
@@ -625,7 +625,7 @@ export default function NoteEditorPage() {
                 </header>
                 <div className="flex-1 flex flex-col p-6 overflow-y-auto relative">
                     <input type="file" ref={imageInputRef} onChange={handleFileSelected} accept="image/*" className="hidden" />
-                     <LiveLecturePanel show={showLiveLecture} setShow={setShowLiveLecture} onNoteGenerated={handleNoteGenerated} onTranscriptUpdate={setLectureTranscript} onAudioUpdate={setLectureAudioUrl} />
+                    <LiveLecturePanel show={showLiveLecture} setShow={setShowLiveLecture} onNoteGenerated={handleNoteGenerated} onTranscriptUpdate={setLectureTranscript} onAudioUpdate={setLectureAudioUrl} />
                     <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm flex-1 flex flex-col">
                         <EditorToolbar 
                             onCommand={handleCommand} 
@@ -733,7 +733,7 @@ export default function NoteEditorPage() {
                                     <SelectContent>
                                         <SelectItem value="none">No specific module</SelectItem>
                                         {selectedCourseForFilter.units.map(unit => (
-                                            <SelectItem key={unit.id} value={unit.title}>{unit.title}</SelectItem>
+                                            <SelectItem key={unit.id} value={unit.id}>{unit.title}</SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
