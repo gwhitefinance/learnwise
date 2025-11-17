@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -12,13 +11,15 @@ import { ArrowLeft, Check, Loader2, X, CheckCircle, XCircle } from 'lucide-react
 import { cn } from '@/lib/utils';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Loading from './loading';
 import { Progress } from '@/components/ui/progress';
-import { generateQuizFromModule } from '@/lib/actions';
+import { generateQuizFromModule, generateFlashcardsFromNote, generateCrunchTimeStudyGuide, generateExplanation } from '@/lib/actions';
 import type { QuizQuestion } from '@/ai/schemas/quiz-schema';
 import AIBuddy from '@/components/ai-buddy';
 import { motion } from 'framer-motion';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 type ChapterContentBlock = {
     type: 'text' | 'question';
@@ -59,7 +60,6 @@ const ChapterContentDisplay = ({ chapter }: { chapter: Chapter }) => {
                 const parsedContent = JSON.parse(chapter.content);
                 setContentBlocks(parsedContent);
             } catch (e) {
-                 // If it's not a valid JSON string, treat it as plain text.
                 setContentBlocks([{ type: 'text', content: chapter.content }]);
             }
         } else if (Array.isArray(chapter.content)) {
@@ -216,8 +216,7 @@ const ModuleQuiz = ({ course, unit }: { course: Course, unit: Unit }) => {
     const [quiz, setQuiz] = useState<QuizQuestion[] | null>(null);
     const [isGenerating, setIsGenerating] = useState(true);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-    const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
-    const [answers, setAnswers] = useState<Record<number, {answer: string, isCorrect: boolean}>>({});
+    const [userAnswers, setUserAnswers] = useState<Record<number, string>>({});
     const [isFinished, setIsFinished] = useState(false);
     const [user] = useAuthState(auth);
     const router = useRouter();
@@ -247,17 +246,24 @@ const ModuleQuiz = ({ course, unit }: { course: Course, unit: Unit }) => {
         generateQuiz();
     }, [unit, toast]);
 
-    const handleSubmitAnswer = () => {
-        if (!quiz || selectedAnswer === null) return;
-        
-        const isCorrect = selectedAnswer === quiz[currentQuestionIndex].correctAnswer;
-        setAnswers(prev => ({...prev, [currentQuestionIndex]: { answer: selectedAnswer, isCorrect }}));
-        setSelectedAnswer(null);
+    const handleAnswerSelect = (answer: string) => {
+        setUserAnswers(prev => ({...prev, [currentQuestionIndex]: answer}));
     };
 
+    const handleNextQuestion = () => {
+        if (!quiz) return;
+        if (currentQuestionIndex < quiz.length - 1) {
+            setCurrentQuestionIndex(prev => prev + 1);
+        } else {
+            handleFinishQuiz();
+        }
+    };
+    
     const handleFinishQuiz = async () => {
         if (!quiz || !user) return;
-        const score = Object.values(answers).filter(a => a.isCorrect).length;
+        const score = quiz.reduce((acc, question, index) => {
+            return acc + (userAnswers[index] === question.correctAnswer ? 1 : 0);
+        }, 0);
         const total = quiz.length;
         
         try {
@@ -267,7 +273,7 @@ const ModuleQuiz = ({ course, unit }: { course: Course, unit: Unit }) => {
                 moduleId: unit.id,
                 score: score,
                 totalQuestions: total,
-                answers: answers,
+                answers: userAnswers,
                 timestamp: serverTimestamp()
             });
         } catch(e) {
@@ -285,20 +291,57 @@ const ModuleQuiz = ({ course, unit }: { course: Course, unit: Unit }) => {
         return <div className="text-center p-8">Could not load the quiz. Please try again.</div>;
     }
     
-    const currentQuestion = quiz[currentQuestionIndex];
-    const isAnswered = answers[currentQuestionIndex] !== undefined;
-
     if (isFinished) {
-        const score = Object.values(answers).filter(a => a.isCorrect).length;
+        const score = quiz.reduce((acc, q, i) => acc + (userAnswers[i] === q.correctAnswer ? 1 : 0), 0);
         const total = quiz.length;
+        const incorrectAnswers = quiz.filter((q,i) => userAnswers[i] !== q.correctAnswer);
+
         return (
-            <div className="max-w-xl mx-auto text-center py-16">
+            <div className="max-w-2xl mx-auto py-8 text-center">
                 <h2 className="text-3xl font-bold">Quiz Complete!</h2>
                 <p className="text-6xl font-bold my-6">{score} / {total}</p>
-                <Button onClick={() => router.push(`/dashboard/courses/${course.id}`)}>Back to Course</Button>
+                 <div className="flex justify-center gap-4">
+                    <Button variant="outline" asChild>
+                        <Link href={`/dashboard/courses/${course.id}`}>Back to Course</Link>
+                    </Button>
+                    <Button onClick={() => setIsFinished(false)}>Review Answers</Button>
+                </div>
+
+                <Card className="mt-8 text-left">
+                    <CardHeader>
+                        <CardTitle>Post-Quiz Tools</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <Button variant="secondary" className="w-full justify-start">Generate Flashcards from this module</Button>
+                        <Button variant="secondary" className="w-full justify-start">Create a Study Guide for this module</Button>
+                    </CardContent>
+                </Card>
+
+                 {incorrectAnswers.length > 0 && (
+                    <Card className="mt-8 text-left">
+                         <CardHeader>
+                            <CardTitle>Review Incorrect Answers</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                             <Accordion type="single" collapsible className="w-full">
+                                {quiz.map((q, i) => userAnswers[i] !== q.correctAnswer && (
+                                    <AccordionItem value={`item-${i}`} key={i}>
+                                        <AccordionTrigger>{q.questionText}</AccordionTrigger>
+                                        <AccordionContent>
+                                            <p className="text-red-500">Your Answer: {userAnswers[i]}</p>
+                                            <p className="text-green-500">Correct Answer: {q.correctAnswer}</p>
+                                        </AccordionContent>
+                                    </AccordionItem>
+                                ))}
+                            </Accordion>
+                        </CardContent>
+                    </Card>
+                )}
             </div>
         );
     }
+    
+    const currentQuestion = quiz[currentQuestionIndex];
 
     return (
         <div className="max-w-2xl mx-auto py-8">
@@ -311,36 +354,26 @@ const ModuleQuiz = ({ course, unit }: { course: Course, unit: Unit }) => {
                     <CardTitle>{currentQuestion.questionText}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <RadioGroup value={selectedAnswer || ''} onValueChange={setSelectedAnswer} disabled={isAnswered}>
+                    <RadioGroup value={userAnswers[currentQuestionIndex] || ''} onValueChange={handleAnswerSelect}>
                         <div className="space-y-3">
                             {currentQuestion.options.map((option, index) => (
                                  <Label key={index} className={cn(
-                                    "flex items-center gap-4 p-4 rounded-lg border transition-all",
-                                    isAnswered && option === currentQuestion.correctAnswer && "border-green-500 bg-green-500/10",
-                                    isAnswered && selectedAnswer === option && option !== currentQuestion.correctAnswer && "border-red-500 bg-red-500/10",
-                                    !isAnswered && "cursor-pointer hover:bg-muted"
+                                    "flex items-center gap-4 p-4 rounded-lg border transition-all cursor-pointer",
+                                    userAnswers[currentQuestionIndex] === option ? "border-primary bg-primary/10" : "border-border hover:bg-muted"
                                 )}>
                                     <RadioGroupItem value={option} />
                                     <span>{option}</span>
-                                     {isAnswered && option === currentQuestion.correctAnswer && <CheckCircle className="h-5 w-5 text-green-500 ml-auto"/>}
-                                    {isAnswered && selectedAnswer === option && option !== currentQuestion.correctAnswer && <XCircle className="h-5 w-5 text-red-500 ml-auto"/>}
                                 </Label>
                             ))}
                         </div>
                     </RadioGroup>
                 </CardContent>
-                <CardFooter className="justify-end">
-                    {isAnswered ? (
-                         currentQuestionIndex < quiz.length - 1 ? (
-                            <Button onClick={() => setCurrentQuestionIndex(prev => prev + 1)}>Next</Button>
-                        ) : (
-                            <Button onClick={handleFinishQuiz}>Finish Quiz</Button>
-                        )
-                    ) : (
-                        <Button onClick={handleSubmitAnswer} disabled={!selectedAnswer}>Submit</Button>
-                    )}
-                </CardFooter>
             </Card>
+             <div className="mt-6 flex justify-end">
+                <Button onClick={handleNextQuestion} disabled={!userAnswers[currentQuestionIndex]}>
+                    {currentQuestionIndex < quiz.length - 1 ? 'Next' : 'Finish Quiz'}
+                </Button>
+            </div>
         </div>
     )
 }
