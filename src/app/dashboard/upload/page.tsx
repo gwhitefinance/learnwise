@@ -4,7 +4,7 @@
 import { useState, useRef, ChangeEvent, useEffect } from "react";
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { UploadCloud, Youtube, FileText, Video, Music, Copy, QrCode, Mic, Trash2, Plus, Play, StopCircle, Wand2, Loader2 } from "lucide-react";
@@ -367,4 +367,3 @@ export default function UploadPage() {
         </div>
     );
 }
-
