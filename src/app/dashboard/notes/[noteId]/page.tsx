@@ -51,7 +51,7 @@ interface Message {
   role: 'user' | 'ai';
   content: string;
   streaming?: boolean;
-  quizParams?: Omit<GenerateQuizInput, 'numQuestions' | 'difficulty'> & { numQuestions: number; difficulty: 'Easy' | 'Medium' | 'Hard' };
+  quizParams?: Omit<GenerateQuizInput, 'questionType'>;
   quizTitle?: string;
   timestamp?: number;
 }
@@ -577,7 +577,7 @@ export default function NoteEditorPage() {
 
 
     return (
-        <div className='relative h-screen w-screen'>
+        <div className="h-screen w-screen">
             <LiveLecturePanel show={showLiveLecture} setShow={setShowLiveLecture} onNoteGenerated={handleNoteGenerated} onTranscriptUpdate={setLectureTranscript} onAudioUpdate={setLectureAudioUrl} />
             <div className="flex h-full overflow-hidden">
                 <main className={cn(
