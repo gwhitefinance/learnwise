@@ -29,10 +29,11 @@ const prompt = ai.definePrompt({
 
     **CRITICAL INSTRUCTIONS - YOU MUST FOLLOW THESE EXACTLY:**
     1.  **Analyze and Synthesize**: Read all the provided content and identify the main themes, topics, and sub-topics.
-    2.  **Generate Structure**: Create a logical course structure with 7-10 modules. Each module should represent a major topic discovered in the content.
-    3.  **Create Chapters**: For EACH module, create 5-7 relevant chapter titles that break down the module's topic.
-    4.  **Add Quizzes**: Add a "Module Quiz" chapter at the end of EACH module's chapter list.
-    5.  **Titles Only**: DO NOT generate the chapter content, descriptions, or activities. Your ONLY job is to create the course title, module titles, and chapter titles based on the synthesized content.
+    2.  **Generate Key Concepts**: Based on the content, identify and list 5-7 of the most important keywords or concepts.
+    3.  **Generate Structure**: Create a logical course structure with 7-10 modules. Each module should represent a major topic discovered in the content.
+    4.  **Create Chapters**: For EACH module, create 5-7 relevant chapter titles that break down the module's topic.
+    5.  **Add Quizzes**: Add a "Module Quiz" chapter at the end of EACH module's chapter list.
+    6.  **Titles & Concepts Only**: DO NOT generate the chapter content, descriptions, or activities. Your ONLY job is to create the course title, key concepts, module titles, and chapter titles based on the synthesized content.
     `,
 });
 

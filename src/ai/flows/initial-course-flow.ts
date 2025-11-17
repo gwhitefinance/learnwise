@@ -32,7 +32,7 @@ const generateInitialCourseAndRoadmapFlow = ai.defineFlow(
     outputSchema: InitialCourseOutputSchema,
   },
   async (input) => {
-    // 1. Generate the course outline
+    // 1. Generate the course outline and key concepts
     const courseOutline = await generateMiniCourse({
       courseName: input.courseName,
       courseDescription: input.courseDescription,

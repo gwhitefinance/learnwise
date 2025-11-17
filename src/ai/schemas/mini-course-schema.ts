@@ -1,3 +1,4 @@
+
 /**
  * @fileoverview Defines the data schemas for the mini-course generation feature.
  */
@@ -22,6 +23,7 @@ const ModuleSchema = z.object({
 
 export const GenerateMiniCourseOutputSchema = z.object({
   courseTitle: z.string().describe('The generated title for the mini-course.'),
+  keyConcepts: z.array(z.string()).describe("A list of 5-7 of the most important keywords or concepts for this subject."),
   modules: z.array(ModuleSchema),
 });
 export type GenerateMiniCourseOutput = z.infer<typeof GenerateMiniCourseOutputSchema>;

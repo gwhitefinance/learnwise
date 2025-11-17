@@ -476,7 +476,7 @@ export default function CoursePage() {
                                         <CardTitle className="flex items-center gap-2"><Tag /> Key Concepts</CardTitle>
                                         <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setIsEditingConcepts(!isEditingConcepts)}><Pen className="h-4 w-4"/></Button>
                                     </div>
-                                    <CardDescription>Define the core topics for the AI to focus on.</CardDescription>
+                                    <CardDescription>Define the core topics for the AI to focus on. Use commas to separate topics.</CardDescription>
                                 </CardHeader>
                                 <CardContent>
                                     {isEditingConcepts ? (

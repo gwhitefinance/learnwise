@@ -1,3 +1,4 @@
+
 import { z } from 'zod';
 import { GenerateMiniCourseOutputSchema } from '@/ai/schemas/mini-course-schema';
 
@@ -9,5 +10,6 @@ export const GenerateCourseFromMaterialsInputSchema = z.object({
 });
 export type GenerateCourseFromMaterialsInput = z.infer<typeof GenerateCourseFromMaterialsInputSchema>;
 
+// The output schema is the same as the mini-course, which now includes key concepts.
 export const GenerateCourseFromMaterialsOutputSchema = GenerateMiniCourseOutputSchema;
 export type GenerateCourseFromMaterialsOutput = z.infer<typeof GenerateCourseFromMaterialsOutputSchema>;

@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -40,6 +39,7 @@ type Course = {
     credits?: number;
     isNewTopic?: boolean;
     labCompleted?: boolean;
+    keyConcepts?: string[];
 };
 
 type Module = {
@@ -129,7 +129,7 @@ export default function CoursesListPage() {
             chapters: module.chapters.map((chapter, cIdx) => ({
                 id: crypto.randomUUID(),
                 title: chapter.title,
-                ...(mIdx === 0 && cIdx === 0 ? { ...firstChapterContent, content: JSON.stringify(firstChapterContent.content) } : {}),
+                ...(mIdx === 0 && cIdx === 0 ? { ...firstChapterContent, content: firstChapterContent.content as any } : {}),
             }))
         }));
 
@@ -142,6 +142,7 @@ export default function CoursesListPage() {
             isNewTopic: true,
             completedChapters: [],
             progress: 0,
+            keyConcepts: courseOutline.keyConcepts || [],
         };
 
         const courseDocRef = await addDoc(collection(db, "courses"), courseData);
