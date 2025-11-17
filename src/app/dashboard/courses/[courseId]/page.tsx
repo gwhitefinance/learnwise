@@ -22,7 +22,7 @@ import { Progress } from '@/components/ui/progress';
 import { FloatingChatContext } from '@/components/floating-chat';
 import AIBuddy from '@/components/ai-buddy';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogTrigger, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTrigger, DialogClose, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import type { QuizQuestion } from '@/ai/schemas/quiz-schema';
 
@@ -507,7 +507,7 @@ export default function CoursePage() {
                                             <Copy className="mr-2 h-4 w-4"/> Start Flashcards
                                         </Button>
                                         <hr className="my-2 border-border" />
-                                        <Button className="w-full justify-start" onClick={() => handlePracticeQuizOpen(unit)}>
+                                        <Button className="w-full justify-start bg-blue-500 hover:bg-blue-600 text-white" onClick={() => handlePracticeQuizOpen(unit)}>
                                             <PenSquare className="mr-2 h-4 w-4"/> Take Practice Quiz
                                         </Button>
                                     </div>
@@ -541,7 +541,7 @@ export default function CoursePage() {
                                         <CardTitle className="flex items-center gap-2"><Tag /> Key Concepts</CardTitle>
                                         <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setIsEditingConcepts(!isEditingConcepts)}><Pen className="h-4 w-4"/></Button>
                                     </div>
-                                    <CardDescription>Define the core topics for the AI to focus on. Use commas to separate topics.</CardDescription>
+                                    <CardDescription>Define the core topics for the AI to focus on, separated by commas.</CardDescription>
                                 </CardHeader>
                                 <CardContent>
                                     {isEditingConcepts ? (
