@@ -4,7 +4,7 @@
 import { useState, useRef, ChangeEvent, useEffect } from "react";
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { UploadCloud, Youtube, FileText, Music, Trash2, Plus, Wand2, Loader2, BookOpen, Lightbulb, Copy, ArrowLeft } from "lucide-react";
@@ -13,14 +13,14 @@ import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth, db } from "@/lib/firebase";
-import { doc, updateDoc, onSnapshot, getDoc, arrayUnion } from "firebase/firestore";
-import { generateCrunchTimeStudyGuide, generateQuizFromNote, generateFlashcardsFromNote } from '@/lib/actions';
+import { doc, updateDoc, onSnapshot, getDoc, arrayUnion, arrayRemove } from "firebase/firestore";
+import { generateCrunchTimeStudyGuide, generateQuizFromNote, generateFlashcardsFromNote, generateCourseFromMaterials } from '@/lib/actions';
 import type { CrunchTimeOutput } from '@/ai/schemas/crunch-time-schema';
 import type { GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
-import type { Flashcard } from '@/ai/schemas/flashcard-generation-schema';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import GeneratingCourse from "../courses/GeneratingCourse";
 
 type Material = {
     type: 'file' | 'text' | 'url' | 'audio';
@@ -31,8 +31,14 @@ type Material = {
 type Course = {
     id: string;
     name: string;
-    materials: Material[];
+    materials?: Material[];
 };
+
+type Flashcard = {
+    front: string;
+    back: string;
+};
+
 
 const YoutubeEmbed = ({ url }: { url: string }) => {
     const videoId = url.split('v=')[1]?.split('&')[0];
@@ -90,7 +96,7 @@ export default function UploadPage() {
     const [course, setCourse] = useState<Course | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { toast } = useToast();
-    const [user] = useAuthState(auth);
+    const [user, authLoading] = useAuthState(auth);
     
     // Add materials state
     const [currentText, setCurrentText] = useState('');
@@ -103,6 +109,7 @@ export default function UploadPage() {
     const [generatedQuiz, setGeneratedQuiz] = useState<GenerateQuizOutput | null>(null);
     const [isFlashcardDialogOpen, setFlashcardDialogOpen] = useState(false);
     const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
+    const [generatingCourseName, setGeneratingCourseName] = useState('');
 
     useEffect(() => {
         if (!courseId || !user) {
@@ -121,7 +128,7 @@ export default function UploadPage() {
         });
 
         return () => unsubscribe();
-    }, [courseId, user, router, toast]);
+    }, [courseId, user, router, toast, authLoading]);
 
     const addMaterial = async (material: Material) => {
         if (!courseId) return;
@@ -149,24 +156,24 @@ export default function UploadPage() {
 
     const addTextSnippet = () => {
         if (currentText.trim()) {
-            addMaterial({ type: 'text', content: currentText.trim() });
+            addMaterial({ type: 'text', content: currentText.trim(), fileName: `Text Snippet` });
             setCurrentText('');
         }
     };
 
     const addYoutubeLink = () => {
         if (currentLink.trim()) {
-            addMaterial({ type: 'url', content: currentLink.trim() });
+            addMaterial({ type: 'url', content: currentLink.trim(), fileName: 'YouTube Video' });
             setCurrentLink('');
         }
     };
 
     const removeItem = async (material: Material) => {
-        if (!courseId) return;
+        if (!courseId || !course?.materials) return;
         const courseRef = doc(db, 'courses', courseId);
         try {
             await updateDoc(courseRef, {
-                materials: course?.materials.filter(m => m.content !== material.content)
+                materials: arrayRemove(material)
             });
             toast({ title: 'Material removed.' });
         } catch (error) {
@@ -223,12 +230,65 @@ export default function UploadPage() {
         }
     };
 
-    if (isGenerating && !studyGuide) {
-        return <GeneratingCourse courseName={"your study materials"} />;
+    const handleGenerateCourse = async () => {
+        if (!course || !course.materials || course.materials.length === 0) {
+            toast({ variant: 'destructive', title: 'No materials to generate course from.' });
+            return;
+        }
+
+        setIsGenerating(true);
+        setGeneratingCourseName(course.name);
+
+        const textContent = course.materials.filter(m => m.type === 'text').map(m => m.content).join('\n\n');
+        const urls = course.materials.filter(m => m.type === 'url').map(m => m.content);
+
+        try {
+            const learnerType = localStorage.getItem('learnerType') as any || 'Reading/Writing';
+            const result = await generateCourseFromMaterials({
+                courseName: course.name,
+                textContext: textContent,
+                urls: urls,
+                learnerType: learnerType,
+            });
+            
+            const newUnits = result.modules.map(module => ({
+                id: crypto.randomUUID(),
+                title: module.title,
+                chapters: module.chapters.map(chapter => ({
+                    id: crypto.randomUUID(),
+                    title: chapter.title,
+                    content: '',
+                    activity: ''
+                }))
+            }));
+
+            const courseRef = doc(db, 'courses', course.id);
+            await updateDoc(courseRef, { units: newUnits });
+
+            toast({ title: 'Course Generated!', description: 'Your new course structure is ready.' });
+            router.push(`/dashboard/courses?courseId=${course.id}`);
+
+        } catch (e) {
+            console.error(e);
+            toast({ variant: 'destructive', title: 'Course Generation Failed' });
+        } finally {
+            setIsGenerating(false);
+        }
     }
 
+
+    const hasContent = course?.materials && course.materials.length > 0;
+
+    if (isGenerating && !studyGuide) {
+        return <GeneratingCourse courseName={generatingCourseName || "your study materials"} />;
+    }
+
+    // This is a stand-in. A proper study guide display component would be better.
     if (studyGuide) {
-        return <div className="p-8 max-w-6xl mx-auto"><StudyGuideDisplay guide={studyGuide} onReset={() => setStudyGuide(null)} /></div>
+        return <div className="p-8 max-w-6xl mx-auto">
+            <Button onClick={() => setStudyGuide(null)}>Back</Button>
+            <pre>{JSON.stringify(studyGuide, null, 2)}</pre>
+        </div>
     }
 
 
@@ -275,9 +335,9 @@ export default function UploadPage() {
                 </div>
                  <div className="space-y-6">
                     <h2 className="text-xl font-semibold">Your Materials ({course?.materials?.length || 0})</h2>
-                     {course?.materials && course.materials.length > 0 ? (
+                     {hasContent ? (
                         <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
-                            {course.materials.map((material, index) => (
+                            {course.materials?.map((material, index) => (
                                 <MaterialCard key={index} material={material} onRemove={() => removeItem(material)} onGenerate={handleGenerate}/>
                             ))}
                         </div>
@@ -288,6 +348,22 @@ export default function UploadPage() {
                     )}
                 </div>
             </div>
+            {hasContent && (
+                <div className="mt-8 pt-8 border-t">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2"><Wand2/> Generate Course</CardTitle>
+                            <CardDescription>Once you've added all your materials, let the AI build a structured course with units and chapters for you.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <Button className="w-full" onClick={handleGenerateCourse} disabled={isGenerating}>
+                                {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Wand2 className="mr-2 h-4 w-4"/>}
+                                {isGenerating ? 'Generating...' : 'Generate Course with AI'}
+                            </Button>
+                        </CardContent>
+                    </Card>
+                </div>
+            )}
 
             {/* AI Generation Modals */}
             <Dialog open={isQuizDialogOpen} onOpenChange={setQuizDialogOpen}>
