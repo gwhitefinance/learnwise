@@ -257,9 +257,9 @@ const LiveLecturePanel = ({ show, setShow, onNoteGenerated, onTranscriptUpdate, 
     if (!show) return null;
 
     return (
-        <Draggable nodeRef={nodeRef} handle=".drag-handle" bounds="parent">
-            <div ref={nodeRef} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-auto max-h-[500px] bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800 flex flex-col">
-                 <header className="drag-handle cursor-move flex-shrink-0 flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
+        <Draggable nodeRef={nodeRef} cancel="button, textarea, audio" bounds="parent">
+            <div ref={nodeRef} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-auto max-h-[500px] bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800 flex flex-col cursor-move">
+                 <header className="flex-shrink-0 flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
                     <div className="flex items-center gap-2">
                         <GripVertical className="h-5 w-5 text-gray-400" />
                         <h3 className="font-semibold text-gray-900 dark:text-white">Live Lecture Recording</h3>
