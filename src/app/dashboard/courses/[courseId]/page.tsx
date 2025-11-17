@@ -23,7 +23,7 @@ import { Progress } from '@/components/ui/progress';
 import { FloatingChatContext } from '@/components/floating-chat';
 import AIBuddy from '@/components/ai-buddy';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogTrigger, DialogClose, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTrigger, DialogClose, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import type { QuizQuestion } from '@/ai/schemas/quiz-schema';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -535,9 +535,11 @@ export default function CoursePage() {
                     </div>
                     <aside className="w-full lg:w-72 xl:w-80 lg:sticky top-24 self-start flex-shrink-0">
                         <div className="space-y-6">
-                            <div className="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
-                                <h3 className="text-lg font-bold mb-4">Study Tools</h3>
-                                <div className="flex flex-col gap-3">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Study Tools</CardTitle>
+                                </CardHeader>
+                                <CardContent className="flex flex-col gap-3">
                                     <Button variant="outline" className="w-full justify-start" asChild>
                                         <Link href="/dashboard/key-concepts">
                                             <BookMarked className="mr-2 h-4 w-4" /> Key Concepts
@@ -551,8 +553,8 @@ export default function CoursePage() {
                                     <Button variant="outline" className="w-full justify-start" onClick={() => openChatWithPrompt(`I have a question about ${course.name}`)}>
                                         <MessageSquare className="mr-2 h-4 w-4" /> Ask {aiBuddyName}
                                     </Button>
-                                </div>
-                            </div>
+                                </CardContent>
+                            </Card>
                             <Card>
                                 <CardHeader>
                                     <div className="flex justify-between items-center">
