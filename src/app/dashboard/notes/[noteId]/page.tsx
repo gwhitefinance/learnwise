@@ -253,7 +253,6 @@ const LiveLecturePanel = ({ show, setShow, onNoteGenerated, onTranscriptUpdate, 
         }
     };
 
-
     if (!show) return null;
 
     return (
@@ -578,175 +577,177 @@ export default function NoteEditorPage() {
 
 
     return (
-        <div className="flex h-screen overflow-hidden">
+        <div className='relative h-screen w-screen'>
             <LiveLecturePanel show={showLiveLecture} setShow={setShowLiveLecture} onNoteGenerated={handleNoteGenerated} onTranscriptUpdate={setLectureTranscript} onAudioUpdate={setLectureAudioUrl} />
-            <main className={cn(
-                "flex-1 flex flex-col bg-background-light dark:bg-gray-900/50 transition-all duration-300",
-                isChatVisible ? 'md:w-[calc(100%-24rem)]' : 'w-full'
-            )}>
-                <header className="flex-shrink-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-6 py-3">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                             <Link href="/dashboard/notes">
-                                <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500 dark:text-gray-400">
-                                    <X size={20} />
-                                </Button>
-                            </Link>
-                            <Input 
-                                value={noteTitle}
-                                onChange={(e) => setNoteTitle(e.target.value)}
-                                className="text-xl font-semibold text-gray-900 dark:text-white bg-transparent border-none focus-visible:ring-0 shadow-none p-0 h-auto"
-                            />
-                            <button className="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 p-1 rounded-full">
-                                <ChevronDown size={16} />
-                            </button>
-                             <button onClick={() => setShowLiveLecture(true)} className="p-1.5 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 ml-2">
-                                <Mic size={16}/>
-                            </button>
-                        </div>
-                        <div className="flex items-center gap-2">
-                             <Button variant="outline" size="sm" asChild>
-                                <Link href="/dashboard/essay-grader">
-                                    <GraduationCap className="mr-2 h-4 w-4"/> Grade an Essay
+            <div className="flex h-full overflow-hidden">
+                <main className={cn(
+                    "flex-1 flex flex-col bg-background-light dark:bg-gray-900/50 transition-all duration-300",
+                    isChatVisible ? 'md:w-[calc(100%-24rem)]' : 'w-full'
+                )}>
+                    <header className="flex-shrink-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-6 py-3">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <Link href="/dashboard/notes">
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500 dark:text-gray-400">
+                                        <X size={20} />
+                                    </Button>
                                 </Link>
-                            </Button>
-                             <Button variant="outline" size="sm" onClick={() => setIsChatVisible(!isChatVisible)}>
-                                <MessageSquare className="mr-2 h-4 w-4"/>
-                                {isChatVisible ? 'Hide Chat' : 'Show Chat'}
-                            </Button>
-                            <Button variant="outline" className="text-sm">
-                                <UserPlus className="mr-2 h-4 w-4"/> Share
-                            </Button>
-                            <Button onClick={openSaveDialog} className="text-sm bg-blue-600 hover:bg-blue-700">
-                                <Save className="mr-2 h-4 w-4"/> Save Note
-                            </Button>
-                        </div>
-                    </div>
-                </header>
-                <div className="flex-1 flex flex-col p-6 overflow-y-auto">
-                    <input type="file" ref={imageInputRef} onChange={handleFileSelected} accept="image/*" className="hidden" />
-                    <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm flex-1 flex flex-col">
-                        <EditorToolbar 
-                            onCommand={handleCommand} 
-                            onImageUpload={handleImageUpload}
-                            onLinkCreate={handleLinkCreate}
-                            onToggleChat={() => setIsChatVisible(!isChatVisible)}
-                        />
-                         <div 
-                             ref={editorRef}
-                             contentEditable="true" 
-                             className="relative flex-1 p-8 prose prose-lg max-w-none dark:prose-invert outline-none" 
-                             suppressContentEditableWarning={true}
-                             data-placeholder="Start writing note here..."
-                         >
-                         </div>
-                    </div>
-                </div>
-            </main>
-             {isChatVisible && (
-                <aside className="w-96 flex-shrink-0 bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 flex flex-col">
-                    <header className="flex-shrink-0 flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500 dark:text-gray-400" onClick={() => setIsChatVisible(false)}>
-                            <X size={20}/>
-                        </Button>
-                        <Button variant="secondary" size="sm" className="rounded-full font-semibold">
-                            Chat History
-                        </Button>
-                    </header>
-                    <ScrollArea className="flex-1">
-                        {chatHistory.length === 0 ? (
-                            <ChatHomeScreen onStartChatWithPrompt={handleStartChatWithPrompt} customizations={{}} />
-                        ) : (
-                            <div className="p-4 space-y-4">
-                                {chatHistory.map((msg, index) => (
-                                    <div key={index} className={cn("flex items-end gap-2", msg.role === 'user' ? 'justify-end' : '')}>
-                                         {msg.role === 'ai' && <Avatar><AvatarFallback><Bot size={20}/></AvatarFallback></Avatar>}
-                                         <div className={cn("p-3 rounded-2xl max-w-lg", msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
-                                            <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
-                                        </div>
-                                         {msg.role === 'user' && <Avatar><AvatarFallback><User size={20}/></AvatarFallback></Avatar>}
-                                    </div>
-                                ))}
-                                {isChatLoading && (
-                                     <div className="flex items-end gap-2">
-                                        <Avatar><AvatarFallback><Bot size={20}/></AvatarFallback>
-                                        </Avatar>
-                                        <div className="rounded-lg p-3 bg-muted animate-pulse">Thinking...</div>
-                                     </div>
-                                )}
+                                <Input 
+                                    value={noteTitle}
+                                    onChange={(e) => setNoteTitle(e.target.value)}
+                                    className="text-xl font-semibold text-gray-900 dark:text-white bg-transparent border-none focus-visible:ring-0 shadow-none p-0 h-auto"
+                                />
+                                <button className="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 p-1 rounded-full">
+                                    <ChevronDown size={16} />
+                                </button>
+                                <button onClick={() => setShowLiveLecture(true)} className="p-1.5 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 ml-2">
+                                    <Mic size={16}/>
+                                </button>
                             </div>
-                        )}
-                    </ScrollArea>
-                    <footer className="p-4 border-t border-gray-200 dark:border-gray-800 space-y-3">
-                        <div className="relative">
-                            <Textarea 
-                                placeholder="Ask your AI tutor anything..." 
-                                className="bg-gray-100 dark:bg-gray-800 border-none rounded-lg p-4 pr-12 text-base resize-none"
-                                rows={1}
-                                value={chatInput}
-                                onChange={(e) => setChatInput(e.target.value)}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter' && !e.shiftKey) {
-                                        e.preventDefault();
-                                        handleSendMessage();
-                                    }
-                                }}
+                            <div className="flex items-center gap-2">
+                                <Button variant="outline" size="sm" asChild>
+                                    <Link href="/dashboard/essay-grader">
+                                        <GraduationCap className="mr-2 h-4 w-4"/> Grade an Essay
+                                    </Link>
+                                </Button>
+                                <Button variant="outline" size="sm" onClick={() => setIsChatVisible(!isChatVisible)}>
+                                    <MessageSquare className="mr-2 h-4 w-4"/>
+                                    {isChatVisible ? 'Hide Chat' : 'Show Chat'}
+                                </Button>
+                                <Button variant="outline" className="text-sm">
+                                    <UserPlus className="mr-2 h-4 w-4"/> Share
+                                </Button>
+                                <Button onClick={openSaveDialog} className="text-sm bg-blue-600 hover:bg-blue-700">
+                                    <Save className="mr-2 h-4 w-4"/> Save Note
+                                </Button>
+                            </div>
+                        </div>
+                    </header>
+                    <div className="flex-1 flex flex-col p-6 overflow-y-auto">
+                        <input type="file" ref={imageInputRef} onChange={handleFileSelected} accept="image/*" className="hidden" />
+                        <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm flex-1 flex flex-col">
+                            <EditorToolbar 
+                                onCommand={handleCommand} 
+                                onImageUpload={handleImageUpload}
+                                onLinkCreate={handleLinkCreate}
+                                onToggleChat={() => setIsChatVisible(!isChatVisible)}
                             />
-                            <Button size="icon" className="absolute right-3 bottom-3 w-8 h-8 rounded-full bg-blue-600 hover:bg-blue-700" onClick={() => handleSendMessage()} disabled={isChatLoading}>
-                                <ArrowRight size={16}/>
+                            <div 
+                                ref={editorRef}
+                                contentEditable="true" 
+                                className="relative flex-1 p-8 prose prose-lg max-w-none dark:prose-invert outline-none" 
+                                suppressContentEditableWarning={true}
+                                data-placeholder="Start writing note here..."
+                            >
+                            </div>
+                        </div>
+                    </div>
+                </main>
+                {isChatVisible && (
+                    <aside className="w-96 flex-shrink-0 bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 flex flex-col">
+                        <header className="flex-shrink-0 flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500 dark:text-gray-400" onClick={() => setIsChatVisible(false)}>
+                                <X size={20}/>
                             </Button>
-                        </div>
-                    </footer>
-                </aside>
-            )}
-             <Dialog open={isSaveDialogOpen} onOpenChange={setIsSaveDialogOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Save Note</DialogTitle>
-                        <DialogDescription>
-                            Optionally, you can associate this note with a specific course or module for better organization.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="py-4 grid gap-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="note-course">Course (Optional)</Label>
-                            <Select value={selectedCourseId} onValueChange={setSelectedCourseId}>
-                                <SelectTrigger id="note-course">
-                                    <SelectValue placeholder="Select a course" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="none">No specific course</SelectItem>
-                                    {courses.map(course => (
-                                        <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>
+                            <Button variant="secondary" size="sm" className="rounded-full font-semibold">
+                                Chat History
+                            </Button>
+                        </header>
+                        <ScrollArea className="flex-1">
+                            {chatHistory.length === 0 ? (
+                                <ChatHomeScreen onStartChatWithPrompt={handleStartChatWithPrompt} customizations={{}} />
+                            ) : (
+                                <div className="p-4 space-y-4">
+                                    {chatHistory.map((msg, index) => (
+                                        <div key={index} className={cn("flex items-end gap-2", msg.role === 'user' ? 'justify-end' : '')}>
+                                            {msg.role === 'ai' && <Avatar><AvatarFallback><Bot size={20}/></AvatarFallback></Avatar>}
+                                            <div className={cn("p-3 rounded-2xl max-w-lg", msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
+                                                <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                                            </div>
+                                            {msg.role === 'user' && <Avatar><AvatarFallback><User size={20}/></AvatarFallback></Avatar>}
+                                        </div>
                                     ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        {selectedCourseId && selectedCourseId !== 'none' && selectedCourseForFilter?.units && (
-                             <div className="space-y-2">
-                                <Label htmlFor="note-unit">Module (Optional)</Label>
-                                <Select value={selectedUnitId} onValueChange={setSelectedUnitId}>
-                                    <SelectTrigger id="note-unit">
-                                        <SelectValue placeholder="Select a module" />
+                                    {isChatLoading && (
+                                        <div className="flex items-end gap-2">
+                                            <Avatar><AvatarFallback><Bot size={20}/></AvatarFallback>
+                                            </Avatar>
+                                            <div className="rounded-lg p-3 bg-muted animate-pulse">Thinking...</div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </ScrollArea>
+                        <footer className="p-4 border-t border-gray-200 dark:border-gray-800 space-y-3">
+                            <div className="relative">
+                                <Textarea 
+                                    placeholder="Ask your AI tutor anything..." 
+                                    className="bg-gray-100 dark:bg-gray-800 border-none rounded-lg p-4 pr-12 text-base resize-none"
+                                    rows={1}
+                                    value={chatInput}
+                                    onChange={(e) => setChatInput(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && !e.shiftKey) {
+                                            e.preventDefault();
+                                            handleSendMessage();
+                                        }
+                                    }}
+                                />
+                                <Button size="icon" className="absolute right-3 bottom-3 w-8 h-8 rounded-full bg-blue-600 hover:bg-blue-700" onClick={() => handleSendMessage()} disabled={isChatLoading}>
+                                    <ArrowRight size={16}/>
+                                </Button>
+                            </div>
+                        </footer>
+                    </aside>
+                )}
+                <Dialog open={isSaveDialogOpen} onOpenChange={setIsSaveDialogOpen}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Save Note</DialogTitle>
+                            <DialogDescription>
+                                Optionally, you can associate this note with a specific course or module for better organization.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="py-4 grid gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="note-course">Course (Optional)</Label>
+                                <Select value={selectedCourseId} onValueChange={setSelectedCourseId}>
+                                    <SelectTrigger id="note-course">
+                                        <SelectValue placeholder="Select a course" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="none">No specific module</SelectItem>
-                                        {selectedCourseForFilter.units.map(unit => (
-                                            <SelectItem key={unit.id} value={unit.id}>{unit.title}</SelectItem>
+                                        <SelectItem value="none">No specific course</SelectItem>
+                                        {courses.map(course => (
+                                            <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
                             </div>
-                        )}
-                    </div>
-                    <DialogFooter>
-                        <DialogClose asChild>
-                            <Button variant="ghost">Cancel</Button>
-                        </DialogClose>
-                        <Button onClick={handleSaveNote}>Save Note</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+                            {selectedCourseId && selectedCourseId !== 'none' && selectedCourseForFilter?.units && (
+                                <div className="space-y-2">
+                                    <Label htmlFor="note-unit">Module (Optional)</Label>
+                                    <Select value={selectedUnitId} onValueChange={setSelectedUnitId}>
+                                        <SelectTrigger id="note-unit">
+                                            <SelectValue placeholder="Select a module" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="none">No specific module</SelectItem>
+                                            {selectedCourseForFilter.units.map(unit => (
+                                                <SelectItem key={unit.id} value={unit.id}>{unit.title}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            )}
+                        </div>
+                        <DialogFooter>
+                            <DialogClose asChild>
+                                <Button variant="ghost">Cancel</Button>
+                            </DialogClose>
+                            <Button onClick={handleSaveNote}>Save Note</Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+            </div>
         </div>
     );
 }
