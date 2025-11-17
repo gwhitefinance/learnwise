@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -11,15 +12,16 @@ import { ArrowLeft, Check, Loader2, X, CheckCircle, XCircle } from 'lucide-react
 import { cn } from '@/lib/utils';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import Loading from './loading';
 import { Progress } from '@/components/ui/progress';
-import { generateQuizFromModule, generateFlashcardsFromNote, generateCrunchTimeStudyGuide, generateExplanation } from '@/lib/actions';
+import { generateQuizFromModule, generateFlashcardsFromNote, generateCrunchTimeStudyGuide, generateExplanation, generateSummary, generateChapterContent } from '@/lib/actions';
 import type { QuizQuestion } from '@/ai/schemas/quiz-schema';
 import AIBuddy from '@/components/ai-buddy';
 import { motion } from 'framer-motion';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import Link from 'next/link';
 
 type ChapterContentBlock = {
     type: 'text' | 'question';
@@ -32,7 +34,7 @@ type ChapterContentBlock = {
 type Chapter = {
     id: string;
     title: string;
-    content?: ChapterContentBlock[] | string;
+    content?: ChapterContentBlock[];
     activity?: string;
 };
 
@@ -55,17 +57,20 @@ const ChapterContentDisplay = ({ chapter }: { chapter: Chapter }) => {
     const [submittedAnswers, setSubmittedAnswers] = useState<Record<number, boolean>>({});
 
     useEffect(() => {
-        if (chapter.content && typeof chapter.content === 'string') {
+        if (Array.isArray(chapter.content)) {
+            setContentBlocks(chapter.content);
+        } else if (typeof chapter.content === 'string' && chapter.content.trim().startsWith('[')) {
             try {
-                const parsedContent = JSON.parse(chapter.content);
-                setContentBlocks(parsedContent);
+                setContentBlocks(JSON.parse(chapter.content));
             } catch (e) {
+                // It's not JSON, treat as plain text
                 setContentBlocks([{ type: 'text', content: chapter.content }]);
             }
-        } else if (Array.isArray(chapter.content)) {
-            setContentBlocks(chapter.content);
+        } else if (typeof chapter.content === 'string') {
+            setContentBlocks([{ type: 'text', content: chapter.content }]);
         }
     }, [chapter]);
+
 
     const handleAnswerChange = (questionIndex: number, answer: string) => {
         setUserAnswers(prev => ({...prev, [questionIndex]: answer}));
@@ -228,8 +233,17 @@ const ModuleQuiz = ({ course, unit }: { course: Course, unit: Unit }) => {
             try {
                 const moduleContent = unit.chapters
                     .filter(c => c.title !== 'Module Quiz')
-                    .map(c => `Chapter: ${c.title}\n${typeof c.content === 'string' ? c.content : JSON.stringify(c.content)}`)
+                    .map(c => {
+                        let contentString = '';
+                        if (typeof c.content === 'string') {
+                            contentString = c.content;
+                        } else if (Array.isArray(c.content)) {
+                            contentString = c.content.map(block => block.content || block.question).join(' ');
+                        }
+                        return `Chapter: ${c.title}\n${contentString}`;
+                    })
                     .join('\n\n');
+
 
                 const result = await generateQuizFromModule({
                     moduleContent,
@@ -264,7 +278,6 @@ const ModuleQuiz = ({ course, unit }: { course: Course, unit: Unit }) => {
         const score = quiz.reduce((acc, question, index) => {
             return acc + (userAnswers[index] === question.correctAnswer ? 1 : 0);
         }, 0);
-        const total = quiz.length;
         
         try {
             await addDoc(collection(db, 'quizResults'), {
@@ -272,10 +285,26 @@ const ModuleQuiz = ({ course, unit }: { course: Course, unit: Unit }) => {
                 courseId: course.id,
                 moduleId: unit.id,
                 score: score,
-                totalQuestions: total,
+                totalQuestions: quiz.length,
                 answers: userAnswers,
                 timestamp: serverTimestamp()
             });
+
+            // Save incorrect answers for review
+            for (let i = 0; i < quiz.length; i++) {
+                if(userAnswers[i] && userAnswers[i] !== quiz[i].correctAnswer) {
+                    await addDoc(collection(db, 'quizAttempts'), {
+                        userId: user.uid,
+                        courseId: course.id,
+                        topic: unit.title,
+                        question: quiz[i].questionText,
+                        userAnswer: userAnswers[i],
+                        correctAnswer: quiz[i].correctAnswer,
+                        timestamp: serverTimestamp(),
+                    });
+                }
+            }
+
         } catch(e) {
             console.error(e);
         }
@@ -294,8 +323,7 @@ const ModuleQuiz = ({ course, unit }: { course: Course, unit: Unit }) => {
     if (isFinished) {
         const score = quiz.reduce((acc, q, i) => acc + (userAnswers[i] === q.correctAnswer ? 1 : 0), 0);
         const total = quiz.length;
-        const incorrectAnswers = quiz.filter((q,i) => userAnswers[i] !== q.correctAnswer);
-
+        
         return (
             <div className="max-w-2xl mx-auto py-8 text-center">
                 <h2 className="text-3xl font-bold">Quiz Complete!</h2>
@@ -304,7 +332,7 @@ const ModuleQuiz = ({ course, unit }: { course: Course, unit: Unit }) => {
                     <Button variant="outline" asChild>
                         <Link href={`/dashboard/courses/${course.id}`}>Back to Course</Link>
                     </Button>
-                    <Button onClick={() => setIsFinished(false)}>Review Answers</Button>
+                    <Button onClick={() => { setCurrentQuestionIndex(0); setUserAnswers({}); setIsFinished(false); }}>Retake Quiz</Button>
                 </div>
 
                 <Card className="mt-8 text-left">
@@ -317,7 +345,7 @@ const ModuleQuiz = ({ course, unit }: { course: Course, unit: Unit }) => {
                     </CardContent>
                 </Card>
 
-                 {incorrectAnswers.length > 0 && (
+                 {score < total && (
                     <Card className="mt-8 text-left">
                          <CardHeader>
                             <CardTitle>Review Incorrect Answers</CardTitle>
@@ -328,7 +356,7 @@ const ModuleQuiz = ({ course, unit }: { course: Course, unit: Unit }) => {
                                     <AccordionItem value={`item-${i}`} key={i}>
                                         <AccordionTrigger>{q.questionText}</AccordionTrigger>
                                         <AccordionContent>
-                                            <p className="text-red-500">Your Answer: {userAnswers[i]}</p>
+                                            <p className="text-red-500">Your Answer: {userAnswers[i] || 'No Answer'}</p>
                                             <p className="text-green-500">Correct Answer: {q.correctAnswer}</p>
                                         </AccordionContent>
                                     </AccordionItem>
@@ -368,15 +396,39 @@ const ModuleQuiz = ({ course, unit }: { course: Course, unit: Unit }) => {
                         </div>
                     </RadioGroup>
                 </CardContent>
+                 <CardFooter className="justify-end">
+                     <Button onClick={handleNextQuestion} disabled={!userAnswers[currentQuestionIndex]}>
+                        {currentQuestionIndex < quiz.length - 1 ? 'Next' : 'Finish Quiz'}
+                    </Button>
+                </CardFooter>
             </Card>
-             <div className="mt-6 flex justify-end">
-                <Button onClick={handleNextQuestion} disabled={!userAnswers[currentQuestionIndex]}>
-                    {currentQuestionIndex < quiz.length - 1 ? 'Next' : 'Finish Quiz'}
-                </Button>
+        </div>
+    )
+}
+
+const GeneratingNextChapter = ({ summary, progress }: { summary: string, progress: number }) => {
+    return (
+        <div className="flex flex-col items-center justify-center h-full text-center p-6 max-w-2xl mx-auto">
+            <div className="relative mb-8 flex flex-col items-center">
+                <div className="relative w-32 h-32">
+                    <AIBuddy className="w-full h-full" isStatic={false} />
+                </div>
+            </div>
+            <h1 className="text-2xl font-bold">Building your next chapter...</h1>
+            <p className="text-muted-foreground text-sm max-w-md mx-auto mb-8">While you wait, here's a quick summary of what you just learned!</p>
+            <Card className="w-full mb-8 text-left">
+                <CardHeader><CardTitle>Chapter Summary</CardTitle></CardHeader>
+                <CardContent>
+                    <p className="text-muted-foreground">{summary}</p>
+                </CardContent>
+            </Card>
+            <div className="w-full max-w-sm mx-auto">
+                <Progress value={progress} className="h-2" />
             </div>
         </div>
     )
 }
+
 
 export default function ChapterPage() {
     const params = useParams();
@@ -390,6 +442,12 @@ export default function ChapterPage() {
     const [chapter, setChapter] = useState<Chapter | null>(null);
     const [unit, setUnit] = useState<Unit | null>(null);
     const [loading, setLoading] = useState(true);
+    
+    // New state for generating next chapter
+    const [isGeneratingNext, setIsGeneratingNext] = useState(false);
+    const [currentSummary, setCurrentSummary] = useState('');
+    const [generationProgress, setGenerationProgress] = useState(0);
+
 
     useEffect(() => {
         if (!user || !courseId || !chapterId) {
@@ -433,31 +491,80 @@ export default function ChapterPage() {
 
     const handleComplete = async () => {
         if (!course || !user || !chapter || !unit) return;
-        
+
         const courseRef = doc(db, 'courses', courseId as string);
-        
+
         try {
             await updateDoc(courseRef, {
                 completedChapters: arrayUnion(chapter.id)
             });
-            
-            toast({ title: 'Chapter Complete!', description: 'Moving to the next chapter.'});
+
+            toast({ title: 'Chapter Complete!' });
 
             const chapterIndex = unit.chapters.findIndex(c => c.id === chapter.id);
-            
+
             if (chapterIndex < unit.chapters.length - 1) {
                 const nextChapter = unit.chapters[chapterIndex + 1];
-                router.push(`/dashboard/courses/${courseId}/${nextChapter.id}`);
+                const nextUnitIndex = course.units.findIndex(u => u.id === unit.id);
+                const nextChapterData = course.units[nextUnitIndex]?.chapters[chapterIndex + 1];
+
+                // Check if next chapter has content
+                if (nextChapterData && !nextChapterData.content) {
+                    setIsGeneratingNext(true);
+
+                    // 1. Generate summary for current chapter
+                    const summaryResult = await generateSummary({ noteContent: JSON.stringify(chapter.content) });
+                    setCurrentSummary(summaryResult.summary);
+                    setGenerationProgress(20);
+
+                    // 2. Generate content for next chapter
+                    const nextContent = await generateChapterContent({
+                        courseName: course.name,
+                        moduleTitle: unit.title,
+                        chapterTitle: nextChapter.title,
+                        learnerType: (localStorage.getItem('learnerType') as any) || 'Reading/Writing'
+                    });
+                    setGenerationProgress(80);
+                    
+                    // 3. Update Firestore
+                    const fullCourseSnap = await getDoc(courseRef);
+                    const fullCourseData = fullCourseSnap.data() as Course;
+                    const updatedUnits = fullCourseData.units.map(u => {
+                        if (u.id === unit.id) {
+                            return {
+                                ...u,
+                                chapters: u.chapters.map(c => 
+                                    c.id === nextChapter.id 
+                                    ? { ...c, content: nextContent.content, activity: nextContent.activity } 
+                                    : c
+                                )
+                            };
+                        }
+                        return u;
+                    });
+                    await updateDoc(courseRef, { units: updatedUnits });
+                    setGenerationProgress(100);
+                    
+                    // 4. Navigate
+                    router.push(`/dashboard/courses/${courseId}/${nextChapter.id}`);
+                    
+                } else {
+                    router.push(`/dashboard/courses/${courseId}/${nextChapter.id}`);
+                }
             } else {
                 router.push(`/dashboard/courses/${courseId}`);
             }
 
         } catch (error) {
-            console.error("Failed to mark chapter as complete:", error);
+            console.error("Failed to mark chapter as complete or generate next:", error);
             toast({ variant: 'destructive', title: 'Update failed.' });
+            setIsGeneratingNext(false);
         }
     };
-
+    
+    if (isGeneratingNext) {
+        return <GeneratingNextChapter summary={currentSummary} progress={generationProgress} />;
+    }
 
     if (loading || authLoading) {
         return <Loading />;
