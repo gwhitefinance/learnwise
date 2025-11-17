@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -52,7 +51,7 @@ interface Message {
   role: 'user' | 'ai';
   content: string;
   streaming?: boolean;
-  quizParams?: Omit<GenerateQuizInput, 'questionType'>;
+  quizParams?: Omit<GenerateQuizInput, 'numQuestions' | 'difficulty'> & { numQuestions: number; difficulty: 'Easy' | 'Medium' | 'Hard' };
   quizTitle?: string;
   timestamp?: number;
 }
@@ -580,10 +579,11 @@ export default function NoteEditorPage() {
 
     return (
         <div className="flex h-screen overflow-hidden">
-             <main className={cn(
+            <LiveLecturePanel show={showLiveLecture} setShow={setShowLiveLecture} onNoteGenerated={handleNoteGenerated} onTranscriptUpdate={setLectureTranscript} onAudioUpdate={setLectureAudioUrl} />
+            <main className={cn(
                 "flex-1 flex flex-col bg-background-light dark:bg-gray-900/50 transition-all duration-300",
                 isChatVisible ? 'md:w-[calc(100%-24rem)]' : 'w-full'
-             )}>
+            )}>
                 <header className="flex-shrink-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-6 py-3">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -623,9 +623,8 @@ export default function NoteEditorPage() {
                         </div>
                     </div>
                 </header>
-                <div className="flex-1 flex flex-col p-6 overflow-y-auto relative">
+                <div className="flex-1 flex flex-col p-6 overflow-y-auto">
                     <input type="file" ref={imageInputRef} onChange={handleFileSelected} accept="image/*" className="hidden" />
-                    <LiveLecturePanel show={showLiveLecture} setShow={setShowLiveLecture} onNoteGenerated={handleNoteGenerated} onTranscriptUpdate={setLectureTranscript} onAudioUpdate={setLectureAudioUrl} />
                     <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm flex-1 flex flex-col">
                         <EditorToolbar 
                             onCommand={handleCommand} 
