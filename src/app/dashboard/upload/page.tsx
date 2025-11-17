@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useRef, ChangeEvent, useEffect } from "react";
@@ -7,10 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { UploadCloud, Youtube, FileText, Video, Music, Copy, QrCode } from "lucide-react";
+import { UploadCloud, Youtube, FileText, Video, Music, Copy, QrCode, Mic } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import QRCode from 'qrcode.react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function UploadPage() {
     const searchParams = useSearchParams();
@@ -33,8 +33,6 @@ export default function UploadPage() {
 
             if (event.data.type === 'noteUpload') {
                 toast({ title: "Image Received!", description: "Your image has been sent for processing." });
-                // In a real app, you would now handle this imageDataUri
-                // e.g., send it to your AI backend.
                 console.log("Received image data URI from mobile.");
             }
         };
@@ -47,7 +45,6 @@ export default function UploadPage() {
         if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
             toast({ title: "File Selected", description: `${file.name}` });
-            // Here you would typically handle the file upload
         }
     };
 
@@ -65,7 +62,6 @@ export default function UploadPage() {
         if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
             const file = e.dataTransfer.files[0];
             toast({ title: "File Dropped", description: `${file.name}` });
-            // Handle the dropped file
             e.dataTransfer.clearData();
         }
     };
@@ -77,63 +73,64 @@ export default function UploadPage() {
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div className="md:col-span-2 space-y-6">
-                    <Card className="p-8 text-center">
-                        <div 
-                            className={cn(
-                                "border-2 border-dashed rounded-xl p-12 flex flex-col items-center gap-4 transition-colors cursor-pointer",
-                                isDragging ? "border-primary bg-primary/10" : "border-border hover:border-primary/50"
-                            )}
-                            onClick={handleUploadClick}
-                            onDragEnter={handleDragEnter}
-                            onDragLeave={handleDragLeave}
-                            onDragOver={handleDragOver}
-                            onDrop={handleDrop}
-                        >
-                            <input
-                                type="file"
-                                ref={fileInputRef}
-                                onChange={handleFileChange}
-                                className="hidden"
-                            />
-                            <div className="p-3 bg-muted rounded-full">
-                                <UploadCloud className="w-8 h-8 text-primary" />
-                            </div>
-                            <h3 className="text-xl font-semibold">Upload any files from Class</h3>
-                            <p className="text-muted-foreground">Click to upload or drag and drop files</p>
-                            <div className="flex flex-wrap items-center justify-center gap-4 mt-4">
-                                <Button variant="outline" size="sm" className="pointer-events-none"><FileText className="w-4 h-4 mr-2"/>Powerpoints</Button>
-                                <Button variant="outline" size="sm" className="pointer-events-none"><FileText className="w-4 h-4 mr-2"/>PDF Documents</Button>
-                                <Button variant="outline" size="sm" className="pointer-events-none"><Music className="w-4 h-4 mr-2"/>Audio Files</Button>
-                                <Button variant="outline" size="sm" className="pointer-events-none"><Video className="w-4 h-4 mr-2"/>Video Files</Button>
-                                <Button variant="outline" size="sm" className="pointer-events-none"><Youtube className="w-4 h-4 mr-2"/>Youtube Video</Button>
-                            </div>
-                        </div>
-                    </Card>
-                    
                     <Card>
                         <CardHeader>
-                            <CardTitle>Paste Text</CardTitle>
-                            <CardDescription>Copy and paste notes or text from any source.</CardDescription>
+                            <CardTitle>Add Your Content</CardTitle>
+                            <CardDescription>Choose your preferred method to add materials.</CardDescription>
                         </CardHeader>
                         <CardContent>
-                             <Textarea placeholder="Paste your text here..." className="h-32"/>
-                        </CardContent>
-                    </Card>
-
-                    <Card className={isRecording ? "bg-red-500/10 border-red-500/30" : ""}>
-                        <CardContent className="p-6 flex items-center justify-between">
-                             <div>
-                                <h3 className="font-semibold">Are you in class? Start a live lecture</h3>
-                                <p className="text-sm text-muted-foreground">Record your lecture in real-time and get AI-powered notes.</p>
-                            </div>
-                            <Button variant={isRecording ? 'destructive' : 'outline'} onClick={() => setIsRecording(!isRecording)}>
-                                {isRecording ? 'Stop Recording' : 'Start Recording'}
-                            </Button>
+                            <Tabs defaultValue="upload">
+                                <TabsList className="grid w-full grid-cols-4">
+                                    <TabsTrigger value="upload"><UploadCloud className="w-4 h-4 mr-2"/>Upload</TabsTrigger>
+                                    <TabsTrigger value="paste"><FileText className="w-4 h-4 mr-2"/>Paste</TabsTrigger>
+                                    <TabsTrigger value="youtube"><Youtube className="w-4 h-4 mr-2"/>YouTube</TabsTrigger>
+                                    <TabsTrigger value="record"><Mic className="w-4 h-4 mr-2"/>Record</TabsTrigger>
+                                </TabsList>
+                                <TabsContent value="upload" className="pt-6">
+                                    <div 
+                                        className={cn(
+                                            "border-2 border-dashed rounded-xl p-12 flex flex-col items-center gap-4 transition-colors cursor-pointer",
+                                            isDragging ? "border-primary bg-primary/10" : "border-border hover:border-primary/50"
+                                        )}
+                                        onClick={handleUploadClick}
+                                        onDragEnter={handleDragEnter}
+                                        onDragLeave={handleDragLeave}
+                                        onDragOver={handleDragOver}
+                                        onDrop={handleDrop}
+                                    >
+                                        <input
+                                            type="file"
+                                            ref={fileInputRef}
+                                            onChange={handleFileChange}
+                                            className="hidden"
+                                        />
+                                        <div className="p-3 bg-muted rounded-full">
+                                            <UploadCloud className="w-8 h-8 text-primary" />
+                                        </div>
+                                        <h3 className="text-xl font-semibold">Click to upload or drag & drop</h3>
+                                        <p className="text-muted-foreground text-sm">Supports PDF, DOCX, PPT, MP3, MP4, and more</p>
+                                    </div>
+                                </TabsContent>
+                                <TabsContent value="paste" className="pt-6">
+                                     <Textarea placeholder="Paste your text here..." className="h-48"/>
+                                </TabsContent>
+                                <TabsContent value="youtube" className="pt-6">
+                                    <Input placeholder="Enter a YouTube video URL..." />
+                                </TabsContent>
+                                <TabsContent value="record" className="pt-6">
+                                    <div className="flex flex-col items-center justify-center h-48 bg-muted rounded-xl">
+                                        <Button variant={isRecording ? 'destructive' : 'outline'} onClick={() => setIsRecording(!isRecording)}>
+                                            {isRecording ? 'Stop Recording' : 'Start Recording'}
+                                        </Button>
+                                         <p className="text-xs text-muted-foreground mt-2">{isRecording ? "Recording in progress..." : "Record your lecture in real-time."}</p>
+                                    </div>
+                                </TabsContent>
+                            </Tabs>
                         </CardContent>
                     </Card>
                 </div>
 
-                <div className="md:col-span-1 space-y-4">
+                <div className="md:col-span-1 space-y-6">
                      <Card>
                         <CardHeader>
                              <CardTitle className="flex items-center gap-2"><QrCode/> Add from Phone</CardTitle>
@@ -146,11 +143,11 @@ export default function UploadPage() {
                         </CardContent>
                     </Card>
                     <Card>
-                        <CardContent className="p-6 flex items-center justify-between">
-                            <div>
-                                <h3 className="font-semibold">Ask your friends to help</h3>
-                                <p className="text-sm text-muted-foreground">Share this link to collaborate.</p>
-                            </div>
+                         <CardHeader>
+                            <CardTitle>Ask your friends to help</CardTitle>
+                            <CardDescription>Share this link to collaborate on study materials.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="flex items-center justify-between">
                             <Button variant="outline"><Copy className="w-4 h-4 mr-2"/> Copy Link</Button>
                         </CardContent>
                     </Card>
