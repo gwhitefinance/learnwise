@@ -37,8 +37,8 @@ const generateModuleContentFlow = ai.defineFlow(
         return {
             id: chapter.id || generateUniqueId(),
             title: chapter.title,
-            content: JSON.stringify(contentData.content),
-            activity: JSON.stringify(contentData.activity),
+            content: contentData.content,
+            activity: contentData.activity,
         };
     });
 

@@ -17,6 +17,7 @@ import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
+import { Card, CardContent } from '@/components/ui/card';
 
 type Material = {
     type: 'file' | 'text' | 'url' | 'audio';
@@ -35,7 +36,7 @@ type ChapterContentBlock = {
 type Chapter = {
     id: string;
     title: string;
-    content?: string; // This will be a JSON string of ChapterContentBlock[]
+    content?: ChapterContentBlock[]; // Content is now an object array, not a string
     activity?: string;
 };
 
@@ -55,20 +56,10 @@ type Course = {
 };
 
 const ChapterContentDisplay = ({ chapter, courseId, onComplete }: { chapter: Chapter; courseId: string; onComplete: () => void }) => {
-    const [contentBlocks, setContentBlocks] = useState<ChapterContentBlock[]>([]);
     const [userAnswers, setUserAnswers] = useState<Record<number, string>>({});
     const [submittedAnswers, setSubmittedAnswers] = useState<Record<number, boolean>>({});
 
-    useEffect(() => {
-        if (chapter.content) {
-            try {
-                setContentBlocks(JSON.parse(chapter.content));
-            } catch (e) {
-                console.error("Failed to parse chapter content:", e);
-                setContentBlocks([{ type: 'text', content: 'Error displaying content.' }]);
-            }
-        }
-    }, [chapter]);
+    const contentBlocks = chapter.content || [];
 
     const handleAnswerChange = (questionIndex: number, answer: string) => {
         setUserAnswers(prev => ({...prev, [questionIndex]: answer}));
@@ -144,7 +135,23 @@ export default function StudyHubPage() {
         const courseRef = doc(db, 'courses', courseId);
         const unsubscribe = onSnapshot(courseRef, (docSnap) => {
             if (docSnap.exists() && docSnap.data().userId === user.uid) {
-                setCourse({ id: docSnap.id, ...docSnap.data() } as Course);
+                const courseData = { id: docSnap.id, ...docSnap.data() } as Course;
+                
+                // Ensure content is parsed
+                courseData.units.forEach(unit => {
+                    unit.chapters.forEach(chapter => {
+                        if (typeof chapter.content === 'string') {
+                            try {
+                                chapter.content = JSON.parse(chapter.content);
+                            } catch (e) {
+                                console.error('Failed to parse chapter content on load:', e);
+                                chapter.content = [];
+                            }
+                        }
+                    });
+                });
+
+                setCourse(courseData);
             } else {
                 router.push('/dashboard/courses');
             }
@@ -174,6 +181,7 @@ export default function StudyHubPage() {
                 learnerType: (localStorage.getItem('learnerType') as any) || 'Reading/Writing',
             });
             
+            // The AI flow now returns objects, not strings, so no parsing needed here.
             const courseRef = doc(db, 'courses', courseId);
             const courseSnap = await getDoc(courseRef);
             if (courseSnap.exists()) {
@@ -181,7 +189,8 @@ export default function StudyHubPage() {
                 const updatedUnits = currentCourseData.units.map(u => u.id === updatedModule.id ? updatedModule : u);
                 await updateDoc(courseRef, { units: updatedUnits });
                 
-                setSelectedUnit(updatedModule); // Update the selected unit with new content
+                // Directly set the selected unit with the already parsed content
+                setSelectedUnit(updatedModule); 
             }
 
             toast({ title: 'Content Generated!', description: `${unit.title} is ready.`});
@@ -195,9 +204,10 @@ export default function StudyHubPage() {
     }
 
     const openModule = (unit: Unit) => {
+        const hasContent = unit.chapters.some(c => c.content && Array.isArray(c.content) && c.content.length > 0);
         setSelectedUnit(unit);
-        setActiveChapter(null); // Reset active chapter when opening a module
-        const hasContent = unit.chapters.some(c => c.content);
+        setActiveChapter(null); 
+        
         if (!hasContent && !isGeneratingContent[unit.id]) {
             handleGenerateContent(unit);
         }
@@ -217,7 +227,13 @@ export default function StudyHubPage() {
             const currentIndex = selectedUnit.chapters.findIndex(c => c.id === activeChapter.id);
             if (currentIndex < selectedUnit.chapters.length - 1) {
                 // Go to next chapter
-                setActiveChapter(selectedUnit.chapters[currentIndex + 1]);
+                const nextChapter = selectedUnit.chapters[currentIndex + 1];
+                if (typeof nextChapter.content === 'string') {
+                    try {
+                        nextChapter.content = JSON.parse(nextChapter.content);
+                    } catch(e) { nextChapter.content = [] }
+                }
+                setActiveChapter(nextChapter);
             } else {
                 // Last chapter completed
                 setActiveChapter(null); // Go back to chapter list
@@ -340,7 +356,12 @@ export default function StudyHubPage() {
                                         {isCompleted ? <CheckCircle className="h-6 w-6 text-green-500" /> : isLocked ? <Lock className="h-6 w-6 text-muted-foreground"/> : <div className="h-6 w-6 rounded-full border-2 border-primary" />}
                                         <span className={cn("font-medium", isLocked && "text-muted-foreground")}>{chapter.title}</span>
                                     </div>
-                                    <Button variant="secondary" size="sm" disabled={isLocked} onClick={() => setActiveChapter(chapter)}>View</Button>
+                                    <Button variant="secondary" size="sm" disabled={isLocked} onClick={() => {
+                                        if (typeof chapter.content === 'string') {
+                                            try { chapter.content = JSON.parse(chapter.content) } catch (e) { chapter.content = [] }
+                                        }
+                                        setActiveChapter(chapter)
+                                    }}>View</Button>
                                 </div>
                             )})}
                         </div>
@@ -350,5 +371,3 @@ export default function StudyHubPage() {
         </>
     );
 }
-
-    
