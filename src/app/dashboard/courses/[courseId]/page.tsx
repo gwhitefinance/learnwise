@@ -23,7 +23,7 @@ import { Progress } from '@/components/ui/progress';
 import { FloatingChatContext } from '@/components/floating-chat';
 import AIBuddy from '@/components/ai-buddy';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogTrigger, DialogClose, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTrigger, DialogClose, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import type { QuizQuestion } from '@/ai/schemas/quiz-schema';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -185,6 +185,7 @@ export default function CoursePage() {
     const [tempConcepts, setTempConcepts] = useState('');
     const [isRegenerating, setIsRegenerating] = useState(false);
     const [previousKeyConcepts, setPreviousKeyConcepts] = useState<string[] | null>(null);
+    const [previousUnits, setPreviousUnits] = useState<Unit[] | null>(null);
 
 
     // Practice Quiz State
@@ -364,6 +365,7 @@ export default function CoursePage() {
         if (!course) return;
         setIsRegenerating(true);
         setPreviousKeyConcepts(course.keyConcepts || []);
+        setPreviousUnits(course.units || []);
         toast({ title: 'Regenerating Course Outline...' });
         try {
             const result = await generateMiniCourse({
@@ -389,16 +391,20 @@ export default function CoursePage() {
         }
     };
 
-    const handleRevertConcepts = async () => {
-        if (!course || !previousKeyConcepts) return;
+    const handleRevertOutline = async () => {
+        if (!course || !previousKeyConcepts || !previousUnits) return;
         try {
             const courseRef = doc(db, 'courses', course.id);
-            await updateDoc(courseRef, { keyConcepts: previousKeyConcepts });
-            toast({ title: 'Key Concepts Reverted!' });
-            setPreviousKeyConcepts(null); // Hide revert button after use
+            await updateDoc(courseRef, { 
+                keyConcepts: previousKeyConcepts,
+                units: previousUnits
+            });
+            toast({ title: 'Course Reverted!' });
+            setPreviousKeyConcepts(null);
+            setPreviousUnits(null);
         } catch (error) {
-            console.error("Error reverting concepts:", error);
-            toast({ variant: 'destructive', title: 'Could not revert concepts.' });
+            console.error("Error reverting course:", error);
+            toast({ variant: 'destructive', title: 'Could not revert course.' });
         }
     };
 
@@ -587,7 +593,7 @@ export default function CoursePage() {
                                         </div>
                                     )}
                                      {previousKeyConcepts && !isEditingConcepts && (
-                                        <Button size="sm" variant="outline" className="mt-4 w-full" onClick={handleRevertConcepts}>
+                                        <Button size="sm" variant="outline" className="mt-4 w-full" onClick={handleRevertOutline}>
                                             <RotateCcw className="h-4 w-4 mr-2" /> Revert to Previous
                                         </Button>
                                     )}
