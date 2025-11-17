@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useCallback, useRef, useContext } from 'react';
@@ -10,7 +9,7 @@ import { auth, db } from '@/lib/firebase';
 import { doc, onSnapshot, getDoc, collection, query, where, updateDoc, arrayUnion } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
-import { CheckCircle, Lock, ArrowLeft, Loader2, X, Check, BookMarked, BrainCircuit, MessageSquare } from 'lucide-react';
+import { CheckCircle, Lock, ArrowLeft, Loader2, X, Check, BookMarked, BrainCircuit, MessageSquare, Copy } from 'lucide-react';
 import { generateModuleContent, generateSummary, generateChapterContent } from '@/lib/actions';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
@@ -155,7 +154,7 @@ const GeneratingNextChapter = ({ summary, progress }: { summary: string, progres
     )
 }
 
-export default function StudyHubPage() {
+export default function CoursePage() {
     const params = useParams();
     const courseId = params.courseId as string;
     const router = useRouter();
@@ -224,10 +223,10 @@ export default function StudyHubPage() {
             const courseSnap = await getDoc(courseRef);
             if (courseSnap.exists()) {
                 const currentCourseData = courseSnap.data() as Course;
-                const updatedUnits = currentCourseData.units.map(u => u.id === updatedModule.id ? updatedModule : u);
+                const updatedUnits = currentCourseData.units.map(u => u.id === updatedModule.id ? { ...updatedModule, chapters: updatedModule.chapters.map(c => ({...c, content: JSON.stringify(c.content)})) } : u);
                 await updateDoc(courseRef, { units: updatedUnits });
                 
-                setSelectedUnit(updatedModule);
+                setSelectedUnit({ ...updatedModule, chapters: updatedModule.chapters.map(c => ({...c, content: JSON.stringify(c.content)})) });
             }
 
             toast({ title: 'Content Generated!', description: `${unit.title} is ready.`});
@@ -254,7 +253,7 @@ export default function StudyHubPage() {
     const handleComplete = async () => {
         if (!course || !user || !activeChapter || !selectedUnit) return;
 
-        const courseRef = doc(db, 'courses', courseId);
+        const courseRef = doc(db, 'courses', courseId as string);
 
         try {
             await updateDoc(courseRef, {
@@ -307,7 +306,7 @@ export default function StudyHubPage() {
                     router.push(`/dashboard/courses/${courseId}/${nextChapter.id}`);
 
                 } else {
-                    router.push(`/dashboard/courses/${courseId}/${nextChapter.id}`);
+                     router.push(`/dashboard/courses/${courseId}/${nextChapter.id}`);
                 }
             } else {
                  setIsSheetOpen(false);
@@ -380,9 +379,13 @@ export default function StudyHubPage() {
                                         <p className="text-secondary-dark-text dark:text-gray-400 text-sm font-normal leading-normal mt-1 mb-4">{unit.description || `${unit.chapters.length} chapters`}</p>
                                     </div>
                                     <div className="flex flex-col gap-2 mt-auto">
-                                        <Button className="w-full" onClick={() => openModule(unit)}>
+                                        <Button className="w-full" variant="secondary" onClick={() => openModule(unit)}>
                                             {completedChaptersCount > 0 ? 'Continue Module' : 'Start Module'}
                                         </Button>
+                                        <Button className="w-full" variant="outline">
+                                            <Copy className="mr-2 h-4 w-4"/> Start Flashcards
+                                        </Button>
+                                        <hr className="my-2 border-border" />
                                         <Button variant="outline" className="w-full" asChild>
                                             <Link href={`/dashboard/courses/${course.id}/${unit.chapters.find(c => c.title === 'Module Quiz')?.id || ''}`}>
                                                 Take Practice Quiz
@@ -416,9 +419,9 @@ export default function StudyHubPage() {
                 </div>
             </main>
             <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-                <SheetContent className="max-w-xl">
+                <SheetContent className="max-w-2xl w-full sm:max-w-2xl">
                     <SheetHeader>
-                        <SheetTitle>{selectedUnit?.title}</SheetTitle>
+                        <SheetTitle className="text-2xl">{selectedUnit?.title}</SheetTitle>
                         <SheetDescription>{selectedUnit?.description}</SheetDescription>
                     </SheetHeader>
                     {isGeneratingContent[selectedUnit?.id || ''] ? (
