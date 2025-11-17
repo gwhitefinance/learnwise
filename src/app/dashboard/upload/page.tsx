@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useRef, ChangeEvent, useEffect } from "react";
@@ -90,7 +91,7 @@ export default function UploadPage() {
                                 <TabsContent value="upload" className="pt-6">
                                     <div 
                                         className={cn(
-                                            "border-2 border-dashed rounded-xl p-12 flex flex-col items-center gap-4 transition-colors cursor-pointer",
+                                            "border-2 border-dashed rounded-xl p-12 flex flex-col items-center justify-center gap-4 transition-colors cursor-pointer h-64",
                                             isDragging ? "border-primary bg-primary/10" : "border-border hover:border-primary/50"
                                         )}
                                         onClick={handleUploadClick}
@@ -113,13 +114,15 @@ export default function UploadPage() {
                                     </div>
                                 </TabsContent>
                                 <TabsContent value="paste" className="pt-6">
-                                     <Textarea placeholder="Paste your text here..." className="h-48"/>
+                                     <Textarea placeholder="Paste your text here..." className="h-64"/>
                                 </TabsContent>
                                 <TabsContent value="youtube" className="pt-6">
-                                    <Input placeholder="Enter a YouTube video URL..." />
+                                    <div className="flex flex-col items-center justify-center h-64 bg-muted rounded-xl">
+                                        <Input placeholder="Enter a YouTube video URL..." className="max-w-md"/>
+                                    </div>
                                 </TabsContent>
                                 <TabsContent value="record" className="pt-6">
-                                    <div className="flex flex-col items-center justify-center h-48 bg-muted rounded-xl">
+                                    <div className="flex flex-col items-center justify-center h-64 bg-muted rounded-xl">
                                         <Button variant={isRecording ? 'destructive' : 'outline'} onClick={() => setIsRecording(!isRecording)}>
                                             {isRecording ? 'Stop Recording' : 'Start Recording'}
                                         </Button>
