@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useRef, ChangeEvent, useEffect } from "react";
@@ -8,19 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { UploadCloud, Youtube, FileText, Music, Trash2, Plus, Wand2, Loader2, BookOpen, Lightbulb, Copy, ArrowLeft, QrCode } from "lucide-react";
+import { UploadCloud, Youtube, FileText, Music, Trash2, Plus, Wand2, Loader2, BookOpen, Lightbulb, Copy, ArrowLeft, QrCode, Link as LinkIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth, db } from "@/lib/firebase";
 import { doc, updateDoc, onSnapshot, getDoc, arrayUnion, arrayRemove } from "firebase/firestore";
-import { generateCrunchTimeStudyGuide, generateQuizFromNote, generateFlashcardsFromNote, generateCourseFromMaterials } from '@/lib/actions';
-import type { CrunchTimeOutput } from '@/ai/schemas/crunch-time-schema';
-import type { GenerateQuizOutput } from '@/ai/schemas/quiz-schema';
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
+import { generateCourseFromMaterials } from '@/lib/actions';
 import GeneratingCourse from "../courses/GeneratingCourse";
 import QRCode from 'qrcode.react';
 
@@ -43,7 +37,8 @@ type Flashcard = {
 
 
 const YoutubeEmbed = ({ url }: { url: string }) => {
-    const videoId = url.split('v=')[1]?.split('&')[0];
+    const videoIdMatch = url.match(/(?:v=)([\w-]{11})/) || url.match(/(?:youtu\.be\/)([\w-]{11})/);
+    const videoId = videoIdMatch ? videoIdMatch[1] : null;
     if (!videoId) return <p className="text-red-500">Invalid YouTube URL</p>;
     return (
         <div className="aspect-video">
@@ -60,7 +55,7 @@ const YoutubeEmbed = ({ url }: { url: string }) => {
     );
 };
 
-const MaterialCard = ({ material, onRemove, onGenerate }: { material: Material, onRemove: () => void, onGenerate: (type: 'guide' | 'quiz' | 'flashcards', material: Material) => void }) => {
+const MaterialCard = ({ material, onRemove }: { material: Material, onRemove: () => void }) => {
     let Icon = FileText;
     if (material.type === 'url') Icon = Youtube;
     if (material.type === 'audio') Icon = Music;
@@ -71,7 +66,7 @@ const MaterialCard = ({ material, onRemove, onGenerate }: { material: Material, 
                 <div className="flex justify-between items-start">
                     <div className="flex items-center gap-3">
                         <Icon className={cn("h-6 w-6 flex-shrink-0", material.type === 'url' && 'text-red-500')} />
-                        <CardTitle className="text-lg truncate">{material.fileName || material.content}</CardTitle>
+                        <CardTitle className="text-lg truncate">{material.fileName || (material.type === 'text' ? 'Text Snippet' : material.content)}</CardTitle>
                     </div>
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onRemove}>
                         <Trash2 className="h-4 w-4 text-destructive" />
@@ -81,11 +76,6 @@ const MaterialCard = ({ material, onRemove, onGenerate }: { material: Material, 
             <CardContent>
                 {material.type === 'url' ? <YoutubeEmbed url={material.content} /> : material.type === 'text' ? <p className="text-sm text-muted-foreground p-4 bg-muted rounded-md line-clamp-3">{material.content}</p> : <p className="text-sm text-muted-foreground">File: {material.fileName}</p>}
             </CardContent>
-            <CardFooter className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={() => onGenerate('guide', material)}><BookOpen className="w-4 h-4 mr-2"/>Study Guide</Button>
-                <Button variant="outline" size="sm" onClick={() => onGenerate('quiz', material)}><Lightbulb className="w-4 h-4 mr-2"/>Practice Quiz</Button>
-                <Button variant="outline" size="sm" onClick={() => onGenerate('flashcards', material)}><Copy className="w-4 h-4 mr-2"/>Flashcards</Button>
-            </CardFooter>
         </Card>
     );
 };
@@ -100,17 +90,10 @@ export default function UploadPage() {
     const { toast } = useToast();
     const [user, authLoading] = useAuthState(auth);
     
-    // Add materials state
     const [currentText, setCurrentText] = useState('');
     const [currentLink, setCurrentLink] = useState('');
 
-    // AI Generation Modals State
     const [isGenerating, setIsGenerating] = useState(false);
-    const [studyGuide, setStudyGuide] = useState<CrunchTimeOutput | null>(null);
-    const [isQuizDialogOpen, setQuizDialogOpen] = useState(false);
-    const [generatedQuiz, setGeneratedQuiz] = useState<GenerateQuizOutput | null>(null);
-    const [isFlashcardDialogOpen, setFlashcardDialogOpen] = useState(false);
-    const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
     const [generatingCourseName, setGeneratingCourseName] = useState('');
     const [qrCodeUrl, setQrCodeUrl] = useState('');
 
@@ -151,8 +134,6 @@ export default function UploadPage() {
     const handleFilesSelected = (files: FileList | null) => {
         if (files) {
             Array.from(files).forEach(file => {
-                // Here you would normally upload the file to a storage service (e.g., Firebase Storage)
-                // and get a URL. For this demo, we'll just store the name.
                 addMaterial({ type: 'file', content: `path/to/${file.name}`, fileName: file.name });
             });
         }
@@ -185,55 +166,6 @@ export default function UploadPage() {
         }
     };
 
-    const handleGenerate = async (type: 'guide' | 'quiz' | 'flashcards', material: Material) => {
-        setIsGenerating(true);
-
-        try {
-            const learnerType = localStorage.getItem('learnerType') as any || 'Reading/Writing';
-            let contentToProcess = material.content;
-            let inputType: 'text' | 'url' = 'text';
-
-            if (material.type === 'url') {
-                inputType = 'url';
-            } else if (material.type === 'text') {
-                inputType = 'text';
-            } else {
-                 toast({ variant: 'destructive', title: 'This material type is not yet supported for generation.' });
-                 setIsGenerating(false);
-                 return;
-            }
-
-            if (type === 'guide') {
-                const result = await generateCrunchTimeStudyGuide({
-                    inputType,
-                    content: contentToProcess,
-                    learnerType,
-                });
-                setStudyGuide(result);
-            } else if (type === 'quiz') {
-                const result = await generateQuizFromNote({
-                    noteContent: contentToProcess, // Assuming URL content will be scraped by the flow
-                    learnerType,
-                });
-                setGeneratedQuiz(result);
-                setQuizDialogOpen(true);
-            } else if (type === 'flashcards') {
-                const result = await generateFlashcardsFromNote({
-                    noteContent: contentToProcess,
-                    learnerType,
-                });
-                setFlashcards(result.flashcards);
-                setFlashcardDialogOpen(true);
-            }
-
-        } catch (error) {
-            console.error(`Error generating ${type}:`, error);
-            toast({ variant: 'destructive', title: `Failed to generate ${type}.` });
-        } finally {
-            setIsGenerating(false);
-        }
-    };
-
     const handleGenerateCourse = async () => {
         if (!course || !course.materials || course.materials.length === 0) {
             toast({ variant: 'destructive', title: 'No materials to generate course from.' });
@@ -261,7 +193,7 @@ export default function UploadPage() {
                 chapters: module.chapters.map(chapter => ({
                     id: crypto.randomUUID(),
                     title: chapter.title,
-                    content: '', // Content will be generated on-demand
+                    content: '',
                     activity: ''
                 }))
             }));
@@ -283,18 +215,9 @@ export default function UploadPage() {
 
     const hasContent = course?.materials && course.materials.length > 0;
 
-    if (isGenerating && !studyGuide) {
+    if (isGenerating) {
         return <GeneratingCourse courseName={generatingCourseName || "your study materials"} />;
     }
-
-    // This is a stand-in. A proper study guide display component would be better.
-    if (studyGuide) {
-        return <div className="p-8 max-w-6xl mx-auto">
-            <Button onClick={() => setStudyGuide(null)}>Back</Button>
-            <pre>{JSON.stringify(studyGuide, null, 2)}</pre>
-        </div>
-    }
-
 
     return (
         <div className="p-8 max-w-6xl mx-auto">
@@ -356,19 +279,19 @@ export default function UploadPage() {
                              <Button variant="outline"><Copy className="w-4 h-4 mr-2"/> Copy Link</Button>
                          </CardContent>
                      </Card>
+                      <Button className="w-full h-12 text-lg" onClick={handleGenerateCourse} disabled={!hasContent || isGenerating}>
+                        {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Wand2 className="mr-2 h-4 w-4"/>}
+                        {isGenerating ? 'Generating...' : 'Generate Course with AI'}
+                      </Button>
                 </div>
                  <div className="space-y-6">
                     <div className="flex justify-between items-center">
                          <h2 className="text-xl font-semibold">Your Materials ({course?.materials?.length || 0})</h2>
-                         <Button onClick={handleGenerateCourse} disabled={!hasContent || isGenerating}>
-                            {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Wand2 className="mr-2 h-4 w-4"/>}
-                            Generate Course with AI
-                        </Button>
                     </div>
                      {hasContent ? (
                         <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
                             {course.materials?.map((material, index) => (
-                                <MaterialCard key={index} material={material} onRemove={() => removeItem(material)} onGenerate={handleGenerate}/>
+                                <MaterialCard key={index} material={material} onRemove={() => removeItem(material)} />
                             ))}
                         </div>
                     ) : (
@@ -378,41 +301,6 @@ export default function UploadPage() {
                     )}
                 </div>
             </div>
-
-            {/* AI Generation Modals */}
-            <Dialog open={isQuizDialogOpen} onOpenChange={setQuizDialogOpen}>
-                <DialogContent className="max-w-2xl">
-                    <DialogHeader>
-                        <DialogTitle>{generatedQuiz?.quizTitle}</DialogTitle>
-                    </DialogHeader>
-                    <div className="py-4 max-h-[60vh] overflow-y-auto">
-                        {generatedQuiz && (
-                            <div className="space-y-6">
-                                {generatedQuiz.questions.map((q, index) => (
-                                    <div key={index}>
-                                        <p className="font-semibold">{index + 1}. {q.questionText}</p>
-                                        <ul className="list-disc list-inside pl-4 mt-2 text-sm text-muted-foreground">
-                                            {q.options.map(opt => <li key={opt}>{opt}</li>)}
-                                        </ul>
-                                        <p className="text-sm font-bold mt-2">Answer: <span className="font-normal text-primary">{q.correctAnswer}</span></p>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                </DialogContent>
-            </Dialog>
-            <Dialog open={isFlashcardDialogOpen} onOpenChange={setFlashcardDialogOpen}>
-                 <DialogContent>
-                    <DialogHeader><DialogTitle>Flashcards</DialogTitle></DialogHeader>
-                    {flashcards.length > 0 ? (
-                         <div className="py-4 text-center">
-                            <p className="text-xl font-semibold">{flashcards[0].front}</p>
-                            <p className="text-muted-foreground mt-4">{flashcards[0].back}</p>
-                        </div>
-                    ) : <p>No flashcards generated.</p>}
-                 </DialogContent>
-            </Dialog>
         </div>
     );
 }
