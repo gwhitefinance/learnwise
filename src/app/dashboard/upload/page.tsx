@@ -2,25 +2,34 @@
 'use client';
 
 import { useState, useRef, ChangeEvent, useEffect } from "react";
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { UploadCloud, Youtube, FileText, Video, Music, Copy, QrCode, Mic, Trash2, Plus, Play, StopCircle } from "lucide-react";
+import { UploadCloud, Youtube, FileText, Video, Music, Copy, QrCode, Mic, Trash2, Plus, Play, StopCircle, Wand2, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import QRCode from 'qrcode.react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuthState } from "react-firebase-hooks/auth";
+import { auth, db } from "@/lib/firebase";
+import { addDoc, collection, doc, updateDoc } from "firebase/firestore";
+import { generateCourseFromMaterials } from "@/lib/actions";
+import GeneratingCourse from "../courses/GeneratingCourse";
 
 export default function UploadPage() {
     const searchParams = useSearchParams();
+    const router = useRouter();
     const courseId = searchParams.get('courseId');
     const [isRecording, setIsRecording] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isDragging, setIsDragging] = useState(false);
     const [qrCodeUrl, setQrCodeUrl] = useState('');
     const { toast } = useToast();
+    const [user] = useAuthState(auth);
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [generatingCourseName, setGeneratingCourseName] = useState('');
 
     // State for multiple inputs
     const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
@@ -140,6 +149,66 @@ export default function UploadPage() {
     };
 
     const hasContent = uploadedFiles.length > 0 || textSnippets.length > 0 || youtubeLinks.length > 0 || recordedAudioUrl;
+
+    const handleGenerateCourse = async () => {
+        if (!hasContent || !user) {
+            toast({ variant: 'destructive', title: 'No content to generate from.' });
+            return;
+        }
+
+        const courseName = `New Course from Materials - ${new Date().toLocaleDateString()}`;
+        setGeneratingCourseName(courseName);
+        setIsGenerating(true);
+
+        // This is a simplified approach. A real implementation would handle file uploads and content extraction.
+        // For now, we'll just use text snippets and URLs.
+        const allText = textSnippets.join('\n\n');
+
+        try {
+            const learnerType = localStorage.getItem('learnerType') as any || 'Reading/Writing';
+            const result = await generateCourseFromMaterials({
+                courseName,
+                textContext: allText,
+                urls: youtubeLinks,
+                learnerType,
+            });
+            
+            const newUnits = result.modules.map((module) => ({
+                id: crypto.randomUUID(),
+                title: module.title,
+                chapters: module.chapters.map((chapter) => ({
+                    id: crypto.randomUUID(),
+                    title: chapter.title,
+                    content: chapter.content,
+                    activity: chapter.activity,
+                }))
+            }));
+            
+            const courseData = {
+                name: result.courseTitle,
+                description: `An AI-generated course based on your uploaded materials.`,
+                userId: user.uid,
+                units: newUnits,
+                isNewTopic: true,
+                completedChapters: [],
+            };
+
+            const docRef = await addDoc(collection(db, "courses"), courseData);
+            
+            toast({ title: 'Course Generated!', description: 'Your new learning lab is ready.'});
+            router.push(`/dashboard/courses?courseId=${docRef.id}`);
+
+        } catch (error) {
+            console.error(error);
+            toast({ variant: 'destructive', title: 'Course Generation Failed' });
+        } finally {
+            setIsGenerating(false);
+        }
+    }
+
+    if (isGenerating) {
+        return <GeneratingCourse courseName={generatingCourseName} />;
+    }
 
     return (
         <div className="p-8 max-w-6xl mx-auto">
@@ -262,6 +331,12 @@ export default function UploadPage() {
                                     </div>
                                 )}
                             </CardContent>
+                            <CardFooter>
+                                <Button className="w-full" onClick={handleGenerateCourse} disabled={isGenerating}>
+                                    {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Wand2 className="mr-2 h-4 w-4"/>}
+                                    {isGenerating ? 'Generating...' : 'Generate Course with AI'}
+                                </Button>
+                            </CardFooter>
                         </Card>
                     )}
                 </div>
@@ -292,3 +367,4 @@ export default function UploadPage() {
         </div>
     );
 }
+

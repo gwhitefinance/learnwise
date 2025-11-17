@@ -1,3 +1,4 @@
+
 // Flows will be imported for their side effects in this file.
 import './flows/study-planner-flow';
 import './flows/quiz-flow';
@@ -46,3 +47,5 @@ import './flows/image-generation-flow';
 import './flows/assignment-grader-flow';
 import './flows/essay-generation-flow';
 import './flows/essay-feedback-flow';
+import './flows/course-from-materials-flow';
+

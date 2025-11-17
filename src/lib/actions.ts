@@ -44,6 +44,7 @@ import { generateImage } from '@/ai/flows/image-generation-flow';
 import { generateAssignmentGrade } from '@/ai/flows/assignment-grader-flow';
 import { generateEssay } from '@/ai/flows/essay-generation-flow';
 import { generateEssayGrade } from '@/ai/flows/essay-feedback-flow';
+import { generateCourseFromMaterials } from '@/ai/flows/course-from-materials-flow';
 
 // Re-exporting all AI functions as Server Actions
 export { 
@@ -90,4 +91,6 @@ export {
     generateAssignmentGrade,
     generateEssay,
     generateEssayGrade,
+    generateCourseFromMaterials,
 };
+
