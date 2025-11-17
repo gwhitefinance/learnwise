@@ -12,12 +12,11 @@ import { ArrowLeft, Check, Loader2, X, CheckCircle, XCircle } from 'lucide-react
 import { cn } from '@/lib/utils';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import Loading from './loading';
 import { Progress } from '@/components/ui/progress';
 import { generateQuizFromModule } from '@/lib/actions';
 import type { QuizQuestion } from '@/ai/schemas/quiz-schema';
-import GeneratingCourse from '@/app/dashboard/courses/GeneratingCourse';
 import AIBuddy from '@/components/ai-buddy';
 import { motion } from 'framer-motion';
 
@@ -457,5 +456,3 @@ export default function ChapterPage() {
         </div>
     )
 }
-
-    
