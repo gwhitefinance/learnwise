@@ -60,6 +60,18 @@
         },
         "isNewTopic": {
             "type": "boolean"
+        },
+        "materials": {
+            "type": "array",
+            "description": "A list of study materials associated with the course.",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "type": { "type": "string", "enum": ["file", "text", "url", "audio"] },
+                    "content": { "type": "string" },
+                    "fileName": { "type": "string" }
+                }
+            }
         }
       }
     },

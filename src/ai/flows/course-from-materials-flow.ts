@@ -36,13 +36,7 @@ const prompt = ai.definePrompt({
     `,
 });
 
-export const generateCourseFromMaterialsFlow = ai.defineFlow(
-  {
-    name: 'generateCourseFromMaterialsFlow',
-    inputSchema: GenerateCourseFromMaterialsInputSchema,
-    outputSchema: GenerateCourseFromMaterialsOutputSchema,
-  },
-  async (input) => {
+export const generateCourseFromMaterials = async (input: GenerateCourseFromMaterialsInput): Promise<GenerateCourseFromMaterialsOutput> => {
     let combinedContent = input.textContext || '';
 
     if (input.urls && input.urls.length > 0) {
@@ -72,9 +66,4 @@ export const generateCourseFromMaterialsFlow = ai.defineFlow(
         throw new Error('Failed to generate course from materials.');
     }
     return output;
-  }
-);
-
-export async function generateCourseFromMaterials(input: GenerateCourseFromMaterialsInput): Promise<GenerateCourseFromMaterialsOutput> {
-    return generateCourseFromMaterialsFlow(input);
-}
+};
