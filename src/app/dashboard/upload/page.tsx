@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, ChangeEvent, useEffect } from "react";
@@ -67,7 +68,7 @@ export default function UploadPage() {
     };
 
     return (
-        <div className="p-8 max-w-4xl mx-auto">
+        <div className="p-8 max-w-6xl mx-auto">
             <h1 className="text-3xl font-bold tracking-tight">Add Materials</h1>
             <p className="text-muted-foreground mb-8">Upload files, links, or record a lecture to start generating study materials.</p>
             
