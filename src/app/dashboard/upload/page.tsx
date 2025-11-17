@@ -173,14 +173,12 @@ export default function UploadPage() {
                 learnerType,
             });
             
-            const newUnits = result.modules.map((module: any) => ({
+             const newUnits = result.modules.map((module: any) => ({
                 id: crypto.randomUUID(),
                 title: module.title,
                 chapters: module.chapters.map((chapter: any) => ({
                     id: crypto.randomUUID(),
                     title: chapter.title,
-                    content: chapter.content,
-                    activity: chapter.activity,
                 }))
             }));
             
@@ -331,7 +329,7 @@ export default function UploadPage() {
                                     </div>
                                 )}
                             </CardContent>
-                            <CardFooter>
+                             <CardFooter>
                                 <Button className="w-full" onClick={handleGenerateCourse} disabled={isGenerating}>
                                     {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Wand2 className="mr-2 h-4 w-4"/>}
                                     {isGenerating ? 'Generating...' : 'Generate Course with AI'}
