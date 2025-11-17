@@ -10,8 +10,8 @@ import { auth, db } from '@/lib/firebase';
 import { doc, onSnapshot, getDoc, collection, query, where, updateDoc, arrayUnion } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
-import { CheckCircle, Lock, ArrowLeft, Loader2, X, Check, BookMarked, BrainCircuit, MessageSquare, Copy, Lightbulb, Play, Pen, Tag, RefreshCw } from 'lucide-react';
-import { generateModuleContent, generateSummary, generateChapterContent, generateMiniCourse } from '@/lib/actions';
+import { CheckCircle, Lock, ArrowLeft, Loader2, X, Check, BookMarked, BrainCircuit, MessageSquare, Copy, Lightbulb, Play, Pen, Tag, RefreshCw, PenSquare, PlayCircle } from 'lucide-react';
+import { generateModuleContent, generateSummary, generateChapterContent, generateMiniCourse, generateQuizFromModule } from '@/lib/actions';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -22,6 +22,9 @@ import { Progress } from '@/components/ui/progress';
 import { FloatingChatContext } from '@/components/floating-chat';
 import AIBuddy from '@/components/ai-buddy';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogTrigger, DialogClose } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
+import type { QuizQuestion } from '@/ai/schemas/quiz-schema';
 
 type Chapter = {
     id: string;
@@ -178,6 +181,15 @@ export default function CoursePage() {
     const [isEditingConcepts, setIsEditingConcepts] = useState(false);
     const [tempConcepts, setTempConcepts] = useState('');
     const [isRegenerating, setIsRegenerating] = useState(false);
+
+    // Practice Quiz State
+    const [isQuizDialogOpen, setIsQuizDialogOpen] = useState(false);
+    const [quizConfig, setQuizConfig] = useState<{unit: Unit | null; selectedChapters: string[]; numQuestions: number}>({ unit: null, selectedChapters: [], numQuestions: 5 });
+    const [practiceQuiz, setPracticeQuiz] = useState<QuizQuestion[] | null>(null);
+    const [isGeneratingQuiz, setIsGeneratingQuiz] = useState(false);
+    const [currentPracticeQuestionIndex, setCurrentPracticeQuestionIndex] = useState(0);
+    const [practiceAnswers, setPracticeAnswers] = useState<Record<number, string>>({});
+    const [practiceFeedback, setPracticeFeedback] = useState<Record<number, boolean>>({});
 
 
     const { toast } = useToast();
@@ -371,6 +383,62 @@ export default function CoursePage() {
         }
     };
 
+    const handlePracticeQuizOpen = (unit: Unit) => {
+        setQuizConfig({
+            unit: unit,
+            selectedChapters: unit.chapters.map(c => c.id),
+            numQuestions: 5,
+        });
+        setPracticeQuiz(null);
+        setCurrentPracticeQuestionIndex(0);
+        setPracticeAnswers({});
+        setPracticeFeedback({});
+        setIsQuizDialogOpen(true);
+    };
+
+    const handleStartPracticeQuiz = async () => {
+        if (!quizConfig.unit || quizConfig.selectedChapters.length === 0) {
+            toast({ variant: 'destructive', title: 'Please select at least one chapter.'});
+            return;
+        }
+
+        setIsGeneratingQuiz(true);
+        try {
+            const content = quizConfig.unit.chapters
+                .filter(c => quizConfig.selectedChapters.includes(c.id))
+                .map(c => `Chapter: ${c.title}\n${typeof c.content === 'string' ? c.content : JSON.stringify(c.content) || ''}`)
+                .join('\n\n');
+            
+            if (!content.trim()) {
+                toast({ variant: 'destructive', title: 'Selected chapters have no content.' });
+                return;
+            }
+
+            const result = await generateQuizFromModule({
+                moduleContent: content,
+                learnerType: (localStorage.getItem('learnerType') as any) || 'Reading/Writing'
+            });
+
+            // Trim the quiz to the selected number of questions
+            setPracticeQuiz(result.questions.slice(0, quizConfig.numQuestions));
+
+        } catch (e) {
+            toast({ variant: 'destructive', title: 'Failed to generate quiz.' });
+        } finally {
+            setIsGeneratingQuiz(false);
+        }
+    };
+    
+    const handleCheckPracticeAnswer = () => {
+        const currentQuestion = practiceQuiz?.[currentPracticeQuestionIndex];
+        const userAnswer = practiceAnswers[currentPracticeQuestionIndex];
+        if (!currentQuestion || !userAnswer) return;
+        
+        const isCorrect = userAnswer.toLowerCase() === currentQuestion.correctAnswer.toLowerCase();
+        setPracticeFeedback(prev => ({ ...prev, [currentPracticeQuestionIndex]: isCorrect }));
+    }
+
+
     if (isGeneratingNext) {
         return <GeneratingNextChapter summary={currentSummary} progress={generationProgress} />;
     }
@@ -431,19 +499,16 @@ export default function CoursePage() {
                                         <p className="text-secondary-dark-text dark:text-gray-400 text-sm font-normal leading-normal mt-1 mb-4">{unit.description || `${unit.chapters.length} chapters`}</p>
                                     </div>
                                     <div className="flex flex-col gap-2 mt-auto">
-                                        <Button className="w-full bg-blue-100 hover:bg-blue-200 text-blue-800 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 dark:text-blue-400" onClick={() => openModule(unit)}>
-                                            <Play className="mr-2 h-4 w-4"/>
+                                        <Button className="w-full justify-start bg-blue-100 hover:bg-blue-200 text-blue-800 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 dark:text-blue-400" onClick={() => openModule(unit)}>
+                                            <PlayCircle className="mr-2 h-4 w-4"/>
                                             {completedChaptersCount > 0 ? 'Continue Module' : 'Start Module'}
                                         </Button>
-                                        <Button className="w-full bg-blue-100 hover:bg-blue-200 text-blue-800 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 dark:text-blue-400">
+                                         <Button className="w-full justify-start bg-blue-100 hover:bg-blue-200 text-blue-800 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 dark:text-blue-400">
                                             <Copy className="mr-2 h-4 w-4"/> Start Flashcards
                                         </Button>
                                         <hr className="my-2 border-border" />
-                                        <Button className="w-full" asChild>
-                                            <Link href={`/dashboard/courses/${courseId}/${unit.chapters.find(c => c.title === 'Module Quiz')?.id || ''}`}>
-                                                <Lightbulb className="mr-2 h-4 w-4"/>
-                                                Take Practice Quiz
-                                            </Link>
+                                        <Button className="w-full justify-start" onClick={() => handlePracticeQuizOpen(unit)}>
+                                            <PenSquare className="mr-2 h-4 w-4"/> Take Practice Quiz
                                         </Button>
                                     </div>
                                 </div>
@@ -545,6 +610,103 @@ export default function CoursePage() {
                     )}
                 </SheetContent>
             </Sheet>
+
+            <Dialog open={isQuizDialogOpen} onOpenChange={(open) => { if (!open) setPracticeQuiz(null); setIsQuizDialogOpen(open); }}>
+                <DialogContent className="max-w-2xl">
+                     <DialogHeader>
+                        <DialogTitle>Practice Quiz: {quizConfig.unit?.title}</DialogTitle>
+                        {!practiceQuiz && <DialogDescription>Configure your practice quiz.</DialogDescription>}
+                    </DialogHeader>
+                    {isGeneratingQuiz ? (
+                        <div className="h-48 flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>
+                    ) : practiceQuiz ? (
+                        <div className="py-4 space-y-4 max-h-[70vh] overflow-y-auto">
+                            <p className="font-semibold text-lg">{currentPracticeQuestionIndex + 1}. {practiceQuiz[currentPracticeQuestionIndex].questionText}</p>
+                            <RadioGroup 
+                                value={practiceAnswers[currentPracticeQuestionIndex] || ''} 
+                                onValueChange={(val) => setPracticeAnswers(prev => ({...prev, [currentPracticeQuestionIndex]: val}))}
+                                disabled={practiceFeedback.hasOwnProperty(currentPracticeQuestionIndex)}
+                            >
+                                <div className="space-y-3">
+                                {practiceQuiz[currentPracticeQuestionIndex].options.map((option, index) => {
+                                    const isSubmitted = practiceFeedback.hasOwnProperty(currentPracticeQuestionIndex);
+                                    const isCorrect = option === practiceQuiz[currentPracticeQuestionIndex].correctAnswer;
+                                    const isSelected = practiceAnswers[currentPracticeQuestionIndex] === option;
+                                    return (
+                                        <Label key={index} className={cn(
+                                            "flex items-center gap-3 p-3 border rounded-md transition-all",
+                                            isSubmitted && isCorrect && "border-green-500 bg-green-500/10",
+                                            isSubmitted && isSelected && !isCorrect && "border-red-500 bg-red-500/10",
+                                            !isSubmitted && "cursor-pointer"
+                                        )}>
+                                            <RadioGroupItem value={option} />
+                                            <span>{option}</span>
+                                        </Label>
+                                    )
+                                })}
+                                </div>
+                            </RadioGroup>
+                             {practiceFeedback.hasOwnProperty(currentPracticeQuestionIndex) && !practiceFeedback[currentPracticeQuestionIndex] && (
+                                <div className="p-2 text-sm bg-destructive/10 text-destructive-foreground rounded-md">Correct Answer: {practiceQuiz[currentPracticeQuestionIndex].correctAnswer}</div>
+                            )}
+                        </div>
+                    ) : (
+                        <div className="py-4 space-y-6">
+                            <div>
+                                <Label>Chapters to include:</Label>
+                                <div className="grid grid-cols-2 gap-2 mt-2">
+                                {quizConfig.unit?.chapters.filter(c => c.title !== 'Module Quiz').map(chapter => (
+                                    <div key={chapter.id} className="flex items-center space-x-2">
+                                        <Checkbox 
+                                            id={chapter.id} 
+                                            checked={quizConfig.selectedChapters.includes(chapter.id)} 
+                                            onCheckedChange={(checked) => {
+                                                setQuizConfig(prev => ({
+                                                    ...prev,
+                                                    selectedChapters: checked ? [...prev.selectedChapters, chapter.id] : prev.selectedChapters.filter(id => id !== chapter.id)
+                                                }));
+                                            }}
+                                        />
+                                        <Label htmlFor={chapter.id} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">{chapter.title}</Label>
+                                    </div>
+                                ))}
+                                </div>
+                            </div>
+                            <div>
+                                <Label>Number of Questions:</Label>
+                                <Select value={String(quizConfig.numQuestions)} onValueChange={val => setQuizConfig(prev => ({...prev, numQuestions: Number(val)}))}>
+                                    <SelectTrigger><SelectValue/></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="5">5 Questions</SelectItem>
+                                        <SelectItem value="10">10 Questions</SelectItem>
+                                        <SelectItem value="15">15 Questions</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+                    )}
+                    <DialogFooter>
+                        {practiceQuiz ? (
+                            practiceFeedback.hasOwnProperty(currentPracticeQuestionIndex) ? (
+                                <Button onClick={() => {
+                                    if(currentPracticeQuestionIndex < practiceQuiz.length - 1) {
+                                        setCurrentPracticeQuestionIndex(prev => prev + 1);
+                                    } else {
+                                        toast({ title: 'Practice quiz finished!' });
+                                        setIsQuizDialogOpen(false);
+                                    }
+                                }}>
+                                    {currentPracticeQuestionIndex < practiceQuiz.length - 1 ? 'Next' : 'Finish'}
+                                </Button>
+                            ) : (
+                                <Button onClick={handleCheckPracticeAnswer} disabled={!practiceAnswers[currentPracticeQuestionIndex]}>Check</Button>
+                            )
+                        ) : (
+                             <Button onClick={handleStartPracticeQuiz} disabled={quizConfig.selectedChapters.length === 0}>Start Quiz</Button>
+                        )}
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </>
     );
 }
