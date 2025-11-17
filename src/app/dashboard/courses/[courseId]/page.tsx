@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useCallback, useRef, useContext } from 'react';
@@ -25,6 +26,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogTrigger, DialogClose, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import type { QuizQuestion } from '@/ai/schemas/quiz-schema';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 type Chapter = {
     id: string;
