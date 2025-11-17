@@ -210,7 +210,7 @@ export default function CoursesListPage() {
     <div className="space-y-6">
         <div className="flex justify-between items-center">
             <div>
-                <h1 className="text-3xl font-bold tracking-tight">Study Hubs</h1>
+                <h1 className="text-3xl font-bold tracking-tight">Courses</h1>
                 <p className="text-muted-foreground">Manage your courses and generate interactive learning labs.</p>
             </div>
              <Dialog open={addCourseOpen} onOpenChange={(open) => { if (!open) resetAddCourseDialog(); setAddCourseOpen(open); }}>
