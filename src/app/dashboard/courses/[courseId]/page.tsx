@@ -21,6 +21,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Progress } from '@/components/ui/progress';
 import { FloatingChatContext } from '@/components/floating-chat';
 import AIBuddy from '@/components/ai-buddy';
+import { Badge } from '@/components/ui/badge';
 
 type Chapter = {
     id: string;
