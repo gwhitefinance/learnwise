@@ -1,4 +1,5 @@
 
+
 'use server';
 
 // All AI flow imports are centralized here
@@ -9,7 +10,7 @@ import { generateFlashcardsFromNote } from '@/ai/flows/note-to-flashcard-flow';
 import { generateQuizFromNote } from '@/ai/flows/note-to-quiz-flow';
 import { generateMiniCourse } from '@/ai/flows/mini-course-flow';
 import { generateQuizFromUnit as generateQuizFromModule } from '@/ai/flows/unit-quiz-flow'; // Alias for compatibility
-import { generateFlashcardsFromUnit as generateFlashcardsFromModule } from '@/ai/flows/unit-flashcard-flow'; // Alias for compatibility
+import { generateFlashcardsFromUnit } from '@/ai/flows/unit-flashcard-flow'; 
 import { generateTutoringSession } from '@/ai/flows/image-tutoring-flow';
 import { studyPlannerAction } from '@/ai/flows/study-planner-flow';
 import { generateChatTitle } from '@/ai/flows/chat-title-flow';
@@ -54,7 +55,7 @@ export {
     generateQuizFromNote,
     generateMiniCourse,
     generateQuizFromModule,
-    generateFlashcardsFromModule,
+    generateFlashcardsFromUnit,
     generateTutoringSession,
     studyPlannerAction,
     generateChatTitle,

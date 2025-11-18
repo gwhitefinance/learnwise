@@ -12,7 +12,7 @@ import { doc, onSnapshot, getDoc, collection, query, where, updateDoc, arrayUnio
 import { Skeleton } from '@/components/ui/skeleton';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { CheckCircle, Lock, ArrowLeft, Loader2, X, Check, BookMarked, BrainCircuit, MessageSquare, Copy, Lightbulb, Play, Pen, Tag, RefreshCw, PenSquare, PlayCircle, RotateCcw } from 'lucide-react';
-import { generateUnitContent, generateSummary, generateChapterContent, generateMiniCourse, generateQuizAction, generateExplanation } from '@/lib/actions';
+import { generateUnitContent, generateSummary, generateChapterContent, generateMiniCourse, generateQuizAction, generateExplanation, generateFlashcardsFromUnit } from '@/lib/actions';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -94,6 +94,11 @@ export default function CoursePage() {
     const [practiceAnswers, setPracticeAnswers] = useState<Record<number, string>>({});
     const [practiceFeedback, setPracticeFeedback] = useState<Record<number, { isCorrect: boolean; explanation?: string; }>>({});
     const [isExplanationLoading, setIsExplanationLoading] = useState<number | null>(null);
+
+    // Flashcard State
+    const [isFlashcardDialogOpen, setIsFlashcardDialogOpen] = useState(false);
+    const [flashcardConfig, setFlashcardConfig] = useState<{unit: Unit | null; selectedChapters: string[]}>({ unit: null, selectedChapters: [] });
+    const [isGeneratingFlashcards, setIsGeneratingFlashcards] = useState(false);
 
     const { toast } = useToast();
     const { openChatWithPrompt } = useContext(FloatingChatContext) as any;
@@ -291,6 +296,49 @@ export default function CoursePage() {
         setPracticeFeedback({});
     }
 
+    const handleFlashcardOpen = (unit: Unit) => {
+        setFlashcardConfig({
+            unit: unit,
+            selectedChapters: unit.chapters.map(c => c.id),
+        });
+        setIsFlashcardDialogOpen(true);
+    };
+
+    const handleStartFlashcards = async () => {
+        if (!flashcardConfig.unit) return;
+
+        setIsGeneratingFlashcards(true);
+        setIsFlashcardDialogOpen(false);
+        toast({ title: 'Taz is working on your flashcards...' });
+        
+        try {
+            const content = flashcardConfig.unit.chapters
+                .filter(c => flashcardConfig.selectedChapters.includes(c.id))
+                .map(c => `Chapter: ${c.title}\n${typeof c.content === 'string' ? c.content : JSON.stringify(c.content) || ''}`)
+                .join('\n\n');
+            
+            if (!content.trim()) {
+                toast({ variant: 'destructive', title: 'Selected chapters have no content.' });
+                setIsGeneratingFlashcards(false);
+                return;
+            }
+            
+            const result = await generateFlashcardsFromUnit({
+                unitContent: content,
+                learnerType: (localStorage.getItem('learnerType') as any) || 'Reading/Writing'
+            });
+
+            // Store in localStorage and redirect
+            localStorage.setItem('generatedFlashcards', JSON.stringify(result.flashcards));
+            router.push('/dashboard/key-concepts');
+
+        } catch (e) {
+            toast({ variant: 'destructive', title: 'Failed to generate flashcards.' });
+        } finally {
+            setIsGeneratingFlashcards(false);
+        }
+    };
+
     if (loading || authLoading) {
         return (
             <div className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-7xl mx-auto">
@@ -433,8 +481,10 @@ export default function CoursePage() {
                                             <PlayCircle className="mr-2 h-4 w-4"/>
                                             {completedChaptersCount > 0 ? 'Continue Unit' : 'Start Unit'}
                                         </Button>
-                                         <Button className="w-full justify-start bg-blue-100 hover:bg-blue-200 text-blue-800 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 dark:text-blue-400">
-                                            <Copy className="mr-2 h-4 w-4"/> Start Flashcards
+                                         <Button className="w-full justify-start bg-blue-100 hover:bg-blue-200 text-blue-800 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 dark:text-blue-400" onClick={() => handleFlashcardOpen(unit)} disabled={isGeneratingFlashcards}>
+                                            <Copy className="mr-2 h-4 w-4"/> 
+                                            {isGeneratingFlashcards && flashcardConfig.unit?.id === unit.id ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                                            Start Flashcards
                                         </Button>
                                         <hr className="my-2 border-border" />
                                         <Button className="w-full justify-start" onClick={() => handlePracticeQuizOpen(unit)}>
@@ -616,6 +666,41 @@ export default function CoursePage() {
                                 <Button onClick={handleStartPracticeQuiz}>Start Quiz</Button>
                             </div>
                         )}
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+             <Dialog open={isFlashcardDialogOpen} onOpenChange={setIsFlashcardDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Generate Flashcards for {flashcardConfig.unit?.title}</DialogTitle>
+                        <DialogDescription>Select the chapters you want to include.</DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4 space-y-2">
+                        <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto p-1">
+                            {flashcardConfig.unit?.chapters.filter(c => c.title !== 'Unit Quiz').map(chapter => (
+                                <div key={chapter.id} className="flex items-center space-x-2">
+                                    <Checkbox
+                                        id={`flashcard-${chapter.id}`}
+                                        checked={flashcardConfig.selectedChapters.includes(chapter.id)}
+                                        onCheckedChange={(checked) => {
+                                            setFlashcardConfig(prev => ({
+                                                ...prev,
+                                                selectedChapters: checked ? [...prev.selectedChapters, chapter.id] : prev.selectedChapters.filter(id => id !== chapter.id)
+                                            }));
+                                        }}
+                                    />
+                                    <Label htmlFor={`flashcard-${chapter.id}`}>{chapter.title}</Label>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="ghost" onClick={() => setIsFlashcardDialogOpen(false)}>Cancel</Button>
+                        <Button onClick={handleStartFlashcards} disabled={flashcardConfig.selectedChapters.length === 0 || isGeneratingFlashcards}>
+                            {isGeneratingFlashcards ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
+                            Generate
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
