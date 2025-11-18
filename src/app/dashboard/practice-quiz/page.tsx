@@ -134,11 +134,7 @@ function PracticeQuizComponent() {
     const [pastQuizzes, setPastQuizzes] = useState<QuizResult[]>([]);
 
     // State for post-quiz tools
-    const [isFlashcardDialogOpen, setFlashcardDialogOpen] = useState(false);
-    const [isFlashcardLoading, setFlashcardLoading] = useState(false);
-    const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
-    const [currentFlashcardIndex, setCurrentFlashcardIndex] = useState(0);
-    const [isFlipped, setIsFlipped] = useState(false);
+    const [isFlashcardLoading, setIsFlashcardLoading] = useState(false);
 
     const [isStudyGuideDialogOpen, setStudyGuideDialogOpen] = useState(false);
     const [isStudyGuideLoading, setStudyGuideLoading] = useState(false);
@@ -544,22 +540,41 @@ function PracticeQuizComponent() {
 
     const handleGenerateFlashcards = async () => {
         if (!quiz) return;
-        setFlashcardDialogOpen(true);
-        setFlashcardLoading(true);
-        setFlashcards([]);
-        const quizContent = quiz.questions.map(q => `Q: ${q.questionText}\nA: ${q.correctAnswer}`).join('\n\n');
+        setIsFlashcardLoading(true);
         try {
+            const quizContent = quiz.questions.map(q => `Q: ${q.questionText}\nA: ${q.correctAnswer}`).join('\n\n');
             const result = await generateFlashcardsFromNote({
                 noteContent: quizContent,
                 learnerType: (learnerType as any) ?? 'Reading/Writing'
             });
-            setFlashcards(result.flashcards);
+
+            if (result.flashcards.length === 0) {
+                 toast({ variant: 'destructive', title: 'Could not generate flashcards.' });
+                 setIsFlashcardLoading(false);
+                 return;
+            }
+
+            const sessionId = `flashcards_quiz_${Date.now()}`;
+            const sessionData = {
+                id: sessionId,
+                name: `Quiz: ${topics}`,
+                cards: result.flashcards,
+                mastered: [],
+                timestamp: new Date().toISOString(),
+            };
+            
+            const existingSessions = JSON.parse(localStorage.getItem('flashcardSessions') || '{}');
+            existingSessions[sessionId] = sessionData;
+            localStorage.setItem('flashcardSessions', JSON.stringify(existingSessions));
+            
+            toast({ title: 'Flashcards Generated!', description: 'Your new deck is ready in the Flashcard Hub.' });
+            router.push(`/dashboard/key-concepts`);
+
         } catch (error) {
-            console.error("Failed to generate flashcards:", error);
+            console.error("Flashcard generation failed:", error);
             toast({ variant: 'destructive', title: 'Flashcard Generation Failed' });
-            setFlashcardDialogOpen(false);
         } finally {
-            setFlashcardLoading(false);
+            setIsFlashcardLoading(false);
         }
     };
 
@@ -1223,48 +1238,15 @@ function PracticeQuizComponent() {
                  <div>
                     <h2 className="text-2xl font-bold mb-4">Keep Learning</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <Dialog open={isFlashcardDialogOpen} onOpenChange={setFlashcardDialogOpen}>
-                            <DialogTrigger asChild>
-                                 <Card className="cursor-pointer hover:bg-muted transition-colors" onClick={handleGenerateFlashcards}>
-                                    <CardContent className="p-6 flex items-start gap-4">
-                                        <div className="p-3 bg-purple-500/10 rounded-lg text-purple-500"><Star className="h-8 w-8"/></div>
-                                        <div>
-                                            <h3 className="font-semibold">Flashcards</h3>
-                                            <p className="text-sm text-muted-foreground">Create a complete set of flashcards from all your quiz material. Good for quick review and mastering key concepts.</p>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </DialogTrigger>
-                             <DialogContent className="max-w-xl">
-                                <DialogHeader>
-                                    <DialogTitle className="flex items-center gap-2">Flashcards</DialogTitle>
-                                </DialogHeader>
-                                <div className="py-4">
-                                    {isFlashcardLoading ? (
-                                        <div className="flex items-center justify-center h-52"><Loader2 className="w-8 h-8 animate-spin" /></div>
-                                    ) : flashcards.length > 0 ? (
-                                        <div className="space-y-4">
-                                            <div className="text-center text-sm text-muted-foreground">
-                                                Card {currentFlashcardIndex + 1} of {flashcards.length}
-                                            </div>
-                                            <div className="relative w-full h-64 cursor-pointer" onClick={() => setIsFlipped(!isFlipped)}>
-                                                <AnimatePresence>
-                                                    <motion.div key={isFlipped ? 'back' : 'front'} initial={{ rotateY: isFlipped ? 180 : 0 }} animate={{ rotateY: 0 }} exit={{ rotateY: isFlipped ? 0 : -180 }} transition={{ duration: 0.5 }} style={{ backfaceVisibility: 'hidden' }} className="absolute w-full h-full p-6 flex items-center justify-center text-center rounded-lg border bg-card shadow-sm">
-                                                        <p className="text-xl font-semibold">{isFlipped ? flashcards[currentFlashcardIndex].back : flashcards[currentFlashcardIndex].front}</p>
-                                                    </motion.div>
-                                                </AnimatePresence>
-                                            </div>
-                                            <div className="flex justify-center items-center gap-4">
-                                                <Button variant="outline" size="icon" onClick={() => { setIsFlipped(false); setCurrentFlashcardIndex(prev => Math.max(0, prev - 1))}} disabled={currentFlashcardIndex === 0}><ChevronLeft className="h-4 w-4" /></Button>
-                                                <Button onClick={() => setIsFlipped(!isFlipped)}><RefreshCw className="mr-2 h-4 w-4"/> Flip Card</Button>
-                                                <Button variant="outline" size="icon" onClick={() => { setIsFlipped(false); setCurrentFlashcardIndex(prev => Math.min(flashcards.length - 1, prev + 1))}} disabled={currentFlashcardIndex === flashcards.length - 1}><ChevronRight className="h-4 w-4" /></Button>
-                                            </div>
-                                        </div>
-                                    ) : (<div className="flex items-center justify-center h-52"><p>No flashcards were generated.</p></div>)}
+                         <Card className="cursor-pointer hover:bg-muted transition-colors" onClick={handleGenerateFlashcards}>
+                            <CardContent className="p-6 flex items-start gap-4">
+                                <div className="p-3 bg-purple-500/10 rounded-lg text-purple-500"><Star className="h-8 w-8"/></div>
+                                <div>
+                                    <h3 className="font-semibold">Flashcards</h3>
+                                    <p className="text-sm text-muted-foreground">Create a complete set of flashcards from all your quiz material. Good for quick review and mastering key concepts.</p>
                                 </div>
-                                <DialogFooter><DialogClose asChild><Button>Close</Button></DialogClose></DialogFooter>
-                            </DialogContent>
-                        </Dialog>
+                            </CardContent>
+                        </Card>
                         <Dialog open={isStudyGuideDialogOpen} onOpenChange={setStudyGuideDialogOpen}>
                              <DialogTrigger asChild>
                                 <Card className="cursor-pointer hover:bg-muted transition-colors" onClick={handleGenerateStudyGuide}>
@@ -1353,10 +1335,5 @@ export default function PracticeQuizPage() {
 
 
 
-
-
-    
-
-    
 
 
