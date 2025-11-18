@@ -56,7 +56,7 @@ export default function FlashcardsPage() {
                     Card {currentCardIndex + 1} of {flashcards.length}
                 </div>
                  <div
-                    className="relative w-full h-80 cursor-pointer"
+                    className="relative w-full aspect-[3/2] cursor-pointer"
                     onClick={() => setIsFlipped(!isFlipped)}
                     style={{ perspective: '1000px' }}
                 >
@@ -91,4 +91,3 @@ export default function FlashcardsPage() {
         </div>
     );
 }
-
