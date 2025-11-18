@@ -309,7 +309,6 @@ export default function CoursePage() {
 
         setIsGeneratingFlashcards(true);
         setIsFlashcardDialogOpen(false);
-        toast({ title: 'Taz is working on your flashcards...' });
         
         try {
             const content = flashcardConfig.unit.chapters
@@ -334,10 +333,24 @@ export default function CoursePage() {
 
         } catch (e) {
             toast({ variant: 'destructive', title: 'Failed to generate flashcards.' });
-        } finally {
-            setIsGeneratingFlashcards(false);
+             setIsGeneratingFlashcards(false);
         }
     };
+
+    if (isGeneratingFlashcards) {
+        return (
+            <div className="flex flex-col items-center justify-center h-full text-center p-6">
+                <div className="relative mb-8 flex flex-col items-center">
+                    <div className="relative w-48 h-48">
+                        <AIBuddy className="w-full h-full" isStatic={false}/>
+                    </div>
+                </div>
+                <h1 className="text-2xl font-bold">Taz is working on your flashcards...</h1>
+                <p className="text-muted-foreground">This may take a moment.</p>
+                <Loader2 className="mt-4 h-8 w-8 animate-spin text-primary" />
+            </div>
+        );
+    }
 
     if (loading || authLoading) {
         return (
@@ -483,7 +496,6 @@ export default function CoursePage() {
                                         </Button>
                                          <Button className="w-full justify-start bg-blue-100 hover:bg-blue-200 text-blue-800 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 dark:text-blue-400" onClick={() => handleFlashcardOpen(unit)} disabled={isGeneratingFlashcards}>
                                             <Copy className="mr-2 h-4 w-4"/> 
-                                            {isGeneratingFlashcards && flashcardConfig.unit?.id === unit.id ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                                             Start Flashcards
                                         </Button>
                                         <hr className="my-2 border-border" />
@@ -594,13 +606,9 @@ export default function CoursePage() {
                                         {isCompleted ? <CheckCircle className="h-6 w-6 text-green-500" /> : !isUnlocked ? <Lock className="h-6 w-6 text-muted-foreground"/> : <div className="h-6 w-6 rounded-full border-2 border-primary" />}
                                         <span className={cn("font-medium", !isUnlocked && "text-muted-foreground")}>{chapter.title}</span>
                                     </div>
-                                    {isUnlocked ? (
-                                        <Button asChild variant="secondary" size="sm">
-                                            <Link href={`/dashboard/courses/${courseId}/${chapter.id}`}>View</Link>
-                                        </Button>
-                                    ) : (
-                                        <Button variant="secondary" size="sm" disabled>View</Button>
-                                    )}
+                                    <Button asChild variant="secondary" size="sm" disabled={!isUnlocked}>
+                                        <Link href={`/dashboard/courses/${courseId}/${chapter.id}`}>View</Link>
+                                    </Button>
                                 </div>
                             )})}
                         </div>
@@ -707,3 +715,4 @@ export default function CoursePage() {
         </TooltipProvider>
     );
 }
+
