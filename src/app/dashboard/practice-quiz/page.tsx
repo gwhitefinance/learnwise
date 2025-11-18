@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useState, useEffect, useRef, useContext, Suspense } from 'react';
@@ -268,9 +269,44 @@ function PracticeQuizComponent() {
             finalTopics = course?.name || topics;
         } else if (creationSource === 'document' && uploadedFile) {
             finalTopics = uploadedFile.name;
-            fileContent = await uploadedFile.text();
+            if (uploadedFile.type.startsWith('image/')) {
+                // Handle image upload
+                setIsLoading(true);
+                const reader = new FileReader();
+                reader.readAsDataURL(uploadedFile);
+                reader.onload = async () => {
+                    const imageDataUri = reader.result as string;
+                    try {
+                        const result = await generateCrunchTimeStudyGuide({
+                            inputType: 'image',
+                            content: imageDataUri,
+                            learnerType: (learnerType as any) || 'Reading/Writing',
+                        });
+                        const quizResult: GenerateQuizOutput = {
+                            quizTitle: result.title,
+                            questions: result.practiceQuiz.map(q => ({
+                                questionText: q.question,
+                                options: q.options,
+                                correctAnswer: q.answer
+                            }))
+                        };
+                        setQuiz(quizResult);
+                        setTopics(finalTopics);
+                        setQuizState('pre-quiz');
+                        toast({ title: 'Quiz Generated!', description: 'Your quiz is ready.' });
+                    } catch (error) {
+                        console.error(error);
+                        toast({ variant: 'destructive', title: 'Error', description: 'Failed to generate quiz from image.' });
+                    } finally {
+                        setIsLoading(false);
+                    }
+                };
+                return; // Exit here for image processing
+            } else {
+                fileContent = await uploadedFile.text();
+            }
         }
-
+        
         if (!finalTopics.trim()) {
             toast({
                 variant: 'destructive',
@@ -288,7 +324,7 @@ function PracticeQuizComponent() {
 
         setIsLoading(true);
         try {
-            const input: Omit<GenerateQuizInput, 'questionType'> = {
+            const input: GenerateQuizInput = {
                 topic: fileContent ? `${finalTopics}\n\n${fileContent}` : finalTopics,
                 difficulty: difficulty, 
                 numQuestions: totalQuestions,
@@ -1329,3 +1365,4 @@ export default function PracticeQuizPage() {
     
 
     
+
