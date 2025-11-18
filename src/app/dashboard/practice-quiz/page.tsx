@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowRight, Award, BookOpen, Brush, CheckCircle, CheckSquare, ChevronLeft, ChevronRight, Clock, Eraser, FileText, GraduationCap, HelpCircle, Lightbulb, Loader2, Maximize, Minimize, Palette, PenSquare, RefreshCw, RotateCcw, Star, XCircle, Zap, Upload } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Award, BookOpen, Brush, CheckCircle, CheckSquare, ChevronLeft, ChevronRight, Clock, Eraser, FileText, GraduationCap, HelpCircle, Lightbulb, Loader2, Maximize, Minimize, Palette, PenSquare, RefreshCw, RotateCcw, Star, XCircle, Zap, Upload } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { GenerateQuizInput, GenerateQuizOutput, QuizQuestion } from '@/ai/schemas/quiz-schema';
 import { Progress } from '@/components/ui/progress';
@@ -610,7 +610,7 @@ function PracticeQuizComponent() {
         } finally {
             setStudyGuideLoading(false);
         }
-    }
+    };
     
     const handleSaveStudyGuide = async () => {
         if (!studyGuide || !user) return;
@@ -741,10 +741,10 @@ function PracticeQuizComponent() {
     
     const handleReviewQuiz = (quizResult: QuizResult) => {
         setReviewingQuiz(quizResult);
-        setQuiz(quizResult.quizData);
-        setUserAnswers(quizResult.answers);
-        setQuizState('results');
-        setIsReviewing(true);
+        setQuiz(quizResult.quizData); // Set the quiz data for review
+        setUserAnswers(quizResult.answers); // Set the answers for review
+        setQuizState('results'); // Go to results state
+        setIsReviewing(true); // Go directly to review mode
     };
 
     const score = answers.filter(a => a.isCorrect).length;
@@ -1376,6 +1376,7 @@ export default function PracticeQuizPage() {
     
 
     
+
 
 
 
