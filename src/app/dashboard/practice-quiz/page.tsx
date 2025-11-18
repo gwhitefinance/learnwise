@@ -16,7 +16,7 @@ import { Progress } from '@/components/ui/progress';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose, DialogTrigger } from '@/components/ui/dialog';
-import { generateExplanation, generateHint, generateFlashcardsFromNote, generateCrunchTimeStudyGuide } from '@/lib/actions';
+import { generateExplanation, generateHint, generateFlashcardsFromNote, generateCrunchTimeStudyGuide, generateImageQuiz } from '@/lib/actions';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Slider } from '@/components/ui/slider';
 import AudioPlayer from '@/components/audio-player';
@@ -270,26 +270,19 @@ function PracticeQuizComponent() {
         } else if (creationSource === 'document' && uploadedFile) {
             finalTopics = uploadedFile.name;
             if (uploadedFile.type.startsWith('image/')) {
-                // Handle image upload
                 setIsLoading(true);
                 const reader = new FileReader();
                 reader.readAsDataURL(uploadedFile);
                 reader.onload = async () => {
                     const imageDataUri = reader.result as string;
                     try {
-                        const result = await generateCrunchTimeStudyGuide({
-                            inputType: 'image',
-                            content: imageDataUri,
-                            learnerType: (learnerType as any) || 'Reading/Writing',
+                        const totalQuestions = Object.values(questionCounts).reduce((sum, count) => sum + count, 0);
+                        const quizResult = await generateImageQuiz({
+                            imageDataUri,
+                            numQuestions: totalQuestions,
+                            difficulty: difficulty,
                         });
-                        const quizResult: GenerateQuizOutput = {
-                            quizTitle: result.title,
-                            questions: result.practiceQuiz.map(q => ({
-                                questionText: q.question,
-                                options: q.options,
-                                correctAnswer: q.answer
-                            }))
-                        };
+
                         setQuiz(quizResult);
                         setTopics(finalTopics);
                         setQuizState('pre-quiz');
@@ -301,7 +294,7 @@ function PracticeQuizComponent() {
                         setIsLoading(false);
                     }
                 };
-                return; // Exit here for image processing
+                return;
             } else {
                 fileContent = await uploadedFile.text();
             }
@@ -905,7 +898,7 @@ function PracticeQuizComponent() {
                                 <Input 
                                     id="document-upload"
                                     type="file"
-                                    accept=".txt,.md,.pdf,.doc,.docx,image/*"
+                                    accept="image/*,.txt,.md,.pdf,.doc,.docx"
                                     onChange={(e) => setUploadedFile(e.target.files ? e.target.files[0] : null)}
                                 />
                                 {uploadedFile && <p className="text-sm text-muted-foreground">Selected: {uploadedFile.name}</p>}
@@ -1365,4 +1358,5 @@ export default function PracticeQuizPage() {
     
 
     
+
 
