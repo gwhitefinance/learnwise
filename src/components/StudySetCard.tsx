@@ -144,7 +144,7 @@ const StudySetCard = ({ course, quizResults, notes }: { course: Course, quizResu
                         </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="w-64">
-                        <DropdownMenuLabel>Key Concepts</DropdownMenuLabel>
+                        <DropdownMenuLabel>Flashcard Hub</DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem disabled>No recent sessions</DropdownMenuItem>
                         <DropdownMenuSeparator />
@@ -177,7 +177,7 @@ const StudySetCard = ({ course, quizResults, notes }: { course: Course, quizResu
                   <div className="flex-1">AI Deep Dive</div>
                 </button>
             </div>
-            <Link href={`/dashboard/courses?courseId=${course.id}`} className="w-full bg-white text-primary font-bold py-4 px-6 rounded-2xl text-lg flex items-center justify-center gap-2 hover:bg-indigo-50 transition-colors shadow-lg">
+            <Link href={`/dashboard/courses/${course.id}`} className="w-full bg-white text-primary font-bold py-4 px-6 rounded-2xl text-lg flex items-center justify-center gap-2 hover:bg-indigo-50 transition-colors shadow-lg">
                 <Play className="w-6 h-6" />
                 <span>{progress > 0 ? 'Continue Learning' : 'Start Learning'}</span>
             </Link>

@@ -526,7 +526,7 @@ export default function CoursePage() {
                                 <CardContent className="flex flex-col gap-3">
                                     <Button variant="outline" className="w-full justify-start" asChild>
                                         <Link href="/dashboard/key-concepts">
-                                            <BookMarked className="mr-2 h-4 w-4" /> Key Concepts
+                                            <Copy className="mr-2 h-4 w-4" /> Flashcard Hub
                                         </Link>
                                     </Button>
                                     <Button variant="outline" className="w-full justify-start" asChild>
