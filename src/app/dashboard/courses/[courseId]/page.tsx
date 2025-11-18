@@ -190,7 +190,7 @@ export default function CoursePage() {
     // Practice Quiz State
     const [isQuizDialogOpen, setIsQuizDialogOpen] = useState(false);
     const [quizDialogStep, setQuizDialogStep] = useState(1);
-    const [quizConfig, setQuizConfig] = useState<{unit: Unit | null; selectedChapters: string[]; numQuestions: number}>({ unit: null, selectedChapters: [], numQuestions: 5 });
+    const [quizConfig, setQuizConfig] = useState<{unit: Unit | null; selectedChapters: string[]}>({ unit: null, selectedChapters: [] });
     const [questionCounts, setQuestionCounts] = useState<Record<string, number>>({
         'Multiple Choice': 5,
         'Short Answer': 0,
@@ -399,7 +399,7 @@ export default function CoursePage() {
     };
 
     const handleRevertOutline = async () => {
-        if (!course || !previousKeyConcepts || !previousUnits) return;
+        if (!course || !previousUnits) return;
         try {
             const courseRef = doc(db, 'courses', course.id);
             await updateDoc(courseRef, { 
@@ -419,7 +419,6 @@ export default function CoursePage() {
         setQuizConfig({
             unit: unit,
             selectedChapters: unit.chapters.map(c => c.id),
-            numQuestions: 5,
         });
         setQuizDialogStep(1);
         setPracticeQuiz(null);
@@ -440,6 +439,7 @@ export default function CoursePage() {
         }
 
         setIsGeneratingQuiz(true);
+        setIsQuizDialogOpen(false);
         try {
             const content = quizConfig.unit.chapters
                 .filter(c => quizConfig.selectedChapters.includes(c.id))
@@ -485,7 +485,13 @@ export default function CoursePage() {
              setQuestionCounts(prev => ({...prev, [type]: 0}));
         }
     };
-
+    
+    const handleExitQuiz = () => {
+        setPracticeQuiz(null);
+        setCurrentPracticeQuestionIndex(0);
+        setPracticeAnswers({});
+        setPracticeFeedback({});
+    }
 
     if (isGeneratingNext) {
         return <GeneratingNextChapter summary={currentSummary} progress={generationProgress} />;
@@ -508,6 +514,69 @@ export default function CoursePage() {
     
     if (!course) {
         return <div>Course not found or you do not have permission to view it.</div>;
+    }
+
+    if (practiceQuiz) {
+        const currentQuestion = practiceQuiz[currentPracticeQuestionIndex];
+        const isAnswered = practiceFeedback.hasOwnProperty(currentPracticeQuestionIndex);
+        const isCorrect = isAnswered && practiceFeedback[currentPracticeQuestionIndex];
+        
+        return (
+            <div className="max-w-3xl mx-auto py-8 px-4 h-full flex flex-col">
+                <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-2xl font-bold">Practice Quiz: {quizConfig.unit?.title}</h2>
+                    <Button variant="ghost" onClick={handleExitQuiz}><X className="mr-2 h-4 w-4"/> Exit</Button>
+                </div>
+                <div className="mb-6">
+                    <Progress value={((currentPracticeQuestionIndex + 1) / practiceQuiz.length) * 100} className="h-2"/>
+                    <p className="text-sm text-muted-foreground mt-1 text-right">{currentPracticeQuestionIndex + 1} / {practiceQuiz.length}</p>
+                </div>
+
+                <Card className="flex-1">
+                    <CardContent className="p-8 h-full flex flex-col">
+                        <p className="text-lg font-semibold mb-6 flex-shrink-0">{currentQuestion.questionText}</p>
+                        <RadioGroup 
+                            value={practiceAnswers[currentPracticeQuestionIndex] || ''} 
+                            onValueChange={(val) => setPracticeAnswers(p => ({ ...p, [currentPracticeQuestionIndex]: val }))}
+                            disabled={isAnswered}
+                            className="space-y-4"
+                        >
+                            {currentQuestion.options.map((option, index) => (
+                                <Label key={index} className={cn(
+                                    "flex items-center gap-3 p-4 rounded-lg border transition-all cursor-pointer",
+                                    isAnswered && (option === currentQuestion.correctAnswer ? "border-green-500 bg-green-500/10" : (practiceAnswers[currentPracticeQuestionIndex] === option ? "border-red-500 bg-red-500/10" : "")),
+                                    !isAnswered && (practiceAnswers[currentPracticeQuestionIndex] === option ? "border-primary" : "")
+                                )}>
+                                    <RadioGroupItem value={option} />
+                                    <span>{option}</span>
+                                </Label>
+                            ))}
+                        </RadioGroup>
+                         <div className="mt-auto pt-6">
+                            {isAnswered ? (
+                                <>
+                                    <p className={cn("font-semibold mb-4", isCorrect ? "text-green-600" : "text-red-600")}>
+                                        {isCorrect ? "Correct!" : `Not quite. The correct answer is: ${currentQuestion.correctAnswer}`}
+                                    </p>
+                                    <Button onClick={() => {
+                                        if (currentPracticeQuestionIndex < practiceQuiz.length - 1) {
+                                            setCurrentPracticeQuestionIndex(i => i + 1);
+                                        } else {
+                                            toast({ title: 'Practice quiz finished!'});
+                                            handleExitQuiz();
+                                        }
+                                    }}>
+                                        {currentPracticeQuestionIndex < practiceQuiz.length - 1 ? 'Next' : 'Finish'}
+                                    </Button>
+                                </>
+                            ) : (
+                                <Button onClick={handleCheckPracticeAnswer} disabled={!practiceAnswers[currentPracticeQuestionIndex]}>Check</Button>
+                            )}
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+        )
     }
 
     const totalChapters = course.units?.flatMap(u => u.chapters).length || 0;
@@ -630,8 +699,8 @@ export default function CoursePage() {
                                             <p>Regenerates the course modules and chapters based on the current Key Concepts.</p>
                                         </TooltipContent>
                                     </Tooltip>
-                                    {previousKeyConcepts && !isEditingConcepts && (
-                                        <Button size="sm" variant="outline" className="mt-4 w-full" onClick={handleRevertOutline}>
+                                    {previousUnits && !isEditingConcepts && (
+                                        <Button size="sm" variant="outline" className="mt-2 w-full" onClick={handleRevertOutline}>
                                             <RotateCcw className="h-4 w-4 mr-2" /> Revert to Previous
                                         </Button>
                                     )}
@@ -678,43 +747,10 @@ export default function CoursePage() {
                 <DialogContent className="max-w-2xl">
                      <DialogHeader>
                         <DialogTitle>Practice Quiz: {quizConfig.unit?.title}</DialogTitle>
-                        {quizDialogStep === 1 && !practiceQuiz && <DialogDescription>Configure your practice quiz.</DialogDescription>}
-                        {quizDialogStep === 2 && !practiceQuiz && <DialogDescription>Choose the types and number of questions for your test.</DialogDescription>}
+                        {quizDialogStep === 1 && <DialogDescription>Configure your practice quiz.</DialogDescription>}
+                        {quizDialogStep === 2 && <DialogDescription>Choose the types and number of questions for your test.</DialogDescription>}
                     </DialogHeader>
-                    {isGeneratingQuiz ? (
-                        <div className="h-48 flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>
-                    ) : practiceQuiz ? (
-                        <div className="py-4 space-y-4 max-h-[70vh] overflow-y-auto">
-                            <p className="font-semibold text-lg">{currentPracticeQuestionIndex + 1}. {practiceQuiz[currentPracticeQuestionIndex].questionText}</p>
-                            <RadioGroup 
-                                value={practiceAnswers[currentPracticeQuestionIndex] || ''} 
-                                onValueChange={(val) => setPracticeAnswers(prev => ({...prev, [currentPracticeQuestionIndex]: val}))}
-                                disabled={practiceFeedback.hasOwnProperty(currentPracticeQuestionIndex)}
-                            >
-                                <div className="space-y-3">
-                                {practiceQuiz[currentPracticeQuestionIndex].options.map((option, index) => {
-                                    const isSubmitted = practiceFeedback.hasOwnProperty(currentPracticeQuestionIndex);
-                                    const isCorrect = option === practiceQuiz[currentPracticeQuestionIndex].correctAnswer;
-                                    const isSelected = practiceAnswers[currentPracticeQuestionIndex] === option;
-                                    return (
-                                        <Label key={index} className={cn(
-                                            "flex items-center gap-3 p-3 border rounded-md transition-all",
-                                            isSubmitted && isCorrect && "border-green-500 bg-green-500/10",
-                                            isSubmitted && isSelected && !isCorrect && "border-red-500 bg-red-500/10",
-                                            !isSubmitted && "cursor-pointer"
-                                        )}>
-                                            <RadioGroupItem value={option} />
-                                            <span>{option}</span>
-                                        </Label>
-                                    )
-                                })}
-                                </div>
-                            </RadioGroup>
-                             {practiceFeedback.hasOwnProperty(currentPracticeQuestionIndex) && !practiceFeedback[currentPracticeQuestionIndex] && (
-                                <div className="p-2 text-sm bg-destructive/10 text-destructive-foreground rounded-md">Correct Answer: {practiceQuiz[currentPracticeQuestionIndex].correctAnswer}</div>
-                            )}
-                        </div>
-                    ) : quizDialogStep === 1 ? (
+                    {quizDialogStep === 1 ? (
                         <div className="py-4 space-y-6">
                             <div>
                                 <Label>Chapters to include:</Label>
@@ -757,22 +793,7 @@ export default function CoursePage() {
                         </div>
                     )}
                     <DialogFooter>
-                        {practiceQuiz ? (
-                            practiceFeedback.hasOwnProperty(currentPracticeQuestionIndex) ? (
-                                <Button onClick={() => {
-                                    if(currentPracticeQuestionIndex < practiceQuiz.length - 1) {
-                                        setCurrentPracticeQuestionIndex(prev => prev + 1);
-                                    } else {
-                                        toast({ title: 'Practice quiz finished!' });
-                                        setIsQuizDialogOpen(false);
-                                    }
-                                }}>
-                                    {currentPracticeQuestionIndex < practiceQuiz.length - 1 ? 'Next' : 'Finish'}
-                                </Button>
-                            ) : (
-                                <Button onClick={handleCheckPracticeAnswer} disabled={!practiceAnswers[currentPracticeQuestionIndex]}>Check</Button>
-                            )
-                        ) : quizDialogStep === 1 ? (
+                        {quizDialogStep === 1 ? (
                             <Button onClick={() => setQuizDialogStep(2)} disabled={quizConfig.selectedChapters.length === 0}>Next</Button>
                         ) : (
                             <div className="flex justify-between w-full">
