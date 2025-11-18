@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Check, X, RotateCcw, ChevronLeft, ChevronRight, Shuffle } from 'lucide-react';
+import { Check, X, RotateCcw, ChevronLeft, ChevronRight, Shuffle, ArrowLeft } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { cn } from '@/lib/utils';
 import Loading from './loading';
@@ -133,6 +133,10 @@ function FlashcardGame() {
 
     return (
         <div className="min-h-screen bg-background p-8 relative overflow-hidden">
+            <Button variant="ghost" onClick={() => router.push('/dashboard/key-concepts')} className="absolute top-4 left-4">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Hub
+            </Button>
             <div className="max-w-4xl mx-auto">
                 <div className="text-center mb-8">
                     <h1 className="text-5xl font-bold text-foreground mb-2">{session.name}</h1>
@@ -155,7 +159,7 @@ function FlashcardGame() {
                     </div>
                     <div
                         onClick={flipCard}
-                        className="relative h-80 w-full cursor-pointer perspective-1000 mb-6"
+                        className="relative h-96 w-full cursor-pointer perspective-1000 mb-6"
                     >
                         <div
                             className={`relative w-full h-full transition-transform duration-500 transform-style-3d ${
@@ -233,6 +237,7 @@ function FlashcardGame() {
                             >
                                 <RotateCcw size={20} />
                             </Button>
+                            <Button variant="destructive" onClick={() => router.push('/dashboard/key-concepts')}>End Session</Button>
                         </div>
                         <Button
                             onClick={nextCard}
