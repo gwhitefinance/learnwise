@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useCallback, useRef, useContext } from 'react';
@@ -11,7 +12,7 @@ import { doc, onSnapshot, getDoc, collection, query, where, updateDoc, arrayUnio
 import { Skeleton } from '@/components/ui/skeleton';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { CheckCircle, Lock, ArrowLeft, Loader2, X, Check, BookMarked, BrainCircuit, MessageSquare, Copy, Lightbulb, Play, Pen, Tag, RefreshCw, PenSquare, PlayCircle, RotateCcw } from 'lucide-react';
-import { generateModuleContent, generateSummary, generateChapterContent, generateMiniCourse, generateQuizFromModule } from '@/lib/actions';
+import { generateModuleContent, generateSummary, generateChapterContent, generateMiniCourse, generateQuizFromModule, generateQuizAction } from '@/lib/actions';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -186,10 +187,17 @@ export default function CoursePage() {
     const [previousKeyConcepts, setPreviousKeyConcepts] = useState<string[] | null>(null);
     const [previousUnits, setPreviousUnits] = useState<Unit[] | null>(null);
 
-
     // Practice Quiz State
     const [isQuizDialogOpen, setIsQuizDialogOpen] = useState(false);
+    const [quizDialogStep, setQuizDialogStep] = useState(1);
     const [quizConfig, setQuizConfig] = useState<{unit: Unit | null; selectedChapters: string[]; numQuestions: number}>({ unit: null, selectedChapters: [], numQuestions: 5 });
+    const [questionCounts, setQuestionCounts] = useState<Record<string, number>>({
+        'Multiple Choice': 5,
+        'Short Answer': 0,
+        'Free Response (FRQ)': 0,
+        'True/False': 0,
+        'Fill in the Blank': 0,
+    });
     const [practiceQuiz, setPracticeQuiz] = useState<QuizQuestion[] | null>(null);
     const [isGeneratingQuiz, setIsGeneratingQuiz] = useState(false);
     const [currentPracticeQuestionIndex, setCurrentPracticeQuestionIndex] = useState(0);
@@ -413,16 +421,21 @@ export default function CoursePage() {
             selectedChapters: unit.chapters.map(c => c.id),
             numQuestions: 5,
         });
+        setQuizDialogStep(1);
         setPracticeQuiz(null);
         setCurrentPracticeQuestionIndex(0);
         setPracticeAnswers({});
         setPracticeFeedback({});
+        setQuestionCounts({ 'Multiple Choice': 5, 'Short Answer': 0, 'Free Response (FRQ)': 0, 'True/False': 0, 'Fill in the Blank': 0 });
         setIsQuizDialogOpen(true);
     };
 
     const handleStartPracticeQuiz = async () => {
-        if (!quizConfig.unit || quizConfig.selectedChapters.length === 0) {
-            toast({ variant: 'destructive', title: 'Please select at least one chapter.'});
+        if (!quizConfig.unit) return;
+
+        const totalQuestions = Object.values(questionCounts).reduce((sum, count) => sum + count, 0);
+        if (totalQuestions === 0) {
+            toast({ variant: 'destructive', title: 'Please select at least one question type.' });
             return;
         }
 
@@ -439,13 +452,14 @@ export default function CoursePage() {
                 return;
             }
 
-            const result = await generateQuizFromModule({
-                moduleContent: content,
-                learnerType: (localStorage.getItem('learnerType') as any) || 'Reading/Writing'
+            const result = await generateQuizAction({
+                topic: content,
+                difficulty: 'Medium',
+                numQuestions: totalQuestions,
+                questionTypes: questionCounts,
             });
 
-            // Trim the quiz to the selected number of questions
-            setPracticeQuiz(result.questions.slice(0, quizConfig.numQuestions));
+            setPracticeQuiz(result.questions);
 
         } catch (e) {
             toast({ variant: 'destructive', title: 'Failed to generate quiz.' });
@@ -462,6 +476,15 @@ export default function CoursePage() {
         const isCorrect = userAnswer.toLowerCase() === currentQuestion.correctAnswer.toLowerCase();
         setPracticeFeedback(prev => ({ ...prev, [currentPracticeQuestionIndex]: isCorrect }));
     }
+
+     const handleQuestionCountChange = (type: string, value: string) => {
+        const count = parseInt(value, 10);
+        if (!isNaN(count) && count >= 0) {
+            setQuestionCounts(prev => ({...prev, [type]: count}));
+        } else if (value === '') {
+             setQuestionCounts(prev => ({...prev, [type]: 0}));
+        }
+    };
 
 
     if (isGeneratingNext) {
@@ -655,7 +678,8 @@ export default function CoursePage() {
                 <DialogContent className="max-w-2xl">
                      <DialogHeader>
                         <DialogTitle>Practice Quiz: {quizConfig.unit?.title}</DialogTitle>
-                        {!practiceQuiz && <DialogDescription>Configure your practice quiz.</DialogDescription>}
+                        {quizDialogStep === 1 && !practiceQuiz && <DialogDescription>Configure your practice quiz.</DialogDescription>}
+                        {quizDialogStep === 2 && !practiceQuiz && <DialogDescription>Choose the types and number of questions for your test.</DialogDescription>}
                     </DialogHeader>
                     {isGeneratingQuiz ? (
                         <div className="h-48 flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>
@@ -690,7 +714,7 @@ export default function CoursePage() {
                                 <div className="p-2 text-sm bg-destructive/10 text-destructive-foreground rounded-md">Correct Answer: {practiceQuiz[currentPracticeQuestionIndex].correctAnswer}</div>
                             )}
                         </div>
-                    ) : (
+                    ) : quizDialogStep === 1 ? (
                         <div className="py-4 space-y-6">
                             <div>
                                 <Label>Chapters to include:</Label>
@@ -712,16 +736,23 @@ export default function CoursePage() {
                                 ))}
                                 </div>
                             </div>
-                            <div>
-                                <Label>Number of Questions:</Label>
-                                <Select value={String(quizConfig.numQuestions)} onValueChange={val => setQuizConfig(prev => ({...prev, numQuestions: Number(val)}))}>
-                                    <SelectTrigger><SelectValue/></SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="5">5 Questions</SelectItem>
-                                        <SelectItem value="10">10 Questions</SelectItem>
-                                        <SelectItem value="15">15 Questions</SelectItem>
-                                    </SelectContent>
-                                </Select>
+                        </div>
+                    ) : (
+                        <div className="py-4 space-y-6">
+                             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                                {Object.entries(questionCounts).map(([type, count]) => (
+                                    <div key={type} className="flex items-center justify-between">
+                                        <Label htmlFor={type} className="text-base">{type}</Label>
+                                        <Input 
+                                            id={type} 
+                                            type="number" 
+                                            className="w-20 h-10 text-center" 
+                                            value={count} 
+                                            onChange={(e) => handleQuestionCountChange(type, e.target.value)}
+                                            min={0}
+                                        />
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     )}
@@ -741,8 +772,13 @@ export default function CoursePage() {
                             ) : (
                                 <Button onClick={handleCheckPracticeAnswer} disabled={!practiceAnswers[currentPracticeQuestionIndex]}>Check</Button>
                             )
+                        ) : quizDialogStep === 1 ? (
+                            <Button onClick={() => setQuizDialogStep(2)} disabled={quizConfig.selectedChapters.length === 0}>Next</Button>
                         ) : (
-                             <Button onClick={handleStartPracticeQuiz} disabled={quizConfig.selectedChapters.length === 0}>Start Quiz</Button>
+                            <div className="flex justify-between w-full">
+                                <Button variant="ghost" onClick={() => setQuizDialogStep(1)}>Back</Button>
+                                <Button onClick={handleStartPracticeQuiz}>Start Quiz</Button>
+                            </div>
                         )}
                     </DialogFooter>
                 </DialogContent>
@@ -750,5 +786,3 @@ export default function CoursePage() {
         </TooltipProvider>
     );
 }
-
-    
