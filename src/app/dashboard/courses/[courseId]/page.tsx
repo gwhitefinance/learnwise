@@ -10,7 +10,7 @@ import { doc, onSnapshot, getDoc, collection, query, where, updateDoc, arrayUnio
 import { Skeleton } from '@/components/ui/skeleton';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { CheckCircle, Lock, ArrowLeft, Loader2, X, Check, BookMarked, BrainCircuit, MessageSquare, Copy, Lightbulb, Play, Pen, Tag, RefreshCw, PenSquare, PlayCircle, RotateCcw } from 'lucide-react';
-import { generateModuleContent, generateSummary, generateChapterContent, generateMiniCourse, generateQuizFromModule, generateQuizAction, generateExplanation } from '@/lib/actions';
+import { generateModuleContent, generateSummary, generateChapterContent, generateMiniCourse, generateQuizAction, generateExplanation } from '@/lib/actions';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -844,4 +844,3 @@ export default function CoursePage() {
         </TooltipProvider>
     );
 }
-
