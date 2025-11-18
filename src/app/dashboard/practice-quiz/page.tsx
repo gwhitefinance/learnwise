@@ -148,6 +148,7 @@ function PracticeQuizComponent() {
 
     const [isReviewing, setIsReviewing] = useState(false);
     const [reviewingQuiz, setReviewingQuiz] = useState<QuizResult | null>(null);
+    const [userAnswers, setUserAnswers] = useState<Record<number, string>>({});
 
 
     useEffect(() => {
@@ -740,10 +741,10 @@ function PracticeQuizComponent() {
     
     const handleReviewQuiz = (quizResult: QuizResult) => {
         setReviewingQuiz(quizResult);
-        setQuiz(quizResult.quizData); // Set the quiz data for review
-        setUserAnswers(quizResult.answers); // Set the answers for review
-        setQuizState('results'); // Go to results state
-        setIsReviewing(true); // Go directly to review mode
+        setQuiz(quizResult.quizData);
+        setUserAnswers(quizResult.answers);
+        setQuizState('results');
+        setIsReviewing(true);
     };
 
     const score = answers.filter(a => a.isCorrect).length;
@@ -1375,6 +1376,7 @@ export default function PracticeQuizPage() {
     
 
     
+
 
 
 
