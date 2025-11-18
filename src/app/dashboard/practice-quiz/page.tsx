@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useState, useEffect, useRef, useContext, Suspense } from 'react';
@@ -8,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowRight, Award, BookOpen, Brush, CheckCircle, CheckSquare, ChevronLeft, ChevronRight, Clock, Eraser, FileText, GraduationCap, HelpCircle, Lightbulb, Loader2, Maximize, Minimize, Palette, PenSquare, RefreshCw, RotateCcw, Star, XCircle, Zap } from 'lucide-react';
+import { ArrowRight, Award, BookOpen, Brush, CheckCircle, CheckSquare, ChevronLeft, ChevronRight, Clock, Eraser, FileText, GraduationCap, HelpCircle, Lightbulb, Loader2, Maximize, Minimize, Palette, PenSquare, RefreshCw, RotateCcw, Star, XCircle, Zap, Upload } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { GenerateQuizInput, GenerateQuizOutput, QuizQuestion } from '@/ai/schemas/quiz-schema';
 import { Progress } from '@/components/ui/progress';
@@ -110,7 +111,7 @@ function PracticeQuizComponent() {
     const [answers, setAnswers] = useState<AnswerFeedback[]>([]);
     const [learnerType, setLearnerType] = useState<string | null>(null);
     const [quizMode, setQuizMode] = useState<'practice' | 'ap' | null>(null);
-    const [creationSource, setCreationSource] = useState<'course' | 'prompt' | null>(null);
+    const [creationSource, setCreationSource] = useState<'course' | 'prompt' | 'document' | null>(null);
     
     const { toast } = useToast();
     const [user, authLoading] = useAuthState(auth);
@@ -143,6 +144,9 @@ function PracticeQuizComponent() {
     const [isStudyGuideLoading, setStudyGuideLoading] = useState(false);
     const [studyGuide, setStudyGuide] = useState<CrunchTimeOutput | null>(null);
     const [isSavingGuide, setIsSavingGuide] = useState(false);
+
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [uploadedFile, setUploadedFile] = useState<File | null>(null);
 
 
     useEffect(() => {
@@ -258,16 +262,21 @@ function PracticeQuizComponent() {
 
     const handleGenerateQuiz = async () => {
         let finalTopics = topics;
+        let fileContent = '';
+
         if (creationSource === 'course' && selectedCourseId) {
             const course = courses.find(c => c.id === selectedCourseId);
             finalTopics = course?.name || topics;
+        } else if (creationSource === 'document' && uploadedFile) {
+            finalTopics = uploadedFile.name;
+            fileContent = await uploadedFile.text();
         }
 
         if (!finalTopics.trim()) {
             toast({
                 variant: 'destructive',
-                title: 'Course or Topics are required',
-                description: 'Please select a course or enter some topics for your quiz.',
+                title: 'Source is required',
+                description: 'Please select a course, enter a topic, or upload a document.',
             });
             return;
         }
@@ -281,7 +290,7 @@ function PracticeQuizComponent() {
         setIsLoading(true);
         try {
             const input: Omit<GenerateQuizInput, 'questionType'> = {
-                topic: finalTopics,
+                topic: fileContent ? `${finalTopics}\n\n${fileContent}` : finalTopics,
                 difficulty: difficulty, 
                 numQuestions: totalQuestions,
             };
@@ -795,7 +804,7 @@ function PracticeQuizComponent() {
                 </div>
                 <div className="w-full space-y-6">
                     <h2 className="text-xl font-semibold text-left">How would you like to create your test?</h2>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <button onClick={() => {setCreationSource('course'); setQuizState('topic-selection');}} className={cn("p-6 rounded-lg text-left transition-all border-2", creationSource === 'course' ? 'border-primary bg-primary/10' : 'bg-muted/50 border-transparent hover:border-primary/50')}>
                             <div className="mb-4 bg-background p-2 rounded-md inline-block border"><BookOpen className="h-6 w-6 text-primary"/></div>
                             <h3 className="font-semibold">From Course</h3>
@@ -805,6 +814,11 @@ function PracticeQuizComponent() {
                             <div className="mb-4 bg-background p-2 rounded-md inline-block border"><FileText className="h-6 w-6 text-primary"/></div>
                             <h3 className="font-semibold">From Prompt</h3>
                             <p className="text-sm text-muted-foreground">Create a test from a topic or prompt.</p>
+                        </button>
+                        <button onClick={() => {setCreationSource('document'); setQuizState('topic-selection');}} className={cn("p-6 rounded-lg text-left transition-all border-2", creationSource === 'document' ? 'border-primary bg-primary/10' : 'bg-muted/50 border-transparent hover:border-primary/50')}>
+                            <div className="mb-4 bg-background p-2 rounded-md inline-block border"><Upload className="h-6 w-6 text-primary"/></div>
+                            <h3 className="font-semibold">From Document</h3>
+                            <p className="text-sm text-muted-foreground">Upload a file to generate a test from.</p>
                         </button>
                     </div>
                 </div>
@@ -824,7 +838,7 @@ function PracticeQuizComponent() {
                 </div>
                 <Card className="w-full max-w-2xl">
                     <CardContent className="p-6 space-y-6">
-                        {creationSource === 'course' ? (
+                        {creationSource === 'course' && (
                             <div className="space-y-2">
                                 <Label htmlFor="course">Course</Label>
                                 <Select onValueChange={setSelectedCourseId} value={selectedCourseId ?? ''} disabled={courses.length === 0}>
@@ -838,7 +852,8 @@ function PracticeQuizComponent() {
                                     </SelectContent>
                                 </Select>
                             </div>
-                        ) : (
+                        )}
+                        {creationSource === 'prompt' && (
                              <div className="space-y-2">
                                 <Label htmlFor="topics">Topic(s)</Label>
                                 <Input
@@ -847,6 +862,18 @@ function PracticeQuizComponent() {
                                     value={topics}
                                     onChange={(e) => setTopics(e.target.value)}
                                 />
+                            </div>
+                        )}
+                        {creationSource === 'document' && (
+                            <div className="space-y-2">
+                                <Label htmlFor="document-upload">Upload Document</Label>
+                                <Input 
+                                    id="document-upload"
+                                    type="file"
+                                    accept=".txt,.md,.pdf,.doc,.docx"
+                                    onChange={(e) => setUploadedFile(e.target.files ? e.target.files[0] : null)}
+                                />
+                                {uploadedFile && <p className="text-sm text-muted-foreground">Selected: {uploadedFile.name}</p>}
                             </div>
                         )}
                         <div className="space-y-2">
@@ -872,7 +899,7 @@ function PracticeQuizComponent() {
                     </CardContent>
                     <CardFooter className="flex justify-between p-6 bg-muted/50 border-t">
                         <Button variant="ghost" onClick={() => setQuizState(quizMode === 'practice' ? 'source-selection' : 'start')}>Back</Button>
-                        <Button onClick={() => setQuizState('configuring')} disabled={creationSource === 'course' && !selectedCourseId}>Next</Button>
+                        <Button onClick={() => setQuizState('configuring')} disabled={(creationSource === 'course' && !selectedCourseId) || (creationSource === 'prompt' && !topics) || (creationSource === 'document' && !uploadedFile)}>Next</Button>
                     </CardFooter>
                 </Card>
             </div>
@@ -985,7 +1012,7 @@ function PracticeQuizComponent() {
                             <RadioGroup value={selectedAnswer ?? ''} onValueChange={setSelectedAnswer} disabled={answerState === 'answered'}>
                                 <div className="space-y-4">
                                 {currentQuestion.options?.map((option, index) => (
-                                    <Label key={index} htmlFor={`option-${index}`} className={cn(
+                                     <Label key={index} htmlFor={`option-${index}`} className={cn(
                                         "flex items-center gap-4 p-4 rounded-lg border transition-all cursor-pointer",
                                         answerState === 'unanswered' && (selectedAnswer === option ? "border-primary bg-primary/10" : "border-border hover:bg-muted"),
                                         answerState === 'answered' && option === currentQuestion.correctAnswer && "border-green-500 bg-green-500/10",
