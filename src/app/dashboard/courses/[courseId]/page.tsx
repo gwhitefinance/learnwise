@@ -329,7 +329,7 @@ export default function CoursePage() {
 
             // Store in localStorage and redirect
             localStorage.setItem('generatedFlashcards', JSON.stringify(result.flashcards));
-            router.push('/dashboard/key-concepts');
+            router.push('/dashboard/flashcards');
 
         } catch (e) {
             toast({ variant: 'destructive', title: 'Failed to generate flashcards.' });
