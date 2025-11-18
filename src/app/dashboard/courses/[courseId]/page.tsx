@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { useState, useEffect, useCallback, useRef, useContext } from 'react';
@@ -12,7 +10,7 @@ import { doc, onSnapshot, getDoc, collection, query, where, updateDoc, arrayUnio
 import { Skeleton } from '@/components/ui/skeleton';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { CheckCircle, Lock, ArrowLeft, Loader2, X, Check, BookMarked, BrainCircuit, MessageSquare, Copy, Lightbulb, Play, Pen, Tag, RefreshCw, PenSquare, PlayCircle, RotateCcw } from 'lucide-react';
-import { generateModuleContent, generateSummary, generateChapterContent, generateMiniCourse, generateQuizFromModule, generateQuizAction } from '@/lib/actions';
+import { generateModuleContent, generateSummary, generateChapterContent, generateMiniCourse, generateQuizFromModule, generateQuizAction, generateExplanation } from '@/lib/actions';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -190,7 +188,7 @@ export default function CoursePage() {
     // Practice Quiz State
     const [isQuizDialogOpen, setIsQuizDialogOpen] = useState(false);
     const [quizDialogStep, setQuizDialogStep] = useState(1);
-    const [quizConfig, setQuizConfig] = useState<{unit: Unit | null; selectedChapters: string[]}>({ unit: null, selectedChapters: [] });
+    const [quizConfig, setQuizConfig] = useState<{unit: Unit | null; selectedChapters: string[], numQuestions: number}>({ unit: null, selectedChapters: [], numQuestions: 5 });
     const [questionCounts, setQuestionCounts] = useState<Record<string, number>>({
         'Multiple Choice': 5,
         'Short Answer': 0,
@@ -202,8 +200,8 @@ export default function CoursePage() {
     const [isGeneratingQuiz, setIsGeneratingQuiz] = useState(false);
     const [currentPracticeQuestionIndex, setCurrentPracticeQuestionIndex] = useState(0);
     const [practiceAnswers, setPracticeAnswers] = useState<Record<number, string>>({});
-    const [practiceFeedback, setPracticeFeedback] = useState<Record<number, boolean>>({});
-
+    const [practiceFeedback, setPracticeFeedback] = useState<Record<number, { isCorrect: boolean; explanation?: string; }>>({});
+    const [isExplanationLoading, setIsExplanationLoading] = useState<number | null>(null);
 
     const { toast } = useToast();
     const { openChatWithPrompt } = useContext(FloatingChatContext) as any;
@@ -419,6 +417,7 @@ export default function CoursePage() {
         setQuizConfig({
             unit: unit,
             selectedChapters: unit.chapters.map(c => c.id),
+            numQuestions: 5,
         });
         setQuizDialogStep(1);
         setPracticeQuiz(null);
@@ -456,7 +455,6 @@ export default function CoursePage() {
                 topic: content,
                 difficulty: 'Medium',
                 numQuestions: totalQuestions,
-                questionTypes: questionCounts,
             });
 
             setPracticeQuiz(result.questions);
@@ -468,13 +466,33 @@ export default function CoursePage() {
         }
     };
     
-    const handleCheckPracticeAnswer = () => {
+    const handleCheckPracticeAnswer = async () => {
         const currentQuestion = practiceQuiz?.[currentPracticeQuestionIndex];
         const userAnswer = practiceAnswers[currentPracticeQuestionIndex];
         if (!currentQuestion || !userAnswer) return;
         
         const isCorrect = userAnswer.toLowerCase() === currentQuestion.correctAnswer.toLowerCase();
-        setPracticeFeedback(prev => ({ ...prev, [currentPracticeQuestionIndex]: isCorrect }));
+        
+        let explanationText: string | undefined = undefined;
+        
+        if (!isCorrect) {
+            setIsExplanationLoading(currentPracticeQuestionIndex);
+            try {
+                const result = await generateExplanation({
+                    question: currentQuestion.questionText,
+                    userAnswer,
+                    correctAnswer: currentQuestion.correctAnswer,
+                    learnerType: "Reading/Writing" // Default for simplicity here
+                });
+                explanationText = result.explanation;
+            } catch (e) {
+                explanationText = "Could not load explanation.";
+            } finally {
+                setIsExplanationLoading(null);
+            }
+        }
+        
+        setPracticeFeedback(prev => ({ ...prev, [currentPracticeQuestionIndex]: { isCorrect, explanation: explanationText } }));
     }
 
      const handleQuestionCountChange = (type: string, value: string) => {
@@ -518,8 +536,8 @@ export default function CoursePage() {
 
     if (practiceQuiz) {
         const currentQuestion = practiceQuiz[currentPracticeQuestionIndex];
-        const isAnswered = practiceFeedback.hasOwnProperty(currentPracticeQuestionIndex);
-        const isCorrect = isAnswered && practiceFeedback[currentPracticeQuestionIndex];
+        const feedback = practiceFeedback[currentPracticeQuestionIndex];
+        const isAnswered = !!feedback;
         
         return (
             <div className="max-w-3xl mx-auto py-8 px-4 h-full flex flex-col">
@@ -554,10 +572,19 @@ export default function CoursePage() {
                         </RadioGroup>
                          <div className="mt-auto pt-6">
                             {isAnswered ? (
-                                <>
-                                    <p className={cn("font-semibold mb-4", isCorrect ? "text-green-600" : "text-red-600")}>
-                                        {isCorrect ? "Correct!" : `Not quite. The correct answer is: ${currentQuestion.correctAnswer}`}
-                                    </p>
+                                <div className="space-y-4">
+                                    {feedback.isCorrect ? (
+                                         <div className="p-3 rounded-lg bg-green-500/10 text-green-700 flex items-center gap-2"><CheckCircle className="h-5 w-5"/> Correct!</div>
+                                    ) : (
+                                         <div className="p-3 rounded-lg bg-red-500/10 text-red-700">
+                                            <p className="font-semibold">Not quite. The correct answer is: {currentQuestion.correctAnswer}</p>
+                                            {isExplanationLoading === currentPracticeQuestionIndex ? (
+                                                <div className="flex items-center gap-2 mt-2"><Loader2 className="h-4 w-4 animate-spin" /> Loading explanation...</div>
+                                            ) : (
+                                                <p className="text-sm mt-2">{feedback.explanation}</p>
+                                            )}
+                                        </div>
+                                    )}
                                     <Button onClick={() => {
                                         if (currentPracticeQuestionIndex < practiceQuiz.length - 1) {
                                             setCurrentPracticeQuestionIndex(i => i + 1);
@@ -568,13 +595,22 @@ export default function CoursePage() {
                                     }}>
                                         {currentPracticeQuestionIndex < practiceQuiz.length - 1 ? 'Next' : 'Finish'}
                                     </Button>
-                                </>
+                                </div>
                             ) : (
                                 <Button onClick={handleCheckPracticeAnswer} disabled={!practiceAnswers[currentPracticeQuestionIndex]}>Check</Button>
                             )}
                         </div>
                     </CardContent>
                 </Card>
+            </div>
+        )
+    }
+
+    if (isGeneratingQuiz) {
+        return (
+            <div className="flex flex-col items-center justify-center h-full">
+                <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                <p className="mt-4 text-lg font-semibold text-muted-foreground">Generating your practice quiz...</p>
             </div>
         )
     }
@@ -747,14 +783,15 @@ export default function CoursePage() {
                 <DialogContent className="max-w-2xl">
                      <DialogHeader>
                         <DialogTitle>Practice Quiz: {quizConfig.unit?.title}</DialogTitle>
-                        {quizDialogStep === 1 && <DialogDescription>Configure your practice quiz.</DialogDescription>}
-                        {quizDialogStep === 2 && <DialogDescription>Choose the types and number of questions for your test.</DialogDescription>}
+                        <DialogDescription>
+                            {quizDialogStep === 1 ? "Choose which chapters to include in your quiz." : "Choose the types and number of questions."}
+                        </DialogDescription>
                     </DialogHeader>
-                    {quizDialogStep === 1 ? (
+                     {quizDialogStep === 1 ? (
                         <div className="py-4 space-y-6">
                             <div>
                                 <Label>Chapters to include:</Label>
-                                <div className="grid grid-cols-2 gap-2 mt-2">
+                                <div className="grid grid-cols-2 gap-2 mt-2 max-h-60 overflow-y-auto p-1">
                                 {quizConfig.unit?.chapters.filter(c => c.title !== 'Module Quiz').map(chapter => (
                                     <div key={chapter.id} className="flex items-center space-x-2">
                                         <Checkbox 
@@ -807,3 +844,4 @@ export default function CoursePage() {
         </TooltipProvider>
     );
 }
+
