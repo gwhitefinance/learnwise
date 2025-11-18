@@ -516,28 +516,91 @@ export default function ChapterPage() {
     const handleComplete = async () => {
         if (!course || !user || !chapter || !unit) return;
 
+        // Immediately mark current chapter as complete
         const courseRef = doc(db, 'courses', courseId as string);
+        await updateDoc(courseRef, {
+            completedChapters: arrayUnion(chapter.id)
+        });
+        toast({ title: 'Chapter Complete!' });
 
-        try {
-            await updateDoc(courseRef, {
-                completedChapters: arrayUnion(chapter.id)
-            });
+        const chapterIndex = unit.chapters.findIndex(c => c.id === chapter.id);
+        const isLastChapterInUnit = chapterIndex === unit.chapters.length - 1;
+        const unitIndex = course.units.findIndex(u => u.id === unit.id);
+        const isLastUnitInCourse = unitIndex === course.units.length - 1;
 
-            toast({ title: 'Chapter Complete!' });
+        if (isLastChapterInUnit && isLastUnitInCourse) {
+            router.push(`/dashboard/courses/${courseId}`);
+            return;
+        }
 
-            const chapterIndex = unit.chapters.findIndex(c => c.id === chapter.id);
+        // Set loading state
+        setIsGeneratingNext(true);
+        setGenerationProgress(0);
 
-            if (chapterIndex < unit.chapters.length - 1) {
-                const nextChapter = unit.chapters[chapterIndex + 1];
-                router.push(`/dashboard/courses/${courseId}/${nextChapter.id}`);
-            } else {
-                router.push(`/dashboard/courses/${courseId}`);
+        // Generate summary for the current chapter
+        let summaryText = 'Great job completing that chapter!';
+        if (chapter.content) {
+            try {
+                const summaryResult = await generateSummary({
+                    noteContent: Array.isArray(chapter.content)
+                        ? chapter.content.map(b => b.content || b.question).join(' ')
+                        : typeof chapter.content === 'string' ? chapter.content : ''
+                });
+                summaryText = summaryResult.summary;
+            } catch (e) {
+                console.error("Summary generation failed:", e);
             }
+        }
+        setCurrentSummary(summaryText);
+        setGenerationProgress(25);
+
+        // Determine next chapter and unit
+        let nextChapter, nextUnit;
+        if (!isLastChapterInUnit) {
+            nextChapter = unit.chapters[chapterIndex + 1];
+            nextUnit = unit;
+        } else {
+            nextUnit = course.units[unitIndex + 1];
+            nextChapter = nextUnit.chapters[0];
+        }
+
+        // Generate content for the next chapter
+        try {
+            const contentResult = await generateChapterContent({
+                courseName: course.name,
+                unitTitle: nextUnit.title,
+                chapterTitle: nextChapter.title,
+                learnerType: (localStorage.getItem('learnerType') as any) || 'Reading/Writing'
+            });
+            setGenerationProgress(75);
+
+            const courseDoc = await getDoc(courseRef);
+            const currentCourseData = courseDoc.data() as Course;
+
+            const updatedUnits = currentCourseData.units.map(u => {
+                if (u.id === nextUnit.id) {
+                    return {
+                        ...u,
+                        chapters: u.chapters.map(c => 
+                            c.id === nextChapter.id ? { ...c, ...contentResult } : c
+                        )
+                    };
+                }
+                return u;
+            });
+            
+            await updateDoc(courseRef, { units: updatedUnits });
+            setGenerationProgress(100);
+            
+            // Navigate to the next chapter
+            router.push(`/dashboard/courses/${courseId}/${nextChapter.id}`);
+            setIsGeneratingNext(false);
 
         } catch (error) {
-            console.error("Failed to mark chapter as complete or generate next:", error);
-            toast({ variant: 'destructive', title: 'Update failed.' });
+            console.error("Failed to generate next chapter:", error);
+            toast({ variant: 'destructive', title: 'Could not generate the next chapter.' });
             setIsGeneratingNext(false);
+            router.push(`/dashboard/courses/${courseId}`); // Go back to course page on failure
         }
     };
     

@@ -201,7 +201,7 @@ export default function CoursesListPage() {
 
     } catch(error) {
         console.error("Error adding course: ", error);
-        toast({ variant: 'destructive', title: 'Error', description: 'Could not add course.' });
+        toast({ variant: "destructive", title: "Error", description: "Could not add course." });
     } finally {
         setIsSaving(false);
     }
