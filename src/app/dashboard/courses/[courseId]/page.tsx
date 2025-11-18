@@ -763,8 +763,13 @@ export default function CoursePage() {
                     ) : (
                         <div className="py-4 space-y-4">
                             {selectedUnit?.chapters.map((chapter, index) => {
-                                const isCompleted = course?.completedChapters?.includes(chapter.id);
-                                const isUnlocked = index === 0 || !!course?.completedChapters?.includes(selectedUnit.chapters[index - 1]?.id);
+                                const unitIndex = course.units.findIndex(u => u.id === selectedUnit?.id);
+                                const previousUnit = unitIndex > 0 ? course.units[unitIndex - 1] : null;
+                                const areAllPreviousChaptersDone = previousUnit ? previousUnit.chapters.every(c => course.completedChapters?.includes(c.id)) : true;
+
+                                const isUnlocked = areAllPreviousChaptersDone && (index === 0 || !!course.completedChapters?.includes(selectedUnit.chapters[index - 1]?.id));
+
+                                const isCompleted = course.completedChapters?.includes(chapter.id);
                                 return (
                                 <div key={chapter.id} className="p-4 border rounded-lg flex items-center justify-between">
                                     <div className="flex items-center gap-3">
@@ -850,4 +855,3 @@ export default function CoursePage() {
         </TooltipProvider>
     );
 }
-
