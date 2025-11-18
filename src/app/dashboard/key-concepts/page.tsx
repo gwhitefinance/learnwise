@@ -9,7 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
-import { ArrowRight, BookMarked, Copy } from 'lucide-react';
+import { ArrowRight, BookMarked, Copy, ArrowLeft } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
 
@@ -60,15 +60,23 @@ export default function FlashcardHubPage() {
 
     return (
         <div className="space-y-6">
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight">Flashcard Hub</h1>
-                <p className="text-muted-foreground">Review your study sets and track your mastery.</p>
+            <div className="flex justify-between items-center">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight">Flashcard Hub</h1>
+                    <p className="text-muted-foreground">Review your study sets and track your mastery.</p>
+                </div>
+                <Button asChild variant="outline">
+                    <Link href="/dashboard/courses">
+                        <ArrowLeft className="mr-2 h-4 w-4" />
+                        Back to Courses
+                    </Link>
+                </Button>
             </div>
 
             {sessions.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {sessions.map(session => {
-                        const masteryProgress = (session.mastered.length / session.cards.length) * 100;
+                        const masteryProgress = session.cards.length > 0 ? (session.mastered.length / session.cards.length) * 100 : 0;
                         return (
                             <Card key={session.id} className="flex flex-col">
                                 <CardHeader>
