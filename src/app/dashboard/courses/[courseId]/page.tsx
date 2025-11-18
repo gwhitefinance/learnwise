@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useCallback, useRef, useContext } from 'react';
@@ -561,7 +562,7 @@ export default function CoursePage() {
                             className="space-y-4"
                         >
                             {currentQuestion.options.map((option, index) => (
-                                <Label key={index} className={cn(
+                                 <Label key={index} className={cn(
                                     "flex items-center gap-3 p-4 rounded-lg border transition-all cursor-pointer",
                                     isAnswered && (option === currentQuestion.correctAnswer ? "border-green-500 bg-green-500/10" : (practiceAnswers[currentPracticeQuestionIndex] === option ? "border-red-500 bg-red-500/10" : "")),
                                     !isAnswered && (practiceAnswers[currentPracticeQuestionIndex] === option ? "border-primary" : "")
@@ -763,14 +764,14 @@ export default function CoursePage() {
                         <div className="py-4 space-y-4">
                             {selectedUnit?.chapters.map((chapter, index) => {
                                 const isCompleted = course?.completedChapters?.includes(chapter.id);
-                                const isLocked = index > 0 && !course?.completedChapters?.includes(selectedUnit.chapters[index - 1].id);
+                                const isUnlocked = index === 0 || !!course?.completedChapters?.includes(selectedUnit.chapters[index - 1]?.id);
                                 return (
                                 <div key={chapter.id} className="p-4 border rounded-lg flex items-center justify-between">
                                     <div className="flex items-center gap-3">
-                                        {isCompleted ? <CheckCircle className="h-6 w-6 text-green-500" /> : isLocked ? <Lock className="h-6 w-6 text-muted-foreground"/> : <div className="h-6 w-6 rounded-full border-2 border-primary" />}
-                                        <span className={cn("font-medium", isLocked && "text-muted-foreground")}>{chapter.title}</span>
+                                        {isCompleted ? <CheckCircle className="h-6 w-6 text-green-500" /> : !isUnlocked ? <Lock className="h-6 w-6 text-muted-foreground"/> : <div className="h-6 w-6 rounded-full border-2 border-primary" />}
+                                        <span className={cn("font-medium", !isUnlocked && "text-muted-foreground")}>{chapter.title}</span>
                                     </div>
-                                    <Button asChild variant="secondary" size="sm" disabled={isLocked}>
+                                    <Button asChild variant="secondary" size="sm" disabled={!isUnlocked}>
                                         <Link href={`/dashboard/courses/${courseId}/${chapter.id}`}>View</Link>
                                     </Button>
                                 </div>
