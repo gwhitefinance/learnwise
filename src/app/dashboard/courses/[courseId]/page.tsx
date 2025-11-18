@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect, useCallback, useRef, useContext } from 'react';
@@ -299,7 +298,7 @@ export default function CoursePage() {
     const handleFlashcardOpen = (unit: Unit) => {
         setFlashcardConfig({
             unit: unit,
-            selectedChapters: unit.chapters.map(c => c.id),
+            selectedChapters: unit.chapters.filter(c => c.title !== 'Unit Quiz').map(c => c.id),
         });
         setIsFlashcardDialogOpen(true);
     };
@@ -327,9 +326,20 @@ export default function CoursePage() {
                 learnerType: (localStorage.getItem('learnerType') as any) || 'Reading/Writing'
             });
 
-            // Store in localStorage and redirect
-            localStorage.setItem('generatedFlashcards', JSON.stringify(result.flashcards));
-            router.push('/dashboard/flashcards');
+            const sessionId = `flashcards_${Date.now()}`;
+            const sessionData = {
+                id: sessionId,
+                name: `${course?.name} - ${flashcardConfig.unit.title}`,
+                cards: result.flashcards,
+                mastered: [],
+                timestamp: new Date().toISOString(),
+            };
+            
+            const existingSessions = JSON.parse(localStorage.getItem('flashcardSessions') || '{}');
+            existingSessions[sessionId] = sessionData;
+            localStorage.setItem('flashcardSessions', JSON.stringify(existingSessions));
+
+            router.push(`/dashboard/flashcards?session=${sessionId}`);
 
         } catch (e) {
             toast({ variant: 'destructive', title: 'Failed to generate flashcards.' });
@@ -715,4 +725,3 @@ export default function CoursePage() {
         </TooltipProvider>
     );
 }
-
