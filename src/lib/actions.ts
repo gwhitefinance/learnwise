@@ -8,8 +8,8 @@ import { generateCourseFromUrl } from '@/ai/flows/course-from-url-flow';
 import { generateFlashcardsFromNote } from '@/ai/flows/note-to-flashcard-flow';
 import { generateQuizFromNote } from '@/ai/flows/note-to-quiz-flow';
 import { generateMiniCourse } from '@/ai/flows/mini-course-flow';
-import { generateQuizFromModule } from '@/ai/flows/module-quiz-flow';
-import { generateFlashcardsFromModule } from '@/ai/flows/module-flashcard-flow';
+import { generateQuizFromUnit as generateQuizFromModule } from '@/ai/flows/unit-quiz-flow'; // Alias for compatibility
+import { generateFlashcardsFromUnit as generateFlashcardsFromModule } from '@/ai/flows/unit-flashcard-flow'; // Alias for compatibility
 import { generateTutoringSession } from '@/ai/flows/image-tutoring-flow';
 import { studyPlannerAction } from '@/ai/flows/study-planner-flow';
 import { generateChatTitle } from '@/ai/flows/chat-title-flow';
@@ -21,7 +21,7 @@ import { analyzeImage } from '@/ai/flows/image-analysis-flow';
 import { generateNoteFromChat } from '@/ai/flows/chat-to-note-flow';
 import { generateSummary } from '@/ai/flows/summary-flow';
 import { generateMidtermExam } from '@/ai/flows/midterm-exam-flow';
-import { generateModuleContent } from '@/ai/flows/module-content-flow';
+import { generateUnitContent } from '@/ai/flows/unit-content-flow';
 import { generatePodcastEpisode } from '@/ai/flows/podcast-flow';
 import { generateVideo, checkVideo } from '@/ai/flows/video-flow';
 import { generateSatQuestion } from '@/ai/flows/sat-question-flow';
@@ -66,7 +66,7 @@ export {
     generateNoteFromChat,
     generateSummary,
     generateMidtermExam,
-    generateModuleContent,
+    generateUnitContent,
     generatePodcastEpisode,
     generateVideo,
     checkVideo,
