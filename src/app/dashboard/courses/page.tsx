@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -123,18 +124,21 @@ export default function CoursesListPage() {
 
         const { courseOutline, firstChapterContent, roadmap } = result;
 
-        const newUnits = courseOutline.modules.map((module, mIdx) => ({
+        const newUnits = courseOutline.modules.map((unit, uIdx) => ({
             id: crypto.randomUUID(),
-            title: module.title,
-            chapters: module.chapters.map((chapter, cIdx) => ({
+            title: unit.title,
+            chapters: unit.chapters.map((chapter, cIdx) => ({
                 id: crypto.randomUUID(),
                 title: chapter.title,
-                ...(mIdx === 0 && cIdx === 0 ? { ...firstChapterContent, content: firstChapterContent.content as any } : {}),
+                ...(uIdx === 0 && cIdx === 0 ? { 
+                    content: firstChapterContent.content,
+                    activity: firstChapterContent.activity,
+                } : {}),
             }))
         }));
 
         const courseData = {
-            name: newCourse.name,
+            name: courseOutline.courseTitle || newCourse.name,
             description: newCourse.description || `An in-depth course on ${newCourse.name}`,
             url: newCourse.url,
             userId: user.uid,

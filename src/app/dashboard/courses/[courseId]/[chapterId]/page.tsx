@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -15,7 +16,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import Loading from './loading';
 import { Progress } from '@/components/ui/progress';
-import { generateQuizFromModule, generateFlashcardsFromNote, generateCrunchTimeStudyGuide, generateExplanation, generateSummary, generateChapterContent } from '@/lib/actions';
+import { generateQuizFromNote, generateFlashcardsFromNote, generateCrunchTimeStudyGuide, generateExplanation, generateSummary, generateChapterContent } from '@/lib/actions';
 import type { QuizQuestion } from '@/ai/schemas/quiz-schema';
 import AIBuddy from '@/components/ai-buddy';
 import { motion } from 'framer-motion';
@@ -135,7 +136,7 @@ const ChapterContentDisplay = ({ chapter }: { chapter: Chapter }) => {
 };
 
 const quizGenerationSteps = [
-    { progress: 15, label: "Analyzing module content..." },
+    { progress: 15, label: "Analyzing unit content..." },
     { progress: 50, label: "Crafting challenging questions..." },
     { progress: 85, label: "Polishing distractors and explanations..." },
     { progress: 99, label: "Assembling your quiz..." },
@@ -231,8 +232,8 @@ const ModuleQuiz = ({ course, unit }: { course: Course, unit: Unit }) => {
         const generateQuiz = async () => {
             setIsGenerating(true);
             try {
-                const moduleContent = unit.chapters
-                    .filter(c => c.title !== 'Module Quiz')
+                const unitContent = unit.chapters
+                    .filter(c => c.title !== 'Unit Quiz')
                     .map(c => {
                         let contentString = '';
                         if (typeof c.content === 'string') {
@@ -245,8 +246,8 @@ const ModuleQuiz = ({ course, unit }: { course: Course, unit: Unit }) => {
                     .join('\n\n');
 
 
-                const result = await generateQuizFromModule({
-                    moduleContent,
+                const result = await generateQuizFromNote({
+                    noteContent: unitContent,
                     learnerType: (localStorage.getItem('learnerType') as any) || 'Reading/Writing'
                 });
                 setQuiz(result.questions);
@@ -283,7 +284,7 @@ const ModuleQuiz = ({ course, unit }: { course: Course, unit: Unit }) => {
             await addDoc(collection(db, 'quizResults'), {
                 userId: user.uid,
                 courseId: course.id,
-                moduleId: unit.id,
+                unitId: unit.id,
                 score: score,
                 totalQuestions: quiz.length,
                 answers: userAnswers,
@@ -340,8 +341,8 @@ const ModuleQuiz = ({ course, unit }: { course: Course, unit: Unit }) => {
                         <CardTitle>Post-Quiz Tools</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <Button variant="secondary" className="w-full justify-start">Generate Flashcards from this module</Button>
-                        <Button variant="secondary" className="w-full justify-start">Create a Study Guide for this module</Button>
+                        <Button variant="secondary" className="w-full justify-start">Generate Flashcards from this unit</Button>
+                        <Button variant="secondary" className="w-full justify-start">Create a Study Guide for this unit</Button>
                     </CardContent>
                 </Card>
 
@@ -474,8 +475,31 @@ export default function ChapterPage() {
                 }
 
                 if (foundChapter && foundUnit) {
-                    setChapter(foundChapter);
-                    setUnit(foundUnit);
+                    // If content is missing, generate it on the fly
+                    if (!foundChapter.content) {
+                        generateChapterContent({
+                            courseName: courseData.name,
+                            unitTitle: foundUnit.title,
+                            chapterTitle: foundChapter.title,
+                            learnerType: (localStorage.getItem('learnerType') as any) || 'Reading/Writing'
+                        }).then(contentResult => {
+                            const updatedChapter = { ...foundChapter!, ...contentResult };
+                            setChapter(updatedChapter);
+                            setUnit(foundUnit!);
+                             // Update Firestore in the background
+                            const updatedUnits = courseData.units.map(u => 
+                                u.id === foundUnit!.id ? {
+                                    ...u,
+                                    chapters: u.chapters.map(c => c.id === foundChapter!.id ? updatedChapter : c)
+                                } : u
+                            );
+                            updateDoc(doc(db, 'courses', courseId as string), { units: updatedUnits });
+                        });
+                    } else {
+                        setChapter(foundChapter);
+                        setUnit(foundUnit);
+                    }
+
                 } else {
                     toast({ variant: 'destructive', title: 'Chapter not found' });
                 }
@@ -505,52 +529,7 @@ export default function ChapterPage() {
 
             if (chapterIndex < unit.chapters.length - 1) {
                 const nextChapter = unit.chapters[chapterIndex + 1];
-                const nextUnitIndex = course.units.findIndex(u => u.id === unit.id);
-                const nextChapterData = course.units[nextUnitIndex]?.chapters[chapterIndex + 1];
-
-                // Check if next chapter has content
-                if (nextChapterData && !nextChapterData.content) {
-                    setIsGeneratingNext(true);
-
-                    // 1. Generate summary for current chapter
-                    const summaryResult = await generateSummary({ noteContent: JSON.stringify(chapter.content) });
-                    setCurrentSummary(summaryResult.summary);
-                    setGenerationProgress(20);
-
-                    // 2. Generate content for next chapter
-                    const nextContent = await generateChapterContent({
-                        courseName: course.name,
-                        moduleTitle: unit.title,
-                        chapterTitle: nextChapter.title,
-                        learnerType: (localStorage.getItem('learnerType') as any) || 'Reading/Writing'
-                    });
-                    setGenerationProgress(80);
-                    
-                    // 3. Update Firestore
-                    const fullCourseSnap = await getDoc(courseRef);
-                    const fullCourseData = fullCourseSnap.data() as Course;
-                    const updatedUnits = fullCourseData.units.map(u => {
-                        if (u.id === unit.id) {
-                            return {
-                                ...u,
-                                chapters: u.chapters.map(c => 
-                                    c.id === nextChapter.id 
-                                    ? { ...c, content: nextContent.content, activity: nextContent.activity } 
-                                    : c
-                                )
-                            };
-                        }
-                        return u;
-                    });
-                    await updateDoc(courseRef, { units: updatedUnits });
-                    setGenerationProgress(100);
-                    
-                    // 4. Navigate
-                    router.push(`/dashboard/courses/${courseId}/${nextChapter.id}`);
-                    
-                } else {
-                    router.push(`/dashboard/courses/${courseId}/${nextChapter.id}`);
-                }
+                router.push(`/dashboard/courses/${courseId}/${nextChapter.id}`);
             } else {
                 router.push(`/dashboard/courses/${courseId}`);
             }
@@ -566,15 +545,11 @@ export default function ChapterPage() {
         return <GeneratingNextChapter summary={currentSummary} progress={generationProgress} />;
     }
 
-    if (loading || authLoading) {
+    if (loading || authLoading || !chapter) {
         return <Loading />;
     }
 
-    if (!chapter) {
-        return <div>Chapter not found.</div>
-    }
-
-    if (chapter.title === 'Module Quiz' && course && unit) {
+    if (chapter.title === 'Unit Quiz' && course && unit) {
         return <ModuleQuiz course={course} unit={unit} />;
     }
     
