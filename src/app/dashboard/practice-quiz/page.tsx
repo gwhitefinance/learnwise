@@ -144,6 +144,8 @@ function PracticeQuizComponent() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [uploadedFile, setUploadedFile] = useState<File | null>(null);
 
+    const [isReviewing, setIsReviewing] = useState(false);
+
 
     useEffect(() => {
         const savedQuizzes = localStorage.getItem('pastQuizzes');
@@ -397,7 +399,6 @@ function PracticeQuizComponent() {
         
         setAnswerState('answered');
         setFeedback(answerFeedback);
-        setAnswers(prev => [...prev, answerFeedback]);
         
         if (!isCorrect) {
             try {
@@ -425,13 +426,17 @@ function PracticeQuizComponent() {
                     provideFullExplanation: true,
                 });
                 setExplanation(explanationResult.explanation);
+                answerFeedback.explanation = explanationResult.explanation;
             } catch (error) {
+                const errorExplanation = "Sorry, I couldn't generate an explanation for this question.";
                 console.error(error);
-                setExplanation("Sorry, I couldn't generate an explanation for this question.");
+                setExplanation(errorExplanation);
+                answerFeedback.explanation = errorExplanation;
             } finally {
                 setIsExplanationLoading(false);
             }
         }
+        setAnswers(prev => [...prev, answerFeedback]);
     };
 
     const handleNextQuestion = async () => {
@@ -504,6 +509,7 @@ function PracticeQuizComponent() {
             'True/False': 0,
             'Fill in the Blank': 0,
         });
+        setIsReviewing(false);
     }
 
     const handleGetHint = async () => {
@@ -1207,6 +1213,44 @@ function PracticeQuizComponent() {
     }
 
     if (quizState === 'results') {
+        if (isReviewing) {
+            return (
+                <div className="max-w-3xl mx-auto p-4 md:p-8 space-y-6">
+                    <Button variant="ghost" onClick={() => setIsReviewing(false)}>
+                        <ArrowLeft className="mr-2 h-4 w-4"/> Back to Results
+                    </Button>
+                    <h1 className="text-3xl font-bold">Review Your Answers</h1>
+                    <Accordion type="single" collapsible className="w-full space-y-4">
+                        {answers.map((answer, index) => {
+                            const question = quiz?.questions.find(q => q.questionText === answer.question);
+                            return (
+                                <AccordionItem key={index} value={`item-${index}`} className="border bg-card rounded-lg">
+                                    <AccordionTrigger className="p-4 text-left hover:no-underline">
+                                        <div className="flex items-center gap-3 flex-1">
+                                            {answer.isCorrect ? <CheckCircle className="h-5 w-5 text-green-500"/> : <XCircle className="h-5 w-5 text-red-500"/>}
+                                            <span className="font-semibold truncate">Question {index + 1}: {answer.question}</span>
+                                        </div>
+                                    </AccordionTrigger>
+                                    <AccordionContent className="p-4 pt-0 border-t">
+                                        <div className="space-y-3 mt-4">
+                                            <p><span className="font-bold">Your Answer:</span> <span className={cn(answer.isCorrect ? "text-green-600" : "text-red-600")}>{answer.answer}</span></p>
+                                            {!answer.isCorrect && <p><span className="font-bold">Correct Answer:</span> <span className="text-green-600">{answer.correctAnswer}</span></p>}
+                                            {!answer.isCorrect && answer.explanation && (
+                                                <div className="p-3 bg-amber-500/10 rounded-md border border-amber-500/20 text-sm">
+                                                    <p className="font-semibold text-amber-700 mb-1">Explanation:</p>
+                                                    <p className="text-muted-foreground">{answer.explanation}</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </AccordionContent>
+                                </AccordionItem>
+                            )
+                        })}
+                    </Accordion>
+                </div>
+            )
+        }
+        
         const accuracy = totalQuestions > 0 ? (score / totalQuestions) * 100 : 0;
         return (
             <div className="max-w-4xl mx-auto space-y-6">
@@ -1298,7 +1342,7 @@ function PracticeQuizComponent() {
                     </div>
                 </div>
                  <div className="flex justify-end gap-4">
-                    <Button variant="ghost">Review quiz</Button>
+                    <Button variant="ghost" onClick={() => setIsReviewing(true)}>Review Answers</Button>
                     <Button onClick={handleStartNewQuiz}>More questions</Button>
                 </div>
             </div>
@@ -1320,6 +1364,7 @@ export default function PracticeQuizPage() {
     
 
     
+
 
 
 
