@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -127,33 +128,33 @@ const FlashcardApp = () => {
   const cardStatus = cardStatuses[currentCard.id];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 p-8 relative overflow-hidden">
+    <div className="min-h-screen bg-background p-8 relative overflow-hidden">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-5xl font-bold text-white mb-2">Flashcard Master</h1>
-          <p className="text-white text-lg opacity-90">Click the card to flip it!</p>
+          <h1 className="text-5xl font-bold text-foreground mb-2">Flashcard Master</h1>
+          <p className="text-muted-foreground text-lg">Click the card to flip it!</p>
         </div>
 
-        <div className="bg-white rounded-xl p-6 shadow-2xl mb-6">
+        <div className="bg-card rounded-xl p-6 shadow-2xl mb-6 border">
           <div className="flex items-center justify-between mb-4">
-            <div className="text-sm font-semibold text-gray-600">
+            <div className="text-sm font-semibold text-muted-foreground">
               Card {currentIndex + 1} of {cards.length}
             </div>
-            <div className="text-sm font-semibold text-purple-600">
+            <div className="text-sm font-semibold text-primary">
               Mastered: {progress}/{cards.length}
             </div>
           </div>
           
-          <div className="w-full bg-gray-200 rounded-full h-3 mb-6">
+          <div className="w-full bg-muted rounded-full h-3 mb-6">
             <div
-              className="bg-gradient-to-r from-purple-500 to-pink-500 h-3 rounded-full transition-all duration-500"
+              className="bg-primary h-3 rounded-full transition-all duration-500"
               style={{ width: `${(progress / cards.length) * 100}%` }}
             />
           </div>
 
           <div
             onClick={flipCard}
-            className="relative h-80 cursor-pointer perspective-1000 mb-6"
+            className="relative min-h-[24rem] cursor-pointer perspective-1000 mb-6"
           >
             <div
               className={`relative w-full h-full transition-transform duration-500 transform-style-3d ${
@@ -211,7 +212,7 @@ const FlashcardApp = () => {
             <button
               onClick={prevCard}
               disabled={currentIndex === 0}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-muted text-muted-foreground rounded-lg hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <ChevronLeft size={20} />
               Previous
@@ -220,14 +221,14 @@ const FlashcardApp = () => {
             <div className="flex gap-2">
               <button
                 onClick={shuffleCards}
-                className="p-2 bg-purple-100 text-purple-600 rounded-lg hover:bg-purple-200 transition-colors"
+                className="p-2 bg-muted text-muted-foreground rounded-lg hover:bg-accent transition-colors"
                 title="Shuffle cards"
               >
                 <Shuffle size={20} />
               </button>
               <button
                 onClick={resetAll}
-                className="p-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors"
+                className="p-2 bg-muted text-muted-foreground rounded-lg hover:bg-accent transition-colors"
                 title="Reset all progress"
               >
                 <RotateCcw size={20} />
@@ -237,7 +238,7 @@ const FlashcardApp = () => {
             <button
               onClick={nextCard}
               disabled={currentIndex === cards.length - 1}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-muted text-muted-foreground rounded-lg hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Next
               <ChevronRight size={20} />
@@ -255,12 +256,12 @@ const FlashcardApp = () => {
               }}
               className={`h-12 rounded-lg font-semibold transition-all ${
                 idx === currentIndex
-                  ? 'bg-white text-purple-600 scale-110 shadow-lg'
+                  ? 'bg-primary text-primary-foreground scale-110 shadow-lg'
                   : cardStatuses[card.id] === 'mastered'
                   ? 'bg-green-500 text-white'
                   : cardStatuses[card.id] === 'reviewing'
                   ? 'bg-yellow-500 text-white'
-                  : 'bg-white bg-opacity-50 text-white hover:bg-opacity-70'
+                  : 'bg-muted text-muted-foreground hover:bg-accent'
               }`}
             >
               {idx + 1}
