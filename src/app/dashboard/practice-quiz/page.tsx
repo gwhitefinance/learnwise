@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import React, { useState, useEffect, useRef, useContext, Suspense } from 'react';
@@ -870,7 +869,7 @@ function PracticeQuizComponent() {
                                 <Input 
                                     id="document-upload"
                                     type="file"
-                                    accept=".txt,.md,.pdf,.doc,.docx"
+                                    accept=".txt,.md,.pdf,.doc,.docx,image/*"
                                     onChange={(e) => setUploadedFile(e.target.files ? e.target.files[0] : null)}
                                 />
                                 {uploadedFile && <p className="text-sm text-muted-foreground">Selected: {uploadedFile.name}</p>}
@@ -1326,5 +1325,7 @@ export default function PracticeQuizPage() {
 
 
 
+
+    
 
     
