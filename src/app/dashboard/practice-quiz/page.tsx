@@ -54,6 +54,8 @@ type QuizResult = {
     score: number;
     totalQuestions: number;
     timestamp: number;
+    answers: Record<number, string>;
+    quizData: GenerateQuizOutput;
 };
 
 type Flashcard = {
@@ -145,6 +147,7 @@ function PracticeQuizComponent() {
     const [uploadedFile, setUploadedFile] = useState<File | null>(null);
 
     const [isReviewing, setIsReviewing] = useState(false);
+    const [reviewingQuiz, setReviewingQuiz] = useState<QuizResult | null>(null);
 
 
     useEffect(() => {
@@ -160,7 +163,7 @@ function PracticeQuizComponent() {
     }, []);
 
     const saveQuizResult = (score: number, totalQuestions: number) => {
-        if (!quizMode) return;
+        if (!quizMode || !quiz) return;
         const newResult: QuizResult = {
             id: crypto.randomUUID(),
             mode: quizMode,
@@ -168,6 +171,8 @@ function PracticeQuizComponent() {
             score: (score / totalQuestions) * 100,
             totalQuestions,
             timestamp: Date.now(),
+            answers: userAnswers,
+            quizData: quiz,
         };
         const updatedQuizzes = [newResult, ...pastQuizzes];
         setPastQuizzes(updatedQuizzes);
@@ -732,6 +737,14 @@ function PracticeQuizComponent() {
     };
 
     const whiteboardColors = ['#000000', '#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6'];
+    
+    const handleReviewQuiz = (quizResult: QuizResult) => {
+        setReviewingQuiz(quizResult);
+        setQuiz(quizResult.quizData); // Set the quiz data for review
+        setUserAnswers(quizResult.answers); // Set the answers for review
+        setQuizState('results'); // Go to results state
+        setIsReviewing(true); // Go directly to review mode
+    };
 
     const score = answers.filter(a => a.isCorrect).length;
     const totalQuestions = quiz?.questions.length ?? 0;
@@ -773,7 +786,7 @@ function PracticeQuizComponent() {
                                             </div>
                                             <div className="flex items-center gap-4">
                                                 <Badge variant={q.score > 70 ? 'default' : 'secondary'}>{q.score.toFixed(0)}%</Badge>
-                                                <Button variant="ghost" size="sm">Review</Button>
+                                                <Button variant="ghost" size="sm" onClick={() => handleReviewQuiz(q)}>Review</Button>
                                             </div>
                                         </div>
                                     ))}
@@ -792,7 +805,7 @@ function PracticeQuizComponent() {
                                             </div>
                                             <div className="flex items-center gap-4">
                                                 <Badge variant={q.score > 70 ? 'default' : 'secondary'}>{q.score.toFixed(0)}%</Badge>
-                                                <Button variant="ghost" size="sm">Review</Button>
+                                                <Button variant="ghost" size="sm" onClick={() => handleReviewQuiz(q)}>Review</Button>
                                             </div>
                                         </div>
                                     ))}
@@ -1214,6 +1227,9 @@ function PracticeQuizComponent() {
 
     if (quizState === 'results') {
         if (isReviewing) {
+            const reviewData = reviewingQuiz || { quizData: quiz, answers: userAnswers };
+            if (!reviewData.quizData) return <div>Error loading review data.</div>;
+    
             return (
                 <div className="max-w-3xl mx-auto p-4 md:p-8 space-y-6">
                     <Button variant="ghost" onClick={() => setIsReviewing(false)}>
@@ -1221,26 +1237,21 @@ function PracticeQuizComponent() {
                     </Button>
                     <h1 className="text-3xl font-bold">Review Your Answers</h1>
                     <Accordion type="single" collapsible className="w-full space-y-4">
-                        {answers.map((answer, index) => {
-                            const question = quiz?.questions.find(q => q.questionText === answer.question);
+                        {reviewData.quizData.questions.map((question, index) => {
+                             const userAnswer = reviewData.answers[index];
+                             const isCorrect = userAnswer === question.correctAnswer;
                             return (
                                 <AccordionItem key={index} value={`item-${index}`} className="border bg-card rounded-lg">
                                     <AccordionTrigger className="p-4 text-left hover:no-underline">
                                         <div className="flex items-center gap-3 flex-1">
-                                            {answer.isCorrect ? <CheckCircle className="h-5 w-5 text-green-500"/> : <XCircle className="h-5 w-5 text-red-500"/>}
-                                            <span className="font-semibold truncate">Question {index + 1}: {answer.question}</span>
+                                            {isCorrect ? <CheckCircle className="h-5 w-5 text-green-500"/> : <XCircle className="h-5 w-5 text-red-500"/>}
+                                            <span className="font-semibold truncate">Question {index + 1}: {question.questionText}</span>
                                         </div>
                                     </AccordionTrigger>
                                     <AccordionContent className="p-4 pt-0 border-t">
                                         <div className="space-y-3 mt-4">
-                                            <p><span className="font-bold">Your Answer:</span> <span className={cn(answer.isCorrect ? "text-green-600" : "text-red-600")}>{answer.answer}</span></p>
-                                            {!answer.isCorrect && <p><span className="font-bold">Correct Answer:</span> <span className="text-green-600">{answer.correctAnswer}</span></p>}
-                                            {!answer.isCorrect && answer.explanation && (
-                                                <div className="p-3 bg-amber-500/10 rounded-md border border-amber-500/20 text-sm">
-                                                    <p className="font-semibold text-amber-700 mb-1">Explanation:</p>
-                                                    <p className="text-muted-foreground">{answer.explanation}</p>
-                                                </div>
-                                            )}
+                                            <p><span className="font-bold">Your Answer:</span> <span className={cn(isCorrect ? "text-green-600" : "text-red-600")}>{userAnswer || 'No Answer'}</span></p>
+                                            {!isCorrect && <p><span className="font-bold">Correct Answer:</span> <span className="text-green-600">{question.correctAnswer}</span></p>}
                                         </div>
                                     </AccordionContent>
                                 </AccordionItem>
@@ -1364,6 +1375,7 @@ export default function PracticeQuizPage() {
     
 
     
+
 
 
 
