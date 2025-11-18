@@ -1,51 +1,50 @@
-// Flows will be imported for their side effects in this file.
-import './flows/study-planner-flow';
-import './flows/quiz-flow';
-import './flows/quiz-explanation-flow';
-import './flows/roadmap-flow';
-import './flows/note-to-quiz-flow';
-import './flows/note-to-flashcard-flow';
-import './flows/mini-course-flow';
-import './flows/unit-quiz-flow';
-import './flows/unit-flashcard-flow';
-import './flows/chat-title-flow';
-import './flows/image-tutoring-flow';
-import './flows/onboarding-course-flow';
-import './flows/course-from-url-flow';
-import './flows/chapter-content-flow';
-import './tools/web-scraper-tool';
-import './tools/youtube-transcript-tool';
-import './flows/image-analysis-flow';
-import './flows/chat-to-note-flow';
-import './flows/midterm-exam-flow';
-import './flows/unit-content-flow';
-import './flows/tutor-chat-flow';
-import './flows/podcast-flow';
-import './flows/video-flow';
-import './flows/sat-question-flow';
-import './flows/initial-course-flow';
-import './flows/concept-explanation-flow';
-import './flows/sat-study-session-flow';
-import './flows/sat-feedback-flow';
-import './flows/quiz-hint-flow';
-import './flows/extracurricular-enhancer-flow';
-import './flows/college-description-flow';
-import './flows/college-checklist-flow';
-import './flows/essay-coach-flow';
-import './flows/daily-focus-flow';
-import './flows/text-tutoring-flow';
-import './flows/enhance-drawing-flow';
-import './flows/summary-flow';
-import './flows/text-to-speech-flow';
-import './flows/problem-solving-flow';
-import './tools/problem-solving-tool';
-import './tools/math-solver-tool';
-import './flows/crunch-time-flow';
-import './tools/quiz-tool';
-import './flows/image-generation-flow';
-import './flows/assignment-grader-flow';
-import './flows/essay-generation-flow';
-import './flows/essay-feedback-flow';
-import './flows/course-from-materials-flow';
-import './schemas/course-from-materials-schema';
-import './schemas/essay-feedback-schema';
+
+'use server';
+/**
+ * @fileOverview A flow for generating flashcards from a course module.
+ *
+ * - generateFlashcardsFromModule - A function that generates flashcards based on module content.
+ */
+import { ai } from '@/ai/genkit';
+import { googleAI } from '@genkit-ai/google-genai';
+import { GenerateFlashcardsOutputSchema, GenerateFlashcardsOutput } from '@/ai/schemas/note-to-flashcard-schema';
+import { GenerateModuleFlashcardsInputSchema, GenerateModuleFlashcardsInput } from '@/ai/schemas/module-flashcard-schema';
+
+const prompt = ai.definePrompt({
+    name: 'moduleToFlashcardGenerationPrompt',
+    model: googleAI.model('gemini-2.5-flash'),
+    input: { schema: GenerateModuleFlashcardsInputSchema },
+    output: { schema: GenerateFlashcardsOutputSchema },
+    prompt: `You are an expert at creating study materials. 
+    Generate a set of 5-7 flashcards based *only* on the provided course module content.
+
+    For each flashcard, provide a "front" with a key term or question, and a "back" with the corresponding definition or answer.
+
+    The user is a {{learnerType}} learner. 
+    - For Visual learners, create questions that involve describing something.
+    - For other types, create standard question/answer flashcards.
+
+    Module Content:
+    "{{moduleContent}}"
+    `,
+});
+
+
+const generateFlashcardsFromModuleFlow = ai.defineFlow(
+  {
+    name: 'generateFlashcardsFromModuleFlow',
+    inputSchema: GenerateModuleFlashcardsInputSchema,
+    outputSchema: GenerateFlashcardsOutputSchema,
+  },
+  async (input) => {
+    const { output } = await prompt(input);
+    if (!output) {
+        throw new Error('Failed to generate flashcards from module.');
+    }
+    return output;
+  }
+);
+
+export async function generateFlashcardsFromModule(input: GenerateModuleFlashcardsInput): Promise<GenerateFlashcardsOutput> {
+    return generateFlashcardsFromModuleFlow(input);
+}
