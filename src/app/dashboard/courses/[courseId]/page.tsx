@@ -772,7 +772,11 @@ export default function CoursePage() {
                                         <span className={cn("font-medium", !isUnlocked && "text-muted-foreground")}>{chapter.title}</span>
                                     </div>
                                     <Button asChild variant="secondary" size="sm" disabled={!isUnlocked}>
-                                        <Link href={`/dashboard/courses/${courseId}/${chapter.id}`}>View</Link>
+                                        {isUnlocked ? (
+                                            <Link href={`/dashboard/courses/${courseId}/${chapter.id}`}>View</Link>
+                                        ) : (
+                                            <span>View</span>
+                                        )}
                                     </Button>
                                 </div>
                             )})}
@@ -846,3 +850,4 @@ export default function CoursePage() {
         </TooltipProvider>
     );
 }
+
