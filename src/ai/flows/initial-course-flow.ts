@@ -44,11 +44,11 @@ const generateInitialCourseAndRoadmapFlow = ai.defineFlow(
     }
 
     // 2. Generate content for the first chapter
-    const firstModule = courseOutline.modules[0];
-    const firstChapter = firstModule.chapters[0];
+    const firstUnit = courseOutline.modules[0];
+    const firstChapter = firstUnit.chapters[0];
     const firstChapterContent = await generateChapterContent({
       courseName: input.courseName,
-      moduleTitle: firstModule.title,
+      unitTitle: firstUnit.title,
       chapterTitle: firstChapter.title,
       learnerType: input.learnerType,
     });
