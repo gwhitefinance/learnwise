@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useCallback, useRef, useContext } from 'react';
@@ -10,7 +11,7 @@ import { doc, onSnapshot, getDoc, collection, query, where, updateDoc, arrayUnio
 import { Skeleton } from '@/components/ui/skeleton';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { CheckCircle, Lock, ArrowLeft, Loader2, X, Check, BookMarked, BrainCircuit, MessageSquare, Copy, Lightbulb, Play, Pen, Tag, RefreshCw, PenSquare, PlayCircle, RotateCcw } from 'lucide-react';
-import { generateModuleContent, generateSummary, generateChapterContent, generateMiniCourse, generateQuizAction, generateExplanation } from '@/lib/actions';
+import { generateUnitContent, generateSummary, generateChapterContent, generateMiniCourse, generateQuizAction, generateExplanation } from '@/lib/actions';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -242,9 +243,9 @@ export default function CoursePage() {
         toast({ title: 'Generating Content', description: `AI is creating the content for ${unit.title}...`});
         
         try {
-            const { updatedModule } = await generateModuleContent({
+            const { updatedUnit } = await generateUnitContent({
                 courseName: course.name,
-                module: {
+                unit: {
                     id: unit.id,
                     title: unit.title,
                     chapters: unit.chapters.map(c => ({ id: c.id, title: c.title })),
@@ -256,10 +257,10 @@ export default function CoursePage() {
             const courseSnap = await getDoc(courseRef);
             if (courseSnap.exists()) {
                 const currentCourseData = courseSnap.data() as Course;
-                const updatedUnits = currentCourseData.units.map(u => u.id === updatedModule.id ? { ...updatedModule, chapters: updatedModule.chapters.map(c => ({...c, content: c.content as any })) } : u);
+                const updatedUnits = currentCourseData.units.map(u => u.id === updatedUnit.id ? { ...updatedUnit, chapters: updatedUnit.chapters.map(c => ({...c, content: c.content as any })) } : u);
                 await updateDoc(courseRef, { units: updatedUnits });
                 
-                setSelectedUnit({ ...updatedModule, chapters: updatedModule.chapters.map(c => ({...c, content: c.content as any})) });
+                setSelectedUnit({ ...updatedUnit, chapters: updatedUnit.chapters.map(c => ({...c, content: c.content as any})) });
             }
 
             toast({ title: 'Content Generated!', description: `${unit.title} is ready.`});
@@ -272,7 +273,7 @@ export default function CoursePage() {
         }
     }
 
-    const openModule = (unit: Unit) => {
+    const openUnit = (unit: Unit) => {
         const hasContent = unit.chapters.some(c => c.content);
         setSelectedUnit(unit);
         setActiveChapter(null);
@@ -312,7 +313,7 @@ export default function CoursePage() {
 
                     const nextContent = await generateChapterContent({
                         courseName: course.name,
-                        moduleTitle: selectedUnit.title,
+                        unitTitle: selectedUnit.title,
                         chapterTitle: nextChapter.title,
                         learnerType: (localStorage.getItem('learnerType') as any) || 'Reading/Writing'
                     });
@@ -378,10 +379,10 @@ export default function CoursePage() {
                 courseDescription: `A course about ${course.name}. The key concepts are: ${course.keyConcepts?.join(', ') || ''}`,
                 learnerType: (localStorage.getItem('learnerType') as any) || 'Reading/Writing',
             });
-            const newUnits = result.modules.map(module => ({
+            const newUnits = result.modules.map(unit => ({
                 id: crypto.randomUUID(),
-                title: module.title,
-                chapters: module.chapters.map(chapter => ({
+                title: unit.title,
+                chapters: unit.chapters.map(chapter => ({
                     id: crypto.randomUUID(),
                     title: chapter.title,
                 }))
@@ -653,9 +654,9 @@ export default function CoursePage() {
                                         <p className="text-secondary-dark-text dark:text-gray-400 text-sm font-normal leading-normal mt-1 mb-4">{unit.description || `${unit.chapters.length} chapters`}</p>
                                     </div>
                                     <div className="flex flex-col gap-2 mt-auto">
-                                        <Button className="w-full justify-start bg-blue-100 hover:bg-blue-200 text-blue-800 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 dark:text-blue-400" onClick={() => openModule(unit)}>
+                                        <Button className="w-full justify-start bg-blue-100 hover:bg-blue-200 text-blue-800 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 dark:text-blue-400" onClick={() => openUnit(unit)}>
                                             <PlayCircle className="mr-2 h-4 w-4"/>
-                                            {completedChaptersCount > 0 ? 'Continue Module' : 'Start Module'}
+                                            {completedChaptersCount > 0 ? 'Continue Unit' : 'Start Unit'}
                                         </Button>
                                          <Button className="w-full justify-start bg-blue-100 hover:bg-blue-200 text-blue-800 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 dark:text-blue-400">
                                             <Copy className="mr-2 h-4 w-4"/> Start Flashcards
@@ -732,7 +733,7 @@ export default function CoursePage() {
                                             </Button>
                                         </TooltipTrigger>
                                         <TooltipContent>
-                                            <p>Regenerates the course modules and chapters based on the current Key Concepts.</p>
+                                            <p>Regenerates the course units and chapters based on the current Key Concepts.</p>
                                         </TooltipContent>
                                     </Tooltip>
                                     {previousUnits && !isEditingConcepts && (
@@ -792,7 +793,7 @@ export default function CoursePage() {
                             <div>
                                 <Label>Chapters to include:</Label>
                                 <div className="grid grid-cols-2 gap-2 mt-2 max-h-60 overflow-y-auto p-1">
-                                {quizConfig.unit?.chapters.filter(c => c.title !== 'Module Quiz').map(chapter => (
+                                {quizConfig.unit?.chapters.filter(c => c.title !== 'Unit Quiz').map(chapter => (
                                     <div key={chapter.id} className="flex items-center space-x-2">
                                         <Checkbox 
                                             id={chapter.id} 

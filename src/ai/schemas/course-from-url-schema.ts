@@ -1,3 +1,4 @@
+
 /**
  * @fileoverview Defines the data schemas for the course-from-URL generation feature.
  */
@@ -18,13 +19,13 @@ const ChapterSchema = z.object({
   activity: z.string().describe('A suggested activity or exercise based on the content, tailored to the user\'s learning style.'),
 });
 
-const ModuleSchema = z.object({
-  title: z.string().describe('The title of the course module.'),
+const UnitSchema = z.object({
+  title: z.string().describe('The title of the course unit.'),
   chapters: z.array(ChapterSchema),
 });
 
 export const GenerateCourseFromUrlOutputSchema = z.object({
   courseTitle: z.string().describe('The generated title for the mini-course, extracted from the webpage content.'),
-  modules: z.array(ModuleSchema),
+  modules: z.array(UnitSchema).describe('This should be `units`.'),
 });
 export type GenerateCourseFromUrlOutput = z.infer<typeof GenerateCourseFromUrlOutputSchema>;

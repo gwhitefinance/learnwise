@@ -6,7 +6,7 @@ import { z } from 'zod';
 
 export const GenerateChapterContentInputSchema = z.object({
   courseName: z.string().describe('The name of the overall course.'),
-  moduleTitle: z.string().describe('The title of the module this chapter belongs to.'),
+  unitTitle: z.string().describe('The title of the unit this chapter belongs to.'),
   chapterTitle: z.string().describe('The title of the chapter to generate content for.'),
   learnerType: z.enum(['Visual', 'Auditory', 'Kinesthetic', 'Reading/Writing', 'Unknown']),
 });

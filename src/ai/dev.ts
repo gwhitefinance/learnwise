@@ -1,14 +1,13 @@
 
 // Flows will be imported for their side effects in this file.
-import './flows/study-planner-flow';
 import './flows/quiz-flow';
 import './flows/quiz-explanation-flow';
 import './flows/roadmap-flow';
 import './flows/note-to-quiz-flow';
 import './flows/note-to-flashcard-flow';
 import './flows/mini-course-flow';
-import './flows/module-quiz-flow';
-import './flows/module-flashcard-flow';
+import './flows/unit-quiz-flow';
+import './flows/unit-flashcard-flow';
 import './flows/chat-title-flow';
 import './flows/image-tutoring-flow';
 import './flows/onboarding-course-flow';
@@ -19,7 +18,7 @@ import './tools/youtube-transcript-tool';
 import './flows/image-analysis-flow';
 import './flows/chat-to-note-flow';
 import './flows/midterm-exam-flow';
-import './flows/module-content-flow';
+import './flows/unit-content-flow';
 import './flows/tutor-chat-flow';
 import './flows/podcast-flow';
 import './flows/video-flow';
@@ -50,3 +49,4 @@ import './flows/essay-feedback-flow';
 import './flows/course-from-materials-flow';
 import './schemas/course-from-materials-schema';
 import './schemas/essay-feedback-schema';
+

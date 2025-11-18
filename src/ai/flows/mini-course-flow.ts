@@ -3,7 +3,7 @@
 /**
  * @fileOverview A flow for generating a personalized mini-course structure.
  *
- * - generateMiniCourse - A function that generates a course with modules and chapters based on learner type.
+ * - generateMiniCourse - A function that generates a course with units and chapters based on learner type.
  */
 import { ai } from '@/ai/genkit';
 import { googleAI } from '@genkit-ai/google-genai';
@@ -23,10 +23,10 @@ const prompt = ai.definePrompt({
 
     **CRITICAL INSTRUCTIONS - YOU MUST FOLLOW THESE EXACTLY:**
     1.  **Generate Key Concepts**: Based on the course name and description, identify and list 5-7 of the most important keywords or concepts for this subject.
-    2.  **Generate 7-10 modules for the course.** Each module must represent a major, distinct topic.
-    3.  **For EACH of those modules, you must create 5-7 chapter titles.**
-    4.  **Add a "Module Quiz" chapter to the end of EACH module's chapter list.**
-    5.  **DO NOT** generate the content, activities, or interactive tools for the chapters. Your ONLY job is to create the course title, key concepts, module titles, and chapter titles. The content will be generated later.
+    2.  **Generate 7-10 units for the course.** Each unit must represent a major, distinct topic.
+    3.  **For EACH of those units, you must create 5-7 chapter titles.**
+    4.  **Add a "Unit Quiz" chapter to the end of EACH unit's chapter list.**
+    5.  **DO NOT** generate the content, activities, or interactive tools for the chapters. Your ONLY job is to create the course title, key concepts, unit titles, and chapter titles. The content will be generated later.
     `,
 });
 
@@ -42,7 +42,15 @@ const generateMiniCourseFlow = ai.defineFlow(
     if (!output) {
         throw new Error('Failed to generate mini-course outline.');
     }
-    return output;
+    // The model sometimes uses 'modules' instead of 'units'. We'll correct it here.
+    return {
+        courseTitle: output.courseTitle,
+        keyConcepts: output.keyConcepts,
+        modules: (output.modules || []).map(unit => ({
+            title: unit.title,
+            chapters: unit.chapters
+        }))
+    };
   }
 );
 

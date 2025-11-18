@@ -16,14 +16,14 @@ const ChapterSchema = z.object({
   // Content and activity are removed from here, they will be generated on-demand.
 });
 
-const ModuleSchema = z.object({
-  title: z.string().describe('The title of the course module.'),
+const UnitSchema = z.object({
+  title: z.string().describe('The title of the course unit.'),
   chapters: z.array(ChapterSchema),
 });
 
 export const GenerateMiniCourseOutputSchema = z.object({
   courseTitle: z.string().describe('The generated title for the mini-course.'),
   keyConcepts: z.array(z.string()).describe("A list of 5-7 of the most important keywords or concepts for this subject."),
-  modules: z.array(ModuleSchema),
+  modules: z.array(UnitSchema).describe("This should be `units`, but the model is stubborn. We'll rename it in the code."),
 });
 export type GenerateMiniCourseOutput = z.infer<typeof GenerateMiniCourseOutputSchema>;

@@ -1,40 +1,51 @@
-import { z } from 'zod';
-
-const ChapterOutlineSchema = z.object({
-  id: z.string().optional(),
-  title: z.string(),
-});
-
-const ModuleOutlineSchema = z.object({
-  id: z.string().optional(),
-  title: z.string(),
-  chapters: z.array(ChapterOutlineSchema),
-});
-
-export const GenerateModuleContentInputSchema = z.object({
-  courseName: z.string(),
-  module: ModuleOutlineSchema,
-  learnerType: z.enum(['Visual', 'Auditory', 'Kinesthetic', 'Reading/Writing', 'Unknown']),
-});
-export type GenerateModuleContentInput = z.infer<typeof GenerateModuleContentInputSchema>;
-
-
-export const ChapterWithContentSchema = z.object({
-  id: z.string(),
-  title: z.string(),
-  content: z.string(),
-  activity: z.string(),
-});
-export type ChapterWithContent = z.infer<typeof ChapterWithContentSchema>;
-
-const ModuleSchema = z.object({
-  id: z.string(),
-  title: z.string(),
-  chapters: z.array(ChapterWithContentSchema),
-});
-
-
-export const GenerateModuleContentOutputSchema = z.object({
-  updatedModule: ModuleSchema,
-});
-export type GenerateModuleContentOutput = z.infer<typeof GenerateModuleContentOutputSchema>;
+// Flows will be imported for their side effects in this file.
+import './flows/study-planner-flow';
+import './flows/quiz-flow';
+import './flows/quiz-explanation-flow';
+import './flows/roadmap-flow';
+import './flows/note-to-quiz-flow';
+import './flows/note-to-flashcard-flow';
+import './flows/mini-course-flow';
+import './flows/unit-quiz-flow';
+import './flows/unit-flashcard-flow';
+import './flows/chat-title-flow';
+import './flows/image-tutoring-flow';
+import './flows/onboarding-course-flow';
+import './flows/course-from-url-flow';
+import './flows/chapter-content-flow';
+import './tools/web-scraper-tool';
+import './tools/youtube-transcript-tool';
+import './flows/image-analysis-flow';
+import './flows/chat-to-note-flow';
+import './flows/midterm-exam-flow';
+import './flows/unit-content-flow';
+import './flows/tutor-chat-flow';
+import './flows/podcast-flow';
+import './flows/video-flow';
+import './flows/sat-question-flow';
+import './flows/initial-course-flow';
+import './flows/concept-explanation-flow';
+import './flows/sat-study-session-flow';
+import './flows/sat-feedback-flow';
+import './flows/quiz-hint-flow';
+import './flows/extracurricular-enhancer-flow';
+import './flows/college-description-flow';
+import './flows/college-checklist-flow';
+import './flows/essay-coach-flow';
+import './flows/daily-focus-flow';
+import './flows/text-tutoring-flow';
+import './flows/enhance-drawing-flow';
+import './flows/summary-flow';
+import './flows/text-to-speech-flow';
+import './flows/problem-solving-flow';
+import './tools/problem-solving-tool';
+import './tools/math-solver-tool';
+import './flows/crunch-time-flow';
+import './tools/quiz-tool';
+import './flows/image-generation-flow';
+import './flows/assignment-grader-flow';
+import './flows/essay-generation-flow';
+import './flows/essay-feedback-flow';
+import './flows/course-from-materials-flow';
+import './schemas/course-from-materials-schema';
+import './schemas/essay-feedback-schema';

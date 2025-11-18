@@ -152,7 +152,7 @@
         "properties": {
             "userId": { "type": "string" },
             "courseId": { "type": "string" },
-            "moduleId": { "type": "string" },
+            "unitId": { "type": "string" },
             "score": { "type": "number" },
             "totalQuestions": { "type": "number" },
             "answers": { "type": "array" },

@@ -21,7 +21,7 @@ const prompt = ai.definePrompt({
 
     Course Context:
     - Course Name: {{courseName}}
-    - Module: {{moduleTitle}}
+    - Unit: {{unitTitle}}
     - Chapter: {{chapterTitle}}
 
     **CRITICAL INSTRUCTIONS for the 'content' FIELD:**

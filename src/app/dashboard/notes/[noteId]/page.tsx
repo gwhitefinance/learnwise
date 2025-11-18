@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -495,7 +496,7 @@ export default function NoteEditorPage() {
     
         const userMessage: Message = { role: 'user', content: messageContent, id: crypto.randomUUID() };
         setChatHistory(prev => [...prev, userMessage]);
-        setInput('');
+        setChatInput('');
         setIsChatLoading(true);
     
         try {
@@ -589,6 +590,8 @@ export default function NoteEditorPage() {
             toast({ variant: "destructive", title: "Error", description: "Could not save the note." });
         } finally {
             setIsSaveDialogOpen(false);
+            setSelectedCourseId(undefined);
+            setSelectedUnitId(undefined);
         }
     };
     
@@ -754,7 +757,7 @@ export default function NoteEditorPage() {
                         <DialogHeader>
                             <DialogTitle>Save Note</DialogTitle>
                             <DialogDescription>
-                                Optionally, you can associate this note with a specific course or module for better organization.
+                                Optionally, you can associate this note with a specific course or unit for better organization.
                             </DialogDescription>
                         </DialogHeader>
                         <div className="py-4 grid gap-4">
@@ -774,13 +777,13 @@ export default function NoteEditorPage() {
                             </div>
                             {selectedCourseId && selectedCourseId !== 'none' && selectedCourseForFilter?.units && (
                                 <div className="space-y-2">
-                                    <Label htmlFor="note-unit">Module (Optional)</Label>
+                                    <Label htmlFor="note-unit">Unit (Optional)</Label>
                                     <Select value={selectedUnitId} onValueChange={setSelectedUnitId}>
                                         <SelectTrigger id="note-unit">
-                                            <SelectValue placeholder="Select a module" />
+                                            <SelectValue placeholder="Select a unit" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="none">No specific module</SelectItem>
+                                            <SelectItem value="none">No specific unit</SelectItem>
                                             {selectedCourseForFilter.units.map(unit => (
                                                 <SelectItem key={unit.id} value={unit.id}>{unit.title}</SelectItem>
                                             ))}

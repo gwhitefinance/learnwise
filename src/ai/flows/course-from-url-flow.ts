@@ -3,7 +3,7 @@
 /**
  * @fileOverview A flow for generating a structured mini-course from a URL.
  *
- * - generateCourseFromUrl - A function that scrapes a URL and generates a course with modules and chapters.
+ * - generateCourseFromUrl - A function that scrapes a URL and generates a course with units and chapters.
  */
 import { ai } from '@/ai/genkit';
 import { googleAI } from '@genkit-ai/google-genai';
@@ -32,16 +32,16 @@ const prompt = ai.definePrompt({
     2.  **Generate Course**:
         -   If the "Additional Content" is relevant, use it as the primary source to create the course.
         -   If the "Additional Content" is irrelevant or empty, generate a high-quality, comprehensive course based ONLY on the "Course Name" and "Course Description".
-    3.  **Structure**: Your main goal is to accurately reflect the structure of the provided "Additional Content". Identify the main sections or headings on the page and treat them as modules. Identify the sub-sections within each main section and treat them as chapters. Generate as many modules and chapters as are present in the source content. DO NOT limit yourself to a specific number. The titles of modules MUST be extracted directly from the text of the 'Additional Content' and must be exact matches. Prepend "Unit X:" to each module title, where X is the module number (e.g., "Unit 1: Introduction", "Unit 2: Core Concepts").
+    3.  **Structure**: Your main goal is to accurately reflect the structure of the provided "Additional Content". Identify the main sections or headings on the page and treat them as units. Identify the sub-sections within each main section and treat them as chapters. Generate as many units and chapters as are present in the source content. DO NOT limit yourself to a specific number. The titles of units MUST be extracted directly from the text of the 'Additional Content' and must be exact matches. Prepend "Unit X:" to each unit title, where X is the unit number (e.g., "Unit 1: Introduction", "Unit 2: Core Concepts").
     4.  **Tailor Content**: The user is a {{learnerType}} learner. Adapt the content and activities for each chapter accordingly:
         -   **Visual**: Use descriptive language and analogies. Suggest creating diagrams or mind maps.
         -   **Auditory**: Write in a conversational, step-by-step manner. Suggest explaining concepts aloud.
         -   **Kinesthetic**: Include hands-on activities, real-world examples, or simple practical exercises.
         -   **Reading/Writing**: Provide clear, well-structured text and suggest summarizing or outlining.
     5.  **Create Activities**: For each chapter, devise a simple, interactive activity that reinforces the chapter's content and is tailored to the learner's style.
-    6.  **Add Module Quiz**: At the end of each module's chapter list, add a final chapter titled "Module Quiz". Do NOT generate content or an activity for this quiz chapter.
+    6.  **Add Unit Quiz**: At the end of each unit's chapter list, add a final chapter titled "Unit Quiz". Do NOT generate content or an activity for this quiz chapter.
 
-    Generate the complete course structure with a course title, modules, and for each module, a list of chapters containing detailed content and a relevant activity.
+    Generate the complete course structure with a course title, units, and for each unit, a list of chapters containing detailed content and a relevant activity.
     `,
 });
 
