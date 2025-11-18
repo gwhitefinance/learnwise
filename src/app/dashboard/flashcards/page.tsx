@@ -46,7 +46,7 @@ const FlashcardApp = () => {
 
   const currentCard = cards[currentIndex];
   const progress = Object.values(cardStatuses).filter(s => s === 'mastered').length;
-
+  
   useEffect(() => {
       const storedFlashcards = localStorage.getItem('generatedFlashcards');
       if (storedFlashcards) {
@@ -154,7 +154,7 @@ const FlashcardApp = () => {
 
           <div
             onClick={flipCard}
-            className="relative min-h-[24rem] cursor-pointer perspective-1000 mb-6"
+            className="relative h-80 cursor-pointer perspective-1000 mb-6"
           >
             <div
               className={`relative w-full h-full transition-transform duration-500 transform-style-3d ${
@@ -269,21 +269,6 @@ const FlashcardApp = () => {
           ))}
         </div>
       </div>
-
-      <style jsx>{`
-        .perspective-1000 {
-          perspective: 1000px;
-        }
-        .transform-style-3d {
-          transform-style: preserve-3d;
-        }
-        .backface-hidden {
-          backface-visibility: hidden;
-        }
-        .rotate-y-180 {
-          transform: rotateY(180deg);
-        }
-      `}</style>
     </div>
   );
 };
