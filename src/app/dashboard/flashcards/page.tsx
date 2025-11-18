@@ -1,95 +1,290 @@
-
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import { Check, X, RotateCcw, ChevronLeft, ChevronRight, Shuffle } from 'lucide-react';
+import confetti from 'canvas-confetti';
 
-type Flashcard = {
-    front: string;
-    back: string;
+const FlashcardApp = () => {
+  const [cards, setCards] = useState([
+    {
+      id: 1,
+      question: "What is the capital of France?",
+      answer: "Paris",
+      mastered: false
+    },
+    {
+      id: 2,
+      question: "What is the chemical symbol for gold?",
+      answer: "Au (from the Latin word 'Aurum')",
+      mastered: false
+    },
+    {
+      id: 3,
+      question: "Who painted the Mona Lisa?",
+      answer: "Leonardo da Vinci",
+      mastered: false
+    },
+    {
+      id: 4,
+      question: "What is the largest planet in our solar system?",
+      answer: "Jupiter",
+      mastered: false
+    },
+    {
+      id: 5,
+      question: "What year did World War II end?",
+      answer: "1945",
+      mastered: false
+    }
+  ]);
+
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isFlipped, setIsFlipped] = useState(false);
+  const [cardStatuses, setCardStatuses] = useState<Record<number, 'mastered' | 'reviewing'>>({});
+  const [showConfetti, setShowConfetti] = useState(false);
+
+  const currentCard = cards[currentIndex];
+  const progress = Object.values(cardStatuses).filter(s => s === 'mastered').length;
+
+  useEffect(() => {
+      const storedFlashcards = localStorage.getItem('generatedFlashcards');
+      if (storedFlashcards) {
+          try {
+              const parsedCards = JSON.parse(storedFlashcards).map((card: {front: string; back: string}, index: number) => ({
+                  id: index,
+                  question: card.front,
+                  answer: card.back,
+                  mastered: false,
+              }));
+              if (parsedCards.length > 0) {
+                setCards(parsedCards);
+              }
+          } catch(e) {
+              console.error("Failed to parse flashcards");
+          }
+      }
+  }, []);
+
+  useEffect(() => {
+    if (progress === cards.length && progress > 0) {
+      setShowConfetti(true);
+      confetti({
+        particleCount: 150,
+        spread: 90,
+        origin: { y: 0.6 }
+      });
+      setTimeout(() => setShowConfetti(false), 3000);
+    }
+  }, [progress, cards.length]);
+
+  const flipCard = () => {
+    setIsFlipped(!isFlipped);
+  };
+
+  const markCard = (status: 'mastered' | 'reviewing') => {
+    setCardStatuses(prev => ({
+      ...prev,
+      [currentCard.id]: status
+    }));
+    
+    setTimeout(() => {
+      if (currentIndex < cards.length - 1) {
+        nextCard();
+      }
+    }, 300);
+  };
+
+  const nextCard = () => {
+    if (currentIndex < cards.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+      setIsFlipped(false);
+    }
+  };
+
+  const prevCard = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+      setIsFlipped(false);
+    }
+  };
+
+  const resetAll = () => {
+    setCardStatuses({});
+    setCurrentIndex(0);
+    setIsFlipped(false);
+  };
+
+  const shuffleCards = () => {
+    const newCards = [...cards];
+    for (let i = newCards.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [newCards[i], newCards[j]] = [newCards[j], newCards[i]];
+    }
+    setCards(newCards);
+    resetAll();
+  };
+
+  const cardStatus = cardStatuses[currentCard.id];
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 p-8 relative overflow-hidden">
+      <div className="max-w-4xl mx-auto">
+        <div className="text-center mb-8">
+          <h1 className="text-5xl font-bold text-white mb-2">Flashcard Master</h1>
+          <p className="text-white text-lg opacity-90">Click the card to flip it!</p>
+        </div>
+
+        <div className="bg-white rounded-xl p-6 shadow-2xl mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="text-sm font-semibold text-gray-600">
+              Card {currentIndex + 1} of {cards.length}
+            </div>
+            <div className="text-sm font-semibold text-purple-600">
+              Mastered: {progress}/{cards.length}
+            </div>
+          </div>
+          
+          <div className="w-full bg-gray-200 rounded-full h-3 mb-6">
+            <div
+              className="bg-gradient-to-r from-purple-500 to-pink-500 h-3 rounded-full transition-all duration-500"
+              style={{ width: `${(progress / cards.length) * 100}%` }}
+            />
+          </div>
+
+          <div
+            onClick={flipCard}
+            className="relative h-80 cursor-pointer perspective-1000 mb-6"
+          >
+            <div
+              className={`relative w-full h-full transition-transform duration-500 transform-style-3d ${
+                isFlipped ? 'rotate-y-180' : ''
+              }`}
+            >
+              <div className="absolute w-full h-full backface-hidden">
+                <div className={`w-full h-full rounded-2xl shadow-xl flex items-center justify-center p-8 ${
+                  cardStatus === 'mastered' ? 'bg-gradient-to-br from-green-400 to-green-500' :
+                  cardStatus === 'reviewing' ? 'bg-gradient-to-br from-yellow-400 to-yellow-500' :
+                  'bg-gradient-to-br from-blue-400 to-purple-500'
+                }`}>
+                  <div className="text-center">
+                    <div className="text-sm font-semibold text-white mb-4 opacity-80">QUESTION</div>
+                    <p className="text-2xl font-bold text-white">{currentCard.question}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="absolute w-full h-full backface-hidden rotate-y-180">
+                <div className={`w-full h-full rounded-2xl shadow-xl flex items-center justify-center p-8 ${
+                  cardStatus === 'mastered' ? 'bg-gradient-to-br from-green-500 to-green-600' :
+                  cardStatus === 'reviewing' ? 'bg-gradient-to-br from-yellow-500 to-yellow-600' :
+                  'bg-gradient-to-br from-purple-500 to-pink-500'
+                }`}>
+                  <div className="text-center">
+                    <div className="text-sm font-semibold text-white mb-4 opacity-80">ANSWER</div>
+                    <p className="text-2xl font-bold text-white">{currentCard.answer}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {isFlipped && (
+            <div className="flex gap-4 justify-center mb-6 animate-fade-in">
+              <button
+                onClick={() => markCard('reviewing')}
+                className="flex items-center gap-2 px-6 py-3 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors font-semibold shadow-lg"
+              >
+                <RotateCcw size={20} />
+                Need Review
+              </button>
+              <button
+                onClick={() => markCard('mastered')}
+                className="flex items-center gap-2 px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-semibold shadow-lg"
+              >
+                <Check size={20} />
+                Mastered!
+              </button>
+            </div>
+          )}
+
+          <div className="flex items-center justify-between">
+            <button
+              onClick={prevCard}
+              disabled={currentIndex === 0}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronLeft size={20} />
+              Previous
+            </button>
+
+            <div className="flex gap-2">
+              <button
+                onClick={shuffleCards}
+                className="p-2 bg-purple-100 text-purple-600 rounded-lg hover:bg-purple-200 transition-colors"
+                title="Shuffle cards"
+              >
+                <Shuffle size={20} />
+              </button>
+              <button
+                onClick={resetAll}
+                className="p-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors"
+                title="Reset all progress"
+              >
+                <RotateCcw size={20} />
+              </button>
+            </div>
+
+            <button
+              onClick={nextCard}
+              disabled={currentIndex === cards.length - 1}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Next
+              <ChevronRight size={20} />
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-5 gap-2">
+          {cards.map((card, idx) => (
+            <button
+              key={card.id}
+              onClick={() => {
+                setCurrentIndex(idx);
+                setIsFlipped(false);
+              }}
+              className={`h-12 rounded-lg font-semibold transition-all ${
+                idx === currentIndex
+                  ? 'bg-white text-purple-600 scale-110 shadow-lg'
+                  : cardStatuses[card.id] === 'mastered'
+                  ? 'bg-green-500 text-white'
+                  : cardStatuses[card.id] === 'reviewing'
+                  ? 'bg-yellow-500 text-white'
+                  : 'bg-white bg-opacity-50 text-white hover:bg-opacity-70'
+              }`}
+            >
+              {idx + 1}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <style jsx>{`
+        .perspective-1000 {
+          perspective: 1000px;
+        }
+        .transform-style-3d {
+          transform-style: preserve-3d;
+        }
+        .backface-hidden {
+          backface-visibility: hidden;
+        }
+        .rotate-y-180 {
+          transform: rotateY(180deg);
+        }
+      `}</style>
+    </div>
+  );
 };
 
-export default function FlashcardsPage() {
-    const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
-    const [currentCardIndex, setCurrentCardIndex] = useState(0);
-    const [isFlipped, setIsFlipped] = useState(false);
-    const router = useRouter();
-
-    useEffect(() => {
-        const storedFlashcards = localStorage.getItem('generatedFlashcards');
-        if (storedFlashcards) {
-            try {
-                setFlashcards(JSON.parse(storedFlashcards));
-            } catch (e) {
-                console.error("Failed to parse flashcards from storage", e);
-                // Handle error, maybe redirect back
-            }
-        }
-    }, []);
-
-    useEffect(() => {
-        setIsFlipped(false);
-    }, [currentCardIndex]);
-
-    if (flashcards.length === 0) {
-        return (
-            <div className="flex flex-col items-center justify-center h-full text-center p-4">
-                 <p className="text-muted-foreground mb-4">No flashcards found. Please generate some from a course page.</p>
-                 <Button onClick={() => router.push('/dashboard/courses')}>Go to Courses</Button>
-            </div>
-        );
-    }
-    
-    const currentCard = flashcards[currentCardIndex];
-
-    return (
-        <div className="max-w-3xl mx-auto py-8 px-4 h-full flex flex-col items-center justify-center">
-             <Button variant="ghost" onClick={() => router.back()} className="absolute top-4 left-4">
-                <ArrowLeft className="mr-2 h-4 w-4"/> Back
-            </Button>
-            <div className="w-full">
-                <div className="text-center text-sm text-muted-foreground mb-4">
-                    Card {currentCardIndex + 1} of {flashcards.length}
-                </div>
-                 <div
-                    className="relative w-full aspect-[2/1] cursor-pointer"
-                    onClick={() => setIsFlipped(!isFlipped)}
-                    style={{ perspective: '1000px' }}
-                >
-                    <AnimatePresence>
-                        <motion.div
-                            key={isFlipped ? 'back' : 'front'}
-                            initial={{ rotateY: isFlipped ? 180 : 0 }}
-                            animate={{ rotateY: 0 }}
-                            exit={{ rotateY: isFlipped ? 0 : -180 }}
-                            transition={{ duration: 0.5 }}
-                            className="absolute w-full h-full p-8 flex items-center justify-center text-center rounded-xl border bg-card text-card-foreground shadow-xl"
-                            style={{ backfaceVisibility: 'hidden' }}
-                        >
-                            <p className="text-3xl font-semibold">
-                                {isFlipped ? currentCard.back : currentCard.front}
-                            </p>
-                        </motion.div>
-                    </AnimatePresence>
-                </div>
-                <div className="flex justify-center items-center gap-4 mt-8">
-                    <Button variant="outline" size="lg" onClick={() => setCurrentCardIndex(prev => Math.max(0, prev - 1))} disabled={currentCardIndex === 0}>
-                        <ChevronLeft className="h-5 w-5" />
-                    </Button>
-                    <Button onClick={() => setIsFlipped(!isFlipped)} size="lg" className="px-10 py-6 text-base">
-                        <RefreshCw className="mr-2 h-5 w-5"/> Flip Card
-                    </Button>
-                    <Button variant="outline" size="lg" onClick={() => setCurrentCardIndex(prev => Math.min(flashcards.length - 1, prev + 1))} disabled={currentCardIndex === flashcards.length - 1}>
-                        <ChevronRight className="h-5 w-5" />
-                    </Button>
-                </div>
-            </div>
-        </div>
-    );
-}
-
-
+export default FlashcardApp;
