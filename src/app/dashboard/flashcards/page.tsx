@@ -47,7 +47,7 @@ export default function FlashcardsPage() {
     const currentCard = flashcards[currentCardIndex];
 
     return (
-        <div className="max-w-2xl mx-auto py-8 px-4 h-full flex flex-col items-center justify-center">
+        <div className="max-w-3xl mx-auto py-8 px-4 h-full flex flex-col items-center justify-center">
              <Button variant="ghost" onClick={() => router.back()} className="absolute top-4 left-4">
                 <ArrowLeft className="mr-2 h-4 w-4"/> Back
             </Button>
@@ -56,7 +56,7 @@ export default function FlashcardsPage() {
                     Card {currentCardIndex + 1} of {flashcards.length}
                 </div>
                  <div
-                    className="relative w-full aspect-[2/1] cursor-pointer"
+                    className="relative w-full aspect-[5/3] cursor-pointer"
                     onClick={() => setIsFlipped(!isFlipped)}
                     style={{ perspective: '1000px' }}
                 >
@@ -67,27 +67,28 @@ export default function FlashcardsPage() {
                             animate={{ rotateY: 0 }}
                             exit={{ rotateY: isFlipped ? 0 : -180 }}
                             transition={{ duration: 0.5 }}
-                            className="absolute w-full h-full p-6 flex items-center justify-center text-center rounded-lg border bg-card text-card-foreground shadow-lg"
+                            className="absolute w-full h-full p-8 flex items-center justify-center text-center rounded-xl border bg-card text-card-foreground shadow-xl"
                             style={{ backfaceVisibility: 'hidden' }}
                         >
-                            <p className="text-2xl font-semibold">
+                            <p className="text-3xl font-semibold">
                                 {isFlipped ? currentCard.back : currentCard.front}
                             </p>
                         </motion.div>
                     </AnimatePresence>
                 </div>
-                <div className="flex justify-center items-center gap-4 mt-6">
-                    <Button variant="outline" size="icon" onClick={() => setCurrentCardIndex(prev => Math.max(0, prev - 1))} disabled={currentCardIndex === 0}>
-                        <ChevronLeft className="h-4 w-4" />
+                <div className="flex justify-center items-center gap-4 mt-8">
+                    <Button variant="outline" size="lg" onClick={() => setCurrentCardIndex(prev => Math.max(0, prev - 1))} disabled={currentCardIndex === 0}>
+                        <ChevronLeft className="h-5 w-5" />
                     </Button>
-                    <Button onClick={() => setIsFlipped(!isFlipped)} className="px-8">
-                        <RefreshCw className="mr-2 h-4 w-4"/> Flip Card
+                    <Button onClick={() => setIsFlipped(!isFlipped)} size="lg" className="px-10 py-6 text-base">
+                        <RefreshCw className="mr-2 h-5 w-5"/> Flip Card
                     </Button>
-                    <Button variant="outline" size="icon" onClick={() => setCurrentCardIndex(prev => Math.min(flashcards.length - 1, prev + 1))} disabled={currentCardIndex === flashcards.length - 1}>
-                        <ChevronRight className="h-4 w-4" />
+                    <Button variant="outline" size="lg" onClick={() => setCurrentCardIndex(prev => Math.min(flashcards.length - 1, prev + 1))} disabled={currentCardIndex === flashcards.length - 1}>
+                        <ChevronRight className="h-5 w-5" />
                     </Button>
                 </div>
             </div>
         </div>
     );
 }
+
