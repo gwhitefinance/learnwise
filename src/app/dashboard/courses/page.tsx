@@ -15,7 +15,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
-import { collection, addDoc, query, where, getDocs, onSnapshot, serverTimestamp, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs, onSnapshot, serverTimestamp, Timestamp, doc, deleteDoc } from 'firebase/firestore';
 import { Snail, Turtle, Rabbit } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import GeneratingCourse from '../courses/GeneratingCourse';
@@ -207,6 +207,16 @@ export default function CoursesListPage() {
     }
   };
 
+  const handleDeleteCourse = async (courseId: string) => {
+    try {
+        await deleteDoc(doc(db, "courses", courseId));
+        toast({ title: 'Course Deleted' });
+    } catch (error) {
+        console.error("Error deleting course:", error);
+        toast({ variant: "destructive", title: "Error", description: "Could not delete course." });
+    }
+  };
+
   if (isGenerating) {
     return <GeneratingCourse courseName={generatingCourseName} />;
   }
@@ -315,13 +325,34 @@ export default function CoursesListPage() {
                         <CardHeader>
                             <div className="flex justify-between items-start">
                                 <CardTitle>{course.name}</CardTitle>
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8 -mt-2 -mr-2">
-                                            <MoreVertical className="h-4 w-4" />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                </DropdownMenu>
+                                <AlertDialog>
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost" size="icon" className="h-8 w-8 -mt-2 -mr-2">
+                                                <MoreVertical className="h-4 w-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                             <AlertDialogTrigger asChild>
+                                                <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
+                                                    <Trash2 className="mr-2 h-4 w-4"/> Delete
+                                                </DropdownMenuItem>
+                                             </AlertDialogTrigger>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                This action cannot be undone. This will permanently delete the course and all associated data.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                            <AlertDialogAction onClick={() => handleDeleteCourse(course.id)}>Delete</AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
                             </div>
                             <CardDescription>{course.description || (totalChapters > 0 ? `${totalChapters} chapters` : 'No content generated')}</CardDescription>
                         </CardHeader>
