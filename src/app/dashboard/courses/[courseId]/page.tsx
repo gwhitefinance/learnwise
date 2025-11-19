@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useCallback, useRef, useContext } from 'react';
@@ -10,7 +11,7 @@ import { auth, db } from '@/lib/firebase';
 import { doc, onSnapshot, getDoc, collection, query, where, updateDoc, arrayUnion } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
-import { CheckCircle, Lock, ArrowLeft, Loader2, X, Check, BookMarked, BrainCircuit, MessageSquare, Copy, Lightbulb, Play, Pen, Tag, RefreshCw, PenSquare, PlayCircle, RotateCcw } from 'lucide-react';
+import { CheckCircle, Lock, ArrowLeft, Loader2, X, Check, BookMarked, BrainCircuit, MessageSquare, Copy, Lightbulb, Play, Pen, Tag, RefreshCw, PenSquare, PlayCircle, RotateCcw, BookCopy } from 'lucide-react';
 import { generateUnitContent, generateSummary, generateChapterContent, generateMiniCourse, generateQuizAction, generateExplanation, generateFlashcardsFromUnit } from '@/lib/actions';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
@@ -56,6 +57,12 @@ type QuizResult = {
     totalQuestions: number;
 };
 
+type StudyGuide = {
+    id: string;
+    title: string;
+    courseId: string;
+}
+
 type Course = {
     id: string;
     name: string;
@@ -72,6 +79,7 @@ export default function CoursePage() {
     const [user, authLoading] = useAuthState(auth);
     const [course, setCourse] = useState<Course | null>(null);
     const [quizResults, setQuizResults] = useState<QuizResult[]>([]);
+    const [studyGuides, setStudyGuides] = useState<StudyGuide[]>([]);
     const [loading, setLoading] = useState(true);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);
@@ -141,9 +149,16 @@ export default function CoursePage() {
             setQuizResults(resultsData);
         });
 
+        const guidesQuery = query(collection(db, 'studyGuides'), where('userId', '==', user.uid), where('courseId', '==', courseId));
+        const unsubscribeGuides = onSnapshot(guidesQuery, (snapshot) => {
+            const guidesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as StudyGuide));
+            setStudyGuides(guidesData);
+        });
+
         return () => {
             unsubscribe();
             unsubscribeResults();
+            unsubscribeGuides();
         }
     }, [courseId, user, router]);
 
@@ -579,6 +594,22 @@ export default function CoursePage() {
                                     <Button variant="outline" className="w-full justify-start" onClick={() => openChatWithPrompt(`I have a question about ${course.name}`)}>
                                         <MessageSquare className="mr-2 h-4 w-4" /> Ask {aiBuddyName}
                                     </Button>
+                                </CardContent>
+                            </Card>
+                             <Card>
+                                <CardHeader>
+                                    <CardTitle>Study Guides</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-2">
+                                    {studyGuides.length > 0 ? (
+                                        studyGuides.map(guide => (
+                                            <Button key={guide.id} variant="ghost" className="w-full justify-start gap-2">
+                                                <BookCopy className="h-4 w-4"/> {guide.title}
+                                            </Button>
+                                        ))
+                                    ) : (
+                                        <p className="text-sm text-muted-foreground text-center p-4">No study guides for this course yet.</p>
+                                    )}
                                 </CardContent>
                             </Card>
                             <Card>
