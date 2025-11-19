@@ -299,7 +299,7 @@ export default function CoursePage() {
                     userAnswer,
                     correctAnswer: currentQuestion.correctAnswer,
                     learnerType: "Reading/Writing", // Default for simplicity here
-                    provideFullExplanation: true 
+                    provideFullExplanation: true, 
                 });
                 explanationText = result.explanation;
             } catch (e) {
@@ -550,56 +550,60 @@ export default function CoursePage() {
                             </Card>
                         </div>
                         
-                        <Tabs defaultValue="units" className="w-full">
-                            <TabsList>
-                                <TabsTrigger value="units">My Study Units</TabsTrigger>
-                                <TabsTrigger value="guides">My Study Guides</TabsTrigger>
-                            </TabsList>
-                            <TabsContent value="units" className="pt-4">
-                                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                                    {course.units?.map(unit => (
-                                        <div key={unit.id} className="flex flex-col gap-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800/50 p-5 transition-shadow hover:shadow-lg">
-                                            <div>
-                                                <p className="text-lg font-bold leading-normal">{unit.title}</p>
-                                                <p className="text-secondary-dark-text dark:text-gray-400 text-sm font-normal leading-normal mt-1 mb-4">{unit.description || `${unit.chapters.length} chapters`}</p>
-                                            </div>
-                                            <div className="flex flex-col gap-2 mt-auto">
-                                                <Button className="w-full justify-start bg-blue-100 hover:bg-blue-200 text-blue-800 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 dark:text-blue-400" onClick={() => openUnit(unit)}>
-                                                    <PlayCircle className="mr-2 h-4 w-4"/>
-                                                    {completedChaptersCount > 0 ? 'Continue Unit' : 'Start Unit'}
-                                                </Button>
-                                                <Button className="w-full justify-start bg-blue-100 hover:bg-blue-200 text-blue-800 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 dark:text-blue-400" onClick={() => handleFlashcardOpen(unit)} disabled={isGeneratingFlashcards}>
-                                                    <Copy className="mr-2 h-4 w-4"/> 
-                                                    Start Flashcards
-                                                </Button>
-                                                <hr className="my-2 border-border" />
-                                                <Button className="w-full justify-start" onClick={() => handlePracticeQuizOpen(unit)}>
-                                                    <PenSquare className="mr-2 h-4 w-4"/> Take Practice Quiz
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    ))}
+                        <div className="flex justify-center mb-6">
+                            <Tabs defaultValue="units" className="w-full">
+                                <div className="flex justify-center">
+                                    <TabsList className="h-auto p-2">
+                                        <TabsTrigger value="units" className="text-base px-6 py-2">My Study Units</TabsTrigger>
+                                        <TabsTrigger value="guides" className="text-base px-6 py-2">My Study Guides</TabsTrigger>
+                                    </TabsList>
                                 </div>
-                            </TabsContent>
-                            <TabsContent value="guides" className="pt-4">
-                                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                                    {studyGuides.length > 0 ? (
-                                        studyGuides.map(guide => (
-                                            <Card key={guide.id} className="flex flex-col">
-                                                <CardHeader>
-                                                    <CardTitle className="flex items-center gap-2"><BookCopy className="h-5 w-5"/> {guide.title}</CardTitle>
-                                                </CardHeader>
-                                                <CardFooter className="mt-auto">
-                                                    <Button variant="outline" className="w-full">View Guide</Button>
-                                                </CardFooter>
-                                            </Card>
-                                        ))
-                                    ) : (
-                                        <p className="col-span-full text-center text-muted-foreground py-16">No study guides created for this course yet.</p>
-                                    )}
-                                </div>
-                            </TabsContent>
-                        </Tabs>
+                                <TabsContent value="units" className="pt-4">
+                                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                                        {course.units?.map(unit => (
+                                            <div key={unit.id} className="flex flex-col gap-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800/50 p-5 transition-shadow hover:shadow-lg">
+                                                <div>
+                                                    <p className="text-lg font-bold leading-normal">{unit.title}</p>
+                                                    <p className="text-secondary-dark-text dark:text-gray-400 text-sm font-normal leading-normal mt-1 mb-4">{unit.description || `${unit.chapters.length} chapters`}</p>
+                                                </div>
+                                                <div className="flex flex-col gap-2 mt-auto">
+                                                    <Button className="w-full justify-start bg-blue-100 hover:bg-blue-200 text-blue-800 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 dark:text-blue-400" onClick={() => openUnit(unit)}>
+                                                        <PlayCircle className="mr-2 h-4 w-4"/>
+                                                        {completedChaptersCount > 0 ? 'Continue Unit' : 'Start Unit'}
+                                                    </Button>
+                                                    <Button className="w-full justify-start bg-blue-100 hover:bg-blue-200 text-blue-800 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 dark:text-blue-400" onClick={() => handleFlashcardOpen(unit)} disabled={isGeneratingFlashcards}>
+                                                        <Copy className="mr-2 h-4 w-4"/> 
+                                                        Start Flashcards
+                                                    </Button>
+                                                    <hr className="my-2 border-border" />
+                                                    <Button className="w-full justify-start" onClick={() => handlePracticeQuizOpen(unit)}>
+                                                        <PenSquare className="mr-2 h-4 w-4"/> Take Practice Quiz
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </TabsContent>
+                                <TabsContent value="guides" className="pt-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                                        {studyGuides.length > 0 ? (
+                                            studyGuides.map(guide => (
+                                                <Card key={guide.id} className="flex flex-col">
+                                                    <CardHeader>
+                                                        <CardTitle className="flex items-center gap-2"><BookCopy className="h-5 w-5"/> {guide.title}</CardTitle>
+                                                    </CardHeader>
+                                                    <CardFooter className="mt-auto">
+                                                        <Button variant="outline" className="w-full">View Guide</Button>
+                                                    </CardFooter>
+                                                </Card>
+                                            ))
+                                        ) : (
+                                            <p className="col-span-full text-center text-muted-foreground py-16">No study guides created for this course yet.</p>
+                                        )}
+                                    </div>
+                                </TabsContent>
+                            </Tabs>
+                        </div>
 
                     </div>
                     <aside className="w-full lg:w-72 xl:w-80 lg:sticky top-24 self-start flex-shrink-0">
