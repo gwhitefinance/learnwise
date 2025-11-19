@@ -30,7 +30,7 @@ import { useAuthState } from "react-firebase-hooks/auth";
 import { auth, db } from "@/lib/firebase";
 import { collection, addDoc, query, where, onSnapshot, deleteDoc, doc, updateDoc, orderBy } from "firebase/firestore";
 import { useRouter } from "next/navigation";
-import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isToday, isEqual, addMonths, subMonths, getWeek, addDays, subDays, startOfDay } from 'date-fns';
+import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isToday, isEqual, addMonths, subMonths, getWeek, addDays, subDays, startOfDay, addWeeks, subWeeks } from 'date-fns';
 import Loading from "./loading";
 
 
