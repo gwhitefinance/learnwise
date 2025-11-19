@@ -34,6 +34,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSubContent,
 } from '@/components/ui/dropdown-menu';
+import AudioPlayer from '@/components/audio-player';
 
 type ChapterContentBlock = {
     type: 'text' | 'question';
@@ -69,17 +70,24 @@ const ChapterContentDisplay = ({ chapter }: { chapter: Chapter }) => {
     const [submittedAnswers, setSubmittedAnswers] = useState<Record<number, boolean>>({});
 
     useEffect(() => {
+        let parsedContent: ChapterContentBlock[] = [];
         if (Array.isArray(chapter.content)) {
-            setContentBlocks(chapter.content);
-        } else if (typeof chapter.content === 'string' && chapter.content.trim().startsWith('[')) {
-            try {
-                setContentBlocks(JSON.parse(chapter.content));
-            } catch (e) {
-                setContentBlocks([{ type: 'text', content: chapter.content }]);
-            }
+            parsedContent = chapter.content;
         } else if (typeof chapter.content === 'string') {
-            setContentBlocks([{ type: 'text', content: chapter.content }]);
+            try {
+                // Try parsing if it's a JSON string
+                const parsed = JSON.parse(chapter.content);
+                if (Array.isArray(parsed)) {
+                    parsedContent = parsed;
+                } else {
+                    throw new Error('Not an array');
+                }
+            } catch (e) {
+                // If parsing fails, treat it as a single text block
+                parsedContent = [{ type: 'text', content: chapter.content }];
+            }
         }
+        setContentBlocks(parsedContent);
     }, [chapter]);
 
 
@@ -90,9 +98,13 @@ const ChapterContentDisplay = ({ chapter }: { chapter: Chapter }) => {
     const handleSubmitAnswer = (questionIndex: number) => {
         setSubmittedAnswers(prev => ({...prev, [questionIndex]: true}));
     };
+    
+    const fullTextContent = contentBlocks.map(block => block.content || block.question).join(' ');
+
 
     return (
         <div className="py-4 space-y-8 prose dark:prose-invert max-w-none">
+            <AudioPlayer textToPlay={fullTextContent} />
             {contentBlocks.map((block, index) => (
                 <div key={index}>
                     {block.type === 'text' && (
@@ -827,4 +839,3 @@ export default function ChapterPage() {
         </div>
     )
 }
-
