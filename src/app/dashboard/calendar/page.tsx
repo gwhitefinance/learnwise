@@ -1,4 +1,6 @@
+
 "use client";
+import { Suspense } from 'react';
 import dynamic from 'next/dynamic';
 import Loading from './loading';
 
@@ -8,5 +10,9 @@ const CalendarClientPage = dynamic(() => import('./CalendarClientPage'), {
 });
 
 export default function CalendarPage() {
-  return <CalendarClientPage />;
+  return (
+    <Suspense fallback={<Loading/>}>
+        <CalendarClientPage />
+    </Suspense>
+  );
 }
