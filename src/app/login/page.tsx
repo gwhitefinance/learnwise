@@ -73,6 +73,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSuccessfulLogin = async (user: any) => {
     const userDocRef = doc(db, "users", user.uid);
@@ -124,6 +125,7 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError(null);
     try {
         const auth = getAuth(app);
         const result = await signInWithEmailAndPassword(auth, email, password);
@@ -133,11 +135,11 @@ export default function LoginPage() {
         });
         await handleSuccessfulLogin(result.user);
     } catch (error: any) {
-        let description = "An unexpected error occurred. Please try again.";
         if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-email' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
-             description = "Invalid email or password. Please try again.";
+             setError("Invalid email or password. Please try again.");
+        } else {
+            setError("An unexpected error occurred. Please try again.");
         }
-        toast({ variant: "destructive", title: "Login failed", description });
     } finally {
         setIsLoading(false);
     }
@@ -145,6 +147,7 @@ export default function LoginPage() {
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
+    setError(null);
     try {
         const auth = getAuth(app);
         const provider = new GoogleAuthProvider();
@@ -156,11 +159,7 @@ export default function LoginPage() {
         });
     } catch (error: any) {
         console.error("Google sign-in error:", error);
-        toast({
-            variant: "destructive",
-            title: "Google Sign-in failed",
-            description: error.message,
-        });
+        setError("Google Sign-in failed. Please try again.");
     } finally {
         setIsLoading(false);
     }
@@ -234,6 +233,7 @@ export default function LoginPage() {
                     </Link>
                 </div>
             </div>
+             {error && <p className="text-sm font-medium text-destructive">{error}</p>}
             <Button type="submit" className="h-12 w-full bg-primary hover:bg-primary/90 rounded-lg text-base font-bold" disabled={isLoading}>
                 {isLoading ? <Loader2 className="animate-spin"/> : 'Log In'}
             </Button>
