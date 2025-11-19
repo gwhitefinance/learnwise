@@ -1,9 +1,9 @@
 
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Play, Pause, RotateCcw, Loader2 } from 'lucide-react';
+import { Play, Pause, RotateCcw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface AudioPlayerProps {
@@ -18,71 +18,72 @@ export default function AudioPlayer({ textToPlay, onBoundary, onEnd }: AudioPlay
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const { toast } = useToast();
 
+  const cleanup = useCallback(() => {
+    if (window.speechSynthesis.speaking) {
+      window.speechSynthesis.cancel();
+    }
+    setIsPlaying(false);
+    setIsPaused(false);
+    onEnd();
+  }, [onEnd]);
+
   useEffect(() => {
     const synth = window.speechSynthesis;
-    const utterance = new SpeechSynthesisUtterance(textToPlay);
-
-    const handleUtteranceEnd = () => {
-      setIsPlaying(false);
-      setIsPaused(false);
-      onEnd();
-    };
-
-    const handleUtteranceError = (event: SpeechSynthesisErrorEvent) => {
-      // Ignore 'interrupted' and 'canceled' as they are expected on re-render or stop
-      if (event.error !== 'interrupted' && event.error !== 'canceled') {
-        console.error("Speech synthesis error:", event.error);
-        toast({ variant: 'destructive', title: 'Audio Error', description: `Could not play audio. Error: ${event.error}` });
-      }
-      // Ensure state is reset
-      setIsPlaying(false);
-      setIsPaused(false);
-    };
-
-    utterance.onboundary = (event) => {
-      if (event.name === 'word') {
-        onBoundary(event.charIndex);
-      }
-    };
-    utterance.onend = handleUtteranceEnd;
-    utterance.onerror = handleUtteranceError;
     
-    utteranceRef.current = utterance;
-
-    // Cleanup on component unmount or when text changes
+    // Cleanup on component unmount
     return () => {
-      onEnd(); // Reset highlights
       synth.cancel();
     };
-  }, [textToPlay, onBoundary, onEnd, toast]);
+  }, []);
 
   const handlePlayPause = () => {
     const synth = window.speechSynthesis;
-    if (!utteranceRef.current) return;
 
-    if (synth.speaking) {
-        if (synth.paused) {
-            synth.resume();
-            setIsPaused(false);
-        } else {
-            synth.pause();
-            setIsPaused(true);
-        }
-    } else {
-        // If not speaking, start fresh
-        synth.speak(utteranceRef.current);
-        setIsPlaying(true);
+    if (isPlaying) {
+      if (isPaused) {
+        synth.resume();
         setIsPaused(false);
+      } else {
+        synth.pause();
+        setIsPaused(true);
+      }
+    } else {
+      // Start new speech
+      cleanup(); // Clean up any previous state
+      
+      const utterance = new SpeechSynthesisUtterance(textToPlay);
+      
+      utterance.onboundary = (event) => {
+        if (event.name === 'word') {
+          onBoundary(event.charIndex);
+        }
+      };
+
+      utterance.onend = () => {
+        setIsPlaying(false);
+        setIsPaused(false);
+        onEnd();
+      };
+      
+      utterance.onerror = (event) => {
+        if (event.error !== 'interrupted' && event.error !== 'canceled') {
+          toast({ variant: 'destructive', title: 'Audio Error', description: `Could not play audio. Error: ${event.error}` });
+        }
+        setIsPlaying(false);
+        setIsPaused(false);
+        onEnd();
+      };
+
+      utteranceRef.current = utterance;
+      synth.speak(utterance);
+      setIsPlaying(true);
+      setIsPaused(false);
     }
   };
 
   const handleReset = () => {
-    const synth = window.speechSynthesis;
-    synth.cancel();
-    setIsPlaying(false);
-    setIsPaused(false);
-    onEnd();
-  }
+    cleanup();
+  };
 
   return (
     <div className="mb-4 flex items-center gap-2 not-prose">
