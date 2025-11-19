@@ -4,7 +4,7 @@
 import * as React from "react"
 import { format } from "date-fns"
 import { Calendar as CalendarIcon } from "lucide-react"
-import dynamic from 'next/dynamic';
+import { Calendar } from "@/components/ui/calendar"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -14,14 +14,21 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 
-const Calendar = dynamic(() => import('@/components/ui/calendar').then(mod => mod.Calendar), { ssr: false });
-
 interface DatePickerProps {
     date: Date | undefined;
     setDate: (date: Date | undefined) => void;
 }
 
 export function DatePicker({ date, setDate }: DatePickerProps) {
+  const [isClient, setIsClient] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  if (!isClient) {
+    return null; // Don't render on the server
+  }
 
   return (
     <Popover>
