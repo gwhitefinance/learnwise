@@ -466,37 +466,47 @@ export default function CalendarClientPage() {
       }
   };
 
-  // Memoized date calculations
-  const { weekDays, monthWeeks, miniCalendarDays, currentMonthName, currentDayName } = useMemo(() => {
+  const calendarData = useMemo(() => {
     if (!currentDate) {
-        return {
-            weekDays: [],
-            monthWeeks: [],
-            miniCalendarDays: [],
-            currentMonthName: '',
-            currentDayName: '',
-        };
+      return {
+        weekDays: [],
+        monthWeeks: [],
+        miniCalendarDays: [],
+        currentMonthName: '',
+        currentDayName: '',
+      };
     }
     const firstDayOfMonth = startOfMonth(currentDate);
-    const lastDayOfMonth = endOfMonth(currentDate);
-    const daysInMonthArray = eachDayOfInterval({ start: firstDayOfMonth, end: lastDayOfMonth });
+    const daysInMonthArray = eachDayOfInterval({
+      start: firstDayOfMonth,
+      end: endOfMonth(currentDate),
+    });
     const firstDayOffset = getDay(firstDayOfMonth);
 
     return {
-        weekDays: eachDayOfInterval({ start: startOfWeek(currentDate), end: endOfWeek(currentDate) }),
-        monthWeeks: eachWeekOfInterval({ start: firstDayOfMonth, end: lastDayOfMonth }, { weekStartsOn: 0 }),
-        miniCalendarDays: [
-            ...Array.from({ length: firstDayOffset }, () => null),
-            ...daysInMonthArray.map(day => day.getDate())
-        ],
-        currentMonthName: format(currentDate, "MMMM yyyy"),
-        currentDayName: format(currentDate, "MMMM d")
+      weekDays: eachDayOfInterval({
+        start: startOfWeek(currentDate),
+        end: endOfWeek(currentDate),
+      }),
+      monthWeeks: eachWeekOfInterval(
+        { start: firstDayOfMonth, end: endOfMonth(currentDate) },
+        { weekStartsOn: 0 }
+      ),
+      miniCalendarDays: [
+        ...Array.from({ length: firstDayOffset }, () => null),
+        ...daysInMonthArray.map((day) => day.getDate()),
+      ],
+      currentMonthName: format(currentDate, "MMMM yyyy"),
+      currentDayName: format(currentDate, "MMMM d"),
     };
   }, [currentDate]);
-  
+
   if (!currentDate) {
     return <Loading />;
   }
+
+  const { weekDays, monthWeeks, miniCalendarDays, currentMonthName, currentDayName } = calendarData;
+
 
   return (
     <div className={cn("min-h-screen w-full overflow-hidden")}>
