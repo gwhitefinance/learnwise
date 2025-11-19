@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -20,32 +19,30 @@ export default function AudioPlayer({ textToPlay, onBoundary, onEnd }: AudioPlay
 
   useEffect(() => {
     const synth = window.speechSynthesis;
-    const handleUnload = () => synth.cancel();
-    window.addEventListener('beforeunload', handleUnload);
-
-    // Create a new utterance instance when the text changes.
-    const utterance = new SpeechSynthesisUtterance(textToPlay);
     
+    const handleUtteranceEnd = () => {
+      setIsPlaying(false);
+      setIsPaused(false);
+      onEnd();
+    };
+
+    const handleUtteranceError = (event: SpeechSynthesisErrorEvent) => {
+      if (event.error !== 'interrupted' && event.error !== 'canceled') {
+        console.error("Speech synthesis error:", event.error);
+        toast({ variant: 'destructive', title: 'Audio Error', description: `Could not play audio. Error: ${event.error}` });
+      }
+      setIsPlaying(false);
+      setIsPaused(false);
+    };
+    
+    const utterance = new SpeechSynthesisUtterance(textToPlay);
     utterance.onboundary = (event) => {
         if (event.name === 'word') {
             onBoundary(event.charIndex);
         }
     };
-
-    utterance.onend = () => {
-        setIsPlaying(false);
-        setIsPaused(false);
-        onEnd();
-    };
-    
-    utterance.onerror = (event) => {
-        if (event.error !== 'interrupted') { // Ignore benign interruption errors
-            console.error("Speech synthesis error:", event.error);
-            toast({ variant: 'destructive', title: 'Audio Error', description: `Could not play audio. Error: ${event.error}` });
-        }
-        setIsPlaying(false);
-        setIsPaused(false);
-    }
+    utterance.onend = handleUtteranceEnd;
+    utterance.onerror = handleUtteranceError;
 
     utteranceRef.current = utterance;
 
@@ -53,8 +50,9 @@ export default function AudioPlayer({ textToPlay, onBoundary, onEnd }: AudioPlay
     return () => {
       // It's important to cancel any ongoing speech when the component unmounts
       // or when the textToPlay dependency changes, which triggers a re-render.
-      synth.cancel();
-      window.removeEventListener('beforeunload', handleUnload);
+      if (synth.speaking) {
+        synth.cancel();
+      }
     };
   }, [textToPlay, onBoundary, onEnd, toast]);
 
@@ -62,20 +60,20 @@ export default function AudioPlayer({ textToPlay, onBoundary, onEnd }: AudioPlay
     const synth = window.speechSynthesis;
     if (!utteranceRef.current) return;
 
-    if (synth.speaking) {
-        if (synth.paused) {
-            synth.resume();
-            setIsPaused(false);
-        } else {
-            synth.pause();
-            setIsPaused(true);
-        }
-    } else {
-        // Ensure any previous speech is cancelled before starting a new one
-        synth.cancel(); 
-        synth.speak(utteranceRef.current);
-        setIsPlaying(true);
+    if (isPlaying) {
+      if (isPaused) {
+        synth.resume();
         setIsPaused(false);
+      } else {
+        synth.pause();
+        setIsPaused(true);
+      }
+    } else {
+      // Ensure any previous speech is cancelled before starting a new one
+      synth.cancel(); 
+      synth.speak(utteranceRef.current);
+      setIsPlaying(true);
+      setIsPaused(false);
     }
   };
 
@@ -91,7 +89,7 @@ export default function AudioPlayer({ textToPlay, onBoundary, onEnd }: AudioPlay
     <div className="mb-4 flex items-center gap-2 not-prose">
       <Button onClick={handlePlayPause} variant="outline" size="sm">
         {isPlaying && !isPaused ? <Pause className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}
-        {isPlaying && !isPaused ? 'Pause' : 'Listen'}
+        {isPaused ? 'Resume' : isPlaying ? 'Pause' : 'Listen'}
       </Button>
       <Button onClick={handleReset} variant="ghost" size="sm">
           <RotateCcw className="mr-2 h-4 w-4"/> Reset
