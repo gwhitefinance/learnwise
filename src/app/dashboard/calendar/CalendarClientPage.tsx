@@ -39,6 +39,7 @@ import { collection, addDoc, query, where, getDocs, deleteDoc, doc, updateDoc, o
 import { useRouter, useSearchParams } from "next/navigation";
 import { format, eachDayOfInterval, startOfWeek, endOfWeek, startOfMonth, endOfMonth, getDay, isToday, isEqual, addMonths, subMonths, eachWeekOfInterval, addDays, getWeek, addWeeks, subWeeks, startOfDay } from 'date-fns';
 import AIBuddy from "@/components/ai-buddy";
+import Loading from "./loading";
 
 
 type Event = {
@@ -138,7 +139,7 @@ export default function CalendarClientPage() {
   const [tempEventTypes, setTempEventTypes] = useState(eventTypes);
 
   // Date state
-  const [currentDate, setCurrentDate] = useState<Date>(new Date());
+  const [currentDate, setCurrentDate] = useState<Date | null>(null);
   const [isDateInitialized, setIsDateInitialized] = useState(false);
 
   // Google Calendar Integration
@@ -264,8 +265,6 @@ export default function CalendarClientPage() {
 
   const [currentView, setCurrentView] = useState("week")
   
-  const currentMonthName = format(currentDate, "MMMM yyyy");
-  const currentDayName = format(currentDate, "MMMM d");
   
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
 
@@ -292,15 +291,15 @@ export default function CalendarClientPage() {
     fileInputRef.current?.click();
   };
 
-  const weekDays = eachDayOfInterval({
+  const weekDays = currentDate ? eachDayOfInterval({
     start: startOfWeek(currentDate),
     end: endOfWeek(currentDate)
-  });
+  }) : [];
 
-  const monthWeeks = eachWeekOfInterval({
+  const monthWeeks = currentDate ? eachWeekOfInterval({
     start: startOfMonth(currentDate),
     end: endOfMonth(currentDate)
-  }, { weekStartsOn: 0 });
+  }, { weekStartsOn: 0 }) : [];
 
   const timeSlots = Array.from({ length: 17 }, (_, i) => i + 8) // 8 AM to 12 AM
 
@@ -312,15 +311,15 @@ export default function CalendarClientPage() {
     return { top: `${top}px`, height: `${height}px` }
   }
 
-  const firstDayOfMonth = startOfMonth(currentDate);
-  const lastDayOfMonth = endOfMonth(currentDate);
-  const daysInMonthArray = eachDayOfInterval({ start: firstDayOfMonth, end: lastDayOfMonth });
-  const firstDayOffset = getDay(firstDayOfMonth);
+  const firstDayOfMonth = currentDate ? startOfMonth(currentDate) : new Date();
+  const lastDayOfMonth = currentDate ? endOfMonth(currentDate) : new Date();
+  const daysInMonthArray = currentDate ? eachDayOfInterval({ start: firstDayOfMonth, end: lastDayOfMonth }) : [];
+  const firstDayOffset = currentDate ? getDay(firstDayOfMonth) : 0;
   
-  const miniCalendarDays: (number | null)[] = [
+  const miniCalendarDays: (number | null)[] = currentDate ? [
     ...Array.from({ length: firstDayOffset }, () => null),
     ...daysInMonthArray.map(day => day.getDate())
-  ];
+  ] : [];
 
 
   const togglePlay = () => {
@@ -482,6 +481,7 @@ export default function CalendarClientPage() {
   }
 
   const handlePrev = () => {
+    if (!currentDate) return;
     if (currentView === 'month') {
         setCurrentDate(subMonths(currentDate, 1));
     } else if (currentView === 'week') {
@@ -492,6 +492,7 @@ export default function CalendarClientPage() {
   };
 
   const handleNext = () => {
+    if (!currentDate) return;
       if (currentView === 'month') {
           setCurrentDate(addMonths(currentDate, 1));
       } else if (currentView === 'week') {
@@ -500,7 +501,13 @@ export default function CalendarClientPage() {
           setCurrentDate(addDays(currentDate, 1));
       }
   };
+  
+  if (!currentDate) {
+    return <Loading />;
+  }
 
+  const currentMonthName = format(currentDate, "MMMM yyyy");
+  const currentDayName = format(currentDate, "MMMM d");
 
   return (
     <div className={cn("min-h-screen w-full overflow-hidden")}>
@@ -602,10 +609,10 @@ export default function CalendarClientPage() {
               <div className="flex items-center justify-between mb-4">
                 <h3 className={`${textClass} font-medium`}>{currentMonthName}</h3>
                 <div className="flex gap-1">
-                  <button onClick={() => setCurrentDate(subMonths(currentDate, 1))} className="p-1 rounded-full hover:bg-white/20">
+                  <button onClick={() => currentDate && setCurrentDate(subMonths(currentDate, 1))} className="p-1 rounded-full hover:bg-white/20">
                     <ChevronLeft className={`h-4 w-4 ${textClass}`} />
                   </button>
-                  <button onClick={() => setCurrentDate(addMonths(currentDate, 1))} className="p-1 rounded-full hover:bg-white/20">
+                  <button onClick={() => currentDate && setCurrentDate(addMonths(currentDate, 1))} className="p-1 rounded-full hover:bg-white/20">
                     <ChevronRight className={`h-4 w-4 ${textClass}`} />
                   </button>
                 </div>
@@ -622,7 +629,7 @@ export default function CalendarClientPage() {
                   <div
                     key={i}
                     className={`text-xs rounded-full w-7 h-7 flex items-center justify-center ${
-                      day && isToday(new Date(currentDate.getFullYear(), currentDate.getMonth(), day)) ? "bg-blue-500 text-white" : `${textClass} hover:bg-white/20`
+                      day && currentDate && isToday(new Date(currentDate.getFullYear(), currentDate.getMonth(), day)) ? "bg-blue-500 text-white" : `${textClass} hover:bg-white/20`
                     } ${!day ? "invisible" : ""}`}
                   >
                     {day}
@@ -651,7 +658,7 @@ export default function CalendarClientPage() {
         >
           <div className={`flex items-center justify-between p-4 border-b ${borderClass}`}>
             <div className="flex items-center gap-4">
-              <Button onClick={() => setCurrentDate(new Date())} variant="outline" className={`px-4 py-2 ${textClass} rounded-md`}>Today</Button>
+              <Button onClick={() => currentDate && setCurrentDate(new Date())} variant="outline" className={`px-4 py-2 ${textClass} rounded-md`}>Today</Button>
               <div className="flex">
                 <button onClick={handlePrev} className={`p-2 ${textClass} hover:bg-white/10 rounded-l-md`}>
                   <ChevronLeft className="h-5 w-5" />
