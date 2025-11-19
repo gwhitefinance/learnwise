@@ -27,7 +27,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
   DropdownMenuSeparator,
   DropdownMenuSub,
   DropdownMenuSubTrigger,
@@ -459,8 +458,42 @@ export default function ChapterPage() {
     const [generationProgress, setGenerationProgress] = useState(0);
 
     const [popup, setPopup] = useState<{ x: number, y: number, text: string } | null>(null);
+    const [contextMenu, setContextMenu] = useState<{ x: number, y: number, target: HTMLElement } | null>(null);
+
     const contentRef = useRef<HTMLDivElement>(null);
     const selectionRef = useRef<Selection | null>(null);
+
+    const handleContextMenu = (e: React.MouseEvent) => {
+        e.preventDefault();
+        const target = e.target as HTMLElement;
+        if (target.tagName === 'MARK') {
+            setContextMenu({ x: e.clientX, y: e.clientY, target });
+        } else {
+            setContextMenu(null);
+        }
+    };
+
+    const handleRemoveHighlight = () => {
+        if (contextMenu) {
+            const markElement = contextMenu.target;
+            const parent = markElement.parentNode;
+            if (parent) {
+                while(markElement.firstChild) {
+                    parent.insertBefore(markElement.firstChild, markElement);
+                }
+                parent.removeChild(markElement);
+            }
+        }
+        setContextMenu(null);
+    }
+    
+    useEffect(() => {
+        const handleClickOutside = () => {
+            setContextMenu(null);
+        };
+        document.addEventListener('click', handleClickOutside);
+        return () => document.removeEventListener('click', handleClickOutside);
+    }, []);
 
     useEffect(() => {
         if (!user || !courseId || !chapterId) {
@@ -521,6 +554,11 @@ export default function ChapterPage() {
         });
         
         const handleMouseUp = () => {
+            // Close context menu on any mouse up
+            if (contextMenu) {
+                setContextMenu(null);
+            }
+            
             const selection = window.getSelection();
             selectionRef.current = selection;
             const selectedText = selection?.toString().trim();
@@ -543,7 +581,7 @@ export default function ChapterPage() {
             unsubscribe();
             document.removeEventListener('mouseup', handleMouseUp);
         };
-    }, [courseId, chapterId, user, authLoading, router, toast]);
+    }, [courseId, chapterId, user, authLoading, router, toast, contextMenu]);
 
     const handleComplete = async () => {
         if (!course || !user || !chapter || !unit) return;
@@ -726,15 +764,11 @@ export default function ChapterPage() {
                                     </DropdownMenuSubTrigger>
                                     <DropdownMenuPortal>
                                         <DropdownMenuSubContent>
-                                            <DropdownMenuItem onSelect={() => handleHighlight('highlight-yellow')}>
-                                                <div className="w-4 h-4 mr-2 rounded-full bg-yellow-300/70 border border-yellow-400"/> Yellow
-                                            </DropdownMenuItem>
-                                             <DropdownMenuItem onSelect={() => handleHighlight('highlight-blue')}>
-                                                <div className="w-4 h-4 mr-2 rounded-full bg-blue-300/70 border border-blue-400"/> Blue
-                                            </DropdownMenuItem>
-                                             <DropdownMenuItem onSelect={() => handleHighlight('highlight-pink')}>
-                                                <div className="w-4 h-4 mr-2 rounded-full bg-pink-300/70 border border-pink-400"/> Pink
-                                            </DropdownMenuItem>
+                                            {highlightColors.map(color => (
+                                                <DropdownMenuItem key={color.class} onSelect={() => handleHighlight(color.class)}>
+                                                    <div className={`w-4 h-4 mr-2 rounded-full ${color.class.replace('highlight-', 'bg-')}/70 border border-${color.class.split('-')[1]}-400`}/> {color.name}
+                                                </DropdownMenuItem>
+                                            ))}
                                         </DropdownMenuSubContent>
                                     </DropdownMenuPortal>
                                 </DropdownMenuSub>
@@ -746,6 +780,25 @@ export default function ChapterPage() {
                         </DropdownMenu>
                     </motion.div>
                 )}
+
+                {contextMenu && (
+                     <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        style={{
+                            position: 'fixed',
+                            left: contextMenu.x,
+                            top: contextMenu.y,
+                            zIndex: 1000,
+                        }}
+                        className="bg-background border rounded-md shadow-lg p-1"
+                    >
+                        <Button variant="ghost" size="sm" className="w-full justify-start" onClick={handleRemoveHighlight}>
+                            Remove Highlight
+                        </Button>
+                    </motion.div>
+                )}
             </AnimatePresence>
             <Button variant="ghost" onClick={() => router.push(`/dashboard/courses/${courseId}`)} className="mb-4">
                 <ArrowLeft className="mr-2 h-4 w-4"/>
@@ -754,7 +807,7 @@ export default function ChapterPage() {
             <h1 className="text-4xl font-bold mb-2">{chapter.title}</h1>
             <p className="text-muted-foreground mb-8">From course: {course?.name}</p>
 
-            <div ref={contentRef}>
+            <div ref={contentRef} onContextMenu={handleContextMenu}>
                 <ChapterContentDisplay chapter={chapter} />
             </div>
             
@@ -765,3 +818,5 @@ export default function ChapterPage() {
         </div>
     )
 }
+
+    
