@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useCallback, useRef, useContext } from 'react';
@@ -49,6 +50,12 @@ type Unit = {
     chapters: Chapter[];
 };
 
+type QuizResult = {
+    id: string;
+    score: number;
+    totalQuestions: number;
+};
+
 type Course = {
     id: string;
     name: string;
@@ -64,6 +71,7 @@ export default function CoursePage() {
     const router = useRouter();
     const [user, authLoading] = useAuthState(auth);
     const [course, setCourse] = useState<Course | null>(null);
+    const [quizResults, setQuizResults] = useState<QuizResult[]>([]);
     const [loading, setLoading] = useState(true);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);
@@ -126,8 +134,17 @@ export default function CoursePage() {
             console.error("Error fetching course:", error);
             router.push('/dashboard/courses');
         });
+        
+        const resultsQuery = query(collection(db, "quizResults"), where("userId", "==", user.uid), where("courseId", "==", courseId));
+        const unsubscribeResults = onSnapshot(resultsQuery, (snapshot) => {
+            const resultsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as QuizResult));
+            setQuizResults(resultsData);
+        });
 
-        return () => unsubscribe();
+        return () => {
+            unsubscribe();
+            unsubscribeResults();
+        }
     }, [courseId, user, router]);
 
     const openUnit = (unit: Unit) => {
@@ -266,7 +283,6 @@ export default function CoursePage() {
                     userAnswer,
                     correctAnswer: currentQuestion.correctAnswer,
                     learnerType: "Reading/Writing", // Default for simplicity here
-                    // FIX: Added the required provideFullExplanation property
                     provideFullExplanation: true 
                 });
                 explanationText = result.explanation;
@@ -409,7 +425,7 @@ export default function CoursePage() {
                         >
                             {currentQuestion.options.map((option, index) => (
                                  <Label key={index} className={cn(
-                                    "flex items-center gap-3 p-4 rounded-lg border transition-all cursor-pointer",
+                                    "flex items-center gap-4 p-4 rounded-lg border transition-all cursor-pointer",
                                     isAnswered && (option === currentQuestion.correctAnswer ? "border-green-500 bg-green-500/10" : (practiceAnswers[currentPracticeQuestionIndex] === option ? "border-red-500 bg-red-500/10" : "")),
                                     !isAnswered && (practiceAnswers[currentPracticeQuestionIndex] === option ? "border-primary" : "")
                                 )}>
@@ -468,6 +484,14 @@ export default function CoursePage() {
     const progress = totalChapters > 0 ? (completedChaptersCount / totalChapters) * 100 : 0;
     const hasContent = course.units && course.units.length > 0;
 
+    const calculateCourseGrade = () => {
+        if (quizResults.length === 0) return null;
+        const totalScore = quizResults.reduce((acc, result) => acc + (result.score / result.totalQuestions), 0);
+        const average = (totalScore / quizResults.length) * 100;
+        return Math.round(average);
+    }
+    const courseGrade = calculateCourseGrade();
+
     return (
         <TooltipProvider>
             <main className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-7xl mx-auto">
@@ -483,14 +507,31 @@ export default function CoursePage() {
                                 <p className="text-secondary-dark-text dark:text-gray-400 text-base font-normal leading-normal">{course.description || 'Your central dashboard for all course materials and study tools.'}</p>
                             </div>
                         </div>
-                        <div className="flex flex-col gap-4 mb-8 bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
-                            <div className="flex gap-6 justify-between items-center">
-                                <p className="text-base font-medium">Course Progress</p>
-                                <p className="text-sm font-semibold">{Math.round(progress)}%</p>
-                            </div>
-                            <div className="rounded-full bg-gray-200 dark:bg-gray-700 h-2.5">
-                                <div className="h-2.5 rounded-full bg-primary" style={{ width: `${progress}%` }}></div>
-                            </div>
+                        <div className="flex flex-col sm:flex-row gap-4 mb-8">
+                            <Card className="flex-1">
+                                <CardHeader>
+                                    <CardTitle>Course Progress</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="flex gap-6 justify-between items-center">
+                                        <p className="text-4xl font-bold">{Math.round(progress)}%</p>
+                                    </div>
+                                    <Progress value={progress} className="mt-2 h-2.5" />
+                                </CardContent>
+                            </Card>
+                             <Card className="flex-1">
+                                <CardHeader>
+                                    <CardTitle>Course Grade</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="flex gap-6 justify-between items-center">
+                                        <p className="text-4xl font-bold">{courseGrade !== null ? `${courseGrade}%` : 'N/A'}</p>
+                                    </div>
+                                     <p className="text-xs text-muted-foreground mt-2">
+                                        {courseGrade !== null ? `Based on ${quizResults.length} quiz(zes).` : 'Take quizzes to see your grade.'}
+                                    </p>
+                                </CardContent>
+                            </Card>
                         </div>
                         <h2 className="text-2xl font-bold leading-tight tracking-[-0.015em] mb-4">My Study Units</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
