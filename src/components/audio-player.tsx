@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -19,7 +20,8 @@ export default function AudioPlayer({ textToPlay, onBoundary, onEnd }: AudioPlay
 
   useEffect(() => {
     const synth = window.speechSynthesis;
-    
+    const utterance = new SpeechSynthesisUtterance(textToPlay);
+
     const handleUtteranceEnd = () => {
       setIsPlaying(false);
       setIsPaused(false);
@@ -27,32 +29,30 @@ export default function AudioPlayer({ textToPlay, onBoundary, onEnd }: AudioPlay
     };
 
     const handleUtteranceError = (event: SpeechSynthesisErrorEvent) => {
+      // Ignore 'interrupted' and 'canceled' as they are expected on re-render or stop
       if (event.error !== 'interrupted' && event.error !== 'canceled') {
         console.error("Speech synthesis error:", event.error);
         toast({ variant: 'destructive', title: 'Audio Error', description: `Could not play audio. Error: ${event.error}` });
       }
+      // Ensure state is reset
       setIsPlaying(false);
       setIsPaused(false);
     };
-    
-    const utterance = new SpeechSynthesisUtterance(textToPlay);
+
     utterance.onboundary = (event) => {
-        if (event.name === 'word') {
-            onBoundary(event.charIndex);
-        }
+      if (event.name === 'word') {
+        onBoundary(event.charIndex);
+      }
     };
     utterance.onend = handleUtteranceEnd;
     utterance.onerror = handleUtteranceError;
-
+    
     utteranceRef.current = utterance;
 
-    // Cleanup function: This is crucial.
+    // Cleanup on component unmount or when text changes
     return () => {
-      // It's important to cancel any ongoing speech when the component unmounts
-      // or when the textToPlay dependency changes, which triggers a re-render.
-      if (synth.speaking) {
-        synth.cancel();
-      }
+      onEnd(); // Reset highlights
+      synth.cancel();
     };
   }, [textToPlay, onBoundary, onEnd, toast]);
 
@@ -60,29 +60,28 @@ export default function AudioPlayer({ textToPlay, onBoundary, onEnd }: AudioPlay
     const synth = window.speechSynthesis;
     if (!utteranceRef.current) return;
 
-    if (isPlaying) {
-      if (isPaused) {
-        synth.resume();
-        setIsPaused(false);
-      } else {
-        synth.pause();
-        setIsPaused(true);
-      }
+    if (synth.speaking) {
+        if (synth.paused) {
+            synth.resume();
+            setIsPaused(false);
+        } else {
+            synth.pause();
+            setIsPaused(true);
+        }
     } else {
-      // Ensure any previous speech is cancelled before starting a new one
-      synth.cancel(); 
-      synth.speak(utteranceRef.current);
-      setIsPlaying(true);
-      setIsPaused(false);
+        // If not speaking, start fresh
+        synth.speak(utteranceRef.current);
+        setIsPlaying(true);
+        setIsPaused(false);
     }
   };
 
   const handleReset = () => {
-      const synth = window.speechSynthesis;
-      synth.cancel();
-      setIsPlaying(false);
-      setIsPaused(false);
-      onEnd();
+    const synth = window.speechSynthesis;
+    synth.cancel();
+    setIsPlaying(false);
+    setIsPaused(false);
+    onEnd();
   }
 
   return (
