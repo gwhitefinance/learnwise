@@ -8,7 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { doc, onSnapshot, getDoc, updateDoc, arrayUnion, collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { ArrowLeft, Check, Loader2, X, CheckCircle, XCircle, MessageSquare, ChevronDown, Highlighter, Save } from 'lucide-react';
+import { ArrowLeft, Check, Loader2, X, CheckCircle, XCircle, MessageSquare, ChevronDown, Highlighter, Save, Palette } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
@@ -29,6 +29,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+  DropdownMenuPortal,
 } from '@/components/ui/dropdown-menu';
 
 type ChapterContentBlock = {
@@ -645,11 +649,11 @@ export default function ChapterPage() {
         }
     }
 
-    const handleHighlight = () => {
+    const handleHighlight = (colorClass: string) => {
         if (selectionRef.current && selectionRef.current.rangeCount > 0) {
             const range = selectionRef.current.getRangeAt(0);
-            const span = document.createElement('span');
-            span.style.backgroundColor = 'rgba(250, 243, 131, 0.7)'; // Yellow highlight
+            const span = document.createElement('mark');
+            span.className = colorClass;
             span.appendChild(range.extractContents());
             range.insertNode(span);
         }
@@ -680,6 +684,12 @@ export default function ChapterPage() {
         setPopup(null);
     };
     
+    const highlightColors = [
+        { name: 'Yellow', class: 'highlight-yellow' },
+        { name: 'Blue', class: 'highlight-blue' },
+        { name: 'Pink', class: 'highlight-pink' },
+    ];
+
     return (
         <div className="max-w-4xl mx-auto p-4 md:p-8">
              <AnimatePresence>
@@ -709,10 +719,25 @@ export default function ChapterPage() {
                                 </DropdownMenuTrigger>
                             </div>
                             <DropdownMenuContent align="center">
-                                <DropdownMenuItem onSelect={handleHighlight}>
-                                    <Highlighter className="w-4 h-4 mr-2" />
-                                    Highlight
-                                </DropdownMenuItem>
+                                <DropdownMenuSub>
+                                    <DropdownMenuSubTrigger>
+                                        <Highlighter className="w-4 h-4 mr-2" />
+                                        Highlight
+                                    </DropdownMenuSubTrigger>
+                                    <DropdownMenuPortal>
+                                        <DropdownMenuSubContent>
+                                            <DropdownMenuItem onSelect={() => handleHighlight('highlight-yellow')}>
+                                                <div className="w-4 h-4 mr-2 rounded-full bg-yellow-300/70 border border-yellow-400"/> Yellow
+                                            </DropdownMenuItem>
+                                             <DropdownMenuItem onSelect={() => handleHighlight('highlight-blue')}>
+                                                <div className="w-4 h-4 mr-2 rounded-full bg-blue-300/70 border border-blue-400"/> Blue
+                                            </DropdownMenuItem>
+                                             <DropdownMenuItem onSelect={() => handleHighlight('highlight-pink')}>
+                                                <div className="w-4 h-4 mr-2 rounded-full bg-pink-300/70 border border-pink-400"/> Pink
+                                            </DropdownMenuItem>
+                                        </DropdownMenuSubContent>
+                                    </DropdownMenuPortal>
+                                </DropdownMenuSub>
                                 <DropdownMenuItem onSelect={handleSaveAsNote}>
                                     <Save className="w-4 h-4 mr-2" />
                                     Save as Note
