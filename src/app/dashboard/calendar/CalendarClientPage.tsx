@@ -298,25 +298,56 @@ export default function CalendarClientPage() {
       )}
 
       {currentView === 'week' && (
-          <div className="grid grid-cols-1 grid-rows-1" style={{width: 'calc(100% - 4rem)'}}>
-              <div className="row-start-1 col-start-1 grid divide-y">
-                  {timeSlots.map(time => <div key={time}><div className="sticky left-0 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-muted-foreground">{time}</div></div>)}
-              </div>
-              <div className="col-start-1 row-start-1 grid grid-cols-7 grid-rows-1" style={{gridTemplateRows: 'repeat(24, minmax(3.5rem, 1fr))'}}>
-                    <div className="col-span-full row-span-full grid grid-cols-7 divide-x">
-                        <div className="col-start-1 row-span-full"/>
-                        <div className="col-start-2 row-span-full"/>
-                        <div className="col-start-3 row-span-full"/>
-                        <div className="col-start-4 row-span-full"/>
-                        <div className="col-start-5 row-span-full"/>
-                        <div className="col-start-6 row-span-full"/>
-                        <div className="col-start-7 row-span-full"/>
+         <div className="flex flex-1">
+            <div className="w-20 text-center text-sm text-muted-foreground">
+                <div className="h-20 border-b flex items-end justify-center pb-2">GMT-05</div>
+                {timeSlots.map(time => (
+                    <div key={time} className="h-24 border-b flex justify-center items-start pt-1">
+                        <span>{time.split(':')[0] % 12 === 0 ? 12 : time.split(':')[0] % 12} {parseInt(time.split(':')[0]) >= 12 ? 'PM' : 'AM'}</span>
                     </div>
-                    <div className="col-span-full row-span-full grid grid-cols-1 grid-rows-24 divide-y">
-                        {Array.from({length: 24}).map((_, i) => <div key={i} className="row-start-1"/>)}
+                ))}
+            </div>
+            <div className="grid flex-1 grid-cols-7">
+                {weekDays.map(day => (
+                    <div key={day.toString()} className="border-r">
+                        <div className="h-20 border-b text-center p-2">
+                            <p className="text-xs text-muted-foreground">{format(day, 'EEE').toUpperCase()}</p>
+                            <p className={cn("text-2xl font-bold", isToday(day) && "text-primary")}>{format(day, 'd')}</p>
+                        </div>
+                         <div className="relative">
+                            {timeSlots.map(time => (
+                                <div key={time} className="h-24 border-b" />
+                            ))}
+                            {/* Render events for this day */}
+                            {events
+                                .filter(e => isEqual(startOfDay(new Date(e.date)), startOfDay(day)))
+                                .map(event => {
+                                    const startHour = parseInt(event.startTime.split(':')[0]);
+                                    const startMinute = parseInt(event.startTime.split(':')[1]);
+                                    const endHour = parseInt(event.endTime.split(':')[0]);
+                                    const endMinute = parseInt(event.endTime.split(':')[1]);
+
+                                    const top = (startHour + startMinute / 60) * 6; // 6rem per hour (h-24)
+                                    const height = ((endHour + endMinute / 60) - (startHour + startMinute / 60)) * 6;
+
+                                    return (
+                                        <div
+                                            key={event.id}
+                                            onClick={() => setSelectedEvent(event)}
+                                            style={{ top: `${top}rem`, height: `${height}rem`}}
+                                            className={cn("absolute left-2 right-2 p-2 rounded-lg text-white text-xs cursor-pointer", defaultEventTypes[event.type])}
+                                        >
+                                            <p className="font-semibold">{event.title}</p>
+                                            <p>{event.startTime} - {event.endTime}</p>
+                                        </div>
+                                    )
+                                })
+                            }
+                        </div>
                     </div>
-              </div>
-          </div>
+                ))}
+            </div>
+        </div>
       )}
 
       {currentView === 'day' && (
