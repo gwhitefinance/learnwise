@@ -593,7 +593,9 @@ export default function CoursePage() {
                                                         <CardTitle className="flex items-center gap-2"><BookCopy className="h-5 w-5"/> {guide.title}</CardTitle>
                                                     </CardHeader>
                                                     <CardFooter className="mt-auto">
-                                                        <Button variant="outline" className="w-full">View Guide</Button>
+                                                        <Button variant="outline" className="w-full" asChild>
+                                                            <Link href={`/dashboard/study-guides/${guide.id}`}>View Guide</Link>
+                                                        </Button>
                                                     </CardFooter>
                                                 </Card>
                                             ))
