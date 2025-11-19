@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useRef, ChangeEvent } from "react";
+import { useState, useEffect, useRef, ChangeEvent, useMemo } from "react";
 import Image from "next/image";
 import {
   ChevronLeft,
