@@ -20,10 +20,10 @@ export default function AudioPlayer({ textToPlay, onBoundary, onEnd }: AudioPlay
 
   useEffect(() => {
     const synth = window.speechSynthesis;
-    // Cancel any ongoing speech when text changes or component unmounts
     const handleUnload = () => synth.cancel();
     window.addEventListener('beforeunload', handleUnload);
 
+    // Create a new utterance instance when the text changes.
     const utterance = new SpeechSynthesisUtterance(textToPlay);
     
     utterance.onboundary = (event) => {
@@ -39,15 +39,20 @@ export default function AudioPlayer({ textToPlay, onBoundary, onEnd }: AudioPlay
     };
     
     utterance.onerror = (event) => {
-        console.error("Speech synthesis error:", event.error);
-        toast({ variant: 'destructive', title: 'Audio Error', description: `Could not play audio. Error: ${event.error}` });
+        if (event.error !== 'interrupted') { // Ignore benign interruption errors
+            console.error("Speech synthesis error:", event.error);
+            toast({ variant: 'destructive', title: 'Audio Error', description: `Could not play audio. Error: ${event.error}` });
+        }
         setIsPlaying(false);
         setIsPaused(false);
     }
 
     utteranceRef.current = utterance;
 
+    // Cleanup function: This is crucial.
     return () => {
+      // It's important to cancel any ongoing speech when the component unmounts
+      // or when the textToPlay dependency changes, which triggers a re-render.
       synth.cancel();
       window.removeEventListener('beforeunload', handleUnload);
     };
@@ -66,10 +71,8 @@ export default function AudioPlayer({ textToPlay, onBoundary, onEnd }: AudioPlay
             setIsPaused(true);
         }
     } else {
-        // A fix for some browsers that require a fresh utterance object
-        if (utteranceRef.current.text !== textToPlay) {
-            utteranceRef.current.text = textToPlay;
-        }
+        // Ensure any previous speech is cancelled before starting a new one
+        synth.cancel(); 
         synth.speak(utteranceRef.current);
         setIsPlaying(true);
         setIsPaused(false);
