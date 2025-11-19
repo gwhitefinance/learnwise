@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useCallback, useRef, useContext } from 'react';
@@ -7,7 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { doc, onSnapshot, getDoc, updateDoc, arrayUnion, collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { ArrowLeft, Check, Loader2, X, CheckCircle, XCircle, MessageSquare } from 'lucide-react';
+import { ArrowLeft, Check, Loader2, X, CheckCircle, XCircle, MessageSquare, ChevronDown, Highlighter, Save } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
@@ -22,6 +23,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import Link from 'next/link';
 import { FloatingChatContext } from '@/components/floating-chat';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
 
 type ChapterContentBlock = {
     type: 'text' | 'question';
@@ -34,7 +42,6 @@ type ChapterContentBlock = {
 type Chapter = {
     id: string;
     title: string;
-    // FIX: Added "| string" here so TypeScript knows content can be a string before parsing
     content?: ChapterContentBlock[] | string;
     activity?: string;
 };
@@ -64,7 +71,6 @@ const ChapterContentDisplay = ({ chapter }: { chapter: Chapter }) => {
             try {
                 setContentBlocks(JSON.parse(chapter.content));
             } catch (e) {
-                // It's not JSON, treat as plain text
                 setContentBlocks([{ type: 'text', content: chapter.content }]);
             }
         } else if (typeof chapter.content === 'string') {
@@ -291,7 +297,6 @@ const ModuleQuiz = ({ course, unit }: { course: Course, unit: Unit }) => {
                 timestamp: serverTimestamp()
             });
 
-            // Save incorrect answers for review
             for (let i = 0; i < quiz.length; i++) {
                 if(userAnswers[i] && userAnswers[i] !== quiz[i].correctAnswer) {
                     await addDoc(collection(db, 'quizAttempts'), {
@@ -445,15 +450,13 @@ export default function ChapterPage() {
     const [unit, setUnit] = useState<Unit | null>(null);
     const [loading, setLoading] = useState(true);
     
-    // New state for generating next chapter
     const [isGeneratingNext, setIsGeneratingNext] = useState(false);
     const [currentSummary, setCurrentSummary] = useState('');
     const [generationProgress, setGenerationProgress] = useState(0);
 
-    // State for the highlight popup
     const [popup, setPopup] = useState<{ x: number, y: number, text: string } | null>(null);
     const contentRef = useRef<HTMLDivElement>(null);
-
+    const selectionRef = useRef<Selection | null>(null);
 
     useEffect(() => {
         if (!user || !courseId || !chapterId) {
@@ -480,7 +483,6 @@ export default function ChapterPage() {
                 }
 
                 if (foundChapter && foundUnit) {
-                    // If content is missing, generate it on the fly
                     if (!foundChapter.content) {
                         generateChapterContent({
                             courseName: courseData.name,
@@ -491,7 +493,6 @@ export default function ChapterPage() {
                             const updatedChapter = { ...foundChapter!, ...contentResult };
                             setChapter(updatedChapter);
                             setUnit(foundUnit!);
-                             // Update Firestore in the background
                             const updatedUnits = courseData.units.map(u => 
                                 u.id === foundUnit!.id ? {
                                     ...u,
@@ -517,6 +518,7 @@ export default function ChapterPage() {
         
         const handleMouseUp = () => {
             const selection = window.getSelection();
+            selectionRef.current = selection;
             const selectedText = selection?.toString().trim();
 
             if (selection && selectedText && contentRef.current?.contains(selection.anchorNode)) {
@@ -524,7 +526,7 @@ export default function ChapterPage() {
                 const rect = range.getBoundingClientRect();
                 setPopup({
                     x: rect.left + rect.width / 2,
-                    y: rect.top - 10, // Position above the selection
+                    y: rect.top - 10,
                     text: selectedText,
                 });
             } else {
@@ -542,7 +544,6 @@ export default function ChapterPage() {
     const handleComplete = async () => {
         if (!course || !user || !chapter || !unit) return;
 
-        // Immediately mark current chapter as complete
         const courseRef = doc(db, 'courses', courseId as string);
         await updateDoc(courseRef, {
             completedChapters: arrayUnion(chapter.id)
@@ -559,11 +560,9 @@ export default function ChapterPage() {
             return;
         }
 
-        // Set loading state
         setIsGeneratingNext(true);
         setGenerationProgress(0);
 
-        // Generate summary for the current chapter
         let summaryText = 'Great job completing that chapter!';
         if (chapter.content) {
             try {
@@ -580,7 +579,6 @@ export default function ChapterPage() {
         setCurrentSummary(summaryText);
         setGenerationProgress(25);
 
-        // Determine next chapter and unit
         let nextChapter, nextUnit;
         if (!isLastChapterInUnit) {
             nextChapter = unit.chapters[chapterIndex + 1];
@@ -590,7 +588,6 @@ export default function ChapterPage() {
             nextChapter = nextUnit.chapters[0];
         }
 
-        // Generate content for the next chapter
         try {
             const contentResult = await generateChapterContent({
                 courseName: course.name,
@@ -618,7 +615,6 @@ export default function ChapterPage() {
             await updateDoc(courseRef, { units: updatedUnits });
             setGenerationProgress(100);
             
-            // Navigate to the next chapter
             router.push(`/dashboard/courses/${courseId}/${nextChapter.id}`);
             setIsGeneratingNext(false);
 
@@ -626,7 +622,7 @@ export default function ChapterPage() {
             console.error("Failed to generate next chapter:", error);
             toast({ variant: 'destructive', title: 'Could not generate the next chapter.' });
             setIsGeneratingNext(false);
-            router.push(`/dashboard/courses/${courseId}`); // Go back to course page on failure
+            router.push(`/dashboard/courses/${courseId}`);
         }
     };
     
@@ -648,6 +644,41 @@ export default function ChapterPage() {
             setPopup(null);
         }
     }
+
+    const handleHighlight = () => {
+        if (selectionRef.current && selectionRef.current.rangeCount > 0) {
+            const range = selectionRef.current.getRangeAt(0);
+            const span = document.createElement('span');
+            span.style.backgroundColor = 'rgba(250, 243, 131, 0.7)'; // Yellow highlight
+            span.appendChild(range.extractContents());
+            range.insertNode(span);
+        }
+        setPopup(null);
+    };
+
+    const handleSaveAsNote = async () => {
+        if (!popup || !user) return;
+        const noteTitle = `Note from "${chapter?.title}"`;
+        const noteContent = `<blockquote>${popup.text}</blockquote><p>Source: ${course?.name} - ${unit?.title}</p>`;
+
+        try {
+             await addDoc(collection(db, "notes"), {
+                title: noteTitle,
+                content: noteContent,
+                date: serverTimestamp(),
+                color: 'bg-yellow-100 dark:bg-yellow-900/20',
+                isImportant: false,
+                isCompleted: false,
+                userId: user.uid,
+                courseId: course?.id || null,
+                unitId: unit?.id || null,
+            });
+            toast({ title: "Note Saved!", description: "A new note has been created from your selection."});
+        } catch (e) {
+            toast({ variant: 'destructive', title: "Error", description: "Could not save note."});
+        }
+        setPopup(null);
+    };
     
     return (
         <div className="max-w-4xl mx-auto p-4 md:p-8">
@@ -665,10 +696,29 @@ export default function ChapterPage() {
                             zIndex: 1000,
                         }}
                     >
-                        <Button size="sm" onClick={handleAskTaz} className="shadow-lg">
-                            <MessageSquare className="w-4 h-4 mr-2"/>
-                            Ask Taz
-                        </Button>
+                         <DropdownMenu>
+                            <div className="flex items-center rounded-full shadow-lg bg-background border">
+                                <Button size="sm" onClick={handleAskTaz} className="rounded-r-none rounded-l-full pr-2">
+                                    <MessageSquare className="w-4 h-4 mr-2"/>
+                                    Ask Taz
+                                </Button>
+                                <DropdownMenuTrigger asChild>
+                                    <Button size="icon" className="rounded-l-none rounded-r-full h-9 w-9 px-2">
+                                        <ChevronDown className="h-4 w-4" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                            </div>
+                            <DropdownMenuContent align="center">
+                                <DropdownMenuItem onSelect={handleHighlight}>
+                                    <Highlighter className="w-4 h-4 mr-2" />
+                                    Highlight
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onSelect={handleSaveAsNote}>
+                                    <Save className="w-4 h-4 mr-2" />
+                                    Save as Note
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </motion.div>
                 )}
             </AnimatePresence>
