@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { useState, useRef, useEffect } from "react";
@@ -22,8 +20,9 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
+// FIX: Made 'problem' optional to handle image analysis results that might miss this field
 type Solution = {
-    problem: string;
+    problem?: string;
     answer: string;
     steps: string[];
 }
@@ -260,7 +259,8 @@ export default function HomeworkSolverPage() {
                         {solutions.map((solution, s_idx) => (
                              <Card key={s_idx}>
                                 <CardHeader>
-                                    <CardTitle>Problem {s_idx + 1}: {solution.problem}</CardTitle>
+                                    {/* FIX: Added fallback text if 'problem' is undefined */}
+                                    <CardTitle>Problem {s_idx + 1}: {solution.problem || "Scanned Problem"}</CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                      <div className="p-4 bg-primary/10 rounded-lg">

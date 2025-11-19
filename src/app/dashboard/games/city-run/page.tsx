@@ -30,12 +30,12 @@ const GameUI = ({ score, lives, question }: { score: number, lives: number, ques
         </div>
         {question && (
             <motion.div 
-                key={question.question}
+                key={question.questionText}
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="absolute top-16 inset-x-4 max-w-2xl mx-auto bg-black/60 text-white p-4 rounded-xl text-center"
             >
-                <h2 className="text-xl font-bold">{question.question}</h2>
+                <h2 className="text-xl font-bold">{question.questionText}</h2>
             </motion.div>
         )}
     </>
@@ -70,8 +70,8 @@ const CityRunGame = ({ topic }: { topic: string }) => {
         const fetchQuestions = async () => {
             try {
                 const quiz = await generateQuizAction({
-                    topics: topic,
-                    questionType: 'Multiple Choice',
+                    topic: topic,
+                    // FIX: Removed questionType as it is not in the schema
                     difficulty: 'Medium',
                     numQuestions: 10,
                 });
@@ -95,7 +95,7 @@ const CityRunGame = ({ topic }: { topic: string }) => {
         if (!currentQuestion || !currentQuestion.options) return;
 
         const options = [...currentQuestion.options];
-        const correctOption = currentQuestion.answer;
+        const correctOption = currentQuestion.correctAnswer;
         const assignedLanes = shuffle([...LANES]);
 
         const newItems = options.map((opt, i) => ({
@@ -113,7 +113,7 @@ const CityRunGame = ({ topic }: { topic: string }) => {
                 type: 'obstacle',
                 lane: LANES[Math.floor(Math.random() * LANES.length)],
                 y: -200 - (i * 200),
-                text: '', // <-- FIX IS HERE
+                text: '',
             });
         }
         setItems(newItems);

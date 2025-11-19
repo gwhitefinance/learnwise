@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useRef, createContext, useContext } from 'react';
@@ -285,7 +284,8 @@ const InteractiveQuiz = ({ message, onUpdateQuizState }: { message: Message, onU
         // This might happen if the quiz data is malformed
         return <div className="p-4 text-red-500">Error: Could not load question.</div>;
     }
-    const isCorrect = selectedAnswer === currentQuestion.answer;
+    // FIX 1: Changed .answer to .correctAnswer
+    const isCorrect = selectedAnswer === currentQuestion.correctAnswer;
 
     const handleAnswerSelect = (answer: string) => {
         if (isSubmitted) return;
@@ -326,12 +326,13 @@ const InteractiveQuiz = ({ message, onUpdateQuizState }: { message: Message, onU
             </div>
             <p className="font-semibold mb-4">{currentQuestion.questionText}</p>
             <div className="space-y-3">
-                {currentQuestion.options.map((option, index) => (
+                {currentQuestion.options?.map((option, index) => (
                     <Label 
                         key={index} 
                         className={cn(
                             "flex items-center gap-3 p-3 rounded-lg border cursor-pointer",
-                            isSubmitted && option === currentQuestion.answer && "border-green-500 bg-green-500/10",
+                            // FIX 2: Changed .answer to .correctAnswer
+                            isSubmitted && option === currentQuestion.correctAnswer && "border-green-500 bg-green-500/10",
                             isSubmitted && selectedAnswer === option && !isCorrect && "border-red-500 bg-red-500/10",
                             !isSubmitted && selectedAnswer === option && "border-primary bg-primary/10",
                             !isSubmitted && "hover:bg-background"
@@ -339,7 +340,8 @@ const InteractiveQuiz = ({ message, onUpdateQuizState }: { message: Message, onU
                     >
                         <RadioGroupItem value={option} onClick={() => handleAnswerSelect(option)} disabled={isSubmitted} />
                         {option}
-                        {isSubmitted && option === currentQuestion.answer && <CheckCircle className="h-5 w-5 text-green-500 ml-auto"/>}
+                        {/* FIX 3: Changed .answer to .correctAnswer */}
+                        {isSubmitted && option === currentQuestion.correctAnswer && <CheckCircle className="h-5 w-5 text-green-500 ml-auto"/>}
                         {isSubmitted && selectedAnswer === option && !isCorrect && <XCircle className="h-5 w-5 text-red-500 ml-auto"/>}
                     </Label>
                 ))}

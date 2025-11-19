@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -129,9 +128,9 @@ export default function BlockPuzzleClientPage() {
         setIsQuestionLoading(true);
         setIsQuestionModalOpen(true);
         try {
+            // FIX: Removed 'questionType' as it doesn't exist in the schema
             const result = await generateQuiz({ 
-                topics: `${course.name} ${Math.random()}`,
-                questionType: 'Multiple Choice',
+                topic: `${course.name} ${Math.random()}`,
                 difficulty: gameMode === 'Adaptive' ? difficulty : gameMode,
                 numQuestions: 1,
             });
@@ -320,7 +319,8 @@ export default function BlockPuzzleClientPage() {
     const handleAnswerSubmit = () => {
         if (!question || !selectedAnswer) return;
 
-        const isCorrect = selectedAnswer === question.answer;
+        // FIX: Changed 'answer' to 'correctAnswer' to match schema
+        const isCorrect = selectedAnswer === question.correctAnswer;
         
         if (isCorrect) {
             toast({ title: "Correct!", description: "+100 bonus points!" });
@@ -330,7 +330,8 @@ export default function BlockPuzzleClientPage() {
                 else if (difficulty === 'Medium') setDifficulty('Hard');
             }
         } else {
-            toast({ variant: 'destructive', title: "Incorrect!", description: `The correct answer was: ${question.answer}` });
+            // FIX: Changed 'answer' to 'correctAnswer' to match schema
+            toast({ variant: 'destructive', title: "Incorrect!", description: `The correct answer was: ${question.correctAnswer}` });
             if (gameMode === 'Adaptive') setDifficulty('Easy');
         }
         setIsQuestionModalOpen(false);
@@ -508,7 +509,8 @@ export default function BlockPuzzleClientPage() {
                         <div className="p-8 text-center">Loading question...</div>
                     ) : (
                         <div className="py-4">
-                            <p className="font-semibold text-lg mb-4">{question.question}</p>
+                            {/* FIX: Changed 'question' to 'questionText' to match schema */}
+                            <p className="font-semibold text-lg mb-4">{question.questionText}</p>
                             <RadioGroup value={selectedAnswer ?? ''} onValueChange={setSelectedAnswer}>
                                 <div className="space-y-2">
                                     {question.options?.map((option, index) => (

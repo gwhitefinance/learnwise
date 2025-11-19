@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import React, { useState, useEffect, useRef, useContext, Suspense } from 'react';
@@ -104,7 +102,8 @@ function PracticeQuizComponent() {
     const [isLoading, setIsLoading] = useState(false);
     const [isExplanationLoading, setIsExplanationLoading] = useState(false);
     const [quizState, setQuizState] = useState<QuizState>('start');
-    const [answerState, setAnswerState] = useState<AnswerState>('unanswered' | 'answered');
+    // FIX: Correctly initialized useState with a specific value, not the type union syntax
+    const [answerState, setAnswerState] = useState<AnswerState>('unanswered');
     const [quiz, setQuiz] = useState<GenerateQuizOutput | null>(null);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
@@ -367,29 +366,35 @@ function PracticeQuizComponent() {
             const matchingKeywords = userKeywords.filter(uk => answerKeywords.some(ak => uk.includes(ak) || ak.includes(uk))).length;
             isCorrect = matchingKeywords >= 3;
         } else if (currentQuestion.type === 'Fill in the Blank') {
-            const similarity = (s1: string, s2: string) => {
+            // FIX: Properly typed and separated arithmetic
+            const similarity = (s1: string, s2: string): number => {
                 let longer = s1.toLowerCase();
                 let shorter = s2.toLowerCase();
                 if (s1.length < s2.length) { longer = s2; shorter = s1; }
                 const longerLength = longer.length;
                 if (longerLength === 0) return 1.0;
-                const editDistance = (s1: string, s2: string) => {
+
+                const editDistance = (str1: string, str2: string): number => {
                     const costs: number[] = [];
-                    for (let i = 0; i <= s1.length; i++) {
+                    for (let i = 0; i <= str1.length; i++) {
                         let lastValue = i;
-                        for (let j = 0; j <= s2.length; j++) {
+                        for (let j = 0; j <= str2.length; j++) {
                             if (i === 0) costs[j] = j;
                             else if (j > 0) {
                                 let newValue = costs[j - 1];
-                                if (s1.charAt(i - 1) !== s2.charAt(j - 1)) newValue = Math.min(Math.min(newValue, lastValue), costs[j] ?? Infinity) + 1;
+                                if (str1.charAt(i - 1) !== str2.charAt(j - 1)) {
+                                    newValue = Math.min(Math.min(newValue, lastValue), costs[j] ?? Infinity) + 1;
+                                }
                                 costs[j - 1] = lastValue; lastValue = newValue;
                             }
                         }
-                        if (i > 0) costs[s2.length] = lastValue;
+                        if (i > 0) costs[str2.length] = lastValue;
                     }
-                    return costs[s2.length];
+                    return costs[str2.length];
                 };
-                return (longerLength - editDistance(longer, shorter)) / parseFloat(longerLength.toString());
+
+                const dist = editDistance(longer, shorter);
+                return (longerLength - dist) / parseFloat(longerLength.toString());
             };
             isCorrect = similarity(selectedAnswer, currentQuestion.correctAnswer) >= 0.8;
         } else {
@@ -1139,33 +1144,33 @@ function PracticeQuizComponent() {
                                                 ))}
                                             </div>
                                             </PopoverContent>
-                                        </Popover>
-                                         <Popover>
-                                            <PopoverTrigger asChild>
-                                            <Button variant="outline" size="icon"><Brush /></Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w-40 p-2">
-                                            <Slider
-                                                defaultValue={[brushSize]}
-                                                max={30}
-                                                min={1}
-                                                step={1}
-                                                onValueChange={(value) => setBrushSize(value[0])}
-                                                />
-                                            </PopoverContent>
-                                        </Popover>
-                                         <Button variant="destructive" size="icon" onClick={clearCanvas}>
-                                            <Eraser />
-                                        </Button>
-                                    </div>
-                                    <canvas
-                                        ref={canvasRef}
-                                        className="w-full h-[300px] bg-muted rounded-md border border-dashed"
-                                        onMouseDown={startDrawing}
-                                        onMouseMove={draw}
-                                        onMouseUp={stopDrawing}
-                                        onMouseLeave={stopDrawing}
-                                    />
+                                    </Popover>
+                                     <Popover>
+                                        <PopoverTrigger asChild>
+                                        <Button variant="outline" size="icon"><Brush /></Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-40 p-2">
+                                        <Slider
+                                            defaultValue={[brushSize]}
+                                            max={30}
+                                            min={1}
+                                            step={1}
+                                            onValueChange={(value) => setBrushSize(value[0])}
+                                            />
+                                        </PopoverContent>
+                                    </Popover>
+                                     <Button variant="destructive" size="icon" onClick={clearCanvas}>
+                                        <Eraser />
+                                    </Button>
+                                </div>
+                                <canvas
+                                    ref={canvasRef}
+                                    className="w-full h-[300px] bg-muted rounded-md border border-dashed"
+                                    onMouseDown={startDrawing}
+                                    onMouseMove={draw}
+                                    onMouseUp={stopDrawing}
+                                    onMouseLeave={stopDrawing}
+                                />
                                 </div>
                             </CollapsibleContent>
                         </Collapsible>
@@ -1321,24 +1326,24 @@ function PracticeQuizComponent() {
                                     {isStudyGuideLoading ? (
                                         <div className="flex justify-center items-center h-64"><Loader2 className="w-8 h-8 animate-spin"/></div>
                                     ) : studyGuide ? (
-                                         <div className="space-y-6">
-                                            <div className="p-4 border rounded-lg">
-                                                <h4 className="font-semibold">Summary</h4>
-                                                <p className="text-sm text-muted-foreground">{studyGuide.summary}</p>
+                                             <div className="space-y-6">
+                                                <div className="p-4 border rounded-lg">
+                                                    <h4 className="font-semibold">Summary</h4>
+                                                    <p className="text-sm text-muted-foreground">{studyGuide.summary}</p>
+                                                </div>
+                                                <div className="p-4 border rounded-lg">
+                                                    <h4 className="font-semibold">Key Concepts</h4>
+                                                    <ul className="list-disc list-inside mt-2 space-y-2">
+                                                        {studyGuide.keyConcepts.map(c => <li key={c.term}><span className="font-semibold">{c.term}:</span> {c.definition}</li>)}
+                                                    </ul>
+                                                </div>
+                                                 <div className="p-4 border rounded-lg">
+                                                    <h4 className="font-semibold">Study Plan</h4>
+                                                    <ol className="list-decimal list-inside mt-2 space-y-2">
+                                                         {studyGuide.studyPlan.map(s => <li key={s.step}><span className="font-semibold">{s.step}:</span> {s.description}</li>)}
+                                                    </ol>
+                                                </div>
                                             </div>
-                                            <div className="p-4 border rounded-lg">
-                                                <h4 className="font-semibold">Key Concepts</h4>
-                                                <ul className="list-disc list-inside mt-2 space-y-2">
-                                                    {studyGuide.keyConcepts.map(c => <li key={c.term}><span className="font-semibold">{c.term}:</span> {c.definition}</li>)}
-                                                </ul>
-                                            </div>
-                                             <div className="p-4 border rounded-lg">
-                                                <h4 className="font-semibold">Study Plan</h4>
-                                                <ol className="list-decimal list-inside mt-2 space-y-2">
-                                                     {studyGuide.studyPlan.map(s => <li key={s.step}><span className="font-semibold">{s.step}:</span> {s.description}</li>)}
-                                                </ol>
-                                            </div>
-                                        </div>
                                     ) : <p>Could not generate study guide.</p>}
                                 </div>
                                 <DialogFooter>
@@ -1371,29 +1376,3 @@ export default function PracticeQuizPage() {
         </Suspense>
     )
 }
-    
-    
-    
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

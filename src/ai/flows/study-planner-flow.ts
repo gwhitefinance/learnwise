@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview AI study planner flow that returns a complete text response.
@@ -69,13 +68,13 @@ export async function studyPlannerAction(
   // Normalize history: convert "ai" -> "model"
   const normalizedHistory = input.history.map((m) => ({
     ...m,
-    role: m.role === 'ai' ? 'model' : m.role,
+    // Cast to string to bypass TypeScript check, allowing comparison to 'ai'
+    role: (m.role as string) === 'ai' ? 'model' : m.role,
   }));
 
   const systemMessageText = systemPrompt
     .replace('{{courseContext}}', input.courseContext || 'No specific course context provided.')
     .replace('{{learnerType}}', input.learnerType || 'Reading/Writing');
-
 
   const messages = [
     { role: 'system' as const, content: [{ text: systemMessageText }] },
@@ -93,7 +92,7 @@ export async function studyPlannerAction(
   });
 
   const toolRequests = response.toolRequests;
-  if (toolRequests.length > 0) {
+  if (toolRequests && toolRequests.length > 0) {
     return {
       text: response.text,
       tool_requests: toolRequests,

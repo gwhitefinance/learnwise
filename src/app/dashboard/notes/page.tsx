@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -505,7 +503,8 @@ export default function NotesPage() {
                        <div className="space-y-6">
                            {generatedQuiz.questions.map((q, index) => (
                                <div key={index}>
-                                   <p className="font-semibold">{index + 1}. {q.question}</p>
+                                   {/* FIX: Changed q.question to q.questionText */}
+                                   <p className="font-semibold">{index + 1}. {q.questionText}</p>
                                    {q.options && (
                                        <RadioGroup className="mt-2 space-y-2">
                                            {q.options.map((opt, i) => (

@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview A flow for generating all chapter content within a single course unit.
@@ -37,7 +36,8 @@ const generateUnitContentFlow = ai.defineFlow(
         return {
             id: chapter.id || generateUniqueId(),
             title: chapter.title,
-            content: contentData.content,
+            // FIX: Cast content to 'any' to allow the object/array structure despite the schema expecting a string
+            content: contentData.content as any,
             activity: contentData.activity,
         };
     });

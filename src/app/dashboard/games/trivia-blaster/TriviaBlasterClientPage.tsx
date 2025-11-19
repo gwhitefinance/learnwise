@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -90,8 +89,8 @@ export default function TriviaBlasterClientPage() {
         setIsLoading(true);
         try {
             const result = await generateQuiz({
-                topics: `${course.name} ${Math.random()}`,
-                questionType: 'Multiple Choice',
+                topic: `${course.name} ${Math.random()}`,
+                // FIX: Removed 'questionType' property as it doesn't exist in the schema
                 difficulty: gameMode === 'Adaptive' ? difficulty : gameMode,
                 numQuestions: 1,
             });
@@ -109,7 +108,7 @@ export default function TriviaBlasterClientPage() {
                     y: -50 - Math.random() * 300,
                     text: option,
                     width: ctx.measureText(option).width + PADDING,
-                    isCorrect: option === q.answer,
+                    isCorrect: option === q.correctAnswer,
                 }));
                 setAsteroids(newAsteroids);
             } else {
@@ -205,7 +204,7 @@ export default function TriviaBlasterClientPage() {
                         }
                         getNewQuestion();
                     } else {
-                        toast({ variant: 'destructive', title: "Wrong Answer!", description: `The correct answer was: ${question?.answer}` });
+                        toast({ variant: 'destructive', title: "Wrong Answer!", description: `The correct answer was: ${question?.correctAnswer}` });
                         if(gameMode === 'Adaptive') setDifficulty('Easy');
                         setGameOver(true);
                         setGameStarted(false);
@@ -304,7 +303,7 @@ export default function TriviaBlasterClientPage() {
                 <Card className="w-full max-w-4xl p-4 text-center mb-4">
                      <p className="text-xl font-semibold mb-2">Score: {score}</p>
                     {isLoading && <p className="text-muted-foreground animate-pulse">Loading next question...</p>}
-                    {question && !isLoading && <p className="text-lg font-bold">{question.question}</p>}
+                    {question && !isLoading && <p className="text-lg font-bold">{question.questionText}</p>}
                 </Card>
             )}
 

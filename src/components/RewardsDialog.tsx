@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { useState, useEffect, useContext } from 'react';
@@ -98,7 +96,9 @@ export default function RewardsDialog({ streak }: { streak: number }) {
             await updateDoc(userRef, { coins: increment(amount) });
 
             setTimeout(() => {
-                showReward({ type: 'coins', amount });
+                // FIXED: Changed 'coins: amount' to 'amount: amount' to match type definition
+                showReward({ type: 'coins_and_xp', amount: amount, xp: 0 });
+                
                 const todayStr = new Date().toDateString();
                 localStorage.setItem(`lastClaimed_${chest.id}`, todayStr);
                 setClaimedChests(prev => ({ ...prev, [chestId]: true }));
@@ -106,6 +106,7 @@ export default function RewardsDialog({ streak }: { streak: number }) {
             }, 2500); // Show coin amount before closing
 
         } catch (error) {
+            console.error(error);
             toast({ variant: 'destructive', title: 'Error claiming reward.' });
             setOpenedChest(null);
         }

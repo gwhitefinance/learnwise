@@ -1,5 +1,7 @@
-
 'use client';
+
+// Force dynamic rendering to avoid static build issues with auth/browser APIs
+export const dynamic = 'force-dynamic';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -14,7 +16,13 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { generateInitialCourseAndRoadmap } from '@/lib/actions';
 import { collection, query, where, getDocs, doc, updateDoc, addDoc } from 'firebase/firestore';
-import GeneratingCourse from '@/app/dashboard/courses/GeneratingCourse';
+import dynamicComponent from 'next/dynamic';
+
+// Dynamically import GeneratingCourse with SSR disabled to prevent 'document is not defined' errors
+const GeneratingCourse = dynamicComponent(
+  () => import('@/app/dashboard/courses/GeneratingCourse'),
+  { ssr: false }
+);
 
 const questions = [
   {
@@ -155,10 +163,10 @@ export default function LearnerTypeQuizPage() {
                 
                 const { courseOutline, firstChapterContent, roadmap } = result;
 
-                const newUnits = courseOutline.modules.map((module, mIdx) => ({
+                const newUnits = courseOutline.modules.map((module: any, mIdx: number) => ({
                     id: crypto.randomUUID(),
                     title: module.title,
-                    chapters: module.chapters.map((chapter, cIdx) => ({
+                    chapters: module.chapters.map((chapter: any, cIdx: number) => ({
                         id: crypto.randomUUID(),
                         title: chapter.title,
                         ...(mIdx === 0 && cIdx === 0 ? {
@@ -176,8 +184,8 @@ export default function LearnerTypeQuizPage() {
                 const roadmapData = {
                     courseId: course.id,
                     userId: user.uid,
-                    goals: roadmap.goals.map(g => ({ ...g, id: crypto.randomUUID() })),
-                    milestones: roadmap.milestones.map(m => ({ ...m, id: crypto.randomUUID(), completed: false }))
+                    goals: roadmap.goals.map((g: any) => ({ ...g, id: crypto.randomUUID() })),
+                    milestones: roadmap.milestones.map((m: any) => ({ ...m, id: crypto.randomUUID(), completed: false }))
                 };
                 await addDoc(collection(db, 'roadmaps'), roadmapData);
             }

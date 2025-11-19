@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useCallback, useRef, useContext } from 'react';
@@ -266,7 +265,9 @@ export default function CoursePage() {
                     question: currentQuestion.questionText,
                     userAnswer,
                     correctAnswer: currentQuestion.correctAnswer,
-                    learnerType: "Reading/Writing" // Default for simplicity here
+                    learnerType: "Reading/Writing", // Default for simplicity here
+                    // FIX: Added the required provideFullExplanation property
+                    provideFullExplanation: true 
                 });
                 explanationText = result.explanation;
             } catch (e) {

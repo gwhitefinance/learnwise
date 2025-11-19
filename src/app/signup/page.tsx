@@ -1,8 +1,6 @@
-
-
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -65,8 +63,8 @@ const TestimonialGrid = () => {
     );
 };
 
-
-export default function SignUpPage() {
+// Defines the inner content that uses useSearchParams
+function SignUpContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
@@ -307,4 +305,17 @@ export default function SignUpPage() {
       </motion.div>
     </div>
   )
+}
+
+// Wraps the content in a Suspense boundary to satisfy Next.js requirements
+export default function SignUpPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex items-center justify-center min-h-screen bg-gray-800">
+                <Loader2 className="animate-spin text-white h-10 w-10" />
+            </div>
+        }>
+            <SignUpContent />
+        </Suspense>
+    );
 }

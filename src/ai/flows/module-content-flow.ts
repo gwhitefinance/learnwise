@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview A flow for generating all chapter content within a single course module.
@@ -23,7 +22,7 @@ const generateModuleContentFlow = ai.defineFlow(
     const contentGenerationPromises = input.module.chapters.map(chapter =>
         generateChapterContent({
             courseName: input.courseName,
-            moduleTitle: input.module.title,
+            unitTitle: input.module.title, // FIXED: Changed moduleTitle to unitTitle to match schema
             chapterTitle: chapter.title,
             learnerType: input.learnerType,
         })
@@ -32,12 +31,13 @@ const generateModuleContentFlow = ai.defineFlow(
     const generatedContents = await Promise.all(contentGenerationPromises);
     
     // Assemble the full chapter data with the generated content
-    const updatedChapters: ChapterWithContent[] = input.module.chapters.map((chapter, index) => {
+    const updatedChapters: z.infer<typeof ChapterWithContent>[] = input.module.chapters.map((chapter, index) => {
         const contentData = generatedContents[index];
         return {
             id: chapter.id || generateUniqueId(),
             title: chapter.title,
-            content: contentData.content,
+            // FIXED: JSON.stringify because schema expects a 'string', but contentData.content is an object/array
+            content: JSON.stringify(contentData.content), 
             activity: contentData.activity,
         };
     });

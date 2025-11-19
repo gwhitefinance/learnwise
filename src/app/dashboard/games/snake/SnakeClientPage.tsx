@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -85,8 +84,9 @@ export default function SnakeClientPage() {
         gameState.current.isPaused = true;
         try {
             const result = await generateQuiz({ 
-                topics: `${course.name} ${Math.random()}`,
-                questionType: 'Multiple Choice',
+                // FIX 1: Changed 'topics' to 'topic'
+                topic: `${course.name} ${Math.random()}`,
+                // FIX 2: Removed questionType (not in schema)
                 difficulty: gameMode === 'Adaptive' ? difficulty : gameMode,
                 numQuestions: 1,
             });
@@ -228,7 +228,8 @@ export default function SnakeClientPage() {
     const handleAnswerSubmit = () => {
         if (!question || !selectedAnswer || !question.options) return;
 
-        const isCorrect = selectedAnswer === question.answer;
+        // FIX 3: Changed 'answer' to 'correctAnswer'
+        const isCorrect = selectedAnswer === question.correctAnswer;
         setIsQuestionModalOpen(false);
         setSelectedAnswer(null);
 
@@ -240,7 +241,8 @@ export default function SnakeClientPage() {
             }
             setCountdown(3);
         } else {
-            toast({ variant: 'destructive', title: "Incorrect!", description: `The correct answer was: ${question.answer}. Game Over.` });
+            // FIX 3 (Toast): Changed 'answer' to 'correctAnswer'
+            toast({ variant: 'destructive', title: "Incorrect!", description: `The correct answer was: ${question.correctAnswer}. Game Over.` });
             if (gameMode === 'Adaptive') setDifficulty('Easy');
             setGameOver(true);
             setGameStarted(false);
@@ -331,7 +333,8 @@ export default function SnakeClientPage() {
                         <div className="p-8 text-center">Loading question...</div>
                     ) : (
                         <div className="py-4">
-                            <p className="font-semibold text-lg mb-4">{question.question}</p>
+                            {/* FIX 4: Changed 'question' to 'questionText' */}
+                            <p className="font-semibold text-lg mb-4">{question.questionText}</p>
                             <RadioGroup value={selectedAnswer ?? ''} onValueChange={setSelectedAnswer}>
                                 <div className="space-y-2">
                                     {question.options?.map((option, index) => (

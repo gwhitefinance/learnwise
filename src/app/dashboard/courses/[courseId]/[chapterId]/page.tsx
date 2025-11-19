@@ -1,15 +1,13 @@
-
-
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef, useContext } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { doc, onSnapshot, getDoc, updateDoc, arrayUnion, collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { ArrowLeft, Check, Loader2, X, CheckCircle, XCircle } from 'lucide-react';
+import { ArrowLeft, Check, Loader2, X, CheckCircle, XCircle, MessageSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
@@ -19,10 +17,11 @@ import { Progress } from '@/components/ui/progress';
 import { generateQuizFromNote, generateFlashcardsFromNote, generateCrunchTimeStudyGuide, generateExplanation, generateSummary, generateChapterContent } from '@/lib/actions';
 import type { QuizQuestion } from '@/ai/schemas/quiz-schema';
 import AIBuddy from '@/components/ai-buddy';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import Link from 'next/link';
+import { FloatingChatContext } from '@/components/floating-chat';
 
 type ChapterContentBlock = {
     type: 'text' | 'question';
@@ -35,7 +34,8 @@ type ChapterContentBlock = {
 type Chapter = {
     id: string;
     title: string;
-    content?: ChapterContentBlock[];
+    // FIX: Added "| string" here so TypeScript knows content can be a string before parsing
+    content?: ChapterContentBlock[] | string;
     activity?: string;
 };
 
@@ -435,6 +435,7 @@ export default function ChapterPage() {
     const params = useParams();
     const router = useRouter();
     const { courseId, chapterId } = params;
+    const { openChatWithPrompt } = useContext(FloatingChatContext) as any;
 
     const [user, authLoading] = useAuthState(auth);
     const { toast } = useToast();
@@ -448,6 +449,10 @@ export default function ChapterPage() {
     const [isGeneratingNext, setIsGeneratingNext] = useState(false);
     const [currentSummary, setCurrentSummary] = useState('');
     const [generationProgress, setGenerationProgress] = useState(0);
+
+    // State for the highlight popup
+    const [popup, setPopup] = useState<{ x: number, y: number, text: string } | null>(null);
+    const contentRef = useRef<HTMLDivElement>(null);
 
 
     useEffect(() => {
@@ -509,8 +514,29 @@ export default function ChapterPage() {
             }
             setLoading(false);
         });
+        
+        const handleMouseUp = () => {
+            const selection = window.getSelection();
+            const selectedText = selection?.toString().trim();
 
-        return () => unsubscribe();
+            if (selection && selectedText && contentRef.current?.contains(selection.anchorNode)) {
+                const range = selection.getRangeAt(0);
+                const rect = range.getBoundingClientRect();
+                setPopup({
+                    x: rect.left + rect.width / 2,
+                    y: rect.top - 10, // Position above the selection
+                    text: selectedText,
+                });
+            } else {
+                setPopup(null);
+            }
+        };
+
+        document.addEventListener('mouseup', handleMouseUp);
+        return () => {
+            unsubscribe();
+            document.removeEventListener('mouseup', handleMouseUp);
+        };
     }, [courseId, chapterId, user, authLoading, router, toast]);
 
     const handleComplete = async () => {
@@ -616,8 +642,36 @@ export default function ChapterPage() {
         return <ModuleQuiz course={course} unit={unit} />;
     }
     
+    const handleAskTaz = () => {
+        if(popup) {
+            openChatWithPrompt(`Explain this to me: "${popup.text}"`);
+            setPopup(null);
+        }
+    }
+    
     return (
         <div className="max-w-4xl mx-auto p-4 md:p-8">
+             <AnimatePresence>
+                {popup && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 10, scale: 0.9 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 10, scale: 0.9 }}
+                        style={{
+                            position: 'fixed',
+                            left: popup.x,
+                            top: popup.y,
+                            transform: 'translate(-50%, -100%)',
+                            zIndex: 1000,
+                        }}
+                    >
+                        <Button size="sm" onClick={handleAskTaz} className="shadow-lg">
+                            <MessageSquare className="w-4 h-4 mr-2"/>
+                            Ask Taz
+                        </Button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
             <Button variant="ghost" onClick={() => router.push(`/dashboard/courses/${courseId}`)} className="mb-4">
                 <ArrowLeft className="mr-2 h-4 w-4"/>
                 Back to Course
@@ -625,7 +679,9 @@ export default function ChapterPage() {
             <h1 className="text-4xl font-bold mb-2">{chapter.title}</h1>
             <p className="text-muted-foreground mb-8">From course: {course?.name}</p>
 
-            <ChapterContentDisplay chapter={chapter} />
+            <div ref={contentRef}>
+                <ChapterContentDisplay chapter={chapter} />
+            </div>
             
             <Button onClick={handleComplete} size="lg" className="w-full mt-12">
                 <Check className="mr-2 h-5 w-5"/>

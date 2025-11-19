@@ -470,11 +470,19 @@ export default function NoteEditorPage() {
         setIsChatLoading(true);
     
         try {
+          // FIX: Map history to API format (role: 'model' | 'user')
+          const apiHistory = [...chatHistory, userMessage].map(m => ({
+              role: m.role === 'ai' ? 'model' : 'user' as 'model' | 'user',
+              content: m.content
+          }));
+
           const response = await studyPlannerAction({
-            history: [...chatHistory, userMessage],
+            history: apiHistory,
             courseContext: editorRef.current?.innerText || '', // Use innerText for context
           });
-          const aiMessage: Message = { role: 'ai', content: response.text, id: crypto.randomUUID() };
+
+          // FIX: Ensure content is string (handle undefined)
+          const aiMessage: Message = { role: 'ai', content: response.text || "", id: crypto.randomUUID() };
           setChatHistory(prev => [...prev, aiMessage]);
     
         } catch (error) {

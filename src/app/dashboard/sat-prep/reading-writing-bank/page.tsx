@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -28,7 +27,8 @@ type Question = {
 
 export default function ReadingWritingBankPage() {
     const router = useRouter();
-    const [questions, setQuestions] = useState<Question[]>(questionBank.questions);
+    // FIX 1: Added 'as Question[]' to cast the JSON data to the correct type
+    const [questions, setQuestions] = useState<Question[]>(questionBank.questions as Question[]);
     const [answers, setAnswers] = useState<Record<string, string>>({});
     const [explanations, setExplanations] = useState<Record<string, string>>({});
     const [explanationLoading, setExplanationLoading] = useState<Record<string, boolean>>({});
@@ -36,7 +36,8 @@ export default function ReadingWritingBankPage() {
     const { toast } = useToast();
 
     useEffect(() => {
-        let filteredQuestions = questionBank.questions;
+        // FIX 2: Added 'as Question[]' here as well so the filter logic knows the types match
+        let filteredQuestions = questionBank.questions as Question[];
 
         if (filters.difficulty !== 'all') {
             filteredQuestions = filteredQuestions.filter(q => q.difficulty === filters.difficulty);
@@ -80,7 +81,7 @@ export default function ReadingWritingBankPage() {
         'Hard': 'bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300',
     };
 
-    const topics = [...new Set(questionBank.questions.map(q => q.topic))];
+    const topics = [...new Set((questionBank.questions as Question[]).map(q => q.topic))];
 
     return (
         <div className="max-w-4xl mx-auto p-4 md:p-8 space-y-6">

@@ -45,6 +45,14 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useRouter, useParams } from 'next/navigation'; 
 import Loading from './loading';
 
+// FIX 1: Defined the missing GenerateQuizInput type
+type GenerateQuizInput = {
+  topic: string;
+  difficulty: string;
+  questionCount: number;
+  questionType: string;
+};
+
 interface Message {
   id: string;
   role: 'user' | 'ai';
@@ -452,11 +460,20 @@ export default function NoteEditorPage() {
         setIsChatLoading(true);
     
         try {
+          // FIX 2 & 3: Map local role ('ai'/'user') to API role ('model'/'user') and strip extra fields
+          const historyForApi = [...chatHistory, userMessage].map(msg => ({
+            role: msg.role === 'ai' ? 'model' : 'user' as 'model' | 'user',
+            content: msg.content
+          }));
+
           const response = await studyPlannerAction({
-            history: [...chatHistory, userMessage],
-            courseContext: editorRef.current?.innerText || '', // Use innerText for context
+            history: historyForApi,
+            // FIX 4: Explicitly handle undefined to ensure a string is passed
+            courseContext: editorRef.current?.innerText || '', 
           });
-          const aiMessage: Message = { role: 'ai', content: response.text, id: crypto.randomUUID() };
+          
+          // FIX 4: Fallback for response.text
+          const aiMessage: Message = { role: 'ai', content: response.text || '', id: crypto.randomUUID() };
           setChatHistory(prev => [...prev, aiMessage]);
     
         } catch (error) {

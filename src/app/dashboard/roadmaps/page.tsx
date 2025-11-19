@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -225,9 +223,9 @@ export default function RoadmapsPage() {
         setIsChallengeLoading(true);
 
         try {
+            // FIX: Removed 'questionType' which caused the error
             const result = await generateQuizAction({
-                topics: `${milestone.title}: ${milestone.description}`,
-                questionType: 'Multiple Choice',
+                topic: `${milestone.title}: ${milestone.description}`,
                 difficulty: 'Hard',
                 numQuestions: 5,
             });
@@ -245,12 +243,12 @@ export default function RoadmapsPage() {
     const handleChallengeAnswer = async () => {
         if (!challengeQuiz || selectedChallengeAnswer === null || !user) return;
         const currentQuestion = challengeQuiz.questions[currentChallengeQuestionIndex];
-        const isCorrect = selectedChallengeAnswer.toLowerCase() === currentQuestion.answer.toLowerCase();
+        const isCorrect = selectedChallengeAnswer.toLowerCase() === currentQuestion.correctAnswer.toLowerCase();
     
         const answerFeedback: AnswerFeedback = {
-            question: currentQuestion.question,
+            question: currentQuestion.questionText,
             answer: selectedChallengeAnswer,
-            correctAnswer: currentQuestion.answer,
+            correctAnswer: currentQuestion.correctAnswer,
             isCorrect: isCorrect,
         };
         
@@ -273,9 +271,9 @@ export default function RoadmapsPage() {
             setExplanation(null);
             try {
                  const explanationResult = await generateExplanation({
-                    question: `In a quiz about "${challengeMilestone?.title}", the user answered the question "${currentQuestion.question}" with "${selectedChallengeAnswer}", but the correct answer was "${currentQuestion.answer}". Explain why their answer was incorrect and suggest what specific concepts they should review before trying again.`,
+                    question: `In a quiz about "${challengeMilestone?.title}", the user answered the question "${currentQuestion.questionText}" with "${selectedChallengeAnswer}", but the correct answer was "${currentQuestion.correctAnswer}". Explain why their answer was incorrect and suggest what specific concepts they should review before trying again.`,
                     userAnswer: selectedChallengeAnswer,
-                    correctAnswer: currentQuestion.answer,
+                    correctAnswer: currentQuestion.correctAnswer,
                     learnerType: (learnerType as any) ?? 'Unknown',
                     provideFullExplanation: true,
                 });
@@ -519,12 +517,12 @@ export default function RoadmapsPage() {
                            <div className="text-center">
                                 <p className="text-muted-foreground mb-2">Question {currentChallengeQuestionIndex + 1} of {challengeQuiz.questions.length}</p>
                                 <Progress value={((currentChallengeQuestionIndex + 1) / challengeQuiz.questions.length) * 100} className="mb-4 h-2"/>
-                                <h3 className="text-xl font-bold">{challengeQuiz.questions[currentChallengeQuestionIndex].question}</h3>
+                                <h3 className="text-xl font-bold">{challengeQuiz.questions[currentChallengeQuestionIndex].questionText}</h3>
                           </div>
                            <RadioGroup value={selectedChallengeAnswer ?? ''} onValueChange={setSelectedChallengeAnswer} disabled={answerState === 'answered'}>
                               <div className="space-y-3">
                                   {challengeQuiz.questions[currentChallengeQuestionIndex].options?.map((option, index) => {
-                                      const isCorrect = option.toLowerCase() === challengeQuiz.questions[currentChallengeQuestionIndex].answer.toLowerCase();
+                                      const isCorrect = option.toLowerCase() === challengeQuiz.questions[currentChallengeQuestionIndex].correctAnswer.toLowerCase();
                                       return (
                                       <Label key={index} htmlFor={`c-opt-${index}`} className={cn(
                                           "flex items-center gap-3 p-4 rounded-lg border hover:bg-muted cursor-pointer transition-colors",
