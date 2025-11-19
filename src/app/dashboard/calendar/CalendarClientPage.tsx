@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useEffect, useRef, ChangeEvent } from "react";
@@ -96,8 +95,8 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
 
 
 export default function CalendarClientPage() {
-  const [isLoaded, setIsLoaded] = useState(false)
-  const [showAIPopup, setShowAIPopup] = useState(false)
+  const [currentDate, setCurrentDate] = useState<Date | null>(null);
+  const [showAIPopup, setShowAIPopup] = useState(false);
   const [typedText, setTypedText] = useState("")
   const [isPlaying, setIsPlaying] = useState(false)
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
@@ -114,11 +113,9 @@ export default function CalendarClientPage() {
   
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   
-  // State for AI Buddy customizations
   const [customizations, setCustomizations] = useState<Record<string, string>>({});
 
 
-  // New/Edit Event Dialog State
   const [isEventDialogOpen, setEventDialogOpen] = useState(false);
   const [isSavingEvent, setIsSavingEvent] = useState(false);
   const [eventForm, setEventForm] = useState({
@@ -134,21 +131,18 @@ export default function CalendarClientPage() {
     reminderMinutes: 10,
   });
 
-  // Settings dialog
   const [isSettingsOpen, setSettingsOpen] = useState(false);
   const [tempEventTypes, setTempEventTypes] = useState(eventTypes);
 
-  // Date state
-  const [currentDate, setCurrentDate] = useState<Date | null>(null);
-  const [isDateInitialized, setIsDateInitialized] = useState(false);
-
-  // Google Calendar Integration
+  const [currentView, setCurrentView] = useState("week")
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
+  
   const searchParams = useSearchParams();
   const [isGCalConnected, setIsGCalConnected] = useState(false);
 
   useEffect(() => {
+    // This ensures date-dependent logic runs only on the client
     setCurrentDate(new Date());
-    setIsDateInitialized(true);
   }, []);
 
    useEffect(() => {
@@ -170,7 +164,6 @@ export default function CalendarClientPage() {
             setEvents(userEvents);
             userEvents.forEach(scheduleReminder);
 
-            // Show AI popup after 3 seconds if there are no events
             if(userEvents.length === 0) {
                 const popupTimer = setTimeout(() => {
                   setShowAIPopup(true)
@@ -183,7 +176,6 @@ export default function CalendarClientPage() {
     
     fetchEvents();
 
-    setIsLoaded(true);
     const storedLearnerType = localStorage.getItem('learnerType');
     if (storedLearnerType) {
         setLearnerType(storedLearnerType);
@@ -217,7 +209,6 @@ export default function CalendarClientPage() {
   const scheduleReminder = (event: Event) => {
     if (typeof window === 'undefined' || !('Notification' in window) || Notification.permission !== 'granted' || event.reminderMinutes <= 0) return;
 
-    // Clear any existing reminder for this event
     const existingReminder = reminders.find(r => r.id === event.id);
     if (existingReminder) {
         clearTimeout(existingReminder.timeoutId);
@@ -234,13 +225,11 @@ export default function CalendarClientPage() {
           body: `Starts at ${event.startTime}. Location: ${event.location}`,
           icon: '/logo.png' 
         });
-        // Remove reminder once it has fired
         setReminders(prev => prev.filter(r => r.id !== event.id));
       }, reminderTime - now);
       
       const newReminder = { id: event.id, fireTime: reminderTime, title: event.title, timeoutId };
-      const updatedReminders = [...reminders.filter(r => r.id !== event.id), newReminder];
-      setReminders(updatedReminders);
+      setReminders(prev => [...prev.filter(r => r.id !== event.id), newReminder]);
     }
   };
 
@@ -263,11 +252,7 @@ export default function CalendarClientPage() {
     }
   }, [showAIPopup])
 
-  const [currentView, setCurrentView] = useState("week")
   
-  
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
-
   const handleEventClick = (event: Event) => {
     setSelectedEvent(event)
   }
@@ -291,18 +276,6 @@ export default function CalendarClientPage() {
     fileInputRef.current?.click();
   };
 
-  const weekDays = currentDate ? eachDayOfInterval({
-    start: startOfWeek(currentDate),
-    end: endOfWeek(currentDate)
-  }) : [];
-
-  const monthWeeks = currentDate ? eachWeekOfInterval({
-    start: startOfMonth(currentDate),
-    end: endOfMonth(currentDate)
-  }, { weekStartsOn: 0 }) : [];
-
-  const timeSlots = Array.from({ length: 17 }, (_, i) => i + 8) // 8 AM to 12 AM
-
   const calculateEventStyle = (startTime: string, endTime: string) => {
     const start = Number.parseInt(startTime.split(":")[0]) + Number.parseInt(startTime.split(":")[1]) / 60
     const end = Number.parseInt(endTime.split(":")[0]) + Number.parseInt(endTime.split(":")[1]) / 60
@@ -310,17 +283,8 @@ export default function CalendarClientPage() {
     const height = (end - start) * 60
     return { top: `${top}px`, height: `${height}px` }
   }
-
-  const firstDayOfMonth = currentDate ? startOfMonth(currentDate) : new Date();
-  const lastDayOfMonth = currentDate ? endOfMonth(currentDate) : new Date();
-  const daysInMonthArray = currentDate ? eachDayOfInterval({ start: firstDayOfMonth, end: lastDayOfMonth }) : [];
-  const firstDayOffset = currentDate ? getDay(firstDayOfMonth) : 0;
   
-  const miniCalendarDays: (number | null)[] = currentDate ? [
-    ...Array.from({ length: firstDayOffset }, () => null),
-    ...daysInMonthArray.map(day => day.getDate())
-  ] : [];
-
+  const timeSlots = Array.from({ length: 17 }, (_, i) => i + 8) // 8 AM to 12 AM
 
   const togglePlay = () => {
     if (audioRef.current) {
@@ -501,13 +465,38 @@ export default function CalendarClientPage() {
           setCurrentDate(addDays(currentDate, 1));
       }
   };
+
+  // Memoized date calculations
+  const { weekDays, monthWeeks, miniCalendarDays, currentMonthName, currentDayName } = useMemo(() => {
+    if (!currentDate) {
+        return {
+            weekDays: [],
+            monthWeeks: [],
+            miniCalendarDays: [],
+            currentMonthName: '',
+            currentDayName: '',
+        };
+    }
+    const firstDayOfMonth = startOfMonth(currentDate);
+    const lastDayOfMonth = endOfMonth(currentDate);
+    const daysInMonthArray = eachDayOfInterval({ start: firstDayOfMonth, end: lastDayOfMonth });
+    const firstDayOffset = getDay(firstDayOfMonth);
+
+    return {
+        weekDays: eachDayOfInterval({ start: startOfWeek(currentDate), end: endOfWeek(currentDate) }),
+        monthWeeks: eachWeekOfInterval({ start: firstDayOfMonth, end: lastDayOfMonth }, { weekStartsOn: 0 }),
+        miniCalendarDays: [
+            ...Array.from({ length: firstDayOffset }, () => null),
+            ...daysInMonthArray.map(day => day.getDate())
+        ],
+        currentMonthName: format(currentDate, "MMMM yyyy"),
+        currentDayName: format(currentDate, "MMMM d")
+    };
+  }, [currentDate]);
   
   if (!currentDate) {
     return <Loading />;
   }
-
-  const currentMonthName = format(currentDate, "MMMM yyyy");
-  const currentDayName = format(currentDate, "MMMM d");
 
   return (
     <div className={cn("min-h-screen w-full overflow-hidden")}>
@@ -524,7 +513,7 @@ export default function CalendarClientPage() {
 
       <main className="relative h-screen w-full flex bg-background">
         <div
-          className={`w-64 h-full ${bgClass} p-4 shadow-xl border-r ${borderClass} opacity-0 ${isLoaded ? "animate-fade-in" : ""} flex flex-col justify-between`}
+          className={`w-64 h-full ${bgClass} p-4 shadow-xl border-r ${borderClass} opacity-0 ${currentDate ? "animate-fade-in" : ""} flex flex-col justify-between`}
           style={{ animationDelay: "0.4s" }}
         >
           <div>
@@ -625,7 +614,7 @@ export default function CalendarClientPage() {
                   </div>
                 ))}
 
-                {isDateInitialized && miniCalendarDays.map((day, i) => (
+                {miniCalendarDays.map((day, i) => (
                   <div
                     key={i}
                     className={`text-xs rounded-full w-7 h-7 flex items-center justify-center ${
@@ -653,7 +642,7 @@ export default function CalendarClientPage() {
         </div>
 
         <div
-          className={`flex-1 flex flex-col opacity-0 ${isLoaded ? "animate-fade-in" : ""}`}
+          className={`flex-1 flex flex-col opacity-0 ${currentDate ? "animate-fade-in" : ""}`}
           style={{ animationDelay: "0.6s" }}
         >
           <div className={`flex items-center justify-between p-4 border-b ${borderClass}`}>
@@ -736,7 +725,7 @@ export default function CalendarClientPage() {
                               </div>
                           ))}
                       </div>
-                      {isDateInitialized && weekDays.map((day, dayIndex) => (
+                      {weekDays.map((day, dayIndex) => (
                            <div key={dayIndex} className={`border-l ${borderClass} relative`}>
                                <div className={`p-2 text-center border-b ${borderClass}`}>
                                   <div className={`text-xs ${textMutedClass} font-medium`}>{format(day, 'EEE')}</div>
@@ -778,10 +767,10 @@ export default function CalendarClientPage() {
                           ))}
                       </div>
                       <div className="grid grid-cols-7 flex-1">
-                          {isDateInitialized && Array.from({ length: getDay(startOfMonth(currentDate)) }).map((_, i) => (
+                          {Array.from({ length: getDay(startOfMonth(currentDate)) }).map((_, i) => (
                               <div key={`empty-${i}`} className={`border-r border-b ${borderClass}`}></div>
                           ))}
-                          {isDateInitialized && daysInMonthArray.map((day) => (
+                          {eachDayOfInterval({ start: startOfMonth(currentDate), end: endOfMonth(currentDate) }).map((day) => (
                                <div key={day.toString()} className={`relative p-2 border-r border-b ${borderClass} min-h-[120px]`}>
                                   <div className={`text-sm font-medium ${isToday(day) ? `bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center` : textClass}`}>{format(day, 'd')}</div>
                                   <div className="mt-1 space-y-1">
@@ -793,7 +782,7 @@ export default function CalendarClientPage() {
                                   </div>
                               </div>
                           ))}
-                           {isDateInitialized && Array.from({ length: 6 - getDay(endOfMonth(currentDate)) }).map((_, i) => (
+                           {Array.from({ length: 6 - getDay(endOfMonth(currentDate)) }).map((_, i) => (
                               <div key={`empty-end-${i}`} className={`border-r border-b ${borderClass}`}></div>
                           ))}
                       </div>
