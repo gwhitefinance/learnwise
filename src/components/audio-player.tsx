@@ -1,9 +1,9 @@
 
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { Play, Pause, RotateCcw } from 'lucide-react';
+import { Play, Pause, RotateCcw, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface AudioPlayerProps {
@@ -20,10 +20,16 @@ export default function AudioPlayer({ textToPlay, onBoundary, onEnd }: AudioPlay
 
   useEffect(() => {
     const synth = window.speechSynthesis;
+    // Cancel any ongoing speech when text changes or component unmounts
+    const handleUnload = () => synth.cancel();
+    window.addEventListener('beforeunload', handleUnload);
+
     const utterance = new SpeechSynthesisUtterance(textToPlay);
     
     utterance.onboundary = (event) => {
-        onBoundary(event.charIndex);
+        if (event.name === 'word') {
+            onBoundary(event.charIndex);
+        }
     };
 
     utterance.onend = () => {
@@ -31,20 +37,28 @@ export default function AudioPlayer({ textToPlay, onBoundary, onEnd }: AudioPlay
         setIsPaused(false);
         onEnd();
     };
+    
+    utterance.onerror = (event) => {
+        console.error("Speech synthesis error:", event.error);
+        toast({ variant: 'destructive', title: 'Audio Error', description: `Could not play audio. Error: ${event.error}` });
+        setIsPlaying(false);
+        setIsPaused(false);
+    }
 
     utteranceRef.current = utterance;
 
     return () => {
       synth.cancel();
+      window.removeEventListener('beforeunload', handleUnload);
     };
-  }, [textToPlay, onBoundary, onEnd]);
+  }, [textToPlay, onBoundary, onEnd, toast]);
 
   const handlePlayPause = () => {
     const synth = window.speechSynthesis;
     if (!utteranceRef.current) return;
 
-    if (isPlaying) {
-        if (isPaused) {
+    if (synth.speaking) {
+        if (synth.paused) {
             synth.resume();
             setIsPaused(false);
         } else {
@@ -52,6 +66,10 @@ export default function AudioPlayer({ textToPlay, onBoundary, onEnd }: AudioPlay
             setIsPaused(true);
         }
     } else {
+        // A fix for some browsers that require a fresh utterance object
+        if (utteranceRef.current.text !== textToPlay) {
+            utteranceRef.current.text = textToPlay;
+        }
         synth.speak(utteranceRef.current);
         setIsPlaying(true);
         setIsPaused(false);
@@ -67,7 +85,7 @@ export default function AudioPlayer({ textToPlay, onBoundary, onEnd }: AudioPlay
   }
 
   return (
-    <div className="mb-4 flex items-center gap-2">
+    <div className="mb-4 flex items-center gap-2 not-prose">
       <Button onClick={handlePlayPause} variant="outline" size="sm">
         {isPlaying && !isPaused ? <Pause className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}
         {isPlaying && !isPaused ? 'Pause' : 'Listen'}
