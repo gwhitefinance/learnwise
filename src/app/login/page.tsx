@@ -134,10 +134,8 @@ export default function LoginPage() {
         await handleSuccessfulLogin(result.user);
     } catch (error: any) {
         let description = "An unexpected error occurred. Please try again.";
-        if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-email') {
-            description = "Invalid email. No account found with this email address.";
-        } else if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
-             description = "Invalid credentials. Please check your email and password.";
+        if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-email' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+             description = "Invalid email or password. Please try again.";
         }
         toast({ variant: "destructive", title: "Login failed", description });
     } finally {
