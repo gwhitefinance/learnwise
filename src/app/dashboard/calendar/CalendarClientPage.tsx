@@ -318,7 +318,6 @@ export default function CalendarClientPage() {
                             {timeSlots.map(time => (
                                 <div key={time} className="h-24 border-b" />
                             ))}
-                            {/* Render events for this day */}
                             {events
                                 .filter(e => isEqual(startOfDay(new Date(e.date)), startOfDay(day)))
                                 .map(event => {
@@ -334,8 +333,8 @@ export default function CalendarClientPage() {
                                         <div
                                             key={event.id}
                                             onClick={() => setSelectedEvent(event)}
-                                            style={{ top: `${top}rem`, height: `${height}rem`}}
-                                            className={cn("absolute left-2 right-2 p-2 rounded-lg text-white text-xs cursor-pointer", defaultEventTypes[event.type])}
+                                            style={{ top: `${top}rem`, height: `${height}rem`, minHeight: '2rem' }}
+                                            className={cn("absolute left-2 right-2 p-2 rounded-lg text-white text-xs cursor-pointer overflow-hidden", defaultEventTypes[event.type])}
                                         >
                                             <p className="font-semibold">{event.title}</p>
                                             <p>{event.startTime} - {event.endTime}</p>
@@ -351,9 +350,53 @@ export default function CalendarClientPage() {
       )}
 
       {currentView === 'day' && (
-          <div className="grid flex-1 grid-cols-1 grid-rows-1">
-              {/* Day view implementation needed */}
-          </div>
+        <div className="flex flex-1">
+            <div className="w-20 text-center text-sm text-muted-foreground">
+                <div className="h-20 border-b flex items-end justify-center pb-2">GMT-05</div>
+                {timeSlots.map(time => (
+                    <div key={time} className="h-24 border-b flex justify-center items-start pt-1">
+                        <span>{time.split(':')[0] % 12 === 0 ? 12 : time.split(':')[0] % 12} {parseInt(time.split(':')[0]) >= 12 ? 'PM' : 'AM'}</span>
+                    </div>
+                ))}
+            </div>
+            <div className="grid flex-1 grid-cols-1">
+                <div className="border-r">
+                    <div className="h-20 border-b text-center p-2">
+                        <p className="text-xs text-muted-foreground">{format(currentDate, 'EEE').toUpperCase()}</p>
+                        <p className={cn("text-2xl font-bold", isToday(currentDate) && "text-primary")}>{format(currentDate, 'd')}</p>
+                    </div>
+                    <div className="relative">
+                        {timeSlots.map(time => (
+                            <div key={time} className="h-24 border-b" />
+                        ))}
+                        {events
+                            .filter(e => isEqual(startOfDay(new Date(e.date)), startOfDay(currentDate)))
+                            .map(event => {
+                                const startHour = parseInt(event.startTime.split(':')[0]);
+                                const startMinute = parseInt(event.startTime.split(':')[1]);
+                                const endHour = parseInt(event.endTime.split(':')[0]);
+                                const endMinute = parseInt(event.endTime.split(':')[1]);
+
+                                const top = (startHour + startMinute / 60) * 6; // 6rem per hour (h-24)
+                                const height = ((endHour + endMinute / 60) - (startHour + startMinute / 60)) * 6;
+
+                                return (
+                                    <div
+                                        key={event.id}
+                                        onClick={() => setSelectedEvent(event)}
+                                        style={{ top: `${top}rem`, height: `${height}rem`, minHeight: '2rem' }}
+                                        className={cn("absolute left-2 right-2 p-2 rounded-lg text-white text-xs cursor-pointer overflow-hidden", defaultEventTypes[event.type])}
+                                    >
+                                        <p className="font-semibold">{event.title}</p>
+                                        <p>{event.startTime} - {event.endTime}</p>
+                                    </div>
+                                )
+                            })
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
       )}
       </div>
       
