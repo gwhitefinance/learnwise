@@ -11,7 +11,7 @@ import { auth, db } from '@/lib/firebase';
 import { doc, onSnapshot, getDoc, collection, query, where, updateDoc, arrayUnion } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
-import { CheckCircle, Lock, ArrowLeft, Loader2, X, Check, BookMarked, BrainCircuit, MessageSquare, Copy, Lightbulb, Play, Pen, Tag, RefreshCw, PenSquare, PlayCircle, RotateCcw, BookCopy } from 'lucide-react';
+import { CheckCircle, Lock, ArrowLeft, Loader2, X, Check, BookMarked, BrainCircuit, MessageSquare, Copy, Lightbulb, Play, Pen, Tag, RefreshCw, PenSquare, PlayCircle, RotateCcw, BookCopy, Book } from 'lucide-react';
 import { generateUnitContent, generateSummary, generateChapterContent, generateMiniCourse, generateQuizAction, generateExplanation, generateFlashcardsFromUnit } from '@/lib/actions';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
@@ -28,6 +28,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import type { QuizQuestion } from '@/ai/schemas/quiz-schema';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 type Chapter = {
     id: string;
@@ -548,31 +549,58 @@ export default function CoursePage() {
                                 </CardContent>
                             </Card>
                         </div>
-                        <h2 className="text-2xl font-bold leading-tight tracking-[-0.015em] mb-4">My Study Units</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                            {course.units?.map(unit => (
-                                <div key={unit.id} className="flex flex-col gap-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800/50 p-5 transition-shadow hover:shadow-lg">
-                                    <div>
-                                        <p className="text-lg font-bold leading-normal">{unit.title}</p>
-                                        <p className="text-secondary-dark-text dark:text-gray-400 text-sm font-normal leading-normal mt-1 mb-4">{unit.description || `${unit.chapters.length} chapters`}</p>
-                                    </div>
-                                    <div className="flex flex-col gap-2 mt-auto">
-                                        <Button className="w-full justify-start bg-blue-100 hover:bg-blue-200 text-blue-800 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 dark:text-blue-400" onClick={() => openUnit(unit)}>
-                                            <PlayCircle className="mr-2 h-4 w-4"/>
-                                            {completedChaptersCount > 0 ? 'Continue Unit' : 'Start Unit'}
-                                        </Button>
-                                         <Button className="w-full justify-start bg-blue-100 hover:bg-blue-200 text-blue-800 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 dark:text-blue-400" onClick={() => handleFlashcardOpen(unit)} disabled={isGeneratingFlashcards}>
-                                            <Copy className="mr-2 h-4 w-4"/> 
-                                            Start Flashcards
-                                        </Button>
-                                        <hr className="my-2 border-border" />
-                                        <Button className="w-full justify-start" onClick={() => handlePracticeQuizOpen(unit)}>
-                                            <PenSquare className="mr-2 h-4 w-4"/> Take Practice Quiz
-                                        </Button>
-                                    </div>
+                        
+                        <Tabs defaultValue="units" className="w-full">
+                            <TabsList>
+                                <TabsTrigger value="units">My Study Units</TabsTrigger>
+                                <TabsTrigger value="guides">My Study Guides</TabsTrigger>
+                            </TabsList>
+                            <TabsContent value="units" className="pt-4">
+                                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                                    {course.units?.map(unit => (
+                                        <div key={unit.id} className="flex flex-col gap-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800/50 p-5 transition-shadow hover:shadow-lg">
+                                            <div>
+                                                <p className="text-lg font-bold leading-normal">{unit.title}</p>
+                                                <p className="text-secondary-dark-text dark:text-gray-400 text-sm font-normal leading-normal mt-1 mb-4">{unit.description || `${unit.chapters.length} chapters`}</p>
+                                            </div>
+                                            <div className="flex flex-col gap-2 mt-auto">
+                                                <Button className="w-full justify-start bg-blue-100 hover:bg-blue-200 text-blue-800 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 dark:text-blue-400" onClick={() => openUnit(unit)}>
+                                                    <PlayCircle className="mr-2 h-4 w-4"/>
+                                                    {completedChaptersCount > 0 ? 'Continue Unit' : 'Start Unit'}
+                                                </Button>
+                                                <Button className="w-full justify-start bg-blue-100 hover:bg-blue-200 text-blue-800 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 dark:text-blue-400" onClick={() => handleFlashcardOpen(unit)} disabled={isGeneratingFlashcards}>
+                                                    <Copy className="mr-2 h-4 w-4"/> 
+                                                    Start Flashcards
+                                                </Button>
+                                                <hr className="my-2 border-border" />
+                                                <Button className="w-full justify-start" onClick={() => handlePracticeQuizOpen(unit)}>
+                                                    <PenSquare className="mr-2 h-4 w-4"/> Take Practice Quiz
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
-                            ))}
-                        </div>
+                            </TabsContent>
+                            <TabsContent value="guides" className="pt-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                                    {studyGuides.length > 0 ? (
+                                        studyGuides.map(guide => (
+                                            <Card key={guide.id} className="flex flex-col">
+                                                <CardHeader>
+                                                    <CardTitle className="flex items-center gap-2"><BookCopy className="h-5 w-5"/> {guide.title}</CardTitle>
+                                                </CardHeader>
+                                                <CardFooter className="mt-auto">
+                                                    <Button variant="outline" className="w-full">View Guide</Button>
+                                                </CardFooter>
+                                            </Card>
+                                        ))
+                                    ) : (
+                                        <p className="col-span-full text-center text-muted-foreground py-16">No study guides created for this course yet.</p>
+                                    )}
+                                </div>
+                            </TabsContent>
+                        </Tabs>
+
                     </div>
                     <aside className="w-full lg:w-72 xl:w-80 lg:sticky top-24 self-start flex-shrink-0">
                         <div className="space-y-6">
@@ -596,22 +624,7 @@ export default function CoursePage() {
                                     </Button>
                                 </CardContent>
                             </Card>
-                             <Card>
-                                <CardHeader>
-                                    <CardTitle>Study Guides</CardTitle>
-                                </CardHeader>
-                                <CardContent className="space-y-2">
-                                    {studyGuides.length > 0 ? (
-                                        studyGuides.map(guide => (
-                                            <Button key={guide.id} variant="ghost" className="w-full justify-start gap-2">
-                                                <BookCopy className="h-4 w-4"/> {guide.title}
-                                            </Button>
-                                        ))
-                                    ) : (
-                                        <p className="text-sm text-muted-foreground text-center p-4">No study guides for this course yet.</p>
-                                    )}
-                                </CardContent>
-                            </Card>
+                            
                             <Card>
                                 <CardHeader>
                                     <div className="flex justify-between items-center">
