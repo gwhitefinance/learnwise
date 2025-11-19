@@ -553,9 +553,9 @@ export default function CoursePage() {
                         <div className="flex justify-center mb-6">
                             <Tabs defaultValue="units" className="w-full">
                                 <div className="flex justify-center">
-                                    <TabsList className="h-auto p-2">
-                                        <TabsTrigger value="units" className="text-base px-6 py-2">My Study Units</TabsTrigger>
-                                        <TabsTrigger value="guides" className="text-base px-6 py-2">My Study Guides</TabsTrigger>
+                                    <TabsList className="bg-blue-500/10 p-1 rounded-full">
+                                        <TabsTrigger value="units" className="px-4 py-1.5 text-sm rounded-full data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-md">My Study Units</TabsTrigger>
+                                        <TabsTrigger value="guides" className="px-4 py-1.5 text-sm rounded-full data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-md">My Study Guides</TabsTrigger>
                                     </TabsList>
                                 </div>
                                 <TabsContent value="units" className="pt-4">
