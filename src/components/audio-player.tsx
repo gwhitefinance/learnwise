@@ -3,82 +3,77 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Play, StopCircle, Loader2 } from 'lucide-react';
+import { Play, Pause, RotateCcw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { generateSpeechFlow } from '@/lib/actions';
 
 interface AudioPlayerProps {
   textToPlay: string;
+  onBoundary: (charIndex: number) => void;
+  onEnd: () => void;
 }
 
-export default function AudioPlayer({ textToPlay }: AudioPlayerProps) {
+export default function AudioPlayer({ textToPlay, onBoundary, onEnd }: AudioPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [audioUrl, setAudioUrl] = useState<string | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [isPaused, setIsPaused] = useState(false);
+  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    // Clean up the audio element when the component unmounts or text changes
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
-      if (audioUrl) {
-        URL.revokeObjectURL(audioUrl);
-      }
-    };
-  }, [textToPlay, audioUrl]);
-
-  const handlePlayPause = async () => {
-    if (isPlaying) {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0;
-      }
-      setIsPlaying(false);
-      return;
-    }
+    const synth = window.speechSynthesis;
+    const utterance = new SpeechSynthesisUtterance(textToPlay);
     
-    if (audioUrl && audioRef.current) {
-        audioRef.current.play();
-        setIsPlaying(true);
-        return;
-    }
+    utterance.onboundary = (event) => {
+        onBoundary(event.charIndex);
+    };
 
-    setIsLoading(true);
-    try {
-      const { audioUrl: newAudioUrl } = await generateSpeechFlow({ text: textToPlay });
-      if (newAudioUrl) {
-        setAudioUrl(newAudioUrl);
-        const audio = new Audio(newAudioUrl);
-        audioRef.current = audio;
-        audio.play();
-        audio.onended = () => setIsPlaying(false);
+    utterance.onend = () => {
+        setIsPlaying(false);
+        setIsPaused(false);
+        onEnd();
+    };
+
+    utteranceRef.current = utterance;
+
+    return () => {
+      synth.cancel();
+    };
+  }, [textToPlay, onBoundary, onEnd]);
+
+  const handlePlayPause = () => {
+    const synth = window.speechSynthesis;
+    if (!utteranceRef.current) return;
+
+    if (isPlaying) {
+        if (isPaused) {
+            synth.resume();
+            setIsPaused(false);
+        } else {
+            synth.pause();
+            setIsPaused(true);
+        }
+    } else {
+        synth.speak(utteranceRef.current);
         setIsPlaying(true);
-      } else {
-        throw new Error("Audio URL was not generated.");
-      }
-    } catch (error) {
-      console.error('Speech generation or playback error', error);
-      toast({ variant: 'destructive', title: 'Could not play audio.' });
-    } finally {
-        setIsLoading(false);
+        setIsPaused(false);
     }
   };
 
+  const handleReset = () => {
+      const synth = window.speechSynthesis;
+      synth.cancel();
+      setIsPlaying(false);
+      setIsPaused(false);
+      onEnd();
+  }
+
   return (
-    <div className="mb-2">
-      <Button onClick={handlePlayPause} variant="outline" size="sm" disabled={isLoading}>
-        {isLoading ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-        ) : isPlaying ? (
-          <StopCircle className="mr-2 h-4 w-4" />
-        ) : (
-          <Play className="mr-2 h-4 w-4" />
-        )}
-        {isLoading ? 'Generating...' : isPlaying ? 'Stop' : 'Listen'}
+    <div className="mb-4 flex items-center gap-2">
+      <Button onClick={handlePlayPause} variant="outline" size="sm">
+        {isPlaying && !isPaused ? <Pause className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}
+        {isPlaying && !isPaused ? 'Pause' : 'Listen'}
+      </Button>
+      <Button onClick={handleReset} variant="ghost" size="sm">
+          <RotateCcw className="mr-2 h-4 w-4"/> Reset
       </Button>
     </div>
   );

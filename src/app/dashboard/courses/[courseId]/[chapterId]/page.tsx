@@ -68,6 +68,7 @@ const ChapterContentDisplay = ({ chapter }: { chapter: Chapter }) => {
     const [contentBlocks, setContentBlocks] = useState<ChapterContentBlock[]>([]);
     const [userAnswers, setUserAnswers] = useState<Record<number, string>>({});
     const [submittedAnswers, setSubmittedAnswers] = useState<Record<number, boolean>>({});
+    const [currentHighlight, setCurrentHighlight] = useState({ blockIndex: -1, charIndex: -1 });
 
     useEffect(() => {
         let parsedContent: ChapterContentBlock[] = [];
@@ -75,7 +76,6 @@ const ChapterContentDisplay = ({ chapter }: { chapter: Chapter }) => {
             parsedContent = chapter.content;
         } else if (typeof chapter.content === 'string') {
             try {
-                // Try parsing if it's a JSON string
                 const parsed = JSON.parse(chapter.content);
                 if (Array.isArray(parsed)) {
                     parsedContent = parsed;
@@ -83,13 +83,11 @@ const ChapterContentDisplay = ({ chapter }: { chapter: Chapter }) => {
                     throw new Error('Not an array');
                 }
             } catch (e) {
-                // If parsing fails, treat it as a single text block
                 parsedContent = [{ type: 'text', content: chapter.content }];
             }
         }
         setContentBlocks(parsedContent);
     }, [chapter]);
-
 
     const handleAnswerChange = (questionIndex: number, answer: string) => {
         setUserAnswers(prev => ({...prev, [questionIndex]: answer}));
@@ -101,19 +99,63 @@ const ChapterContentDisplay = ({ chapter }: { chapter: Chapter }) => {
     
     const fullTextContent = contentBlocks.map(block => block.content || block.question).join(' ');
 
+    const handleBoundary = (charIndex: number) => {
+        let cumulativeLength = 0;
+        for (let i = 0; i < contentBlocks.length; i++) {
+            const blockContent = contentBlocks[i].content || contentBlocks[i].question || '';
+            if (charIndex >= cumulativeLength && charIndex < cumulativeLength + blockContent.length) {
+                setCurrentHighlight({ blockIndex: i, charIndex: charIndex - cumulativeLength });
+                return;
+            }
+            cumulativeLength += blockContent.length + 1; // +1 for the space joiner
+        }
+    };
+    
+    const handleEnd = () => {
+        setCurrentHighlight({ blockIndex: -1, charIndex: -1 });
+    };
+
+    const renderHighlightedText = (text: string, highlightIndex: number) => {
+        if (highlightIndex === -1) return text;
+    
+        let wordStartIndex = text.lastIndexOf(' ', highlightIndex) + 1;
+        let wordEndIndex = text.indexOf(' ', highlightIndex);
+        if (wordEndIndex === -1) wordEndIndex = text.length;
+
+        const before = text.substring(0, wordStartIndex);
+        const word = text.substring(wordStartIndex, wordEndIndex);
+        const after = text.substring(wordEndIndex);
+
+        return (
+            <>
+                {before}
+                <span className="bg-yellow-200 dark:bg-yellow-700/50 rounded">{word}</span>
+                {after}
+            </>
+        );
+    };
+
 
     return (
         <div className="py-4 space-y-8 prose dark:prose-invert max-w-none">
-            <AudioPlayer textToPlay={fullTextContent} />
+            <AudioPlayer textToPlay={fullTextContent} onBoundary={handleBoundary} onEnd={handleEnd} />
             {contentBlocks.map((block, index) => (
                 <div key={index}>
-                    {block.type === 'text' && (
-                        <p>{block.content}</p>
+                    {block.type === 'text' && block.content && (
+                        <p>
+                            {currentHighlight.blockIndex === index
+                                ? renderHighlightedText(block.content, currentHighlight.charIndex)
+                                : block.content}
+                        </p>
                     )}
                     {block.type === 'question' && (
                         <Card className="bg-muted/50 my-6">
                             <CardContent className="p-6">
-                                <p className="font-semibold mb-4">{block.question}</p>
+                                <p className="font-semibold mb-4">
+                                     {currentHighlight.blockIndex === index
+                                        ? renderHighlightedText(block.question!, currentHighlight.charIndex)
+                                        : block.question}
+                                </p>
                                 <RadioGroup 
                                     value={userAnswers[index]} 
                                     onValueChange={(val) => handleAnswerChange(index, val)}
@@ -839,3 +881,4 @@ export default function ChapterPage() {
         </div>
     )
 }
+
