@@ -32,6 +32,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuSubContent,
   DropdownMenuPortal,
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
 type ChapterContentBlock = {
@@ -818,5 +819,3 @@ export default function ChapterPage() {
         </div>
     )
 }
-
-    
