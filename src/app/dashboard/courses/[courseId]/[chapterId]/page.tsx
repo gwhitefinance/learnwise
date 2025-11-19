@@ -752,11 +752,19 @@ export default function ChapterPage() {
 
     const handleHighlight = (colorClass: string) => {
         if (selectionRef.current && selectionRef.current.rangeCount > 0) {
-            const range = selectionRef.current.getRangeAt(0);
-            const span = document.createElement('mark');
-            span.className = colorClass;
-            span.appendChild(range.extractContents());
-            range.insertNode(span);
+            try {
+                const range = selectionRef.current.getRangeAt(0);
+                if (!contentRef.current?.contains(range.commonAncestorContainer)) return;
+                
+                const mark = document.createElement('mark');
+                mark.className = colorClass;
+                mark.appendChild(range.extractContents());
+                range.insertNode(mark);
+                selectionRef.current.removeAllRanges();
+            } catch (error) {
+                console.error("Highlighting failed:", error);
+                toast({ variant: "destructive", title: "Highlighting failed", description: "Please try highlighting a smaller selection." });
+            }
         }
         setPopup(null);
     };
@@ -807,7 +815,7 @@ export default function ChapterPage() {
                             zIndex: 1000,
                         }}
                     >
-                         <DropdownMenu>
+                         <DropdownMenu onOpenChange={(open) => !open && setPopup(null)}>
                             <div className="flex items-center rounded-full shadow-lg bg-background border">
                                 <Button size="sm" onClick={handleAskTaz} className="rounded-r-none rounded-l-full pr-2">
                                     <MessageSquare className="w-4 h-4 mr-2"/>
@@ -829,7 +837,7 @@ export default function ChapterPage() {
                                         <DropdownMenuSubContent>
                                             {highlightColors.map(color => (
                                                 <DropdownMenuItem key={color.class} onSelect={() => handleHighlight(color.class)}>
-                                                    <div className={`w-4 h-4 mr-2 rounded-full ${color.class.replace('highlight-', 'bg-')}/70 border border-${color.class.split('-')[1]}-400`}/> {color.name}
+                                                    <div className={`w-4 h-4 mr-2 rounded-full ${color.class.replace('highlight-', 'bg-')}-300 border border-${color.class.split('-')[1]}-400`}/> {color.name}
                                                 </DropdownMenuItem>
                                             ))}
                                         </DropdownMenuSubContent>
@@ -881,4 +889,3 @@ export default function ChapterPage() {
         </div>
     )
 }
-
