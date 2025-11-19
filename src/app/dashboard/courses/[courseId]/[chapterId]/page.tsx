@@ -30,7 +30,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuSub,
   DropdownMenuSubTrigger,
-  DropdownMenuSubContent,
   DropdownMenuPortal,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
@@ -465,12 +464,10 @@ export default function ChapterPage() {
     const selectionRef = useRef<Selection | null>(null);
 
     const handleContextMenu = (e: React.MouseEvent) => {
-        e.preventDefault();
         const target = e.target as HTMLElement;
         if (target.tagName === 'MARK') {
+             e.preventDefault();
             setContextMenu({ x: e.clientX, y: e.clientY, target });
-        } else {
-            setContextMenu(null);
         }
     };
 
@@ -489,12 +486,15 @@ export default function ChapterPage() {
     }
     
     useEffect(() => {
-        const handleClickOutside = () => {
-            setContextMenu(null);
+        const handleClickOutside = (e: MouseEvent) => {
+            if (contextMenu) {
+                // Check if the click is outside the context menu before closing
+                 setContextMenu(null);
+            }
         };
         document.addEventListener('click', handleClickOutside);
         return () => document.removeEventListener('click', handleClickOutside);
-    }, []);
+    }, [contextMenu]);
 
     useEffect(() => {
         if (!user || !courseId || !chapterId) {
@@ -554,7 +554,14 @@ export default function ChapterPage() {
             setLoading(false);
         });
         
-        const handleMouseUp = () => {
+        const handleMouseUp = (e: MouseEvent) => {
+            // Prevent popup from showing if we just opened a context menu
+            const target = e.target as HTMLElement;
+            if (target.tagName === 'MARK') {
+                 if (popup) setPopup(null);
+                return;
+            }
+
             // Close context menu on any mouse up
             if (contextMenu) {
                 setContextMenu(null);
@@ -582,7 +589,7 @@ export default function ChapterPage() {
             unsubscribe();
             document.removeEventListener('mouseup', handleMouseUp);
         };
-    }, [courseId, chapterId, user, authLoading, router, toast, contextMenu]);
+    }, [courseId, chapterId, user, authLoading, router, toast, contextMenu, popup]);
 
     const handleComplete = async () => {
         if (!course || !user || !chapter || !unit) return;
